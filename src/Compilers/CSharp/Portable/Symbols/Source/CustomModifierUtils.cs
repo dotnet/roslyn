@@ -63,7 +63,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (sourceType.IsTupleType)
             {
-                // PROTOTYPE(tuples) this check/case should be removed once tuple metadata encoding is implemented
                 ImmutableArray<bool> flags = CSharpCompilation.DynamicTransformsEncoder.EncodeWithoutCustomModifierFlags(destinationType, refKind);
                 TypeSymbol resultType = DynamicTypeDecoder.TransformTypeWithoutCustomModifierFlags(sourceType, containingAssembly, refKind, flags);
 

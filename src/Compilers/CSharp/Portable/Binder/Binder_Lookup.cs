@@ -715,8 +715,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 }
 
-                // PROTOTYPE(tuples): consider taking this out of the loop. tuples are always at the end of hierarchy
-                // PROTOTYPE(tuples): match this in other lookups
                 var tuple = currentType as TupleTypeSymbol;
                 if ((object)tuple != null)
                 {
@@ -1531,8 +1529,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case TypeKind.Dynamic:
                     this.AddMemberLookupSymbolsInfoInClass(result, type, options, originalBinder, type);
                     break;
-
-                    //PROTOTYPE(tuples): add special handling for tuple types - we need to collect both tuple members and from the underlying.
 
                 case TypeKind.Submission:
                     this.AddMemberLookupSymbolsInfoInSubmissions(result, type, options, originalBinder);

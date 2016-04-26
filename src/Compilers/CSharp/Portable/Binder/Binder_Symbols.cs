@@ -412,6 +412,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var argumentType = BindType(argumentSyntax.Type, diagnostics);
                 types.Add(argumentType);
 
+                if (argumentType.IsRestrictedType())
+                {
+                    Error(diagnostics, ErrorCode.ERR_FieldCantBeRefAny, argumentSyntax, argumentType);
+                }
+
                 string name = argumentSyntax.Name?.Identifier.ValueText;
 
                 // validate name if we have one
@@ -432,7 +437,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeSymbol> typesArray = types.ToImmutableAndFree();
             if (typesArray.Length < 2)
             {
-                // PROTOTYPE(tuples):
                 return new ExtendedErrorTypeSymbol(this.Compilation.Assembly.GlobalNamespace, LookupResultKind.NotCreatable, diagnostics.Add(ErrorCode.ERR_TupleTooFewElements, syntax.Location));
             }
 
