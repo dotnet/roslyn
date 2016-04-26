@@ -29,24 +29,23 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
     }
 
-    [CompilerTrait(CompilerFeature.LocalFunctions)]
-    public class LocalFunctionTests : CSharpTestBase
+    public class LocalFunctionsTestBase : CSharpTestBase
     {
         internal static readonly CSharpParseOptions DefaultParseOptions = TestOptions.Regular.WithLocalFunctionsFeature();
 
-        private CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options)
+        internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options)
         {
             var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: options, parseOptions: DefaultParseOptions);
             return CompileAndVerify(comp, expectedOutput: output).VerifyDiagnostics(); // no diagnostics
         }
 
-        private CompilationVerifier VerifyOutput(string source, string output)
+        internal CompilationVerifier VerifyOutput(string source, string output)
         {
             var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: TestOptions.ReleaseExe, parseOptions: DefaultParseOptions);
             return CompileAndVerify(comp, expectedOutput: output).VerifyDiagnostics(); // no diagnostics
         }
 
-        private CompilationVerifier VerifyOutputInMain(string methodBody, string output, params string[] usings)
+        internal CompilationVerifier VerifyOutputInMain(string methodBody, string output, params string[] usings)
         {
             for (var i = 0; i < usings.Length; i++)
             {
@@ -64,18 +63,22 @@ class Program
             return VerifyOutput(source, output);
         }
 
-        private void VerifyDiagnostics(string source, params DiagnosticDescription[] expected)
+        internal void VerifyDiagnostics(string source, params DiagnosticDescription[] expected)
         {
             var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: TestOptions.ReleaseExe, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(expected);
         }
 
-        private void VerifyDiagnostics(string source, CSharpCompilationOptions options, params DiagnosticDescription[] expected)
+        internal void VerifyDiagnostics(string source, CSharpCompilationOptions options, params DiagnosticDescription[] expected)
         {
             var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: options, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(expected);
         }
+    }
 
+    [CompilerTrait(CompilerFeature.LocalFunctions)]
+    public class LocalFunctionTests : LocalFunctionsTestBase
+    {
         [Fact]
         public void EndToEnd()
         {
@@ -1323,193 +1326,6 @@ y.MoveNext();
 Console.Write(y.Current);
 ";
             VerifyOutputInMain(source, "2", "System", "System.Collections");
-        }
-
-        [Fact]
-        [CompilerTrait(CompilerFeature.Async)]
-        public void AsyncBasic()
-        {
-            var source = @"
-async Task<int> Local()
-{
-    return await Task.FromResult(2);
-}
-Console.Write(Local().Result);
-";
-            VerifyOutputInMain(source, "2", "System", "System.Threading.Tasks");
-        }
-
-        [Fact]
-        public void AsyncParam()
-        {
-            var source = @"
-async Task<int> LocalParam(int x)
-{
-    return await Task.FromResult(x);
-}
-Console.Write(LocalParam(2).Result);
-";
-            VerifyOutputInMain(source, "2", "System", "System.Threading.Tasks");
-        }
-
-        [Fact]
-        [CompilerTrait(CompilerFeature.Async)]
-        public void AsyncGeneric()
-        {
-            var source = @"
-async Task<T> LocalGeneric<T>(T x)
-{
-    return await Task.FromResult(x);
-}
-Console.Write(LocalGeneric(2).Result);
-";
-            VerifyOutputInMain(source, "2", "System", "System.Threading.Tasks");
-        }
-
-        [Fact]
-        [CompilerTrait(CompilerFeature.Async)]
-        public void AsyncVoid()
-        {
-            var source = @"
-// had bug with parser where 'async [keyword]' didn't parse.
-async void LocalVoid()
-{
-    Console.Write(2);
-    await Task.Yield();
-}
-LocalVoid();
-";
-            VerifyOutputInMain(source, "2", "System", "System.Threading.Tasks");
-        }
-
-        [Fact]
-        [CompilerTrait(CompilerFeature.Async)]
-        public void AsyncAwaitAwait()
-        {
-            var source = @"
-Task<int> Fun(int x)
-{
-    return Task.FromResult(x);
-}
-async Task<int> AwaitAwait()
-{
-    var a = Fun(2);
-    await Fun(await a);
-    return await Fun(await a);
-}
-Console.WriteLine(AwaitAwait().Result);
-";
-            VerifyOutputInMain(source, "2", "System", "System.Threading.Tasks");
-        }
-
-        [Fact]
-        [CompilerTrait(CompilerFeature.Async)]
-        public void AsyncKeyword()
-        {
-            var source = @"
-using System;
-
-struct async
-{
-    public override string ToString() => ""2"";
-}
-struct await
-{
-    public override string ToString() => ""2"";
-}
-
-class Program
-{
-    static string A()
-    {
-        async async()
-        {
-            return new async();
-        }
-        return async().ToString();
-    }
-    static string B()
-    {
-        string async()
-        {
-            return ""2"";
-        }
-        return async();
-    }
-    static string C()
-    {
-        async Foo()
-        {
-            return new async();
-        }
-        return Foo().ToString();
-    }
-    static string D()
-    {
-        await Fun(await x)
-        {
-            return x;
-        }
-        return Fun(new await()).ToString();
-    }
-
-    static void Main(string[] args)
-    {
-        Console.WriteLine(A());
-        Console.WriteLine(B());
-        Console.WriteLine(C());
-        Console.WriteLine(D());
-    }
-}
-";
-            var output = @"
-2
-2
-2
-2
-";
-            VerifyOutput(source, output);
-        }
-
-        [Fact]
-        [CompilerTrait(CompilerFeature.Async)]
-        public void AsyncUnsafeKeyword()
-        {
-            var source = @"
-using System;
-using System.Threading.Tasks;
-
-class Program
-{
-    static string A()
-    {
-        async unsafe Task<int> async()
-        {
-            return 2;
-        }
-        return async().Result.ToString();
-    }
-    static string B()
-    {
-        unsafe async Task<int> async()
-        {
-            return 2;
-        }
-        return async().Result.ToString();
-    }
-
-    static void Main(string[] args)
-    {
-        Console.WriteLine(A());
-        Console.WriteLine(B());
-    }
-}
-";
-            var output = @"
-2
-2
-";
-            VerifyOutput(source, output, TestOptions.ReleaseExe.WithAllowUnsafe(true).WithWarningLevel(0));
         }
 
         [Fact]
@@ -3735,7 +3551,7 @@ class Program
         }
 
         [CompilerTrait(CompilerFeature.LocalFunctions, CompilerFeature.Var)]
-        public sealed class VarTests : CSharpTestBase
+        public sealed class VarTests : LocalFunctionsTestBase
         {
             [Fact]
             public void IllegalAsReturn()
@@ -3840,7 +3656,7 @@ class Program
         }
 
         [CompilerTrait(CompilerFeature.LocalFunctions, CompilerFeature.Async)]
-        public sealed class AsyncTests : CSharpTestBase
+        public sealed class AsyncTests : LocalFunctionsTestBase
         {
             [Fact]
             public void RealTypeAsReturn()
@@ -3930,6 +3746,193 @@ class Program
                     comp,
                     expectedOutput: "async");
             }
+
+            [Fact]
+            public void Basic()
+            {
+                var source = @"
+async Task<int> Local()
+{
+    return await Task.FromResult(2);
+}
+Console.Write(Local().Result);
+";
+                VerifyOutputInMain(source, "2", "System", "System.Threading.Tasks");
+            }
+
+            [Fact]
+            public void Param()
+            {
+                var source = @"
+async Task<int> LocalParam(int x)
+{
+    return await Task.FromResult(x);
+}
+Console.Write(LocalParam(2).Result);
+";
+                VerifyOutputInMain(source, "2", "System", "System.Threading.Tasks");
+            }
+
+            [Fact]
+            [CompilerTrait(CompilerFeature.Async)]
+            public void Generic()
+            {
+                var source = @"
+async Task<T> LocalGeneric<T>(T x)
+{
+    return await Task.FromResult(x);
+}
+Console.Write(LocalGeneric(2).Result);
+";
+                VerifyOutputInMain(source, "2", "System", "System.Threading.Tasks");
+            }
+
+            [Fact]
+            [CompilerTrait(CompilerFeature.Async)]
+            public void Void()
+            {
+                var source = @"
+// had bug with parser where 'async [keyword]' didn't parse.
+async void LocalVoid()
+{
+    Console.Write(2);
+    await Task.Yield();
+}
+LocalVoid();
+";
+                VerifyOutputInMain(source, "2", "System", "System.Threading.Tasks");
+            }
+
+            [Fact]
+            [CompilerTrait(CompilerFeature.Async)]
+            public void AwaitAwait()
+            {
+                var source = @"
+Task<int> Fun(int x)
+{
+    return Task.FromResult(x);
+}
+async Task<int> AwaitAwait()
+{
+    var a = Fun(2);
+    await Fun(await a);
+    return await Fun(await a);
+}
+Console.WriteLine(AwaitAwait().Result);
+";
+                VerifyOutputInMain(source, "2", "System", "System.Threading.Tasks");
+            }
+
+            [Fact]
+            [CompilerTrait(CompilerFeature.Async)]
+            public void Keyword()
+            {
+                var source = @"
+using System;
+
+struct async
+{
+    public override string ToString() => ""2"";
+}
+struct await
+{
+    public override string ToString() => ""2"";
+}
+
+class Program
+{
+    static string A()
+    {
+        async async()
+        {
+            return new async();
+        }
+        return async().ToString();
+    }
+    static string B()
+    {
+        string async()
+        {
+            return ""2"";
+        }
+        return async();
+    }
+    static string C()
+    {
+        async Foo()
+        {
+            return new async();
+        }
+        return Foo().ToString();
+    }
+    static string D()
+    {
+        await Fun(await x)
+        {
+            return x;
+        }
+        return Fun(new await()).ToString();
+    }
+
+    static void Main(string[] args)
+    {
+        Console.WriteLine(A());
+        Console.WriteLine(B());
+        Console.WriteLine(C());
+        Console.WriteLine(D());
+    }
+}
+";
+                var output = @"
+2
+2
+2
+2
+";
+                VerifyOutput(source, output);
+            }
+
+            [Fact]
+            [CompilerTrait(CompilerFeature.Async)]
+            public void UnsafeKeyword()
+            {
+                var source = @"
+using System;
+using System.Threading.Tasks;
+
+class Program
+{
+    static string A()
+    {
+        async unsafe Task<int> async()
+        {
+            return 2;
+        }
+        return async().Result.ToString();
+    }
+    static string B()
+    {
+        unsafe async Task<int> async()
+        {
+            return 2;
+        }
+        return async().Result.ToString();
+    }
+
+    static void Main(string[] args)
+    {
+        Console.WriteLine(A());
+        Console.WriteLine(B());
+    }
+}
+";
+                var output = @"
+2
+2
+";
+                VerifyOutput(source, output, TestOptions.ReleaseExe.WithAllowUnsafe(true).WithWarningLevel(0));
+            }
+
         }
     }
 }
