@@ -17,6 +17,18 @@ static void addEmailPublisher(def myJob) {
   }
 }
 
+// Calls a web hook on Jenkins build events.  Allows our build monitoring jobs to be push notified
+// vs. polling
+static void addBuildEventWebHook(def myJob) {
+  myJob.with {
+    notifications {
+      endpoint('https://jaredpar.azurewebsites.net/api/BuildEvent?code=tts2pvyelahoiliwu7lo6flxr8ps9kaip4hyr4m0ofa3o3l3di77tzcdpk22kf9gex5m6cbrcnmi') {
+        event('all')
+      }
+    }
+  }   
+}
+
 // Generates the standard trigger phrases.  This is the regex which ends up matching lines like:
 //  test win32 please
 static String generateTriggerPhrase(String jobName, String opsysName, String triggerKeyword = 'this') {
@@ -42,6 +54,8 @@ static void addRoslynJob(def myJob, String jobName, String branchName, String tr
     Utilities.addGithubPushTrigger(myJob)
     addEmailPublisher(myJob)
   }
+
+  addBuildEventWebHook(myJob)
 }
 
 def branchNames = []
