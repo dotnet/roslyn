@@ -544,6 +544,7 @@ namespace System
                 SystemXmlRef,
                 SystemXmlLinqRef,
                 SystemWindowsFormsRef,
+                ValueTupleRef
             }.Concat(WinRtRefs).ToArray();
             var comp = CreateCompilation("", refs);
 
@@ -557,15 +558,6 @@ namespace System
                         continue;
                     case WellKnownType.System_FormattableString:
                     case WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory:
-                    case WellKnownType.System_ValueTuple_T1:
-                    case WellKnownType.System_ValueTuple_T2:
-                    case WellKnownType.System_ValueTuple_T3:
-                    case WellKnownType.System_ValueTuple_T4:
-                    case WellKnownType.System_ValueTuple_T5:
-                    case WellKnownType.System_ValueTuple_T6:
-                    case WellKnownType.System_ValueTuple_T7:
-                    case WellKnownType.System_ValueTuple_TRest:
-                        // PROTOTYPE(tuples)
                         // Not yet in the platform.
                         continue;
                     case WellKnownType.ExtSentinel:
@@ -593,6 +585,7 @@ namespace System
                 SystemXmlRef,
                 SystemXmlLinqRef,
                 SystemWindowsFormsRef,
+                ValueTupleRef
             }.Concat(WinRtRefs).ToArray();
             var comp = CreateCompilation("", refs);
 
@@ -608,62 +601,7 @@ namespace System
                         // C# can't embed VB core.
                         continue;
                     case WellKnownMember.System_Array__Empty:
-
-                    case WellKnownMember.System_ValueTuple_T1__Item1:
-
-                    case WellKnownMember.System_ValueTuple_T2__Item1:
-                    case WellKnownMember.System_ValueTuple_T2__Item2:
-
-                    case WellKnownMember.System_ValueTuple_T3__Item1:
-                    case WellKnownMember.System_ValueTuple_T3__Item2:
-                    case WellKnownMember.System_ValueTuple_T3__Item3:
-
-                    case WellKnownMember.System_ValueTuple_T4__Item1:
-                    case WellKnownMember.System_ValueTuple_T4__Item2:
-                    case WellKnownMember.System_ValueTuple_T4__Item3:
-                    case WellKnownMember.System_ValueTuple_T4__Item4:
-
-                    case WellKnownMember.System_ValueTuple_T5__Item1:
-                    case WellKnownMember.System_ValueTuple_T5__Item2:
-                    case WellKnownMember.System_ValueTuple_T5__Item3:
-                    case WellKnownMember.System_ValueTuple_T5__Item4:
-                    case WellKnownMember.System_ValueTuple_T5__Item5:
-
-                    case WellKnownMember.System_ValueTuple_T6__Item1:
-                    case WellKnownMember.System_ValueTuple_T6__Item2:
-                    case WellKnownMember.System_ValueTuple_T6__Item3:
-                    case WellKnownMember.System_ValueTuple_T6__Item4:
-                    case WellKnownMember.System_ValueTuple_T6__Item5:
-                    case WellKnownMember.System_ValueTuple_T6__Item6:
-
-                    case WellKnownMember.System_ValueTuple_T7__Item1:
-                    case WellKnownMember.System_ValueTuple_T7__Item2:
-                    case WellKnownMember.System_ValueTuple_T7__Item3:
-                    case WellKnownMember.System_ValueTuple_T7__Item4:
-                    case WellKnownMember.System_ValueTuple_T7__Item5:
-                    case WellKnownMember.System_ValueTuple_T7__Item6:
-                    case WellKnownMember.System_ValueTuple_T7__Item7:
-
-                    case WellKnownMember.System_ValueTuple_TRest__Item1:
-                    case WellKnownMember.System_ValueTuple_TRest__Item2:
-                    case WellKnownMember.System_ValueTuple_TRest__Item3:
-                    case WellKnownMember.System_ValueTuple_TRest__Item4:
-                    case WellKnownMember.System_ValueTuple_TRest__Item5:
-                    case WellKnownMember.System_ValueTuple_TRest__Item6:
-                    case WellKnownMember.System_ValueTuple_TRest__Item7:
-                    case WellKnownMember.System_ValueTuple_TRest__Rest:
-
-                    case WellKnownMember.System_ValueTuple_T1__ctor:
-                    case WellKnownMember.System_ValueTuple_T2__ctor:
-                    case WellKnownMember.System_ValueTuple_T3__ctor:
-                    case WellKnownMember.System_ValueTuple_T4__ctor:
-                    case WellKnownMember.System_ValueTuple_T5__ctor:
-                    case WellKnownMember.System_ValueTuple_T6__ctor:
-                    case WellKnownMember.System_ValueTuple_T7__ctor:
-                    case WellKnownMember.System_ValueTuple_TRest__ctor:
-
-                        // PROTOTYPE(tuples): tuples
-                        //                    Not yet in the platform.
+                        // Not yet in the platform.
                         continue;
                 }
                 if (wkm == WellKnownMember.Count) continue; // Not a real value.

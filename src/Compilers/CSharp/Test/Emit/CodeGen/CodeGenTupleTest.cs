@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using Roslyn.Test.Utilities;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using System;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
@@ -188,6 +188,7 @@ namespace System
     }
 }
 ";
+
         [Fact]
         public void SimpleTuple()
         {
@@ -694,9 +695,9 @@ class C
         (int, int, int, int, int, int, int, int) y = (1, 2, 3, 4, 5, 6, 7, 8, 9);
     }
 }
-" + trivial2uple + trivial3uple + trivalRemainingTuples;
+";
 
-            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature()).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature()).VerifyDiagnostics(
                 // (6,54): error CS0029: Cannot implicitly convert type '(string, int, int, int, int, int, int, int)' to '(int, int, int, int, int, int, int, int)'
                 //         (int, int, int, int, int, int, int, int) x = ("Alice", 2, 3, 4, 5, 6, 7, 8);
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"(""Alice"", 2, 3, 4, 5, 6, 7, 8)").WithArguments("(string, int, int, int, int, int, int, int)", "(int, int, int, int, int, int, int, int)").WithLocation(6, 54),
@@ -1148,9 +1149,9 @@ class C
         (int Item1, int Item01, int Item10) x = (Item01: 1, Item1: 2, Item10: 3);
     }
 }
-" + trivial2uple + trivial3uple + trivalRemainingTuples;
+";
 
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics(
                 // (6,37): error CS8201: Tuple member name 'Item10' is only allowed at position 10.
                 //         (int Item1, int Item01, int Item10) x = (Item01: 1, Item1: 2, Item10: 3);
@@ -1219,9 +1220,9 @@ class C
         (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: ""bad"", Item4: ""bad"", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: ""bad"");
     }
 }
-" + trivial2uple + trivial3uple + trivalRemainingTuples;
+";
 
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics(
                 // (6,28): error CS8201: Tuple member name 'Item3' is only allowed at position 3.
                 //         (int Item1, string Item3, string Item2, int Item4, int Item5, int Item6, int Item7, string Rest) x = (Item2: "bad", Item4: "bad", Item3: 3, Item4: 4, Item5: 5, Item6: 6, Item7: 7, Rest: "bad");
@@ -1289,7 +1290,7 @@ class C
         System.Console.WriteLine($""{x.a} {x.b} {x.c} {x.d} {x.e} {x.f} {x.g} {x.h} {x.i} {x.j} {x.k} {x.l}"");
     }
 }
-" + trivial2uple + trivial3uple + trivalRemainingTuples;
+";
 
             Action<ModuleSymbol> validator = module =>
             {
@@ -1306,7 +1307,7 @@ class C
                     model.GetDeclaredSymbol(x).ToTestDisplayString());
             };
 
-            var verifier = CompileAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5", additionalRefs: new[] { MscorlibRef }, sourceSymbolValidator: validator, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            var verifier = CompileAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5", additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator, parseOptions: TestOptions.Regular.WithTuplesFeature());
             verifier.VerifyDiagnostics();
         }
 
@@ -1409,7 +1410,7 @@ class C
         [Fact]
         public void LongTupleCreation()
         {
-            var source = trivial2uple + trivial3uple + trivalRemainingTuples + @"
+            var source = @"
 class C
 {
     static void Main()
@@ -1436,7 +1437,7 @@ class C
                      model.GetTypeInfo(node).Type.ToTestDisplayString());
             };
 
-            var verifier = CompileAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5 6 7 Bob 2 3", additionalRefs: new[] { MscorlibRef }, sourceSymbolValidator: validator, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            var verifier = CompileAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5 6 7 Bob 2 3", additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator, parseOptions: TestOptions.Regular.WithTuplesFeature());
             verifier.VerifyDiagnostics();
         }
 
@@ -1582,7 +1583,7 @@ class C
         System.Console.WriteLine($""{x.a} {x.b} {x.c} {x.d} {x.e} {x.f} {x.g} {x.h} {x.i} {x.j} {x.k} {x.l} {x.m} {x.n} {x.o} {x.p} {x.q}"");
     }
 }
-" + trivial2uple + trivial3uple + trivalRemainingTuples;
+";
 
             Action<ModuleSymbol> validator = module =>
             {
@@ -1600,7 +1601,7 @@ class C
                      model.GetTypeInfo(node).Type.ToTestDisplayString());
             };
 
-            var verifier = CompileAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5 6 7 Bob 2 3", additionalRefs: new[] { MscorlibRef }, sourceSymbolValidator: validator, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            var verifier = CompileAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5 6 7 Bob 2 3", additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator, parseOptions: TestOptions.Regular.WithTuplesFeature());
             verifier.VerifyDiagnostics();
         }
 
@@ -1621,9 +1622,9 @@ class C
         return i;
     }
 }
-" + trivial2uple + trivial3uple + trivalRemainingTuples;
+";
 
-            var verifier = CompileAndVerify(source, expectedOutput: @"1 4 7 Alice 7 Bob 3", additionalRefs: new[] { MscorlibRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            var verifier = CompileAndVerify(source, expectedOutput: @"1 4 7 Alice 7 Bob 3", additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
             verifier.VerifyDiagnostics();
         }
 
@@ -1639,7 +1640,7 @@ class C
         System.Console.WriteLine($""{x.Rest.Item1} {x.Rest.Item2}"");
     }
 }
-" + trivial2uple + trivial3uple + trivalRemainingTuples;
+";
 
             Action<ModuleSymbol> validator = module =>
             {
@@ -1653,7 +1654,7 @@ class C
                 Assert.Equal("System.ValueTuple<System.String, System.Int32>", model.GetTypeInfo(node).Type.ToTestDisplayString());
             };
 
-            var verifier = CompileAndVerify(source, expectedOutput: @"Alice 1", additionalRefs: new[] { MscorlibRef }, sourceSymbolValidator: validator, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            var verifier = CompileAndVerify(source, expectedOutput: @"Alice 1", additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator, parseOptions: TestOptions.Regular.WithTuplesFeature());
             verifier.VerifyDiagnostics();
         }
 
@@ -1919,9 +1920,9 @@ class C : I
         return (a.Item1.Length, a.Item2.Length);
     }
 }
-" + trivial2uple + trivial3uple + trivalRemainingTuples;
+";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"5 3", parseOptions: TestOptions.Regular.WithTuplesFeature());
+            var comp = CompileAndVerify(source, expectedOutput: @"5 3", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics();
         }
 
@@ -1948,9 +1949,9 @@ class C : I
         return (a.Item1.Length, a.Item2.Length);
     }
 }
-" + trivial2uple + trivial3uple + trivalRemainingTuples;
+";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"5 3", parseOptions: TestOptions.Regular.WithTuplesFeature());
+            var comp = CompileAndVerify(source, expectedOutput: @"5 3", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics();
         }
 
@@ -1977,9 +1978,9 @@ class C : I
         return a;
     }
 }
-" + trivial2uple + trivial3uple + trivalRemainingTuples;
+";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"1 7 8", parseOptions: TestOptions.Regular.WithTuplesFeature());
+            var comp = CompileAndVerify(source, expectedOutput: @"1 7 8", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics();
         }
 
@@ -2006,9 +2007,9 @@ class C : I
         return (a.Item1.Length, a.Item2.Length);
     }
 }
-" + trivial2uple + trivial3uple + trivalRemainingTuples;
+";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"5 3", parseOptions: TestOptions.Regular.WithTuplesFeature());
+            var comp = CompileAndVerify(source, expectedOutput: @"5 3", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics();
         }
 
@@ -2035,9 +2036,9 @@ class C : I
         return new System.ValueTuple<int, int>(a.Item1.Length, a.Item2.Length);
     }
 }
-" + trivial2uple + trivial3uple + trivalRemainingTuples;
+";
 
-            var comp = CompileAndVerify(source, expectedOutput: @"5 3", parseOptions: TestOptions.Regular.WithTuplesFeature());
+            var comp = CompileAndVerify(source, expectedOutput: @"5 3", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics();
         }
 
@@ -2261,7 +2262,7 @@ class C
         [Fact]
         public void Tuple2To8Members()
         {
-            var source = trivial2uple + trivial3uple + trivalRemainingTuples + @"
+            var source = @"
 class C
 {
     static void Main()
@@ -2305,7 +2306,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "12345678901234567890123456789012345", parseOptions: TestOptions.Regular.WithTuplesFeature());
+            var comp = CompileAndVerify(source, expectedOutput: "12345678901234567890123456789012345", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
         }
 
         [Fact]
@@ -2781,9 +2782,9 @@ class C
         System.Console.WriteLine(x.Item1().ToString());
     }
 }
-" + trivial2uple + trivial3uple + trivalRemainingTuples;
+";
 
-            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"
+            var comp = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"
 second
 first
 third
@@ -2827,7 +2828,6 @@ System.Nullable`1[System.ValueTuple`2[System.Int32,System.String]]
         public void TargetTypingNullable02Long()
         {
             var source = @"
-using System;
 class C
 {
     static void Main()
@@ -2848,12 +2848,11 @@ class C
         System.Console.WriteLine(arg);
     }
 }
-" + trivial2uple + trivial3uple + trivalRemainingTuples;
-
-            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"
-1
+";
+            var comp = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput:
+@"1
 8
-System.ValueTuple`8[System.Int32,System.String,System.Int32,System.Int32,System.Int32,System.Int32,System.Int32,System.ValueTuple`3[System.Int32,System.Int32,System.Int32]]
+(1, , 1, 2, 3, 4, 5, (6, 7, 8))
 ");
         }
 
@@ -2861,7 +2860,6 @@ System.ValueTuple`8[System.Int32,System.String,System.Int32,System.Int32,System.
         public void TargetTypingNullableOverload()
         {
             var source = @"
-using System;
 class C
 {
     static void Main()
@@ -2891,9 +2889,9 @@ class C
         System.Console.WriteLine(""fourth"");
     }
 }
-" + trivial2uple + trivial3uple + trivalRemainingTuples;
+";
 
-            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"
+            var comp = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"
 first
 first
 fourth
@@ -2904,7 +2902,6 @@ fourth
         public void TupleConversion01()
         {
             var source = @"
-
 class C
 {
     static void Main()
@@ -2920,16 +2917,16 @@ class C
 }
 " + trivial2uple;
 
-            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature()).VerifyDiagnostics(
-                // (8,29): error CS0029: Cannot implicitly convert type '(long c, long d)' to '(int a, int b)'
+            CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature()).VerifyDiagnostics(
+                // (7,29): error CS0029: Cannot implicitly convert type '(long c, long d)' to '(int a, int b)'
                 //         (int a, int b) x1 = ((long c, long d))(e: 1, f:2);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "((long c, long d))(e: 1, f:2)").WithArguments("(long c, long d)", "(int a, int b)").WithLocation(8, 29),
-                // (10,33): error CS0029: Cannot implicitly convert type '(int c, int d)' to '(short a, short b)'
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "((long c, long d))(e: 1, f:2)").WithArguments("(long c, long d)", "(int a, int b)").WithLocation(7, 29),
+                // (9,33): error CS0029: Cannot implicitly convert type '(int c, int d)' to '(short a, short b)'
                 //         (short a, short b) x2 = ((int c, int d))(e: 1, f:2);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "((int c, int d))(e: 1, f:2)").WithArguments("(int c, int d)", "(short a, short b)").WithLocation(10, 33),
-                // (13,29): error CS0030: Cannot convert type '(int e, string f)' to '(long c, long d)'
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "((int c, int d))(e: 1, f:2)").WithArguments("(int c, int d)", "(short a, short b)").WithLocation(9, 33),
+                // (12,29): error CS0030: Cannot convert type '(int e, string f)' to '(long c, long d)'
                 //         (int a, int b) x3 = ((long c, long d))(e: 1, f:"qq");
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, @"((long c, long d))(e: 1, f:""qq"")").WithArguments("(int e, string f)", "(long c, long d)").WithLocation(13, 29)
+                Diagnostic(ErrorCode.ERR_NoExplicitConv, @"((long c, long d))(e: 1, f:""qq"")").WithArguments("(int e, string f)", "(long c, long d)").WithLocation(12, 29)
             );
         }
 
@@ -4083,7 +4080,6 @@ class C
 System.String
 w
 ");
-
         }
 
         [Fact]
@@ -4142,5 +4138,87 @@ class C
                 );
         }
 
+        [Fact, WorkItem(10569, "https://github.com/dotnet/roslyn/issues/10569")]
+        public void IncompleteInterfaceMethod()
+        {
+            var source = @"
+public interface MyInterface {
+    (int, int) Foo()
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // (3,21): error CS1002: ; expected
+                //     (int, int) Foo()
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 21),
+                // (3,5): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //     (int, int) Foo()
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2").WithLocation(3, 5)
+                );
+        }
+
+        [Fact]
+        public void ImplementInterface()
+        {
+            var source = @"
+interface I
+{
+    (int Alice, string Bob) M((int x, string y) value);
+    (int Alice, string Bob) P1 { get; }
+}
+class C : I
+{
+    static void Main()
+    {
+        var c = new C();
+        var x = c.M(c.P1);
+        System.Console.WriteLine(x);
+    }
+
+    public (int, string) M((int, string) value)
+    {
+        return value;
+    }
+
+    public (int, string) P1 => (r: 1, s: ""hello"");
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"{1, hello}
+");
+        }
+
+        [Fact]
+        public void ImplementInterfaceExplicitly()
+        {
+            var source = @"
+interface I
+{
+    (int Alice, string Bob) M((int x, string y) value);
+    (int Alice, string Bob) P1 { get; }
+}
+class C : I
+{
+    static void Main()
+    {
+        I c = new C();
+        var x = c.M(c.P1);
+        System.Console.WriteLine(x);
+        System.Console.WriteLine(x.Alice);
+    }
+
+    (int, string) I.M((int, string) value)
+    {
+        return value;
+    }
+
+    public (int, string) P1 => (r: 1, s: ""hello"");
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"{1, hello}
+1");
+        }
     }
 }

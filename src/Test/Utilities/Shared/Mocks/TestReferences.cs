@@ -172,6 +172,23 @@ public static class TestReferences
             }
         }
 
+        public static class ValueTuple
+        {
+            private static PortableExecutableReference s_tuplelib;
+            public static PortableExecutableReference tuplelib
+            {
+                get
+                {
+                    if (s_tuplelib == null)
+                    {
+                        s_tuplelib = AssemblyMetadata.CreateFromImage(TestResources.NetFX.ValueTuple.tuplelib).GetReference(display: "System.ValueTuple.dll");
+                    }
+
+                    return s_tuplelib;
+                }
+            }
+        }
+
         public static class silverlight_v5_0_5_0
         {
             private static PortableExecutableReference s_system;
