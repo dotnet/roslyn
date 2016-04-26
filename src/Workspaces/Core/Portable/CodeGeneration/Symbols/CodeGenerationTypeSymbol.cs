@@ -74,13 +74,11 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
-        public bool IsTupleType
-        {
-            get
-            {
-                return false;
-            }
-        }
+        public bool IsTupleType => false;
+
+        public ImmutableArray<ITypeSymbol> TupleElementTypes => default(ImmutableArray<ITypeSymbol>);
+
+        public ImmutableArray<string> TupleElementNames => default(ImmutableArray<string>);
 
         public new ITypeSymbol OriginalDefinition
         {

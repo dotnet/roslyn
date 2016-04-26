@@ -134,5 +134,20 @@ namespace Microsoft.CodeAnalysis
         /// If false, the symbol does not contain extension methods. 
         /// </summary>
         bool MightContainExtensionMethods { get; }
+
+        /// <summary>
+        /// Returns the types of the elements for types that are tuples.
+        ///
+        /// If this type is not a tuple, then returns default.
+        /// </summary>
+        ImmutableArray<ITypeSymbol> TupleElementTypes { get; }
+
+        /// <summary>
+        /// Returns the friendly-names of the elements for types that are tuples and that have friendly-names.
+        ///
+        /// If this type is not a tuple, then returns default.
+        /// If this type has no friendly-names, then returns default.
+        /// </summary>
+        ImmutableArray<string> TupleElementNames { get; }
     }
 }

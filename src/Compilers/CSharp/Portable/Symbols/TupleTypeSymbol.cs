@@ -1,21 +1,21 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.Cci;
-using Microsoft.CodeAnalysis.RuntimeMembers;
-using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft.Cci;
+using Microsoft.CodeAnalysis.RuntimeMembers;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
     /// A TupleTypeSymbol represents a tuple type, such as (int, byte) or (int a, long b).
     /// </summary>
-    internal sealed class TupleTypeSymbol : NamedTypeSymbol, ITupleTypeSymbol
+    internal sealed class TupleTypeSymbol : NamedTypeSymbol
     {
         private readonly NamedTypeSymbol _underlyingType;
         private readonly ImmutableArray<TupleFieldSymbol> _fields;
@@ -74,9 +74,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal static TupleTypeSymbol Create(
             ImmutableArray<TypeSymbol> elementTypes,
             ImmutableArray<string> elementNames,
-            CSharpSyntaxNode syntax,
-            Binder binder,
-            DiagnosticBag diagnostics
+            CSharpCompilation compilation,
+            CSharpSyntaxNode syntax = null,
+            DiagnosticBag diagnostics = null
             )
         {
             Debug.Assert(elementNames.IsDefault || elementTypes.Length == elementNames.Length);
@@ -87,9 +87,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 throw ExceptionUtilities.Unreachable;
             }
-            NamedTypeSymbol underlyingType = GetTupleUnderlyingType(elementTypes, syntax, binder, diagnostics);
 
-            return new TupleTypeSymbol(underlyingType, elementNames, binder.Compilation.Assembly);
+            NamedTypeSymbol underlyingType = GetTupleUnderlyingType(elementTypes, syntax, compilation, diagnostics);
+
+            return new TupleTypeSymbol(underlyingType, elementNames, compilation.Assembly);
         }
 
         /// <summary>
@@ -268,21 +269,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Produces the underlying ValueTuple corresponding to this list of element types.
+        ///
+        /// Pass a null diagnostic bag and syntax node if you don't care about diagnostics.
         /// </summary>
-        private static NamedTypeSymbol GetTupleUnderlyingType(ImmutableArray<TypeSymbol> elementTypes, CSharpSyntaxNode syntax, Binder binder, DiagnosticBag diagnostics)
+        private static NamedTypeSymbol GetTupleUnderlyingType(ImmutableArray<TypeSymbol> elementTypes, CSharpSyntaxNode syntax, CSharpCompilation compilation, DiagnosticBag diagnostics)
         {
             int numElements = elementTypes.Length;
             int remainder;
             int chainLength = NumberOfValueTuples(numElements, out remainder);
 
             NamedTypeSymbol currentSymbol = default(NamedTypeSymbol);
-            NamedTypeSymbol firstTupleType = binder.GetWellKnownType(GetTupleType(remainder), diagnostics, syntax);
+            NamedTypeSymbol firstTupleType = compilation.GetWellKnownType(GetTupleType(remainder));
+
+            if ((object)diagnostics != null && (object)syntax != null)
+            {
+                Binder.ReportUseSiteDiagnostics(firstTupleType, diagnostics, syntax);
+            }
+
             currentSymbol = firstTupleType.Construct(ImmutableArray.Create(elementTypes, (chainLength - 1) * (RestPosition - 1), remainder));
 
             int loop = chainLength - 1;
             if (loop > 0)
             {
-                NamedTypeSymbol chainedTupleType = binder.GetWellKnownType(GetTupleType(RestPosition), diagnostics, syntax);
+                NamedTypeSymbol chainedTupleType = compilation.GetWellKnownType(GetTupleType(RestPosition));
+
+                if ((object)diagnostics != null && (object)syntax != null)
+                {
+                    Binder.ReportUseSiteDiagnostics(firstTupleType, diagnostics, syntax);
+                }
 
                 do
                 {
@@ -512,6 +526,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         internal bool HasFriendlyNames => _hasFriendlyNames;
+
+        public override ImmutableArray<ITypeSymbol> TupleElementTypes
+        {
+            get
+            {
+                return _fields.SelectAsArray(f => (ITypeSymbol)f.Type);
+            }
+        }
+
+        public override ImmutableArray<string> TupleElementNames
+        {
+            get
+            {
+                if (_hasFriendlyNames)
+                {
+                    return _fields.SelectAsArray(f => f.Name);
+                }
+
+                return default(ImmutableArray<string>);
+            }
+        }
 
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
         {
@@ -906,10 +941,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return _underlyingType.GetUnificationUseSiteDiagnosticRecursive(ref result, owner, ref checkedTypes);
         }
-
-        #endregion
-
-        #region ITupleTypeSymbol Members
 
         #endregion
 

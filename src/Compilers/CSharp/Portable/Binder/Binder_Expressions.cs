@@ -716,7 +716,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (hasNaturalType)
             {
-                tupleTypeOpt = TupleTypeSymbol.Create(elements, elementNamesArray, node, this, diagnostics);
+                tupleTypeOpt = TupleTypeSymbol.Create(elements, elementNamesArray, this.Compilation, node, diagnostics);
             }
 
             return new BoundTupleLiteral(node, elementNamesArray, boundArguments.ToImmutableAndFree(), tupleTypeOpt, hasErrors);

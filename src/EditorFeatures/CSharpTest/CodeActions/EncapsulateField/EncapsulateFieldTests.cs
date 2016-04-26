@@ -1255,5 +1255,89 @@ class C
 }
 ", options: Option(SimplificationOptions.QualifyFieldAccess, true));
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField), Trait(Traits.Feature, Test.Utilities.Traits.Features.Tuples)]
+        public async Task Tuple()
+        {
+            var text = @"
+class C
+{
+    private (int, string) b[|o|]b;
+
+    void M()
+    {
+        var q = bob;
+    }
+}
+";
+
+            var expected = @"
+class C
+{
+    private (int, string) bob;
+
+    public (int, string) Bob
+    {
+        get
+        {
+            return bob;
+        }
+
+        set
+        {
+            bob = value;
+        }
+    }
+
+    void M()
+    {
+        var q = bob;
+    }
+}
+";
+            await TestAsync(text, expected, compareTokens: false, index: 1, parseOptions: TestOptions.Regular.WithTuplesFeature());
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField), Trait(Traits.Feature, Test.Utilities.Traits.Features.Tuples)]
+        public async Task TupleWithNames()
+        {
+            var text = @"
+class C
+{
+    private (int a, string b) b[|o|]b;
+
+    void M()
+    {
+        var q = bob.b;
+    }
+}
+";
+
+            var expected = @"
+class C
+{
+    private (int a, string b) bob;
+
+    public (int a, string b) Bob
+    {
+        get
+        {
+            return bob;
+        }
+
+        set
+        {
+            bob = value;
+        }
+    }
+
+    void M()
+    {
+        var q = bob.b;
+    }
+}
+";
+            await TestAsync(text, expected, compareTokens: false, index: 1, parseOptions: TestOptions.Regular.WithTuplesFeature());
+        }
     }
 }
