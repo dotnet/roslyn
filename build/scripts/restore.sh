@@ -8,7 +8,8 @@ export HOME=$(cd ~ && pwd)
 
 # NuGet often exceeds the limit of open files on Mac
 # https://github.com/NuGet/Home/issues/2163
-if [ "$(uname -s)" == "Darwin" ]
+OS=$(uname -s)
+if [ "$OS" == "Darwin" || "$OS" == "Linux" ]
 then
     ulimit -n 6500
 fi

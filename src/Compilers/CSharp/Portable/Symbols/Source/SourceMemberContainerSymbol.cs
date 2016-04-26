@@ -1297,6 +1297,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _lazyMembersDictionary;
         }
 
+        internal override IEnumerable<Symbol> GetInstanceFieldsAndEvents()
+        {
+            var membersAndInitializers = this.GetMembersAndInitializers();
+            return membersAndInitializers.NonTypeNonIndexerMembers.Where(IsInstanceFieldOrEvent);
+        }
+
         protected void AfterMembersChecks(DiagnosticBag diagnostics)
         {
             if (IsInterface)
@@ -1769,7 +1775,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var type = field.Type;
                     if (((object)type != null) &&
                         (type.TypeKind == TypeKind.Struct) &&
-                        BaseTypeAnalysis.StructDependsOn(type, this) &&
+                        BaseTypeAnalysis.StructDependsOn((NamedTypeSymbol)type, this) &&
                         !type.IsPrimitiveRecursiveStruct()) // allow System.Int32 to contain a field of its own type
                     {
                         // If this is a backing field, report the error on the associated property.

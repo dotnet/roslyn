@@ -68,9 +68,27 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
                 Return GetUnqualifiedSymbolsForLabelContext(context, cancellationToken)
             ElseIf context.SyntaxTree.IsRaiseEventContext(context.Position, context.TargetToken, cancellationToken) Then
                 Return GetUnqualifiedSymbolsForRaiseEvent(context, cancellationToken)
+            ElseIf context.TargetToken.IsKind(SyntaxKind.ForKeyword) Then
+                Dim symbols = GetUnqualifiedSymbolsForExpressionOrStatementContext(context, filterOutOfScopeLocals, cancellationToken) _
+                    .Where(AddressOf IsWritableFieldOrLocal)
+                Return symbols
             End If
 
             Return SpecializedCollections.EmptyEnumerable(Of ISymbol)()
+        End Function
+
+        Private Function IsWritableFieldOrLocal(symbol As ISymbol) As Boolean
+            If symbol.Kind() = SymbolKind.Field Then
+                Dim field = DirectCast(symbol, IFieldSymbol)
+                Return Not field.IsReadOnly AndAlso Not field.IsConst
+            End If
+
+            If symbol.Kind() = SymbolKind.Local Then
+                Dim local = DirectCast(symbol, ILocalSymbol)
+                Return Not local.IsConst
+            End If
+
+            Return False
         End Function
 
         Private Function GetSymbolsForGlobalStatementContext(
