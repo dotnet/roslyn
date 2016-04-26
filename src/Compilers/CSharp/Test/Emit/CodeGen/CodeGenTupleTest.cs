@@ -337,6 +337,157 @@ class C
         }
 
         [Fact]
+        public void SimpleTupleNew2()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var x = new (int a, int b)(1, 2);
+        System.Console.WriteLine(x.a.ToString());
+
+        var x1 = new (int a, int b)(1, 2) { a = 3, Item2 = 4};
+        System.Console.WriteLine(x1.a.ToString());
+
+        var x2 = new (int a, (int b, int c) d)(1, new (int, int)(2, 3)) { a = 5, d = {b = 6, c = 7}};
+        System.Console.WriteLine(x2.a.ToString());
+        System.Console.WriteLine(x2.d.b.ToString());
+        System.Console.WriteLine(x2.d.c.ToString());
+
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"
+1
+3
+5
+6
+7");
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size      184 (0xb8)
+  .maxstack  4
+  .locals init (System.ValueTuple<int, int> V_0, //x
+                System.ValueTuple<int, int> V_1, //x1
+                System.ValueTuple<int, (int b, int c)> V_2, //x2
+                System.ValueTuple<int, int> V_3,
+                System.ValueTuple<int, (int b, int c)> V_4)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  ldc.i4.2
+  IL_0004:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  ldflda     ""int System.ValueTuple<int, int>.Item1""
+  IL_0010:  call       ""string int.ToString()""
+  IL_0015:  call       ""void System.Console.WriteLine(string)""
+  IL_001a:  ldloca.s   V_3
+  IL_001c:  ldc.i4.1
+  IL_001d:  ldc.i4.2
+  IL_001e:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_0023:  ldloca.s   V_3
+  IL_0025:  ldc.i4.3
+  IL_0026:  stfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_002b:  ldloca.s   V_3
+  IL_002d:  ldc.i4.4
+  IL_002e:  stfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_0033:  ldloc.3
+  IL_0034:  stloc.1
+  IL_0035:  ldloca.s   V_1
+  IL_0037:  ldflda     ""int System.ValueTuple<int, int>.Item1""
+  IL_003c:  call       ""string int.ToString()""
+  IL_0041:  call       ""void System.Console.WriteLine(string)""
+  IL_0046:  ldloca.s   V_4
+  IL_0048:  ldc.i4.1
+  IL_0049:  ldc.i4.2
+  IL_004a:  ldc.i4.3
+  IL_004b:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_0050:  call       ""System.ValueTuple<int, (int b, int c)>..ctor(int, (int b, int c))""
+  IL_0055:  ldloca.s   V_4
+  IL_0057:  ldc.i4.5
+  IL_0058:  stfld      ""int System.ValueTuple<int, (int b, int c)>.Item1""
+  IL_005d:  ldloca.s   V_4
+  IL_005f:  ldflda     ""(int b, int c) System.ValueTuple<int, (int b, int c)>.Item2""
+  IL_0064:  ldc.i4.6
+  IL_0065:  stfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_006a:  ldloca.s   V_4
+  IL_006c:  ldflda     ""(int b, int c) System.ValueTuple<int, (int b, int c)>.Item2""
+  IL_0071:  ldc.i4.7
+  IL_0072:  stfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_0077:  ldloc.s    V_4
+  IL_0079:  stloc.2
+  IL_007a:  ldloca.s   V_2
+  IL_007c:  ldflda     ""int System.ValueTuple<int, (int b, int c)>.Item1""
+  IL_0081:  call       ""string int.ToString()""
+  IL_0086:  call       ""void System.Console.WriteLine(string)""
+  IL_008b:  ldloca.s   V_2
+  IL_008d:  ldflda     ""(int b, int c) System.ValueTuple<int, (int b, int c)>.Item2""
+  IL_0092:  ldflda     ""int System.ValueTuple<int, int>.Item1""
+  IL_0097:  call       ""string int.ToString()""
+  IL_009c:  call       ""void System.Console.WriteLine(string)""
+  IL_00a1:  ldloca.s   V_2
+  IL_00a3:  ldflda     ""(int b, int c) System.ValueTuple<int, (int b, int c)>.Item2""
+  IL_00a8:  ldflda     ""int System.ValueTuple<int, int>.Item2""
+  IL_00ad:  call       ""string int.ToString()""
+  IL_00b2:  call       ""void System.Console.WriteLine(string)""
+  IL_00b7:  ret
+}");
+        }
+
+        [WorkItem(10874, "https://github.com/dotnet/roslyn/issues/10874")]
+        [Fact]
+        public void SimpleTupleNew3()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var x0 = new (int a, int b)(1, 2, 3);
+        System.Console.WriteLine(x0.ToString());
+
+        var x1 = new (int, int)(1, 2, 3);
+        System.Console.WriteLine(x1.ToString());
+
+        var x2 = new (int, int)(1, ""2"");
+        System.Console.WriteLine(x2.ToString());
+
+        var x3 = new (int, int)(1);
+        System.Console.WriteLine(x3.ToString());
+
+        var x4 = new (int, int)(1, 1) {a = 1, Item3 = 2} ;
+        System.Console.WriteLine(x3.ToString());
+
+    }
+}
+" + trivial2uple;
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // (6,22): error CS1729: 'ValueTuple<int, int>' does not contain a constructor that takes 3 arguments
+                //         var x0 = new (int a, int b)(1, 2, 3);
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "(int a, int b)").WithArguments("System.ValueTuple<int, int>", "3").WithLocation(6, 22),
+                // (9,22): error CS1729: 'ValueTuple<int, int>' does not contain a constructor that takes 3 arguments
+                //         var x1 = new (int, int)(1, 2, 3);
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "(int, int)").WithArguments("System.ValueTuple<int, int>", "3").WithLocation(9, 22),
+                // (12,36): error CS1503: Argument 2: cannot convert from 'string' to 'int'
+                //         var x2 = new (int, int)(1, "2");
+                Diagnostic(ErrorCode.ERR_BadArgType, @"""2""").WithArguments("2", "string", "int").WithLocation(12, 36),
+                // (15,22): error CS7036: There is no argument given that corresponds to the required formal parameter 'item2' of 'ValueTuple<int, int>.ValueTuple(int, int)'
+                //         var x3 = new (int, int)(1);
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "(int, int)").WithArguments("item2", "System.ValueTuple<int, int>.ValueTuple(int, int)").WithLocation(15, 22),
+                // (18,40): error CS0117: '(int, int)' does not contain a definition for 'a'
+                //         var x4 = new (int, int)(1, 1) {a = 1, Item3 = 2} ;
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "a").WithArguments("(int, int)", "a").WithLocation(18, 40),
+                // (18,47): error CS0117: '(int, int)' does not contain a definition for 'Item3'
+                //         var x4 = new (int, int)(1, 1) {a = 1, Item3 = 2} ;
+                Diagnostic(ErrorCode.ERR_NoSuchMember, "Item3").WithArguments("(int, int)", "Item3").WithLocation(18, 47)
+                );
+        }
+
+        [Fact]
         public void SimpleTuple2()
         {
             var source = @"

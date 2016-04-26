@@ -3932,6 +3932,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var typeContainingConstructors = type;
             if (type.IsTupleType)
             {
+                // in the currentl model (which is subject to change)
+                // tuple "inherits" all the members of the underlying type for lookup purposes
+                // including constructors.
                 typeContainingConstructors = ((TupleTypeSymbol)type).UnderlyingTupleType;
             }
 
