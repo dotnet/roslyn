@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var workspace = project.Solution.Workspace;
                 var language = project.Language;
 
-                if (ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(workspace, language) ||
+                if (!ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(workspace, language) ||
                     !workspace.Options.GetOption(RuntimeOptions.FullSolutionAnalysis))
                 {
                     return false;
