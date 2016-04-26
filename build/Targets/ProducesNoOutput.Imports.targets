@@ -9,7 +9,6 @@
   </PropertyGroup>
   
   <Target Name="CoreCompile" />                               <!-- Prevent Csc from being called -->  
-  <Target Name="CopyFilesToOutputDirectory" />                <!-- Prevent non-existent output from being copied -->
   <Target Name="GenerateTargetFrameworkMonikerAttribute" />   <!-- Don't generate TFM attribute -->  
   <Target Name="RuntimeImplementationProjectOutputGroup" />   <!-- Group always attempts resolve runtime, regardless of <CopyNuGetImplementations>-->
   
