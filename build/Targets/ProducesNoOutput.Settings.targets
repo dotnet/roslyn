@@ -19,7 +19,7 @@
 
   <PropertyGroup Condition="'$(IsPortable)' != 'true'">
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   
 </Project>

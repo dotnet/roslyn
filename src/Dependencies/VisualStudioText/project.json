@@ -7,6 +7,6 @@
     "Microsoft.VisualStudio.Text.UI.Wpf": "14.1.24720"
   },
   "frameworks": {
-    ".NETFramework,Version=v4.5": { }
+    ".NETFramework,Version=v4.6": { }
   }
 }
