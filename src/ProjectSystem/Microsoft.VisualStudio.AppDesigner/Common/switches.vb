@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Text
 Imports Microsoft.VisualStudio.Editors.AppDesInterop
 Imports Microsoft.VisualStudio.Editors.PropertyPages
 Imports VB = Microsoft.VisualBasic
@@ -368,7 +369,7 @@ Namespace Microsoft.VisualStudio.Editors.AppDesCommon
         ''' <returns></returns>
         ''' <remarks></remarks>
         Private Shared Function FormatWin32Message(ByVal msg As System.Windows.Forms.Message) As String
-            Dim str As New Text.StringBuilder()
+            Dim str As New StringBuilder()
             Dim MsgType As String = Nothing
             Select Case msg.Msg
                 Case win.WM_KEYDOWN

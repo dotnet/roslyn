@@ -368,7 +368,7 @@ Namespace Microsoft.VisualStudio.Editors.Common
         ''' <returns></returns>
         ''' <remarks></remarks>
         Private Shared Function FormatWin32Message(ByVal msg As System.Windows.Forms.Message) As String
-            Dim str As New Text.StringBuilder()
+            Dim str As New System.Text.StringBuilder()
             Dim MsgType As String = Nothing
             Select Case msg.Msg
                 Case win.WM_KEYDOWN

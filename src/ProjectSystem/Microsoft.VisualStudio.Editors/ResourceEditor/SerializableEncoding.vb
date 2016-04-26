@@ -46,7 +46,7 @@ Namespace Microsoft.VisualStudio.Editors.ResourceEditor
         Private Sub New(ByVal info As System.Runtime.Serialization.SerializationInfo, ByVal context As System.Runtime.Serialization.StreamingContext)
             Dim EncodingName As String = info.GetString(s_KEY_NAME)
             If EncodingName <> "" Then
-                _encoding = Text.Encoding.GetEncoding(EncodingName)
+                _encoding = System.Text.Encoding.GetEncoding(EncodingName)
             End If
         End Sub
 

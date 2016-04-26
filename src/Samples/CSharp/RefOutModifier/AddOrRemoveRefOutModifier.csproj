@@ -37,6 +37,11 @@
       <Project>{EDC68A0E-C68D-4A74-91B7-BF38EC909888}</Project>
       <Name>Microsoft.CodeAnalysis.Features</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\Dependencies\Composition\Composition.csproj">
+      <Project>{A57DDFE5-AB0E-4371-98E5-11B9218DF11C}</Project>
+      <Name>Composition</Name>
+      <Private>False</Private>
+    </ProjectReference>
   </ItemGroup>
   <PropertyGroup>
     <NonShipping>true</NonShipping>

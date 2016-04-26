@@ -626,6 +626,11 @@ namespace Roslyn.Test.MetadataUtilities
             return sb.ToString();
         }
 
+        private string Version(Version version)
+        {
+            return version.Major + "." + version.Minor + "." + version.Build + "." + version.Revision;
+        }
+
         private string SequencePoint(SequencePoint sequencePoint)
         {
             string range = sequencePoint.IsHidden ?
@@ -1110,7 +1115,7 @@ namespace Roslyn.Test.MetadataUtilities
 
             AddRow(
                 Literal(entry.Name),
-                entry.Version.Major + "." + entry.Version.Minor + "." + entry.Version.Revision + "." + entry.Version.Build,
+                Version(entry.Version),
                 Literal(entry.Culture),
                 Literal(entry.PublicKey, BlobKind.Key),
                 EnumValue<int>(entry.Flags),
@@ -1136,7 +1141,7 @@ namespace Roslyn.Test.MetadataUtilities
 
                 AddRow(
                     Literal(entry.Name),
-                    entry.Version.Major + "." + entry.Version.Minor + "." + entry.Version.Revision + "." + entry.Version.Build,
+                    Version(entry.Version),
                     Literal(entry.Culture),
                     Literal(entry.PublicKeyOrToken, BlobKind.Key),
                     EnumValue<int>(entry.Flags)

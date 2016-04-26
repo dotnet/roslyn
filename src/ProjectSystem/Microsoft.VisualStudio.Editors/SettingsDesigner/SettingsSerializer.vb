@@ -241,7 +241,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
         ''' <param name="Settings">Instance to serialize</param>
         ''' <param name="Writer">Text writer on stream to serialize settings to</param>
         ''' <remarks></remarks>
-        Public Shared Sub Serialize(ByVal Settings As DesignTimeSettings, ByVal GeneratedClassNameSpace As String, ByVal ClassName As String, ByVal Writer As TextWriter, ByVal DeclareEncodingAs As Text.Encoding)
+        Public Shared Sub Serialize(ByVal Settings As DesignTimeSettings, ByVal GeneratedClassNameSpace As String, ByVal ClassName As String, ByVal Writer As TextWriter, ByVal DeclareEncodingAs As System.Text.Encoding)
             Common.Switches.TraceSDSerializeSettings(TraceLevel.Info, "Serializing {0} settings", Settings.Count)
 
             ' Gotta store the namespace here in case it changes from under us!
@@ -313,9 +313,9 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                 If String.Equals(Instance.SettingTypeName, SettingsSerializer.CultureInvariantVirtualTypeNameConnectionString, StringComparison.Ordinal) Then
                     designTimeValue = Instance.SerializedValue
                     Dim scs As Microsoft.VSDesigner.VSDesignerPackage.SerializableConnectionString
-                    scs = DirectCast(valueSerializer.Deserialize(GetType(Microsoft.VSDesigner.VSDesignerPackage.SerializableConnectionString), _
-                                                                designTimeValue, _
-                                                                Globalization.CultureInfo.InvariantCulture), _
+                    scs = DirectCast(valueSerializer.Deserialize(GetType(Microsoft.VSDesigner.VSDesignerPackage.SerializableConnectionString),
+                                                                designTimeValue,
+                                                                Globalization.CultureInfo.InvariantCulture),
                                     Microsoft.VSDesigner.VSDesignerPackage.SerializableConnectionString)
                     If scs IsNot Nothing AndAlso scs.ConnectionString IsNot Nothing Then
                         defaultValue = scs.ConnectionString

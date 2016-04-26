@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
             {
                 new AttributeNamedParameterCompletionProvider(),
                 new NamedParameterCompletionProvider(),
-                new SpeculativeTCompletionProvider(),
                 new KeywordCompletionProvider(),
                 new SymbolCompletionProvider(),
                 new ExplicitInterfaceCompletionProvider(),

@@ -362,7 +362,7 @@ Namespace Microsoft.VisualStudio.Editors.SettingsDesigner
                     OnValueChanged()
                     Switches.TracePDFocus(TraceLevel.Warning, "SettingsDesignerView.TypeEditorHostControl.ShowUITypeEditor.Me.Focus()")
                     Me.Focus()
-                Catch Ex As Exception When Not TypeOf Ex Is Threading.ThreadAbortException _
+                Catch Ex As Exception When Not TypeOf Ex Is System.Threading.ThreadAbortException _
                     AndAlso Not TypeOf Ex Is AccessViolationException _
                     AndAlso Not TypeOf Ex Is StackOverflowException
 

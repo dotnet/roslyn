@@ -68,11 +68,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             try
             {
-                var stateSets = _stateManager.GetOrUpdateStateSets(project);
+                var stateSets = GetStateSetsForFullSolutionAnalysis(_stateManager.GetOrUpdateStateSets(project), project);
 
-                // get analyzers that are not suppressed.
+                // PERF: get analyzers that are not suppressed.
+                // this is perf optimization. we cache these result since we know the result. (no diagnostics)
                 // REVIEW: IsAnalyzerSuppressed call seems can be quite expensive in certain condition. is there any other way to do this?
-                var activeAnalyzers = stateSets.Select(s => s.Analyzer).Where(a => !Owner.IsAnalyzerSuppressed(a, project)).ToImmutableArrayOrEmpty();
+                var activeAnalyzers = stateSets
+                                        .Select(s => s.Analyzer)
+                                        .Where(a => !Owner.IsAnalyzerSuppressed(a, project))
+                                        .ToImmutableArrayOrEmpty();
 
                 // get driver only with active analyzers.
                 var includeSuppressedDiagnostics = true;
@@ -211,6 +215,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             // change it to check active file (or visible files), not open files if active file tracking is enabled.
             // otherwise, use open file.
             return document.IsOpen();
+        }
+
+        private IEnumerable<StateSet> GetStateSetsForFullSolutionAnalysis(IEnumerable<StateSet> stateSets, Project project)
+        {
+            // Get stateSets that should be run for full analysis
+
+            // include all analyzers if option is on
+            if (project.Solution.Workspace.Options.GetOption(InternalDiagnosticsOptions.ProcessHiddenDiagnostics))
+            {
+                return stateSets;
+            }
+
+            // Include only one we want to run for full solution analysis.
+            // stateSet not included here will never be saved because result is unknown.
+            return stateSets.Where(s => ShouldRunForFullProject(s.Analyzer, project));
         }
 
         private void RaiseProjectDiagnosticsIfNeeded(
@@ -359,6 +378,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             RaiseDiagnosticsRemoved(projectId, nullSolution, stateSet, raiseEvents);
+        }
+
+        private bool ShouldRunForFullProject(DiagnosticAnalyzer analyzer, Project project)
+        {
+            // PERF: Don't query descriptors for compiler analyzer, always execute it.
+            if (HostAnalyzerManager.IsCompilerDiagnosticAnalyzer(project.Language, analyzer))
+            {
+                return true;
+            }
+
+            // most of analyzers, number of descriptor is quite small, so this should be cheap.
+            return Owner.GetDiagnosticDescriptors(analyzer).Any(d => GetEffectiveSeverity(d, project.CompilationOptions) != ReportDiagnostic.Hidden);
         }
     }
 }
