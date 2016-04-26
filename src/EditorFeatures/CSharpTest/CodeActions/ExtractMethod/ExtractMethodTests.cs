@@ -2,6 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ExtractMethod;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -432,6 +433,56 @@ compareTokens: false);
 }",
 
 compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Trait(Traits.Feature, Test.Utilities.Traits.Features.Tuples)]
+        public async Task TestTuple()
+        {
+            await TestAsync(
+@"class Program { static void Main ( string [ ] args ) { [| (int, int) x = (1, 2); |]  System . Console . WriteLine ( x.Item1 ); } } ",
+@"class Program { static void Main ( string [ ] args ) { (int, int) x = {|Rename:NewMethod|}(); System.Console.WriteLine(x.Item1); } private static (int, int) NewMethod() { return (1, 2); } }",
+index: 0,
+parseOptions: TestOptions.Regular.WithTuplesFeature());
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Trait(Traits.Feature, Test.Utilities.Traits.Features.Tuples)]
+        public async Task TestTupleDeclarationWithNames()
+        {
+            await TestAsync(
+@"class Program { static void Main ( string [ ] args ) { [| (int a, int b) x = (1, 2); |]  System . Console . WriteLine ( x.a ); } } ",
+@"class Program { static void Main ( string [ ] args ) { (int a, int b) x = {|Rename:NewMethod|}(); System.Console.WriteLine(x.a); } private static (int a, int b) NewMethod() { return (1, 2); } }",
+index: 0,
+parseOptions: TestOptions.Regular.WithTuplesFeature());
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Trait(Traits.Feature, Test.Utilities.Traits.Features.Tuples)]
+        public async Task TestTupleLiteralWithNames()
+        {
+            await TestAsync(
+@"class Program { static void Main ( string [ ] args ) { [| (int, int) x = (a: 1, b: 2); |]  System . Console . WriteLine ( x.Item1 ); } } ",
+@"class Program { static void Main ( string [ ] args ) { (int, int) x = {|Rename:NewMethod|}(); System.Console.WriteLine(x.Item1); } private static (int, int) NewMethod() { return (a: 1, b: 2); } }",
+index: 0,
+parseOptions: TestOptions.Regular.WithTuplesFeature());
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Trait(Traits.Feature, Test.Utilities.Traits.Features.Tuples)]
+        public async Task TestTupleDeclarationAndLiteralWithNames()
+        {
+            await TestAsync(
+@"class Program { static void Main ( string [ ] args ) { [| (int a, int b) x = (c: 1, d: 2); |]  System . Console . WriteLine ( x.a ); } } ",
+@"class Program { static void Main ( string [ ] args ) { (int a, int b) x = {|Rename:NewMethod|}(); System.Console.WriteLine(x.a); } private static (int a, int b) NewMethod() { return (c: 1, d: 2); } }",
+index: 0,
+parseOptions: TestOptions.Regular.WithTuplesFeature());
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Trait(Traits.Feature, Test.Utilities.Traits.Features.Tuples)]
+        public async Task TestTupleIntoVar()
+        {
+            await TestAsync(
+@"class Program { static void Main ( string [ ] args ) { [| var x = (c: 1, d: 2); |]  System . Console . WriteLine ( x.c ); } } ",
+@"class Program { static void Main ( string [ ] args ) { (int c, int d) x = {|Rename:NewMethod|}(); System.Console.WriteLine(x.c); } private static (int c, int d) NewMethod() { return (c: 1, d: 2); } }",
+index: 0,
+parseOptions: TestOptions.Regular.WithTuplesFeature());
         }
     }
 }

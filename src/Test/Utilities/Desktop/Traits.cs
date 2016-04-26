@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             public const string Diagnostics = nameof(Diagnostics);
             public const string Formatting = nameof(Formatting);
             public const string LinkedFileDiffMerging = nameof(LinkedFileDiffMerging);
+            public const string Tuples = nameof(Tuples);
         }
 
         public const string Environment = nameof(Environment);

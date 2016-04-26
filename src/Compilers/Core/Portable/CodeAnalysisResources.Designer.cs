@@ -1073,7 +1073,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Then span does not include the end of a line..
+        ///   Looks up a localized string similar to The span does not include the end of a line..
         /// </summary>
         internal static string SpanDoesNotIncludeEndOfLine {
             get {
@@ -1132,6 +1132,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string SymWriterNotDeterministic {
             get {
                 return ResourceManager.GetString("SymWriterNotDeterministic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to If names are used in a tuple type, then there must be a name for every element..
+        /// </summary>
+        internal static string TupleNamesAllOrNone {
+            get {
+                return ResourceManager.GetString("TupleNamesAllOrNone", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Tuples must have at least two elements..
+        /// </summary>
+        internal static string TuplesNeedAtLeastTwoElements {
+            get {
+                return ResourceManager.GetString("TuplesNeedAtLeastTwoElements", resourceCulture);
             }
         }
         

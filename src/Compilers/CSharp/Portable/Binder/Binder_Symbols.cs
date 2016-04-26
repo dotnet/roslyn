@@ -440,14 +440,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new ExtendedErrorTypeSymbol(this.Compilation.Assembly.GlobalNamespace, LookupResultKind.NotCreatable, diagnostics.Add(ErrorCode.ERR_TupleTooFewElements, syntax.Location));
             }
 
-            return TupleTypeSymbol.Create(
-                                            typesArray,
-                                            elementNames == null ?
+            return TupleTypeSymbol.Create(typesArray,
+                                          elementNames == null ?
                                                 default(ImmutableArray<string>) :
                                                 elementNames.ToImmutableAndFree(),
-                                            syntax,
-                                            this,
-                                            diagnostics);
+                                          this.Compilation,
+                                          syntax,
+                                          diagnostics);
         }
 
         private static void CollectTupleFieldMemberNames(string name, int position, int tupleSize, ref ArrayBuilder<string> elementNames)

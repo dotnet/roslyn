@@ -1,4 +1,5 @@
 *REMOVED*static Microsoft.CodeAnalysis.SyntaxNodeExtensions.NormalizeWhitespace<TNode>(this TNode node, string indentation = "    ", bool elasticTrivia = false) -> TNode
+Microsoft.CodeAnalysis.Compilation.CreateTupleTypeSymbol(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ITypeSymbol> elementTypes, System.Collections.Immutable.ImmutableArray<string> elementNames = default(System.Collections.Immutable.ImmutableArray<string>)) -> Microsoft.CodeAnalysis.INamedTypeSymbol
 Microsoft.CodeAnalysis.CompilationOptions.PublicSign.get -> bool
 Microsoft.CodeAnalysis.CompilationOptions.WithPublicSign(bool publicSign) -> Microsoft.CodeAnalysis.CompilationOptions
 Microsoft.CodeAnalysis.CompilationReference.Equals(Microsoft.CodeAnalysis.CompilationReference other) -> bool
@@ -57,6 +58,8 @@ Microsoft.CodeAnalysis.ICompilationUnitSyntax
 Microsoft.CodeAnalysis.ICompilationUnitSyntax.EndOfFileToken.get -> Microsoft.CodeAnalysis.SyntaxToken
 Microsoft.CodeAnalysis.IMethodSymbol.ReturnsByRef.get -> bool
 Microsoft.CodeAnalysis.IModuleSymbol.GetMetadata() -> Microsoft.CodeAnalysis.ModuleMetadata
+Microsoft.CodeAnalysis.INamedTypeSymbol.TupleElementNames.get -> System.Collections.Immutable.ImmutableArray<string>
+Microsoft.CodeAnalysis.INamedTypeSymbol.TupleElementTypes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ITypeSymbol>
 Microsoft.CodeAnalysis.IOperation
 Microsoft.CodeAnalysis.IOperation.Accept(Microsoft.CodeAnalysis.Semantics.OperationVisitor visitor) -> void
 Microsoft.CodeAnalysis.IOperation.Accept<TArgument, TResult>(Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult> visitor, TArgument argument) -> TResult
@@ -68,7 +71,6 @@ Microsoft.CodeAnalysis.IOperation.Type.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.IPropertySymbol.ReturnsByRef.get -> bool
 Microsoft.CodeAnalysis.ISkippedTokensTriviaSyntax
 Microsoft.CodeAnalysis.ISkippedTokensTriviaSyntax.Tokens.get -> Microsoft.CodeAnalysis.SyntaxTokenList
-Microsoft.CodeAnalysis.ITupleTypeSymbol
 Microsoft.CodeAnalysis.ITypeSymbol.IsTupleType.get -> bool
 Microsoft.CodeAnalysis.Metadata.Id.get -> Microsoft.CodeAnalysis.MetadataId
 Microsoft.CodeAnalysis.MetadataId

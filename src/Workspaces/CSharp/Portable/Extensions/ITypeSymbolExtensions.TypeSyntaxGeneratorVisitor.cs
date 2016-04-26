@@ -2,14 +2,11 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
 {
@@ -110,6 +107,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         return SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("System"), SyntaxFactory.IdentifierName("String"));
                 }
 
+                if (symbol.IsTupleType)
+                {
+                    return CreateTupleTypeSyntax(symbol);
+                }
+
                 if (symbol.Name == string.Empty || symbol.IsAnonymousType)
                 {
                     return SyntaxFactory.QualifiedName(SyntaxFactory.IdentifierName("System"), SyntaxFactory.IdentifierName("Object"));
@@ -143,6 +145,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return SyntaxFactory.GenericName(
                     symbol.Name.ToIdentifierToken(),
                     SyntaxFactory.TypeArgumentList(SyntaxFactory.SeparatedList(typeArguments)));
+            }
+
+            private TupleTypeSyntax CreateTupleTypeSyntax(INamedTypeSymbol symbol)
+            {
+                var list = new SeparatedSyntaxList<TupleElementSyntax>();
+                var types = symbol.TupleElementTypes;
+                var names = symbol.TupleElementNames;
+                bool hasNames = !names.IsDefault;
+
+                for (int i = 0; i < types.Length; i++)
+                {
+                    var name = hasNames ? SyntaxFactory.IdentifierName(names[i]) : null;
+                    list = list.Add(SyntaxFactory.TupleElement(GenerateTypeSyntax(types[i]), name));
+                }
+
+                return SyntaxFactory.TupleType(list);
             }
 
             public override TypeSyntax VisitNamedType(INamedTypeSymbol symbol)
