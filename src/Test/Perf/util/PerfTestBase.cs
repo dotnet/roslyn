@@ -9,17 +9,7 @@ namespace Roslyn.Test.Performance.Utilities
 {
     public abstract class PerfTest : RelativeDirectory
     {
-        private List<Tuple<int, string, object>> _metrics = new List<Tuple<int, string, object>>();
-        protected ILogger _logger;
-
-        public PerfTest(ILogger logger, [CallerFilePath] string workingFile = "") : base(workingFile) { _logger = logger; }
-
-        /// Reports a metric to be recorded in the performance monitor.
-        protected void Report(ReportKind reportKind, string description, object value)
-        {
-            _metrics.Add(Tuple.Create((int)reportKind, description, value));
-            _logger.Log(description + ": " + value.ToString());
-        }
+        public PerfTest([CallerFilePath] string workingFile = "") : base(workingFile) { }
 
         public abstract void Setup();
         public abstract void Test();

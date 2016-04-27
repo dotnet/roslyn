@@ -28,7 +28,6 @@ namespace Roslyn.Test.Performance.Utilities
             }
 
             _buffer = new List<string>();
-            AddScenariosFileStart();
         }
 
         public void AddScenariosFileStart()
@@ -65,6 +64,11 @@ namespace Roslyn.Test.Performance.Utilities
         public void AddComment(string comment)
         {
             WriteToBuffer($@"<!-- {comment} -->");
+        }
+
+        public void AddLine(string line)
+        {
+            WriteToBuffer(line);
         }
 
         public void WriteToDisk()

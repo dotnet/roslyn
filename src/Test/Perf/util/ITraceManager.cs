@@ -5,8 +5,9 @@ namespace Roslyn.Test.Performance.Utilities
 {
     public interface ITraceManager
     {
-        int Iterations { get; }
+        bool HasWarmUpIteration { get; }
 
+        void Initialize();
         void Cleanup();
         void EndEvent();
         void EndScenario();
@@ -16,7 +17,9 @@ namespace Roslyn.Test.Performance.Utilities
         void Start();
         void StartEvent();
         void StartScenario(string scenarioName, string processName);
+        void StartScenarios();
         void Stop();
+        void WriteScenarios(string[] scenarios);
         void WriteScenariosFileToDisk();
     }
 }

@@ -1,9 +1,16 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 #r "../../../Roslyn.Test.Performance.Utilities.dll"
-using System.IO;
 
-class HelloWorldTest: PerfTest 
+// TestThisPlease()
+// IsVerbose()
+#load "./../../util/test_util.csx"
+
+using System.IO;
+using Roslyn.Test.Performance.Utilities;
+using static Roslyn.Test.Performance.Utilities.TestUtilities;
+
+class HelloWorldTest : PerfTest 
 {
     private string _pathToHelloWorld;
     private string _pathToOutput;
@@ -11,7 +18,7 @@ class HelloWorldTest: PerfTest
     
     public HelloWorldTest(): base() 
     {
-        _logger = new ConsoleAndFileLogger("log.txt");
+        _logger = new ConsoleAndFileLogger();
     }
     
     
@@ -23,8 +30,8 @@ class HelloWorldTest: PerfTest
     
     public override void Test() 
     {
-        ShellOutVital(ReleaseCscPath, _pathToHelloWorld + " /out:" + _pathToOutput, _logger);
-        logger.Flush();
+        ShellOutVital(ReleaseCscPath, _pathToHelloWorld + " /out:" + _pathToOutput, IsVerbose(), _logger);
+        _logger.Flush();
     }
     
     public override int Iterations => 2;

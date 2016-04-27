@@ -12,7 +12,7 @@ namespace Roslyn.Test.Performance.Utilities
         private readonly string _file;
         private readonly StringBuilder _buffer = new StringBuilder();
 
-        public ConsoleAndFileLogger(string file)
+        public ConsoleAndFileLogger(string file = "log.txt")
         {
             _file = file;
         }

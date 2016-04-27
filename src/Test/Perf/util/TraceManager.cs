@@ -4,7 +4,6 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using static Roslyn.Test.Performance.Utilities.DownloadUtilities;
 using static Roslyn.Test.Performance.Utilities.TestUtilities;
 
 namespace Roslyn.Test.Performance.Utilities
@@ -12,33 +11,53 @@ namespace Roslyn.Test.Performance.Utilities
     public class TraceManager : ITraceManager
     {
         private readonly ScenarioGenerator _scenarioGenerator;
-        private readonly int _iterations;
         private readonly string _cpcPath;
-
-        private int _startEventAbsoluteInstance = 1;
-        private int _stopEventAbsoluteInstance = 1;
         private readonly bool _verbose;
         private readonly ILogger _logger;
 
+        private int _startEventAbsoluteInstance = 1;
+        private int _stopEventAbsoluteInstance = 1;
+
         public TraceManager(
-            int iterations,
             string cpcPath,
             string scenarioPath,
             bool verbose,
-            ILogger logger)
+            ILogger logger) : base()
         {
-            _iterations = iterations;
             _cpcPath = cpcPath;
             _scenarioGenerator = new ScenarioGenerator(scenarioPath);
             _verbose = verbose;
             _logger = logger;
+
+            // Since TraceManager.Setup() and few other functions use ShellOutVital,
+            // which requires the TestUtilities.InitUtilities() to be called
+            InitUtilities();
         }
 
-        public int Iterations
+        public bool HasWarmUpIteration
         {
             get
             {
-                return _iterations;
+                return true;
+            }
+        }
+
+        // Cleanup the results directory and files before every run
+        public void Initialize()
+        {
+            var consumptionTempResultsPath = Path.Combine(GetCPCDirectoryPath(), "ConsumptionTempResults.xml");
+            if (File.Exists(consumptionTempResultsPath))
+            {
+                File.Delete(consumptionTempResultsPath);
+            }
+
+            if (Directory.Exists(GetCPCDirectoryPath()))
+            {
+                var databackDirectories = Directory.GetDirectories(GetCPCDirectoryPath(), "DataBackup*", SearchOption.AllDirectories);
+                foreach (var databackDirectory in databackDirectories)
+                {
+                    Directory.Delete(databackDirectory, true);
+                }
             }
         }
 
@@ -55,13 +74,18 @@ namespace Roslyn.Test.Performance.Utilities
         public void Stop()
         {
             var scenariosXmlPath = Path.Combine(GetCPCDirectoryPath(), "scenarios.xml");
-            var consumptionTempResultsPath = Path.Combine(GetCPCDirectoryPath(), "ConsumptionTempResultsPath.xml");
+            var consumptionTempResultsPath = Path.Combine(GetCPCDirectoryPath(), "ConsumptionTempResults.xml");
             ShellOutVital(_cpcPath, $"/Stop /DisableArchive /ScenarioPath=\"{scenariosXmlPath}\" /ConsumptionTempResultsPath=\"{consumptionTempResultsPath}\"", _verbose, _logger);
         }
 
         public void Cleanup()
         {
             ShellOutVital(_cpcPath, "/Cleanup /DisableArchive", _verbose, _logger);
+        }
+
+        public void StartScenarios()
+        {
+            _scenarioGenerator.AddScenariosFileStart();
         }
 
         public void StartScenario(string scenarioName, string processName)
@@ -89,6 +113,14 @@ namespace Roslyn.Test.Performance.Utilities
         public void EndScenarios()
         {
             _scenarioGenerator.AddScenariosFileEnd();
+        }
+
+        public void WriteScenarios(string[] scenarios)
+        {
+            foreach (var line in scenarios)
+            {
+                _scenarioGenerator.AddLine(line);
+            }
         }
 
         public void WriteScenariosFileToDisk()

@@ -8,18 +8,20 @@ namespace Roslyn.Test.Performance.Utilities
 {
     public class NoOpTraceManager : ITraceManager
     {
-        private readonly int _iterations;
-        public NoOpTraceManager(int iterations)
+        public NoOpTraceManager()
         {
-            _iterations = iterations;
         }
 
-        public int Iterations
+        public bool HasWarmUpIteration
         {
             get
             {
-                return _iterations;
+                return false;
             }
+        }
+
+        public void Initialize()
+        {
         }
 
         public void Cleanup()
@@ -54,11 +56,19 @@ namespace Roslyn.Test.Performance.Utilities
         {
         }
 
+        public void StartScenarios()
+        {
+        }
+
         public void StartScenario(string scenarioName, string processName)
         {
         }
 
         public void Stop()
+        {
+        }
+
+        public void WriteScenarios(string[] scenarios)
         {
         }
 

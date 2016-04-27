@@ -18,7 +18,6 @@ namespace Roslyn.Test.Performance.Utilities
         //
         // Directory Locating Functions
         //
-
         public static string _myWorkingFile = null;
 
         public static void InitUtilities([CallerFilePath] string sourceFilePath = "")
@@ -56,7 +55,7 @@ namespace Roslyn.Test.Performance.Utilities
         public static string RoslynDirectory()
         {
             var workingDir = MyWorkingDirectory();
-            var srcTestPerf = Path.Combine("src", "Test", "Perf").ToString();
+            var srcTestPerf = Path.Combine("Binaries", "Debug", "Perf").ToString();
             return workingDir.Substring(0, workingDir.IndexOf(srcTestPerf));
         }
 
@@ -122,9 +121,7 @@ namespace Roslyn.Test.Performance.Utilities
 
         public static string GetCPCDirectoryPath()
         {
-            var path = Path.Combine(PerfDirectory(), "temp", "cpc");
-            Directory.CreateDirectory(path);
-            return path;
+            return Environment.ExpandEnvironmentVariables(@"%SYSTEMDRIVE%\CPC");
         }
 
         public static string GetViBenchToJsonExeFilePath()
@@ -247,35 +244,6 @@ namespace Roslyn.Test.Performance.Utilities
             return result.StdOut.Trim();
         }
 
-        //
-        // Timing and Testing
-        //
-
-        public static long WalltimeMs(Action action)
-        {
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
-            action();
-            return stopwatch.ElapsedMilliseconds;
-        }
-
-        public static long WalltimeMs<R>(Func<R> action)
-        {
-            var stopwatch = new Stopwatch();
-            stopwatch.Start();
-            action();
-            return stopwatch.ElapsedMilliseconds;
-        }
-
-        //
-        // Reporting and logging
-        //
-
-
-
-        /// A list of
-        public static List<Tuple<int, string, object>> Metrics = new List<Tuple<int, string, object>>();
-
         /// Logs a message.
         ///
         /// The actual implementation of this method may change depending on
@@ -300,48 +268,41 @@ namespace Roslyn.Test.Performance.Utilities
             logger.Log($"\nStandard Error:\n{result.StdErr}");
         }
 
-        /// Reports a metric to be recorded in the performance monitor.
-        public static void Report(ReportKind reportKind, string description, object value, ILogger logger)
-        {
-            Metrics.Add(Tuple.Create((int)reportKind, description, value));
-            logger.Log(description + ": " + value.ToString());
-        }
-
         /// Downloads a zip from azure store and extracts it into
         /// the ./temp directory.
         ///
         /// If this current version has already been downloaded
         /// and extracted, do nothing.
-        public static void DownloadProject(string name, int version, ILogger logger)
-        {
-            var zipFileName = $"{name}.{version}.zip";
-            var zipPath = Path.Combine(MyTempDirectory(), zipFileName);
-            // If we've already downloaded the zip, assume that it
-            // has been downloaded *and* extracted.
-            if (File.Exists(zipPath))
-            {
-                logger.Log($"Didn't download and extract {zipFileName} because one already exists.");
-                return;
-            }
-
-            // Remove all .zip files that were downloaded before.
-            foreach (var path in Directory.EnumerateFiles(MyTempDirectory(), $"{name}.*.zip"))
-            {
-                logger.Log($"Removing old zip {path}");
-                File.Delete(path);
-            }
-
-            // Download zip file to temp directory
-            var downloadTarget = $"https://dotnetci.blob.core.windows.net/roslyn-perf/{zipFileName}";
-            logger.Log($"Downloading {downloadTarget}");
-            var client = new WebClient();
-            client.DownloadFile(downloadTarget, zipPath);
-            logger.Log($"Done Downloading");
-
-            // Extract to temp directory
-            logger.Log($"Extracting {zipPath} to {MyTempDirectory()}");
-            ZipFile.ExtractToDirectory(zipPath, MyTempDirectory());
-            logger.Log($"Done Extracting");
-        }
+        //public static void DownloadProject(string name, int version, ILogger logger)
+        //{
+        //    var zipFileName = $"{name}.{version}.zip";
+        //    var zipPath = Path.Combine(MyTempDirectory(), zipFileName);
+        //    // If we've already downloaded the zip, assume that it
+        //    // has been downloaded *and* extracted.
+        //    if (File.Exists(zipPath))
+        //    {
+        //        logger.Log($"Didn't download and extract {zipFileName} because one already exists.");
+        //        return;
+        //    }
+        //
+        //    // Remove all .zip files that were downloaded before.
+        //    foreach (var path in Directory.EnumerateFiles(MyTempDirectory(), $"{name}.*.zip"))
+        //    {
+        //        logger.Log($"Removing old zip {path}");
+        //        File.Delete(path);
+        //    }
+        //
+        //    // Download zip file to temp directory
+        //    var downloadTarget = $"https://dotnetci.blob.core.windows.net/roslyn-perf/{zipFileName}";
+        //    logger.Log($"Downloading {downloadTarget}");
+        //    var client = new WebClient();
+        //    client.DownloadFile(downloadTarget, zipPath);
+        //    logger.Log($"Done Downloading");
+        //
+        //    // Extract to temp directory
+        //    logger.Log($"Extracting {zipPath} to {MyTempDirectory()}");
+        //    ZipFile.ExtractToDirectory(zipPath, MyTempDirectory());
+        //    logger.Log($"Done Extracting");
+        //}
     }
 }

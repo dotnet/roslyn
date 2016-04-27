@@ -51,16 +51,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Perf\temp\cpc\" />
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Perf\projects\HelloWorld.cs" />
     <Compile Include="Perf\util\Logger.cs" />
     <Compile Include="Perf\util\PerfTestBase.cs" />
     <Compile Include="Perf\util\RelativeDirectory.cs" />
     <Compile Include="Perf\util\Tools.cs" />
-    <Compile Include="Perf\util\TrivialLogger.cs" />
     <None Include="Perf\.gitignore" />
     <Content Include="Perf\bootstrap.bat">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -89,9 +86,6 @@
     <Content Include="Perf\infra\run_and_report.csx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Perf\infra\transform_csv.csx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="Perf\infra\uninstall.csx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -101,29 +95,15 @@
     <Content Include="Perf\runner.csx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Perf\projects\csharp\csharp_compiler.csx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Perf\projects\csharp\csharp_compiler_no_analyzer.csx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <None Include="Perf\projects\hello_world.csx" />
-    <None Include="Perf\temp\compiler_time.csv" />
-    <None Include="Perf\temp\file_size.csv" />
-    <None Include="Perf\temp\run_time.csv" />
-    <Content Include="Perf\tests\csharp\csharp_compiler.csx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="Perf\tests\helloworld\hello_world.csx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Perf\util\Download_util.csx">
+    <None Include="Perf\tests\csharp\csharp_compiler.csx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    </None>
     <Content Include="Perf\util\runner_util.csx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Compile Include="Perf\util\ReportKind.cs" />
     <Compile Include="Perf\util\ScenarioGenerator.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
@@ -131,9 +111,6 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Perf\util\tools_util.csx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Perf\util\trace_manager_util.csx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Perf\infra\install_vsixes.csx">
@@ -146,7 +123,6 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Perf\util\DownloadUtilities.cs" />
     <Compile Include="Perf\util\ILogger.cs" />
     <Compile Include="Perf\util\ITraceManager.cs" />
     <Compile Include="Perf\util\NoOpTraceManager.cs" />

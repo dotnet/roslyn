@@ -1,4 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+// Log()
+#load "../util/test_util.csx"
 #load "../util/tools_util.csx"
 
 using System;
@@ -7,8 +10,8 @@ using System.Linq;
 using System.Xml;
 
 // TODO: Use actual command line argument parser so we can have help text, etc...
-var branch = Args.Length == 2 ? Args[0] : "master";
-var destinationFolder = Args.Length == 2 ? Args[1] : @"C:\Roslyn\Binaries\Release";
+var branch = Args.Count() == 2 ? Args[0] : "master";
+var destinationFolder = Args.Count() == 2 ? Args[1] : @"C:\Roslyn\Binaries\Release";
 
 var sourceFolder = $@"\\cpvsbuild\drops\Roslyn\Roslyn-{branch}-Signed-Release";
 

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Roslyn.Test.Performance.Utilities
@@ -50,13 +51,22 @@ namespace Roslyn.Test.Performance.Utilities
         {
             get
             {
-                // In Windows, our path could be reported as "src/Test/Perf" (as it should),
-                // or "src/TeSt/PeRf" which is completely insane.
-                var workingDir = MyWorkingDirectory;
-                var srcTestPerf = Path.Combine("src", "Test", "Perf").ToString();
-                CompareInfo inv = CultureInfo.InvariantCulture.CompareInfo;
-                var idx = inv.IndexOf(workingDir, srcTestPerf, CompareOptions.IgnoreCase);
-                return workingDir.Substring(0, idx);
+                try
+                {
+                    // In Windows, our path could be reported as "src/Test/Perf" (as it should),
+                    // or "src/TeSt/PeRf" which is completely insane.
+                    var workingDir = MyWorkingDirectory;
+                    // Just the string Binaries should be enough I think
+                    var binaryDebugTestPerf = Path.Combine("Binaries", "Debug", "Perf").ToString();
+                    CompareInfo inv = CultureInfo.InvariantCulture.CompareInfo;
+                    var idx = inv.IndexOf(workingDir, binaryDebugTestPerf, CompareOptions.IgnoreCase);
+                    return workingDir.Substring(0, idx);
+                }
+                catch(Exception e)
+                {
+                    System.Console.WriteLine($"My Working Directory: {MyWorkingDirectory}");
+                    throw e;
+                }
             }
         }
 

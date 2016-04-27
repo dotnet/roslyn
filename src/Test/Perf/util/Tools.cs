@@ -7,11 +7,11 @@ using static Roslyn.Test.Performance.Utilities.TestUtilities;
 
 namespace Roslyn.Test.Performance.Utilities
 {
-    class Tools
+    public class Tools
     {
         /// Takes a consumptionTempResults file and converts to csv file
         /// Each info contains the <ScenarioName, Metric Key, Metric value>
-        bool ConvertConsumptionToCsv(string source, string destination, string requiredMetricKey, ILogger logger)
+        public static bool ConvertConsumptionToCsv(string source, string destination, string requiredMetricKey, ILogger logger)
         {
             logger.Log("Entering ConvertConsumptionToCsv");
             if (!File.Exists(source))
@@ -70,7 +70,7 @@ namespace Roslyn.Test.Performance.Utilities
         }
 
         /// Gets a csv file with metrics and converts them to ViBench supported JSON file
-        string GetViBenchJsonFromCsv(string compilerTimeCsvFilePath, string execTimeCsvFilePath, string fileSizeCsvFilePath, bool verbose, ILogger logger)
+        public static string GetViBenchJsonFromCsv(string compilerTimeCsvFilePath, string execTimeCsvFilePath, string fileSizeCsvFilePath, bool verbose, ILogger logger)
         {
             logger.Log("Convert the csv to JSON using ViBench tool");
             string branch = StdoutFrom("git", verbose, logger, "rev-parse --abbrev-ref HEAD");
@@ -124,26 +124,36 @@ namespace Roslyn.Test.Performance.Utilities
             return outJson;
         }
 
-        string FirstLine(string input)
+        public static string FirstLine(string input)
         {
             return input.Split(new[] { "\r\n", "\r", "\n" }, System.StringSplitOptions.None)[0];
         }
 
-        void UploadTraces(string sourceFolderPath, string destinationFolderPath, ILogger logger)
+        public static void UploadTraces(string sourceFolderPath, string destinationFolderPath, ILogger logger)
         {
             logger.Log("Uploading traces");
             if (Directory.Exists(sourceFolderPath))
             {
-                // Get the latest written databackup
-                var directoryToUpload = new DirectoryInfo(sourceFolderPath).GetDirectories("DataBackup*").OrderByDescending(d => d.LastWriteTimeUtc).FirstOrDefault();
-                if (directoryToUpload == null)
+                var directoriesToUpload = new DirectoryInfo(sourceFolderPath).GetDirectories("DataBackup*");
+                if (directoriesToUpload.Count() == 0)
                 {
                     logger.Log($"There are no trace directory starting with DataBackup in {sourceFolderPath}");
                     return;
                 }
 
-                var destination = Path.Combine(destinationFolderPath, directoryToUpload.Name);
-                CopyDirectory(directoryToUpload.FullName, logger, destination);
+                var perfResultDestinationFolderName = string.Format("PerfResults-{0:yyyy-MM-dd_hh-mm-ss-tt}", DateTime.Now);
+
+                var destination = Path.Combine(destinationFolderPath, perfResultDestinationFolderName);
+                foreach (var directoryToUpload in directoriesToUpload)
+                {
+                    var destinationDataBackupDirectory = Path.Combine(destination, directoryToUpload.Name);
+                    if (Directory.Exists(destinationDataBackupDirectory))
+                    {
+                        Directory.CreateDirectory(destinationDataBackupDirectory);
+                    }
+
+                    CopyDirectory(directoryToUpload.FullName, logger, destinationDataBackupDirectory);
+                }
 
                 foreach (var file in new DirectoryInfo(sourceFolderPath).GetFiles().Where(f => f.Name.StartsWith("ConsumptionTemp", StringComparison.OrdinalIgnoreCase) || f.Name.StartsWith("Roslyn-", StringComparison.OrdinalIgnoreCase)))
                 {
