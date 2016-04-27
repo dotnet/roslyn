@@ -29,15 +29,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var syntaxKindsPatterns = new HashSet<SyntaxKind>();
             syntaxKindsPatterns.Add(SyntaxKind.IsPatternExpression);
             syntaxKindsPatterns.Add(SyntaxKind.DeclarationPattern);
-            syntaxKindsPatterns.Add(SyntaxKind.WildcardPattern);
             syntaxKindsPatterns.Add(SyntaxKind.ConstantPattern);
-            syntaxKindsPatterns.Add(SyntaxKind.RecursivePattern);
-            syntaxKindsPatterns.Add(SyntaxKind.SubRecursivePattern);
-            syntaxKindsPatterns.Add(SyntaxKind.MatchSection);
-            syntaxKindsPatterns.Add(SyntaxKind.MatchExpression);
-            syntaxKindsPatterns.Add(SyntaxKind.ThrowExpression);
             syntaxKindsPatterns.Add(SyntaxKind.WhenClause);
-            syntaxKindsPatterns.Add(SyntaxKind.LetStatement);
             syntaxKindsPatterns.Add(SyntaxKind.CasePatternSwitchLabel);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();

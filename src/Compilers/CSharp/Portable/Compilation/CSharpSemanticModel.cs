@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var diagnostics = DiagnosticBag.GetInstance();
             AliasSymbol aliasOpt; // not needed.
             NamedTypeSymbol attributeType = (NamedTypeSymbol)binder.BindType(attribute.Name, diagnostics, out aliasOpt);
-            var boundNode = binder.BindAttribute(attribute, attributeType, diagnostics);
+            var boundNode = new ExecutableCodeBinder(attribute, binder.ContainingMemberOrLambda, binder).BindAttribute(attribute, attributeType, diagnostics);
             diagnostics.Free();
 
             return boundNode;
@@ -494,11 +494,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Gets the semantic information associated with a select or group clause.
         /// </summary>
         public abstract SymbolInfo GetSymbolInfo(SelectOrGroupClauseSyntax node, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
-        /// Gets the symbol information for the property of a sub-property pattern.
-        /// </summary>
-        public abstract SymbolInfo GetSymbolInfo(SubPropertyPatternSyntax node, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         /// Returns what symbol(s), if any, the given expression syntax bound to in the program.
@@ -725,6 +720,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (binder != null)
             {
                 var diagnostics = DiagnosticBag.GetInstance();
+
+                if (constructorInitializer.ArgumentList != null)
+                {
+                    binder = new ExecutableCodeBinder(constructorInitializer.ArgumentList, binder.ContainingMemberOrLambda, binder);
+                }
+
                 var bnode = memberModel.Bind(binder, constructorInitializer, diagnostics);
                 var binfo = memberModel.GetSymbolInfoForNode(SymbolInfoOptions.DefaultOptions, bnode, bnode, boundNodeForSyntacticParent: null, binderOpt: binder);
                 diagnostics.Free();
@@ -2644,14 +2645,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract ISymbol GetDeclaredSymbol(DeclarationPatternSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
-        /// Given a let statement syntax, get the corresponding symbol if the statement uses [let &lt;identifier&gt; = ...] form.
-        /// </summary>
-        /// <param name="declarationSyntax">The syntax node that declares a variable.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The symbol that was declared.</returns>
-        public abstract ISymbol GetDeclaredSymbol(LetStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
         /// Given a labeled statement syntax, get the corresponding label symbol.
         /// </summary>
         /// <param name="declarationSyntax">The syntax node of the labeled statement.</param>
@@ -2764,8 +2757,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            foreachBinder = foreachBinder.WithAdditionalFlags(GetSemanticModelBinderFlags());
-            LocalSymbol local = foreachBinder.Locals.FirstOrDefault();
+            LocalSymbol local = foreachBinder.GetDeclaredLocalsForScope(forEachStatement).FirstOrDefault();
             return ((object)local != null && local.DeclarationKind == LocalDeclarationKind.ForEachIterationVariable)
                 ? local
                 : null;
@@ -2795,8 +2787,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            catchBinder = enclosingBinder.GetBinder(catchClause).WithAdditionalFlags(GetSemanticModelBinderFlags());
-            LocalSymbol local = catchBinder.Locals.FirstOrDefault();
+            catchBinder = enclosingBinder.GetBinder(catchClause);
+            LocalSymbol local = catchBinder.GetDeclaredLocalsForScope(catchClause).FirstOrDefault();
             return ((object)local != null && local.DeclarationKind == LocalDeclarationKind.CatchVariable)
                 ? local
                 : null;
@@ -4358,12 +4350,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return this.GetSymbolInfo(orderingSyntax, cancellationToken);
             }
 
-            var subPropertyPattern = node as SubPropertyPatternSyntax;
-            if (subPropertyPattern != null)
-            {
-                return this.GetSymbolInfo(subPropertyPattern, cancellationToken);
-            }
-
             return SymbolInfo.None;
         }
 
@@ -4546,8 +4532,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.GetDeclaredSymbol((VariableDeclaratorSyntax)node, cancellationToken);
                 case SyntaxKind.DeclarationPattern:
                     return this.GetDeclaredSymbol((DeclarationPatternSyntax)node, cancellationToken);
-                case SyntaxKind.LetStatement:
-                    return this.GetDeclaredSymbol((LetStatementSyntax)node, cancellationToken);
                 case SyntaxKind.NamespaceDeclaration:
                     return this.GetDeclaredSymbol((NamespaceDeclarationSyntax)node, cancellationToken);
                 case SyntaxKind.Parameter:

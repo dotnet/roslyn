@@ -56,7 +56,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureNullable = MessageBase + 12528,
         IDS_Lambda = MessageBase + 12531,
         IDS_FeaturePatternMatching = MessageBase + 12532,
-        IDS_FeaturePatternMatching2 = MessageBase + 12533,
 
         IDS_FeatureImplicitArray = MessageBase + 12557,
         IDS_FeatureImplicitLocal = MessageBase + 12558,
@@ -119,6 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureLocalFunctions = MessageBase + 12708,
 
         IDS_FeatureRefLocalsReturns = MessageBase + 12710,
+        IDS_ThrowExpression = MessageBase + 12711,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -172,8 +172,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "refLocalsAndReturns";
                 case MessageID.IDS_FeaturePatternMatching:
                     return "patterns";
-                case MessageID.IDS_FeaturePatternMatching2:
-                    return "patternsExperimental";
                 default:
                     return null;
             }

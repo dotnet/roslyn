@@ -1489,13 +1489,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         {
             EnsureOnlyEvalStack();
 
-            var local = node.LocalOpt;
             var exceptionSourceOpt = node.ExceptionSourceOpt;
-
-            if ((object)local != null)
-            {
-                DeclareLocal(local, stack: 0);
-            }
+            DeclareLocals(node.Locals, stack: 0);
 
             if (exceptionSourceOpt != null)
             {
@@ -1512,6 +1507,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 {
                     int prevStack = StackDepth();
                     exceptionSourceOpt = VisitExpression(exceptionSourceOpt, ExprContext.AssignmentTarget);
+                    _assignmentLocal = null; // not using this for exceptionSource
                     SetStackDepth(prevStack);
                 }
 
@@ -1539,7 +1535,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var boundBlock = (BoundBlock)this.Visit(node.Body);
             var exceptionTypeOpt = this.VisitType(node.ExceptionTypeOpt);
 
-            return node.Update(local, exceptionSourceOpt, exceptionTypeOpt, boundFilter, boundBlock, node.IsSynthesizedAsyncCatchAll);
+            return node.Update(node.Locals, exceptionSourceOpt, exceptionTypeOpt, boundFilter, boundBlock, node.IsSynthesizedAsyncCatchAll);
         }
 
         public override BoundNode VisitStackAllocArrayCreation(BoundStackAllocArrayCreation node)
@@ -2040,7 +2036,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             body = (BoundBlock)this.Visit(body);
             type = this.VisitType(type);
 
-            return node.Update(node.LocalOpt, exceptionSource, type, filter, body, node.IsSynthesizedAsyncCatchAll);
+            return node.Update(node.Locals, exceptionSource, type, filter, body, node.IsSynthesizedAsyncCatchAll);
         }
     }
 

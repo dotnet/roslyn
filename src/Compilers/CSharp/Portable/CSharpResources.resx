@@ -210,9 +210,6 @@
   <data name="IDS_FeaturePatternMatching" xml:space="preserve">
     <value>pattern matching</value>
   </data>
-  <data name="IDS_FeaturePatternMatching2" xml:space="preserve">
-    <value>pattern matching experimental features</value>
-  </data>
   <data name="IDS_FeatureImplicitArray" xml:space="preserve">
     <value>implicitly typed array</value>
   </data>
@@ -4164,6 +4161,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureRefLocalsReturns" xml:space="preserve">
     <value>byref locals and returns</value>
   </data>
+  <data name="IDS_ThrowExpression" xml:space="preserve">
+    <value>&lt;throw&gt;</value>
+  </data>
   <data name="CompilationC" xml:space="preserve">
     <value>Compilation (C#): </value>
   </data>
@@ -4839,19 +4839,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_BadIsPatternExpression" xml:space="preserve">
     <value>Invalid operand for pattern match.</value>
   </data>
-  <data name="ERR_AmbigMatch0" xml:space="preserve">
-    <value>Type of match expression cannot be determined because no branch has a type.</value>
-  </data>
-  <data name="ERR_AmbigMatch1" xml:space="preserve">
-    <value>Type of match expression cannot be determined because no branch has a most specific type.</value>
-  </data>
-  <data name="ERR_ThrowMisplaced" xml:space="preserve">
-    <value>A throw expression is not allowed here.</value>
-  </data>
-  <data name="ERR_ElseClauseRequiredWithWhenClause" xml:space="preserve">
-    <value>An 'else' clause is required when a 'when' clause is present.</value>
-  </data>
   <data name="ERR_PeWritingFailure" xml:space="preserve">
-    <value>An error occurred while writing the output file: {0}</value>
+    <value>An error occurred while writing the output file: {0}.</value>
   </data>
 </root>

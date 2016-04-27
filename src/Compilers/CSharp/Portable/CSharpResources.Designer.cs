@@ -341,24 +341,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type of match expression cannot be determined because no branch has a type..
-        /// </summary>
-        internal static string ERR_AmbigMatch0 {
-            get {
-                return ResourceManager.GetString("ERR_AmbigMatch0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Type of match expression cannot be determined because no branch has a most specific type..
-        /// </summary>
-        internal static string ERR_AmbigMatch1 {
-            get {
-                return ResourceManager.GetString("ERR_AmbigMatch1", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Ambiguity between &apos;{0}&apos; and &apos;{1}&apos;.
         /// </summary>
         internal static string ERR_AmbigMember {
@@ -3577,15 +3559,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_DynamicTypeAsBound {
             get {
                 return ResourceManager.GetString("ERR_DynamicTypeAsBound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to An &apos;else&apos; clause is required when a &apos;when&apos; clause is present..
-        /// </summary>
-        internal static string ERR_ElseClauseRequiredWithWhenClause {
-            get {
-                return ResourceManager.GetString("ERR_ElseClauseRequiredWithWhenClause", resourceCulture);
             }
         }
         
@@ -7262,7 +7235,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to An error occurred while writing the output file: {0}.
+        ///   Looks up a localized string similar to An error occurred while writing the output file: {0}..
         /// </summary>
         internal static string ERR_PeWritingFailure {
             get {
@@ -8558,15 +8531,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A throw expression is not allowed here..
-        /// </summary>
-        internal static string ERR_ThrowMisplaced {
-            get {
-                return ResourceManager.GetString("ERR_ThrowMisplaced", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Catch clauses cannot follow the general catch clause of a try statement.
         /// </summary>
         internal static string ERR_TooManyCatches {
@@ -9684,15 +9648,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to pattern matching experimental features.
-        /// </summary>
-        internal static string IDS_FeaturePatternMatching2 {
-            get {
-                return ResourceManager.GetString("IDS_FeaturePatternMatching2", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to #pragma.
         /// </summary>
         internal static string IDS_FeaturePragma {
@@ -10040,6 +9995,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_Text {
             get {
                 return ResourceManager.GetString("IDS_Text", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;throw&gt;.
+        /// </summary>
+        internal static string IDS_ThrowExpression {
+            get {
+                return ResourceManager.GetString("IDS_ThrowExpression", resourceCulture);
             }
         }
         

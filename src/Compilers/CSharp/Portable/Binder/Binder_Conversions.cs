@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CreateConversion(source.Syntax, source, conversion, isCast: false, destination: destination, diagnostics: diagnostics);
         }
 
-        protected BoundExpression CreateConversion(
+        internal BoundExpression CreateConversion(
             BoundExpression source,
             Conversion conversion,
             TypeSymbol destination,
@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CreateConversion(source.Syntax, source, conversion, isCast: false, destination: destination, diagnostics: diagnostics);
         }
 
-        protected BoundExpression CreateConversion(
+        internal BoundExpression CreateConversion(
             CSharpSyntaxNode syntax,
             BoundExpression source,
             Conversion conversion,
