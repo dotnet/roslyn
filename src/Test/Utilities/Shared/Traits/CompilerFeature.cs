@@ -13,6 +13,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         ExpressionBody,
         Iterator,
         LocalFunctions,
-        Params
+        Params,
+        Var
     }
 }
