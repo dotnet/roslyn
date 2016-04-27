@@ -866,6 +866,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return ValueTuple.Create(initializeExpressionNode.OpenBraceToken, initializeExpressionNode.CloseBraceToken);
             }
 
+            var propertyPattern = node as PropertyPatternSyntax;
+            if (propertyPattern != null)
+            {
+                return ValueTuple.Create(propertyPattern.OpenBraceToken, propertyPattern.CloseBraceToken);
+            }
+
             return new ValueTuple<SyntaxToken, SyntaxToken>();
         }
 
