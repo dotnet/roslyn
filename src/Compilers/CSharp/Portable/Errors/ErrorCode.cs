@@ -1234,6 +1234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_MutuallyExclusiveOptions = 7102,
 
         // available 7102-8000
+        ERR_SemiOrLBraceOrArrowExpected = 7887,
 
         WRN_UnimplementedCommandLineSwitch = 8001,
         WRN_ReferencedAssemblyDoesNotHaveStrongName = 8002,

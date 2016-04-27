@@ -451,28 +451,36 @@ public class C
             var comp = CreateCompilationWithMscorlib(@"
 public class C
 {
-    static int P1 {get; set;}
+    int P1 {get; set;}
 
     C()
-    { }
+    { P1 = 1; }
     => P1;
 }
 ");
 
             comp.VerifyDiagnostics(
-    // (8,5): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
-    //     => P1;
-    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(8, 5),
-    // (8,10): error CS1519: Invalid token ';' in class, struct, or interface member declaration
-    //     => P1;
-    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(8, 10),
-    // (8,10): error CS1519: Invalid token ';' in class, struct, or interface member declaration
-    //     => P1;
-    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(8, 10)
+    // (5,5): error  CS8057: Methods cannot combine block bodies with expression bodies.
+    Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"C()
+    { P1 = 1; }
+    => P1;").WithLocation(6, 5)
                 );
-
             var tree = comp.SyntaxTrees[0];
-            Assert.False(tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Any());
+            var model = comp.GetSemanticModel(tree);
+
+            var node = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Single().Expression;
+
+            Assert.Equal("P1", node.ToString());
+            Assert.Null(model.GetSymbolInfo(node).Symbol);
+
+            Assert.Contains("P1", model.LookupNames(tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single().Body.Position));
+
+            var node2 = tree.GetRoot().DescendantNodes().OfType<ConstructorDeclarationSyntax>().Single()
+                .Body.DescendantNodes().OfType<AssignmentExpressionSyntax>()
+                .Single().Left;
+
+            Assert.Equal("P1", node2.ToString());
+            Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node2).Symbol.ToTestDisplayString());
         }
 
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
@@ -481,28 +489,37 @@ public class C
             var comp = CreateCompilationWithMscorlib(@"
 public class C
 {
-    static int P1 {get; set;}
+    int P1 {get; set;}
 
     ~C()
-    { }
+    { P1 = 1; }
     => P1;
 }
 ");
 
             comp.VerifyDiagnostics(
-    // (8,5): error CS1519: Invalid token '=>' in class, struct, or interface member declaration
-    //     => P1;
-    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "=>").WithArguments("=>").WithLocation(8, 5),
-    // (8,10): error CS1519: Invalid token ';' in class, struct, or interface member declaration
-    //     => P1;
-    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(8, 10),
-    // (8,10): error CS1519: Invalid token ';' in class, struct, or interface member declaration
-    //     => P1;
-    Diagnostic(ErrorCode.ERR_InvalidMemberDecl, ";").WithArguments(";").WithLocation(8, 10)
+    // (5,5): error  CS8057: Methods cannot combine block bodies with expression bodies.
+    Diagnostic(ErrorCode.ERR_BlockBodyAndExpressionBody, @"~C()
+    { P1 = 1; }
+    => P1;").WithLocation(6, 5)
                 );
 
             var tree = comp.SyntaxTrees[0];
-            Assert.False(tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Any());
+            var model = comp.GetSemanticModel(tree);
+
+            var node = tree.GetRoot().DescendantNodes().OfType<ArrowExpressionClauseSyntax>().Single().Expression;
+
+            Assert.Equal("P1", node.ToString());
+            Assert.Null(model.GetSymbolInfo(node).Symbol);
+
+            Assert.Contains("P1", model.LookupNames(tree.GetRoot().DescendantNodes().OfType<DestructorDeclarationSyntax>().Single().Body.Position));
+
+            var node2 = tree.GetRoot().DescendantNodes().OfType<DestructorDeclarationSyntax>().Single()
+                .Body.DescendantNodes().OfType<AssignmentExpressionSyntax>()
+                .Single().Left;
+
+            Assert.Equal("P1", node2.ToString());
+            Assert.Equal("System.Int32 C.P1 { get; set; }", model.GetSymbolInfo(node2).Symbol.ToTestDisplayString());
         }
 
         [Fact, WorkItem(1702, "https://github.com/dotnet/roslyn/issues/1702")]
@@ -757,5 +774,88 @@ Func<int, int> W() => delegate (int y2) { return 2; }
                 Assert.Equal($"System.Int32 y{i}", model.LookupSymbols(nodes[i].SpanStart, name: $"y{i}").Single().ToTestDisplayString());
             }
         }
+
+        [Fact, WorkItem(8594, "https://github.com/dotnet/roslyn/pull/8594")]
+        public void ExpressionBodyDeclaredSymbols_01()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class C
+{
+    int _p1 = 0;
+    int P1 {
+        get => _p1;
+        set => _p1 = value;
+    }
+    C(int x) => P1 = x;
+    C(int y) : this(y) => _p1 = y;
+    ~C() => _p1 = 0;
+}
+");
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var dn = tree.GetRoot().DescendantNodes();
+
+            var node = tree.GetRoot()
+                .DescendantNodes()
+                .OfType<AccessorDeclarationSyntax>()
+                .ElementAt(0);
+
+            var fooDef = model.GetDeclaredSymbol(node) as SourcePropertyAccessorSymbol;
+            Assert.NotNull(fooDef);
+            Assert.Equal(SymbolKind.Method, fooDef.Kind);
+            Assert.Equal("get_P1", fooDef.Name);
+
+
+            node = tree.GetRoot()
+                .DescendantNodes()
+                .OfType<AccessorDeclarationSyntax>()
+                .ElementAt(1);
+
+            fooDef = model.GetDeclaredSymbol(node) as SourcePropertyAccessorSymbol;
+            Assert.NotNull(fooDef);
+            Assert.Equal(SymbolKind.Method, fooDef.Kind);
+            Assert.Equal("set_P1", fooDef.Name);
+
+
+        }
+        [Fact, WorkItem(8594, "https://github.com/dotnet/roslyn/pull/8594")]
+        public void ExpressionBodyDeclaredSymbols_02()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class C
+{
+    int _p1 = 0;
+    int P1 {
+        get => _p1;
+        set => _p1 = value;
+    }
+}
+");
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+
+            var node = tree.GetRoot()
+                .DescendantNodes()
+                .OfType<AccessorDeclarationSyntax>()
+                .ElementAt(0);
+
+            var fooDef = model.GetDeclaredSymbol(node) as SourcePropertyAccessorSymbol;
+            Assert.NotNull(fooDef);
+            Assert.Equal(SymbolKind.Method, fooDef.Kind);
+            Assert.Equal("get_P1", fooDef.Name);
+
+
+            node = tree.GetRoot()
+                .DescendantNodes()
+                .OfType<AccessorDeclarationSyntax>()
+                .ElementAt(1);
+
+            fooDef = model.GetDeclaredSymbol(node) as SourcePropertyAccessorSymbol;
+            Assert.NotNull(fooDef);
+            Assert.Equal(SymbolKind.Method, fooDef.Kind);
+            Assert.Equal("set_P1", fooDef.Name);
+
+        }
+
     }
 }

@@ -695,7 +695,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.GetAccessorDeclaration:
                     case SyntaxKind.SetAccessorDeclaration:
                         // NOTE: not UnknownAccessorDeclaration since there's no corresponding method symbol from which to build a member model.
-                        outsideMemberDecl = !LookupPosition.IsInBlock(position, ((AccessorDeclarationSyntax)memberDecl).Body);
+                        outsideMemberDecl = !LookupPosition.IsInBody(position, (AccessorDeclarationSyntax)memberDecl);
                         break;
                     case SyntaxKind.ConstructorDeclaration:
                         var constructorDecl = (ConstructorDeclarationSyntax)memberDecl;
@@ -709,9 +709,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.OperatorDeclaration:
                         var methodDecl = (BaseMethodDeclarationSyntax)memberDecl;
                         outsideMemberDecl =
-                            !LookupPosition.IsInBlock(position, methodDecl.Body) &&
-                            !LookupPosition.IsInParameterList(position, methodDecl) &&
-                            !LookupPosition.IsInExpressionBody(position, methodDecl.GetExpressionBodySyntax(), methodDecl.SemicolonToken);
+                            !LookupPosition.IsInBody(position, methodDecl) &&
+                            !LookupPosition.IsInParameterList(position, methodDecl);
                         break;
                 }
             }
@@ -757,15 +756,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.ConstructorDeclaration:
                         {
                             ConstructorDeclarationSyntax constructorDecl = (ConstructorDeclarationSyntax)memberDecl;
+                            var expressionBody = constructorDecl.GetExpressionBodySyntax();
                             return GetOrAddModelForParameterDefaultValue(constructorDecl.ParameterList.Parameters, span) ??
-                                GetOrAddModelIfContains(constructorDecl.Initializer, span) ??
-                                GetOrAddModelIfContains(constructorDecl.Body, span);
+                                   GetOrAddModelIfContains(constructorDecl.Initializer, span) ??
+                                   GetOrAddModelIfContains(expressionBody, span) ??
+                                   GetOrAddModelIfContains(constructorDecl.Body, span);
                         }
 
                     case SyntaxKind.DestructorDeclaration:
                         {
                             DestructorDeclarationSyntax destructorDecl = (DestructorDeclarationSyntax)memberDecl;
-                            return GetOrAddModelIfContains(destructorDecl.Body, span);
+                            var expressionBody = destructorDecl.GetExpressionBodySyntax();
+                            return GetOrAddModelIfContains(expressionBody, span) ?? 
+                                   GetOrAddModelIfContains(destructorDecl.Body, span);
                         }
 
                     case SyntaxKind.IndexerDeclaration:
@@ -811,7 +814,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.AddAccessorDeclaration:
                     case SyntaxKind.RemoveAccessorDeclaration:
                         // NOTE: not UnknownAccessorDeclaration since there's no corresponding method symbol from which to build a member model.
-                        return GetOrAddModelIfContains(((AccessorDeclarationSyntax)memberDecl).Body, span);
+                        return GetOrAddModelIfContains(((AccessorDeclarationSyntax)memberDecl).ExpressionBody, span) ?? 
+                               GetOrAddModelIfContains(((AccessorDeclarationSyntax)memberDecl).Body, span);
 
                     case SyntaxKind.GlobalStatement:
                         return GetOrAddModel(memberDecl);
@@ -978,6 +982,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         SourceMethodSymbol symbol = null;
                         MemberDeclarationSyntax memberSyntax;
+                        AccessorDeclarationSyntax accessorSyntax;
+
                         var exprDecl = (ArrowExpressionClauseSyntax)node;
 
                         if (node.Parent is BasePropertyDeclarationSyntax)
@@ -986,7 +992,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else if ((memberSyntax = node.Parent as MemberDeclarationSyntax) != null)
                         {
-                            symbol = (SourceMethodSymbol)GetDeclaredSymbol(node.Parent as MemberDeclarationSyntax);
+                            symbol = (SourceMethodSymbol)GetDeclaredSymbol(memberSyntax);
+                        }
+                        else if ((accessorSyntax = node.Parent as AccessorDeclarationSyntax) != null)
+                        {
+                            symbol = (SourceMethodSymbol)GetDeclaredSymbol(accessorSyntax);
                         }
                         else
                         {

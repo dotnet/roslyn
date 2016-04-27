@@ -30,6 +30,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return Update(attributeLists, modifiers, this.RefKeyword, type, explicitInterfaceSpecifier, identifier, accessorList, expressionBody, initializer, semicolonToken);
         }
     }
+
+    // backwards compatibility for API extension
+    public sealed partial class AccessorDeclarationSyntax : CSharpSyntaxNode
+    {
+        public AccessorDeclarationSyntax Update(SyntaxList<AttributeListSyntax> attributeLists, SyntaxTokenList modifiers, SyntaxToken keyword, BlockSyntax body, SyntaxToken semicolonToken)
+            => Update(attributeLists, modifiers, keyword, body, default(ArrowExpressionClauseSyntax), semicolonToken);
+    }
 }
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -49,6 +56,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 expressionBody: expressionBody, 
                 initializer: initializer, 
                 semicolonToken: semicolonToken);
+        }
+
+        /// <summary>Creates a new AccessorDeclarationSyntax instance.</summary>
+        public static AccessorDeclarationSyntax AccessorDeclaration(SyntaxKind kind, BlockSyntax body = default(BlockSyntax))
+        {
+            return SyntaxFactory.AccessorDeclaration(kind, default(SyntaxList<AttributeListSyntax>), default(SyntaxTokenList), SyntaxFactory.Token(GetAccessorDeclarationKeywordKind(kind)), body, default(ArrowExpressionClauseSyntax), default(SyntaxToken));
         }
     }
 }
