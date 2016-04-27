@@ -780,9 +780,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns true if the type is a valid switch expression type.
+        /// Returns true if the type was a valid switch expression type in C# 6. We use this test to determine
+        /// whether or not we should attempt a user-defined conversion from the type to a C# 6 switch governing
+        /// type, which we support for compatibility with C# 6 and earlier.
         /// </summary>
-        internal static bool IsValidSwitchGoverningType(this TypeSymbol type, bool isTargetTypeOfUserDefinedOp = false)
+        internal static bool IsValidV6SwitchGoverningType(this TypeSymbol type, bool isTargetTypeOfUserDefinedOp = false)
         {
             // SPEC:    The governing type of a switch statement is established by the switch expression.
             // SPEC:    1) If the type of the switch expression is sbyte, byte, short, ushort, int, uint,

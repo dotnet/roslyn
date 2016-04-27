@@ -7244,11 +7244,38 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The switch case has already been handled by a previous case..
+        /// </summary>
+        internal static string ERR_PatternIsSubsumed {
+            get {
+                return ResourceManager.GetString("ERR_PatternIsSubsumed", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to It is not legal to use nullable type &apos;{0}&apos; in a pattern; use the underlying type &apos;{1}&apos; instead..
         /// </summary>
         internal static string ERR_PatternNullableType {
             get {
                 return ResourceManager.GetString("ERR_PatternNullableType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The switch expression must be a value; found {0}..
+        /// </summary>
+        internal static string ERR_PatternValueExpected {
+            get {
+                return ResourceManager.GetString("ERR_PatternValueExpected", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to An expression of type {0} cannot be handled by a pattern of type {1}..
+        /// </summary>
+        internal static string ERR_PatternWrongType {
+            get {
+                return ResourceManager.GetString("ERR_PatternWrongType", resourceCulture);
             }
         }
         
@@ -8468,15 +8495,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type.
-        /// </summary>
-        internal static string ERR_SwitchGoverningTypeValueExpected {
-            get {
-                return ResourceManager.GetString("ERR_SwitchGoverningTypeValueExpected", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Command-line syntax error: Missing &apos;:&lt;number&gt;&apos; for &apos;{0}&apos; option.
         /// </summary>
         internal static string ERR_SwitchNeedsNumber {
@@ -9013,6 +9031,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_UsingAfterElements {
             get {
                 return ResourceManager.GetString("ERR_UsingAfterElements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type.
+        /// </summary>
+        internal static string ERR_V6SwitchGoverningTypeValueExpected {
+            get {
+                return ResourceManager.GetString("ERR_V6SwitchGoverningTypeValueExpected", resourceCulture);
             }
         }
         

@@ -334,6 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case BoundKind.ConditionalGoto: return ((BoundConditionalGoto)Branch).Label;
                         case BoundKind.BreakStatement: return ((BoundBreakStatement)Branch).Label;
                         case BoundKind.ContinueStatement: return ((BoundContinueStatement)Branch).Label;
+                        case BoundKind.PatternSwitchLabel: return ((BoundPatternSwitchLabel)Branch).Label;
                         default: return null;
                     }
                 }
@@ -723,7 +724,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Subclasses override this if they want to take special actions on processing a goto
         /// statement, when both the jump and the label have been located.
         /// </summary>
-        protected virtual void NoteBranch(PendingBranch pending, BoundStatement gotoStmt, BoundStatement target)
+        protected virtual void NoteBranch(PendingBranch pending, BoundNode gotoStmt, BoundStatement target)
         {
             target.AssertIsLabeledStatement();
         }
@@ -780,7 +781,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected virtual void ResolveBranch(PendingBranch pending, LabelSymbol label, BoundStatement target, ref bool labelStateChanged)
         {
             var state = LabelState(label);
-            if (target != null) NoteBranch(pending, (BoundStatement)pending.Branch, target);
+            if (target != null) NoteBranch(pending, pending.Branch, target);
             var changed = IntersectWith(ref state, ref pending.State);
             if (changed)
             {
@@ -855,6 +856,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                             }
                         }
                         break;
+                    case BoundKind.PatternSwitchSection:
+                        {
+                            var sec = (BoundPatternSwitchSection)node;
+                            foreach (var label in sec.SwitchLabels)
+                            {
+                                backwardBranchChanged |= ResolveBranches(label.Label, sec);
+                            }
+                        }
+                        break;
                     default:
                         // there are no other kinds of labels
                         throw ExceptionUtilities.UnexpectedValue(node.Kind);
@@ -907,6 +917,49 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             VisitRvalue(node.Expression);
             VisitPattern(node.Expression, node.Pattern);
+            return null;
+        }
+
+        public virtual void VisitPattern(BoundExpression expression, BoundPattern pattern)
+        {
+            Split();
+            bool? knownMatch = CheckRefutations(expression, pattern);
+            switch (knownMatch)
+            {
+                case true:
+                    SetState(StateWhenTrue);
+                    SetConditionalState(this.State, UnreachableState());
+                    break;
+                case false:
+                    SetState(StateWhenFalse);
+                    SetConditionalState(UnreachableState(), this.State);
+                    break;
+                case null:
+                    break;
+            }
+        }
+
+        /// <summary>
+        /// Check if the given expression is known to *always* match, or *always* fail against the given pattern.
+        /// Return true for known match, false for known fail, and null otherwise.
+        /// </summary>
+        private bool? CheckRefutations(BoundExpression expression, BoundPattern pattern)
+        {
+            switch (pattern.Kind)
+            {
+                case BoundKind.DeclarationPattern:
+                    {
+                        var declPattern = (BoundDeclarationPattern)pattern;
+                        if (declPattern.IsVar || // var pattern always matches
+                            declPattern.DeclaredType?.Type?.IsValueType == true && declPattern.DeclaredType.Type == (object)expression.Type) // exact match
+                        {
+                            return true;
+                        }
+                        // there are probably other cases to check. Note that reference types can, in general, fail because of null
+                    }
+                    break;
+            }
+
             return null;
         }
 

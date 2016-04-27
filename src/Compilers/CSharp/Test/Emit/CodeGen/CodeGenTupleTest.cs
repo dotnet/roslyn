@@ -10357,22 +10357,25 @@ class C
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature().WithPatternsFeature());
             comp.VerifyDiagnostics(
                 // (6,19): error CS1525: Invalid expression term 'int'
-                //         if (o is (int, int) t)
+                //         if (o is (int, int) t) { }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 19),
                 // (6,24): error CS1525: Invalid expression term 'int'
-                //         if (o is (int, int) t)
+                //         if (o is (int, int) t) { }
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 24),
                 // (6,29): error CS1026: ) expected
-                //         if (o is (int, int) t)
+                //         if (o is (int, int) t) { }
                 Diagnostic(ErrorCode.ERR_CloseParenExpected, "t").WithLocation(6, 29),
                 // (6,30): error CS1002: ; expected
-                //         if (o is (int, int) t)
+                //         if (o is (int, int) t) { }
                 Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(6, 30),
                 // (6,30): error CS1513: } expected
-                //         if (o is (int, int) t)
+                //         if (o is (int, int) t) { }
                 Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 30),
+                // (6,18): error CS0150: A constant value is expected
+                //         if (o is (int, int) t) { }
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int)").WithLocation(6, 18),
                 // (6,29): error CS0103: The name 't' does not exist in the current context
-                //         if (o is (int, int) t)
+                //         if (o is (int, int) t) { }
                 Diagnostic(ErrorCode.ERR_NameNotInContext, "t").WithArguments("t").WithLocation(6, 29)
                 );
         }
@@ -10425,7 +10428,10 @@ class C
                 Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("=>", ")").WithLocation(6, 32),
                 // (6,32): error CS1525: Invalid expression term ')'
                 //         if (o is (int a, int b)) { }
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 32)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 32),
+                // (6,18): error CS1660: Cannot convert lambda expression to type 'object' because it is not a delegate type
+                //         if (o is (int a, int b)) { }
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(int a, int b)").WithArguments("lambda expression", "object").WithLocation(6, 18)
                 );
         }
 
@@ -10476,6 +10482,9 @@ class C
                 // (7,29): error CS1003: Syntax error, ':' expected
                 //             case (int, int) tuple: return;
                 Diagnostic(ErrorCode.ERR_SyntaxError, "tuple").WithArguments(":", "").WithLocation(7, 29),
+                // (7,18): error CS0150: A constant value is expected
+                //             case (int, int) tuple: return;
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(int, int)").WithLocation(7, 18),
                 // (7,29): warning CS0164: This label has not been referenced
                 //             case (int, int) tuple: return;
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "tuple").WithLocation(7, 29)
@@ -10525,6 +10534,9 @@ class C
                 // (7,25): error CS1003: Syntax error, ':' expected
                 //             case (1, 1) t: return;
                 Diagnostic(ErrorCode.ERR_SyntaxError, "t").WithArguments(":", "").WithLocation(7, 25),
+                // (7,18): error CS0150: A constant value is expected
+                //             case (1, 1) t: return;
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(1, 1)").WithLocation(7, 18),
                 // (7,25): warning CS0164: This label has not been referenced
                 //             case (1, 1) t: return;
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "t").WithLocation(7, 25)

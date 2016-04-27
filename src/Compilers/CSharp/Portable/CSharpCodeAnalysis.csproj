@@ -199,6 +199,7 @@
     <Compile Include="BoundTree\BoundTreeVisitors.cs" />
     <Compile Include="BoundTree\BoundTreeWalker.cs" />
     <Compile Include="BoundTree\Constructors.cs" />
+    <Compile Include="BoundTree\DecisionTree.cs" />
     <Compile Include="BoundTree\Expression.cs" />
     <Compile Include="BoundTree\PseudoVariableExpressions.cs" />
     <Compile Include="BoundTree\Formatting.cs" />

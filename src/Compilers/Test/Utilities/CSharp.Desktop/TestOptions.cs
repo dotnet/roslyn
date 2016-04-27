@@ -74,6 +74,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return options.WithFeature("patterns", "true");
         }
 
+        public static CSharpParseOptions WithoutPatternsFeature(this CSharpParseOptions options)
+        {
+            return options.WithLanguageVersion(LanguageVersion.CSharp6);
+        }
+
         public static CSharpParseOptions WithReplaceFeature(this CSharpParseOptions options)
         {
             return options.WithFeature("replace", "true");

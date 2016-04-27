@@ -24,11 +24,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // save the default label, if and when we find it.
             LabelSymbol defaultLabel = null;
 
-            foreach (var section in node.PatternSwitchSections)
+            foreach (var section in node.SwitchSections)
             {
                 BoundExpression sectionCondition = _factory.Literal(false);
                 bool isDefaultSection = false;
-                foreach (var label in section.PatternSwitchLabels)
+                foreach (var label in section.SwitchLabels)
                 {
                     if (label.Syntax.Kind() == SyntaxKind.DefaultSwitchLabel)
                     {

@@ -699,7 +699,7 @@
   <data name="ERR_ConstantExpected" xml:space="preserve">
     <value>A constant value is expected</value>
   </data>
-  <data name="ERR_SwitchGoverningTypeValueExpected" xml:space="preserve">
+  <data name="ERR_V6SwitchGoverningTypeValueExpected" xml:space="preserve">
     <value>A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type</value>
   </data>
   <data name="ERR_IntegralTypeValueExpected" xml:space="preserve">
@@ -3839,9 +3839,6 @@ You should consider suppressing the warning only if you're sure that you don't w
   <data name="ERR_FixedLocalInLambda" xml:space="preserve">
     <value>Cannot use fixed local '{0}' inside an anonymous method, lambda expression, or query expression</value>
   </data>
-  <data name="ERR_EncUpdateFailedMissingAttribute" xml:space="preserve">
-    <value>Cannot update '{0}'; attribute '{1}' is missing.</value>
-  </data>
   <data name="ERR_ExpressionTreeContainsNamedArgument" xml:space="preserve">
     <value>An expression tree may not contain a named argument specification</value>
   </data>
@@ -4874,5 +4871,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureTuples" xml:space="preserve">
     <value>tuples</value>
+  </data>
+  <data name="ERR_PatternValueExpected" xml:space="preserve">
+    <value>The switch expression must be a value; found {0}.</value>
+  </data>
+  <data name="ERR_PatternIsSubsumed" xml:space="preserve">
+    <value>The switch case has already been handled by a previous case.</value>
+  </data>
+  <data name="ERR_PatternWrongType" xml:space="preserve">
+    <value>An expression of type {0} cannot be handled by a pattern of type {1}.</value>
   </data>
 </root>

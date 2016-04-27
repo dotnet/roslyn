@@ -15,14 +15,70 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var expression = BindExpression(node.Expression, diagnostics);
             var hasErrors = node.HasErrors || IsOperandErrors(node, expression, diagnostics);
-            var pattern = BindPattern(node.Pattern, expression, expression.Type, hasErrors, diagnostics);
+            var pattern = BindPattern(node.Pattern, expression, ExpressionIsNull(expression), expression.Type, hasErrors, diagnostics);
             return new BoundIsPatternExpression(
                 node, expression, pattern, GetSpecialType(SpecialType.System_Boolean, diagnostics, node), hasErrors);
+        }
+
+        /// <summary>
+        /// Returns true if the expression is known to always be null.
+        /// Returns false if the expression is always known to be non-null.
+        /// Returns null otherwise.
+        /// </summary>
+        /// <param name="expression"></param>
+        /// <returns></returns>
+        internal static bool? ExpressionIsNull(BoundExpression expression)
+        {
+            if (expression.ConstantValue != null)
+            {
+                return expression.ConstantValue.IsNull;
+            }
+
+            if (expression.Type == null || expression.Type.IsNonNullableValueType())
+            {
+                return false;
+            }
+
+            switch (expression.Kind)
+            {
+                case BoundKind.Conversion:
+                    {
+                        var conversion = (BoundConversion)expression;
+                        switch(conversion.ConversionKind)
+                        {
+                            case ConversionKind.AnonymousFunction:
+                            case ConversionKind.Boxing:
+                            case ConversionKind.ImplicitNullable:
+                            case ConversionKind.InterpolatedString:
+                            case ConversionKind.MethodGroup:
+                                return false;
+                            case ConversionKind.ExplicitReference:
+                            case ConversionKind.Identity:
+                            case ConversionKind.ImplicitReference:
+                                return ExpressionIsNull(conversion.Operand);
+                            case ConversionKind.NullLiteral:
+                                return true;
+                            default:
+                                return null;
+                        }
+                    }
+                case BoundKind.AnonymousObjectCreationExpression:
+                case BoundKind.ArrayCreation:
+                case BoundKind.DelegateCreationExpression:
+                case BoundKind.DynamicObjectCreationExpression:
+                case BoundKind.NoPiaObjectCreationExpression:
+                case BoundKind.NullCoalescingOperator:
+                case BoundKind.ObjectCreationExpression:
+                    return false;
+                default:
+                    return null;
+            }
         }
 
         internal BoundPattern BindPattern(
             PatternSyntax node,
             BoundExpression operand,
+            bool? operandIsNull,
             TypeSymbol operandType,
             bool hasErrors,
             DiagnosticBag diagnostics,
@@ -32,11 +88,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case SyntaxKind.DeclarationPattern:
                     return BindDeclarationPattern(
-                        (DeclarationPatternSyntax)node, operand, operandType, hasErrors, diagnostics);
+                        (DeclarationPatternSyntax)node, operand, operandIsNull, operandType, hasErrors, diagnostics);
 
                 case SyntaxKind.ConstantPattern:
                     return BindConstantPattern(
-                        (ConstantPatternSyntax)node, operand, operandType, hasErrors, diagnostics, wasSwitchCase);
+                        (ConstantPatternSyntax)node, operand, operandIsNull, operandType, hasErrors, diagnostics, wasSwitchCase);
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
@@ -97,37 +153,86 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private BoundPattern BindConstantPattern(
+        private BoundConstantPattern BindConstantPattern(
             ConstantPatternSyntax node,
             BoundExpression operand,
+            bool? operandIsNull,
             TypeSymbol operandType,
             bool hasErrors,
             DiagnosticBag diagnostics,
             bool wasSwitchCase)
         {
             bool wasExpression;
-            return BindConstantPattern(node, operand, operandType, node.Expression, hasErrors, diagnostics, out wasExpression, wasSwitchCase);
+            return BindConstantPattern(node, operand, operandIsNull, operandType, node.Expression, hasErrors, diagnostics, out wasExpression, wasSwitchCase);
         }
 
-        internal BoundPattern BindConstantPattern(
+        internal BoundConstantPattern BindConstantPattern(
             CSharpSyntaxNode node,
-            BoundExpression left,
-            TypeSymbol leftType,
-            ExpressionSyntax right,
+            BoundExpression operand,
+            bool? operandIsNull,
+            TypeSymbol operandType,
+            ExpressionSyntax patternExpression,
             bool hasErrors,
             DiagnosticBag diagnostics,
             out bool wasExpression,
             bool wasSwitchCase)
         {
-            var expression = BindValue(right, diagnostics, BindValueKind.RValue);
+            var expression = BindValue(patternExpression, diagnostics, BindValueKind.RValue);
+            ConstantValue constantValueOpt = null;
+            expression = ConvertPatternExpression(operandType, patternExpression, expression, ref constantValueOpt, diagnostics);
             wasExpression = expression.Type?.IsErrorType() != true;
-            if (!node.HasErrors && expression.ConstantValue == null)
+            if (!expression.HasErrors && constantValueOpt == null)
             {
-                diagnostics.Add(ErrorCode.ERR_ConstantExpected, right.Location);
+                diagnostics.Add(ErrorCode.ERR_ConstantExpected, patternExpression.Location);
                 hasErrors = true;
             }
 
-            return new BoundConstantPattern(node, expression, hasErrors);
+            bool? knownMatchResult = null;
+            if (constantValueOpt != null)
+            {
+                if (constantValueOpt.IsNull)
+                {
+                    knownMatchResult = operandIsNull;
+                }
+                else if (operand.ConstantValue != null)
+                {
+                    knownMatchResult = constantValueOpt.Equals(operand.ConstantValue);
+                }
+            }
+
+            return new BoundConstantPattern(node, expression, constantValueOpt, knownMatchResult, hasErrors);
+        }
+
+        internal BoundExpression ConvertPatternExpression(TypeSymbol leftType, CSharpSyntaxNode node, BoundExpression expression, ref ConstantValue constantValue, DiagnosticBag diagnostics)
+        {
+            // NOTE: This will allow user-defined conversions, even though they're not allowed here.  This is acceptable
+            // because the result of a user-defined conversion does not have a ConstantValue and we'll report a diagnostic
+            // to that effect later.
+            BoundExpression convertedCaseExpression = GenerateConversionForAssignment(leftType, expression, diagnostics);
+
+            if (convertedCaseExpression.Kind == BoundKind.Conversion)
+            {
+                var conversion = (BoundConversion)convertedCaseExpression;
+                var operand = conversion.Operand;
+                if (leftType.IsNullableType() && (convertedCaseExpression.ConstantValue == null || !convertedCaseExpression.ConstantValue.IsNull))
+                {
+                    // Null is a special case here because we want to compare null to the Nullable<T> itself, not to the underlying type.
+                    var discardedDiagnostics = DiagnosticBag.GetInstance(); // We are not intested in the diagnostic that get created here
+                    convertedCaseExpression = CreateConversion(operand, leftType.GetNullableUnderlyingType(), discardedDiagnostics);
+                    discardedDiagnostics.Free();
+                }
+                else if (conversion.ConversionKind == ConversionKind.Boxing && operand.ConstantValue != null && convertedCaseExpression.ConstantValue == null)
+                {
+                    // A boxed constant is a special case because we prefer to compare to the pre-boxed
+                    // value by casting the input value to the type of the constant (that is, unboxing it)
+                    // and then testing the resulting value using primitives. That is much more efficient
+                    // than calling object.Equals(x, y).
+                    convertedCaseExpression = operand;
+                }
+            }
+
+            constantValue = convertedCaseExpression.ConstantValue;
+            return convertedCaseExpression;
         }
 
         private bool CheckValidPatternType(
@@ -179,7 +284,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     //case ConversionKind.ImplicitConstant:
                     //case ConversionKind.ImplicitNumeric:
                     default:
-                        Error(diagnostics, ErrorCode.ERR_NoExplicitConv, typeSyntax, operandType, patternType);
+                        Error(diagnostics, ErrorCode.ERR_PatternWrongType, typeSyntax, operandType, patternType);
                         return true;
                 }
             }
@@ -190,6 +295,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private BoundPattern BindDeclarationPattern(
             DeclarationPatternSyntax node,
             BoundExpression operand,
+            bool? operandIsNull,
             TypeSymbol operandType,
             bool hasErrors,
             DiagnosticBag diagnostics)
@@ -249,7 +355,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             DeclareLocalVariable(localSymbol, identifier, declType);
-            return new BoundDeclarationPattern(node, localSymbol, boundDeclType, isVar, hasErrors);
+            bool? knownMatchResult = null; // PROTOTYPE(patterns): TODO: compute if the declaration pattern is irrefutable
+            return new BoundDeclarationPattern(node, localSymbol, boundDeclType, isVar, knownMatchResult, hasErrors);
         }
     }
 }

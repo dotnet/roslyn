@@ -1330,7 +1330,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                     }
                 case BoundKind.WildcardPattern:
+                    break;
                 case BoundKind.ConstantPattern:
+                    {
+                        var pat = (BoundConstantPattern)pattern;
+                        this.VisitRvalue(pat.Value);
+                        break;
+                    }
                 default:
                     break;
             }
@@ -1365,9 +1371,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected override void VisitPatternSwitchSection(BoundPatternSwitchSection node, BoundExpression switchExpression, bool isLastSection)
         {
-            // TODO: this an probably depend more heavily on the base class implementation.
             DeclareVariables(node.Locals);
             base.VisitPatternSwitchSection(node, switchExpression, isLastSection);
+        }
+
+        protected override void VisitGuardedPattern(DecisionTree.Guarded guarded)
+        {
+            AssignPatternVariables(guarded.Label.Pattern);
+            base.VisitGuardedPattern(guarded);
         }
 
         private void CreateSlots(BoundPattern pattern)
