@@ -22,7 +22,7 @@ Friend Class WriteCsvNames
 
     ' Write out the CSV with the names.
     Public Sub WriteCsv(filename As String)
-        _writer = New StreamWriter(filename)
+        _writer = New StreamWriter(New FileStream(filename, FileMode.Create, FileAccess.Write))
 
         Using _writer
             WriteEnums()

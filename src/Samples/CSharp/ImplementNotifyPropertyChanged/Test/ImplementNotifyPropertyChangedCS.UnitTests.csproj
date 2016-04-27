@@ -18,7 +18,6 @@
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="File References">
-    <None Include="app.config" />
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup Label="Project References">
@@ -37,6 +36,10 @@
     <ProjectReference Include="..\..\..\..\..\src\Workspaces\CSharp\Portable\CSharpWorkspace.csproj">
       <Project>{21B239D0-D144-430F-A394-C066D58EE267}</Project>
       <Name>Microsoft.CodeAnalysis.CSharp.Workspaces</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Dependencies\xUnit.net\xUnit.net.csproj">
+      <Project>{8635cb8f-d210-41ed-b4ff-71502cdb475c}</Project>
+      <Name>xUnit.net</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\..\Shared\UnitTestFramework\UnitTestFramework.csproj">
       <Project>{d571f126-f0b6-487e-bb79-e91eaee46f4f}</Project>
@@ -68,5 +71,6 @@
   <ItemGroup />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
+    <Import Project="..\..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
   </ImportGroup>
 </Project>

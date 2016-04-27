@@ -62,6 +62,9 @@
     <Compile Include="Binding\AbstractLookupSymbolsInfo.cs" />
     <Compile Include="CaseInsensitiveComparison.cs" />
     <Compile Include="CodeGen\ILEmitStyle.cs" />
+    <Compile Include="DiagnosticAnalyzer\AnalysisResult.cs" />
+    <Compile Include="InternalUtilities\EmptyComparer.cs" />
+    <Compile Include="InternalUtilities\StringOrdinalComparer.cs" />
     <Compile Include="Compilation\OperationVisitor.cs" />
     <Compile Include="Compilation\OperationWalker.cs" />
     <Compile Include="Compilation\ScriptCompilationInfo.cs" />
@@ -173,7 +176,7 @@
     <Compile Include="Compilation\CommonSyntaxAndDeclarationManager.cs" />
     <Compile Include="Compilation\SymbolFilter.cs" />
     <Compile Include="CompilerPathUtilities.cs" />
-    <Compile Include="DiagnosticAnalyzer\AnalysisResult.cs" />
+    <Compile Include="DiagnosticAnalyzer\AnalysisResultBuilder.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalysisScope.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalysisState.AnalyzerStateData.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalysisState.cs" />
@@ -780,6 +783,16 @@
     </None>
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Dependencies\Immutable\Immutable.csproj">
+      <Project>{030f8ab1-d06d-4526-adec-8e6010899c71}</Project>
+      <Name>Immutable</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\Dependencies\Metadata\Metadata.csproj">
+      <Project>{b36c94c7-f34c-43bc-8834-0b9eea6dd4df}</Project>
+      <Name>Metadata</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="..\AnalyzerDriver\AnalyzerDriver.projitems" Label="Shared" />
   <Import Project="..\SharedCollections\SharedCollections.projitems" Label="Shared" />

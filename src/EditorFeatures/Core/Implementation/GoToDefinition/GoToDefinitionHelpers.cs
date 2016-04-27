@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Navigation;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Navigation;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
@@ -75,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
                     var externalSourceDefinitions = FindExternalDefinitionsAsync(symbol, project, externalDefinitionProviders, cancellationToken).WaitAndGetResult(cancellationToken).ToImmutableArray();
                     if (externalSourceDefinitions.Length > 0)
                     {
-                        return TryGoToDefinition(externalSourceDefinitions, title, project.Solution.Workspace, presenters, throwOnHiddenDefinition);
+                        return TryGoToDefinition(externalSourceDefinitions, title, project.Solution.Workspace.Options, presenters, throwOnHiddenDefinition);
                     }
                 }
 
@@ -92,20 +93,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
             }
 
             var navigableItems = preferredSourceLocations.Select(location => NavigableItemFactory.GetItemFromSymbolLocation(solution, symbol, location)).ToImmutableArray();
-            return TryGoToDefinition(navigableItems, title, project.Solution.Workspace, presenters, throwOnHiddenDefinition);
+            return TryGoToDefinition(navigableItems, title, project.Solution.Workspace.Options, presenters, throwOnHiddenDefinition);
         }
 
-        public static bool TryGoToDefinition(
+        private static bool TryGoToDefinition(
             ImmutableArray<INavigableItem> navigableItems,
             string title,
-            Workspace workspace,
+            OptionSet options,
             IEnumerable<Lazy<INavigableItemsPresenter>> presenters,
             bool throwOnHiddenDefinition)
         {
+            Contract.ThrowIfNull(options);
+
             // If we have a single location, then just navigate to it.
             if (navigableItems.Length == 1 && navigableItems[0].Document != null)
             {
                 var firstItem = navigableItems[0];
+                var workspace = firstItem.Document.Project.Solution.Workspace;
                 var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
 
                 if (navigationService.CanNavigateToSpan(workspace, firstItem.Document.Id, firstItem.SourceSpan))
@@ -114,7 +118,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
                         workspace,
                         documentId: firstItem.Document.Id,
                         textSpan: firstItem.SourceSpan,
-                        options: workspace.Options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true));
+                        options: options.WithChangedOption(NavigationOptions.PreferProvisionalTab, true));
                 }
                 else
                 {
@@ -188,7 +192,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
             {
                 var itemsArray = externalDefinitions.ToImmutableArrayOrEmpty();
                 var title = itemsArray[0].DisplayString;
-                return TryGoToDefinition(externalDefinitions.ToImmutableArrayOrEmpty(), title, document.Project.Solution.Workspace, presenters, throwOnHiddenDefinition: true);
+                return TryGoToDefinition(externalDefinitions.ToImmutableArrayOrEmpty(), title, document.Project.Solution.Workspace.Options, presenters, throwOnHiddenDefinition: true);
             }
 
             return false;

@@ -4833,9 +4833,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_TooManyUserStrings" xml:space="preserve">
     <value>Combined length of user strings used by the program exceeds allowed limit. Try to decrease use of string literals.</value>
   </data>
-  <data name="ERR_PeWritingFailure" xml:space="preserve">
-    <value>An error occurred while writing the output file.</value>
-  </data>
   <data name="ERR_PatternNullableType" xml:space="preserve">
     <value>It is not legal to use nullable type '{0}' in a pattern; use the underlying type '{1}' instead.</value>
   </data>
@@ -4853,5 +4850,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_ElseClauseRequiredWithWhenClause" xml:space="preserve">
     <value>An 'else' clause is required when a 'when' clause is present.</value>
+  </data>
+  <data name="ERR_PeWritingFailure" xml:space="preserve">
+    <value>An error occurred while writing the output file: {0}</value>
   </data>
 </root>

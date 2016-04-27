@@ -1,0 +1,1023 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:import namespace="http://www.w3.org/XML/1998/namespace" />
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+              <xsd:attribute ref="xml:space" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="BuildOutputPathLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <assembly alias="mscorlib" name="mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="BuildOutputPathLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.ColumnCount" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="buildOutputTableLayoutPanel.AutoSizeMode" type="System.Windows.Forms.AutoSizeMode, System.Windows.Forms">
+    <value>GrowAndShrink</value>
+  </data>
+  <data name="buildOutputTableLayoutPanel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="buildOutputTableLayoutPanel.ColumnCount" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="BuildOutputPathTextBox.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="BuildOutputPathTextBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 1</value>
+  </data>
+  <data name="BuildOutputPathTextBox.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 3, 0</value>
+  </data>
+  <data name="BuildOutputPathTextBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>374, 20</value>
+  </data>
+  <data name="BuildOutputPathTextBox.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;BuildOutputPathTextBox.Name" xml:space="preserve">
+    <value>BuildOutputPathTextBox</value>
+  </data>
+  <data name="&gt;&gt;BuildOutputPathTextBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TextBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;BuildOutputPathTextBox.Parent" xml:space="preserve">
+    <value>buildOutputTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;BuildOutputPathTextBox.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="BuildOutputPathButton.AccessibleName" xml:space="preserve">
+    <value>Browse...</value>
+  </data>
+  <data name="BuildOutputPathButton.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="BuildOutputPathButton.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="BuildOutputPathButton.Location" type="System.Drawing.Point, System.Drawing">
+    <value>380, 0</value>
+  </data>
+  <data name="BuildOutputPathButton.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>3, 0, 0, 0</value>
+  </data>
+  <data name="BuildOutputPathButton.Size" type="System.Drawing.Size, System.Drawing">
+    <value>75, 23</value>
+  </data>
+  <data name="BuildOutputPathButton.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="BuildOutputPathButton.Text" xml:space="preserve">
+    <value>B&amp;rowse...</value>
+  </data>
+  <data name="&gt;&gt;BuildOutputPathButton.Name" xml:space="preserve">
+    <value>BuildOutputPathButton</value>
+  </data>
+  <data name="&gt;&gt;BuildOutputPathButton.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;BuildOutputPathButton.Parent" xml:space="preserve">
+    <value>buildOutputTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;BuildOutputPathButton.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="buildOutputTableLayoutPanel.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="buildOutputTableLayoutPanel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 21</value>
+  </data>
+  <data name="buildOutputTableLayoutPanel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 2, 0, 3</value>
+  </data>
+  <data name="buildOutputTableLayoutPanel.RowCount" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="buildOutputTableLayoutPanel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>455, 23</value>
+  </data>
+  <data name="buildOutputTableLayoutPanel.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="&gt;&gt;buildOutputTableLayoutPanel.Name" xml:space="preserve">
+    <value>buildOutputTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;buildOutputTableLayoutPanel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TableLayoutPanel, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;buildOutputTableLayoutPanel.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;buildOutputTableLayoutPanel.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="buildOutputTableLayoutPanel.LayoutSettings" type="System.Windows.Forms.TableLayoutSettings, System.Windows.Forms">
+    <value>&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="BuildOutputPathTextBox" Row="0" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="BuildOutputPathButton" Row="0" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;/Controls&gt;&lt;Columns Styles="Percent,100,AutoSize,0" /&gt;&lt;Rows Styles="AutoSize,0,Absolute,20" /&gt;&lt;/TableLayoutSettings&gt;</value>
+  </data>
+  <data name="CompileOptionsTableLayoutPanel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="CompileOptionsTableLayoutPanel.ColumnCount" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="AdvancedCompileOptionsLabelLine.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="AdvancedCompileOptionsLabelLine.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="AdvancedCompileOptionsLabelLine.Location" type="System.Drawing.Point, System.Drawing">
+    <value>3, 357</value>
+  </data>
+  <data name="AdvancedCompileOptionsLabelLine.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>3, 3, 3, 3</value>
+  </data>
+  <data name="AdvancedCompileOptionsLabelLine.Size" type="System.Drawing.Size, System.Drawing">
+    <value>437, 1</value>
+  </data>
+  <data name="AdvancedCompileOptionsLabelLine.TabIndex" type="System.Int32, mscorlib">
+    <value>18</value>
+  </data>
+  <data name="&gt;&gt;AdvancedCompileOptionsLabelLine.Name" xml:space="preserve">
+    <value>AdvancedCompileOptionsLabelLine</value>
+  </data>
+  <data name="&gt;&gt;AdvancedCompileOptionsLabelLine.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;AdvancedCompileOptionsLabelLine.Parent" xml:space="preserve">
+    <value>CompileOptionsTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;AdvancedCompileOptionsLabelLine.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="OptionExplicitLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="OptionExplicitLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="OptionExplicitLabel.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="OptionExplicitLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>3, 3</value>
+  </data>
+  <data name="OptionExplicitLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>3, 3, 3, 3</value>
+  </data>
+  <data name="OptionExplicitLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>76, 13</value>
+  </data>
+  <data name="OptionExplicitLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="OptionExplicitLabel.Text" xml:space="preserve">
+    <value>Option e&amp;xplicit:</value>
+  </data>
+  <data name="&gt;&gt;OptionExplicitLabel.Name" xml:space="preserve">
+    <value>OptionExplicitLabel</value>
+  </data>
+  <data name="&gt;&gt;OptionExplicitLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;OptionExplicitLabel.Parent" xml:space="preserve">
+    <value>CompileOptionsTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;OptionExplicitLabel.ZOrder" xml:space="preserve">
+    <value>1</value>
+  </data>
+  <data name="DisableAllWarningsCheckBox.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="DisableAllWarningsCheckBox.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="DisableAllWarningsCheckBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>3, 259</value>
+  </data>
+  <data name="DisableAllWarningsCheckBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>119, 17</value>
+  </data>
+  <data name="DisableAllWarningsCheckBox.TabIndex" type="System.Int32, mscorlib">
+    <value>13</value>
+  </data>
+  <data name="DisableAllWarningsCheckBox.Text" xml:space="preserve">
+    <value>D&amp;isable all warnings</value>
+  </data>
+  <data name="&gt;&gt;DisableAllWarningsCheckBox.Name" xml:space="preserve">
+    <value>DisableAllWarningsCheckBox</value>
+  </data>
+  <data name="&gt;&gt;DisableAllWarningsCheckBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;DisableAllWarningsCheckBox.Parent" xml:space="preserve">
+    <value>CompileOptionsTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;DisableAllWarningsCheckBox.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="WarningsAsErrorCheckBox.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="WarningsAsErrorCheckBox.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="WarningsAsErrorCheckBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>3, 282</value>
+  </data>
+  <data name="WarningsAsErrorCheckBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>152, 17</value>
+  </data>
+  <data name="WarningsAsErrorCheckBox.TabIndex" type="System.Int32, mscorlib">
+    <value>14</value>
+  </data>
+  <data name="WarningsAsErrorCheckBox.Text" xml:space="preserve">
+    <value>Treat a&amp;ll warnings as errors</value>
+  </data>
+  <data name="&gt;&gt;WarningsAsErrorCheckBox.Name" xml:space="preserve">
+    <value>WarningsAsErrorCheckBox</value>
+  </data>
+  <data name="&gt;&gt;WarningsAsErrorCheckBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;WarningsAsErrorCheckBox.Parent" xml:space="preserve">
+    <value>CompileOptionsTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;WarningsAsErrorCheckBox.ZOrder" xml:space="preserve">
+    <value>3</value>
+  </data>
+  <data name="OptionExplicitComboBox.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="OptionExplicitComboBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>3, 22</value>
+  </data>
+  <data name="OptionExplicitComboBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>215, 21</value>
+  </data>
+  <data name="OptionExplicitComboBox.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="&gt;&gt;OptionExplicitComboBox.Name" xml:space="preserve">
+    <value>OptionExplicitComboBox</value>
+  </data>
+  <data name="&gt;&gt;OptionExplicitComboBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;OptionExplicitComboBox.Parent" xml:space="preserve">
+    <value>CompileOptionsTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;OptionExplicitComboBox.ZOrder" xml:space="preserve">
+    <value>4</value>
+  </data>
+  <data name="BuildEventsButton.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Bottom, Right</value>
+  </data>
+  <data name="BuildEventsButton.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="BuildEventsButton.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="BuildEventsButton.Location" type="System.Drawing.Point, System.Drawing">
+    <value>349, 325</value>
+  </data>
+  <data name="BuildEventsButton.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>3, 0, 3, 3</value>
+  </data>
+  <data name="BuildEventsButton.Size" type="System.Drawing.Size, System.Drawing">
+    <value>91, 23</value>
+  </data>
+  <data name="BuildEventsButton.TabIndex" type="System.Int32, mscorlib">
+    <value>17</value>
+  </data>
+  <data name="BuildEventsButton.Text" xml:space="preserve">
+    <value>Build Eve&amp;nts...</value>
+  </data>
+  <data name="&gt;&gt;BuildEventsButton.Name" xml:space="preserve">
+    <value>BuildEventsButton</value>
+  </data>
+  <data name="&gt;&gt;BuildEventsButton.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;BuildEventsButton.Parent" xml:space="preserve">
+    <value>CompileOptionsTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;BuildEventsButton.ZOrder" xml:space="preserve">
+    <value>5</value>
+  </data>
+  <data name="RegisterForComInteropCheckBox.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="RegisterForComInteropCheckBox.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="RegisterForComInteropCheckBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>3, 328</value>
+  </data>
+  <data name="RegisterForComInteropCheckBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>142, 17</value>
+  </data>
+  <data name="RegisterForComInteropCheckBox.TabIndex" type="System.Int32, mscorlib">
+    <value>16</value>
+  </data>
+  <data name="RegisterForComInteropCheckBox.Text" xml:space="preserve">
+    <value>R&amp;egister for COM interop</value>
+  </data>
+  <data name="&gt;&gt;RegisterForComInteropCheckBox.Name" xml:space="preserve">
+    <value>RegisterForComInteropCheckBox</value>
+  </data>
+  <data name="&gt;&gt;RegisterForComInteropCheckBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;RegisterForComInteropCheckBox.Parent" xml:space="preserve">
+    <value>CompileOptionsTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;RegisterForComInteropCheckBox.ZOrder" xml:space="preserve">
+    <value>6</value>
+  </data>
+  <data name="OptionCompareComboBox.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="OptionCompareComboBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>3, 67</value>
+  </data>
+  <data name="OptionCompareComboBox.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>3, 3, 3, 3</value>
+  </data>
+  <data name="OptionCompareComboBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>215, 21</value>
+  </data>
+  <data name="OptionCompareComboBox.TabIndex" type="System.Int32, mscorlib">
+    <value>5</value>
+  </data>
+  <data name="&gt;&gt;OptionCompareComboBox.Name" xml:space="preserve">
+    <value>OptionCompareComboBox</value>
+  </data>
+  <data name="&gt;&gt;OptionCompareComboBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;OptionCompareComboBox.Parent" xml:space="preserve">
+    <value>CompileOptionsTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;OptionCompareComboBox.ZOrder" xml:space="preserve">
+    <value>7</value>
+  </data>
+  <data name="GenerateXMLCheckBox.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="GenerateXMLCheckBox.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="GenerateXMLCheckBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>3, 305</value>
+  </data>
+  <data name="GenerateXMLCheckBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>184, 17</value>
+  </data>
+  <data name="GenerateXMLCheckBox.TabIndex" type="System.Int32, mscorlib">
+    <value>15</value>
+  </data>
+  <data name="GenerateXMLCheckBox.Text" xml:space="preserve">
+    <value>&amp;Generate XML documentation file</value>
+  </data>
+  <data name="&gt;&gt;GenerateXMLCheckBox.Name" xml:space="preserve">
+    <value>GenerateXMLCheckBox</value>
+  </data>
+  <data name="&gt;&gt;GenerateXMLCheckBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;GenerateXMLCheckBox.Parent" xml:space="preserve">
+    <value>CompileOptionsTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;GenerateXMLCheckBox.ZOrder" xml:space="preserve">
+    <value>8</value>
+  </data>
+  <data name="OptionStrictLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="OptionStrictLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="OptionStrictLabel.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="OptionStrictLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>224, 3</value>
+  </data>
+  <data name="OptionStrictLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>3, 3, 3, 3</value>
+  </data>
+  <data name="OptionStrictLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>66, 13</value>
+  </data>
+  <data name="OptionStrictLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="OptionStrictLabel.Text" xml:space="preserve">
+    <value>Option &amp;strict:</value>
+  </data>
+  <data name="&gt;&gt;OptionStrictLabel.Name" xml:space="preserve">
+    <value>OptionStrictLabel</value>
+  </data>
+  <data name="&gt;&gt;OptionStrictLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;OptionStrictLabel.Parent" xml:space="preserve">
+    <value>CompileOptionsTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;OptionStrictLabel.ZOrder" xml:space="preserve">
+    <value>9</value>
+  </data>
+  <data name="OptionStrictComboBox.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="OptionStrictComboBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>224, 22</value>
+  </data>
+  <data name="OptionStrictComboBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>216, 21</value>
+  </data>
+  <data name="OptionStrictComboBox.TabIndex" type="System.Int32, mscorlib">
+    <value>3</value>
+  </data>
+  <data name="&gt;&gt;OptionStrictComboBox.Name" xml:space="preserve">
+    <value>OptionStrictComboBox</value>
+  </data>
+  <data name="&gt;&gt;OptionStrictComboBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;OptionStrictComboBox.Parent" xml:space="preserve">
+    <value>CompileOptionsTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;OptionStrictComboBox.ZOrder" xml:space="preserve">
+    <value>10</value>
+  </data>
+  <data name="OptionCompareLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="OptionCompareLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="OptionCompareLabel.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="OptionCompareLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>3, 51</value>
+  </data>
+  <data name="OptionCompareLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>3, 5, 3, 3</value>
+  </data>
+  <data name="OptionCompareLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>85, 13</value>
+  </data>
+  <data name="OptionCompareLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>4</value>
+  </data>
+  <data name="OptionCompareLabel.Text" xml:space="preserve">
+    <value>Option c&amp;ompare:</value>
+  </data>
+  <data name="&gt;&gt;OptionCompareLabel.Name" xml:space="preserve">
+    <value>OptionCompareLabel</value>
+  </data>
+  <data name="&gt;&gt;OptionCompareLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;OptionCompareLabel.Parent" xml:space="preserve">
+    <value>CompileOptionsTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;OptionCompareLabel.ZOrder" xml:space="preserve">
+    <value>11</value>
+  </data>
+  <data name="OptionInferLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="OptionInferLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="OptionInferLabel.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="OptionInferLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>224, 51</value>
+  </data>
+  <data name="OptionInferLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>3, 5, 3, 3</value>
+  </data>
+  <data name="OptionInferLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>64, 13</value>
+  </data>
+  <data name="OptionInferLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>6</value>
+  </data>
+  <data name="OptionInferLabel.Text" xml:space="preserve">
+    <value>Option in&amp;fer:</value>
+  </data>
+  <data name="&gt;&gt;OptionInferLabel.Name" xml:space="preserve">
+    <value>OptionInferLabel</value>
+  </data>
+  <data name="&gt;&gt;OptionInferLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;OptionInferLabel.Parent" xml:space="preserve">
+    <value>CompileOptionsTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;OptionInferLabel.ZOrder" xml:space="preserve">
+    <value>12</value>
+  </data>
+  <data name="OptionInferComboBox.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="OptionInferComboBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>224, 67</value>
+  </data>
+  <data name="OptionInferComboBox.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>3, 3, 3, 3</value>
+  </data>
+  <data name="OptionInferComboBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>216, 21</value>
+  </data>
+  <data name="OptionInferComboBox.TabIndex" type="System.Int32, mscorlib">
+    <value>7</value>
+  </data>
+  <data name="&gt;&gt;OptionInferComboBox.Name" xml:space="preserve">
+    <value>OptionInferComboBox</value>
+  </data>
+  <data name="&gt;&gt;OptionInferComboBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;OptionInferComboBox.Parent" xml:space="preserve">
+    <value>CompileOptionsTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;OptionInferComboBox.ZOrder" xml:space="preserve">
+    <value>13</value>
+  </data>
+  <data name="WarningsConfigurationsGridViewLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="WarningsConfigurationsGridViewLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="WarningsConfigurationsGridViewLabel.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="WarningsConfigurationsGridViewLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>3, 96</value>
+  </data>
+  <data name="WarningsConfigurationsGridViewLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>3, 5, 3, 3</value>
+  </data>
+  <data name="WarningsConfigurationsGridViewLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>119, 13</value>
+  </data>
+  <data name="WarningsConfigurationsGridViewLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>11</value>
+  </data>
+  <data name="WarningsConfigurationsGridViewLabel.Text" xml:space="preserve">
+    <value>Warning configurations:</value>
+  </data>
+  <data name="&gt;&gt;WarningsConfigurationsGridViewLabel.Name" xml:space="preserve">
+    <value>WarningsConfigurationsGridViewLabel</value>
+  </data>
+  <data name="&gt;&gt;WarningsConfigurationsGridViewLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;WarningsConfigurationsGridViewLabel.Parent" xml:space="preserve">
+    <value>CompileOptionsTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;WarningsConfigurationsGridViewLabel.ZOrder" xml:space="preserve">
+    <value>14</value>
+  </data>
+  <data name="WarningsGridView.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Top, Bottom, Left, Right</value>
+  </data>
+  <data name="ConditionColumn.HeaderText" xml:space="preserve">
+    <value>Condition</value>
+  </data>
+  <data name="ConditionColumn.MinimumWidth" type="System.Int32, mscorlib">
+    <value>100</value>
+  </data>
+  <data name="NotificationColumn.HeaderText" xml:space="preserve">
+    <value>Notification</value>
+  </data>
+  <data name="NotificationColumn.MinimumWidth" type="System.Int32, mscorlib">
+    <value>100</value>
+  </data>
+  <data name="WarningsGridView.Location" type="System.Drawing.Point, System.Drawing">
+    <value>3, 115</value>
+  </data>
+  <data name="WarningsGridView.Size" type="System.Drawing.Size, System.Drawing">
+    <value>437, 138</value>
+  </data>
+  <data name="WarningsGridView.TabIndex" type="System.Int32, mscorlib">
+    <value>12</value>
+  </data>
+  <data name="&gt;&gt;WarningsGridView.Name" xml:space="preserve">
+    <value>WarningsGridView</value>
+  </data>
+  <data name="&gt;&gt;WarningsGridView.Type" xml:space="preserve">
+    <value>System.Windows.Forms.DataGridView, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;WarningsGridView.Parent" xml:space="preserve">
+    <value>CompileOptionsTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;WarningsGridView.ZOrder" xml:space="preserve">
+    <value>15</value>
+  </data>
+  <data name="AdvancedOptionsButton.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="AdvancedOptionsButton.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="AdvancedOptionsButton.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="AdvancedOptionsButton.Location" type="System.Drawing.Point, System.Drawing">
+    <value>3, 368</value>
+  </data>
+  <data name="AdvancedOptionsButton.Size" type="System.Drawing.Size, System.Drawing">
+    <value>174, 23</value>
+  </data>
+  <data name="AdvancedOptionsButton.TabIndex" type="System.Int32, mscorlib">
+    <value>19</value>
+  </data>
+  <data name="AdvancedOptionsButton.Text" xml:space="preserve">
+    <value>&amp;Advanced Compile Options...</value>
+  </data>
+  <data name="&gt;&gt;AdvancedOptionsButton.Name" xml:space="preserve">
+    <value>AdvancedOptionsButton</value>
+  </data>
+  <data name="&gt;&gt;AdvancedOptionsButton.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;AdvancedOptionsButton.Parent" xml:space="preserve">
+    <value>CompileOptionsTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;AdvancedOptionsButton.ZOrder" xml:space="preserve">
+    <value>16</value>
+  </data>
+  <data name="CompileOptionsTableLayoutPanel.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="CompileOptionsTableLayoutPanel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>6, 19</value>
+  </data>
+  <data name="CompileOptionsTableLayoutPanel.RowCount" type="System.Int32, mscorlib">
+    <value>16</value>
+  </data>
+  <data name="CompileOptionsTableLayoutPanel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>443, 394</value>
+  </data>
+  <data name="CompileOptionsTableLayoutPanel.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;CompileOptionsTableLayoutPanel.Name" xml:space="preserve">
+    <value>CompileOptionsTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;CompileOptionsTableLayoutPanel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TableLayoutPanel, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;CompileOptionsTableLayoutPanel.Parent" xml:space="preserve">
+    <value>CompileOptionsGroupBox</value>
+  </data>
+  <data name="&gt;&gt;CompileOptionsTableLayoutPanel.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="CompileOptionsTableLayoutPanel.LayoutSettings" type="System.Windows.Forms.TableLayoutSettings, System.Windows.Forms">
+    <value>&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="TargetCPULabel" Row="4" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="TargetCPUComboBox" Row="5" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="Prefer32BitCheckBox" Row="6" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="AdvancedCompileOptionsLabelLine" Row="14" RowSpan="1" Column="0" ColumnSpan="2" /&gt;&lt;Control Name="OptionExplicitLabel" Row="0" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="DisableAllWarningsCheckBox" Row="10" RowSpan="1" Column="0" ColumnSpan="2" /&gt;&lt;Control Name="WarningsAsErrorCheckBox" Row="11" RowSpan="1" Column="0" ColumnSpan="2" /&gt;&lt;Control Name="OptionExplicitComboBox" Row="1" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="BuildEventsButton" Row="13" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="RegisterForComInteropCheckBox" Row="13" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="OptionCompareComboBox" Row="3" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="GenerateXMLCheckBox" Row="12" RowSpan="1" Column="0" ColumnSpan="2" /&gt;&lt;Control Name="OptionStrictLabel" Row="0" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="OptionStrictComboBox" Row="1" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="OptionCompareLabel" Row="2" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="OptionInferLabel" Row="2" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="OptionInferComboBox" Row="3" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="WarningsConfigurationsGridViewLabel" Row="7" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="WarningsGridView" Row="8" RowSpan="2" Column="0" ColumnSpan="2" /&gt;&lt;Control Name="AdvancedOptionsButton" Row="15" RowSpan="1" Column="0" ColumnSpan="2" /&gt;&lt;/Controls&gt;&lt;Columns Styles="Percent,50,Percent,50" /&gt;&lt;Rows Styles="AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,Percent,100,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,AutoSize,0,Absolute,14,AutoSize,0" /&gt;&lt;/TableLayoutSettings&gt;</value>
+  </data>
+  <data name="CompileOptionsGroupBox.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="CompileOptionsGroupBox.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="CompileOptionsGroupBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 50</value>
+  </data>
+  <data name="CompileOptionsGroupBox.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 0, 3</value>
+  </data>
+  <data name="CompileOptionsGroupBox.Padding" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>6, 6, 6, 6</value>
+  </data>
+  <data name="CompileOptionsGroupBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>455, 419</value>
+  </data>
+  <data name="CompileOptionsGroupBox.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="CompileOptionsGroupBox.Text" xml:space="preserve">
+    <value>Compile Options:</value>
+  </data>
+  <data name="&gt;&gt;CompileOptionsGroupBox.Name" xml:space="preserve">
+    <value>CompileOptionsGroupBox</value>
+  </data>
+  <data name="&gt;&gt;CompileOptionsGroupBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.GroupBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;CompileOptionsGroupBox.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;CompileOptionsGroupBox.ZOrder" xml:space="preserve">
+    <value>2</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 0</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 0, 0, 0</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.RowCount" type="System.Int32, mscorlib">
+    <value>3</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>455, 472</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;overarchingTableLayoutPanel.Name" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;overarchingTableLayoutPanel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.TableLayoutPanel, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;overarchingTableLayoutPanel.Parent" xml:space="preserve">
+    <value>$this</value>
+  </data>
+  <data name="&gt;&gt;overarchingTableLayoutPanel.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="overarchingTableLayoutPanel.LayoutSettings" type="System.Windows.Forms.TableLayoutSettings, System.Windows.Forms">
+    <value>&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="BuildOutputPathLabel" Row="0" RowSpan="1" Column="0" ColumnSpan="2" /&gt;&lt;Control Name="buildOutputTableLayoutPanel" Row="1" RowSpan="1" Column="0" ColumnSpan="2" /&gt;&lt;Control Name="CompileOptionsGroupBox" Row="2" RowSpan="1" Column="0" ColumnSpan="2" /&gt;&lt;/Controls&gt;&lt;Columns Styles="Percent,50,Percent,50" /&gt;&lt;Rows Styles="AutoSize,0,AutoSize,0,Percent,100,Absolute,20" /&gt;&lt;/TableLayoutSettings&gt;</value>
+  </data>
+  <data name="BuildOutputPathLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 3</value>
+  </data>
+  <data name="BuildOutputPathLabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>0, 3, 3, 3</value>
+  </data>
+  <data name="BuildOutputPathLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>90, 13</value>
+  </data>
+  <data name="BuildOutputPathLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="BuildOutputPathLabel.Text" xml:space="preserve">
+    <value>B&amp;uild output path:</value>
+  </data>
+  <data name="&gt;&gt;BuildOutputPathLabel.Name" xml:space="preserve">
+    <value>BuildOutputPathLabel</value>
+  </data>
+  <data name="&gt;&gt;BuildOutputPathLabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;BuildOutputPathLabel.Parent" xml:space="preserve">
+    <value>overarchingTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;BuildOutputPathLabel.ZOrder" xml:space="preserve">
+    <value>0</value>
+  </data>
+  <data name="TargetCPULabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left</value>
+  </data>
+  <data name="TargetCPULabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="TargetCPULabel.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="TargetCPULabel.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>3, 5, 3, 3</value>
+  </data>
+  <data name="TargetCPULabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>66, 13</value>
+  </data>
+  <data name="TargetCPULabel.TabIndex" type="System.Int32, mscorlib">
+    <value>8</value>
+  </data>
+  <data name="TargetCPULabel.Text" xml:space="preserve">
+    <value>&amp;Target CPU:</value>
+  </data>
+  <data name="&gt;&gt;TargetCPULabel.Name" xml:space="preserve">
+    <value>TargetCPULabel</value>
+  </data>
+  <data name="&gt;&gt;TargetCPULabel.Type" xml:space="preserve">
+    <value>System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;TargetCPULabel.Parent" xml:space="preserve">
+    <value>>CompileOptionsTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;TargetCPULabel.ZOrder" xml:space="preserve">
+    <value>17</value>
+  </data>
+  <data name="TargetCPUComboBox.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Top, Left, Right</value>
+  </data>
+  <data name="TargetCPUComboBox.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="TargetCPUComboBox.Margin" type="System.Windows.Forms.Padding, System.Windows.Forms">
+    <value>3, 3, 3, 6</value>
+  </data>
+  <data name="TargetCPUComboBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>215, 21</value>
+  </data>
+  <data name="TargetCPUComboBox.TabIndex" type="System.Int32, mscorlib">
+    <value>9</value>
+  </data>
+  <data name="&gt;&gt;TargetCPUComboBox.Name" xml:space="preserve">
+    <value>TargetCPUComboBox</value>
+  </data>
+  <data name="&gt;&gt;TargetCPUComboBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.ComboBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;TargetCPUComboBox.Parent" xml:space="preserve">
+    <value>>CompileOptionsTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;TargetCPUComboBox.ZOrder" xml:space="preserve">
+    <value>18</value>
+  </data>
+  <data name="Prefer32BitCheckBox.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="Prefer32BitCheckBox.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="Prefer32BitCheckBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>152, 17</value>
+  </data>
+  <data name="Prefer32BitCheckBox.TabIndex" type="System.Int32, mscorlib">
+    <value>10</value>
+  </data>
+  <data name="Prefer32BitCheckBox.Text" xml:space="preserve">
+    <value>&amp;Prefer 32-bit</value>
+  </data>
+  <data name="&gt;&gt;Prefer32BitCheckBox.Name" xml:space="preserve">
+    <value>Prefer32BitCheckBox</value>
+  </data>
+  <data name="&gt;&gt;Prefer32BitCheckBox.Type" xml:space="preserve">
+    <value>System.Windows.Forms.CheckBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;Prefer32BitCheckBox.Parent" xml:space="preserve">
+    <value>CompileOptionsTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;Prefer32BitCheckBox.ZOrder" xml:space="preserve">
+    <value>19</value>
+  </data>
+  <metadata name="$this.Localizable" type="System.Boolean, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <data name="$this.AutoScrollMargin" type="System.Drawing.Size, System.Drawing">
+    <value>15, 15</value>
+  </data>
+  <data name="$this.Location" type="System.Drawing.Point, System.Drawing">
+    <value>12, 13</value>
+  </data>
+  <data name="$this.Size" type="System.Drawing.Size, System.Drawing">
+    <value>455, 472</value>
+  </data>
+  <data name="&gt;&gt;ConditionColumn.Name" xml:space="preserve">
+    <value>ConditionColumn</value>
+  </data>
+  <data name="&gt;&gt;ConditionColumn.Type" xml:space="preserve">
+    <value>System.Windows.Forms.DataGridViewTextBoxColumn, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;NotificationColumn.Name" xml:space="preserve">
+    <value>NotificationColumn</value>
+  </data>
+  <data name="&gt;&gt;NotificationColumn.Type" xml:space="preserve">
+    <value>System.Windows.Forms.DataGridViewComboBoxColumn, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;$this.Name" xml:space="preserve">
+    <value>CompilePropPage2</value>
+  </data>
+  <data name="&gt;&gt;$this.Type" xml:space="preserve">
+    <value>System.Windows.Forms.UserControl, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+</root>

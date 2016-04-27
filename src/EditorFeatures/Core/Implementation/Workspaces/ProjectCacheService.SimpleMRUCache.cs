@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Workspaces
 
             private readonly Node[] _nodes = new Node[CacheSize];
 
-            public bool Empty
+            public bool IsEmpty
             {
                 get
                 {

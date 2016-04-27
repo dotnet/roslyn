@@ -89,6 +89,7 @@
     <Compile Include="Parsing\CrefParsingTests.cs" />
     <Compile Include="Parsing\DeclarationParsingTests.cs" />
     <Compile Include="Parsing\ExpressionParsingTests.cs" />
+    <Compile Include="Parsing\LocalFunctionParsingTests.cs" />
     <Compile Include="Parsing\ParserRegressionTests.cs" />
     <Compile Include="Parsing\ScriptParsingTests.cs" />
     <Compile Include="Parsing\LambdaParameterParsingTests.cs" />

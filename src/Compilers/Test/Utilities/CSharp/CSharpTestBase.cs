@@ -842,7 +842,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 }
 
                 if (expectedDiagnostics != null)
-                    {
+                {
                     diagnostics.Verify(expectedDiagnostics);
                 }
                 diagnostics.Free();
@@ -851,7 +851,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
                 ArraySegment<byte> bufferSegment;
                 if (stream.TryGetBuffer(out bufferSegment) &&
                     bufferSegment.Count == bufferSegment.Array.Length)
-                    {
+                {
                     buffer = bufferSegment.Array;
                 }
                 else

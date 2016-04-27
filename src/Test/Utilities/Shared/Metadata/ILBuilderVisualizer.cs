@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeGen;
 using Roslyn.Test.MetadataUtilities;
 using Roslyn.Utilities;
 using Cci = Microsoft.Cci;
+using ILOpCode = Microsoft.CodeAnalysis.CodeGen.ILOpCode;
 
 namespace Roslyn.Test.Utilities
 {

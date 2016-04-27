@@ -1,0 +1,6 @@
+# We cannot ignore project.lock.json everywhere in our codebase
+# since we need the files to be checked in for Linux and Mac builds.
+# This tree (src/EditorFeatures) doesn't build at all under those builds
+# so we can delete them here.
+
+project.lock.json

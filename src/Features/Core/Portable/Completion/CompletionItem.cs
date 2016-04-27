@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -92,6 +91,28 @@ namespace Microsoft.CodeAnalysis.Completion
 
         public CompletionItemRules Rules { get; }
 
+        public ImmutableArray<CompletionItemFilter> Filters { get; }
+
+        // Constructor kept for back compat.  When we move to our new completion API we can remove this.
+        public CompletionItem(
+            CompletionListProvider completionProvider,
+            string displayText,
+            TextSpan filterSpan,
+            ImmutableArray<SymbolDisplayPart> description,
+            Glyph? glyph,
+            string sortText,
+            string filterText,
+            bool preselect,
+            bool isBuilder,
+            bool showsWarningIcon,
+            bool shouldFormatOnCommit,
+            CompletionItemRules rules)
+            : this(completionProvider, displayText, filterSpan, description, glyph, sortText, 
+                   filterText, preselect, isBuilder, showsWarningIcon, shouldFormatOnCommit, rules,
+                   ImmutableArray<CompletionItemFilter>.Empty)
+        {
+        }
+
         public CompletionItem(
             CompletionListProvider completionProvider,
             string displayText,
@@ -104,11 +125,33 @@ namespace Microsoft.CodeAnalysis.Completion
             bool isBuilder = false,
             bool showsWarningIcon = false,
             bool shouldFormatOnCommit = false,
-            CompletionItemRules rules = null)
+            CompletionItemRules rules = null,
+            ImmutableArray<CompletionItemFilter>? filters = null)
             : this(completionProvider, displayText, filterSpan,
                    description.IsDefault ? (Func<CancellationToken, Task<ImmutableArray<SymbolDisplayPart>>>)null : c => Task.FromResult(description),
-                   glyph, /*hasAsyncDescription*/ false, sortText, filterText, preselect, isBuilder, showsWarningIcon, shouldFormatOnCommit, rules)
+                   glyph, /*hasAsyncDescription*/ false, sortText, filterText, preselect, isBuilder, showsWarningIcon, shouldFormatOnCommit, rules, filters)
         {
+        }
+
+        // Constructor kept for back compat.  When we move to our new completion API we can remove this.
+        public CompletionItem(
+            CompletionListProvider completionProvider,
+            string displayText,
+            TextSpan filterSpan,
+            Func<CancellationToken, Task<ImmutableArray<SymbolDisplayPart>>> descriptionFactory,
+            Glyph? glyph,
+            string sortText,
+            string filterText,
+            bool preselect,
+            bool isBuilder,
+            bool showsWarningIcon,
+            bool shouldFormatOnCommit,
+            CompletionItemRules rules)
+            : this(completionProvider, displayText, filterSpan, descriptionFactory, glyph, sortText,
+                  filterText, preselect, isBuilder, showsWarningIcon, shouldFormatOnCommit, rules,
+                  ImmutableArray<CompletionItemFilter>.Empty)
+        {
+
         }
 
         public CompletionItem(
@@ -123,9 +166,10 @@ namespace Microsoft.CodeAnalysis.Completion
             bool isBuilder = false,
             bool showsWarningIcon = false,
             bool shouldFormatOnCommit = false,
-            CompletionItemRules rules = null) :
-                this(completionProvider, displayText, filterSpan, descriptionFactory, glyph, /*hasAsyncDescription*/ true, sortText,
-                     filterText, preselect, isBuilder, showsWarningIcon, shouldFormatOnCommit, rules)
+            CompletionItemRules rules = null,
+            ImmutableArray<CompletionItemFilter>? filters = null)
+                : this(completionProvider, displayText, filterSpan, descriptionFactory, glyph, /*hasAsyncDescription*/ true, sortText,
+                     filterText, preselect, isBuilder, showsWarningIcon, shouldFormatOnCommit, rules, filters)
         {
         }
 
@@ -142,7 +186,8 @@ namespace Microsoft.CodeAnalysis.Completion
             bool isBuilder,
             bool showsWarningIcon,
             bool shouldFormatOnCommit,
-            CompletionItemRules rules)
+            CompletionItemRules rules,
+            ImmutableArray<CompletionItemFilter>? filters)
         {
             this.CompletionProvider = completionProvider;
             this.DisplayText = displayText;
@@ -156,6 +201,7 @@ namespace Microsoft.CodeAnalysis.Completion
             this.ShouldFormatOnCommit = shouldFormatOnCommit;
             this.HasAsyncDescription = hasAsyncDescription;
             this.Rules = rules ?? CompletionItemRules.DefaultRules;
+            this.Filters = filters ?? ImmutableArray<CompletionItemFilter>.Empty;
 
             if (descriptionFactory != null)
             {

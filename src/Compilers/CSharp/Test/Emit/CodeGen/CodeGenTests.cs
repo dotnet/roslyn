@@ -9948,7 +9948,7 @@ class MyMainClass
 
         [WorkItem(528060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528060")]
         [WorkItem(1043494, "DevDiv")]
-        [Fact(Skip = "1043494")]
+        [Fact]
         public void DoubleDivByNegativeZero()
         {
             string source = @"
@@ -10203,7 +10203,7 @@ class Test
         }
 
         [WorkItem(528183, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528183")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6190")]
+        [Fact]
         public void TestExternWithoutDLLImport()
         {
             string source = @"
@@ -10212,6 +10212,7 @@ class Test
     extern void Foo();
     static void Main()
     {
+        (new Test()).Foo();
     }
 }";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
@@ -10219,12 +10220,21 @@ class Test
             // Both Dev10 and Roslyn currently generate unverifiable code for this case...
             // Dev10 reports warning CS0626: Method, operator, or accessor 'Test.Foo()' is marked external
             // and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-            // TODO: Roslyn doesn't report this warning yet
             comp.VerifyDiagnostics(
                 // (4,17): warning CS0626: Method, operator, or accessor 'Test.Foo()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "Foo").WithArguments("Test.Foo()"));
 
-            Assert.Throws(typeof(PeVerifyException), () => CompileAndVerify(source));
+            // NOTE: the resulting IL is unverifiable, but not an error for compat reasons
+            CompileAndVerify(comp, verify: false).VerifyIL("Test.Main",
+                @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  newobj     ""Test..ctor()""
+  IL_0005:  call       ""void Test.Foo()""
+  IL_000a:  ret
+}
+");
         }
 
         [WorkItem(541790, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541790")]
@@ -13328,7 +13338,7 @@ True");
         }
 
         [WorkItem(1043494, "DevDiv")]
-        [Fact(Skip = "1043494")]
+        [Fact]
         public void NegativeZeroIsNotAZero()
         {
             var source = @"
@@ -13413,7 +13423,7 @@ class A
         }
 
         [WorkItem(1043494, "DevDiv")]
-        [Fact(Skip = "1043494")]
+        [Fact]
         public void NegativeZeroIsNotAZero1()
         {
             var source = @"

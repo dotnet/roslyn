@@ -36,10 +36,10 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation
             DkmEvaluationResultAccessType access = default(DkmEvaluationResultAccessType),
             ulong nativeComPointer = 0)
         {
-            Debug.Assert(!type.GetLmrType().IsTypeVariables() || (valueFlags == DkmClrValueFlags.Synthetic));
+            Debug.Assert((type == null) || !type.GetLmrType().IsTypeVariables() || (valueFlags == DkmClrValueFlags.Synthetic));
             Debug.Assert((alias == null) || evalFlags.Includes(DkmEvaluationResultFlags.HasObjectId));
             // The "real" DkmClrValue will always have a value of zero for null pointers.
-            Debug.Assert(!type.GetLmrType().IsPointer || (value != null));
+            Debug.Assert((type == null) || !type.GetLmrType().IsPointer || (value != null));
 
             this.RawValue = value;
             this.HostObjectValue = hostObjectValue;

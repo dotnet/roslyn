@@ -368,24 +368,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Friend Sub EnsureSpecialType(type As SpecialType, <[In], Out> ByRef hasErrors As Boolean)
-            Dim sType = Me.F.SpecialType(type)
-            If sType.GetUseSiteErrorInfo IsNot Nothing Then
-                hasErrors = True
-            End If
-        End Sub
+        Friend Function EnsureSpecialType(type As SpecialType, bag As DiagnosticBag) As Symbol
+            Return Binder.GetSpecialType(F.Compilation.Assembly, type, Me.Body.Syntax, bag)
+        End Function
 
-        Friend Sub EnsureWellKnownType(type As WellKnownType, <[In], Out> ByRef hasErrors As Boolean)
-            Dim wkType = Me.F.WellKnownType(type)
-            If wkType.GetUseSiteErrorInfo IsNot Nothing Then
-                hasErrors = True
-            End If
-        End Sub
+        Friend Function EnsureWellKnownType(type As WellKnownType, bag As DiagnosticBag) As Symbol
+            Return Binder.GetWellKnownType(F.Compilation, type, Me.Body.Syntax, bag)
+        End Function
 
-        Friend Sub EnsureWellKnownMember(Of T As Symbol)(member As WellKnownMember, <[In], Out> ByRef hasErrors As Boolean)
-            Dim wkMember = Me.F.WellKnownMember(Of T)(member)
-            If wkMember Is Nothing OrElse wkMember.GetUseSiteErrorInfo IsNot Nothing Then
-                hasErrors = True
+        Friend Function EnsureSpecialMember(member As SpecialMember, bag As DiagnosticBag) As Symbol
+            Return Binder.GetSpecialTypeMember(F.Compilation.Assembly, member, Me.Body.Syntax, bag)
+        End Function
+
+        Friend Function EnsureWellKnownMember(member As WellKnownMember, bag As DiagnosticBag) As Symbol
+            Return Binder.GetWellKnownTypeMember(F.Compilation, member, Me.Body.Syntax, bag)
+        End Function
+
+        ''' <summary>
+        ''' Check that the property and its getter exist and collect any use-site errors.
+        ''' </summary>
+        Friend Sub EnsureSpecialPropertyGetter(member As SpecialMember, bag As DiagnosticBag)
+            Dim symbol = DirectCast(EnsureSpecialMember(member, bag), PropertySymbol)
+
+            If symbol IsNot Nothing Then
+                Dim getter = symbol.GetMethod
+
+                If getter Is Nothing Then
+                    Binder.ReportDiagnostic(bag, Body.Syntax, ERRID.ERR_NoGetProperty1, CustomSymbolDisplayFormatter.QualifiedName(symbol))
+                    Return
+                End If
+
+                Dim useSiteError = getter.GetUseSiteErrorInfo()
+                If useSiteError IsNot Nothing Then
+                    Binder.ReportDiagnostic(bag, Body.Syntax, useSiteError)
+                End If
             End If
         End Sub
 

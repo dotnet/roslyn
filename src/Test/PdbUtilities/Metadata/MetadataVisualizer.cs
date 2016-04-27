@@ -142,7 +142,7 @@ namespace Roslyn.Test.MetadataUtilities
             WriteLocalScope();
             WriteLocalVariable();
             WriteLocalConstant();
-            WriteLocalImport();
+            WriteImportScope();
             WriteCustomDebugInformation();
 
             // heaps:
@@ -1711,7 +1711,7 @@ namespace Roslyn.Test.MetadataUtilities
             }
         }
 
-        private void WriteLocalImport()
+        public void WriteImportScope()
         {
             AddHeader(
                 "Parent",

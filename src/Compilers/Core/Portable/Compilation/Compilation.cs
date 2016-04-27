@@ -851,6 +851,22 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public abstract ImmutableArray<Diagnostic> GetDiagnostics(CancellationToken cancellationToken = default(CancellationToken));
 
+        internal void EnsureCompilationCompleted()
+        {
+            Debug.Assert(this.EventQueue != null);
+
+            lock (this.EventQueue)
+            {
+                if (!this.EventQueue.IsCompleted)
+                {
+                    // Signal the end of compilation.
+                    EventQueue.TryEnqueue(new CompilationCompletedEvent(this));
+                    EventQueue.PromiseNotToEnqueue();
+                    EventQueue.TryComplete();
+                }
+            }
+        }
+
         internal abstract CommonMessageProvider MessageProvider { get; }
 
         /// <param name="accumulator">Bag to which filtered diagnostics will be added.</param>
@@ -1776,6 +1792,18 @@ namespace Microsoft.CodeAnalysis
             bool emitPortablePdb = moduleBeingBuilt.EmitOptions.DebugInformationFormat == DebugInformationFormat.PortablePdb;
             string pdbPath = (pdbStreamProvider != null) ? (moduleBeingBuilt.EmitOptions.PdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb")) : null;
 
+            // The PDB path is emitted in it's entirety into the PE.  This makes it impossible to have deterministic
+            // builds that occur in different source directories.  To enable this we shave all path information from
+            // the PDB when specified by the user.  
+            //
+            // This is a temporary work around to allow us to make progress with determinism.  The following issue 
+            // tracks getting an official solution here.
+            //
+            // https://github.com/dotnet/roslyn/issues/9813
+            string pePdbPath = Feature("pdb-path-determinism") != null && !string.IsNullOrEmpty(pdbPath)
+                ? Path.GetFileName(pdbPath)
+                : pdbPath;
+
             try
             {
                 metadataDiagnostics = DiagnosticBag.GetInstance();
@@ -1872,7 +1900,7 @@ namespace Microsoft.CodeAnalysis
                         getPeStream,
                         getPortablePdbStream,
                         nativePdbWriter,
-                        pdbPath,
+                        pePdbPath,
                         metadataOnly,
                         deterministic,
                         cancellationToken))
@@ -1908,7 +1936,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Cci.PeWritingException e)
                 {
-                    diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PeWritingFailure, Location.None, e.Message));
+                    diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PeWritingFailure, Location.None, e.InnerException.ToString()));
                     return false;
                 }
                 catch (ResourceException e)
