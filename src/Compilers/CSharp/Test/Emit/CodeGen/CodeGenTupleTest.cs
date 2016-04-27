@@ -2197,6 +2197,84 @@ class C : I
         }
 
         [Fact]
+        public void ImplementInterfaceWithGeneric()
+        {
+            string source = @"
+public interface I<TB, TA> where TB : TA
+{
+    (TB, TA, TC) M<TC>((TB, (TA, TC)) arg) where TC : TB;
+}
+
+public class CA { public override string ToString() { return ""CA""; } }
+
+public class CB : CA { public override string ToString() { return ""CB""; } }
+
+public class CC : CB { public override string ToString() { return ""CC""; } }
+
+class C : I<CB, CA>
+{
+    static void Main()
+    {
+        I<CB, CA> i = new C();
+        var r = i.M((new CB(), (new CA(), new CC())));
+        System.Console.WriteLine($""{r.Item1} {r.Item2} {r.Item3}"");
+    }
+
+    public (CB, CA, TC) M<TC>((CB, (CA, TC)) arg) where TC : CB
+    {
+        return (arg.Item1, arg.Item2.Item1, arg.Item2.Item2);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: @"CB CA CC", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void ImplementInterfaceWithGenericError()
+        {
+            string source = @"
+public interface I<TB, TA> where TB : TA
+{
+    (TB, TA, TC) M<TC>((TB, (TA, TC)) arg) where TC : TB;
+}
+
+public class CA { }
+
+public class CB : CA { }
+
+public class CC : CB { }
+
+class C1 : I<CB, CA>
+{
+    public (CB, CA, TC) M<TC>((CB, (CA, TC)) arg)
+    {
+        return (arg.Item1, arg.Item2.Item1, arg.Item2.Item2);
+    }
+}
+
+class C2 : I<CB, CA>
+{
+    public (CB, CA, TC) M<TC>((CB, (CA, TC)) arg) where TC : CB
+    {
+        return (arg.Item2.Item1, arg.Item1, arg.Item2.Item2);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // (15,25): error CS0425: The constraints for type parameter 'TC' of method 'C1.M<TC>((CB, (CA, TC)))' must match the constraints for type parameter 'TC' of interface method 'I<CB, CA>.M<TC>((CB, (CA, TC)))'. Consider using an explicit interface implementation instead.
+                //     public (CB, CA, TC) M<TC>((CB, (CA, TC)) arg)
+                Diagnostic(ErrorCode.ERR_ImplBadConstraints, "M").WithArguments("TC", "C1.M<TC>((CB, (CA, TC)))", "TC", "I<CB, CA>.M<TC>((CB, (CA, TC)))").WithLocation(15, 25),
+                // (25,16): error CS0029: Cannot implicitly convert type '(CA, CB, TC)' to '(CB, CA, TC)'
+                //         return (arg.Item2.Item1, arg.Item1, arg.Item2.Item2);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(arg.Item2.Item1, arg.Item1, arg.Item2.Item2)").WithArguments("(CA, CB, TC)", "(CB, CA, TC)").WithLocation(25, 16)
+                );
+        }
+
+        [Fact]
         public void OverrideTupleMethodWithDifferentNames()
         {
             string source = @"
@@ -4228,6 +4306,193 @@ class C
                 //         (int x, System.ArgIterator y) y;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "y").WithArguments("y").WithLocation(6, 39)
                 );
+        }
+
+        [Fact, WorkItem(10569, "https://github.com/dotnet/roslyn/issues/10569")]
+        public void IncompleteInterfaceMethod()
+        {
+            var source = @"
+public interface MyInterface {
+    (int, int) Foo()
+}
+" + trivial2uple;
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // (3,21): error CS1002: ; expected
+                //     (int, int) Foo()
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(3, 21)
+                );
+        }
+
+        [Fact]
+        public void ImplementInterface()
+        {
+            var source = @"
+interface I
+{
+    (int Alice, string Bob) M((int x, string y) value);
+    (int Alice, string Bob) P1 { get; }
+}
+class C : I
+{
+    static void Main()
+    {
+        var c = new C();
+        var x = c.M(c.P1);
+        System.Console.WriteLine(x);
+    }
+
+    public (int, string) M((int, string) value)
+    {
+        return value;
+    }
+
+    public (int, string) P1 => (r: 1, s: ""hello"");
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"{1, hello}
+");
+        }
+
+        [Fact]
+        public void ImplementInterfaceExplicitly()
+        {
+            var source = @"
+interface I
+{
+    (int Alice, string Bob) M((int x, string y) value);
+    (int Alice, string Bob) P1 { get; }
+}
+class C : I
+{
+    static void Main()
+    {
+        I c = new C();
+        var x = c.M(c.P1);
+        System.Console.WriteLine(x);
+        System.Console.WriteLine(x.Alice);
+    }
+
+    (int, string) I.M((int, string) value)
+    {
+        return value;
+    }
+
+    public (int, string) P1 => (r: 1, s: ""hello"");
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"{1, hello}
+1");
+        }
+
+        [Fact]
+        public void TupleTypeArguments()
+        {
+            var source = @"
+interface I<TA, TB> where TB : TA
+{
+    (TA, TB) M(TA a, TB b);
+}
+
+class C : I<(int, string), (int Alice, string Bob)>
+{
+    static void Main()
+    {
+        var c = new C();
+        var x = c.M((1, ""Australia""), (2, ""Brazil""));
+        System.Console.WriteLine(x);
+    }
+
+    public ((int Charlie, string Dylan), (int, string)) M((int Item1, string Item2) a, (int, string) b)
+    {
+        return (a, b);
+    }
+
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"{{1, Australia}, {2, Brazil}}");
+        }
+
+        [Fact]
+        public void LongTupleTypeArguments()
+        {
+            var source = @"
+interface I<TA, TB> where TB : TA
+{
+    (TA, TB) M(TA a, TB b);
+}
+
+class C : I<(int, string, int, string, int, string, int, string), (int A, string B, int C, string D, int E, string F, int G, string H)>
+{
+    static void Main()
+    {
+        var c = new C();
+        var x = c.M((1, ""Australia"", 2, ""Brazil"", 3, ""Columbia"", 4, ""Ecuador""), (5, ""France"", 6, ""Germany"", 7, ""Honduras"", 8, ""India""));
+        System.Console.WriteLine(x);
+    }
+
+    public ((int, string, int, string, int, string, int, string), (int, string, int, string, int, string, int, string)) M((int, string, int, string, int, string, int, string) a, (int, string, int, string, int, string, int, string) b)
+    {
+        return (a, b);
+    }
+
+}
+";
+
+            var comp = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature(),
+                                        expectedOutput: @"((1, Australia, 2, Brazil, 3, Columbia, 4, (Ecuador)), (5, France, 6, Germany, 7, Honduras, 8, (India)))");
+        }
+
+        [Fact]
+        public void OverrideGenericInterfaceWithDifferentNames()
+        {
+            string source = @"
+interface I<TA, TB> where TB : TA
+{
+   (TA returnA, TB returnB) M((TA paramA, TB paramB) x);
+}
+
+class C : I<(int b, int a), (int a, int b)>
+{
+    public virtual ((int, int) x, (int, int) y) M(((int, int), (int, int)) x)
+    {
+        throw new System.Exception();
+    }
+}
+
+class D : C, I<(int a, int b), (int c, int d)>
+{
+    static void Main()
+    {
+        C c = new D();
+        var r = c.M(((1, 2), (3, 4)));
+        System.Console.WriteLine($""{r.x} {r.y}"");
+    }
+
+    public override ((int b, int a), (int b, int a)) M(((int a, int b), (int b, int a)) y)
+    {
+        return y;
+    }
+}
+" + trivial2uple;
+
+            Action<ModuleSymbol> validator = module =>
+            {
+                var sourceModule = (SourceModuleSymbol)module;
+                var compilation = sourceModule.DeclaringCompilation;
+                TypeSymbol y = (TypeSymbol)compilation.GlobalNamespace.GetMember("D");
+
+                Assert.Equal(2, y.AllInterfaces.Length);
+                Assert.Equal("I<(System.Int32 b, System.Int32 a), (System.Int32 a, System.Int32 b)>", y.AllInterfaces[0].ToTestDisplayString());
+                Assert.Equal("I<(System.Int32 a, System.Int32 b), (System.Int32 c, System.Int32 d)>", y.AllInterfaces[1].ToTestDisplayString());
+            };
+
+            var comp = CompileAndVerify(source, expectedOutput: @"{1, 2} {3, 4}", sourceSymbolValidator: validator, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics();
         }
     }
 }
