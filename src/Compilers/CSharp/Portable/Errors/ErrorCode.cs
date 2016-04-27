@@ -1323,7 +1323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TooManyUserStrings = 8103,
         ERR_PeWritingFailure = 8104,
         ERR_ReturnTypesDontMatch = 8105,
-        ERR_DynamicLocalFunctionParameter = 8106,
+        ERR_DynamicLocalFunctionParamsParameter = 8106,
         ERR_CantInferVoid = 8107,
         ERR_ExpressionTreeContainsLocalFunction = 8108,
 
