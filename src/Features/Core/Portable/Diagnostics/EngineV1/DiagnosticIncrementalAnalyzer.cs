@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         private bool CheckOptions(Project project, bool forceAnalysis)
         {
             var workspace = project.Solution.Workspace;
-            if (workspace.Options.GetOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, project.Language) &&
+            if (ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(workspace, project.Language) &&
                 workspace.Options.GetOption(RuntimeOptions.FullSolutionAnalysis))
             {
                 return true;
