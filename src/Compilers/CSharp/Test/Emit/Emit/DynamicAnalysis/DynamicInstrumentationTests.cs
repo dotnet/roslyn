@@ -606,6 +606,7 @@ public class Program
         int x = Count;
         x += Prop;
         Prop = x;
+        x += Prop2;
         Lambda(x, (y) => y + 1);
     }
 
@@ -613,7 +614,9 @@ public class Program
 
     static int Count => Function(44);
 
-    static int Prop { get; set; } = 12;
+    static int Prop { get; set; }
+
+    static int Prop2 { get; set; } = 12;
 
     static int Lambda(int x, Func<int, int> l)
     {
@@ -621,11 +624,13 @@ public class Program
     }
 }
 ";
+            // There is no entry for method '8' since it's a Prop2_set which is never called.
             string expectedOutput = @"Flushing
 1
 True
 True
 2
+True
 True
 True
 True
@@ -639,6 +644,8 @@ True
 6
 True
 7
+True
+9
 True
 10
 True
