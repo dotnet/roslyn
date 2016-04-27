@@ -3084,69 +3084,6 @@ class C
             );
         }
 
-        // PROTOTYPE(tuples): this test is for a precedent reference
-        //                    it does not test tuples and should be removed or moved to appropriate location
-        [Fact]
-        public void InterpolatedConvertedType()
-        {
-            var source = @"
-class C
-{
-    static void Main()
-    {
-        System.IFormattable x = (System.IFormattable)$""qq {1} qq"";
-    }
-}
-" + trivial2uple + trivial3uple;
-
-            var tree = Parse(source);
-            var comp = CreateCompilationWithMscorlib(tree);
-
-            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
-            var node = nodes.OfType<InterpolatedStringExpressionSyntax>().Single();
-
-            Assert.Equal(@"$""qq {1} qq""", node.ToString());
-            Assert.Equal("System.String", model.GetTypeInfo(node).Type.ToTestDisplayString());
-            Assert.Equal("System.String", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.Identity, model.GetConversion(node));
-            Assert.Equal(Conversion.Identity, model.GetConversion(node.Parent));
-
-            var x = nodes.OfType<VariableDeclaratorSyntax>().First();
-            Assert.Equal("System.IFormattable x", model.GetDeclaredSymbol(x).ToTestDisplayString());
-        }
-
-        // PROTOTYPE(tuples): this test is for a precedent reference
-        //                    it does not test tuples and should be removed or moved to appropriate location
-        [Fact]
-        public void InterpolatedConvertedTypeInSource()
-        {
-            var source = @"
-class C
-{
-    static void Main()
-    {
-        System.IFormattable x = $""qq {1} qq"";
-    }
-}
-" + trivial2uple + trivial3uple;
-
-            var tree = Parse(source);
-            var comp = CreateCompilationWithMscorlib(tree);
-
-            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
-            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
-            var node = nodes.OfType<InterpolatedStringExpressionSyntax>().Single();
-
-            Assert.Equal(@"$""qq {1} qq""", node.ToString());
-            Assert.Equal("System.String", model.GetTypeInfo(node).Type.ToTestDisplayString());
-            Assert.Equal("System.IFormattable", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.InterpolatedString, model.GetConversion(node));
-
-            var x = nodes.OfType<VariableDeclaratorSyntax>().First();
-            Assert.Equal("System.IFormattable x", model.GetDeclaredSymbol(x).ToTestDisplayString());
-        }
-
         [Fact]
         public void TupleConvertedType01()
         {
