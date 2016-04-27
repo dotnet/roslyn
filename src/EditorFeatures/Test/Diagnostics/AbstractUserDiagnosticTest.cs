@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics.GenerateType;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.GenerateType;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
@@ -156,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 Assert.NotNull(fixAllProvider);
 
                 var fixAllState = GetFixAllState(fixAllProvider, diagnostics, provider, fixer, testDriver, document, scope.Value, fixAllActionId);
-                var fixAllContext = fixAllState.CreateFixAllContext(CancellationToken.None);
+                var fixAllContext = fixAllState.CreateFixAllContext(new SimpleProgressTracker(), CancellationToken.None);
                 var fixAllFix = await fixAllProvider.GetFixAsync(fixAllContext);
                 if (fixAllFix != null)
                 {

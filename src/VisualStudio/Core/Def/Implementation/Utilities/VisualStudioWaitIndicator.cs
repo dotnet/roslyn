@@ -28,10 +28,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
             _serviceProvider = serviceProvider;
         }
 
-        public WaitIndicatorResult Wait(string title, string message, bool allowCancel, Action<IWaitContext> action)
+        public WaitIndicatorResult Wait(
+            string title, string message, bool allowCancel, bool showProgress, Action<IWaitContext> action)
         {
             using (Logger.LogBlock(FunctionId.Misc_VisualStudioWaitIndicator_Wait, s_messageGetter, title, message, CancellationToken.None))
-            using (var waitContext = StartWait(title, message, allowCancel))
+            using (var waitContext = StartWait(title, message, allowCancel, showProgress))
             {
                 try
                 {
@@ -58,7 +59,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
             }
         }
 
-        private VisualStudioWaitContext StartWait(string title, string message, bool allowCancel)
+        private VisualStudioWaitContext StartWait(
+            string title, string message, bool allowCancel, bool showProgress)
         {
             var componentModel = (IComponentModel)_serviceProvider.GetService(typeof(SComponentModel));
             var workspace = componentModel.GetService<VisualStudioWorkspace>();
@@ -70,12 +72,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
             var dialogFactory = (IVsThreadedWaitDialogFactory)_serviceProvider.GetService(typeof(SVsThreadedWaitDialogFactory));
             Contract.ThrowIfNull(dialogFactory);
 
-            return new VisualStudioWaitContext(notificationService, dialogFactory, title, message, allowCancel);
+            return new VisualStudioWaitContext(
+                notificationService, dialogFactory, title, message, allowCancel, showProgress);
         }
 
-        IWaitContext IWaitIndicator.StartWait(string title, string message, bool allowCancel)
+        IWaitContext IWaitIndicator.StartWait(
+            string title, string message, bool allowCancel, bool showProgress)
         {
-            return StartWait(title, message, allowCancel);
+            return StartWait(title, message, allowCancel, showProgress);
         }
     }
 }

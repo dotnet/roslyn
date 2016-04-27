@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
@@ -63,6 +64,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// </summary>
         public CancellationToken CancellationToken { get; }
 
+        internal IProgressTracker ProgressTracker { get; }
+
         /// <summary>
         /// Creates a new <see cref="FixAllContext"/>.
         /// Use this overload when applying fix all to a diagnostic with a source location.
@@ -84,7 +87,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             IEnumerable<string> diagnosticIds,
             DiagnosticProvider fixAllDiagnosticProvider,
             CancellationToken cancellationToken)
-            : this(new FixAllState(null, document, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider), cancellationToken)
+            : this(new FixAllState(null, document, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider), 
+                  new SimpleProgressTracker(), cancellationToken)
         {
             if (document == null)
             {
@@ -113,7 +117,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             IEnumerable<string> diagnosticIds,
             DiagnosticProvider fixAllDiagnosticProvider,
             CancellationToken cancellationToken)
-            : this(new FixAllState(null, project, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider), cancellationToken)
+            : this(new FixAllState(null, project, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider),
+                  new SimpleProgressTracker(), cancellationToken)
         {
             if (project == null)
             {
@@ -123,9 +128,11 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         internal FixAllContext(
             FixAllState state,
+            IProgressTracker progressTracker,
             CancellationToken cancellationToken)
         {
             State = state;
+            this.ProgressTracker = progressTracker;
             this.CancellationToken = cancellationToken;
         }
 
@@ -220,7 +227,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 return this;
             }
 
-            return new FixAllContext(State, cancellationToken);
+            return new FixAllContext(State, this.ProgressTracker, cancellationToken);
         }
 
         internal Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync()
