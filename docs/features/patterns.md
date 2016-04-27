@@ -275,7 +275,7 @@ The order in which patterns are matched is not defined. A compiler is permitted 
 
 In some cases the compiler can prove that a switch section can have no effect at runtime because its pattern is subsumed by a previous case. In these cases a warning may be produced. [TODO: these warnings should be mandatory and we should specify precisely when they are produced.]
 
-If a *case_guard* is present, its expression of type `bool`. It is evaluated as an additional condition that must be satisfied for the case to be considered satisfied.
+If a *case-guard* is present, its expression is of type `bool`. It is evaluated as an additional condition that must be satisfied for the case to be considered satisfied.
 
 ## Match Expression
 

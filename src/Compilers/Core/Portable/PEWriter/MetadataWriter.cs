@@ -4902,7 +4902,7 @@ namespace Microsoft.Cci
 
                     break;
 
-                case UnmanagedType.SafeArray:
+                case Constants.UnmanagedType_SafeArray:
                     if (marshallingInformation.SafeArrayElementSubtype >= 0)
                     {
                         writer.WriteCompressedInteger((uint)marshallingInformation.SafeArrayElementSubtype);
@@ -4920,7 +4920,7 @@ namespace Microsoft.Cci
                     break;
 
                 case UnmanagedType.Interface:
-                case UnmanagedType.IDispatch:
+                case Constants.UnmanagedType_IDispatch:
                 case UnmanagedType.IUnknown:
                     if (marshallingInformation.IidParameterIndex >= 0)
                     {

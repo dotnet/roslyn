@@ -2029,7 +2029,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                     If Not attrdata.HasErrors Then
                         Dim interfaceType As ComInterfaceType = Nothing
                         If attrdata.DecodeInterfaceTypeAttribute(interfaceType) AndAlso
-                            (interfaceType And ComInterfaceType.InterfaceIsIDispatch) <> 0 Then
+                            (interfaceType And Cci.Constants.ComInterfaceType_InterfaceIsIDispatch) <> 0 Then
 
                             arguments.GetOrCreateData(Of TypeEarlyWellKnownAttributeData).HasAttributeForExtensibleInterface = True
                         End If
