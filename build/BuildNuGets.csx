@@ -45,7 +45,6 @@ string SystemCollectionsImmutableVersion = doc.Descendants(ns + nameof(SystemCol
 string SystemReflectionMetadataVersion = doc.Descendants(ns + nameof(SystemReflectionMetadataVersion)).Single().Value;
 string CodeAnalysisAnalyzersVersion = doc.Descendants(ns + nameof(CodeAnalysisAnalyzersVersion)).Single().Value;
 
-string MicrosoftDiaSymReaderVersion = GetExistingPackageVersion("Microsoft.DiaSymReader");
 string MicrosoftDiaSymReaderPortablePdbVersion = GetExistingPackageVersion("Microsoft.DiaSymReader.PortablePdb");
 
 string GetExistingPackageVersion(string name)
@@ -187,11 +186,6 @@ void GeneratePublishingConfig(string fileName, IEnumerable<XElement> packages)
 // Currently we publish some of the Roslyn dependencies. Remove this once they are moved to a separate repo.
 IEnumerable<XElement> MakePackageElementsForPublishedDependencies(bool isRelease)
 {
-    if (MicrosoftDiaSymReaderVersion != null && isRelease == IsReleaseVersion(MicrosoftDiaSymReaderVersion))
-    {
-        yield return MakePackageElement("Microsoft.DiaSymReader", MicrosoftDiaSymReaderVersion);
-    }
-
     if (MicrosoftDiaSymReaderPortablePdbVersion != null && isRelease == IsReleaseVersion(MicrosoftDiaSymReaderPortablePdbVersion))
     {
         yield return MakePackageElement("Microsoft.DiaSymReader.PortablePdb", MicrosoftDiaSymReaderPortablePdbVersion);
