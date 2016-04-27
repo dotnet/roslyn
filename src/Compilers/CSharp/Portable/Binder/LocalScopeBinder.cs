@@ -156,39 +156,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SyntaxKind.LocalDeclarationStatement:
                         {
-                    var decl = (LocalDeclarationStatementSyntax)innerStatement;
-                    if (locals == null)
-                    {
-                        locals = ArrayBuilder<LocalSymbol>.GetInstance();
-                    }
-
-                    RefKind refKind = decl.RefKeyword.Kind().GetRefKind();
-                    LocalDeclarationKind kind = decl.IsConst ? LocalDeclarationKind.Constant : LocalDeclarationKind.RegularVariable;
-
-                    foreach (var vdecl in decl.Declaration.Variables)
-                    {
-                        var localSymbol = MakeLocal(refKind, decl.Declaration, vdecl, kind);
-                        locals.Add(localSymbol);
-                    }
-                        }
-                        break;
-                    case SyntaxKind.LetStatement:
-                        {
-                            var decl = (LetStatementSyntax)innerStatement;
+                            var decl = (LocalDeclarationStatementSyntax)innerStatement;
                             if (locals == null)
                             {
                                 locals = ArrayBuilder<LocalSymbol>.GetInstance();
                             }
 
-                            if (decl.Pattern != null)
+                            RefKind refKind = decl.RefKeyword.Kind().GetRefKind();
+                            LocalDeclarationKind kind = decl.IsConst ? LocalDeclarationKind.Constant : LocalDeclarationKind.RegularVariable;
+
+                            foreach (var vdecl in decl.Declaration.Variables)
                             {
-                                // Patterns from the let statement introduce bindings into the enclosing scope.
-                                PatternVariableFinder.FindPatternVariables(this, locals, decl.Pattern);
-                            }
-                            else
-                            {
-                                TypeSyntax type = null; // in the syntax "var x = 1", there is no syntax for the variable's type.
-                                var localSymbol = SourceLocalSymbol.MakeLocal(this.ContainingMemberOrLambda, this, RefKind.None, type, decl.Identifier, LocalDeclarationKind.PatternVariable);
+                                var localSymbol = MakeLocal(refKind, decl.Declaration, vdecl, kind);
                                 locals.Add(localSymbol);
                             }
                         }

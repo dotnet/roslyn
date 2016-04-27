@@ -1334,9 +1334,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 return pattern.TypeSwitch(
                     (DeclarationPatternSyntax declarationPattern) => GetTypes(declarationPattern.Type),
-                    (ConstantPatternSyntax constantPattern) => GetTypes(constantPattern.Expression),
-                    (PositionalPatternSyntax positionalPattern) => GetTypes(positionalPattern.Type),
-                    (PropertyPatternSyntax propertyPattern) => GetTypes(propertyPattern.Type));
+                    (ConstantPatternSyntax constantPattern) => GetTypes(constantPattern.Expression));
             }
 
             private IEnumerable<ITypeSymbol> InferTypeInLockStatement(LockStatementSyntax lockStatement, SyntaxToken? previousToken = null)

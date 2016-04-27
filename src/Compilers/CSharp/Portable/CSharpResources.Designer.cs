@@ -341,24 +341,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Type of match expression cannot be determined because no branch has a type..
-        /// </summary>
-        internal static string ERR_AmbigMatch0 {
-            get {
-                return ResourceManager.GetString("ERR_AmbigMatch0", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Type of match expression cannot be determined because no branch has a most specific type..
-        /// </summary>
-        internal static string ERR_AmbigMatch1 {
-            get {
-                return ResourceManager.GetString("ERR_AmbigMatch1", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Ambiguity between &apos;{0}&apos; and &apos;{1}&apos;.
         /// </summary>
         internal static string ERR_AmbigMember {
@@ -409,15 +391,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_AmbiguousAttribute {
             get {
                 return ResourceManager.GetString("ERR_AmbiguousAttribute", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Ambiguous &apos;operator is&apos; declarations found in type &apos;{0}&apos;..
-        /// </summary>
-        internal static string ERR_AmbiguousOperatorIs {
-            get {
-                return ResourceManager.GetString("ERR_AmbiguousOperatorIs", resourceCulture);
             }
         }
         
@@ -3586,15 +3559,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_DynamicTypeAsBound {
             get {
                 return ResourceManager.GetString("ERR_DynamicTypeAsBound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to An &apos;else&apos; clause is required when a &apos;when&apos; clause is present..
-        /// </summary>
-        internal static string ERR_ElseClauseRequiredWithWhenClause {
-            get {
-                return ResourceManager.GetString("ERR_ElseClauseRequiredWithWhenClause", resourceCulture);
             }
         }
         
@@ -6839,51 +6803,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The return type of &apos;operator is&apos; must be &apos;bool&apos; or &apos;void&apos;..
-        /// </summary>
-        internal static string ERR_OperatorIsMustReturnBoolOrVoid {
-            get {
-                return ResourceManager.GetString("ERR_OperatorIsMustReturnBoolOrVoid", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The declaration of &apos;operator is&apos; must have at least one value parameter..
-        /// </summary>
-        internal static string ERR_OperatorIsNoParameters {
-            get {
-                return ResourceManager.GetString("ERR_OperatorIsNoParameters", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The declaration of &apos;operator is&apos; may not have a Nullable value type as its first parameter..
-        /// </summary>
-        internal static string ERR_OperatorIsNullable {
-            get {
-                return ResourceManager.GetString("ERR_OperatorIsNullable", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to No &apos;operator is&apos; declaration in &apos;{0}&apos; was found with {1} out parameter(s).
-        /// </summary>
-        internal static string ERR_OperatorIsParameterCount {
-            get {
-                return ResourceManager.GetString("ERR_OperatorIsParameterCount", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to All but the first parameter of user-defined &apos;operator is&apos; require the &apos;out&apos; modifier..
-        /// </summary>
-        internal static string ERR_OperatorIsRequiresOut {
-            get {
-                return ResourceManager.GetString("ERR_OperatorIsRequiresOut", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to The operator &apos;{0}&apos; requires a matching operator &apos;{1}&apos; to also be defined.
         /// </summary>
         internal static string ERR_OperatorNeedsMatch {
@@ -8612,15 +8531,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to A throw expression is not allowed here..
-        /// </summary>
-        internal static string ERR_ThrowMisplaced {
-            get {
-                return ResourceManager.GetString("ERR_ThrowMisplaced", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Catch clauses cannot follow the general catch clause of a try statement.
         /// </summary>
         internal static string ERR_TooManyCatches {
@@ -9734,15 +9644,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeaturePatternMatching {
             get {
                 return ResourceManager.GetString("IDS_FeaturePatternMatching", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to pattern matching experimental features.
-        /// </summary>
-        internal static string IDS_FeaturePatternMatching2 {
-            get {
-                return ResourceManager.GetString("IDS_FeaturePatternMatching2", resourceCulture);
             }
         }
         

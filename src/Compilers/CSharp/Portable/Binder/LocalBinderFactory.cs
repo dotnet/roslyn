@@ -515,22 +515,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Visit(node.Else, _enclosing);
         }
 
-        public override void VisitLetStatement(LetStatementSyntax node)
-        {
-            // Note that we do *not* include variables defined in a let statement's pattern in the let statement's scope.
-            // Those are instead included in the enclosing scope.
-            var letBinder = new PatternVariableBinder(node, _enclosing);
-            Visit(node.Expression, letBinder);
-
-            if (node.WhenClause != null)
-            {
-                Visit(node.WhenClause.Condition, letBinder);
-            }
-
-            VisitPossibleEmbeddedStatement(node.ElseClause?.Statement, letBinder);
-            AddToMap(node, letBinder);
-        }
-
         public override void VisitElseClause(ElseClauseSyntax node)
         {
             VisitPossibleEmbeddedStatement(node.Statement, _enclosing);
@@ -666,20 +650,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override void VisitMatchSection(MatchSectionSyntax node)
-        {
-            var patternBinder = new PatternVariableBinder(node, _enclosing);
-            AddToMap(node, patternBinder);
-            Visit(node.Pattern, patternBinder);
-
-            if (node.WhenClause != null)
-            {
-                Visit(node.WhenClause.Condition, patternBinder);
-            }
-
-            Visit(node.Expression, patternBinder);
-        }
-
         public override void VisitBinaryExpression(BinaryExpressionSyntax node)
         {
             // The binary operators (except ??) are left-associative, and expressions of the form
@@ -738,7 +708,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 switch (statement.Kind())
                 {
                     case SyntaxKind.LocalDeclarationStatement:
-                    case SyntaxKind.LetStatement:
                     case SyntaxKind.LabeledStatement:
                     case SyntaxKind.LocalFunctionStatement:
                         // It is an error to have a declaration or a label in an embedded statement,

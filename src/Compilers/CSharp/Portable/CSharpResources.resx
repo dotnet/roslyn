@@ -210,9 +210,6 @@
   <data name="IDS_FeaturePatternMatching" xml:space="preserve">
     <value>pattern matching</value>
   </data>
-  <data name="IDS_FeaturePatternMatching2" xml:space="preserve">
-    <value>pattern matching experimental features</value>
-  </data>
   <data name="IDS_FeatureImplicitArray" xml:space="preserve">
     <value>implicitly typed array</value>
   </data>
@@ -4842,37 +4839,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_BadIsPatternExpression" xml:space="preserve">
     <value>Invalid operand for pattern match.</value>
   </data>
-  <data name="ERR_AmbigMatch0" xml:space="preserve">
-    <value>Type of match expression cannot be determined because no branch has a type.</value>
-  </data>
-  <data name="ERR_AmbigMatch1" xml:space="preserve">
-    <value>Type of match expression cannot be determined because no branch has a most specific type.</value>
-  </data>
-  <data name="ERR_ThrowMisplaced" xml:space="preserve">
-    <value>A throw expression is not allowed here.</value>
-  </data>
-  <data name="ERR_ElseClauseRequiredWithWhenClause" xml:space="preserve">
-    <value>An 'else' clause is required when a 'when' clause is present.</value>
-  </data>
   <data name="ERR_PeWritingFailure" xml:space="preserve">
     <value>An error occurred while writing the output file: {0}.</value>
-  </data>
-  <data name="ERR_AmbiguousOperatorIs" xml:space="preserve">
-    <value>Ambiguous 'operator is' declarations found in type '{0}'.</value>
-  </data>
-  <data name="ERR_OperatorIsParameterCount" xml:space="preserve">
-    <value>No 'operator is' declaration in '{0}' was found with {1} out parameter(s)</value>
-  </data>
-  <data name="ERR_OperatorIsRequiresOut" xml:space="preserve">
-    <value>All but the first parameter of user-defined 'operator is' require the 'out' modifier.</value>
-  </data>
-  <data name="ERR_OperatorIsMustReturnBoolOrVoid" xml:space="preserve">
-    <value>The return type of 'operator is' must be 'bool' or 'void'.</value>
-  </data>
-  <data name="ERR_OperatorIsNoParameters" xml:space="preserve">
-    <value>The declaration of 'operator is' must have at least one value parameter.</value>
-  </data>
-  <data name="ERR_OperatorIsNullable" xml:space="preserve">
-    <value>The declaration of 'operator is' may not have a Nullable value type as its first parameter.</value>
   </data>
 </root>

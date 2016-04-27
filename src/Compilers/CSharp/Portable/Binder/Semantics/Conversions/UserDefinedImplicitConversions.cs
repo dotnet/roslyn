@@ -596,9 +596,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Added to spec in Roslyn timeframe.
                 case ConversionKind.NullLiteral:
                 case ConversionKind.NullToPointer:
-
-                // Added for C# 7.
-                case ConversionKind.ImplicitThrow:
                     return true;
 
                 default:

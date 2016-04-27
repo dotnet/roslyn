@@ -60,12 +60,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             s_poolInstance.Free(finder);
         }
 
-        public override void VisitLetStatement(LetStatementSyntax node)
-        {
-            Visit(node.Expression);
-            Visit(node.WhenClause?.Condition);
-        }
-
         public override void VisitLocalDeclarationStatement(LocalDeclarationStatementSyntax node)
         {
             foreach (var decl in node.Declaration.Variables)
@@ -161,11 +155,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             operands.Free();
-        }
-
-        public override void VisitMatchExpression(MatchExpressionSyntax node)
-        {
-            Visit(node.Left);
         }
 
         #region pool

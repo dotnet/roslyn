@@ -219,22 +219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MessageID.IDS_FeatureRefLocalsReturns:
                 case MessageID.IDS_FeaturePatternMatching:
                     // in "demo" mode enable proposed new C# 7 language features.
-                    if (PreprocessorSymbols.Contains("__DEMO__") ||
-                        PreprocessorSymbols.Contains("__DEMO_EXPERIMENTAL__"))
-                    {
-                        return true;
-                    }
-                    break;
-                case MessageID.IDS_FeaturePatternMatching2:
-                    // in "experimental" mode enable experimental and proposed new C# 7 language features.
-                    if (PreprocessorSymbols.Contains("__DEMO_EXPERIMENTAL__"))
-                    {
-                        return true;
-                    }
-                    break;
-                case MessageID.IDS_FeatureInferPositionalPattern:
-                    // in "unsupported" mode enable possible new C# 7 language features not well supported
-                    if (PreprocessorSymbols.Contains("__DEMO_UNSUPPORTED__"))
+                    if (PreprocessorSymbols.Contains("__DEMO__"))
                     {
                         return true;
                     }

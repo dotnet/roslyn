@@ -222,13 +222,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         binder = rootBinder.GetBinder(current);
                     }
                 }
-                else if (current.Kind() == SyntaxKind.MatchSection)
-                {
-                    if (LookupPosition.IsInMatchSectionScope(position, (MatchSectionSyntax)current))
-                    {
-                        binder = rootBinder.GetBinder(current);
-                    }
-                }
                 else if (current.Kind() == SyntaxKind.ArgumentList)
                 {
                     var argList = (ArgumentListSyntax)current;
@@ -580,18 +573,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckSyntaxNode(declarationSyntax);
             return GetDeclaredLocal(declarationSyntax, declarationSyntax.Identifier);
-        }
-
-        public override ISymbol GetDeclaredSymbol(LetStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            CheckSyntaxNode(declarationSyntax);
-
-            if (declarationSyntax.Pattern == null)
-            {
-                return GetDeclaredLocal(declarationSyntax, declarationSyntax.Identifier);
-            }
-
-            return null;
         }
 
         public override ILabelSymbol GetDeclaredSymbol(LabeledStatementSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
