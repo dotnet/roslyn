@@ -20,6 +20,6 @@
     "Microsoft.VisualStudio.Data.Services": "9.0.21022"
   },
   "frameworks": {
-    ".NETFramework,Version=v4.5": { }
+    ".NETFramework,Version=v4.6": { }
   }
 }
