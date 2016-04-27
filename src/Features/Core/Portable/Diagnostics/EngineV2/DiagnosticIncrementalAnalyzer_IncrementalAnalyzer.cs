@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        public override async Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
+        public override Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_DocumentReset, GetResetLogMessage, document, cancellationToken))
             {
@@ -138,8 +138,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // let other components knows about this event
                 _compilationManager.OnDocumentReset();
-                await _stateManager.OnDocumentResetAsync(stateSets, document).ConfigureAwait(false);
+                _stateManager.OnDocumentReset(stateSets, document);
             }
+
+            return SpecializedTasks.EmptyTask;
         }
 
         public override void RemoveDocument(DocumentId documentId)

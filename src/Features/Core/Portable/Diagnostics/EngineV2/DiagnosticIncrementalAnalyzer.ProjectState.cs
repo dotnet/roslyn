@@ -210,10 +210,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             public void ResetVersion()
             {
+                // reset version of cached data so that we can recalculate new data (ex, OnDocumentReset)
                 _lastResult = new AnalysisResult(_lastResult.ProjectId, VersionStamp.Default, _lastResult.DocumentIds, _lastResult.IsEmpty, _lastResult.FromBuild);
             }
 
-            public async Task MergeAsync(ActiveFileState state, Document document, bool forceMerge)
+            public async Task MergeAsync(ActiveFileState state, Document document)
             {
                 Contract.ThrowIfFalse(state.DocumentId == document.Id);
 
@@ -231,7 +232,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // if it is allowed to keep project state, check versions and if they are same, bail out
                 // if full solution analysis is off or we are asked to reset document state, we always merge.
-                if (fullAnalysis && !forceMerge &&
+                if (fullAnalysis &&
                     syntax.Version != VersionStamp.Default &&
                     syntax.Version == semantic.Version &&
                     syntax.Version == lastResult.Version)
