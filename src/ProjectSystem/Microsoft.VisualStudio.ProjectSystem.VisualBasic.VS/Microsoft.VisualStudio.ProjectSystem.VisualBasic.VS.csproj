@@ -16,8 +16,7 @@
     <UseCodebase>true</UseCodebase>
     <SignAssembly>true</SignAssembly>
     <OutDir>$(OutDir)\ProjectSystem\</OutDir>
-    <CopyNuGetImplementations>false</CopyNuGetImplementations>
-    <CopyReferencesByDefault>false</CopyReferencesByDefault>
+    <UseCommonOutputDirectory>true</UseCommonOutputDirectory>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.ProjectSystem.VisualBasic.VS.UnitTests" />

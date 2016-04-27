@@ -23,8 +23,7 @@
     <CopyBuildOutputToOutputDirectory>false</CopyBuildOutputToOutputDirectory>
     <CopyOutputSymbolsToOutputDirectory>false</CopyOutputSymbolsToOutputDirectory>
     <NoDocumentationFile>true</NoDocumentationFile>
-    <CopyNuGetImplementations>false</CopyNuGetImplementations>
-    <CopyReferencesByDefault>false</CopyReferencesByDefault>
+    <UseCommonOutputDirectory>true</UseCommonOutputDirectory>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
   </PropertyGroup>
