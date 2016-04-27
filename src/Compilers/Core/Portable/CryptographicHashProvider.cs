@@ -169,9 +169,10 @@ namespace Microsoft.CodeAnalysis
 
         internal static ImmutableArray<byte> ComputeSha1(BlobBuilder bytes)
         {
-            using (var hashProvider = new SHA1CryptoServiceProvider())
+            using (var incrementalHash = IncrementalHash.Create(AssemblyHashAlgorithm.Sha1))
             {
-                return ImmutableArray.Create(hashProvider.ComputeHash(bytes));
+                incrementalHash.AppendData(bytes);
+                return ImmutableArray.Create(incrementalHash.GetHashAndReset());
             }
         }
     }

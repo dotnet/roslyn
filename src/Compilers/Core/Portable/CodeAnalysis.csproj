@@ -51,6 +51,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="InternalUtilities\IncrementalHash.cs" />
     <Compile Include="System\Reflection\Blob.cs" />
     <Compile Include="System\Reflection\BlobWriter.cs" />
     <Compile Include="System\Reflection\BlobWriterImpl.cs" />
@@ -110,7 +111,7 @@
     <Compile Include="DiagnosticAnalyzer\SuppressMessageInfo.cs" />
     <Compile Include="Diagnostic\SuppressionInfo.cs" />
     <Compile Include="InternalUtilities\JsonWriter.cs" />
-    <Compile Include="InternalUtilities\HashAlgorithmExtensions.cs" />
+    <Compile Include="InternalUtilities\IncrementalHashExtensions.cs" />
     <Compile Include="InternalUtilities\SetWithInsertionOrder.cs" />
     <Compile Include="InternalUtilities\StackGuard.cs" />
     <Compile Include="InternalUtilities\StreamExtensions.cs" />

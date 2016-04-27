@@ -55,7 +55,7 @@ namespace Microsoft.Cci
         private readonly bool _logging;
         private readonly BlobBuilder _logData;
         private const int bufferFlushLimit = 64 * 1024;
-        private readonly HashAlgorithm _hashAlgorithm;
+        private readonly IncrementalHash _incrementalHash;
 
         internal PdbLogger(bool logging)
         {
@@ -67,13 +67,12 @@ namespace Microsoft.Cci
                 // and we need just one per compile session
                 // pooling will be couter-productive in such scenario
                 _logData = new BlobBuilder(bufferFlushLimit);
-                _hashAlgorithm = new SHA1CryptoServiceProvider();
-                Debug.Assert(_hashAlgorithm.SupportsTransform);
+                _incrementalHash = IncrementalHash.Create(AssemblyHashAlgorithm.Sha1);
             }
             else
             {
                 _logData = null;
-                _hashAlgorithm = null;
+                _incrementalHash = null;
             }
         }
 
@@ -83,12 +82,7 @@ namespace Microsoft.Cci
             // that should be very rare though.
             if (_logData.Count + space >= bufferFlushLimit)
             {
-                foreach (var blob in _logData.GetBlobs())
-                {
-                    var segment = blob.GetBytes();
-                    _hashAlgorithm.TransformBlock(segment.Array, segment.Offset, segment.Count);
-                }
-
+                _incrementalHash.AppendData(_logData);
                 _logData.Clear();
             }
         }
@@ -97,14 +91,15 @@ namespace Microsoft.Cci
         {
             Debug.Assert(_logData != null);
 
-            var hash = _hashAlgorithm.ComputeHash(_logData);
+            _incrementalHash.AppendData(_logData);
             _logData.Clear();
-            return hash;
+
+            return _incrementalHash.GetHashAndReset();
         }
 
         internal void Close()
         {
-            _hashAlgorithm?.Dispose();
+            _incrementalHash?.Dispose();
         }
 
         internal enum PdbWriterOperation : byte
