@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -8,34 +9,27 @@ namespace Microsoft.CodeAnalysis.UnitTests.ExtensionsTests
 {
     public class DocumentExtensionsTests
     {
-        private readonly AdhocWorkspace _ws = new AdhocWorkspace();
-        private readonly Project _emptyProject;
+        private readonly AdhocWorkspace _workspace;
+        private readonly Project _project;
 
         public DocumentExtensionsTests()
         {
-            _emptyProject = _ws.AddProject(
-                ProjectInfo.Create(
-                    ProjectId.CreateNewId(),
-                    VersionStamp.Default,
-                    "test",
-                    "test.dll",
-                    LanguageNames.CSharp,
-                    metadataReferences: new[] { TestReferences.NetFx.v4_0_30319.mscorlib }));
+            _workspace = new AdhocWorkspace();
+            _project = _workspace.AddProject("test", LanguageNames.CSharp);
         }
 
         private Document GetDocument(string code)
         {
-            return _emptyProject.AddDocument("test.cs", code);
+            return _project.AddDocument("test.cs", code);
         }
 
         [Fact]
-        public async Task GetSemanticModelForSpanAsync_TextSpanOutsideDocument()
+        public async Task GetSemanticModelForSpanAsync_TextSpanOutsideDocumentThrows()
         {
             const string code = @"class Test { }";
             var document = GetDocument(code);
-            var expected = await document.GetSemanticModelAsync();
-            var actual = await document.GetSemanticModelForSpanAsync(new TextSpan(code.Length, 1), CancellationToken.None);
-            Assert.Same(expected, actual);
+            await Assert.ThrowsAsync<ArgumentOutOfRangeException>(async () => 
+                await document.GetSemanticModelForSpanAsync(new TextSpan(code.Length, 1), CancellationToken.None));
         }
     }
 }
