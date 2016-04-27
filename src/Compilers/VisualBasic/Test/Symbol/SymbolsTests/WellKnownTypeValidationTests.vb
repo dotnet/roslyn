@@ -569,7 +569,7 @@ End Namespace
                     Case WellKnownMember.System_Array__Empty
                         ' Not available yet, but will be in upcoming release.
                         Continue For
-                    Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload, WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__FlushPayload
+                    Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload
                         ' Not always available.
                         Continue For
                 End Select
@@ -649,7 +649,7 @@ End Namespace
                     Case WellKnownMember.System_Array__Empty
                         ' Not available yet, but will be in upcoming release.
                         Continue For
-                    Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload, WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__FlushPayload
+                    Case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload
                         ' Not always available.
                         Continue For
                 End Select
