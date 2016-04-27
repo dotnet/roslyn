@@ -144,44 +144,43 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return _projectStates.GetOrAdd(projectId, id => new ProjectState(this, id));
             }
 
-            public Task<bool> OnDocumentClosedAsync(Document document)
-            {
-                // can not be cancelled
-                return OnDocumentResetAsync(document, forceReset: false);
-            }
-
-            public Task<bool> OnDocumentResetAsync(Document document)
-            {
-                return OnDocumentResetAsync(document, forceReset: true);
-            }
-
-            private async Task<bool> OnDocumentResetAsync(Document document, bool forceReset)
+            public async Task<bool> OnDocumentClosedAsync(Document document)
             {
                 // can not be cancelled
                 // remove active file state and put it in project state
-                ProjectState projectState;
                 ActiveFileState activeFileState;
-                if (_activeFileStates.TryRemove(document.Id, out activeFileState))
-                {
-                    // active file exist, put it in the project state
-                    projectState = GetProjectState(document.Project.Id);
-
-                    await projectState.MergeAsync(activeFileState, document, forceReset).ConfigureAwait(false);
-                    return true;
-                }
-
-                if (!_projectStates.TryGetValue(document.Project.Id, out projectState))
+                if (!_activeFileStates.TryRemove(document.Id, out activeFileState))
                 {
                     return false;
                 }
 
-                if (forceReset)
+                // active file exist, put it in the project state
+                var projectState = GetProjectState(document.Project.Id);
+                await projectState.MergeAsync(activeFileState, document).ConfigureAwait(false);
+                return true;
+            }
+
+            public bool OnDocumentReset(Document document)
+            {
+                var changed = false;
+
+                // can not be cancelled
+                // remove active file state and put it in project state
+                ActiveFileState activeFileState;
+                if (TryGetActiveFileState(document.Id, out activeFileState))
                 {
-                    projectState.ResetVersion();
-                    return true;
+                    activeFileState.ResetVersion();
+                    changed |= true;
                 }
 
-                return false;
+                ProjectState projectState;
+                if (TryGetProjectState(document.Project.Id, out projectState))
+                {
+                    projectState.ResetVersion();
+                    changed |= true;
+                }
+
+                return changed;
             }
 
             public bool OnDocumentRemoved(DocumentId id)

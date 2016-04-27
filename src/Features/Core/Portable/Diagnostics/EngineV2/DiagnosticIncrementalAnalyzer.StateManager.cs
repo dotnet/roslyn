@@ -152,13 +152,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return stateSets.ToImmutable();
             }
 
-            public async Task<bool> OnDocumentResetAsync(IEnumerable<StateSet> stateSets, Document document)
+            public bool OnDocumentReset(IEnumerable<StateSet> stateSets, Document document)
             {
                 // can not be cancelled
                 var removed = false;
                 foreach (var stateSet in stateSets)
                 {
-                    removed |= await stateSet.OnDocumentResetAsync(document).ConfigureAwait(false);
+                    removed |= stateSet.OnDocumentReset(document);
                 }
 
                 return removed;
