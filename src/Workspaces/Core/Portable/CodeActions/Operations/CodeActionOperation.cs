@@ -2,6 +2,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions
@@ -25,6 +26,11 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// </summary>
         public virtual void Apply(Workspace workspace, CancellationToken cancellationToken)
         {
+        }
+
+        internal virtual void Apply(Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
+        {
+            this.Apply(workspace, cancellationToken);
         }
 
         /// <summary>
