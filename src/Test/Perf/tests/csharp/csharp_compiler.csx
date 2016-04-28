@@ -1,19 +1,22 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+#r "../../../Roslyn.Test.Performance.Utilities.dll"
 #load "../../util/test_util.csx"
 using System.IO;
 using System.Collections.Generic;
+using Roslyn.Test.Performance.Utilities;
+using static Roslyn.Test.Performance.Utilities.TestUtilities;
 
-class CSharpCompilerTest: PerfTest 
+class CSharpCompilerTest: PerfTest
 {
-    private string _rspFile; 
-    public CSharpCompilerTest(string rspFile): base() {
+    private string _rspFile;
+    public CSharpCompilerTest(string rspFile): base(new ConsoleAndFileLogger("log.txt")) {
         _rspFile = rspFile;
     }
     
     public override void Setup() 
     {
-        DownloadProject("csharp", version: 1);
+        DownloadProject("csharp", version: 1, logger: _logger);
     }
     
     public override void Test() 
@@ -24,7 +27,8 @@ class CSharpCompilerTest: PerfTest
 
         string executeInDirectory = Path.Combine(MyTempDirectory, "csharp");
 
-        ShellOutVital(ReleaseCscPath, args, executeInDirectory);
+        ShellOutVital(Path.Combine(MyBinaries(), "csc.exe"), args, true, _logger, executeInDirectory);
+        _logger.Flush();
     }
     
     public override int Iterations => 2;
@@ -37,7 +41,7 @@ class CSharpCompilerTest: PerfTest
     }
 }
 
-TestThisPlease(
-    new CSharpCompilerTest("CSharpCompiler.rsp"),
+TestThisPlease(    new CSharpCompilerTest("CSharpCompiler.rsp"),
     new CSharpCompilerTest("CSharpCompilerNoAnalyzer.rsp"),
-    new CSharpCompilerTest("CSharpCompilerNoAnalyzerNoDeterminism.rsp"));
+    new CSharpCompilerTest("CSharpCompilerNoAnalyzerNoDeterminism.rsp")
+    );
