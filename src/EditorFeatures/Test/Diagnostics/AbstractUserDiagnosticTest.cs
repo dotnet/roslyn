@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 Assert.NotNull(fixAllProvider);
 
                 var fixAllState = GetFixAllState(fixAllProvider, diagnostics, provider, fixer, testDriver, document, scope.Value, fixAllActionId);
-                var fixAllContext = fixAllState.CreateFixAllContext(new SimpleProgressTracker(), CancellationToken.None);
+                var fixAllContext = fixAllState.CreateFixAllContext(new ProgressTracker(), CancellationToken.None);
                 var fixAllFix = await fixAllProvider.GetFixAsync(fixAllContext);
                 if (fixAllFix != null)
                 {

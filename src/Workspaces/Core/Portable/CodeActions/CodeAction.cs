@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// </summary>
         public Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(CancellationToken cancellationToken)
         {
-            return GetOperationsAsync(new SimpleProgressTracker(), cancellationToken);
+            return GetOperationsAsync(new ProgressTracker(), cancellationToken);
         }
 
         internal async Task<ImmutableArray<CodeActionOperation>> GetOperationsAsync(
@@ -170,7 +170,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
         /// </summary>
         internal async Task<Solution> GetChangedSolutionInternalAsync(bool postProcessChanges = true, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var solution = await GetChangedSolutionAsync(new SimpleProgressTracker(), cancellationToken).ConfigureAwait(false);
+            var solution = await GetChangedSolutionAsync(new ProgressTracker(), cancellationToken).ConfigureAwait(false);
             if (solution == null || !postProcessChanges)
             {
                 return solution;

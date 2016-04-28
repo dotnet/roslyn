@@ -935,7 +935,7 @@ namespace Microsoft.CodeAnalysis
         /// <see cref="CanApplyChange(ApplyChangesKind)"/> method.</exception>
         public virtual bool TryApplyChanges(Solution newSolution)
         {
-            return TryApplyChanges(newSolution, new SimpleProgressTracker());
+            return TryApplyChanges(newSolution, new ProgressTracker());
         }
 
         internal virtual bool TryApplyChanges(Solution newSolution, IProgressTracker progressTracker)

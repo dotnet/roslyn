@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 }
                 else if (operation.ApplyDuringTests)
                 {
-                    operation.Apply(workspace, new SimpleProgressTracker(), CancellationToken.None);
+                    operation.Apply(workspace, new ProgressTracker(), CancellationToken.None);
                 }
             }
 

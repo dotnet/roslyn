@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
         {
-            return ComputeOperationsAsync(new SimpleProgressTracker(), cancellationToken);
+            return ComputeOperationsAsync(new ProgressTracker(), cancellationToken);
         }
 
         internal override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(

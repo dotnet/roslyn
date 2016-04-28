@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.MSBuild
 
         public override bool TryApplyChanges(Solution newSolution)
         {
-            return TryApplyChanges(newSolution, new SimpleProgressTracker());
+            return TryApplyChanges(newSolution, new ProgressTracker());
         }
 
         internal override bool TryApplyChanges(Solution newSolution, IProgressTracker progressTracker)

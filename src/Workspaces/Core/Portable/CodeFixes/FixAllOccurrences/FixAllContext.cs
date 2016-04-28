@@ -88,7 +88,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             DiagnosticProvider fixAllDiagnosticProvider,
             CancellationToken cancellationToken)
             : this(new FixAllState(null, document, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider), 
-                  new SimpleProgressTracker(), cancellationToken)
+                  new ProgressTracker(), cancellationToken)
         {
             if (document == null)
             {
@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             DiagnosticProvider fixAllDiagnosticProvider,
             CancellationToken cancellationToken)
             : this(new FixAllState(null, project, codeFixProvider, scope, codeActionEquivalenceKey, diagnosticIds, fixAllDiagnosticProvider),
-                  new SimpleProgressTracker(), cancellationToken)
+                  new ProgressTracker(), cancellationToken)
         {
             if (project == null)
             {

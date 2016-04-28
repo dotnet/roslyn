@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         public override void Apply(Workspace workspace, CancellationToken cancellationToken)
         {
-            this.Apply(workspace, new SimpleProgressTracker(), cancellationToken);
+            this.Apply(workspace, new ProgressTracker(), cancellationToken);
         }
 
         internal override void Apply(

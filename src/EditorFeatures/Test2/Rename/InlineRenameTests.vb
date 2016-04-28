@@ -1076,7 +1076,7 @@ class C
                     workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id),
                     Await actions.First().GetOperationsAsync(CancellationToken.None),
                     "unused",
-                    New SimpleProgressTracker(),
+                    New ProgressTracker(),
                     CancellationToken.None)
 
                 ' CodeAction should be rejected
