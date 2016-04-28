@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-    <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\0.2.0\build\MicroBuild.Plugin.props" />
-    <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\0.2.0\build\MicroBuild.Plugin.targets" />
+    <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\0.2.0\build\MicroBuild.Core.props" />
+    <Import Project="$(NuGetPackageRoot)\MicroBuild.Core\0.2.0\build\MicroBuild.Core.targets" />
 
   <ItemGroup>
     <FilesToSign Include="$(OutDir)$(TargetFileName)" Condition="'$(ProducingSignedVsix)' != 'true'">
