@@ -1,24 +1,22 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Threading;
 using System.Collections.Immutable;
-using System;
+using System.Threading;
+using System.Threading.Tasks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
-    /// <summary>
-    /// Context for "Fix multiple occurrences" code fixes provided by an <see cref="FixAllProvider"/>.
-    /// </summary>
-    internal partial class FixMultipleContext
+    internal partial class FixAllState
     {
         /// <summary>
-        /// Diagnostic provider to fetch document/project diagnostics to fix in a <see cref="FixMultipleContext"/>.
+        /// Diagnostic provider to fetch document/project diagnostics to fix in a <see cref="FixAllContext"/>.
         /// </summary>
-        public sealed class FixMultipleDiagnosticProvider : DiagnosticProvider
+        internal sealed class FixMultipleDiagnosticProvider : FixAllContext.DiagnosticProvider
         {
+            internal override bool IsFixMultiple => true;
+
             private readonly ImmutableDictionary<Document, ImmutableArray<Diagnostic>> _documentDiagnosticsMap;
             private readonly ImmutableDictionary<Project, ImmutableArray<Diagnostic>> _projectDiagnosticsMap;
 
@@ -34,8 +32,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 _documentDiagnosticsMap = ImmutableDictionary<Document, ImmutableArray<Diagnostic>>.Empty;
             }
 
-            public ImmutableDictionary<Document, ImmutableArray<Diagnostic>> DocumentDiagnosticsToFix => _documentDiagnosticsMap;
-            public ImmutableDictionary<Project, ImmutableArray<Diagnostic>> ProjectDiagnosticsToFix => _projectDiagnosticsMap;
+            internal override Task<ImmutableDictionary<Document, ImmutableArray<Diagnostic>>> GetDocumentDiagnosticsToFixAsync(
+                FixAllContext context)
+            {
+                return Task.FromResult(_documentDiagnosticsMap);
+            }
+
+            internal override Task<ImmutableDictionary<Project, ImmutableArray<Diagnostic>>> GetProjectDiagnosticsToFixAsync(
+                FixAllContext context)
+            {
+                return Task.FromResult(_projectDiagnosticsMap);
+            }
 
             public override Task<IEnumerable<Diagnostic>> GetAllDiagnosticsAsync(Project project, CancellationToken cancellationToken)
             {

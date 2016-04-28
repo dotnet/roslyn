@@ -7,7 +7,9 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
@@ -67,17 +69,22 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             try
             {
-                var stateSets = _stateManager.GetOrUpdateStateSets(project);
+                var stateSets = GetStateSetsForFullSolutionAnalysis(_stateManager.GetOrUpdateStateSets(project), project);
 
-                // get analyzers that are not suppressed.
+                // PERF: get analyzers that are not suppressed.
+                // this is perf optimization. we cache these result since we know the result. (no diagnostics)
                 // REVIEW: IsAnalyzerSuppressed call seems can be quite expensive in certain condition. is there any other way to do this?
-                var activeAnalyzers = stateSets.Select(s => s.Analyzer).Where(a => !Owner.IsAnalyzerSuppressed(a, project)).ToImmutableArrayOrEmpty();
+                var activeAnalyzers = stateSets
+                                        .Select(s => s.Analyzer)
+                                        .Where(a => !Owner.IsAnalyzerSuppressed(a, project))
+                                        .ToImmutableArrayOrEmpty();
 
                 // get driver only with active analyzers.
                 var includeSuppressedDiagnostics = true;
                 var analyzerDriverOpt = await _compilationManager.CreateAnalyzerDriverAsync(project, activeAnalyzers, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
-                var result = await _executor.GetProjectAnalysisDataAsync(analyzerDriverOpt, project, stateSets, cancellationToken).ConfigureAwait(false);
+                var ignoreFullAnalysisOptions = false;
+                var result = await _executor.GetProjectAnalysisDataAsync(analyzerDriverOpt, project, stateSets, ignoreFullAnalysisOptions, cancellationToken).ConfigureAwait(false);
                 if (result.FromCache)
                 {
                     RaiseProjectDiagnosticsIfNeeded(project, stateSets, result.Result);
@@ -99,97 +106,104 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        public override Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
+        public override async Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
         {
-            // let other component knows about this event
-            _compilationManager.OnDocumentOpened();
+            using (Logger.LogBlock(FunctionId.Diagnostics_DocumentOpen, GetOpenLogMessage, document, cancellationToken))
+            {
+                var stateSets = _stateManager.GetStateSets(document.Project);
 
-            // here we dont need to raise any event, it will be taken cared by analyze methods.
-            return SpecializedTasks.EmptyTask;
+                // let other component knows about this event
+                _compilationManager.OnDocumentOpened();
+                await _stateManager.OnDocumentOpenedAsync(stateSets, document).ConfigureAwait(false);
+            }
         }
 
-        public override Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
+        public override async Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
         {
-            var stateSets = _stateManager.GetStateSets(document.Project);
+            using (Logger.LogBlock(FunctionId.Diagnostics_DocumentClose, GetResetLogMessage, document, cancellationToken))
+            {
+                var stateSets = _stateManager.GetStateSets(document.Project);
 
-            // let other components knows about this event
-            _compilationManager.OnDocumentClosed();
-            var changed = _stateManager.OnDocumentClosed(stateSets, document.Id);
-
-            // replace diagnostics from project state over active file state
-            RaiseLocalDocumentEventsFromProjectOverActiveFile(stateSets, document, changed);
-
-            return SpecializedTasks.EmptyTask;
+                // let other components knows about this event
+                _compilationManager.OnDocumentClosed();
+                await _stateManager.OnDocumentClosedAsync(stateSets, document).ConfigureAwait(false);
+            }
         }
 
         public override Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
         {
-            var stateSets = _stateManager.GetStateSets(document.Project);
+            using (Logger.LogBlock(FunctionId.Diagnostics_DocumentReset, GetResetLogMessage, document, cancellationToken))
+            {
+                var stateSets = _stateManager.GetStateSets(document.Project);
 
-            // let other components knows about this event
-            _compilationManager.OnDocumentReset();
-            var changed = _stateManager.OnDocumentReset(stateSets, document.Id);
-
-            // replace diagnostics from project state over active file state
-            RaiseLocalDocumentEventsFromProjectOverActiveFile(stateSets, document, changed);
+                // let other components knows about this event
+                _compilationManager.OnDocumentReset();
+                _stateManager.OnDocumentReset(stateSets, document);
+            }
 
             return SpecializedTasks.EmptyTask;
         }
 
         public override void RemoveDocument(DocumentId documentId)
         {
-            var stateSets = _stateManager.GetStateSets(documentId.ProjectId);
-
-            // let other components knows about this event
-            _compilationManager.OnDocumentRemoved();
-            var changed = _stateManager.OnDocumentRemoved(stateSets, documentId);
-
-            // if there was no diagnostic reported for this document, nothing to clean up
-            if (!changed)
+            using (Logger.LogBlock(FunctionId.Diagnostics_RemoveDocument, GetRemoveLogMessage, documentId, CancellationToken.None))
             {
-                // this is Perf to reduce raising events unnecessarily.
-                return;
-            }
+                var stateSets = _stateManager.GetStateSets(documentId.ProjectId);
 
-            // remove all diagnostics for the document
-            Owner.RaiseBulkDiagnosticsUpdated(raiseEvents =>
-            {
-                Solution nullSolution = null;
-                foreach (var stateSet in stateSets)
+                // let other components knows about this event
+                _compilationManager.OnDocumentRemoved();
+                var changed = _stateManager.OnDocumentRemoved(stateSets, documentId);
+
+                // if there was no diagnostic reported for this document, nothing to clean up
+                if (!changed)
                 {
-                    // clear all doucment diagnostics
-                    RaiseDiagnosticsRemoved(documentId, nullSolution, stateSet, AnalysisKind.Syntax, raiseEvents);
-                    RaiseDiagnosticsRemoved(documentId, nullSolution, stateSet, AnalysisKind.Semantic, raiseEvents);
-                    RaiseDiagnosticsRemoved(documentId, nullSolution, stateSet, AnalysisKind.NonLocal, raiseEvents);
+                    // this is Perf to reduce raising events unnecessarily.
+                    return;
                 }
-            });
+
+                // remove all diagnostics for the document
+                Owner.RaiseBulkDiagnosticsUpdated(raiseEvents =>
+                {
+                    Solution nullSolution = null;
+                    foreach (var stateSet in stateSets)
+                    {
+                        // clear all doucment diagnostics
+                        RaiseDiagnosticsRemoved(documentId, nullSolution, stateSet, AnalysisKind.Syntax, raiseEvents);
+                        RaiseDiagnosticsRemoved(documentId, nullSolution, stateSet, AnalysisKind.Semantic, raiseEvents);
+                        RaiseDiagnosticsRemoved(documentId, nullSolution, stateSet, AnalysisKind.NonLocal, raiseEvents);
+                    }
+                });
+            }
         }
 
         public override void RemoveProject(ProjectId projectId)
         {
-            var stateSets = _stateManager.GetStateSets(projectId);
-
-            // let other components knows about this event
-            _compilationManager.OnProjectRemoved();
-            var changed = _stateManager.OnProjectRemoved(stateSets, projectId);
-
-            // if there was no diagnostic reported for this project, nothing to clean up
-            if (!changed)
+            using (Logger.LogBlock(FunctionId.Diagnostics_RemoveProject, GetRemoveLogMessage, projectId, CancellationToken.None))
             {
-                // this is Perf to reduce raising events unnecessarily.
-                return;
-            }
+                var stateSets = _stateManager.GetStateSets(projectId);
 
-            // remove all diagnostics for the project
-            Owner.RaiseBulkDiagnosticsUpdated(raiseEvents =>
-            {
-                Solution nullSolution = null;
-                foreach (var stateSet in stateSets)
+                // let other components knows about this event
+                _compilationManager.OnProjectRemoved();
+                var changed = _stateManager.OnProjectRemoved(stateSets, projectId);
+
+                // if there was no diagnostic reported for this project, nothing to clean up
+                if (!changed)
                 {
-                    // clear all project diagnostics
-                    RaiseDiagnosticsRemoved(projectId, nullSolution, stateSet, raiseEvents);
+                    // this is Perf to reduce raising events unnecessarily.
+                    return;
                 }
-            });
+
+                // remove all diagnostics for the project
+                Owner.RaiseBulkDiagnosticsUpdated(raiseEvents =>
+                {
+                    Solution nullSolution = null;
+                    foreach (var stateSet in stateSets)
+                    {
+                        // clear all project diagnostics
+                        RaiseDiagnosticsRemoved(projectId, nullSolution, stateSet, raiseEvents);
+                    }
+                });
+            }
         }
 
         public override Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
@@ -207,48 +221,39 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             return document.IsOpen();
         }
 
-        private void RaiseLocalDocumentEventsFromProjectOverActiveFile(IEnumerable<StateSet> stateSets, Document document, bool activeFileDiagnosticExist)
+        private IEnumerable<StateSet> GetStateSetsForFullSolutionAnalysis(IEnumerable<StateSet> stateSets, Project project)
         {
-            // PERF: activeFileDiagnosticExist is perf optimization to reduce raising events unnecessarily.
+            // Get stateSets that should be run for full analysis
 
-            //  this removes diagnostic reported by active file and replace those with ones from project.
-            Owner.RaiseBulkDiagnosticsUpdated(async raiseEvents =>
+            // if full analysis is off, remove state that is from build.
+            // this will make sure diagnostics (converted from build to live) from build will never be cleared
+            // until next build.
+            if (!ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(project.Solution.Workspace, project.Language))
             {
-                // this basically means always load data
-                var avoidLoadingData = false;
+                stateSets = stateSets.Where(s => !s.FromBuild(project.Id));
+            }
 
-                foreach (var stateSet in stateSets)
-                {
-                    // get project state
-                    var state = stateSet.GetProjectState(document.Project.Id);
+            // include all analyzers if option is on
+            if (project.Solution.Workspace.Options.GetOption(InternalDiagnosticsOptions.ProcessHiddenDiagnostics))
+            {
+                return stateSets;
+            }
 
-                    // this is perf optimization to reduce events;
-                    if (!activeFileDiagnosticExist && state.IsEmpty(document.Id))
-                    {
-                        // there is nothing reported before. we don't need to do anything.
-                        continue;
-                    }
+            // Include only one we want to run for full solution analysis.
+            // stateSet not included here will never be saved because result is unknown.
+            return stateSets.Where(s => ShouldRunForFullProject(s.Analyzer, project));
+        }
 
-                    // no cancellation since event can't be cancelled.
-                    // now get diagnostic information from project
-                    var result = await state.GetAnalysisDataAsync(document, avoidLoadingData, CancellationToken.None).ConfigureAwait(false);
-                    if (result.IsAggregatedForm)
-                    {
-                        // something made loading data failed.
-                        // clear all existing diagnostics
-                        RaiseDiagnosticsRemoved(document.Id, document.Project.Solution, stateSet, AnalysisKind.Syntax, raiseEvents);
-                        RaiseDiagnosticsRemoved(document.Id, document.Project.Solution, stateSet, AnalysisKind.Semantic, raiseEvents);
-                        continue;
-                    }
+        private bool ShouldRunForFullProject(DiagnosticAnalyzer analyzer, Project project)
+        {
+            // PERF: Don't query descriptors for compiler analyzer, always execute it.
+            if (HostAnalyzerManager.IsCompilerDiagnosticAnalyzer(project.Language, analyzer))
+            {
+                return true;
+            }
 
-                    // we have data, do actual event raise that will replace diagnostics from active file
-                    var syntaxItems = GetResult(result, AnalysisKind.Syntax, document.Id);
-                    RaiseDiagnosticsCreated(document, stateSet, AnalysisKind.Syntax, syntaxItems, raiseEvents);
-
-                    var semanticItems = GetResult(result, AnalysisKind.Semantic, document.Id);
-                    RaiseDiagnosticsCreated(document, stateSet, AnalysisKind.Semantic, semanticItems, raiseEvents);
-                }
-            });
+            // most of analyzers, number of descriptor is quite small, so this should be cheap.
+            return Owner.GetDiagnosticDescriptors(analyzer).Any(d => GetEffectiveSeverity(d, project.CompilationOptions) != ReportDiagnostic.Hidden);
         }
 
         private void RaiseProjectDiagnosticsIfNeeded(

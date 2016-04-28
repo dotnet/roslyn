@@ -122,6 +122,14 @@ namespace Roslyn.Utilities
             return s_matrixPool.Allocate();
         }
 
+        private static void ReleaseMatrix(int[,] matrix)
+        {
+            if (matrix.GetLength(0) <= MaxMatrixPoolDimension && matrix.GetLength(1) <= MaxMatrixPoolDimension)
+            {
+                s_matrixPool.Free(matrix);
+            }
+        }
+
         private static int[,] InitializeMatrix(int[,] matrix)
         {
             // All matrices share the following in common:
@@ -165,14 +173,6 @@ namespace Roslyn.Utilities
             }
 
             return matrix;
-        }
-
-        private static void ReleaseMatrix(int[,] matrix)
-        {
-            if (matrix.GetLength(0) <= MaxMatrixPoolDimension && matrix.GetLength(1) <= MaxMatrixPoolDimension)
-            {
-                s_matrixPool.Free(matrix);
-            }
         }
 
         public static int GetEditDistance(ArraySlice<char> source, ArraySlice<char> target, int threshold = int.MaxValue)

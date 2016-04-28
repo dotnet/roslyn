@@ -19,8 +19,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer
     }
 
     /// <summary>
-    /// This class manages the connections, timeout and general scheduling of the client 
-    /// requests.  
+    /// This class manages the connections, timeout and general scheduling of the client
+    /// requests.
     /// </summary>
     internal sealed class ServerDispatcher
     {
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 
         /// <summary>
         /// Time to delay after the last connection before initiating a garbage collection
-        /// in the server. 
+        /// in the server.
         /// </summary>
         internal static readonly TimeSpan GCTimeout = TimeSpan.FromSeconds(30);
 
@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
         /// <summary>
         /// This function will accept and process new connections until an event causes
         /// the server to enter a passive shut down mode.  For example if analyzers change
-        /// or the keep alive timeout is hit.  At which point this function will cease 
+        /// or the keep alive timeout is hit.  At which point this function will cease
         /// accepting new connections and wait for existing connections to complete before
         /// returning.
         /// </summary>
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             }
             catch (OperationCanceledException)
             {
-                // Thrown when the provided cancellationToken is cancelled.  This is handled in the caller, 
+                // Thrown when the provided cancellationToken is cancelled.  This is handled in the caller,
                 // here it just serves to break out of the WaitAny call.
             }
         }
@@ -214,7 +214,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             var connectionTask = HandleClientConnection(_listenTask, allowCompilationRequests, cancellationToken);
             _connectionList.Add(connectionTask);
 
-            // Timeout and GC are only done when there are no active connections.  Now that we have a new 
+            // Timeout and GC are only done when there are no active connections.  Now that we have a new
             // connection cancel out these tasks.
             _timeoutTask = null;
             _gcTask = null;

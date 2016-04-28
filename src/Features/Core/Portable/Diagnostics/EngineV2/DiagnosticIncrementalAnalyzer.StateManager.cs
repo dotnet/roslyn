@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
@@ -151,23 +152,37 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return stateSets.ToImmutable();
             }
 
-            public bool OnDocumentReset(IEnumerable<StateSet> stateSets, DocumentId documentId)
+            public bool OnDocumentReset(IEnumerable<StateSet> stateSets, Document document)
             {
+                // can not be cancelled
                 var removed = false;
                 foreach (var stateSet in stateSets)
                 {
-                    removed |= stateSet.OnDocumentReset(documentId);
+                    removed |= stateSet.OnDocumentReset(document);
                 }
 
                 return removed;
             }
 
-            public bool OnDocumentClosed(IEnumerable<StateSet> stateSets, DocumentId documentId)
+            public async Task<bool> OnDocumentOpenedAsync(IEnumerable<StateSet> stateSets, Document document)
             {
+                // can not be cancelled
+                var opened = false;
+                foreach (var stateSet in stateSets)
+                {
+                    opened |= await stateSet.OnDocumentOpenedAsync(document).ConfigureAwait(false);
+                }
+
+                return opened;
+            }
+
+            public async Task<bool> OnDocumentClosedAsync(IEnumerable<StateSet> stateSets, Document document)
+            {
+                // can not be cancelled
                 var removed = false;
                 foreach (var stateSet in stateSets)
                 {
-                    removed |= stateSet.OnDocumentClosed(documentId);
+                    removed |= await stateSet.OnDocumentClosedAsync(document).ConfigureAwait(false);
                 }
 
                 return removed;

@@ -51,7 +51,7 @@ public class ScenarioGenerator
 
     public void AddStartEvent(int absoluteInstance)
     {
-        WriteToBuffer($@"<from providerGuid=""{KernelProviderGuid}"" absoluteInstance=""{absoluteInstance}"" process=""csc"" eventName = ""Process/Start""/>");
+        WriteToBuffer($@"<from providerGuid=""{KernelProviderGuid}"" absoluteInstance=""{absoluteInstance}"" process=""csc"" eventName=""Process/Start""/>");
     }
 
     public void AddEndEvent()
@@ -62,6 +62,11 @@ public class ScenarioGenerator
     public void AddComment(string comment)
     {
         WriteToBuffer($@"<!-- {comment} -->");
+    }
+    
+    public void AddLine(string line)
+    {
+        WriteToBuffer(line);
     }
 
     public void WriteToDisk()

@@ -41,13 +41,22 @@ foreach (dynamic test in testInstances)
                      
     for (int i = 0; i < iterations; i++)
     {
-        traceManager.StartScenarios();
         traceManager.Start();
-        traceManager.StartScenario(test.Name + i, test.MeasuredProc);
-        traceManager.StartEvent();
-        test.Test();
-        traceManager.EndEvent();
-        traceManager.EndScenario();
+        traceManager.StartScenarios();
+        
+        if (test.ProvidesScenarios)
+        {
+            traceManager.WriteScenarios(test.GetScenarios());
+            test.Test();
+        }
+        else
+        {
+            traceManager.StartScenario(test.Name + i, test.MeasuredProc);
+            traceManager.StartEvent();
+            test.Test();
+            traceManager.EndEvent();
+            traceManager.EndScenario();
+        }
         
         traceManager.EndScenarios();
         traceManager.WriteScenariosFileToDisk();

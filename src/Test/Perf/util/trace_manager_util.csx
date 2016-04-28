@@ -21,6 +21,7 @@ interface ITraceManager
     void StartScenario(string scenarioName, string processName);
     void StartScenarios();
     void Stop();
+    void WriteScenarios(string[] scenarios);
     void WriteScenariosFileToDisk();
 }
 
@@ -106,6 +107,10 @@ class NoOpTraceManager : ITraceManager
     {
     }
 
+    public void WriteScenarios(string[] scenarios)
+    {
+    }
+    
     public void WriteScenariosFileToDisk()
     {
     }
@@ -209,6 +214,14 @@ class TraceManager: ITraceManager
     {
         _scenarioGenerator.AddScenariosFileEnd();
     }
+    
+    public void WriteScenarios(string[] scenarios)
+    {
+        foreach (var line in scenarios)
+        {
+            _scenarioGenerator.AddLine(line);
+        }
+    }    
 
     public void WriteScenariosFileToDisk()
     {

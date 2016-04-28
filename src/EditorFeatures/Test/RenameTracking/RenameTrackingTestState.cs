@@ -16,6 +16,7 @@ using Microsoft.CodeAnalysis.Editor.VisualBasic.RenameTracking;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
 using Microsoft.VisualStudio.Composition;
@@ -199,7 +200,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
                 var operations = (await actions[0].GetOperationsAsync(CancellationToken.None)).ToArray();
                 Assert.Equal(1, operations.Length);
 
-                operations[0].Apply(this.Workspace, CancellationToken.None);
+                operations[0].Apply(this.Workspace, new ProgressTracker(), CancellationToken.None);
             }
         }
 

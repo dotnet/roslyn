@@ -3568,5 +3568,22 @@ partial class C&lt;{|Conflict:T|}&gt; {}
                 result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
             End Using
         End Sub
+
+        <Fact>
+        <Trait(Traits.Feature, Traits.Features.Rename)>
+        <WorkItem(10469, "https://github.com/dotnet/roslyn/issues/10469")>
+        Public Sub RenameTypeToCurrent()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                    <Workspace>
+                        <Project Language="C#" CommonReferences="true">
+                            <Document>
+partial class {|current:$$C|} { }
+                            </Document>
+                        </Project>
+                    </Workspace>, renameTo:="Current")
+
+                result.AssertLabeledSpansAre("current", type:=RelatedLocationType.NoConflict)
+            End Using
+        End Sub
     End Class
 End Namespace
