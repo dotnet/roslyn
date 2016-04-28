@@ -399,8 +399,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 // unlike the suppressed (disabled) analyzer, we will include hidden diagnostic only analyzers here.
                 var analyzerDriverOpt = await Owner._compilationManager.CreateAnalyzerDriverAsync(project, stateSets, IncludeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
-                var ignoreOption = true;
-                var result = await Owner._executor.GetProjectAnalysisDataAsync(analyzerDriverOpt, project, stateSets, ignoreOption, cancellationToken).ConfigureAwait(false);
+                var ignoreFullAnalysisOptions = true;
+                var result = await Owner._executor.GetProjectAnalysisDataAsync(analyzerDriverOpt, project, stateSets, ignoreFullAnalysisOptions, cancellationToken).ConfigureAwait(false);
 
                 foreach (var stateSet in stateSets)
                 {
@@ -446,7 +446,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // Here, we don't care what kind of analyzer (StateSet) is given. 
                 // We just create and use AnalyzerDriver with the given analyzer (StateSet). 
-                var ignoreOption = true;
+                var ignoreFullAnalysisOptions = true;
                 var analyzerDriverOpt = await Owner._compilationManager.CreateAnalyzerDriverAsync(project, stateSets, IncludeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
                 if (documentId != null)
@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                             }
                         case AnalysisKind.NonLocal:
                             {
-                                var nonLocalDocumentResult = await Owner._executor.GetProjectAnalysisDataAsync(analyzerDriverOpt, project, stateSets, ignoreOption, cancellationToken).ConfigureAwait(false);
+                                var nonLocalDocumentResult = await Owner._executor.GetProjectAnalysisDataAsync(analyzerDriverOpt, project, stateSets, ignoreFullAnalysisOptions, cancellationToken).ConfigureAwait(false);
                                 var analysisResult = nonLocalDocumentResult.GetResult(stateSet.Analyzer);
                                 return GetResult(analysisResult, AnalysisKind.NonLocal, documentId);
                             }
@@ -474,7 +474,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
 
                 Contract.ThrowIfFalse(kind == AnalysisKind.NonLocal);
-                var projectResult = await Owner._executor.GetProjectAnalysisDataAsync(analyzerDriverOpt, project, stateSets, ignoreOption, cancellationToken).ConfigureAwait(false);
+                var projectResult = await Owner._executor.GetProjectAnalysisDataAsync(analyzerDriverOpt, project, stateSets, ignoreFullAnalysisOptions, cancellationToken).ConfigureAwait(false);
                 return projectResult.GetResult(stateSet.Analyzer).Others;
             }
         }
