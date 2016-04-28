@@ -19,11 +19,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 CSharpCompilation compilation = compilationState.Compilation;
 
                 MethodSymbol createPayload = GetCreatePayload(compilation, methodBody.Syntax, diagnostics);
-                MethodSymbol flushPayload = GetFlushPayload(compilation, methodBody.Syntax, diagnostics);
 
                 // Do not instrument the instrumentation helpers if they are part of the current compilation (which occurs only during testing). GetCreatePayload will fail with an infinite recursion if it is instrumented.
                 // PROTOTYPE (https://github.com/dotnet/roslyn/issues/10266): It is not correct to always skip implict methods, because that will miss field initializers.
-                if ((object)createPayload != null && (object)flushPayload != null && !method.IsImplicitlyDeclared && !method.Equals(createPayload) && !method.Equals(flushPayload))
+                if ((object)createPayload != null && !method.IsImplicitlyDeclared && !method.Equals(createPayload))
                 {
                     SyntheticBoundNodeFactory factory = new SyntheticBoundNodeFactory(method, methodBody.Syntax, compilationState, diagnostics);
                     bool methodHasExplicitBlock = MethodHasExplicitBlock(method);
@@ -87,11 +86,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static MethodSymbol GetCreatePayload(CSharpCompilation compilation, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
         {
             return (MethodSymbol)Binder.GetWellKnownTypeMember(compilation, WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload, diagnostics, syntax: syntax);
-        }
-
-        private static MethodSymbol GetFlushPayload(CSharpCompilation compilation, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
-        {
-            return (MethodSymbol)Binder.GetWellKnownTypeMember(compilation, WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__FlushPayload, diagnostics, syntax: syntax);
         }
     }
 

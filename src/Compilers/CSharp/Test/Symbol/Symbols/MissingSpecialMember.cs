@@ -601,7 +601,6 @@ namespace System
                         // Not available yet, but will be in upcoming release.
                         continue;
                     case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload:
-                    case WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__FlushPayload:
                         // Not always available.
                         continue;
                 }
