@@ -12,6 +12,7 @@ if "%RoslynSolution%" == "" set RoslynSolution=%~dp0Roslyn.sln
 
 echo Deleting project.lock.json files
 pushd "%~dp0src"
+echo "Dummy lock file to avoid error when there is no project.lock.json file" > project.lock.json
 del /s /q project.lock.json
 popd
 

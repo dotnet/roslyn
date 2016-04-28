@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (isMemberInitializer)
             {
                 initializer = initializerBinder.WrapWithVariablesIfAny(initializerOpt, initializer);
-            }
+        }
 
             return initializer;
         }
@@ -425,7 +425,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VerifyUnchecked(ExpressionSyntax node, DiagnosticBag diagnostics, BoundExpression expr)
         {
-            if (!expr.HasAnyErrors)
+            var isInsideNameof = this.EnclosingNameofArgument != null;
+            if (!expr.HasAnyErrors && !isInsideNameof)
             {
                 TypeSymbol exprType = expr.Type;
                 if ((object)exprType != null && exprType.IsUnsafe())
@@ -1215,8 +1216,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Not expecting symbol from constructed method.
                     Debug.Assert(!symbol.ContainingSymbol.Equals(containingMethod));
 
+                    var isInsideNameof = this.EnclosingNameofArgument != null;
                     // Captured in a lambda.
-                    return containingMethod.MethodKind == MethodKind.AnonymousFunction || containingMethod.MethodKind == MethodKind.LocalFunction; // false in EE evaluation method
+                    return (containingMethod.MethodKind == MethodKind.AnonymousFunction || containingMethod.MethodKind == MethodKind.LocalFunction) && !isInsideNameof; // false in EE evaluation method
                 }
             }
             return false;
@@ -1372,8 +1374,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var parameter = (ParameterSymbol)symbol;
                         if (IsBadLocalOrParameterCapture(parameter, parameter.RefKind))
                         {
-                            Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUse, node, parameter.Name);
-                        }
+                                    Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUse, node, parameter.Name);
+                                }
                         return new BoundParameter(node, parameter, hasErrors: isError);
                     }
 
@@ -5486,8 +5488,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!hasError)
                 {
                     var isFixedStatementExpression = SyntaxFacts.IsFixedStatementExpression(node);
+                    var isInsideNameof = this.EnclosingNameofArgument != null;
                     Symbol accessedLocalOrParameterOpt;
-                    if (IsNonMoveableVariable(receiver, out accessedLocalOrParameterOpt) == isFixedStatementExpression)
+                    if (IsNonMoveableVariable(receiver, out accessedLocalOrParameterOpt) == isFixedStatementExpression && !isInsideNameof)
                     {
                         Error(diagnostics, isFixedStatementExpression ? ErrorCode.ERR_FixedNotNeeded : ErrorCode.ERR_FixedBufferNotFixed, node);
                         hasErrors = true;

@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Options
 
                 // Just use the default. We will still cache this so we aren't trying to deserialize
                 // over and over.
-                return optionKey.DefaultValue;
+                return optionKey.Option.DefaultValue;
             }
         }
 

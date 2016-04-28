@@ -26,6 +26,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IAssemblySymbol assembly,
             string filePath,
             bool loadOnly,
+            bool includeInternal,
             CancellationToken cancellationToken)
         {
             return LoadOrCreateAsync(
@@ -33,7 +34,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 assembly,
                 filePath,
                 loadOnly,
-                create: version => CreateSymbolTreeInfo(solution, version, assembly, filePath, cancellationToken),
+                create: version => CreateSymbolTreeInfo(solution, version, assembly, filePath, includeInternal, cancellationToken),
                 keySuffix: "",
                 getVersion: info => info._version,
                 readObject: reader => ReadSymbolTreeInfo(reader, (version, nodes) => GetSpellCheckerTask(solution, version, assembly, filePath, nodes)),

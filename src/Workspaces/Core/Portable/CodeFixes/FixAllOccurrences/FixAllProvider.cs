@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 
@@ -42,14 +43,14 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         internal virtual Task<CodeAction> GetFixAsync(
             ImmutableDictionary<Document, ImmutableArray<Diagnostic>> documentsAndDiagnosticsToFixMap,
-            FixAllContext fixAllContext)
+            FixAllState fixAllState, CancellationToken cancellationToken)
         {
             return Task.FromResult<CodeAction>(null);
         }
 
         internal virtual Task<CodeAction> GetFixAsync(
             ImmutableDictionary<Project, ImmutableArray<Diagnostic>> projectsAndDiagnosticsToFixMap,
-            FixAllContext fixAllContext)
+            FixAllState fixAllState, CancellationToken cancellationToken)
         {
             return Task.FromResult<CodeAction>(null);
         }
