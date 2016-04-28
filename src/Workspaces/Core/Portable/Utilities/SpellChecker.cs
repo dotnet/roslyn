@@ -11,7 +11,7 @@ namespace Roslyn.Utilities
 {
     internal class SpellChecker
     {
-        private const string SerializationFormat = "1";
+        private const string SerializationFormat = "2";
 
         public VersionStamp Version { get; }
         private readonly BKTree _bkTree;
