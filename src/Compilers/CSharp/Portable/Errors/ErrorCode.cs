@@ -1323,7 +1323,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TooManyUserStrings = 8103,
         ERR_PeWritingFailure = 8104,
         ERR_ReturnTypesDontMatch = 8105,
-        ERR_DynamicLocalFunctionParameter = 8106,
+        ERR_DynamicLocalFunctionParamsParameter = 8106,
         ERR_CantInferVoid = 8107,
         ERR_ExpressionTreeContainsLocalFunction = 8108,
 
@@ -1381,5 +1381,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadIteratorLocalType = 8941,
         ERR_BadAsyncLocalType = 8942,
         ERR_RefReturningCallAndAwait = 8943,
+        ERR_TupleTooFewElements = 8200,
+        ERR_TupleReservedMemberName = 8201,
+        ERR_TupleReservedMemberNameAnyPosition = 8202,
+        ERR_TupleDuplicateMemberName = 8203,
+        ERR_TupleExplicitNamesOnAllMembersOrNone = 8204,
+
+        ERR_PredefinedTypeMemberNotFoundInAssembly = 8205,
     }
 }

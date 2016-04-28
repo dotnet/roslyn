@@ -4,11 +4,15 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeGen
 {
+    using Roslyn.Reflection;
+    
     internal partial class ILBuilder
     {
         internal void AdjustStack(int stackAdjustment)
@@ -127,10 +131,10 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         internal void EmitBranch(ILOpCode code, object label, ILOpCode revOpCode = ILOpCode.Nop)
         {
-            bool validOpCode = (code == ILOpCode.Nop) || code.IsBranchToLabel();
+            bool validOpCode = (code == ILOpCode.Nop) || code.IsBranch();
 
             Debug.Assert(validOpCode);
-            Debug.Assert(revOpCode == ILOpCode.Nop || revOpCode.IsBranchToLabel());
+            Debug.Assert(revOpCode == ILOpCode.Nop || revOpCode.IsBranch());
             Debug.Assert(!code.HasVariableStackBehavior());
 
             _emitState.AdjustStack(code.NetStackBehavior());
@@ -705,7 +709,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.GetCurrentWriter().WriteInt64(int64);
         }
 
-        private static void WriteOpCode(Cci.BlobBuilder writer, ILOpCode code)
+        private static void WriteOpCode(BlobBuilder writer, ILOpCode code)
         {
             var size = code.Size();
             if (size == 1)
@@ -725,7 +729,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
             }
         }
 
-        private Cci.BlobBuilder GetCurrentWriter()
+        private BlobBuilder GetCurrentWriter()
         {
             return this.GetCurrentBlock().Writer;
         }

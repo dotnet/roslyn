@@ -46,8 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
         internal static SuggestedActionSet GetFixAllSuggestedActionSet(
             CodeAction action,
             int actionCount,
-            FixAllProvider fixAllProvider,
-            FixAllContext fixAllCodeActionContext,
+            FixAllState fixAllState,
             IEnumerable<FixAllScope> supportedScopes,
             Diagnostic firstDiagnostic,
             Workspace workspace,
@@ -56,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             IWaitIndicator waitIndicator,
             IAsynchronousOperationListener operationListener)
         {
-            if (fixAllCodeActionContext == null)
+            if (fixAllState == null)
             {
                 return null;
             }
@@ -69,11 +68,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             var fixAllSuggestedActions = ImmutableArray.CreateBuilder<FixAllSuggestedAction>();
             foreach (var scope in supportedScopes)
             {
-                var fixAllContext = fixAllCodeActionContext.GetContextForScopeAndActionId(scope, action.EquivalenceKey);
-                var fixAllAction = new FixAllCodeAction(fixAllContext, fixAllProvider, showPreviewChangesDialog: true);
+                var fixAllStateForScope = fixAllState.WithScopeAndEquivalenceKey(scope, action.EquivalenceKey);
+                var fixAllAction = new FixAllCodeAction(fixAllStateForScope, showPreviewChangesDialog: true);
                 var fixAllSuggestedAction = new FixAllSuggestedAction(
                     workspace, subjectBuffer, editHandler, waitIndicator, fixAllAction,
-                    fixAllProvider, firstDiagnostic, operationListener);
+                    fixAllStateForScope.FixAllProvider, firstDiagnostic, operationListener);
                 fixAllSuggestedActions.Add(fixAllSuggestedAction);
             }
 

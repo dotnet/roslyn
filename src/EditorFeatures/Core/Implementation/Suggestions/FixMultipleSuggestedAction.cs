@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             ITextBuffer subjectBufferOpt = null)
             : base(workspace, subjectBufferOpt, editHandler, waitIndicator, codeAction, provider, originalFixedDiagnostic: codeAction.GetTriggerDiagnostic(), operationListener: operationListener)
         {
-            _triggerDocumentOpt = codeAction.FixAllContext.Document;
+            _triggerDocumentOpt = codeAction.FixAllState.Document;
 
-            _telemetryId = GetTelemetryId(codeAction.FixAllContext.DiagnosticIds);
+            _telemetryId = GetTelemetryId(codeAction.FixAllState.DiagnosticIds);
         }
 
         private static string GetTelemetryId(IEnumerable<string> diagnosticIds)

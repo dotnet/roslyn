@@ -341,7 +341,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function GetWellKnownType(type As WellKnownType) As NamedTypeSymbol
-            Debug.Assert(type >= WellKnownType.First AndAlso type <= WellKnownType.Last)
+            Debug.Assert(type >= WellKnownType.First AndAlso type <= WellKnownType.Last AndAlso type <> WellKnownType.ExtSentinel)
             Dim index As Integer = type - WellKnownType.First
 
             If _lazyWellKnownTypes Is Nothing OrElse _lazyWellKnownTypes(index) Is Nothing Then

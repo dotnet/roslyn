@@ -30,6 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected abstract Conversion GetInterpolatedStringConversion(BoundInterpolatedString source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
 
+        protected abstract bool HasImplicitTupleConversion(BoundExpression source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
+
         /// <summary>
         /// Attempt a quick classification of builtin conversions.  As result of "no conversion"
         /// means that there is no built-in conversion, though there still may be a user-defined

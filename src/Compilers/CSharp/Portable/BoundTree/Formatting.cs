@@ -63,6 +63,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal partial class BoundTupleExpression
+    {
+        public override object Display
+        {
+            get { return (object)this.Type ?? "<tuple>"; }
+        }
+    }
+
     internal sealed partial class BoundPropertyGroup
     {
         public override object Display

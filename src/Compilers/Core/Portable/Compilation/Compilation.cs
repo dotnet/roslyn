@@ -10,6 +10,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using System.Threading;
@@ -22,6 +23,8 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
+    using Roslyn.Reflection.Metadata.Ecma335;
+
     /// <summary>
     /// The compilation object is an immutable representation of a single invocation of the
     /// compiler. Although immutable, a compilation is also on-demand, and will realize and cache
@@ -823,6 +826,19 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract INamedTypeSymbol CommonGetTypeByMetadataName(string metadataName);
 
+        /// <summary>
+        /// Returns a new INamedTypeSymbol with the given element types and (optional) element names.
+        /// </summary>
+        /// <remarks>
+        /// Since VB doesn't support tuples yet, this call will fail in a VB compilation.
+        /// </remarks>
+        public INamedTypeSymbol CreateTupleTypeSymbol(ImmutableArray<ITypeSymbol> elementTypes, ImmutableArray<string> elementNames = default(ImmutableArray<string>))
+        {
+            return CommonCreateTupleTypeSymbol(elementTypes, elementNames);
+        }
+
+        protected abstract INamedTypeSymbol CommonCreateTupleTypeSymbol(ImmutableArray<ITypeSymbol> elementTypes, ImmutableArray<string> elementNames);
+
         #endregion
 
         #region Diagnostics
@@ -1220,26 +1236,67 @@ namespace Microsoft.CodeAnalysis
 
             return new Cci.ModulePropertiesForSerialization(
                 persistentIdentifier: moduleVersionId,
+                corFlags: GetCorHeaderFlags(machine, HasStrongName, prefers32Bit: platform == Platform.AnyCpu32BitPreferred),
                 fileAlignment: fileAlignment,
                 sectionAlignment: Cci.ModulePropertiesForSerialization.DefaultSectionAlignment,
                 targetRuntimeVersion: targetRuntimeVersion,
                 machine: machine,
-                prefer32Bit: platform == Platform.AnyCpu32BitPreferred,
-                trackDebugData: false,
                 baseAddress: baseAddress,
                 sizeOfHeapReserve: sizeOfHeapReserve,
                 sizeOfHeapCommit: sizeOfHeapCommit,
                 sizeOfStackReserve: sizeOfStackReserve,
                 sizeOfStackCommit: sizeOfStackCommit,
-                enableHighEntropyVA: emitOptions.HighEntropyVirtualAddressSpace,
-                strongNameSigned: HasStrongName,
+                dllCharacteristics: GetDllCharacteristics(emitOptions.HighEntropyVirtualAddressSpace, compilationOptions.OutputKind == OutputKind.WindowsRuntimeApplication),
                 imageCharacteristics: GetCharacteristics(outputKind, requires32Bit),
-                configureToExecuteInAppContainer: compilationOptions.OutputKind == OutputKind.WindowsRuntimeApplication,
                 subsystem: GetSubsystem(outputKind),
                 majorSubsystemVersion: (ushort)subsystemVersion.Major,
                 minorSubsystemVersion: (ushort)subsystemVersion.Minor,
                 linkerMajorVersion: this.LinkerMajorVersion,
                 linkerMinorVersion: 0);
+        }
+
+        private static CorFlags GetCorHeaderFlags(Machine machine, bool strongNameSigned, bool prefers32Bit)
+        {
+            CorFlags result = CorFlags.ILOnly;
+
+            if (machine == Machine.I386)
+            {
+                result |= CorFlags.Requires32Bit;
+            }
+
+            if (strongNameSigned)
+            {
+                result |= CorFlags.StrongNameSigned;
+            }
+
+            if (prefers32Bit)
+            {
+                result |= CorFlags.Requires32Bit | CorFlags.Prefers32Bit;
+            }
+
+            return result;
+        }
+
+        internal static DllCharacteristics GetDllCharacteristics(bool enableHighEntropyVA, bool configureToExecuteInAppContainer)
+        {
+            var result =
+                DllCharacteristics.DynamicBase |
+                DllCharacteristics.NxCompatible |
+                DllCharacteristics.NoSeh |
+                DllCharacteristics.TerminalServerAware;
+
+            if (enableHighEntropyVA)
+            {
+                // IMAGE_DLLCHARACTERISTICS_HIGH_ENTROPY_VA
+                result |= (DllCharacteristics)0x0020;
+            }
+
+            if (configureToExecuteInAppContainer)
+            {
+                result |= DllCharacteristics.AppContainer;
+            }
+
+            return result;
         }
 
         private static Characteristics GetCharacteristics(OutputKind outputKind, bool requires32Bit)
@@ -1792,8 +1849,6 @@ namespace Microsoft.CodeAnalysis
             DiagnosticBag pdbBag = null;
             Stream peStream = null;
             Stream portablePdbStream = null;
-            Stream portablePdbTempStream = null;
-            Stream peTempStream = null;
 
             bool deterministic = IsEmitDeterministic;
             bool emitPortablePdb = moduleBeingBuilt.EmitOptions.DebugInformationFormat == DebugInformationFormat.PortablePdb;
@@ -1834,21 +1889,8 @@ namespace Microsoft.CodeAnalysis
                         }
 
                         portablePdbStream = pdbStreamProvider.GetOrCreateStream(metadataDiagnostics);
-                        if (portablePdbStream == null)
-                        {
-                            Debug.Assert(metadataDiagnostics.HasAnyErrors());
-                            return null;
-                        }
-
-                        // When in deterministic mode, we need to seek and read the stream to compute a deterministic PDB ID.
-                        // If the underlying stream isn't readable and seekable, we need to use a temp stream.
-                        var retStream = portablePdbStream;
-                        if (!retStream.CanSeek || deterministic && !retStream.CanRead)
-                        {
-                            retStream = portablePdbTempStream = new MemoryStream();
-                        }
-
-                        return retStream;
+                        Debug.Assert(portablePdbStream != null || metadataDiagnostics.HasAnyErrors());
+                        return portablePdbStream;
                     };
                 }
                 else
@@ -1879,21 +1921,21 @@ namespace Microsoft.CodeAnalysis
                     {
                         Debug.Assert(Options.StrongNameProvider != null);
 
-                        signingInputStream = Options.StrongNameProvider.CreateInputStream();
+                        try
+                        {
+                            signingInputStream = Options.StrongNameProvider.CreateInputStream();
+                        }
+                        catch (IOException e)
+                        {
+                            throw new Cci.PeWritingException(e);
+                        }
+
                         retStream = signingInputStream;
                     }
                     else
                     {
                         signingInputStream = null;
                         retStream = peStream;
-                    }
-
-                    // When in deterministic mode, we need to seek and read the stream to compute a deterministic MVID.
-                    // If the underlying stream isn't readable and seekable, we need to use a temp stream.
-                    if (!retStream.CanSeek || deterministic && !retStream.CanRead)
-                    {
-                        peTempStream = new MemoryStream();
-                        return peTempStream;
                     }
 
                     return retStream;
@@ -1912,18 +1954,6 @@ namespace Microsoft.CodeAnalysis
                         deterministic,
                         cancellationToken))
                     {
-                        if (peTempStream != null)
-                        {
-                            peTempStream.Position = 0;
-                            peTempStream.CopyTo(peStream);
-                        }
-
-                        if (portablePdbTempStream != null)
-                        {
-                            portablePdbTempStream.Position = 0;
-                            portablePdbTempStream.CopyTo(portablePdbStream);
-                        }
-
                         if (nativePdbWriter != null)
                         {
                             var nativePdbStream = pdbStreamProvider.GetOrCreateStream(metadataDiagnostics);
@@ -1981,8 +2011,6 @@ namespace Microsoft.CodeAnalysis
             finally
             {
                 nativePdbWriter?.Dispose();
-                peTempStream?.Dispose();
-                portablePdbTempStream?.Dispose();
                 signingInputStream?.Dispose();
                 pdbBag?.Free();
                 metadataDiagnostics?.Free();
@@ -2023,7 +2051,7 @@ namespace Microsoft.CodeAnalysis
                         changes,
                         cancellationToken);
 
-                    Cci.MetadataSizes metadataSizes;
+                    MetadataSizes metadataSizes;
                     writer.WriteMetadataAndIL(pdbWriter, metadataStream, ilStream, out metadataSizes);
                     writer.GetMethodTokens(updatedMethods);
 

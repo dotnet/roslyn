@@ -74,6 +74,12 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             }
         }
 
+        public bool IsTupleType => false;
+
+        public ImmutableArray<ITypeSymbol> TupleElementTypes => default(ImmutableArray<ITypeSymbol>);
+
+        public ImmutableArray<string> TupleElementNames => default(ImmutableArray<string>);
+
         public new ITypeSymbol OriginalDefinition
         {
             get

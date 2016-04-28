@@ -513,4 +513,10 @@
     <value>Exception occurred with following context:
 {0}</value>
   </data>
+  <data name="TupleNamesAllOrNone" xml:space="preserve">
+    <value>If names are used in a tuple type, then there must be a name for every element.</value>
+  </data>
+  <data name="TuplesNeedAtLeastTwoElements" xml:space="preserve">
+    <value>Tuples must have at least two elements.</value>
+  </data>
 </root>

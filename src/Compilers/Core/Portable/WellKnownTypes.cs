@@ -244,6 +244,19 @@ namespace Microsoft.CodeAnalysis
         System_Environment,
 
         System_Runtime_GCLatencyMode,
+
+        System_ValueTuple_T1,
+        System_ValueTuple_T2,
+        System_ValueTuple_T3,
+        System_ValueTuple_T4,
+        System_ValueTuple_T5,
+        System_ValueTuple_T6,
+        System_ValueTuple_T7,
+
+        ExtSentinel, // Not a real type, just a marker for types above 255 and strictly below 512
+
+        System_ValueTuple_TRest,
+
         System_IFormatProvider,
 
         Available,
@@ -485,7 +498,20 @@ namespace Microsoft.CodeAnalysis
             "System.Environment",
 
             "System.Runtime.GCLatencyMode",
-            "System.IFormatProvider"
+
+            "System.ValueTuple`1",
+            "System.ValueTuple`2",
+            "System.ValueTuple`3",
+            "System.ValueTuple`4",
+            "System.ValueTuple`5",
+            "System.ValueTuple`6",
+            "System.ValueTuple`7",
+
+            "", // extension marker
+
+            "System.ValueTuple`8",
+
+            "System.IFormatProvider",
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);
@@ -519,6 +545,11 @@ namespace Microsoft.CodeAnalysis
                 {
                     typeIdName = "System.IFormatProvider";
                 }
+                else if (typeId == WellKnownType.ExtSentinel)
+                {
+                    Debug.Assert(name == "");
+                    continue;
+                }
                 else
                 {
                     typeIdName = typeId.ToString().Replace("__", "+").Replace('_', '.');
@@ -528,6 +559,9 @@ namespace Microsoft.CodeAnalysis
                           || name.IndexOf('`') > 0 // a generic type
                           || name == typeIdName);
             }
+
+            Debug.Assert((int)WellKnownType.ExtSentinel == 255);
+            Debug.Assert((int)WellKnownType.Last < 512);
         }
 
         public static string GetMetadataName(this WellKnownType id)

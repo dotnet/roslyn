@@ -1005,7 +1005,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Rename
             {
                 // TODO: partial methods currently only show the location where the rename happens as a conflict.
                 //       Consider showing both locations as a conflict.
-                var baseType = renamedSymbol.ContainingType.GetBaseTypes().FirstOrDefault();
+                var baseType = renamedSymbol.ContainingType?.GetBaseTypes().FirstOrDefault();
                 if (baseType != null)
                 {
                     var implicitSymbols = semanticModel.LookupSymbols(
