@@ -9187,5 +9187,33 @@ class C
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(1, 1)").WithLocation(6, 9)
                 );
         }
+
+
+        [Fact]
+        public void MissingUnderlyingType()
+        {
+            string source = @"
+class C
+{
+    void M()
+    {
+        (int, int) x = (1, 1);
+    }
+}
+";
+
+            var tree = Parse(source, options: TestOptions.Regular.WithTuplesFeature());
+            var comp = CreateCompilationWithMscorlib(tree);
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+
+            var x = nodes.OfType<VariableDeclaratorSyntax>().First();
+            var xSymbol = (TupleTypeSymbol)((SourceLocalSymbol)model.GetDeclaredSymbol(x)).Type;
+            Assert.Equal("(System.Int32, System.Int32)", xSymbol.ToTestDisplayString());
+
+            Assert.True(xSymbol.TupleUnderlyingType.IsErrorType());
+            Assert.False(xSymbol.IsReferenceType); // if no underlying type, then defaults to struct
+        }
     }
 }

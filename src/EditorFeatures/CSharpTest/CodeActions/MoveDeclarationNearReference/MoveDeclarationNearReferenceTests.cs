@@ -2,6 +2,7 @@
 
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearReference;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -365,6 +366,28 @@ class Program
         Console.WriteLine(foo);
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task Tuple()
+        {
+            await TestAsync(
+@"class C { void M() { (int, string) [||]x; { Console.WriteLine(x); } } }",
+@"class C { void M() { { (int, string) x; Console.WriteLine(x); } } }",
+index: 0,
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TupleWithNames()
+        {
+            await TestAsync(
+@"class C { void M() { (int a, string b) [||]x; { Console.WriteLine(x); } } }",
+@"class C { void M() { { (int a, string b) x; Console.WriteLine(x); } } }",
+index: 0,
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
         }
     }
 }

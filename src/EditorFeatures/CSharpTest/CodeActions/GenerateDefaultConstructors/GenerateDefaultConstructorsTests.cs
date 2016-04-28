@@ -207,7 +207,8 @@ index: 2);
 @"class C : [||]B { } class B { public B((int, string) x) { } }",
 @"class C : B { public C((int, string) x) : base(x) { } } class B { public B((int, string) x) { } }",
 index: 0,
-parseOptions: TestOptions.Regular.WithTuplesFeature());
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -217,7 +218,8 @@ parseOptions: TestOptions.Regular.WithTuplesFeature());
 @"class C : [||]B { } class B { public B((int a, string b) x) { } }",
 @"class C : B { public C((int a, string b) x) : base(x) { } } class B { public B((int a, string b) x) { } }",
 index: 0,
-parseOptions: TestOptions.Regular.WithTuplesFeature());
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
         }
     }
 }
