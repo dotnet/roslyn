@@ -121,6 +121,9 @@
     <Content Include="Perf\util\trace_manager_util.csx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include="Perf\util\InstallVsixes.csx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <Content Include="Perf\tests\helloworld\HelloWorld.cs">
