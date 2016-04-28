@@ -3,6 +3,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
 
@@ -142,6 +143,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public ProjectState GetProjectState(ProjectId projectId)
             {
                 return _projectStates.GetOrAdd(projectId, id => new ProjectState(this, id));
+            }
+
+            public async Task<bool> OnDocumentOpenedAsync(Document document)
+            {
+                // can not be cancelled
+                ProjectState projectState;
+                if (!TryGetProjectState(document.Project.Id, out projectState) ||
+                    projectState.IsEmpty(document.Id))
+                {
+                    // nothing to do
+                    return false;
+                }
+
+                // always load data
+                var avoidLoadingData = false;
+                var result = await projectState.GetAnalysisDataAsync(document, avoidLoadingData, CancellationToken.None).ConfigureAwait(false);
+
+                // put project state to active file state
+                var activeFileState = GetActiveFileState(document.Id);
+
+                activeFileState.Save(AnalysisKind.Syntax, new DocumentAnalysisData(result.Version, result.GetResultOrEmpty(result.SyntaxLocals, document.Id)));
+                activeFileState.Save(AnalysisKind.Semantic, new DocumentAnalysisData(result.Version, result.GetResultOrEmpty(result.SemanticLocals, document.Id)));
+
+                return true;
             }
 
             public async Task<bool> OnDocumentClosedAsync(Document document)

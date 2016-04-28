@@ -106,15 +106,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        public override Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
+        public override async Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_DocumentOpen, GetOpenLogMessage, document, cancellationToken))
             {
+                var stateSets = _stateManager.GetStateSets(document.Project);
+
                 // let other component knows about this event
                 _compilationManager.OnDocumentOpened();
-
-                // here we dont need to raise any event, it will be taken cared by analyze methods.
-                return SpecializedTasks.EmptyTask;
+                await _stateManager.OnDocumentOpenedAsync(stateSets, document).ConfigureAwait(false);
             }
         }
 
@@ -242,6 +242,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             // Include only one we want to run for full solution analysis.
             // stateSet not included here will never be saved because result is unknown.
             return stateSets.Where(s => ShouldRunForFullProject(s.Analyzer, project));
+        }
+
+        private bool ShouldRunForFullProject(DiagnosticAnalyzer analyzer, Project project)
+        {
+            // PERF: Don't query descriptors for compiler analyzer, always execute it.
+            if (HostAnalyzerManager.IsCompilerDiagnosticAnalyzer(project.Language, analyzer))
+            {
+                return true;
+            }
+
+            // most of analyzers, number of descriptor is quite small, so this should be cheap.
+            return Owner.GetDiagnosticDescriptors(analyzer).Any(d => GetEffectiveSeverity(d, project.CompilationOptions) != ReportDiagnostic.Hidden);
         }
 
         private void RaiseProjectDiagnosticsIfNeeded(
@@ -390,18 +402,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             RaiseDiagnosticsRemoved(projectId, nullSolution, stateSet, raiseEvents);
-        }
-
-        private bool ShouldRunForFullProject(DiagnosticAnalyzer analyzer, Project project)
-        {
-            // PERF: Don't query descriptors for compiler analyzer, always execute it.
-            if (HostAnalyzerManager.IsCompilerDiagnosticAnalyzer(project.Language, analyzer))
-            {
-                return true;
-            }
-
-            // most of analyzers, number of descriptor is quite small, so this should be cheap.
-            return Owner.GetDiagnosticDescriptors(analyzer).Any(d => GetEffectiveSeverity(d, project.CompilationOptions) != ReportDiagnostic.Hidden);
         }
     }
 }
