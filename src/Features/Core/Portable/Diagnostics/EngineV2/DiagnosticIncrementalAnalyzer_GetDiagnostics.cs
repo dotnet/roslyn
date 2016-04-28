@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 CurrentSolution = solution;
 
                 CurrentDocumentId = documentId;
-                CurrentProjectId = projectId;
+                CurrentProjectId = projectId ?? documentId?.ProjectId;
 
                 Id = id;
                 IncludeSuppressedDiagnostics = includeSuppressedDiagnostics;
