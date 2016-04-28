@@ -37,7 +37,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Utilities
             _allowCancel = allowCancel;
             _cancellationTokenSource = new CancellationTokenSource();
 
-            this.ProgressTracker = new ProgressTracker((_1, _2) => UpdateDialog());
+            this.ProgressTracker = showProgress
+                ? new ProgressTracker((_1, _2) => UpdateDialog())
+                : new ProgressTracker();
+
             _dialog = CreateDialog(dialogFactory, showProgress);
             _registration = notificationService.Start(title);
         }
