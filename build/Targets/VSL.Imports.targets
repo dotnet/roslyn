@@ -356,19 +356,20 @@
     <Exec Command="&quot;$(IbcMergePath)&quot; -q -f -partialNGEN -minify -mo &quot;@(IntermediateAssembly)&quot; -incremental &quot;$(OptimizationDataFile)&quot;" />
 
   </Target>
-  
+
+  <!-- ====================================================================================
+
+         Support for signing VSIXes
+
+       ==================================================================================== -->
+
+
   <PropertyGroup>
 	<ProducingSignedVsix Condition="'$(ShouldSignBuild)' == 'true' AND '$(NonShipping)' != 'true' AND '$(CreateVsixContainer)' == 'true'">true</ProducingSignedVsix>
   </PropertyGroup>
 
-  <ItemGroup>
-    <FilesToSign Include="$(OutDir)$(TargetFileName)" Condition="'$(ProducingSignedVsix)' != 'true'">
-      <Authenticode>Microsoft402</Authenticode>
-      <StrongName>StrongName</StrongName>
-    </FilesToSign>
-
-    <FilesToSign Include="$(OutDir)$(TargetFileName)" Condition="'$(ProducingSignedVsix)' == 'true'">
-      <Authenticode>VsixSHA2</Authenticode>
-    </FilesToSign>
-  </ItemGroup>
+  <Import Project="$(MSBuildThisFileDirectory)Signing.targets"
+          Condition="'$(NonShipping)' != 'true' and
+                     '$(ShouldSignBuild)' == 'true' and
+                     '$(RunningInMicroBuild)' == 'true'" />
  </Project>
