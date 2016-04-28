@@ -121,7 +121,7 @@
     <Content Include="Perf\util\trace_manager_util.csx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Perf\util\InstallVsixes.csx">
+    <Content Include="Perf\infra\install_vsixes.csx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
