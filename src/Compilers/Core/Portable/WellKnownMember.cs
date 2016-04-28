@@ -354,6 +354,59 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_GCLatencyMode__SustainedLowLatency,
 
+        System_ValueTuple_T1__Item1,
+
+        System_ValueTuple_T2__Item1,
+        System_ValueTuple_T2__Item2,
+
+        System_ValueTuple_T3__Item1,
+        System_ValueTuple_T3__Item2,
+        System_ValueTuple_T3__Item3,
+
+        System_ValueTuple_T4__Item1,
+        System_ValueTuple_T4__Item2,
+        System_ValueTuple_T4__Item3,
+        System_ValueTuple_T4__Item4,
+
+        System_ValueTuple_T5__Item1,
+        System_ValueTuple_T5__Item2,
+        System_ValueTuple_T5__Item3,
+        System_ValueTuple_T5__Item4,
+        System_ValueTuple_T5__Item5,
+
+        System_ValueTuple_T6__Item1,
+        System_ValueTuple_T6__Item2,
+        System_ValueTuple_T6__Item3,
+        System_ValueTuple_T6__Item4,
+        System_ValueTuple_T6__Item5,
+        System_ValueTuple_T6__Item6,
+
+        System_ValueTuple_T7__Item1,
+        System_ValueTuple_T7__Item2,
+        System_ValueTuple_T7__Item3,
+        System_ValueTuple_T7__Item4,
+        System_ValueTuple_T7__Item5,
+        System_ValueTuple_T7__Item6,
+        System_ValueTuple_T7__Item7,
+
+        System_ValueTuple_TRest__Item1,
+        System_ValueTuple_TRest__Item2,
+        System_ValueTuple_TRest__Item3,
+        System_ValueTuple_TRest__Item4,
+        System_ValueTuple_TRest__Item5,
+        System_ValueTuple_TRest__Item6,
+        System_ValueTuple_TRest__Item7,
+        System_ValueTuple_TRest__Rest,
+
+        System_ValueTuple_T1__ctor,
+        System_ValueTuple_T2__ctor,
+        System_ValueTuple_T3__ctor,
+        System_ValueTuple_T4__ctor,
+        System_ValueTuple_T5__ctor,
+        System_ValueTuple_T6__ctor,
+        System_ValueTuple_T7__ctor,
+        System_ValueTuple_TRest__ctor,
+
         System_String__Format_IFormatProvider,
         Count
     }

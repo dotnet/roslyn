@@ -4667,6 +4667,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ConstantStringTooLong" xml:space="preserve">
     <value>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</value>
   </data>
+  <data name="ERR_TupleTooFewElements" xml:space="preserve">
+    <value>Tuple must contain at least two elements.</value>
+  </data>
   <data name="ERR_DebugEntryPointNotSourceMethodDefinition" xml:space="preserve">
     <value>Debug entry point must be a definition of a method declared in the current compilation.</value>
   </data>
@@ -4841,5 +4844,20 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_PeWritingFailure" xml:space="preserve">
     <value>An error occurred while writing the output file: {0}.</value>
+  </data>
+  <data name="ERR_TupleDuplicateMemberName" xml:space="preserve">
+    <value>Tuple member names must be unique.</value>
+  </data>
+  <data name="ERR_TupleExplicitNamesOnAllMembersOrNone" xml:space="preserve">
+    <value>Tuple member names must all be provided, if any one is provided.</value>
+  </data>
+  <data name="ERR_TupleReservedMemberName" xml:space="preserve">
+    <value>Tuple member name '{0}' is only allowed at position {1}.</value>
+  </data>
+  <data name="ERR_TupleReservedMemberNameAnyPosition" xml:space="preserve">
+    <value>Tuple membername '{0}' is disallowed at any position.</value>
+  </data>
+  <data name="ERR_PredefinedTypeMemberNotFoundInAssembly" xml:space="preserve">
+    <value>Member '{0}' was not found on type '{1}' from assembly '{2}'.</value>
   </data>
 </root>

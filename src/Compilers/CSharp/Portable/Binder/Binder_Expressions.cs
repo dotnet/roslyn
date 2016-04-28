@@ -1,15 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -630,6 +631,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.IsPatternExpression:
                     return BindIsPatternExpression((IsPatternExpressionSyntax)node, diagnostics);
 
+                case SyntaxKind.TupleExpression:
+                    return BindTupleExpression((TupleExpressionSyntax)node, diagnostics);
+
                 default:
                     // NOTE: We could probably throw an exception here, but it's conceivable
                     // that a non-parser syntax tree could reach this point with an unexpected
@@ -637,6 +641,115 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(false, "Unexpected SyntaxKind " + node.Kind());
                     return BadExpression(node);
             }
+        }
+
+        private BoundExpression BindTupleExpression(TupleExpressionSyntax node, DiagnosticBag diagnostics)
+        {
+            SeparatedSyntaxList<ArgumentSyntax> arguments = node.Arguments;
+            int numElements = arguments.Count;
+
+            if (numElements < 2)
+            {
+                // this should be a parse error already.
+                var args = numElements == 1 ?
+                    new BoundExpression[] { BindValue(arguments[0].Expression, diagnostics, BindValueKind.RValue) } :
+                    SpecializedCollections.EmptyArray<BoundExpression>();
+
+                return BadExpression(node, args);
+            }
+
+            bool hasErrors = false;
+            bool hasNaturalType = true;
+
+            // set of names already used
+            var uniqueFieldNames = PooledHashSet<string>.GetInstance();
+
+            var boundArguments = ArrayBuilder<BoundExpression>.GetInstance(arguments.Count);
+            var elementTypes = ArrayBuilder<TypeSymbol>.GetInstance(arguments.Count);
+            ArrayBuilder<string> elementNames = null;
+            int countOfExplicitNames = 0;
+
+            // prepare and check element names and types
+            for (int i = 0, l = numElements; i < l; i++)
+            {
+                ArgumentSyntax argumentSyntax = arguments[i];
+                string name = argumentSyntax.NameColon?.Name?.Identifier.ValueText;
+
+                // validate name if we have one
+                if (name != null)
+                {
+                    countOfExplicitNames++;
+                    if (!CheckTupleMemberName(name, i, argumentSyntax.NameColon.Name, diagnostics, uniqueFieldNames))
+                    {
+                        hasErrors = true;
+                    }
+                }
+
+                CollectTupleFieldMemberNames(name, i + 1, numElements, ref elementNames);
+
+                BoundExpression boundArgument = BindValue(argumentSyntax.Expression, diagnostics, BindValueKind.RValue);
+                boundArguments.Add(boundArgument);
+
+                var elementType = GetTupleFieldType(boundArgument, argumentSyntax, diagnostics, ref hasErrors);
+                elementTypes.Add(elementType);
+
+                if ((object)elementType == null)
+                {
+                    hasNaturalType = false;
+                }
+            }
+
+            uniqueFieldNames.Free();
+
+            if (countOfExplicitNames != 0 && countOfExplicitNames != elementTypes.Count)
+            {
+                hasErrors = true;
+                Error(diagnostics, ErrorCode.ERR_TupleExplicitNamesOnAllMembersOrNone, node);
+            }
+
+            var elementNamesArray = elementNames == null ?
+                                default(ImmutableArray<string>) :
+                                elementNames.ToImmutableAndFree();
+
+            TupleTypeSymbol tupleTypeOpt = null;
+            var elements = elementTypes.ToImmutableAndFree();
+
+            if (hasNaturalType)
+            {
+                tupleTypeOpt = TupleTypeSymbol.Create(elements, elementNamesArray, this.Compilation, node, diagnostics);
+            }
+
+            return new BoundTupleLiteral(node, elementNamesArray, boundArguments.ToImmutableAndFree(), tupleTypeOpt, hasErrors);
+        }
+
+        /// <summary>
+        /// Returns the type to be used as a field type; generates errors in case the type is not
+        /// supported for tuple type fields.
+        /// </summary>
+        private TypeSymbol GetTupleFieldType(BoundExpression expression, CSharpSyntaxNode errorSyntax, DiagnosticBag diagnostics, ref bool hasError)
+        {
+            TypeSymbol expressionType = expression.Type;
+
+            if (!expression.HasAnyErrors)
+            {
+                if (expression.HasExpressionType())
+                {
+                    if (expressionType.SpecialType == SpecialType.System_Void)
+                    {
+                        expressionType = CreateErrorType(SyntaxFacts.GetText(SyntaxKind.VoidKeyword));
+
+                        hasError = true;
+                        Error(diagnostics, ErrorCode.ERR_FieldCantHaveVoidType, errorSyntax);
+                    }
+                    else if (expressionType.IsRestrictedType())
+                    {
+                        hasError = true;
+                        Error(diagnostics, ErrorCode.ERR_FieldCantBeRefAny, errorSyntax, expressionType);
+                    }
+                }
+            }
+
+            return expressionType;
         }
 
         private BoundExpression BindRefValue(RefValueExpressionSyntax node, DiagnosticBag diagnostics)
@@ -1104,7 +1217,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     // Captured in a lambda.
                     return containingMethod.MethodKind == MethodKind.AnonymousFunction || containingMethod.MethodKind == MethodKind.LocalFunction; // false in EE evaluation method
-            }
+                }
             }
             return false;
         }
@@ -1258,9 +1371,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var parameter = (ParameterSymbol)symbol;
                         if (IsBadLocalOrParameterCapture(parameter, parameter.RefKind))
-                                {
-                                    Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUse, node, parameter.Name);
-                                }
+                        {
+                            Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUse, node, parameter.Name);
+                        }
                         return new BoundParameter(node, parameter, hasErrors: isError);
                     }
 
@@ -3815,6 +3928,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             BoundExpression boundInitializerOpt = null)
         {
+
+            var typeContainingConstructors = type;
+            if (type.IsTupleType)
+            {
+                // in the currentl model (which is subject to change)
+                // tuple "inherits" all the members of the underlying type for lookup purposes
+                // including constructors.
+                typeContainingConstructors = ((TupleTypeSymbol)type).UnderlyingTupleType;
+            }
+
             BoundExpression result = null;
             bool hasErrors = type.IsErrorType();
             if (type.IsAbstract)
@@ -3834,7 +3957,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (analyzedArguments.HasDynamicArgument)
             {
                 OverloadResolutionResult<MethodSymbol> overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
-                this.OverloadResolution.ObjectCreationOverloadResolution(GetAccessibleConstructorsForOverloadResolution(type, ref useSiteDiagnostics), analyzedArguments, overloadResolutionResult, ref useSiteDiagnostics);
+                this.OverloadResolution.ObjectCreationOverloadResolution(GetAccessibleConstructorsForOverloadResolution(typeContainingConstructors, ref useSiteDiagnostics), analyzedArguments, overloadResolutionResult, ref useSiteDiagnostics);
                 diagnostics.Add(node, useSiteDiagnostics);
                 useSiteDiagnostics = null;
 
@@ -3866,7 +3989,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<MethodSymbol> candidateConstructors;
 
             if (TryPerformConstructorOverloadResolution(
-                type,
+                typeContainingConstructors,
                 analyzedArguments,
                 typeName,
                 typeNode.Location,

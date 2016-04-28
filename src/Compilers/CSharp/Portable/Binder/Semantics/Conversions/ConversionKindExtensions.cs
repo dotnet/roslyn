@@ -25,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case ConversionKind.Identity:
                 case ConversionKind.ImplicitNumeric:
+                case ConversionKind.ImplicitTuple:
                 case ConversionKind.ImplicitEnumeration:
                 case ConversionKind.ImplicitNullable:
                 case ConversionKind.NullLiteral:

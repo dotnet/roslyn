@@ -4,11 +4,12 @@ using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Text;
+using System.Diagnostics;
 
 namespace Roslyn.Utilities
 {
     /// <summary>
-    /// Represents a single item or many items. 
+    /// Represents a single item or many items.
     /// </summary>
     /// <remarks>
     /// Used when a collection usually contains a single item but sometimes might contain multiple.

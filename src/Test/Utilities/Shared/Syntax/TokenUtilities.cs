@@ -78,15 +78,15 @@ namespace Roslyn.Test.Utilities
             }
         }
 
-        internal static SyntaxNode GetSyntaxRoot(string expectedText, string language)
+        internal static SyntaxNode GetSyntaxRoot(string expectedText, string language, ParseOptions options = null)
         {
             if (language == LanguageNames.CSharp)
             {
-                return CS.SyntaxFactory.ParseCompilationUnit(expectedText);
+                return CS.SyntaxFactory.ParseCompilationUnit(expectedText, options: (CS.CSharpParseOptions)options);
             }
             else
             {
-                return VB.SyntaxFactory.ParseCompilationUnit(expectedText);
+                return VB.SyntaxFactory.ParseCompilationUnit(expectedText, options: (VB.VisualBasicParseOptions)options);
             }
         }
     }

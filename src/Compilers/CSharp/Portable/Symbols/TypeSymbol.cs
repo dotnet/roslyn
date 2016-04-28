@@ -554,6 +554,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Is this a symbol for a Tuple
+        /// </summary>
+        public virtual bool IsTupleType => false;
+
+        /// <summary>
+        /// If this symbol represents a tuple type, get the types of the tuple's elements.
+        /// </summary>
+        public virtual ImmutableArray<ITypeSymbol> TupleElementTypes => default(ImmutableArray<ITypeSymbol>);
+
+        /// <summary>
+        /// If this symbol represents a tuple type, get the names of the tuple's elements.
+        /// </summary>
+        public virtual ImmutableArray<string> TupleElementNames => default(ImmutableArray<string>);
+
+        /// <summary>
         /// Is this type a managed type (false for everything but enum, pointer, and
         /// some struct types).
         /// </summary>
