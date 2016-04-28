@@ -1,5 +1,6 @@
 {
     "dependencies": {
+        "MicroBuild.Core": "0.2.0",
         "Microsoft.NETCore.Platforms": "1.0.0",
         "Microsoft.CodeAnalysis.Test.Resources.Proprietary": "1.2.0-beta1-20160105-04",
         "Microsoft.Build.Mono.Debug": "14.1.0",
