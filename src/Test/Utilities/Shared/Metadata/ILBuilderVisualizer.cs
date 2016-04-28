@@ -198,7 +198,7 @@ namespace Roslyn.Test.Utilities
                 sb.Append(string.Format("  IL_{0:x4}:", block.RegularInstructionsLength + block.Start));
                 sb.Append(string.Format("  {0,-10}", GetInstructionName(block.BranchCode)));
 
-                if (block.BranchCode.IsBranchToLabel())
+                if (block.BranchCode.IsBranch())
                 {
                     var branchBlock = block.BranchBlock;
                     if (branchBlock == null)

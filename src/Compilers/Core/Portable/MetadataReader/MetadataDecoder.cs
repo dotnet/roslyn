@@ -1052,7 +1052,7 @@ namespace Microsoft.CodeAnalysis
                 throw new UnsupportedSignatureContent();
             }
 
-            fixed (byte* ptr = ImmutableArrayInterop.DangerousGetUnderlyingArray(signature))
+            fixed (byte* ptr = ImmutableByteArrayInterop.DangerousGetUnderlyingArray(signature))
             {
                 var blobReader = new BlobReader(ptr, signature.Length);
                 var info = DecodeLocalVariableOrThrow(ref blobReader);
