@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Decoding;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Text;
@@ -23,8 +24,6 @@ using PooledStringBuilder = Microsoft.CodeAnalysis.Collections.PooledStringBuild
 
 namespace Roslyn.Test.PdbUtilities
 {
-    using Roslyn.Reflection.Metadata.Decoding;
-
     /// <summary>
     /// Class to write out XML for a PDB.
     /// </summary>
