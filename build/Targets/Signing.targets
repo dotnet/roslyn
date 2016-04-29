@@ -5,8 +5,8 @@
 
   <ItemGroup>
     <FilesToSign Include="$(OutDir)$(TargetFileName)" Condition="'$(ProducingSignedVsix)' != 'true'">
-      <Authenticode>Microsoft401</Authenticode>
-      <StrongName>StrongName267</StrongName>
+      <Authenticode>Microsoft402</Authenticode>
+      <StrongName>StrongNameSHA2</StrongName>
     </FilesToSign>
 
     <FilesToSign Include="$(OutDir)$(TargetFileName)" Condition="'$(ProducingSignedVsix)' == 'true'">
