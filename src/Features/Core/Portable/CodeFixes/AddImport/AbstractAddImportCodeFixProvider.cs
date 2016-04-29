@@ -26,14 +26,17 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
         private readonly IPackageInstallerService _packageInstallerService;
         private readonly IPackageSearchService _packageSearchService;
+        private readonly IReferenceAssemblySearchService _referenceAssemblySearchService;
 
         /// <summary>Values for these parameters can be provided (during testing) for mocking purposes.</summary> 
         protected AbstractAddImportCodeFixProvider(
             IPackageInstallerService packageInstallerService = null,
-            IPackageSearchService packageSearchService = null)
+            IPackageSearchService packageSearchService = null,
+            IReferenceAssemblySearchService referenceAssemblySearchService = null)
         {
             _packageInstallerService = packageInstallerService;
             _packageSearchService = packageSearchService;
+            _referenceAssemblySearchService = referenceAssemblySearchService;
         }
 
         protected abstract bool CanAddImport(SyntaxNode node, CancellationToken cancellationToken);
