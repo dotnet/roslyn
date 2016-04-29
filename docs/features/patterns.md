@@ -14,7 +14,7 @@ relational-expression
     ;
 ```
 
-It is a compile-time error if *e* does not designate a value or does not have a type.
+It is a compile-time error if *relational-expression* does not designate a value or does not have a type.
 
 Every *identifier* of the pattern introduces a new local variable that is *definitely assigned* after the `is` operator is `true` (i.e. *definitely assigned when true*).
 
