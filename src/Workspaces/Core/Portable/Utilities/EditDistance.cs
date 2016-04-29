@@ -627,7 +627,7 @@ namespace Roslyn.Utilities
     internal class SimplePool<T> where T : class
     {
         private readonly object _gate = new object();
-        private readonly List<T> _values = new List<T>();
+        private readonly Stack<T> _values = new Stack<T>();
         private readonly Func<T> _allocate;
 
         public SimplePool(Func<T> allocate)
@@ -639,14 +639,9 @@ namespace Roslyn.Utilities
         {
             lock (_gate)
             {
-                for (int i = 0, n = _values.Count; i < n; i++)
+                if (_values.Count > 0)
                 {
-                    var matrix = _values[i];
-                    if (matrix != null)
-                    {
-                        _values[i] = null;
-                        return matrix;
-                    }
+                    return _values.Pop();
                 }
 
                 return _allocate();
@@ -657,16 +652,7 @@ namespace Roslyn.Utilities
         {
             lock (_gate)
             {
-                for (int i = 0, n = _values.Count; i < n; i++)
-                {
-                    if (_values[i] == null)
-                    {
-                        _values[i] = value;
-                        return;
-                    }
-                }
-
-                _values.Add(value);
+                _values.Push(value);
             }
         }
     }
