@@ -376,7 +376,6 @@
     <Compile Include="InternalUtilities\ArrayExtensions.cs" />
     <Compile Include="InternalUtilities\BitArithmeticUtilities.cs" />
     <Compile Include="InternalUtilities\FatalError.cs" />
-    <Compile Include="InternalUtilities\ComStreamWrapper.cs" />
     <Compile Include="InternalUtilities\ConcurrentDictionaryExtensions.cs" />
     <Compile Include="InternalUtilities\ConcurrentLruCache.cs" />
     <Compile Include="InternalUtilities\ConcurrentSet.cs" />
