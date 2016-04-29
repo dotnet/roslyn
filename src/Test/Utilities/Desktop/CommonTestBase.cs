@@ -13,6 +13,7 @@ using System.Reflection.PortableExecutable;
 using System.Runtime.Remoting.Metadata.W3cXsd2001;
 using System.Xml.Linq;
 using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -46,6 +47,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string expectedOutput = null,
             CompilationOptions options = null,
             ParseOptions parseOptions = null,
+            EmitOptions emitOptions = null,
             bool verify = true)
         {
             return CompileAndVerify(
@@ -59,6 +61,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 expectedOutput: expectedOutput,
                 options: options,
                 parseOptions: parseOptions,
+                emitOptions: emitOptions,
                 verify: verify);
         }
 
@@ -73,6 +76,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string expectedOutput = null,
             CompilationOptions options = null,
             ParseOptions parseOptions = null,
+            EmitOptions emitOptions = null,
             bool verify = true)
         {
             if (options == null)
@@ -91,6 +95,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 symbolValidator,
                 expectedSignatures,
                 expectedOutput,
+                emitOptions,
                 verify);
         }
 
@@ -103,6 +108,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             Action<IModuleSymbol> symbolValidator = null,
             SignatureDescription[] expectedSignatures = null,
             string expectedOutput = null,
+            EmitOptions emitOptions = null,
             bool verify = true)
         {
             Assert.NotNull(compilation);
@@ -133,6 +139,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                                 expectedOutput,
                                 assemblyValidator,
                                 symbolValidator,
+                                emitOptions,
                                 verify);
 
             if (result == null)
@@ -195,13 +202,14 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             string expectedOutput,
             Action<PEAssembly> assemblyValidator,
             Action<IModuleSymbol> symbolValidator,
+            EmitOptions emitOptions,
             bool verify)
         {
             CompilationVerifier verifier = null;
 
             verifier = new CompilationVerifier(this, compilation, dependencies);
 
-            verifier.Emit(expectedOutput, manifestResources, verify, expectedSignatures);
+            verifier.Emit(expectedOutput, manifestResources, emitOptions, verify, expectedSignatures);
 
             // We're dual-purposing emitters here.  In this context, it
             // tells the validator the version of Emit that is calling it. 

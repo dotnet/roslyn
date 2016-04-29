@@ -4412,6 +4412,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
  /optimize[+|-]                Enable optimizations (Short form: /o)
  /deterministic                Produce a deterministic assembly
                                (including module version GUID and timestamp)
+ /instrument:options           Sets instrumentation options.
+                               If empty instrumentation is disabled.
 
                         - ERRORS AND WARNINGS -
  /warnaserror[+|-]             Report all warnings as errors

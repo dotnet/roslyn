@@ -21,6 +21,7 @@ using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
+using ILOpCode = Microsoft.CodeAnalysis.CodeGen.ILOpCode;
 
 namespace Microsoft.Cci
 {
@@ -32,7 +33,7 @@ namespace Microsoft.Cci
 
     internal abstract partial class MetadataWriter
     {
-        private static readonly Encoding s_utf8Encoding = Encoding.UTF8;
+        internal static readonly Encoding s_utf8Encoding = Encoding.UTF8;
 
         /// <summary>
         /// This is the maximum length of a type or member name in metadata, assuming
@@ -81,6 +82,7 @@ namespace Microsoft.Cci
         protected MetadataWriter(
             MetadataBuilder metadata,
             MetadataBuilder debugMetadataOpt,
+            DynamicAnalysisDataWriter dynamicAnalysisDataWriterOpt,
             EmitContext context,
             CommonMessageProvider messageProvider,
             bool allowMissingMethodBodies,
@@ -102,10 +104,10 @@ namespace Microsoft.Cci
             this.Context = context;
             this.messageProvider = messageProvider;
             _cancellationToken = cancellationToken;
-
+            
             this.metadata = metadata;
             _debugMetadataOpt = debugMetadataOpt;
-
+            _dynamicAnalysisDataWriterOpt = dynamicAnalysisDataWriterOpt;
             _smallMethodBodies = new Dictionary<ImmutableArray<byte>, int>(ByteSequenceComparer.Instance);
         }
 
@@ -326,6 +328,11 @@ namespace Microsoft.Cci
         protected abstract IReadOnlyList<IGenericMethodInstanceReference> GetMethodSpecs();
 
         /// <summary>
+        /// The greatest index given to any method definition.
+        /// </summary>
+        protected abstract int GreatestMethodDefIndex { get; }
+        
+        /// <summary>
         /// Return true and full metadata handle of the type reference
         /// if the reference is available in the current generation.
         /// Deltas are not required to return rows from previous generations.
@@ -425,8 +432,10 @@ namespace Microsoft.Cci
         // Shared builder (reference equals heaps) if we are embedding Portable PDB into the metadata stream.
         // Null otherwise.
         private readonly MetadataBuilder _debugMetadataOpt;
-
+        
         internal bool EmitStandaloneDebugMetadata => _debugMetadataOpt != null && metadata != _debugMetadataOpt;
+        
+        private readonly DynamicAnalysisDataWriter _dynamicAnalysisDataWriterOpt;
 
         private readonly Dictionary<ICustomAttribute, BlobHandle> _customAttributeSignatureIndex = new Dictionary<ICustomAttribute, BlobHandle>();
         private readonly Dictionary<ITypeReference, BlobHandle> _typeSpecSignatureIndex = new Dictionary<ITypeReference, BlobHandle>();
@@ -936,6 +945,15 @@ namespace Microsoft.Cci
 
             int result = resourceWriter.Position;
             resource.WriteData(resourceWriter);
+            return (uint)result;
+        }
+
+        private static uint GetManagedResourceOffset(BlobBuilder resource, BlobBuilder resourceWriter)
+        {
+            int result = resourceWriter.Position;
+            resourceWriter.WriteInt32(resource.Count);
+            resource.WriteContentTo(resourceWriter);
+            resourceWriter.Align(8);
             return (uint)result;
         }
 
@@ -1779,8 +1797,15 @@ namespace Microsoft.Cci
             _tableIndicesAreComplete = true;
 
             ReportReferencesToAddedSymbols();
-
-            PopulateTables(methodBodyOffsets, mappedFieldDataBuilder, managedResourceDataBuilder, out mvidFixup);
+            
+            BlobBuilder dynamicAnalysisDataOpt = null;
+            if (_dynamicAnalysisDataWriterOpt != null)
+            {
+                dynamicAnalysisDataOpt = new BlobBuilder();
+                _dynamicAnalysisDataWriterOpt.SerializeMetadataTables(dynamicAnalysisDataOpt);
+            }
+            
+            PopulateTables(methodBodyOffsets, mappedFieldDataBuilder, managedResourceDataBuilder, dynamicAnalysisDataOpt, out mvidFixup);
         }
 
         public TypeSystemMetadataSerializer GetTypeSystemMetadataSerializer()
@@ -1833,7 +1858,7 @@ namespace Microsoft.Cci
             }).ToImmutableArray();
         }
 
-        private void PopulateTables(int[] methodBodyOffsets, BlobBuilder mappedFieldDataWriter, BlobBuilder resourceWriter, out Blob mvidFixup)
+        private void PopulateTables(int[] methodBodyOffsets, BlobBuilder mappedFieldDataWriter, BlobBuilder resourceWriter, BlobBuilder dynamicAnalysisDataOpt, out Blob mvidFixup)
         {
             var sortedGenericParameters = GetSortedGenericParameters();
 
@@ -1853,7 +1878,7 @@ namespace Microsoft.Cci
             this.PopulateGenericParameters(sortedGenericParameters);
             this.PopulateImplMapTableRows();
             this.PopulateInterfaceImplTableRows();
-            this.PopulateManifestResourceTableRows(resourceWriter);
+            this.PopulateManifestResourceTableRows(resourceWriter, dynamicAnalysisDataOpt);
             this.PopulateMemberRefTableRows();
             this.PopulateMethodImplTableRows();
             this.PopulateMethodTableRows(methodBodyOffsets);
@@ -2420,8 +2445,18 @@ namespace Microsoft.Cci
             }
         }
         
-        private void PopulateManifestResourceTableRows(BlobBuilder resourceDataWriter)
+        private void PopulateManifestResourceTableRows(BlobBuilder resourceDataWriter, BlobBuilder dynamicAnalysisDataOpt)
         {
+            if (dynamicAnalysisDataOpt != null)
+            {
+                _manifestResourceTable.Add(new ManifestResourceRow()
+                {
+                    Offset = GetManagedResourceOffset(dynamicAnalysisDataOpt, resourceDataWriter),
+                    Flags = (uint)ManifestResourceAttributes.Private,
+                    Name = heaps.GetStringIndex("<DynamicAnalysisData>"),
+                });
+            }
+            
             foreach (var resource in this.module.GetResources(Context))
             {
                 EntityHandle implementation;
@@ -2821,6 +2856,8 @@ namespace Microsoft.Cci
                     SerializeMethodDebugInfo(body, methodRid, localSignatureHandleOpt, ref lastLocalVariableHandle, ref lastLocalConstantHandle);
                 }
 
+                _dynamicAnalysisDataWriterOpt?.SerializeMethodDynamicAnalysisData(body);
+                
                 bodyOffsets[methodRid - 1] = bodyOffset;
 
                 methodRid++;
@@ -2936,6 +2973,11 @@ namespace Microsoft.Cci
             return signatureHandle;
         }
 
+        private static byte ReadByte(ImmutableArray<byte> buffer, int pos)
+        {
+            return buffer[pos];
+        }
+
         private static int ReadInt32(ImmutableArray<byte> buffer, int pos)
         {
             return buffer[pos] | buffer[pos + 1] << 8 | buffer[pos + 2] << 16 | buffer[pos + 3] << 24;
@@ -3016,6 +3058,9 @@ namespace Microsoft.Cci
             return _pseudoStringTokenToTokenMap[index];
         }
 
+        internal const uint LiteralMethodDefinitionToken = 0x80000000;
+        internal const uint LiteralGreatestMethodDefinitionToken = 0x40000000;
+        
         private void SubstituteFakeTokens(Blob blob, ImmutableArray<byte> methodBodyIL)
         {
             // write the raw body first and then patch tokens:
@@ -3031,11 +3076,39 @@ namespace Microsoft.Cci
                     case OperandType.InlineMethod:
                     case OperandType.InlineTok:
                     case OperandType.InlineType:
-                        writer.Offset = offset;
-                        writer.WriteInt32(MetadataTokens.GetToken(ResolveEntityHandleFromPseudoToken(ReadInt32(methodBodyIL, offset))));
-                        offset += 4;
-                        break;
-
+                        {
+                            int pseudoToken = ReadInt32(methodBodyIL, offset);
+                            int token = 0;
+                            // If any bits in the high-order byte of the pseudotoken are nonzero, replace the opcode with Ldc_i4
+                            // and either clear the high-order byte in the pseudotoken or ignore the pseudotoken.
+                            // This is a trick to enable loading raw metadata token indices as integers.
+                            if (operandType == OperandType.InlineTok)
+                            {
+                                int tokenMask = pseudoToken & unchecked((int)0xff000000);
+                                if (tokenMask != 0 && (uint)pseudoToken != 0xffffffff)
+                                {
+                                    Debug.Assert(ReadByte(methodBodyIL, offset - 1) == (byte)ILOpCode.Ldtoken);
+                                    writer.Offset = offset - 1;
+                                    writer.WriteByte((byte)ILOpCode.Ldc_i4);
+                                    switch ((uint)tokenMask)
+                                    {
+                                        case LiteralMethodDefinitionToken:
+                                            token = MetadataTokens.GetToken(ResolveSymbolTokenFromPseudoSymbolToken(pseudoToken & 0x00ffffff)) & 0x00ffffff;
+                                            break;
+                                        case LiteralGreatestMethodDefinitionToken:
+                                            token = GreatestMethodDefIndex;
+                                            break;
+                                        default:
+                                            throw ExceptionUtilities.UnexpectedValue(tokenMask);
+                                    }
+                                }
+                            }
+                            writer.Offset = offset;
+                            writer.WriteInt32(token == 0 ? MetadataTokens.GetToken(ResolveSymbolTokenFromPseudoSymbolToken(pseudoToken)) : token);
+                            offset += 4;
+                            break;
+                        }
+                        
                     case OperandType.InlineString:
                         writer.Offset = offset;
                         writer.WriteInt32(MetadataTokens.GetToken(ResolveUserStringHandleFromPseudoToken(ReadInt32(methodBodyIL, offset))));

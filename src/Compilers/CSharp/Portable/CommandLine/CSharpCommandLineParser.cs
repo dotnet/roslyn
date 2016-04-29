@@ -109,6 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             string runtimeMetadataVersion = null;
             bool errorEndLocation = false;
             bool reportAnalyzer = false;
+            string instrument = "";
             CultureInfo preferredUILang = null;
             string touchedFilesPath = null;
             var sqmSessionGuid = Guid.Empty;
@@ -298,6 +299,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 break;
 
                             checkOverflow = false;
+                            continue;
+
+                        case "instrument":
+                            value = RemoveQuotesAndSlashes(value);
+                            if (string.IsNullOrEmpty(value))
+                            {
+                                AddDiagnostic(diagnostics, ErrorCode.ERR_SwitchNeedsString, "<text>", name);
+                            }
+                            else
+                            {
+                                instrument = value;
+                            }
+
                             continue;
 
                         case "noconfig":
@@ -1182,7 +1196,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 highEntropyVirtualAddressSpace: highEntropyVA,
                 fileAlignment: fileAlignment,
                 subsystemVersion: subsystemVersion,
-                runtimeMetadataVersion: runtimeMetadataVersion
+                runtimeMetadataVersion: runtimeMetadataVersion,
+                instrument: instrument
             );
 
             // add option incompatibility errors if any

@@ -379,10 +379,17 @@ namespace Roslyn.Test.MetadataUtilities
                         case OperandType.InlineMethod:
                         case OperandType.InlineTok:
                         case OperandType.InlineType:
-                            sb.Append(' ');
-                            sb.Append(VisualizeSymbol(ReadUInt32(ilBytes, ref curIndex)));
-                            break;
-
+                            {
+                                uint pseudoToken = ReadUInt32(ilBytes, ref curIndex);
+                                // Check for a raw token value, encoded with a 1 high-order bit.
+                                if (opCode.OperandType == OperandType.InlineTok && (pseudoToken & 0x80000000) != 0 && pseudoToken != 0xffffffff)
+                                {
+                                    pseudoToken &= 0x7fffffff;
+                                }
+                                sb.Append(' ');
+                                sb.Append(VisualizeSymbol(pseudoToken));
+                                break;
+                            }
                         case OperandType.InlineSig: // signature (calli), not emitted by C#/VB
                             sb.AppendFormat(" 0x{0:x}", ReadUInt32(ilBytes, ref curIndex));
                             break;

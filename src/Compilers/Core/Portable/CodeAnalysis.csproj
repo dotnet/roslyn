@@ -92,6 +92,7 @@
     <Compile Include="AssemblyUtilities.cs" />
     <Compile Include="Binding\AbstractLookupSymbolsInfo.cs" />
     <Compile Include="CaseInsensitiveComparison.cs" />
+    <Compile Include="CodeGen\DynamicAnalysisMethodBodyData.cs" />
     <Compile Include="CodeGen\ILEmitStyle.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalysisResult.cs" />
     <Compile Include="InternalUtilities\EmptyComparer.cs" />
@@ -116,6 +117,8 @@
     <Compile Include="InternalUtilities\StackGuard.cs" />
     <Compile Include="InternalUtilities\StreamExtensions.cs" />
     <Compile Include="PEWriter\NativeResourceWriter.cs" />
+    <Compile Include="PEWriter\MetadataWriter.DynamicAnalysis.cs" />
+    <Compile Include="PEWriter\SourceSpan.cs" />
     <Compile Include="RealParser.cs" />
     <Compile Include="ReferenceManager\MergedAliases.cs" />
     <Compile Include="StrongName\CryptoBlobParser.cs" />

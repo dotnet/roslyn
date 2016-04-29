@@ -19,8 +19,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             // for the emit phase. It is even doing harm to e.g. the stack depth calculation because this expression
             // would not need to be pushed to the stack.
             BoundLabel labelExpressionOpt = null;
+            BoundStatement result = node.Update(node.Label, caseExpressionOpt, labelExpressionOpt);
+            if (this.Instrument && !node.WasCompilerGenerated)
+            {
+                result = _instrumenter.InstrumentGotoStatement(node, result);
+            }
 
-            return AddSequencePoint(node.Update(node.Label, caseExpressionOpt, labelExpressionOpt));
+            return result;
         }
 
         public override BoundNode VisitLabel(BoundLabel node)

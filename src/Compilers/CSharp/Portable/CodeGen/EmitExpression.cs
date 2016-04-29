@@ -197,6 +197,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitDefaultExpression((BoundDefaultOperator)expression, used);
                     break;
 
+                case BoundKind.TypeOfPrivateImplementationDetails:
+                    Debug.Assert(used);
+                    EmitTypeOfPrivateImplementationDetailsExpression((BoundTypeOfPrivateImplementationDetails)expression);
+                    break;
+
                 case BoundKind.TypeOfOperator:
                     if (used) // unused typeof has no side-effects
                     {
@@ -209,6 +214,26 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     {
                         EmitSizeOfExpression((BoundSizeOfOperator)expression);
                     }
+                    break;
+
+                case BoundKind.ModuleVersionId:
+                    Debug.Assert(used);
+                    EmitModuleVersionIdLoad((BoundModuleVersionId)expression);
+                    break;
+
+                case BoundKind.InstrumentationPayloadRoot:
+                    Debug.Assert(used);
+                    EmitInstrumentationPayloadRootLoad((BoundInstrumentationPayloadRoot)expression);
+                    break;
+
+                case BoundKind.MethodDefIndex:
+                    Debug.Assert(used);
+                    EmitMethodDefIndexExpression((BoundMethodDefIndex)expression);
+                    break;
+
+                case BoundKind.MaximumMethodDefIndex:
+                    Debug.Assert(used);
+                    EmitMaximumMethodDefIndexExpression((BoundMaximumMethodDefIndex)expression);
                     break;
 
                 case BoundKind.MethodInfo:
@@ -2286,6 +2311,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitIndirectStore(expression.Type, expression.Syntax);
                     break;
 
+                case BoundKind.ModuleVersionId:
+                    EmitModuleVersionIdStore((BoundModuleVersionId)expression);
+                    break;
+
+                case BoundKind.InstrumentationPayloadRoot:
+                    EmitInstrumentationPayloadRootStore((BoundInstrumentationPayloadRoot)expression);
+                    break;
+
                 case BoundKind.PreviousSubmissionReference:
                 // Script references are lowered to a this reference and a field access.
                 default:
@@ -2609,15 +2642,27 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             }
         }
 
+        private void EmitGetTypeFromHandle(BoundTypeOf boundTypeOf)
+        {
+            _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0); //argument off, return value on
+            var getTypeMethod = boundTypeOf.GetTypeFromHandle;
+            Debug.Assert((object)getTypeMethod != null); // Should have been checked during binding
+            EmitSymbolToken(getTypeMethod, boundTypeOf.Syntax, null);
+        }
+
+        private void EmitTypeOfPrivateImplementationDetailsExpression(BoundTypeOfPrivateImplementationDetails boundTypeOfOperator)
+        {
+            _builder.EmitOpCode(ILOpCode.Ldtoken);
+            EmitTypeReferenceToken(_module.GetPrivateImplClass(boundTypeOfOperator.Syntax, _diagnostics), boundTypeOfOperator.Syntax);
+            EmitGetTypeFromHandle(boundTypeOfOperator);
+        }
+
         private void EmitTypeOfExpression(BoundTypeOfOperator boundTypeOfOperator)
         {
             TypeSymbol type = boundTypeOfOperator.SourceType.Type;
             _builder.EmitOpCode(ILOpCode.Ldtoken);
             EmitSymbolToken(type, boundTypeOfOperator.SourceType.Syntax);
-            _builder.EmitOpCode(ILOpCode.Call, stackAdjustment: 0); //argument off, return value on
-            var getTypeMethod = boundTypeOfOperator.GetTypeFromHandle;
-            Debug.Assert((object)getTypeMethod != null); // Should have been checked during binding
-            EmitSymbolToken(getTypeMethod, boundTypeOfOperator.Syntax, null);
+            EmitGetTypeFromHandle(boundTypeOfOperator);
         }
 
         private void EmitSizeOfExpression(BoundSizeOfOperator boundSizeOfOperator)
@@ -2625,6 +2670,45 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             TypeSymbol type = boundSizeOfOperator.SourceType.Type;
             _builder.EmitOpCode(ILOpCode.Sizeof);
             EmitSymbolToken(type, boundSizeOfOperator.SourceType.Syntax);
+        }
+
+        private void EmitMethodDefIndexExpression(BoundMethodDefIndex node)
+        {
+            Debug.Assert(node.Method.IsDefinition);
+            Debug.Assert(node.Type.SpecialType == SpecialType.System_Int32);
+            _builder.EmitOpCode(ILOpCode.Ldtoken);
+            EmitSymbolToken(node.Method, node.Syntax, null, encodeAsRawDefinitionToken: true);
+        }
+
+        private void EmitMaximumMethodDefIndexExpression(BoundMaximumMethodDefIndex node)
+        {
+            Debug.Assert(node.Type.SpecialType == SpecialType.System_Int32);
+            _builder.EmitOpCode(ILOpCode.Ldtoken);
+            _builder.EmitGreatestMethodToken();
+        }
+
+        private void EmitModuleVersionIdLoad(BoundModuleVersionId node)
+        {
+            _builder.EmitOpCode(ILOpCode.Ldsfld);
+            _builder.EmitToken(_module.GetModuleVersionId(_module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax, _diagnostics);
+        }
+
+        private void EmitModuleVersionIdStore(BoundModuleVersionId node)
+        {
+            _builder.EmitOpCode(ILOpCode.Stsfld);
+            _builder.EmitToken(_module.GetModuleVersionId(_module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax, _diagnostics);
+        }
+        
+        private void EmitInstrumentationPayloadRootLoad(BoundInstrumentationPayloadRoot node)
+        {
+            _builder.EmitOpCode(ILOpCode.Ldsfld);
+            _builder.EmitToken(_module.GetInstrumentationPayloadRoot(node.AnalysisKind, _module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax, _diagnostics);
+        }
+
+        private void EmitInstrumentationPayloadRootStore(BoundInstrumentationPayloadRoot node)
+        {
+            _builder.EmitOpCode(ILOpCode.Stsfld);
+            _builder.EmitToken(_module.GetInstrumentationPayloadRoot(node.AnalysisKind, _module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax, _diagnostics);
         }
 
         private void EmitMethodInfoExpression(BoundMethodInfo node)

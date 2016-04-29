@@ -83,6 +83,7 @@ Public MustInherit Class BasicTestBase
             Translate(symbolValidator),
             expectedSignatures,
             expectedOutput,
+            Nothing,
             verify)
     End Function
 
@@ -170,6 +171,7 @@ Public MustInherit Class BasicTestBase
             Translate(symbolValidator),
             expectedSignatures,
             expectedOutput,
+            Nothing,
             verify)
     End Function
 

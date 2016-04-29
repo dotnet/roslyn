@@ -1283,6 +1283,26 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitMethodDefIndex(BoundMethodDefIndex node)
+        {
+            return null;
+        }
+
+        public override BoundNode VisitModuleVersionId(BoundModuleVersionId node)
+        {
+            return null;
+        }
+
+        public override BoundNode VisitInstrumentationPayloadRoot(BoundInstrumentationPayloadRoot node)
+        {
+            return null;
+        }
+
+        public override BoundNode VisitTypeOfPrivateImplementationDetails(BoundTypeOfPrivateImplementationDetails node)
+        {
+            return null;
+        }
+
         public override BoundNode VisitConversion(BoundConversion node)
         {
             if (node.ConversionKind == ConversionKind.MethodGroup)

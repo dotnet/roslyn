@@ -608,7 +608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundCall(
                 Syntax, receiver, method, args,
                 ImmutableArray<String>.Empty, ImmutableArray<RefKind>.Empty, false, false, false,
-                ImmutableArray<int>.Empty, LookupResultKind.Viable, method.ReturnType)
+                default(ImmutableArray<int>), LookupResultKind.Viable, method.ReturnType)
             { WasCompilerGenerated = true };
         }
 
@@ -943,6 +943,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = true };
         }
 
+        public BoundExpression TypeOfPrivateImplementationDetails()
+        {
+            return new BoundTypeOfPrivateImplementationDetails(
+                Syntax,
+                WellKnownMethod(CodeAnalysis.WellKnownMember.System_Type__GetTypeFromHandle),
+                WellKnownType(CodeAnalysis.WellKnownType.System_Type))
+            { WasCompilerGenerated = true };
+        }
 
         public ImmutableArray<BoundExpression> TypeOfs(ImmutableArray<TypeSymbol> typeArguments)
         {
@@ -966,6 +974,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ctor,
                 GetMethodFromHandleMethod(ctor.ContainingType),
                 WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Reflection_ConstructorInfo))
+            { WasCompilerGenerated = true };
+        }
+
+        public BoundExpression MethodDefIndex(MethodSymbol method)
+        {
+            return new BoundMethodDefIndex(
+                Syntax,
+                method,
+                SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32))
+            { WasCompilerGenerated = true };
+        }
+
+        /// <summary>
+        /// Synthesizes an expression that evaluates to the current module's MVID.
+        /// </summary>
+        /// <returns></returns>
+        public BoundExpression ModuleVersionId()
+        {
+            return new BoundModuleVersionId(Syntax, WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Guid)) { WasCompilerGenerated = true };
+        }
+
+        public BoundExpression InstrumentationPayloadRoot(int analysisKind, TypeSymbol payloadType)
+        {
+            return new BoundInstrumentationPayloadRoot(Syntax, analysisKind, payloadType) { WasCompilerGenerated = true };
+        }
+
+        public BoundExpression MaximumMethodDefIndex()
+        {
+            return new BoundMaximumMethodDefIndex(
+                Syntax,
+                SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32))
             { WasCompilerGenerated = true };
         }
 
@@ -1097,6 +1136,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ImmutableArray.Create<BoundExpression>(Literal(elements.Length)),
                 new BoundArrayInitialization(Syntax, elements) { WasCompilerGenerated = true },
                 Compilation.CreateArrayTypeSymbol(elementType));
+        }
+        
+        public BoundExpression Array(TypeSymbol elementType, BoundExpression length)
+        {
+            return new BoundArrayCreation(
+               Syntax,
+               ImmutableArray.Create<BoundExpression>(length),
+               null,
+               Compilation.CreateArrayTypeSymbol(elementType)) { WasCompilerGenerated = true };
         }
 
         internal BoundExpression Default(TypeSymbol type)

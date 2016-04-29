@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis
         System_Reflection_FieldInfo,
         System_Reflection_MemberInfo,
         System_Reflection_Missing,
+        System_Reflection_Module,
         System_Runtime_CompilerServices_FormattableStringFactory,
         System_Runtime_CompilerServices_RuntimeHelpers,
         System_Runtime_ExceptionServices_ExceptionDispatchInfo,
@@ -244,7 +245,7 @@ namespace Microsoft.CodeAnalysis
         System_Environment,
 
         System_Runtime_GCLatencyMode,
-
+        
         System_ValueTuple_T1,
         System_ValueTuple_T2,
         System_ValueTuple_T3,
@@ -256,6 +257,8 @@ namespace Microsoft.CodeAnalysis
         ExtSentinel, // Not a real type, just a marker for types above 255 and strictly below 512
 
         System_ValueTuple_TRest,
+        
+        Microsoft_CodeAnalysis_Runtime_Instrumentation,
 
         System_IFormatProvider,
 
@@ -301,6 +304,7 @@ namespace Microsoft.CodeAnalysis
             "System.Reflection.FieldInfo",
             "System.Reflection.MemberInfo",
             "System.Reflection.Missing",
+            "System.Reflection.Module",
             "System.Runtime.CompilerServices.FormattableStringFactory",
             "System.Runtime.CompilerServices.RuntimeHelpers",
             "System.Runtime.ExceptionServices.ExceptionDispatchInfo",
@@ -498,7 +502,7 @@ namespace Microsoft.CodeAnalysis
             "System.Environment",
 
             "System.Runtime.GCLatencyMode",
-
+            
             "System.ValueTuple`1",
             "System.ValueTuple`2",
             "System.ValueTuple`3",
@@ -510,8 +514,10 @@ namespace Microsoft.CodeAnalysis
             "", // extension marker
 
             "System.ValueTuple`8",
+            
+            "Microsoft.CodeAnalysis.Runtime.Instrumentation",
 
-            "System.IFormatProvider",
+            "System.IFormatProvider"
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);

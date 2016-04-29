@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             _hasDeclarationErrors = hasDeclarationErrors;
             SetGlobalErrorIfTrue(hasDeclarationErrors);
 
-            if (emittingPdb)
+            if (emittingPdb || moduleBeingBuiltOpt?.EmitOptions.EmitDynamicAnalysisData == true)
             {
                 _debugDocumentProvider = (path, basePath) => moduleBeingBuiltOpt.GetOrAddDebugDocument(path, basePath, CreateDebugDocumentForFile);
             }
@@ -215,7 +215,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics: diagnostics,
                     debugDocumentProvider: null,
                     importChainOpt: null,
-                    emittingPdb: false);
+                    emittingPdb: false,
+                    dynamicAnalysisSpans: ImmutableArray<SourceSpan>.Empty);
                 moduleBeingBuilt.SetMethodBody(synthesizedEntryPoint, emittedBody);
             }
 
@@ -640,7 +641,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagnosticsThisMethod,
                             _debugDocumentProvider,
                                 method.GenerateDebugInfo ? importChain : null,
-                            emittingPdb: _emittingPdb);
+                            emittingPdb: _emittingPdb,
+                            dynamicAnalysisSpans: ImmutableArray<SourceSpan>.Empty);
                     }
                 }
                 catch (BoundTreeVisitor.CancelledByStackGuardException ex)
@@ -744,7 +746,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         diagnostics: diagnosticsThisMethod,
                         debugDocumentProvider: _debugDocumentProvider,
                         importChainOpt: null,
-                        emittingPdb: false);
+                        emittingPdb: false,
+                        dynamicAnalysisSpans: ImmutableArray<SourceSpan>.Empty);
 
                     _moduleBeingBuiltOpt.SetMethodBody(accessor, emittedBody);
                     // Definition is already in the symbol table, so don't call moduleBeingBuilt.AddCompilerGeneratedDefinition
@@ -974,6 +977,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Any errors generated below here are considered Emit diagnostics 
                 // and will not be reported to callers Compilation.GetDiagnostics()
 
+                ImmutableArray<SourceSpan> dynamicAnalysisSpans = ImmutableArray<SourceSpan>.Empty;
+                if (_moduleBeingBuiltOpt?.EmitOptions.EmitDynamicAnalysisData == true)
+                {
+                    flowAnalyzedBody = Instrumentation.InjectInstrumentation(methodSymbol, flowAnalyzedBody, compilationState, _diagnostics, _debugDocumentProvider, out dynamicAnalysisSpans);
+                }
+
                 bool hasBody = flowAnalyzedBody != null;
                 VariableSlotAllocator lazyVariableSlotAllocator = null;
                 StateMachineTypeSymbol stateMachineTypeOpt = null;
@@ -1110,7 +1119,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagsForCurrentMethod,
                             _debugDocumentProvider,
                             importChain,
-                            _emittingPdb);
+                            _emittingPdb,
+                            dynamicAnalysisSpans);
 
                         _moduleBeingBuiltOpt.SetMethodBody(methodSymbol.PartialDefinitionPart ?? methodSymbol, emittedBody);
                     }
@@ -1281,7 +1291,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             DebugDocumentProvider debugDocumentProvider,
             ImportChain importChainOpt,
-            bool emittingPdb)
+            bool emittingPdb,
+            ImmutableArray<SourceSpan> dynamicAnalysisSpans)
         {
             // Note: don't call diagnostics.HasAnyErrors() in release; could be expensive if compilation has many warnings.
             Debug.Assert(!diagnostics.HasAnyErrors(), "Running code generator when errors exist might be dangerous; code generator not expecting errors");
@@ -1369,6 +1380,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(!diagnostics.HasAnyErrors());
                 }
 
+                DynamicAnalysisMethodBodyData dynamicAnalysisDataOpt = null;
+                if (moduleBuilder.EmitOptions.EmitDynamicAnalysisData)
+                {
+                    Debug.Assert(debugDocumentProvider != null);
+                    dynamicAnalysisDataOpt = new DynamicAnalysisMethodBodyData(dynamicAnalysisSpans);
+                }
+
                 return new MethodBody(
                     builder.RealizedIL,
                     builder.MaxStack,
@@ -1387,7 +1405,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     stateMachineHoistedLocalScopes,
                     stateMachineHoistedLocalSlots,
                     stateMachineAwaiterSlots,
-                    asyncDebugInfo);
+                    asyncDebugInfo,
+                    dynamicAnalysisDataOpt);
             }
             finally
             {
@@ -1576,8 +1595,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (body != null)
                 {
-                        return body;
-                    }
+                    return body;
+                }
+
                 statements = ImmutableArray<BoundStatement>.Empty;
             }
             else if (body == null)
@@ -1610,7 +1630,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         compilationState.ReportCtorInitializerCycles(method, ctorCall.Method, ctorCall.Syntax, diagnostics);
                     }
 
-                    var constructorInitializer = new BoundExpressionStatement(initializerInvocation.Syntax, initializerInvocation) { WasCompilerGenerated = true };
+                    //  Base WasCompilerGenerated state off of whether constructor is implicitly declared, this will ensure proper instrumentation.
+                    var constructorInitializer = new BoundExpressionStatement(initializerInvocation.Syntax, initializerInvocation) { WasCompilerGenerated = method.IsImplicitlyDeclared };
                     Debug.Assert(initializerInvocation.HasAnyErrors || constructorInitializer.IsConstructorInitializer(), "Please keep this bound node in sync with BoundNodeExtensions.IsConstructorInitializer.");
                     return constructorInitializer;
                 }
