@@ -244,7 +244,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 }
 
                 if (packageSearchService != null && 
-                    referenceAssemblySearchService != null &&
                     installerService.IsEnabled)
                 {
                     foreach (var packageSource in installerService.PackageSources)
