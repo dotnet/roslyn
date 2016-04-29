@@ -110,7 +110,7 @@ namespace Roslyn.Utilities
         }
 
         private const int MaxMatrixPoolDimension = 64;
-        private static readonly ObjectPool<int[,]> s_matrixPool = new ObjectPool<int[,]>(() => InitializeMatrix(new int[64, 64]));
+        private static readonly SimplePool<int[,]> s_matrixPool = new SimplePool<int[,]>(() => InitializeMatrix(new int[64, 64]));
 
         private static int[,] GetMatrix(int width, int height)
         {
@@ -182,7 +182,7 @@ namespace Roslyn.Utilities
                 : GetEditDistanceWorker(target, source, threshold);
         }
 
-        private static ObjectPool<Dictionary<char, int>> s_dictionaryPool = new ObjectPool<Dictionary<char, int>>(() => new Dictionary<char, int>());
+        private static SimplePool<Dictionary<char, int>> s_dictionaryPool = new SimplePool<Dictionary<char, int>>(() => new Dictionary<char, int>());
 
         private static int GetEditDistanceWorker(ArraySlice<char> source, ArraySlice<char> target, int threshold)
         {
@@ -624,6 +624,65 @@ namespace Roslyn.Utilities
         }
     }
 
+    internal class SimplePool<T> where T : class
+    {
+        private readonly object _gate = new object();
+        private readonly List<T> _values = new List<T>();
+        private readonly Func<T> _allocate;
+
+        public SimplePool(Func<T> allocate)
+        {
+            _allocate = allocate;
+        }
+
+        public T Allocate()
+        {
+            lock (_gate)
+            {
+                for (int i = 0, n = _values.Count; i < n; i++)
+                {
+                    var matrix = _values[i];
+                    if (matrix != null)
+                    {
+                        _values[i] = null;
+                        return matrix;
+                    }
+                }
+
+                return _allocate();
+            }
+        }
+
+        public void Free(T value)
+        {
+            lock (_gate)
+            {
+                for (int i = 0, n = _values.Count; i < n; i++)
+                {
+                    if (_values[i] == null)
+                    {
+                        _values[i] = value;
+                        return;
+                    }
+                }
+
+                _values.Add(value);
+            }
+        }
+    }
+
+    internal static class SimplePoolExtensions
+    {
+        public static Dictionary<TKey, TValue> AllocateAndClear<TKey, TValue>(
+            this SimplePool<Dictionary<TKey, TValue>> pool)
+        {
+            var map = pool.Allocate();
+            map.Clear();
+
+            return map;
+        }
+    }
+
     internal static class ArrayPool<T>
     {
         private const int MaxPooledArraySize = 256;
@@ -631,7 +690,7 @@ namespace Roslyn.Utilities
         // Keep around a few arrays of size 256 that we can use for operations without
         // causing lots of garbage to be created.  If we do compare items larger than
         // that, then we will just allocate and release those arrays on demand.
-        private static ObjectPool<T[]> s_pool = new ObjectPool<T[]>(() => new T[MaxPooledArraySize]);
+        private static SimplePool<T[]> s_pool = new SimplePool<T[]>(() => new T[MaxPooledArraySize]);
 
         public static T[] GetArray(int size)
         {
