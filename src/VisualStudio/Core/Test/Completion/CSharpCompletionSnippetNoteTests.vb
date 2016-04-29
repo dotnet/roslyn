@@ -87,7 +87,7 @@ class C
 
             Using state = TestState.CreateTestStateFromWorkspace(
                 workspaceXml,
-                New CompletionListProvider() {New MockCompletionProvider(New TextSpan(31, 10))},
+                New CompletionProvider() {New MockCompletionProvider(New TextSpan(31, 10))},
                 Nothing,
                 New List(Of Type) From {GetType(TestCSharpSnippetInfoService)},
                 WorkspaceKind.Interactive)
@@ -106,7 +106,7 @@ class C
         Private Function CreateCSharpSnippetExpansionNoteTestState(xElement As XElement, ParamArray snippetShortcuts As String()) As TestState
             Dim state = TestState.CreateCSharpTestState(
                 xElement,
-                New CompletionListProvider() {New MockCompletionProvider(New TextSpan(31, 10))},
+                New CompletionProvider() {New MockCompletionProvider(New TextSpan(31, 10))},
                 Nothing,
                 New List(Of Type) From {GetType(TestCSharpSnippetInfoService)})
 

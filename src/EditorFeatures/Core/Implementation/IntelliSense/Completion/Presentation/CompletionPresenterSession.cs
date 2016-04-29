@@ -20,12 +20,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         private readonly ICompletionBroker _completionBroker;
         internal readonly IGlyphService GlyphService;
+        
         private readonly ITextView _textView;
         private readonly ITextBuffer _subjectBuffer;
 
         public event EventHandler<EventArgs> Dismissed;
-        public event EventHandler<CompletionItemEventArgs> ItemCommitted;
-        public event EventHandler<CompletionItemEventArgs> ItemSelected;
+        public event EventHandler<PresentationItemEventArgs> ItemCommitted;
+        public event EventHandler<PresentationItemEventArgs> ItemSelected;
         public event EventHandler<CompletionItemFilterStateChangedEventArgs> FilterStateChanged;
 
         private readonly CompletionSet3 _completionSet;
@@ -37,6 +38,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         // it hasn't been shown yet, or because it was already dismissed.  Use isDismissed to track
         // this scenario.
         private bool _isDismissed;
+
+        public ITextBuffer SubjectBuffer
+        {
+            get { return _subjectBuffer; }
+        }
 
         public CompletionPresenterSession(
             ICompletionBroker completionBroker,
@@ -55,9 +61,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         public void PresentItems(
             ITrackingSpan triggerSpan,
-            IList<CompletionItem> completionItems,
-            CompletionItem selectedItem,
-            CompletionItem presetBuilder,
+            IList<PresentationItem> completionItems,
+            PresentationItem selectedItem,
+            PresentationItem suggestionModeItem,
             bool suggestionMode,
             bool isSoftSelected,
             ImmutableArray<CompletionItemFilter> completionItemFilters,
@@ -80,7 +86,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             try
             {
                 _completionSet.SetCompletionItems(
-                    completionItems, selectedItem, presetBuilder, suggestionMode, 
+                    completionItems, selectedItem, suggestionModeItem, suggestionMode, 
                     isSoftSelected, completionItemFilters, completionItemToFilterText);
             }
             finally
@@ -126,10 +132,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             this.Dismissed?.Invoke(this, new EventArgs());
         }
 
-        internal void OnCompletionItemCommitted(CompletionItem completionItem)
+        internal void OnCompletionItemCommitted(PresentationItem presentationItem)
         {
             AssertIsForeground();
-            this.ItemCommitted?.Invoke(this, new CompletionItemEventArgs(completionItem));
+            this.ItemCommitted?.Invoke(this, new PresentationItemEventArgs(presentationItem));
         }
 
         private void OnCompletionSetSelectionStatusChanged(object sender, ValueChangedEventArgs<CompletionSelectionStatus> eventArgs)
@@ -141,11 +147,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 return;
             }
 
-            var completionItem = _completionSet.GetCompletionItem(eventArgs.NewValue.Completion);
-            var completionItemSelected = this.ItemSelected;
-            if (completionItemSelected != null && completionItem != null)
+            var item = _completionSet.GetPresentationItem(eventArgs.NewValue.Completion);
+            var itemSelected = this.ItemSelected;
+            if (itemSelected != null && item != null)
             {
-                completionItemSelected(this, new CompletionItemEventArgs(completionItem));
+                itemSelected(this, new PresentationItemEventArgs(item));
             }
         }
 

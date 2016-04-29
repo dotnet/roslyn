@@ -460,7 +460,7 @@ End Class
             Await VerifyProviderCommitAsync(markup, "E.A", expected, ","c, textTypedSoFar:="")
         End Function
 
-        Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
+        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
             Return New EnumCompletionProvider()
         End Function
     End Class

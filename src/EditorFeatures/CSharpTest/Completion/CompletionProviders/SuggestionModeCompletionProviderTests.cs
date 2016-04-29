@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
         }
 
-        internal override CompletionListProvider CreateCompletionProvider()
+        internal override CompletionProvider CreateCompletionProvider()
         {
             return new CSharpSuggestionModeCompletionProvider();
         }
@@ -579,19 +579,19 @@ class a
 
         private async Task CheckResultsAsync(Document document, int position, bool isBuilder)
         {
-            var triggerInfo = CompletionTriggerInfo.CreateTypeCharTriggerInfo('a');
+            var triggerInfo = CompletionTrigger.CreateInsertionTrigger('a');
             var completionList = await GetCompletionListAsync(document, position, triggerInfo);
 
             if (isBuilder)
             {
                 Assert.NotNull(completionList);
-                Assert.NotNull(completionList.Builder);
+                Assert.NotNull(completionList.SuggestionModeItem);
             }
             else
             {
                 if (completionList != null)
                 {
-                    Assert.True(completionList.Builder == null, "group.Builder == " + (completionList.Builder != null ? completionList.Builder.DisplayText : "null"));
+                    Assert.True(completionList.SuggestionModeItem == null, "group.Builder == " + (completionList.SuggestionModeItem != null ? completionList.SuggestionModeItem.DisplayText : "null"));
                 }
             }
         }
