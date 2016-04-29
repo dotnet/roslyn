@@ -1,21 +1,16 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
-    /// <summary>
-    /// FixAll context with some additional information specifically for <see cref="FixAllCodeAction"/>.
-    /// </summary>
-    internal partial class FixAllCodeActionContext : FixAllContext
+    internal partial class FixAllState
     {
-        internal class FixAllDiagnosticProvider : DiagnosticProvider
+        // Internal for testing purposes.
+        internal class FixAllDiagnosticProvider : FixAllContext.DiagnosticProvider
         {
             private readonly ImmutableHashSet<string> _diagnosticIds;
 

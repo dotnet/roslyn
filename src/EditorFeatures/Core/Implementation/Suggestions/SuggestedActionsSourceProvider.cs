@@ -273,7 +273,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 return collections.Select(c => FilterOnUIThread(c, workspace)).WhereNotNull().ToList();
             }
 
-            private CodeFixCollection FilterOnUIThread(CodeFixCollection collection, Workspace workspace)
+            private CodeFixCollection FilterOnUIThread(
+                CodeFixCollection collection,
+                Workspace workspace)
             {
                 this.AssertIsForeground();
 
@@ -282,7 +284,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     ? null
                     : applicableFixes.Count == collection.Fixes.Length
                         ? collection
-                        : new CodeFixCollection(collection.Provider, collection.TextSpan, applicableFixes, collection.FixAllContext);
+                        : new CodeFixCollection(collection.Provider, collection.TextSpan, applicableFixes, 
+                            collection.FixAllState, 
+                            collection.SupportedScopes, collection.FirstDiagnostic);
             }
 
             private bool IsApplicable(CodeAction action, Workspace workspace)
@@ -332,17 +336,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             /// <summary>
             /// Groups fixes by the diagnostic being addressed by each fix.
             /// </summary>
-            private void GroupFixes(Workspace workspace, IEnumerable<CodeFixCollection> fixCollections, IDictionary<CodeFixGroupKey, IList<SuggestedAction>> map, IList<CodeFixGroupKey> order, bool hasSuppressionFixes)
+            private void GroupFixes(
+                Workspace workspace,
+                IEnumerable<CodeFixCollection> fixCollections,
+                IDictionary<CodeFixGroupKey, IList<SuggestedAction>> map,
+                IList<CodeFixGroupKey> order,
+                bool hasSuppressionFixes)
             {
                 foreach (var fixCollection in fixCollections)
                 {
                     var fixes = fixCollection.Fixes;
                     var fixCount = fixes.Length;
 
-                    Func<CodeAction, SuggestedActionSet> getFixAllSuggestedActionSet = codeAction =>
-                        CodeFixSuggestedAction.GetFixAllSuggestedActionSet(
-                            codeAction, fixCount, fixCollection.FixAllContext, workspace, _subjectBuffer,
-                            _owner._editHandler, _owner._waitIndicator, _owner._listener);
+                    Func<CodeAction, SuggestedActionSet> getFixAllSuggestedActionSet = 
+                        codeAction => CodeFixSuggestedAction.GetFixAllSuggestedActionSet(
+                            codeAction, fixCount, fixCollection.FixAllState, 
+                            fixCollection.SupportedScopes, fixCollection.FirstDiagnostic, 
+                            workspace, _subjectBuffer,  _owner._editHandler, 
+                            _owner._waitIndicator, _owner._listener);
 
                     foreach (var fix in fixes)
                     {

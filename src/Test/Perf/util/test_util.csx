@@ -61,6 +61,31 @@ class RelativeDirectory
         }
     }
 
+    public string MyBinaries()
+    {
+        // The exceptation is that scripts calling this are included
+        // in a project in the solution and have already been deployed
+        // to a binaries folder
+
+        // Debug?
+        var debug = "debug";
+        var debugIndex = _workingDir.IndexOf(debug, StringComparison.CurrentCultureIgnoreCase);
+        if (debugIndex != -1)
+        {
+            return _workingDir.Substring(0, debugIndex + debug.Length);
+        }
+
+        // Release?
+        var release = "release";
+        var releaseIndex = _workingDir.IndexOf(release, StringComparison.CurrentCultureIgnoreCase);
+        if (releaseIndex != -1)
+        {
+            return _workingDir.Substring(0, releaseIndex + release.Length);
+        }
+
+        throw new Exception("Couldn't find binaries. Are you running from the binaries directory?");
+    }
+
     public string PerfDirectory => Path.Combine(RoslynDirectory, "src", "Test", "Perf");
 
     public string BinDirectory => Path.Combine(RoslynDirectory, "Binaries");
@@ -138,6 +163,8 @@ abstract class PerfTest: RelativeDirectory {
         Log(description + ": " + value.ToString());
     }
     
+    public abstract bool ProvidesScenarios { get; }
+    public abstract string[] GetScenarios();
     public abstract void Setup();
     public abstract void Test();
     public abstract int Iterations { get; }
