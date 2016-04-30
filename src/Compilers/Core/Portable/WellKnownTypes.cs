@@ -42,7 +42,6 @@ namespace Microsoft.CodeAnalysis
         System_Reflection_FieldInfo,
         System_Reflection_MemberInfo,
         System_Reflection_Missing,
-        System_Reflection_Module,
         System_Runtime_CompilerServices_FormattableStringFactory,
         System_Runtime_CompilerServices_RuntimeHelpers,
         System_Runtime_ExceptionServices_ExceptionDispatchInfo,
@@ -257,7 +256,8 @@ namespace Microsoft.CodeAnalysis
         ExtSentinel, // Not a real type, just a marker for types above 255 and strictly below 512
 
         System_ValueTuple_TRest,
-        
+
+        System_Reflection_Module,
         Microsoft_CodeAnalysis_Runtime_Instrumentation,
 
         System_IFormatProvider,
@@ -304,7 +304,6 @@ namespace Microsoft.CodeAnalysis
             "System.Reflection.FieldInfo",
             "System.Reflection.MemberInfo",
             "System.Reflection.Missing",
-            "System.Reflection.Module",
             "System.Runtime.CompilerServices.FormattableStringFactory",
             "System.Runtime.CompilerServices.RuntimeHelpers",
             "System.Runtime.ExceptionServices.ExceptionDispatchInfo",
@@ -514,7 +513,8 @@ namespace Microsoft.CodeAnalysis
             "", // extension marker
 
             "System.ValueTuple`8",
-            
+
+            "System.Reflection.Module",
             "Microsoft.CodeAnalysis.Runtime.Instrumentation",
 
             "System.IFormatProvider"

@@ -360,7 +360,7 @@ namespace Microsoft.CodeAnalysis
                 (byte)WellKnownType.System_Type,                                                                            // DeclaringTypeId
                 0,                                                                                                          // Arity
                     0,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Reflection_Module,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Reflection_Module - WellKnownType.ExtSentinel),
 
                 // System_Reflection_AssemblyKeyFileAttribute__ctor
                 (byte)MemberFlags.Constructor,                                                                              // Flags
@@ -450,7 +450,7 @@ namespace Microsoft.CodeAnalysis
 
                 // System_Reflection_Module__ModuleVersionId
                 (byte)(MemberFlags.Property | MemberFlags.Virtual),                                                         // Flags
-                (byte)WellKnownType.System_Reflection_Module,                                                               // DeclaringTypeId
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Reflection_Module - WellKnownType.ExtSentinel),// DeclaringTypeId
                 0,                                                                                                          // Arity
                     0,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Guid,
@@ -2852,10 +2852,10 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
 
                 // Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload
-                (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
-                (byte)WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation,                                         // DeclaringTypeId
-                0,                                                                                                          // Arity
-                    4,                                                                                                      // Method Signature
+                (byte)(MemberFlags.Method | MemberFlags.Static),                                                                                    // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation - WellKnownType.ExtSentinel),  // DeclaringTypeId
+                0,                                                                                                                                  // Arity
+                    4,                                                                                                                              // Method Signature
                     (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Boolean,
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Guid,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,

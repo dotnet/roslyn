@@ -2449,12 +2449,12 @@ namespace Microsoft.Cci
         {
             if (dynamicAnalysisDataOpt != null)
             {
-                _manifestResourceTable.Add(new ManifestResourceRow()
-                {
-                    Offset = GetManagedResourceOffset(dynamicAnalysisDataOpt, resourceDataWriter),
-                    Flags = (uint)ManifestResourceAttributes.Private,
-                    Name = heaps.GetStringIndex("<DynamicAnalysisData>"),
-                });
+                metadata.AddManifestResource(
+                    attributes: ManifestResourceAttributes.Private,
+                    name: metadata.GetOrAddString("<DynamicAnalysisData>"),
+                    implementation: default(EntityHandle),
+                    offset: GetManagedResourceOffset(dynamicAnalysisDataOpt, resourceDataWriter)
+                );
             }
             
             foreach (var resource in this.module.GetResources(Context))
@@ -3093,7 +3093,7 @@ namespace Microsoft.Cci
                                     switch ((uint)tokenMask)
                                     {
                                         case LiteralMethodDefinitionToken:
-                                            token = MetadataTokens.GetToken(ResolveSymbolTokenFromPseudoSymbolToken(pseudoToken & 0x00ffffff)) & 0x00ffffff;
+                                            token = MetadataTokens.GetToken(ResolveEntityHandleFromPseudoToken(pseudoToken & 0x00ffffff)) & 0x00ffffff;
                                             break;
                                         case LiteralGreatestMethodDefinitionToken:
                                             token = GreatestMethodDefIndex;
@@ -3104,7 +3104,7 @@ namespace Microsoft.Cci
                                 }
                             }
                             writer.Offset = offset;
-                            writer.WriteInt32(token == 0 ? MetadataTokens.GetToken(ResolveSymbolTokenFromPseudoSymbolToken(pseudoToken)) : token);
+                            writer.WriteInt32(token == 0 ? MetadataTokens.GetToken(ResolveEntityHandleFromPseudoToken(pseudoToken)) : token);
                             offset += 4;
                             break;
                         }
