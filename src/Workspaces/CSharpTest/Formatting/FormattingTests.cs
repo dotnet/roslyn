@@ -7282,47 +7282,6 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task PropertyPatternBodyEmpty()
-        {
-            var expected = @"if (o is Point { })";
-            await AssertFormatBodyAsync(expected, expected);
-            await AssertFormatBodyAsync(expected, @"if (o is Point {})");
-            await AssertFormatBodyAsync(expected, @"if (o is Point {      })");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task PropertyPatternValueSingle()
-        {
-            var expected = @"if (o is Point { x is 3 })";
-            await AssertFormatBodyAsync(expected, expected);
-            await AssertFormatBodyAsync(expected, @"if (o is Point{x is 3})");
-            await AssertFormatBodyAsync(expected, @"if (o is Point{    x is 3})");
-            await AssertFormatBodyAsync(expected, @"if (o is Point{    x is 3    })");
-            await AssertFormatBodyAsync(expected, @"if (o is Point{    x is   3    })");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task PropertyPatternValueMultiple()
-        {
-            var expected = @"if (o is Point { x is 3, y is 42 })";
-            await AssertFormatBodyAsync(expected, expected);
-            await AssertFormatBodyAsync(expected, @"if (o is Point{x is 3,y is 42})");
-            await AssertFormatBodyAsync(expected, @"if (o is Point{x is 3   ,y is 42})");
-            await AssertFormatBodyAsync(expected, @"if (o is Point{x is 3   ,y is   42})");
-            await AssertFormatBodyAsync(expected, @"if (o is Point{x is 3   ,  y is   42})");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task PropertyPatternNestedSingle()
-        {
-            var expected = @"if (o is Point { x is var y }";
-            await AssertFormatBodyAsync(expected, expected);
-            await AssertFormatBodyAsync(expected, @"if (o is Point {x is var y}");
-            await AssertFormatBodyAsync(expected, @"if (o is Point {   x is var y}");
-            await AssertFormatBodyAsync(expected, @"if (o is Point {   x is var y    }");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task PropertyDeclarationTypeOnNewLine()
         {
             var expected = @"
@@ -7340,23 +7299,6 @@ Point p    ;");
             await AssertFormatBodyAsync(expected, @"
 var y = o   is
 Point     p    ;");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task PropertyPatternTypeAndPatternOnNewLine()
-        {
-            var expected = @"
-var y = o is
-Point { x is 42 };";
-            await AssertFormatBodyAsync(expected, expected);
-            await AssertFormatBodyAsync(expected, @"
-var y = o is
-Point {x is 42};");
-
-            await AssertFormatBodyAsync(expected, @"
-var y = o is
-Point {x is             42};");
-
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -7379,110 +7321,6 @@ switch (o)
 switch (o)
 {
     case Point    p   :
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task CasePatternPropertyEmpty()
-        {
-            var expected = @"
-switch (o)
-{
-    case Point { }:
-}";
-
-            await AssertFormatBodyAsync(expected, expected);
-            await AssertFormatBodyAsync(expected, @"
-switch (o)
-{
-    case Point {}   :
-}");
-
-            await AssertFormatBodyAsync(expected, @"
-switch (o)
-{
-    case Point    {    }   :
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task CasePatternPropertySingle()
-        {
-            var expected = @"
-switch (o)
-{
-    case Point { X is 42 }:
-}";
-
-            await AssertFormatBodyAsync(expected, expected);
-            await AssertFormatBodyAsync(expected, @"
-switch (o)
-{
-    case Point {X is 42}   :
-}");
-
-            await AssertFormatBodyAsync(expected, @"
-switch (o)
-{
-    case Point    {  X   is 42  }   :
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task CasePatternPropertySingleFollowedByBreak()
-        {
-            var expected = @"
-switch (o)
-{
-    case Point { X is 42 }:
-        break;
-}";
-
-            await AssertFormatBodyAsync(expected, expected);
-            await AssertFormatBodyAsync(expected, @"
-switch (o)
-{
-    case Point {X is 42}   :
-        break;
-}");
-
-            await AssertFormatBodyAsync(expected, @"
-switch (o)
-{
-    case Point    {  X   is 42  }   :
-        break;
-}");
-        }
-
-        [Fact, Trait(Traits.Feature, Traits.Features.Formatting)]
-        public async Task CasePatternPropertySingleFollowedByBlock()
-        {
-            var expected = @"
-switch (o)
-{
-    case Point { X is 42 }:
-        {
-            M();
-        }
-}";
-
-            await AssertFormatBodyAsync(expected, expected);
-            await AssertFormatBodyAsync(expected, @"
-switch (o)
-{
-    case Point {X is 42}   :
-        {
-            M();
-        }
-}");
-
-            await AssertFormatBodyAsync(expected, @"
-switch (o)
-{
-    case Point    {  X   is 42  }   :
-        {
-            M();
-        }
 }");
         }
 

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using ILOpCode = Microsoft.CodeAnalysis.CodeGen.ILOpCode;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
@@ -73,9 +74,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 case ConversionKind.ExplicitUserDefined:
                 case ConversionKind.AnonymousFunction:
                 case ConversionKind.MethodGroup:
+                case ConversionKind.ImplicitTuple:
                 case ConversionKind.ImplicitDynamic:
                 case ConversionKind.ExplicitDynamic:
-                case ConversionKind.ImplicitThrow:
                     // None of these things should reach codegen (yet? maybe?)
                     throw ExceptionUtilities.UnexpectedValue(conversion.ConversionKind);
                 case ConversionKind.PointerToVoid:

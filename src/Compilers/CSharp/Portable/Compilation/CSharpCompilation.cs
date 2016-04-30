@@ -1,5 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CodeGen;
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Emit;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Symbols;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -11,16 +21,6 @@ using System.Reflection;
 using System.Reflection.Metadata;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.CodeGen;
-using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.CSharp.Emit;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Symbols;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -1704,9 +1704,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (_lazyCompilationUnitCompletedTrees.Count == this.SyntaxTrees.Length)
                     {
                         // if that was the last tree, signal the end of compilation
-                        EventQueue.TryEnqueue(new CompilationCompletedEvent(this));
-                        EventQueue.PromiseNotToEnqueue();
-                        EventQueue.TryComplete();
+                        CompleteCompilationEventQueue_NoLock();
                     }
                 }
             }
@@ -1945,6 +1943,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 cancellationToken.ThrowIfCancellationRequested();
 
                 builder.AddRange(GetSourceDeclarationDiagnostics(cancellationToken: cancellationToken));
+
+                if (EventQueue != null && SyntaxTrees.Length == 0)
+                {
+                    EnsureCompilationEventQueueCompleted();
+                }
             }
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -2746,6 +2749,48 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override IPointerTypeSymbol CommonCreatePointerTypeSymbol(ITypeSymbol elementType)
         {
             return CreatePointerTypeSymbol(elementType.EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>("elementType"));
+        }
+
+        protected override INamedTypeSymbol CommonCreateTupleTypeSymbol(ImmutableArray<ITypeSymbol> elementTypes, ImmutableArray<string> elementNames)
+        {
+            if (elementTypes.IsDefault)
+            {
+                throw new ArgumentNullException(nameof(elementTypes));
+            }
+
+            if (elementTypes.Length <= 1)
+            {
+                throw new ArgumentException(CodeAnalysisResources.TuplesNeedAtLeastTwoElements, nameof(elementNames));
+            }
+
+            if (!elementNames.IsDefault)
+            {
+                if (elementNames.Length != elementTypes.Length)
+                {
+                    throw new ArgumentException(CodeAnalysisResources.TupleNamesAllOrNone, nameof(elementNames));
+                }
+
+                for (int i = 0; i < elementNames.Length; i++)
+                {
+                    if ((object)elementNames[i] == null)
+                    {
+                        throw new ArgumentNullException($"{nameof(elementNames)}[{i}]");
+                    }
+                }
+            }
+
+            var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(elementTypes.Length);
+            for (int i = 0; i < elementTypes.Length; i++)
+            {
+                if (elementTypes[i] == null)
+                {
+                    throw new ArgumentNullException($"{nameof(elementTypes)}[{i}]");
+                }
+
+                typesBuilder.Add(elementTypes[i].EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>($"{nameof(elementTypes)}[{i}]"));
+            }
+
+            return TupleTypeSymbol.Create(typesBuilder.ToImmutableAndFree(), elementNames, this);
         }
 
         protected override ITypeSymbol CommonDynamicType

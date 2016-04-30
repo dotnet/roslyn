@@ -10,6 +10,12 @@ REM internal repositories.
 set RoslynSolution=%1
 if "%RoslynSolution%" == "" set RoslynSolution=%~dp0Roslyn.sln
 
+echo Deleting project.lock.json files
+pushd "%~dp0src"
+echo "Dummy lock file to avoid error when there is no project.lock.json file" > project.lock.json
+del /s /q project.lock.json
+popd
+
 echo Restoring packages: Toolsets
 call %NugetExe% restore "%~dp0build\ToolsetPackages\project.json" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
 

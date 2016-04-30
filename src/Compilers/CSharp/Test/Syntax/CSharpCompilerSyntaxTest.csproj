@@ -90,6 +90,7 @@
     <Compile Include="Parsing\CrefParsingTests.cs" />
     <Compile Include="Parsing\DeclarationParsingTests.cs" />
     <Compile Include="Parsing\ExpressionParsingTests.cs" />
+    <Compile Include="Parsing\LocalFunctionParsingTests.cs" />
     <Compile Include="Parsing\ParserRegressionTests.cs" />
     <Compile Include="Parsing\ReplaceParsingTests.cs" />
     <Compile Include="Parsing\ScriptParsingTests.cs" />
@@ -105,6 +106,7 @@
     <Compile Include="Parsing\SeparatedSyntaxListParsingTests.cs" />
     <Compile Include="Parsing\StatementParsingTests.cs" />
     <Compile Include="Parsing\SyntaxExtensions.cs" />
+    <Compile Include="Parsing\ValueTupleTests.cs" />
     <Compile Include="Parsing\VerbatimCrefParsingTests.cs" />
     <Compile Include="Resources.Designer.cs">
       <AutoGen>True</AutoGen>

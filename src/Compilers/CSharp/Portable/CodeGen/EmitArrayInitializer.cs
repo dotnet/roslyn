@@ -1,18 +1,16 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection.Metadata;
-using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
+using ILOpCode = Microsoft.CodeAnalysis.CodeGen.ILOpCode;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeGen
 {
+    using Roslyn.Reflection;
+
     internal partial class CodeGenerator
     {
         private enum ArrayInitializerStyle
@@ -311,14 +309,14 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             // the initial size is a guess.
             // there is no point to be precise here as MemoryStream always has N + 1 storage 
             // and will need to be trimmed regardless
-            var writer = new Cci.BlobBuilder(initializers.Length * 4);
+            var writer = new BlobBuilder(initializers.Length * 4);
 
             SerializeArrayRecursive(writer, initializers);
 
             return writer.ToImmutableArray();
         }
 
-        private void SerializeArrayRecursive(Cci.BlobBuilder bw, ImmutableArray<BoundExpression> inits)
+        private void SerializeArrayRecursive(BlobBuilder bw, ImmutableArray<BoundExpression> inits)
         {
             if (inits.Length != 0)
             {

@@ -35,32 +35,32 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         private static readonly string s_totalDiagnosticsToFix = "TotalDiagnosticsToFix";
         private static readonly string s_totalFixesToMerge = "TotalFixesToMerge";
 
-        public static void LogContext(FixAllContext fixAllContext, bool isInternalCodeFixProvider)
+        public static void LogState(FixAllState fixAllState, bool isInternalCodeFixProvider)
         {
             Logger.Log(FunctionId.CodeFixes_FixAllOccurrencesContext, KeyValueLogMessage.Create(m =>
             {
                 if (isInternalCodeFixProvider)
                 {
-                    m[s_codeFixProvider] = fixAllContext.CodeFixProvider.GetType().FullName;
-                    m[s_codeActionEquivalenceKey] = fixAllContext.CodeActionEquivalenceKey;
-                    m[s_languageName] = fixAllContext.Project.Language;
+                    m[s_codeFixProvider] = fixAllState.CodeFixProvider.GetType().FullName;
+                    m[s_codeActionEquivalenceKey] = fixAllState.CodeActionEquivalenceKey;
+                    m[s_languageName] = fixAllState.Project.Language;
                 }
                 else
                 {
-                    m[s_codeFixProvider] = fixAllContext.CodeFixProvider.GetType().FullName.GetHashCode().ToString();
-                    m[s_codeActionEquivalenceKey] = fixAllContext.CodeActionEquivalenceKey != null ? fixAllContext.CodeActionEquivalenceKey.GetHashCode().ToString() : null;
-                    m[s_languageName] = fixAllContext.Project.Language.GetHashCode().ToString();
+                    m[s_codeFixProvider] = fixAllState.CodeFixProvider.GetType().FullName.GetHashCode().ToString();
+                    m[s_codeActionEquivalenceKey] = fixAllState.CodeActionEquivalenceKey != null ? fixAllState.CodeActionEquivalenceKey.GetHashCode().ToString() : null;
+                    m[s_languageName] = fixAllState.Project.Language.GetHashCode().ToString();
                 }
 
-                m[s_fixAllScope] = fixAllContext.Scope.ToString();
-                switch (fixAllContext.Scope)
+                m[s_fixAllScope] = fixAllState.Scope.ToString();
+                switch (fixAllState.Scope)
                 {
                     case CodeFixes.FixAllScope.Project:
-                        m[s_documentCount] = fixAllContext.Project.DocumentIds.Count;
+                        m[s_documentCount] = fixAllState.Project.DocumentIds.Count;
                         break;
 
                     case CodeFixes.FixAllScope.Solution:
-                        m[s_documentCount] = fixAllContext.Solution.Projects.Sum(p => p.DocumentIds.Count);
+                        m[s_documentCount] = fixAllState.Solution.Projects.Sum(p => p.DocumentIds.Count);
                         break;
                 }
             }));

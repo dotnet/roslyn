@@ -2,6 +2,7 @@
 
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -148,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var namespaceGroups = namespaces.ToDictionary(n => n.Name);
+                    var namespaceGroups = namespaces.ToDictionary(n => n.Name, StringOrdinalComparer.Instance);
                     namespaces.Free();
 
                     foreach (var namespaceGroup in namespaceGroups.Values)

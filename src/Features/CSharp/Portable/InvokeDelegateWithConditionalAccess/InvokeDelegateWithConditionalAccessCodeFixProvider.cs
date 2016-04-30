@@ -29,19 +29,16 @@ namespace Microsoft.CodeAnalysis.CSharp.InvokeDelegateWithConditionalAccess
         {
             context.RegisterCodeFix(new MyCodeAction(
                 CSharpFeaturesResources.DelegateInvocationCanBeSimplified,
-                async c => await UpdateDocumentAsync(context).ConfigureAwait(false),
+                c => UpdateDocumentAsync(context.Document, context.Diagnostics.First(), c),
                equivalenceKey: nameof(InvokeDelegateWithConditionalAccessCodeFixProvider)),
                context.Diagnostics);
             return Task.FromResult(false);
         }
 
-        private async Task<Document> UpdateDocumentAsync(CodeFixContext context)
+        private async Task<Document> UpdateDocumentAsync(
+            Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
-            var document = context.Document;
-            var cancellationToken = context.CancellationToken;
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-
-            var diagnostic = context.Diagnostics.First();
 
             if (diagnostic.Properties[Constants.Kind] == Constants.VariableAndIfStatementForm)
             {

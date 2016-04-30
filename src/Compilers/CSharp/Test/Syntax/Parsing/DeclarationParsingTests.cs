@@ -14,17 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
         {
-            return SyntaxFactory.ParseSyntaxTree(text);
-        }
-
-        private CompilationUnitSyntax ParseFile(string text, CSharpParseOptions parseOptions = null)
-        {
-            return SyntaxFactory.ParseCompilationUnit(text, options: parseOptions);
-        }
-
-        private CompilationUnitSyntax ParseFileExperimental(string text)
-        {
-            return ParseFile(text, parseOptions: TestOptions.ExperimentalParseOptions);
+            return SyntaxFactory.ParseSyntaxTree(text, options);
         }
 
         [Fact]
@@ -5538,6 +5528,48 @@ class C
                 }
                 N(SyntaxKind.EndOfFileToken);
             }
+        }
+
+        [Fact]
+        public void TupleArgument01()
+        {
+            var text = @"
+class C1
+{
+    static (T, T) Test1<T>(int a, (byte, byte) arg0)
+    {
+        return default((T, T));
+    }
+
+    static (T, T) Test2<T>(ref (byte, byte) arg0)
+    {
+        return default((T, T));
+    }
+}
+";
+            var file = this.ParseFile(text, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            Assert.Equal(0, file.Errors().Length);
+        }
+
+        [Fact]
+        public void TupleArgument02()
+        {
+            var text = @"
+class C1
+{
+    static (T, T) Test3<T>((byte, byte) arg0)
+    {
+        return default((T, T));
+    }
+
+    (T, T) Test3<T>((byte a, byte b)[] arg0)
+    {
+        return default((T, T));
+    }
+}
+";
+            var file = this.ParseFile(text, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            Assert.Equal(0, file.Errors().Length);
         }
     }
 }

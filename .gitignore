@@ -21,9 +21,6 @@ x64/
 # NuGet restore semaphore
 build/ToolsetPackages/toolsetpackages.semaphore
 
-# Toolset project lock json
-build/MSBuildToolset/project.lock.json
-
 # NuGet package
 src/Tools/UploadNugetZip/*.zip
 
@@ -36,6 +33,7 @@ UnitTestResults.html
 *-packages.config
 *.nuget.props
 *.nuget.targets
+project.lock.json
 
 *_i.c
 *_p.c

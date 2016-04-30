@@ -224,11 +224,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case ConversionKind.ImplicitThrow:
+                case ConversionKind.ImplicitTuple:
                     {
-                        // the operand must be a bound throw expression
-                        var operand = (BoundThrowExpression)rewrittenOperand;
-                        return _factory.ThrowExpression(operand.Expression, rewrittenType);
+                        // we keep ImplicitTuple conversions in the tree
+                        // for the purpose of semantic model (for example when they are casts in the source)
+                        // for the purpose of lowering/codegeneration thay are identity conversions.
+
+                        Debug.Assert(rewrittenOperand.Type.Equals(rewrittenType, ignoreDynamic: true));
+                        conversionKind = ConversionKind.Identity;
+                        break;
                     }
 
                 case ConversionKind.ImplicitEnumeration:

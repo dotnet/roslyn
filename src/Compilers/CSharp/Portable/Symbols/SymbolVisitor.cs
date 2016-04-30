@@ -28,6 +28,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             DefaultVisit(symbol);
         }
 
+        public virtual void VisitTupleType(TupleTypeSymbol symbol)
+        {
+            DefaultVisit(symbol);
+        }
+
         public virtual void VisitAssembly(AssemblySymbol symbol)
         {
             DefaultVisit(symbol);

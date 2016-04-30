@@ -243,6 +243,12 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
                 }
             }
 
+            public bool IsTupleType => _symbol.IsTupleType;
+
+            public ImmutableArray<ITypeSymbol> TupleElementTypes => _symbol.TupleElementTypes;
+
+            public ImmutableArray<string> TupleElementNames => _symbol.TupleElementNames;
+
             ITypeSymbol ITypeSymbol.OriginalDefinition
             {
                 get

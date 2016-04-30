@@ -1,20 +1,6 @@
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
 
-  <!-- Turn off implict binary and project reference copying to prevent projects
-       from racing to copy the same files to the shared build directory -->
-  <ItemDefinitionGroup Condition="'$(CopyReferencesByDefault)' == 'false'">
-
-    <Reference>
-      <Private>false</Private>
-    </Reference>
-
-    <ProjectReference>
-      <Private>false</Private>
-    </ProjectReference>
-
-  </ItemDefinitionGroup>
-  
   <!-- This file is imported by all projects at the end of the project files -->
   <!-- Update common properties -->
   <PropertyGroup>
@@ -27,6 +13,14 @@
     <CodeAnalysisRuleSet Condition="'$(CodeAnalysisRuleSet)' == ''">$(VSLToolsPath)\Rulesets\Roslyn.ruleset</CodeAnalysisRuleSet>
 
     <RoslynInternalKey>002400000480000094000000060200000024000052534131000400000100010055e0217eb635f69281051f9a823e0c7edd90f28063eb6c7a742a19b4f6139778ee0af438f47aed3b6e9f99838aa8dba689c7a71ddb860c96d923830b57bbd5cd6119406ddb9b002cf1c723bf272d6acbb7129e9d6dd5a5309c94e0ff4b2c884d45a55f475cd7dba59198086f61f5a8c8b5e601c0edbf269733f6f578fc8579c2</RoslynInternalKey>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- While UseCommonOutputDirectory will prevent NuGet implementations from being copied, 
+         we still need to turn off CopyNuGetImplementations to prevent the build task from complaining about a 
+         lack of a runtime section in our project.json. -->
+
+    <CopyNuGetImplementations Condition="'$(UseCommonOutputDirectory)' == 'true'">false</CopyNuGetImplementations>
   </PropertyGroup>
 
   <!-- settings for strong name signing -->
@@ -88,22 +82,43 @@
     </PropertyGroup>
   </Target>
 
-  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.VisualBasic.targets"
-          Condition="'$(ProjectLanguage)' == 'VB' And '$(TargetFrameworkIdentifier)' == '.NETPortable'"/>
-  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets"
-          Condition="'$(ProjectLanguage)' == 'CSharp' And '$(TargetFrameworkIdentifier)' == '.NETPortable'"/>
-
-  <Import Project="$(MSBuildToolsPath)\Microsoft.VisualBasic.targets"
-          Condition="'$(ProjectLanguage)' == 'VB' And '$(TargetFrameworkIdentifier)' != '.NETPortable'" />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets"
-          Condition="'$(ProjectLanguage)' == 'CSharp' And '$(TargetFrameworkIdentifier)' != '.NETPortable'" />
-
-  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" Condition="'$(ProjectLanguage)' == 'C++'" />
+  <Choose>
+    <When Condition="'$(ProjectLanguage)' == 'VB'">
+      <PropertyGroup>
+        <MSBuildTargetsLanguageName>VisualBasic</MSBuildTargetsLanguageName>
+      </PropertyGroup>
+    </When>
+    <When Condition="'$(ProjectLanguage)' == 'CSharp'">
+      <PropertyGroup>
+        <MSBuildTargetsLanguageName>CSharp</MSBuildTargetsLanguageName>
+      </PropertyGroup>
+    </When>
+  </Choose>
+  
+  <Choose>
+    <When Condition="'$(ProjectLanguage)' == 'C++'">
+      <PropertyGroup>
+        <MSBuildTargetsFilePath>$(VCTargetsPath)\Microsoft.Cpp.targets</MSBuildTargetsFilePath>
+      </PropertyGroup>
+    </When>
+    <When Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable'">
+      <PropertyGroup>
+        <MSBuildTargetsFilePath>$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.$(MSBuildTargetsLanguageName).targets</MSBuildTargetsFilePath>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <MSBuildTargetsFilePath>$(MSBuildToolsPath)\Microsoft.$(MSBuildTargetsLanguageName).targets</MSBuildTargetsFilePath>
+      </PropertyGroup>
+    </Otherwise>
+  </Choose>
+  
+  <Import Project="$(MSBuildTargetsFilePath)" />
 
   <!-- On Mono on *nix the NuGet targets aren't imported by default, so we do that here -->
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\NuGet\Microsoft.NuGet.targets"
           Condition="'$(OS)' != 'Windows_NT'" />
-
+  
   <Choose>
     <When Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable' AND
                      '$(TargetFrameworkVersion)' == 'v5.0'">
@@ -113,9 +128,9 @@
         <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Windows_NT'">win7</BaseNuGetRuntimeIdentifier>
       </PropertyGroup>
 
-      <!-- Upgrade portable DLLs to v5.4 -->
+      <!-- Upgrade portable projects to .NETStandard 1.3 -->
       <PropertyGroup Condition="'$(OutputType)' == 'Library'">
-        <NuGetTargetMoniker>.NETPlatform,Version=v5.4</NuGetTargetMoniker>
+        <NuGetTargetMoniker>.NETStandard,Version=v1.3</NuGetTargetMoniker>
       </PropertyGroup>
     </When>
   </Choose>
@@ -195,11 +210,16 @@
 
   <!-- ====================================================================================
 
-         Force-include our NuGet-consumed assets into VSIX projects
+         Include some of our NuGet-consumed assets into VSIX projects
 
-         NOTE: this is a very specialized behavior we need for producing the Roslyn VSIXes.
-           It should not be copied into other projects without careful thought and
-           understanding of the VSSDK VSIX targets.
+         This exists for two reasons:
+
+         1) In some cases, we need to include the contents of a NuGet package that is otherwise
+            contained within the SuppressFromVsix list, because we're actually the component
+            inside Visual Studio that ships that component
+         
+         2) The SDK targets don't currently look at the ReferenceCopyLocalPaths produced
+            by the NuGet build task.
 
        ==================================================================================== -->
 
@@ -207,15 +227,47 @@
     <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeNuGetResolvedAssets</GetVsixSourceItemsDependsOn>
   </PropertyGroup>
 
-  <Target Name="IncludeNuGetResolvedAssets" DependsOnTargets="ResolveNuGetPackageAssets">
-    <ItemGroup Condition="'$(IncludeCopyLocalReferencesInVSIXContainer)' == 'true'">
-      <VSIXCopyLocalReferenceSourceItem Include="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' != ''">
+  <Target Name="IncludeNuGetResolvedAssets" DependsOnTargets="ResolveNuGetPackageAssets" Condition="'@(NuGetPackageToIncludeInVsix)' != ''">
+    <ItemGroup>
+      <_ReferenceCopyLocalPathsWithPotentialInclusions Include="@(ReferenceCopyLocalPaths)">
+        <NuGetPackageToIncludeInVsix>%(NuGetPackageToIncludeInVsix.Identity)</NuGetPackageToIncludeInVsix>
+      </_ReferenceCopyLocalPathsWithPotentialInclusions>
+
+      <VSIXCopyLocalReferenceSourceItem Include="@(_ReferenceCopyLocalPathsWithPotentialInclusions)"
+        Condition="'%(_ReferenceCopyLocalPathsWithPotentialInclusions.NuGetPackageId)' == '%(_ReferenceCopyLocalPathsWithPotentialInclusions.NuGetPackageToIncludeInVsix)' and
+                   '%(_ReferenceCopyLocalPathsWithPotentialInclusions.Extension)' != '.pdb'">
         <ForceIncludeInVsix>true</ForceIncludeInVsix>
         <Private>true</Private>
       </VSIXCopyLocalReferenceSourceItem>
     </ItemGroup>
   </Target>
 
+  <ItemDefinitionGroup>
+    <NuGetPackageToIncludeInVsix>
+      <Visible>false</Visible>
+    </NuGetPackageToIncludeInVsix>
+  </ItemDefinitionGroup>
+
+  <!-- This is a copy of the Microsoft.VisualStudio.SDK.EmbedInteropTypes NuGet package, but only the list of
+       assemblies that we need. The package includes things like EnvDTE which are reasonable for consumers, but
+       strange since we actually _implement_ DTE and use it as an exchange type with generics in a few places. -->
+  <Target Name="LinkVSSDKEmbeddableAssemblies" DependsOnTargets="ResolveReferences" AfterTargets="ResolveReferences">
+    <ItemGroup>
+      <ReferencePath Condition="
+              '%(FileName)' == 'Microsoft.VisualStudio.Shell.Embeddable'
+           or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.12.0'
+           or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.12.1.DesignTime'
+           or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime'
+           or '%(Filename)' == 'Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime'
+           or '%(FileName)' == 'Microsoft.VisualStudio.TextManager.Interop.12.1.DesignTime'
+           or '%(FileName)' == 'Microsoft.VisualStudio.ProjectSystem.Interop'
+           or '%(FileName)' == 'stdole'
+           or '%(FileName)' == 'Microsoft.VisualStudio.CommandBars'
+              ">
+        <EmbedInteropTypes>true</EmbedInteropTypes>
+      </ReferencePath>
+    </ItemGroup>
+  </Target>
 
   <!-- ====================================================================================
 
@@ -333,7 +385,9 @@
     <MSBuild Projects="@(ProjectReferenceWithConfiguration)"
              Targets="GetTargetPathWithAuthenticodeCertificateName"
              BuildInParallel="$(BuildInParallel)"
-             Properties="%(ProjectReferenceWithConfiguration.SetConfiguration); %(ProjectReferenceWithConfiguration.SetPlatform)">
+             Properties="%(ProjectReferenceWithConfiguration.SetConfiguration); %(ProjectReferenceWithConfiguration.SetPlatform)"
+             Condition="'%(ProjectReferenceWithConfiguration.Private)' != 'false'"
+             >
 
       <Output TaskParameter="TargetOutputs" ItemName="VsixInputAssembliesToSign" />
     </MSBuild>

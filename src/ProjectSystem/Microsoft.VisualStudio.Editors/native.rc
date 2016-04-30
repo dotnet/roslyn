@@ -1,0 +1,33 @@
+#include <winver.h>
+#include <verstamp.h>
+
+#define VER_FILEDESCRIPTION_STR "VisualStudio Editors"
+#define VER_FILETYPE VFT_APP
+#define VER_FILESUBTYPE VFT_UNKNOWN
+#define VER_INTERNALNAME_STR "Microsoft.VisualStudio.Editors.DLL"
+#define VER_ORIGINALFILENAME_STR "Microsoft.VisualStudio.Editors.DLL"
+
+#include <common.ver>
+
+// This resource defines the menus for our package
+
+//---------------------------------------------------------------------------
+// STRINGTABLE - This contains localized strings for interop with the VS shell
+//---------------------------------------------------------------------------
+STRINGTABLE
+BEGIN
+    1000      "VisualStudio.Editors"
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon for the registration of .ResX files with the Windows shell
+101 ICON    DISCARDABLE    "Resources\\Native\\resx.ico"
+
+// Icon for the registration of .Settings files with the Windows shell
+102 ICON    DISCARDABLE    "Resources\\Native\\Settings.ico"
+

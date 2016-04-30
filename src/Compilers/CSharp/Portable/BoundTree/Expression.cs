@@ -500,6 +500,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
+    internal partial class BoundTupleExpression 
+    {
+        protected override OperationKind ExpressionKind => OperationKind.None;
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitNoneOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNoneOperation(this, argument);
+        }
+    }
+
     internal partial class BoundObjectCreationExpression : IObjectCreationExpression
     {
         private static readonly ConditionalWeakTable<BoundObjectCreationExpression, object> s_memberInitializersMappings =
@@ -695,7 +710,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case CSharp.ConversionKind.ImplicitDynamic:
                     case CSharp.ConversionKind.ExplicitEnumeration:
                     case CSharp.ConversionKind.ImplicitEnumeration:
-                    case CSharp.ConversionKind.ImplicitThrow:
+                    case CSharp.ConversionKind.ImplicitTuple:
                     case CSharp.ConversionKind.ExplicitNullable:
                     case CSharp.ConversionKind.ImplicitNullable:
                     case CSharp.ConversionKind.ExplicitNumeric:
@@ -2771,70 +2786,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override void Accept(OperationVisitor visitor)
         {
             // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
-            throw new NotImplementedException();
+            visitor.VisitNoneOperation(this);
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
-            throw new NotImplementedException();
+            return visitor.VisitNoneOperation(this, argument);
         }
 
-        protected override OperationKind ExpressionKind
-        {
-            get
-            {
-                // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
-                throw new NotImplementedException();
-            }
-        }
+        // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
+        protected override OperationKind ExpressionKind => OperationKind.None;
     }
 
-    partial class BoundMatchExpression
-    {
-        public override void Accept(OperationVisitor visitor)
-        {
-            // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
-            throw new NotImplementedException();
-        }
-
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
-            throw new NotImplementedException();
-        }
-
-        protected override OperationKind ExpressionKind
-        {
-            get
-            {
-                // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
-                throw new NotImplementedException();
-            }
-        }
-    }
-
-    partial class BoundThrowExpression
-    {
-        public override void Accept(OperationVisitor visitor)
-        {
-            // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
-            throw new NotImplementedException();
-        }
-
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
-            throw new NotImplementedException();
-        }
-
-        protected override OperationKind ExpressionKind
-        {
-            get
-            {
-                // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
-                throw new NotImplementedException();
-            }
-        }
-    }
 }

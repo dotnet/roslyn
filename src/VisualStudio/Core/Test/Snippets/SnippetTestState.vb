@@ -19,7 +19,6 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.BraceCompletion
-Imports Microsoft.VisualStudio.Text.BraceCompletion.Implementation
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.TextManager.Interop
 Imports Moq
@@ -51,7 +50,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                     New TestCompletionPresenter(Me),
                     GetExports(Of IAsynchronousOperationListener, FeatureMetadata)(),
                     CreateLazyProviders({snippetProvider}, languageName, roles:=Nothing),
-                    GetExports(Of IBraceCompletionSessionProvider, IBraceCompletionMetadata)())
+                    GetExports(Of IBraceCompletionSessionProvider, BraceCompletionMetadata)())
 
                 Dim CompletionCommandHandler = New CompletionCommandHandler(asyncCompletionService)
 

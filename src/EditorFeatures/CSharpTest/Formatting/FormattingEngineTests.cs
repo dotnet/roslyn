@@ -906,6 +906,34 @@ class Program
             await AssertFormatAfterTypeCharAsync(code, expected);
         }
 
+        [WorkItem(9097, "https://github.com/dotnet/roslyn/issues/9097")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task ColonInPatternSwitchCase01()
+        {
+            var code = @"class Program
+{
+    static void Main()
+    {
+        switch(f)
+        {
+                          case  int  i            :$$    break;
+        }
+    }
+}";
+
+            var expected = @"class Program
+{
+    static void Main()
+    {
+        switch(f)
+        {
+            case int i:    break;
+        }
+    }
+}";
+            await AssertFormatAfterTypeCharAsync(code, expected);
+        }
+
         [WorkItem(464, "https://github.com/dotnet/roslyn/issues/464")]
         [WorkItem(908729, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/908729")]
         [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
@@ -1270,6 +1298,62 @@ class C : Attribute
                 return true;
             }
         }";
+            await AssertFormatAfterTypeCharAsync(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task DoNotFormatCompleteBlockOnSingleLineIfTypingSemicolon()
+        {
+            var code =
+@"public class Class1
+{
+    void M()
+    {
+        try { }
+        catch { return;$$
+        x.ToString();
+    }
+}";
+            var expected = 
+@"public class Class1
+{
+    void M()
+    {
+        try { }
+        catch { return;
+        x.ToString();
+    }
+}";
+            await AssertFormatAfterTypeCharAsync(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatCompleteBlockOnSingleLineIfTypingCloseCurlyOnLaterLine()
+        {
+            var code =
+@"public class Class1
+{
+    void M()
+    {
+        try { }
+        catch { return;
+        x.ToString();
+        }$$
+    }
+}";
+            var expected =
+@"public class Class1
+{
+    void M()
+    {
+        try { }
+        catch
+        {
+            return;
+            x.ToString();
+        }
+    }
+}";
             await AssertFormatAfterTypeCharAsync(code, expected);
         }
 

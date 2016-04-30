@@ -114,9 +114,11 @@ namespace ProcessWatchdog
         {
             var descendants = new List<Process>();
 
+            // Don't include procdump itself in the descendants, because
+            // we don't want to kill procdump.
             string query = string.Format(
                 CultureInfo.InvariantCulture,
-                "SELECT * FROM Win32_Process WHERE ParentProcessId={0}",
+                "SELECT * FROM Win32_Process WHERE ParentProcessId = {0} AND Name <> \"procdump.exe\"",
                 processId);
             var searcher = new ManagementObjectSearcher(query);
 
