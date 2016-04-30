@@ -1950,16 +1950,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var destination = (NamedTypeSymbol)targetType;
 
-            if (destination.IsTupleType)
-            {
-                destination = ((TupleTypeSymbol)destination).UnderlyingTupleType;
-            }
-
             Debug.Assert((object)tupleSource.Type == null, "should not need to dig into elements if tuple has natural type");
             var sourceArguments = tupleSource.Arguments;
 
-            // check if underlying type is actually a possible underlying type for a tuple of given arity
-            if (!Compilation.IsWellKnownTupleType(destination, sourceArguments.Length))
+            // check if the type is actually compatible type for a tuple of given cardinality
+            int cardinality;
+            if (!destination.IsTupleCompatible(out cardinality) || cardinality != sourceArguments.Length)
             {
                 return false;
             }

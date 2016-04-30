@@ -7,87 +7,67 @@ using System.Diagnostics;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
     /// <summary>
-    /// A TupleFieldSymbol represents the field of a tuple type, such as (int, byte).Item2 or (int a, long b).a
+    /// Represents a non-element field of a tuple type (such as (int, byte).Rest)
+    /// that is backed by a real field within the tuple underlying type.
     /// </summary>
-    internal sealed class TupleFieldSymbol : FieldSymbol
+    internal class TupleFieldSymbol : WrapperFieldSymbol
     {
-        private readonly string _name;
-        private readonly TypeSymbol _type;
-        private readonly TupleTypeSymbol _containingTuple;
-        private readonly int _position;
-        private readonly FieldSymbol _underlyingFieldOpt;
+        protected readonly TupleTypeSymbol _containingTuple;
 
         /// <summary>
-        /// Missing underlying field is handled for error recovery
-        /// A tuple without backing fields is usable for binding purposes, since we know its name and type,
-        /// but caller is supposed to report some kind of error at declaration.
-        ///
-        /// position is 1 for Item1.
+        /// If this field represents a tuple element (including the name match), 
+        /// id is an index of the element (zero-based).
+        /// Otherwise, (-1 - [index in members array]);
         /// </summary>
-        private TupleFieldSymbol(string name, TupleTypeSymbol containingTuple, TypeSymbol type, int position, FieldSymbol underlyingFieldOpt)
+        private readonly int _tupleFieldId;
+
+        public TupleFieldSymbol(TupleTypeSymbol container, FieldSymbol underlyingField, int tupleFieldId)
+            : base(underlyingField)
         {
-            _name = name;
-            _containingTuple = containingTuple;
-            _underlyingFieldOpt = underlyingFieldOpt;
-            _type = type;
-            _position = position;
+            _containingTuple = container;
+            _tupleFieldId = tupleFieldId;
         }
 
-        /// <summary>
-        /// Copy this tuple field, but modify it to use the new containing tuple, link type and field type.
-        /// </summary>
-        internal TupleFieldSymbol WithType(TupleTypeSymbol newContainingTuple, NamedTypeSymbol newlinkType, TypeSymbol newFieldType)
-        {
-            FieldSymbol newUnderlyingFieldOpt = _underlyingFieldOpt?.OriginalDefinition.AsMember(newlinkType);
-            Debug.Assert(newUnderlyingFieldOpt == null || newUnderlyingFieldOpt.Type == newFieldType);
-
-            return new TupleFieldSymbol(_name, newContainingTuple, newFieldType, _position, newUnderlyingFieldOpt);
-        }
-
-        /// <summary>
-        /// Copy this tuple field, but modify it to use the new containing tuple, and field name.
-        /// </summary>
-        internal TupleFieldSymbol WithName(TupleTypeSymbol newContainingTuple, string newName)
-        {
-            return new TupleFieldSymbol(newName, newContainingTuple, _type, _position, _underlyingFieldOpt);
-        }
-
-        /// <summary>
-        /// Helps construct a TupleFieldSymbol.
-        ///
-        /// Note that errors related to underlying field are ignored.
-        /// </summary>
-        internal static TupleFieldSymbol Create(string elementName, TupleTypeSymbol containingTuple, NamedTypeSymbol linkType, int fieldIndex, AssemblySymbol accessWithin)
-        {
-            int fieldRemainder; // one-based
-            int fieldChainLength = TupleTypeSymbol.NumberOfValueTuples(fieldIndex + 1, out fieldRemainder);
-
-            WellKnownMember wellKnownTypeMember = TupleTypeSymbol.GetTupleTypeMember(linkType.Arity, fieldRemainder);
-            var linkField = (FieldSymbol)TupleTypeSymbol.GetWellKnownMemberInType(linkType.OriginalDefinition, wellKnownTypeMember, accessWithin);
-            FieldSymbol underlyingField = linkField?.AsMember(linkType);
-
-            return new TupleFieldSymbol(elementName, containingTuple, linkType.TypeArgumentsNoUseSiteDiagnostics[fieldRemainder - 1], fieldIndex + 1, underlyingField);
-        }
-
-        public override string Name
+        public override bool IsTupleField
         {
             get
             {
-                return _name;
+                return true;
             }
         }
 
         /// <summary>
-        /// Returns the position of this field within the tuple.
-        /// For instance, the position for Item1 is 1.
+        /// If this field represents a tuple element (including the name match), 
+        /// id is an index of the element (zero-based).
+        /// Otherwise, (-1 - [index in members array]);
         /// </summary>
-        public int Position => _position;
+        public int TupleFieldId
+        {
+            get
+            {
+                return _tupleFieldId;
+            }
+        }
+
+        public override FieldSymbol TupleUnderlyingField
+        {
+            get
+            {
+                return _underlyingField;
+            }
+        }
 
         public override Symbol AssociatedSymbol
         {
             get
             {
-                return null;
+                Symbol underlyingAssociated = _underlyingField.AssociatedSymbol;
+                if ((object)underlyingAssociated == null)
+                {
+                    return null;
+                }
+
+                return _containingTuple.GetTupleMemberSymbolForUnderlyingMember(underlyingAssociated);
             }
         }
 
@@ -103,55 +83,67 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingFieldOpt?.CustomModifiers ?? ImmutableArray<CustomModifier>.Empty;
+                return _underlyingField.CustomModifiers;
             }
         }
 
-        public override Accessibility DeclaredAccessibility
+        internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
         {
-            get
-            {
-                return _underlyingFieldOpt?.DeclaredAccessibility ?? Accessibility.Public;
-            }
+            return _underlyingField.GetFieldType(fieldsBeingBound);
         }
 
-        public override bool IsConst
+        public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
-            get
-            {
-                return _underlyingFieldOpt?.IsConst ?? false;
-            }
+            return _underlyingField.GetAttributes();
         }
 
-        public override bool IsReadOnly
+        internal override DiagnosticInfo GetUseSiteDiagnostic()
         {
-            get
-            {
-                return _underlyingFieldOpt?.IsReadOnly ?? false;
-            }
+            DiagnosticInfo result = base.GetUseSiteDiagnostic();
+            MergeUseSiteDiagnostics(ref result, _underlyingField.GetUseSiteDiagnostic());
+            return result;
         }
 
-        public override bool IsStatic
+        public override sealed int GetHashCode()
         {
-            get
-            {
-                return _underlyingFieldOpt?.IsStatic ?? false;
-            }
+            return Hash.Combine(_containingTuple.GetHashCode(), _tupleFieldId.GetHashCode());
         }
 
-        public override bool IsVolatile
+        public override sealed bool Equals(object obj)
         {
-            get
+            return Equals(obj as TupleFieldSymbol);
+        }
+
+        public bool Equals(TupleFieldSymbol other)
+        {
+            if ((object)other == this)
             {
-                return _underlyingFieldOpt?.IsVolatile ?? false;
+                return true;
             }
+
+            return (object)other != null && _tupleFieldId == other._tupleFieldId && _containingTuple == other._containingTuple;
+        }
+    }
+
+    /// <summary>
+    /// Represents an element field of a tuple type (such as (int, byte).Item1)
+    /// that is backed by a real field with the same name within the tuple underlying type.
+    /// </summary>
+    internal class TupleElementFieldSymbol : TupleFieldSymbol
+    {
+        private readonly ImmutableArray<Location> _locations;
+
+        public TupleElementFieldSymbol(TupleTypeSymbol container, FieldSymbol underlyingField, int tupleFieldId, Location location)
+            : base(container, underlyingField, tupleFieldId)
+        {
+            _locations = location == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create(location);
         }
 
         public override ImmutableArray<Location> Locations
         {
             get
             {
-                return ImmutableArray<Location>.Empty;
+                return _locations;
             }
         }
 
@@ -159,47 +151,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return ImmutableArray<SyntaxReference>.Empty;
+                return GetDeclaringSyntaxReferenceHelper<CSharpSyntaxNode>(_locations);
             }
         }
 
-        internal override bool HasRuntimeSpecialName
+        public override bool IsImplicitlyDeclared
         {
             get
             {
-                return _underlyingFieldOpt?.HasRuntimeSpecialName ?? false;
-            }
-        }
-
-        internal override bool HasSpecialName
-        {
-            get
-            {
-                return _underlyingFieldOpt?.HasSpecialName ?? false;
-            }
-        }
-
-        internal override bool IsNotSerialized
-        {
-            get
-            {
-                return _underlyingFieldOpt?.IsNotSerialized ?? false;
-            }
-        }
-
-        internal override MarshalPseudoCustomAttributeData MarshallingInformation
-        {
-            get
-            {
-                return _underlyingFieldOpt?.MarshallingInformation;
-            }
-        }
-
-        internal override ObsoleteAttributeData ObsoleteAttributeData
-        {
-            get
-            {
-                return null;
+                return false;
             }
         }
 
@@ -207,18 +167,67 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingFieldOpt?.TypeLayoutOffset;
+                if (_underlyingField.ContainingType != _containingTuple.TupleUnderlyingType)
+                {
+                    return null;
+                }
+
+                return base.TypeLayoutOffset;
             }
         }
 
-        internal override ConstantValue GetConstantValue(ConstantFieldsInProgress inProgress, bool earlyDecodingWellKnownAttributes)
+        public override Symbol AssociatedSymbol
         {
-            return _underlyingFieldOpt?.GetConstantValue(inProgress, earlyDecodingWellKnownAttributes);
+            get
+            {
+                if (_underlyingField.ContainingType != _containingTuple.TupleUnderlyingType)
+                {
+                    return null;
+                }
+
+                return base.AssociatedSymbol;
+            }
+        }
+    }
+
+    /// <summary>
+    /// Represents an element field of a tuple type (such as (int a, byte b).a, or (int a, byte b).b)
+    /// that is backed by a real field with a different name within the tuple underlying type.
+    /// </summary>
+    internal sealed class TupleRenamedElementFieldSymbol : TupleElementFieldSymbol
+    {
+        private readonly string _name;
+
+        public TupleRenamedElementFieldSymbol(TupleTypeSymbol container, FieldSymbol underlyingField, string name, int tupleElementOrdinal, Location location)
+            : base(container, underlyingField, tupleElementOrdinal, location)
+        {
+            Debug.Assert(name != null);
+            Debug.Assert(name != underlyingField.Name);
+            _name = name;
         }
 
-        internal override TypeSymbol GetFieldType(ConsList<FieldSymbol> fieldsBeingBound)
+        public override string Name
         {
-            return _type;
+            get
+            {
+                return _name;
+            }
+        }
+
+        internal override int? TypeLayoutOffset
+        {
+            get
+            {
+                return null;
+            }
+        }
+
+        public override Symbol AssociatedSymbol
+        {
+            get
+            {
+                return null;
+            }
         }
     }
 }

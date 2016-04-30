@@ -17,30 +17,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal abstract class WrapperMethodSymbol : MethodSymbol
     {
-        /// <summary>
-        /// The underlying MethodSymbol.
-        /// </summary>
-        protected readonly MethodSymbol _underlyingMethod;
-
-        public WrapperMethodSymbol(MethodSymbol underlyingMethod)
+        public WrapperMethodSymbol()
         {
-            Debug.Assert((object)underlyingMethod != null);
-            _underlyingMethod = underlyingMethod;
         }
 
-        public MethodSymbol UnderlyingMethod
+        public abstract MethodSymbol UnderlyingMethod
         {
-            get
-            {
-                return _underlyingMethod;
-            }
+            get;
         }
 
         public override bool IsVararg
         {
             get
             {
-                return _underlyingMethod.IsVararg;
+                return UnderlyingMethod.IsVararg;
             }
         }
 
@@ -48,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingMethod.IsGenericMethod;
+                return UnderlyingMethod.IsGenericMethod;
             }
         }
 
@@ -56,7 +46,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingMethod.Arity;
+                return UnderlyingMethod.Arity;
             }
         }
 
@@ -79,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingMethod.RefKind;
+                return UnderlyingMethod.RefKind;
             }
         }
 
@@ -95,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override int ParameterCount
         {
-            get { return _underlyingMethod.ParameterCount; }
+            get { return UnderlyingMethod.ParameterCount; }
         }
 
         public override abstract ImmutableArray<ParameterSymbol> Parameters
@@ -112,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingMethod.IsExtensionMethod;
+                return UnderlyingMethod.IsExtensionMethod;
             }
         }
 
@@ -120,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingMethod.HidesBaseMethodsByName;
+                return UnderlyingMethod.HidesBaseMethodsByName;
             }
         }
 
@@ -133,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingMethod.Locations;
+                return UnderlyingMethod.Locations;
             }
         }
 
@@ -141,7 +131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingMethod.DeclaringSyntaxReferences;
+                return UnderlyingMethod.DeclaringSyntaxReferences;
             }
         }
 
@@ -149,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingMethod.DeclaredAccessibility;
+                return UnderlyingMethod.DeclaredAccessibility;
             }
         }
 
@@ -157,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingMethod.IsStatic;
+                return UnderlyingMethod.IsStatic;
             }
         }
 
@@ -165,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingMethod.IsVirtual;
+                return UnderlyingMethod.IsVirtual;
             }
         }
 
@@ -173,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingMethod.IsAsync;
+                return UnderlyingMethod.IsAsync;
             }
         }
 
@@ -181,7 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingMethod.IsOverride;
+                return UnderlyingMethod.IsOverride;
             }
         }
 
@@ -189,7 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingMethod.IsAbstract;
+                return UnderlyingMethod.IsAbstract;
             }
         }
 
@@ -197,7 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingMethod.IsSealed;
+                return UnderlyingMethod.IsSealed;
             }
         }
 
@@ -205,7 +195,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingMethod.IsExtern;
+                return UnderlyingMethod.IsExtern;
             }
         }
 
@@ -213,62 +203,62 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingMethod.IsImplicitlyDeclared;
+                return UnderlyingMethod.IsImplicitlyDeclared;
             }
         }
 
         internal override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
         {
-            return _underlyingMethod.IsMetadataVirtual(ignoreInterfaceImplementationChanges);
+            return UnderlyingMethod.IsMetadataVirtual(ignoreInterfaceImplementationChanges);
         }
 
         internal override bool IsMetadataFinal
         {
             get
             {
-                return _underlyingMethod.IsMetadataFinal;
+                return UnderlyingMethod.IsMetadataFinal;
             }
         }
 
         internal override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
         {
-            return _underlyingMethod.IsMetadataNewSlot(ignoreInterfaceImplementationChanges);
+            return UnderlyingMethod.IsMetadataNewSlot(ignoreInterfaceImplementationChanges);
         }
 
         internal override bool RequiresSecurityObject
         {
             get
             {
-                return _underlyingMethod.RequiresSecurityObject;
+                return UnderlyingMethod.RequiresSecurityObject;
             }
         }
 
         public override DllImportData GetDllImportData()
         {
-            return _underlyingMethod.GetDllImportData();
+            return UnderlyingMethod.GetDllImportData();
         }
 
         internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
         {
             get
             {
-                return _underlyingMethod.ReturnValueMarshallingInformation;
+                return UnderlyingMethod.ReturnValueMarshallingInformation;
             }
         }
 
         internal override bool HasDeclarativeSecurity
         {
-            get { return _underlyingMethod.HasDeclarativeSecurity; }
+            get { return UnderlyingMethod.HasDeclarativeSecurity; }
         }
 
         internal override IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation()
         {
-            return _underlyingMethod.GetSecurityInformation();
+            return UnderlyingMethod.GetSecurityInformation();
         }
 
         internal override ImmutableArray<string> GetAppliedConditionalSymbols()
         {
-            return _underlyingMethod.GetAppliedConditionalSymbols();
+            return UnderlyingMethod.GetAppliedConditionalSymbols();
         }
 
         public override abstract ImmutableArray<CSharpAttributeData> GetAttributes();
@@ -280,7 +270,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingMethod.ObsoleteAttributeData;
+                return UnderlyingMethod.ObsoleteAttributeData;
             }
         }
 
@@ -288,7 +278,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingMethod.Name;
+                return UnderlyingMethod.Name;
             }
         }
 
@@ -296,20 +286,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingMethod.HasSpecialName;
+                return UnderlyingMethod.HasSpecialName;
             }
         }
 
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return _underlyingMethod.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
+            return UnderlyingMethod.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
 
         internal override System.Reflection.MethodImplAttributes ImplementationAttributes
         {
             get
             {
-                return _underlyingMethod.ImplementationAttributes;
+                return UnderlyingMethod.ImplementationAttributes;
             }
         }
 
@@ -317,7 +307,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingMethod.MethodKind;
+                return UnderlyingMethod.MethodKind;
             }
         }
 
@@ -325,7 +315,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingMethod.CallingConvention;
+                return UnderlyingMethod.CallingConvention;
             }
         }
 
@@ -343,7 +333,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingMethod.IsAccessCheckedOnOverride;
+                return UnderlyingMethod.IsAccessCheckedOnOverride;
             }
         }
 
@@ -351,7 +341,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingMethod.IsExternal;
+                return UnderlyingMethod.IsExternal;
             }
         }
 
@@ -359,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingMethod.HasRuntimeSpecialName;
+                return UnderlyingMethod.HasRuntimeSpecialName;
             }
         }
 
@@ -367,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingMethod.ReturnValueIsMarshalledExplicitly;
+                return UnderlyingMethod.ReturnValueIsMarshalledExplicitly;
             }
         }
 
@@ -375,7 +365,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingMethod.ReturnValueMarshallingDescriptor;
+                return UnderlyingMethod.ReturnValueMarshallingDescriptor;
             }
         }
 
@@ -383,7 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingMethod.GenerateDebugInfo;
+                return UnderlyingMethod.GenerateDebugInfo;
             }
         }
 

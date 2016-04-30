@@ -770,7 +770,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             }
             else if (namedTypeSymbol.IsTupleType)
             {
-                namedTypeSymbol = ((TupleTypeSymbol)namedTypeSymbol).UnderlyingTupleType;
+                namedTypeSymbol = namedTypeSymbol.TupleUnderlyingType;
             }
 
             // Substitute error types with a special singleton object.
@@ -929,8 +929,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             DiagnosticBag diagnostics,
             bool needDeclaration = false)
         {
+            if (fieldSymbol.IsTupleField)
+            {
+                fieldSymbol = fieldSymbol.TupleUnderlyingField;
+            }
+
             Debug.Assert(fieldSymbol.IsDefinitionOrDistinct());
-            Debug.Assert(!fieldSymbol.ContainingType.IsTupleType, "tuple fields should be rewritten to underlying by now");
 
             if (!fieldSymbol.IsDefinition)
             {
@@ -1085,13 +1089,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Cci.IMethodReference methodRef;
             NamedTypeSymbol container = methodSymbol.ContainingType;
 
-            Debug.Assert(methodSymbol.IsDefinitionOrDistinct());
-
             // Method of anonymous type being translated
             if (container.IsAnonymousType)
             {
                 methodSymbol = AnonymousTypeManager.TranslateAnonymousTypeMethodSymbol(methodSymbol);
             }
+            else if (methodSymbol.IsTupleMethod)
+            {
+                methodSymbol = methodSymbol.TupleUnderlyingMethod;
+            }
+
+            Debug.Assert(methodSymbol.IsDefinitionOrDistinct());
 
             if (!methodSymbol.IsDefinition)
             {

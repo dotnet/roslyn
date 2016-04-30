@@ -512,6 +512,9 @@
     <Compile Include="Symbols\AnonymousTypes\SynthesizedSymbols\AnonymousType.ToStringMethodSymbol.cs" />
     <Compile Include="Symbols\AnonymousTypes\SynthesizedSymbols\AnonymousType.TypeParameterSymbol.cs" />
     <Compile Include="Symbols\TupleFieldSymbol.cs" />
+    <Compile Include="Symbols\Tuples\TupleMethodSymbol.cs" />
+    <Compile Include="Symbols\Tuples\TupleParameterSymbol.cs" />
+    <Compile Include="Symbols\Tuples\TupleErrorFieldSymbol.cs" />
     <Compile Include="Symbols\TupleTypeSymbol.cs" />
     <Compile Include="Symbols\ArrayTypeSymbol.cs" />
     <Compile Include="Symbols\AssemblySymbol.cs" />

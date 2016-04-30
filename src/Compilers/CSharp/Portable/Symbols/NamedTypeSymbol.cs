@@ -639,6 +639,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds = false, bool ignoreDynamic = false)
         {
+            Debug.Assert(!this.IsTupleType);
+
             if ((object)t2 == this) return true;
             if ((object)t2 == null) return false;
 
@@ -656,11 +658,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // If ignoring dynamic, compare underlying tuple types
                 if (t2.IsTupleType)
                 {
-                    t2 = ((TupleTypeSymbol)t2).UnderlyingTupleType;
-                    if ((object)t2 == this) return true;
+                    t2 = t2.TupleUnderlyingType;
+                    if (this.Equals(t2, ignoreCustomModifiersAndArraySizesAndLowerBounds, ignoreDynamic)) return true;
                 }
-
-                Debug.Assert(!this.IsTupleType);
             }
 
             NamedTypeSymbol other = t2 as NamedTypeSymbol;
@@ -1260,6 +1260,65 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <returns>True if this is an interface type.</returns>
         internal abstract bool IsInterface { get; }
 
+        /// <summary>
+        /// Verify if the given type can be used to back a tuple type and return cardinality of that tuple type in <paramref name="tupleCardinality"/>. 
+        /// </summary>
+        /// <param name="tupleCardinality">If method returns true, contains cardinality of the compatible tuple type.</param>
+        /// <returns></returns>
+        public override bool IsTupleCompatible(out int tupleCardinality)
+        {
+            if (IsTupleType)
+            {
+                tupleCardinality = TupleElementTypes.Length;
+                return true;
+            }
+
+            // Should this be optimized for perf (caching for VT<0> to VT<7>, etc.)?
+            if (!IsUnboundGenericType &&
+                ContainingSymbol.Kind == SymbolKind.Namespace &&
+                Name == TupleTypeSymbol.TupleTypeName && ContainingNamespace.Name == "System" &&
+                ContainingNamespace.ContainingNamespace?.IsGlobalNamespace == true)
+            {
+                int arity = Arity;
+
+                if (arity > 0 && arity < TupleTypeSymbol.RestPosition)
+                {
+                    tupleCardinality = arity;
+                    return true;
+                }
+                else if (arity == TupleTypeSymbol.RestPosition && !IsDefinition)
+                {
+                    // Skip through "Rest" extensions
+                    TypeSymbol typeToCheck = this;
+                    int levelsOfNesting = 0;
+
+                    do
+                    {
+                        levelsOfNesting++;
+                        typeToCheck = ((NamedTypeSymbol)typeToCheck).TypeArgumentsNoUseSiteDiagnostics[TupleTypeSymbol.RestPosition - 1];
+                    }
+                    while (typeToCheck.OriginalDefinition == this.OriginalDefinition && !typeToCheck.IsDefinition);
+
+                    if (typeToCheck.IsTupleType)
+                    {
+                        tupleCardinality = (TupleTypeSymbol.RestPosition - 1) * levelsOfNesting + typeToCheck.TupleElementTypes.Length;
+                        return true;
+                    }
+
+                    arity = (typeToCheck as NamedTypeSymbol)?.Arity ?? 0;
+
+                    if (arity > 0 && arity < TupleTypeSymbol.RestPosition && typeToCheck.IsTupleCompatible(out tupleCardinality))
+                    {
+                        tupleCardinality += (TupleTypeSymbol.RestPosition - 1) * levelsOfNesting;
+                        return true;
+                    }
+                }
+            }
+
+            tupleCardinality = 0;
+            return false;
+        }
+
         #region INamedTypeSymbol Members
 
         int INamedTypeSymbol.Arity
@@ -1369,6 +1428,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
         }
+
+        /// <summary>
+        /// If this symbol represents a tuple type, get the types of the tuple's elements.
+        /// </summary>
+        ImmutableArray<ITypeSymbol> INamedTypeSymbol.TupleElementTypes => StaticCast<ITypeSymbol>.From(this.TupleElementTypes);
+
+        /// <summary>
+        /// If this symbol represents a tuple type, get the names of the tuple's elements.
+        /// </summary>
+        ImmutableArray<string> INamedTypeSymbol.TupleElementNames => this.TupleElementNames;
 
         #endregion
 

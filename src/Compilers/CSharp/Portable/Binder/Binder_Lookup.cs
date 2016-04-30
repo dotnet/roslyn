@@ -715,13 +715,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
                 }
 
-                var tuple = currentType as TupleTypeSymbol;
-                if ((object)tuple != null)
-                {
-                    currentType = tuple.UnderlyingTupleType;
-                    continue;
-                }
-
                 if (basesBeingResolved != null && basesBeingResolved.ContainsReference(type.OriginalDefinition))
                 {
                     var other = GetNearestOtherSymbol(basesBeingResolved, type);

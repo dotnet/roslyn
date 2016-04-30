@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.Cci;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.RuntimeMembers;
 using Roslyn.Utilities;
 
@@ -15,64 +16,45 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// A TupleTypeSymbol represents a tuple type, such as (int, byte) or (int a, long b).
     /// </summary>
-    internal sealed class TupleTypeSymbol : NamedTypeSymbol
+    internal sealed class TupleTypeSymbol : WrapperNamedTypeSymbol
     {
-        private readonly NamedTypeSymbol _underlyingType;
-        private readonly ImmutableArray<TupleFieldSymbol> _fields;
-        private readonly bool _hasFriendlyNames;
+        private readonly ImmutableArray<Location> _locations;
+        private readonly ImmutableArray<Location> _elementLocations;
+        private readonly ImmutableArray<string> _elementNames;
+        private readonly ImmutableArray<TypeSymbol> _elementTypes;
+        private ImmutableArray<Symbol> _lazyMembers;
+        private SmallDictionary<Symbol, Symbol> _lazyUnderlyingDefinitionToMemberMap;
 
         internal const int RestPosition = 8; // The Rest field is in 8th position
+        internal const string TupleTypeName = "ValueTuple";
 
-        /// <summary>
-        /// Construct a TupleTypeSymbol from it's underlying ValueTuple type and element names.
-        ///
-        /// Parameter elementsNames has to empty or fully populated.
-        /// </summary>
-        private TupleTypeSymbol(
-            NamedTypeSymbol underlyingType,
-            ImmutableArray<string> elementNames,
-            AssemblySymbol accessWithin)
+        public TupleTypeSymbol(Location locationOpt, NamedTypeSymbol underlyingType, ImmutableArray<Location> elementLocations, ImmutableArray<string> elementNames, ImmutableArray<TypeSymbol> elementTypes)
+            : this(locationOpt == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create(locationOpt),
+                  underlyingType, elementLocations, elementNames, elementTypes)
         {
-            _underlyingType = underlyingType;
-            _hasFriendlyNames = !elementNames.IsDefault;
+        }
 
-            // build the fields
-            int approxSize = elementNames.IsDefault ? underlyingType.Arity : elementNames.Length;
-            var fieldsBuilder = ArrayBuilder<TupleFieldSymbol>.GetInstance(approxSize);
-            NamedTypeSymbol currentLinkType = underlyingType;
-            int fieldIndex = 0;
+        public TupleTypeSymbol(ImmutableArray<Location> locations, NamedTypeSymbol underlyingType, ImmutableArray<Location> elementLocations, ImmutableArray<string> elementNames, ImmutableArray<TypeSymbol> elementTypes)
+            : base(underlyingType)
+        {
+            Debug.Assert(elementLocations.IsDefault || elementNames.IsDefault || elementLocations.Length == elementNames.Length);
+            Debug.Assert(elementLocations.IsDefault || elementLocations.Length == elementTypes.Length);
+            Debug.Assert(elementNames.IsDefault || elementNames.Length == elementTypes.Length);
+            Debug.Assert(!underlyingType.IsTupleType);
 
-            while (currentLinkType.Arity == RestPosition)
-            {
-                for (int i = 0; i < RestPosition - 1; i++)
-                {
-                    string elementName = TupleMemberName(elementNames, fieldIndex + 1);
-                    var field = TupleFieldSymbol.Create(elementName, this, currentLinkType, fieldIndex, accessWithin);
-                    fieldsBuilder.Add(field);
-
-                    fieldIndex++;
-                }
-
-                currentLinkType = (NamedTypeSymbol)currentLinkType.TypeArgumentsNoUseSiteDiagnostics[RestPosition - 1];
-            }
-
-            for (int i = 0; i < currentLinkType.Arity; i++)
-            {
-                string elementName = TupleMemberName(elementNames, fieldIndex + 1);
-                var field = TupleFieldSymbol.Create(elementName, this, currentLinkType, fieldIndex, accessWithin);
-                fieldsBuilder.Add(field);
-
-                fieldIndex++;
-            }
-
-            _fields = fieldsBuilder.ToImmutableAndFree();
+            _elementLocations = elementLocations;
+            _elementNames = elementNames;
+            _elementTypes = elementTypes;
+            _locations = locations;
         }
 
         /// <summary>
         /// Helps create a TupleTypeSymbol from source.
         /// </summary>
-        internal static TupleTypeSymbol Create(
+        internal static NamedTypeSymbol Create(
+            Location locationOpt,
             ImmutableArray<TypeSymbol> elementTypes,
+            ImmutableArray<Location> elementLocations,
             ImmutableArray<string> elementNames,
             CSharpCompilation compilation,
             CSharpSyntaxNode syntax = null,
@@ -90,64 +72,115 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             NamedTypeSymbol underlyingType = GetTupleUnderlyingType(elementTypes, syntax, compilation, diagnostics);
 
-            return new TupleTypeSymbol(underlyingType, elementNames, compilation.Assembly);
+            return Create(locationOpt, underlyingType, elementLocations, elementNames);
         }
 
-        /// <summary>
-        /// Copy the original tuple, but modify it to use the new underlying type.
-        /// </summary>
-        private TupleTypeSymbol(TupleTypeSymbol originalTuple,
-                                NamedTypeSymbol newUnderlyingType)
+        public static TupleTypeSymbol Create(Location locationOpt, NamedTypeSymbol tupleCompatibleType, ImmutableArray<Location> elementLocations, ImmutableArray<string> elementNames)
         {
-            _underlyingType = newUnderlyingType;
-            _hasFriendlyNames = originalTuple._hasFriendlyNames;
+            return Create(locationOpt == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create(locationOpt),
+                          tupleCompatibleType, elementLocations, elementNames);
+        }
 
-            var fieldsBuilder = ArrayBuilder<TupleFieldSymbol>.GetInstance(originalTuple._fields.Length);
+        public static TupleTypeSymbol Create(ImmutableArray<Location> locations, NamedTypeSymbol tupleCompatibleType, ImmutableArray<Location> elementLocations, ImmutableArray<string> elementNames)
+        {
+            Debug.Assert(tupleCompatibleType.IsTupleCompatible() && !tupleCompatibleType.IsTupleType);
 
-            int fieldIndex = 0;
-            int remainder = 0;
-            NamedTypeSymbol currentLinkType = newUnderlyingType;
+            ImmutableArray<TypeSymbol> elementTypes;
 
-            while (true)
+            if (tupleCompatibleType.Arity == RestPosition)
             {
-                TupleFieldSymbol originalField = originalTuple._fields[fieldIndex];
-                TypeSymbol fieldType = currentLinkType.TypeArgumentsNoUseSiteDiagnostics[remainder];
-                fieldsBuilder.Add(originalField.WithType(this, currentLinkType, fieldType));
+                // Ensure all Rest extensions are tuples
+                tupleCompatibleType = EnsureRestExtensionsAreTuples(tupleCompatibleType);
 
-                fieldIndex++;
-                if (fieldIndex >= originalTuple._fields.Length)
+                var extensionTupleElementTypes = tupleCompatibleType.TypeArgumentsNoUseSiteDiagnostics[RestPosition - 1].TupleElementTypes;
+                var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(RestPosition - 1 + extensionTupleElementTypes.Length);
+                typesBuilder.AddRange(tupleCompatibleType.TypeArgumentsNoUseSiteDiagnostics, RestPosition - 1);
+                typesBuilder.AddRange(extensionTupleElementTypes);
+                elementTypes = typesBuilder.ToImmutableAndFree();
+            }
+            else
+            {
+                elementTypes = tupleCompatibleType.TypeArgumentsNoUseSiteDiagnostics;
+            }
+
+            return new TupleTypeSymbol(locations, tupleCompatibleType, elementLocations, elementNames, elementTypes);
+        }
+
+        private static NamedTypeSymbol EnsureRestExtensionsAreTuples(NamedTypeSymbol tupleCompatibleType)
+        {
+            if (!tupleCompatibleType.TypeArgumentsNoUseSiteDiagnostics[RestPosition - 1].IsTupleType)
+            {
+                var nonTupleTypeChain = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+
+                NamedTypeSymbol currentType = tupleCompatibleType;
+                do
                 {
-                    break;
+                    nonTupleTypeChain.Add(currentType);
+                    currentType = (NamedTypeSymbol)currentType.TypeArgumentsNoUseSiteDiagnostics[RestPosition - 1];
+                }
+                while (currentType.Arity == RestPosition);
+
+                if (!currentType.IsTupleType)
+                {
+                    nonTupleTypeChain.Add(currentType);
                 }
 
-                remainder = fieldIndex % (RestPosition - 1);
-                if (remainder == 0)
+                Debug.Assert(nonTupleTypeChain.Count > 1);
+                tupleCompatibleType = nonTupleTypeChain.Pop();
+
+                var typeArgumentsBuilder = ArrayBuilder<TypeWithModifiers>.GetInstance(RestPosition);
+
+                do
                 {
-                    currentLinkType = (NamedTypeSymbol)currentLinkType.TypeArgumentsNoUseSiteDiagnostics[RestPosition - 1];
+                    var extensionTuple = Create(null, tupleCompatibleType, default(ImmutableArray<Location>), default(ImmutableArray<string>));
+                    tupleCompatibleType = nonTupleTypeChain.Pop();
+
+                    tupleCompatibleType = ReplaceRestExtensionType(tupleCompatibleType, typeArgumentsBuilder, extensionTuple);
+                }
+                while (nonTupleTypeChain.Count != 0);
+
+                typeArgumentsBuilder.Free();
+                nonTupleTypeChain.Free();
+            }
+
+            return tupleCompatibleType;
+        }
+
+        private static NamedTypeSymbol ReplaceRestExtensionType(NamedTypeSymbol tupleCompatibleType, ArrayBuilder<TypeWithModifiers> typeArgumentsBuilder, TupleTypeSymbol extensionTuple)
+        {
+            var modifiers = default(ImmutableArray<ImmutableArray<CustomModifier>>);
+
+            if (tupleCompatibleType.HasTypeArgumentsCustomModifiers)
+            {
+                modifiers = tupleCompatibleType.TypeArgumentsCustomModifiers;
+            }
+
+            var arguments = tupleCompatibleType.TypeArgumentsNoUseSiteDiagnostics;
+            typeArgumentsBuilder.Clear();
+
+            for (int i = 0; i < RestPosition - 1; i++)
+            {
+                if (!modifiers.IsDefault && !modifiers[i].IsDefaultOrEmpty)
+                {
+                    typeArgumentsBuilder.Add(new TypeWithModifiers(arguments[i], modifiers[i]));
+                }
+                else
+                {
+                    typeArgumentsBuilder.Add(new TypeWithModifiers(arguments[i]));
                 }
             }
 
-            _fields = fieldsBuilder.ToImmutableAndFree();
-        }
-
-        /// <summary>
-        /// Copy the original tuple, but modify it to use new field names.
-        /// </summary>
-        private TupleTypeSymbol(TupleTypeSymbol originalTuple,
-                                ImmutableArray<string> newElementNames)
-        {
-            _underlyingType = originalTuple._underlyingType;
-            _hasFriendlyNames = !newElementNames.IsDefault;
-
-            var fieldsBuilder = ArrayBuilder<TupleFieldSymbol>.GetInstance(originalTuple._fields.Length);
-            var originalFields = originalTuple._fields;
-
-            for (int i = 0; i < originalFields.Length; i++)
+            if (!modifiers.IsDefault && !modifiers[RestPosition - 1].IsDefaultOrEmpty)
             {
-                fieldsBuilder.Add(originalFields[i].WithName(this, GetFieldNameFromArrayOrDefaultName(newElementNames, i)));
+                typeArgumentsBuilder.Add(new TypeWithModifiers(extensionTuple, modifiers[RestPosition - 1]));
+            }
+            else
+            {
+                typeArgumentsBuilder.Add(new TypeWithModifiers(extensionTuple));
             }
 
-            _fields = fieldsBuilder.ToImmutableAndFree();
+            tupleCompatibleType = tupleCompatibleType.ConstructedFrom.Construct(typeArgumentsBuilder.ToImmutable(), unbound: false);
+            return tupleCompatibleType;
         }
 
         /// <summary>
@@ -155,9 +188,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal TupleTypeSymbol WithUnderlyingType(NamedTypeSymbol newUnderlyingType)
         {
-            Debug.Assert((object)newUnderlyingType.OriginalDefinition == (object)UnderlyingTupleType.OriginalDefinition);
+            Debug.Assert((object)newUnderlyingType.OriginalDefinition == (object)_underlyingType.OriginalDefinition);
 
-            return new TupleTypeSymbol(this, newUnderlyingType);
+            return Create(_locations, newUnderlyingType, _elementLocations, _elementNames);
         }
 
         /// <summary>
@@ -165,24 +198,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal TupleTypeSymbol WithElementNames(ImmutableArray<string> newElementNames)
         {
-            Debug.Assert(newElementNames.IsDefault || this._fields.Length == newElementNames.Length);
+            Debug.Assert(newElementNames.IsDefault || this._elementTypes.Length == newElementNames.Length);
 
-            var originalFields = _fields;
-            for (int i = 0; i < originalFields.Length; i++)
+            if (this._elementNames.IsDefault)
             {
-                var originalField = originalFields[i];
-                var originalName = originalField.Name;
-                var newName = GetFieldNameFromArrayOrDefaultName(newElementNames, i);
-
-                if (originalName != newName)
+                if (newElementNames.IsDefault)
                 {
-                    // at least one name is different
-                    return new TupleTypeSymbol(this, newElementNames);
+                    return this;
                 }
             }
+            else if (!newElementNames.IsDefault && this._elementNames.SequenceEqual(newElementNames))
+            {
+                return this;
+            }
 
-            // all names are the same
-            return this;
+            return new TupleTypeSymbol(null, _underlyingType, default(ImmutableArray<Location>), newElementNames, _elementTypes);
         }
 
         /// <summary>
@@ -200,7 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 underlyingTupleTypeChain.Add(currentType);
                 if (currentType.Arity == TupleTypeSymbol.RestPosition)
                 {
-                    currentType = (NamedTypeSymbol)currentType.TypeArgumentsNoUseSiteDiagnostics[TupleTypeSymbol.RestPosition - 1];
+                    currentType = (NamedTypeSymbol)currentType.TypeArgumentsNoUseSiteDiagnostics[TupleTypeSymbol.RestPosition - 1].TupleUnderlyingType;
                 }
                 else
                 {
@@ -219,6 +249,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             while (true)
             {
+                if (currentType.IsTupleType)
+                {
+                    tupleElementTypes.AddRange(currentType.TupleElementTypes);
+                    break;
+                }
+
                 var regularElements = Math.Min(currentType.Arity, TupleTypeSymbol.RestPosition - 1);
                 tupleElementTypes.AddRange(currentType.TypeArguments, regularElements);
 
@@ -234,26 +270,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Given an array of names returns a name at given position or a default name for that position.
-        /// </summary>
-        private static string GetFieldNameFromArrayOrDefaultName(ImmutableArray<string> elementNames, int elementIndex)
-        {
-            return elementNames.IsDefault ? TupleMemberName(elementIndex + 1) : elementNames[elementIndex];
-        }
-
-        /// <summary>
         /// Returns the nested type at a certain depth.
         ///
         /// For depth=0, just return the tuple type as-is.
         /// For depth=1, returns the nested tuple type at position 8.
         /// </summary>
-        internal static NamedTypeSymbol GetNestedTupleType(NamedTypeSymbol tupleType, int depth)
+        private static NamedTypeSymbol GetNestedTupleUnderlyingType(NamedTypeSymbol topLevelUnderlyingType, int depth)
         {
-            NamedTypeSymbol found = tupleType;
+            NamedTypeSymbol found = topLevelUnderlyingType;
             for (int i = 0; i < depth; i++)
             {
-                found = (NamedTypeSymbol)found.TypeArgumentsNoUseSiteDiagnostics[RestPosition - 1];
+                found = (NamedTypeSymbol)found.TypeArgumentsNoUseSiteDiagnostics[RestPosition - 1].TupleUnderlyingType;
             }
+
             return found;
         }
 
@@ -261,7 +290,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns the number of nestings required to represent numElements as nested ValueTuples.
         /// For example, for 8 elements, you need 2 ValueTuples and the remainder (ie the size of the last nested ValueTuple) is 1.
         /// </summary>
-        internal static int NumberOfValueTuples(int numElements, out int remainder)
+        private static int NumberOfValueTuples(int numElements, out int remainder)
         {
             remainder = (numElements - 1) % (RestPosition - 1) + 1;
             return (numElements - 1) / (RestPosition - 1) + 1;
@@ -316,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// For example, for arity=2:
         /// returns WellKnownType.System_ValueTuple_T2
         /// </summary>
-        internal static WellKnownType GetTupleType(int arity)
+        private static WellKnownType GetTupleType(int arity)
         {
             if (arity > RestPosition)
             {
@@ -436,11 +465,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "Item" + position;
         }
 
-        internal static string TupleMemberName(ImmutableArray<string> elementNames, int position)
-        {
-            return elementNames.IsDefault ? TupleMemberName(position) : elementNames[position - 1];
-        }
-
         /// <summary>
         /// Checks whether the field name is reserved and tells us which position it's reserved for.
         ///
@@ -480,27 +504,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         /// <param name="type">Type that we'll try to find member in.</param>
         /// <param name="relativeMember">A reference to a well-known member type descriptor. Note however that the type in that descriptor is ignored here.</param>
-        /// <param name="accessWithin">The assembly referencing the type.</param>
-        internal static Symbol GetWellKnownMemberInType(NamedTypeSymbol type, WellKnownMember relativeMember, AssemblySymbol accessWithin)
+        internal static Symbol GetWellKnownMemberInType(NamedTypeSymbol type, WellKnownMember relativeMember)
         {
             Debug.Assert(relativeMember >= 0 && relativeMember < WellKnownMember.Count);
             Debug.Assert(type.IsDefinition);
 
             MemberDescriptor relativeDescriptor = WellKnownMembers.GetDescriptor(relativeMember);
-            return CSharpCompilation.GetRuntimeMember(type, ref relativeDescriptor, CSharpCompilation.SpecialMembersSignatureComparer.Instance, accessWithinOpt: accessWithin);
+            return CSharpCompilation.GetRuntimeMember(type, ref relativeDescriptor, CSharpCompilation.SpecialMembersSignatureComparer.Instance, 
+                                                      accessWithinOpt: null); // force lookup of public members only
         }
 
         /// <summary>
         /// Lookup well-known member declaration in provided type and reports diagnostics.
         /// </summary>
-        internal static Symbol GetWellKnownMemberInType(NamedTypeSymbol type, WellKnownMember relativeMember, AssemblySymbol accessWithin, DiagnosticBag diagnostics, SyntaxNode syntax)
+        internal static Symbol GetWellKnownMemberInType(NamedTypeSymbol type, WellKnownMember relativeMember, DiagnosticBag diagnostics, SyntaxNode syntax)
         {
-            Symbol member = GetWellKnownMemberInType(type, relativeMember, accessWithin);
+            Symbol member = GetWellKnownMemberInType(type, relativeMember);
 
             if ((object)member == null)
             {
                 MemberDescriptor relativeDescriptor = WellKnownMembers.GetDescriptor(relativeMember);
-                Binder.Error(diagnostics, ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, syntax, relativeDescriptor.Name, type, accessWithin);
+                Binder.Error(diagnostics, ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, syntax, relativeDescriptor.Name, type, type.ContainingAssembly);
             }
             else
             {
@@ -517,38 +541,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// The ValueTuple type for this tuple.
         /// </summary>
-        internal NamedTypeSymbol UnderlyingTupleType
+        public override NamedTypeSymbol TupleUnderlyingType
         {
             get
             {
                 return _underlyingType;
             }
         }
-
-        internal bool HasFriendlyNames => _hasFriendlyNames;
-
-        public override ImmutableArray<ITypeSymbol> TupleElementTypes
-        {
-            get
-            {
-                return _fields.SelectAsArray(f => (ITypeSymbol)f.Type);
-            }
-        }
-
-        public override ImmutableArray<string> TupleElementNames
-        {
-            get
-            {
-                if (_hasFriendlyNames)
-                {
-                    return _fields.SelectAsArray(f => f.Name);
-                }
-
-                return default(ImmutableArray<string>);
-            }
-        }
-
-        internal ImmutableArray<TupleFieldSymbol> Fields => _fields;
 
         internal override NamedTypeSymbol BaseTypeNoUseSiteDiagnostics
         {
@@ -558,7 +557,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved = null)
+        internal override ImmutableArray<NamedTypeSymbol> InterfacesNoUseSiteDiagnostics(ConsList<Symbol> basesBeingResolved)
         {
             return _underlyingType.InterfacesNoUseSiteDiagnostics(basesBeingResolved);
         }
@@ -595,37 +594,333 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal sealed override ObsoleteAttributeData ObsoleteAttributeData
+        public override bool IsImplicitlyDeclared
         {
             get
             {
-                return null;
+                return false;
+            }
+        }
+
+        public override ImmutableArray<TypeSymbol> TupleElementTypes
+        {
+            get
+            {
+                return _elementTypes;
+            }
+        }
+
+        public override ImmutableArray<string> TupleElementNames
+        {
+            get
+            {
+                return _elementNames;
             }
         }
 
         public override ImmutableArray<Symbol> GetMembers()
         {
-            return ImmutableArray<Symbol>.CastUp(_fields);
+            if (_lazyMembers.IsDefault)
+            {
+                ImmutableInterlocked.InterlockedInitialize(ref _lazyMembers, CreateMembers());
+            }
+
+            return _lazyMembers;
+        }
+
+        private ImmutableArray<Symbol> CreateMembers()
+        {
+            var namesOfVirtualFields = ArrayBuilder<string>.GetInstance(_elementTypes.Length);
+
+            if (_elementNames.IsDefault)
+            {
+                for (int i = 1; i <= _elementTypes.Length; i++)
+                {
+                    namesOfVirtualFields.Add(TupleMemberName(i));
+                }
+            }
+            else
+            {
+                namesOfVirtualFields.AddRange(_elementNames);
+            }
+
+            var members = ArrayBuilder<Symbol>.GetInstance(Math.Max(_elementTypes.Length, _underlyingType.OriginalDefinition.GetMembers().Length));
+
+            NamedTypeSymbol currentUnderlying = _underlyingType;
+            int currentNestingLevel = 0;
+
+            var fieldsForElements = ArrayBuilder<FieldSymbol>.GetInstance(currentUnderlying.Arity);
+
+            // Lookup field definitions that we are interested in
+            CollectTargetTupleFields(currentUnderlying, fieldsForElements);
+
+            ImmutableArray<Symbol> underlyingMembers = currentUnderlying.OriginalDefinition.GetMembers();
+
+            while (true)
+            {
+                foreach (Symbol member in underlyingMembers)
+                {
+                    switch (member.Kind)
+                    {
+                        case SymbolKind.Method:
+                            if (currentNestingLevel == 0)
+                            {
+                                members.Add(new TupleMethodSymbol(this, ((MethodSymbol)member).AsMember(currentUnderlying)));
+                            }
+                            break;
+
+                        case SymbolKind.Field:
+                            var field = (FieldSymbol)member;
+
+                            int tupleFieldIndex = fieldsForElements.IndexOf(field, ReferenceEqualityComparer.Instance);
+                            if (tupleFieldIndex >= 0)
+                            {
+                                // This is a tuple backing field
+                                var fieldSymbol = field.AsMember(currentUnderlying);
+
+                                if (currentNestingLevel != 0)
+                                {
+                                    // This is a matching field, but it is in the extension tuple
+                                    tupleFieldIndex += (RestPosition - 1) * currentNestingLevel;
+
+
+                                    string defaultName = TupleMemberName(tupleFieldIndex + 1);
+                                    // Add a field with default name if the given name is different
+                                    if (namesOfVirtualFields[tupleFieldIndex] != defaultName)
+                                    {
+                                        // The name given doesn't match default name Item8, etc.
+                                        members.Add(new TupleRenamedElementFieldSymbol(this, fieldSymbol, defaultName, -members.Count - 1, null));
+                                    }
+
+                                    // Add a field with the given name
+                                    var location = _elementLocations.IsDefault ? null : _elementLocations[tupleFieldIndex];
+
+                                    if (field.Name == namesOfVirtualFields[tupleFieldIndex])
+                                    {
+                                        members.Add(new TupleElementFieldSymbol(this, fieldSymbol, tupleFieldIndex, location));
+                                    }
+                                    else
+                                    {
+                                        members.Add(new TupleRenamedElementFieldSymbol(this, fieldSymbol, namesOfVirtualFields[tupleFieldIndex],
+                                                                                                tupleFieldIndex, location));
+                                    }
+                                }
+                                else if (field.Name == namesOfVirtualFields[tupleFieldIndex])
+                                {
+                                    members.Add(new TupleElementFieldSymbol(this, fieldSymbol, tupleFieldIndex,
+                                                                                    _elementLocations.IsDefault ? null : _elementLocations[tupleFieldIndex]));
+                                }
+                                else
+                                {
+                                    // Add a field with default name
+                                    members.Add(new TupleFieldSymbol(this, fieldSymbol, -members.Count - 1));
+
+                                    // Add a field with the given name
+                                    members.Add(new TupleRenamedElementFieldSymbol(this, fieldSymbol, namesOfVirtualFields[tupleFieldIndex], tupleFieldIndex,
+                                                                                            _elementLocations.IsDefault ? null : _elementLocations[tupleFieldIndex]));
+                                }
+
+                                namesOfVirtualFields[tupleFieldIndex] = null; // mark as handled
+                            }
+                            else if (currentNestingLevel == 0)
+                            {
+                                // field at the top level didn't match a tuple backing field, simply add.
+                                members.Add(new TupleFieldSymbol(this, field.AsMember(currentUnderlying), -members.Count - 1));
+                            }
+                            break;
+
+                        case SymbolKind.NamedType:
+                            // We are dropping nested types, if any. Pending real need.
+                            break;
+
+                        case SymbolKind.Property:
+                        case SymbolKind.Event:
+                            // PROTOTYPE(tuples): TODO
+                            break;
+
+                        default:
+                            if (currentNestingLevel == 0)
+                            {
+                                throw ExceptionUtilities.UnexpectedValue(member.Kind);
+                            }
+                            break;
+                    }
+                }
+
+                if (currentUnderlying.Arity != RestPosition)
+                {
+                    break;
+                }
+
+                var oldUnderlying = currentUnderlying;
+                currentUnderlying = oldUnderlying.TypeArgumentsNoUseSiteDiagnostics[RestPosition - 1].TupleUnderlyingType;
+                currentNestingLevel++;
+
+                if (currentUnderlying.Arity != RestPosition)
+                {
+                    // refresh members and target fields
+                    underlyingMembers = currentUnderlying.OriginalDefinition.GetMembers();
+                    fieldsForElements.Clear();
+                    CollectTargetTupleFields(currentUnderlying, fieldsForElements);
+                }
+                else
+                {
+                    Debug.Assert((object)oldUnderlying.OriginalDefinition == currentUnderlying.OriginalDefinition);
+                }
+            }
+
+            fieldsForElements.Free();
+
+            // At the end, add remaining virtual fields
+            for (int i = 0; i < namesOfVirtualFields.Count; i++)
+            {
+                string name = namesOfVirtualFields[i];
+                if (name != null)
+                {
+                    // We couldn't find a backing field for this vitual field. It will be an error to access it. 
+                    int fieldRemainder; // one-based
+                    int fieldChainLength = NumberOfValueTuples(i + 1, out fieldRemainder);
+                    NamedTypeSymbol container = GetNestedTupleUnderlyingType(_underlyingType, fieldChainLength - 1).OriginalDefinition;
+
+                    var diagnosticInfo = container.IsErrorType() ?
+                                                          null :
+                                                          new CSDiagnosticInfo(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly,
+                                                                               TupleMemberName(fieldRemainder),
+                                                                               container,
+                                                                               container.ContainingAssembly);
+
+                    string defaultName = TupleMemberName(i + 1);
+                    // Add a field with default name if the given name is different
+                    if (name != defaultName)
+                    {
+                        members.Add(new TupleErrorFieldSymbol(this, defaultName, -members.Count - 1, null, _elementTypes[i], diagnosticInfo));
+                    }
+
+                    members.Add(new TupleErrorFieldSymbol(this, name, i,
+                                                      _elementLocations.IsDefault ? null : _elementLocations[i], 
+                                                      _elementTypes[i],
+                                                      diagnosticInfo));
+                }
+            }
+
+            return members.ToImmutableAndFree();
+        }
+
+        private static void CollectTargetTupleFields(NamedTypeSymbol underlying, ArrayBuilder<FieldSymbol> fieldsForElements)
+        {
+            underlying = underlying.OriginalDefinition;
+            int fieldsPerType = Math.Min(underlying.Arity, RestPosition - 1);
+
+            for (int i = 0; i < fieldsPerType; i++)
+            {
+                WellKnownMember wellKnownTupleField = GetTupleTypeMember(underlying.Arity, i + 1);
+                fieldsForElements.Add((FieldSymbol)GetWellKnownMemberInType(underlying, wellKnownTupleField));
+            }
+        }
+
+        private SmallDictionary<Symbol, Symbol> UnderlyingDefinitionToMemberMap
+        {
+            get
+            {
+                if (_lazyUnderlyingDefinitionToMemberMap == null)
+                {
+                    var map = new SmallDictionary<Symbol, Symbol>();
+
+                    var underlyingDefinition = _underlyingType.OriginalDefinition;
+                    var members = GetMembers();
+                    Symbol underlyingMemberDefinition;
+
+                    foreach (var member in members)
+                    {
+                        switch (member.Kind)
+                        {
+                            case SymbolKind.Method:
+                                underlyingMemberDefinition = ((MethodSymbol)member).TupleUnderlyingMethod.OriginalDefinition;
+                                break;
+
+                            case SymbolKind.Field:
+                                underlyingMemberDefinition = ((FieldSymbol)member).TupleUnderlyingField?.OriginalDefinition;
+                                break;
+
+                            case SymbolKind.NamedType:
+                                underlyingMemberDefinition = null;
+                                break;
+
+                            case SymbolKind.Property:
+                            case SymbolKind.Event:
+                                // PROTOTYPE(tuples): TODO
+                                underlyingMemberDefinition = null;
+                                break;
+
+                            default:
+                                throw ExceptionUtilities.UnexpectedValue(member.Kind);
+                        }
+
+                        if ((object)underlyingMemberDefinition != null && underlyingMemberDefinition.ContainingType == underlyingDefinition)
+                        {
+                            map.Add(underlyingMemberDefinition, member);
+                        }
+                    }
+
+                    _lazyUnderlyingDefinitionToMemberMap = map;
+                }
+
+                return _lazyUnderlyingDefinitionToMemberMap;
+            }
+        }
+
+        public Symbol GetTupleMemberSymbolForUnderlyingMember(Symbol underlyingMember)
+        {
+            underlyingMember = underlyingMember.OriginalDefinition;
+            if (underlyingMember.ContainingType == _underlyingType.OriginalDefinition)
+            {
+                Symbol result;
+                if (UnderlyingDefinitionToMemberMap.TryGetValue(underlyingMember, out result))
+                {
+                    return result;
+                }
+            }
+
+            return null;
         }
 
         public override ImmutableArray<Symbol> GetMembers(string name)
         {
-            return ImmutableArray<Symbol>.CastUp(_fields).WhereAsArray(field => field.Name == name);
+            return GetMembers().WhereAsArray(m => m.Name == name);
         }
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers()
         {
+            // do not support nested types at the moment
+            Debug.Assert(!GetMembers().Any(m => m.Kind == SymbolKind.NamedType));
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name)
         {
+            // do not support nested types at the moment
+            Debug.Assert(!GetMembers().Any(m => m.Kind == SymbolKind.NamedType));
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
         public override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity)
         {
+            // do not support nested types at the moment
+            Debug.Assert(!GetMembers().Any(m => m.Kind == SymbolKind.NamedType));
             return ImmutableArray<NamedTypeSymbol>.Empty;
+        }
+
+        public override NamedTypeSymbol EnumUnderlyingType
+        {
+            get
+            {
+                return _underlyingType.EnumUnderlyingType;
+            }
+        }
+
+        public override ImmutableArray<CSharpAttributeData> GetAttributes()
+        {
+            return _underlyingType.GetAttributes();
         }
 
         public override SymbolKind Kind
@@ -659,7 +954,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return ImmutableArray<Location>.Empty;
+                return _locations;
             }
         }
 
@@ -667,23 +962,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return ImmutableArray<SyntaxReference>.Empty;
+                return GetDeclaringSyntaxReferenceHelper<CSharpSyntaxNode>(_locations);
             }
-        }
-
-        internal override TResult Accept<TArgument, TResult>(CSharpSymbolVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitTupleType(this, argument);
-        }
-
-        public override void Accept(CSharpSymbolVisitor visitor)
-        {
-            visitor.VisitTupleType(this);
-        }
-
-        public override TResult Accept<TResult>(CSharpSymbolVisitor<TResult> visitor)
-        {
-            return visitor.VisitTupleType(this);
         }
 
         internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiers, bool ignoreDynamic)
@@ -692,8 +972,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (t2?.IsTupleType == true)
                 {
-                    t2 = ((TupleTypeSymbol)t2).UnderlyingTupleType;
+                    t2 = t2.TupleUnderlyingType;
                 }
+
                 return _underlyingType.Equals(t2, ignoreCustomModifiers, ignoreDynamic);
             }
 
@@ -720,16 +1001,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // Make sure field names are the same.
             if (!ignoreDynamic)
             {
-                var fields = this._fields;
-                var otherFields = other._fields;
-                var count = fields.Length;
-
-                for (int i = 0; i < count; i++)
+                if (this._elementNames.IsDefault)
                 {
-                    if (fields[i].Name != otherFields[i].Name)
+                    if (!other._elementNames.IsDefault)
                     {
                         return false;
                     }
+                }
+                else if (other._elementNames.IsDefault)
+                {
+                    Debug.Assert(!this._elementNames.IsDefault);
+                    return false;
+                }
+                else if (!this._elementNames.SequenceEqual(other._elementNames))
+                {
+                    return false;
                 }
             }
 
@@ -856,7 +1142,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _fields.Select(f => f.Name);
+                var set = PooledHashSet<string>.GetInstance();
+                foreach (var member in GetMembers())
+                {
+                    var name = member.Name;
+                    if (set.Add(name))
+                    {
+                        yield return name;
+                    }
+                }
+
+                set.Free();
             }
         }
 
@@ -873,6 +1169,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 return false;
+            }
+        }
+
+        internal override NamedTypeSymbol ComImportCoClass
+        {
+            get
+            {
+                return null;
             }
         }
 
@@ -955,12 +1259,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers()
         {
-            return this.GetMembers();
+            var underlying = _underlyingType.GetEarlyAttributeDecodingMembers();
+            if (underlying.IsEmpty)
+            {
+                return underlying;
+            }
+
+            return underlying.SelectAsArray((u, tuple) => tuple.GetTupleMemberSymbolForUnderlyingMember(u), this).WhereAsArray(m => (object)m != null);
         }
 
         internal override ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers(string name)
         {
-            return this.GetMembers(name);
+            var underlying = _underlyingType.GetEarlyAttributeDecodingMembers(name);
+            if (underlying.IsEmpty)
+            {
+                return underlying;
+            }
+
+            return underlying.SelectAsArray((u, tuple) => tuple.GetTupleMemberSymbolForUnderlyingMember(u), this).WhereAsArray(m => (object)m != null);
         }
 
         internal override NamedTypeSymbol GetDeclaredBaseType(ConsList<Symbol> basesBeingResolved)
@@ -988,7 +1304,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             throw ExceptionUtilities.Unreachable;
         }
 
+        internal override IEnumerable<EventSymbol> GetEventsToEmit()
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        internal override IEnumerable<MethodSymbol> GetMethodsToEmit()
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        internal override IEnumerable<PropertySymbol> GetPropertiesToEmit()
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
         internal override ImmutableArray<NamedTypeSymbol> GetInterfacesToEmit()
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        internal override IEnumerable<CSharpAttributeData> GetCustomAttributesToEmit(ModuleCompilationState compilationState)
         {
             throw ExceptionUtilities.Unreachable;
         }

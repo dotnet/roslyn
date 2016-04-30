@@ -26,6 +26,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         /// </summary>
         private readonly RetargetingModuleSymbol _retargetingModule;
 
+        /// <summary>
+        /// The underlying MethodSymbol.
+        /// </summary>
+        private readonly MethodSymbol _underlyingMethod;
+
         private ImmutableArray<TypeParameterSymbol> _lazyTypeParameters;
 
         private ImmutableArray<ParameterSymbol> _lazyParameters;
@@ -48,12 +53,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
         private TypeSymbol _lazyReturnType;
 
         public RetargetingMethodSymbol(RetargetingModuleSymbol retargetingModule, MethodSymbol underlyingMethod)
-            : base(underlyingMethod)
         {
             Debug.Assert((object)retargetingModule != null);
+            Debug.Assert((object)underlyingMethod != null);
             Debug.Assert(!(underlyingMethod is RetargetingMethodSymbol));
 
             _retargetingModule = retargetingModule;
+            _underlyingMethod = underlyingMethod;
         }
 
         private RetargetingModuleSymbol.RetargetingSymbolTranslator RetargetingTranslator
@@ -69,6 +75,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             get
             {
                 return _retargetingModule;
+            }
+        }
+
+        public override MethodSymbol UnderlyingMethod
+        {
+            get
+            {
+                return _underlyingMethod;
             }
         }
 

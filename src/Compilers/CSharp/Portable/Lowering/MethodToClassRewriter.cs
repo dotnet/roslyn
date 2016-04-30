@@ -497,32 +497,66 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            if (!method.ContainingType.IsAnonymousType)
+            if (method.IsTupleMethod)
+            {
+                //  Method of a tuple type
+                var oldType = method.ContainingType;
+                var constructedFrom = method.ConstructedFrom;
+                Debug.Assert(oldType.IsTupleType);
+
+                var newType = (NamedTypeSymbol)TypeMap.SubstituteType(oldType).AsTypeSymbolOnly();
+                if ((object)newType == oldType)
+                {
+                    //  tuple type symbol was not rewritten
+                    return constructedFrom.ConstructIfGeneric(TypeMap.SubstituteTypesWithoutModifiers(method.TypeArguments));
+                }
+
+                Debug.Assert(newType.IsTupleType);
+                Debug.Assert(oldType.TupleElementTypes.Length == newType.TupleElementTypes.Length);
+
+                //  get a new method by position
+                var oldMembers = oldType.GetMembers();
+                var newMembers = newType.GetMembers();
+                Debug.Assert(oldMembers.Length == newMembers.Length);
+
+                for (int i = 0; i < oldMembers.Length; i++)
+                {
+                    if ((object)constructedFrom == oldMembers[i])
+                    {
+                        return ((MethodSymbol)newMembers[i]).ConstructIfGeneric(TypeMap.SubstituteTypesWithoutModifiers(method.TypeArguments));
+                    }
+                }
+
+                throw ExceptionUtilities.Unreachable;
+            }
+            else if (method.ContainingType.IsAnonymousType)
+            {
+                //  Method of an anonymous type
+                var newType = (NamedTypeSymbol)TypeMap.SubstituteType(method.ContainingType).AsTypeSymbolOnly();
+                if (ReferenceEquals(newType, method.ContainingType))
+                {
+                    //  Anonymous type symbol was not rewritten
+                    return method;
+                }
+
+                //  get a new method by name
+                foreach (var member in newType.GetMembers(method.Name))
+                {
+                    if (member.Kind == SymbolKind.Method)
+                    {
+                        return (MethodSymbol)member;
+                    }
+                }
+
+                throw ExceptionUtilities.Unreachable;
+            }
+            else
             {
                 //  Method of a regular type
                 return ((MethodSymbol)method.OriginalDefinition)
                     .AsMember((NamedTypeSymbol)TypeMap.SubstituteType(method.ContainingType).AsTypeSymbolOnly())
                     .ConstructIfGeneric(TypeMap.SubstituteTypesWithoutModifiers(method.TypeArguments));
             }
-
-            //  Method of an anonymous type
-            var newType = (NamedTypeSymbol)TypeMap.SubstituteType(method.ContainingType).AsTypeSymbolOnly();
-            if (ReferenceEquals(newType, method.ContainingType))
-            {
-                //  Anonymous type symbol was not rewritten
-                return method;
-            }
-
-            //  get a new method by name
-            foreach (var member in newType.GetMembers(method.Name))
-            {
-                if (member.Kind == SymbolKind.Method)
-                {
-                    return (MethodSymbol)member;
-                }
-            }
-
-            throw ExceptionUtilities.Unreachable;
         }
 
         private PropertySymbol VisitPropertySymbol(PropertySymbol property)

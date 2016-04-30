@@ -133,8 +133,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override abstract ImmutableArray<Symbol> GetMembers();
 
-        internal override abstract ImmutableArray<Symbol> GetMembersUnordered();
-
         public override abstract ImmutableArray<Symbol> GetMembers(string name);
 
         internal override abstract IEnumerable<FieldSymbol> GetFieldsToEmit();
@@ -148,8 +146,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal override abstract ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers();
 
         internal override abstract ImmutableArray<Symbol> GetEarlyAttributeDecodingMembers(string name);
-
-        internal override abstract ImmutableArray<NamedTypeSymbol> GetTypeMembersUnordered();
 
         public override abstract ImmutableArray<NamedTypeSymbol> GetTypeMembers();
 

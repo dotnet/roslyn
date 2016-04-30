@@ -344,26 +344,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             NamedTypeSymbol targetType = (NamedTypeSymbol)destinationWithoutNullable;
 
-            NamedTypeSymbol targetUnderlyingType;
             if (targetType.IsTupleType)
             {
                 var destTupleType = (TupleTypeSymbol)targetType;
-                targetUnderlyingType = destTupleType.UnderlyingTupleType;
                 // do not lose the original element names in the literal if different from names in the target
+
+                // PROTOTYPE(tuples): Come back to this, what about locations?
                 targetType = destTupleType.WithElementNames(sourceTuple.ArgumentNamesOpt);
-            }
-            else
-            {
-                targetUnderlyingType = targetType;
             }
 
             var arguments = sourceTuple.Arguments;
-            Debug.Assert(Compilation.IsWellKnownTupleType(targetUnderlyingType, arguments.Length), "converting a tuple literal to incompatible type?");
-
             var convertedArguments = ArrayBuilder<BoundExpression>.GetInstance(arguments.Length);
             var targetElementTypes = ArrayBuilder<TypeSymbol>.GetInstance(arguments.Length);
 
-            TupleTypeSymbol.AddElementTypes(targetUnderlyingType, targetElementTypes);
+            TupleTypeSymbol.AddElementTypes(targetType, targetElementTypes);
+            Debug.Assert(targetElementTypes.Count == arguments.Length, "converting a tuple literal to incompatible type?");
 
             for (int i = 0; i < arguments.Length; i++)
             {

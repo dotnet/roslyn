@@ -554,14 +554,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Is this a symbol for a Tuple
+        /// Is this a symbol for a Tuple.
         /// </summary>
         public virtual bool IsTupleType => false;
 
         /// <summary>
+        /// Verify if the given type can be used to back a tuple type and return cardinality of that tuple type in <paramref name="tupleCardinality"/>. 
+        /// </summary>
+        /// <param name="tupleCardinality">If method returns true, contains cardinality of the compatible tuple type.</param>
+        /// <returns></returns>
+        public virtual bool IsTupleCompatible(out int tupleCardinality)
+        {
+            tupleCardinality = 0;
+            return false;
+        }
+
+        /// <summary>
+        /// Verify if the given type can be used to back a tuple type. 
+        /// </summary>
+        public bool IsTupleCompatible()
+        {
+            int countOfItems;
+            return IsTupleCompatible(out countOfItems);
+        }
+
+        /// <summary>
+        /// If this is a tuple type symbol, returns the symbol for its underlying type.
+        /// Otherwise, returns null.
+        /// </summary>
+        public virtual NamedTypeSymbol TupleUnderlyingType
+        {
+            get
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
         /// If this symbol represents a tuple type, get the types of the tuple's elements.
         /// </summary>
-        public virtual ImmutableArray<ITypeSymbol> TupleElementTypes => default(ImmutableArray<ITypeSymbol>);
+        public virtual ImmutableArray<TypeSymbol> TupleElementTypes => default(ImmutableArray<TypeSymbol>);
 
         /// <summary>
         /// If this symbol represents a tuple type, get the names of the tuple's elements.
@@ -641,6 +673,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ? FindImplementationForInterfaceMember((Symbol)interfaceMember)
                 : null;
         }
+
+        /// <summary>
+        /// Is this a symbol for a Tuple.
+        /// </summary>
+        bool ITypeSymbol.IsTupleType => this.IsTupleType;
 
         #endregion
 

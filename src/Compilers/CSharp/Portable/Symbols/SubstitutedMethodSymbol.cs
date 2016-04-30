@@ -23,6 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal class SubstitutedMethodSymbol : WrapperMethodSymbol
     {
         private readonly NamedTypeSymbol _containingType;
+        private readonly MethodSymbol _underlyingMethod;
         private readonly TypeMap _inputMap;
         private readonly MethodSymbol _constructedFrom;
 
@@ -43,10 +44,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         protected SubstitutedMethodSymbol(NamedTypeSymbol containingSymbol, TypeMap map, MethodSymbol originalDefinition, MethodSymbol constructedFrom)
-            : base (originalDefinition)
         {
+            Debug.Assert((object)originalDefinition != null);
             Debug.Assert(originalDefinition.IsDefinition);
             _containingType = containingSymbol;
+            _underlyingMethod = originalDefinition;
             _inputMap = map;
             if ((object)constructedFrom != null)
             {
@@ -58,6 +60,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 _constructedFrom = this;
+            }
+        }
+
+        public override MethodSymbol UnderlyingMethod
+        {
+            get
+            {
+                return _underlyingMethod;
             }
         }
 
