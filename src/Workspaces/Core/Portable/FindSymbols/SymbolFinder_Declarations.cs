@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // its 'AreSimilar' method. That way we only create the WordSimilarityChecker
                     // once and it can cache all the information it needs while it does the AreSimilar
                     // check against all the possible candidates.
-                    var editDistance = new WordSimilarityChecker(name);
+                    var editDistance = new WordSimilarityChecker(name, substringsAreSimilar: false);
                     _predicate = editDistance.AreSimilar;
                     break;
             }

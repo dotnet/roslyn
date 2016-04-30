@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.SpellCheck
             var onlyConsiderGenerics = IsGeneric(nameNode);
             var results = new MultiDictionary<double, string>();
 
-            using (var similarityChecker = new WordSimilarityChecker(nameText))
+            using (var similarityChecker = new WordSimilarityChecker(nameText, substringsAreSimilar: true))
             {
                 foreach (var item in completionList.Items)
                 {

@@ -265,6 +265,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.VisualBasic.Repl" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Editor.UI.Wpf" />
     <InternalsVisibleToTest Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
@@ -398,6 +399,8 @@
     <Compile Include="Packaging\IPackageSearchService.cs" />
     <Compile Include="FindSymbols\SymbolTree\ISymbolTreeInfoCacheService.cs" />
     <Compile Include="FindSymbols\FindReferences\MetadataUnifyingEquivalenceComparer.cs" />
+    <Compile Include="Shared\Utilities\IProgressTracker.cs" />
+    <Compile Include="Packaging\IReferenceAssemblySearchService.cs" />
     <Compile Include="SymbolId\SymbolKey.TupleTypeSymbolKey.cs" />
     <Compile Include="Utilities\ArraySlice.cs" />
     <Compile Include="Utilities\BKTree.cs" />

@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             var spellChecker = _spellCheckerTask.Result;
-            var similarNames = spellChecker.FindSimilarWords(name);
+            var similarNames = spellChecker.FindSimilarWords(name, substringsAreSimilar: false);
             var result = new List<ISymbol>();
 
             foreach (var similarName in similarNames)
