@@ -4,31 +4,36 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CodeGen;
 using Roslyn.Utilities;
 
 namespace Microsoft.Cci
 {
+    using Roslyn.Reflection;
+    using Roslyn.Reflection.Metadata;
+    using Roslyn.Reflection.Metadata.Ecma335;
+
     internal class DynamicAnalysisDataWriter
     {
         private struct DocumentRow
         {
-            public BlobIdx Name;
-            public uint HashAlgorithm; // Guid
-            public BlobIdx Hash;
+            public BlobHandle Name;
+            public GuidHandle HashAlgorithm; 
+            public BlobHandle Hash;
         }
 
         private struct MethodRow
         {
-            public BlobIdx Spans;
+            public BlobHandle Spans;
         }
 
         private readonly List<DocumentRow> _documentTable = new List<DocumentRow>();
         private readonly List<MethodRow> _methodTable = new List<MethodRow>();
 
         private readonly Dictionary<DebugSourceDocument, int> _documentIndex = new Dictionary<DebugSourceDocument, int>();
-        private readonly MetadataHeapsBuilder _dynamicAnalysisDataHeaps = new MetadataHeapsBuilder();
+        private readonly MetadataBuilder _dynamicAnalysisDataHeaps = new MetadataBuilder();
 
         internal void SerializeMethodDynamicAnalysisData(IMethodBody bodyOpt)
         {
@@ -40,19 +45,19 @@ namespace Microsoft.Cci
                 return;
             }
 
-            BlobIdx spanBlob = SerializeSpans(data.Spans, _documentIndex);
+            BlobHandle spanBlob = SerializeSpans(data.Spans, _documentIndex);
             _methodTable.Add(new MethodRow { Spans = spanBlob });
         }
 
         #region Spans
 
-        private BlobIdx SerializeSpans(
+        private BlobHandle SerializeSpans(
             ImmutableArray<SourceSpan> spans,
             Dictionary<DebugSourceDocument, int> documentIndex)
         {
             if (spans.Length == 0)
             {
-                return default(BlobIdx);
+                return default(BlobHandle);
             }
 
             var writer = new BlobBuilder();
@@ -62,7 +67,7 @@ namespace Microsoft.Cci
             DebugSourceDocument previousDocument = spans[0].Document;
 
             // header:
-            writer.WriteCompressedInteger((uint)GetOrAddDocument(previousDocument, documentIndex));
+            writer.WriteCompressedInteger(GetOrAddDocument(previousDocument, documentIndex));
 
             for (int i = 0; i < spans.Length; i++)
             {
@@ -70,7 +75,7 @@ namespace Microsoft.Cci
                 if (previousDocument != currentDocument)
                 {
                     writer.WriteInt16(0);
-                    writer.WriteCompressedInteger((uint)GetOrAddDocument(currentDocument, documentIndex));
+                    writer.WriteCompressedInteger(GetOrAddDocument(currentDocument, documentIndex));
                     previousDocument = currentDocument;
                 }
 
@@ -81,8 +86,8 @@ namespace Microsoft.Cci
                 if (previousStartLine < 0)
                 {
                     Debug.Assert(previousStartColumn < 0);
-                    writer.WriteCompressedInteger((uint)spans[i].StartLine);
-                    writer.WriteCompressedInteger((uint)spans[i].StartColumn);
+                    writer.WriteCompressedInteger(spans[i].StartLine);
+                    writer.WriteCompressedInteger(spans[i].StartColumn);
                 }
                 else
                 {
@@ -94,7 +99,7 @@ namespace Microsoft.Cci
                 previousStartColumn = spans[i].StartColumn;
             }
 
-            return _dynamicAnalysisDataHeaps.GetBlobIndex(writer);
+            return _dynamicAnalysisDataHeaps.GetOrAddBlob(writer);
         }
 
         private void SerializeDeltaLinesAndColumns(BlobBuilder writer, SourceSpan span)
@@ -105,11 +110,11 @@ namespace Microsoft.Cci
             // spans can't have zero width
             Debug.Assert(deltaLines != 0 || deltaColumns != 0);
 
-            writer.WriteCompressedInteger((uint)deltaLines);
+            writer.WriteCompressedInteger(deltaLines);
 
             if (deltaLines == 0)
             {
-                writer.WriteCompressedInteger((uint)deltaColumns);
+                writer.WriteCompressedInteger(deltaColumns);
             }
             else
             {
@@ -133,8 +138,8 @@ namespace Microsoft.Cci
                 _documentTable.Add(new DocumentRow
                 {
                     Name = SerializeDocumentName(document.Location),
-                    HashAlgorithm = (uint)(checksumAndAlgorithm.Item1.IsDefault ? 0 : _dynamicAnalysisDataHeaps.GetGuidIndex(checksumAndAlgorithm.Item2)),
-                    Hash = (checksumAndAlgorithm.Item1.IsDefault) ? new BlobIdx(0) : _dynamicAnalysisDataHeaps.GetBlobIndex(checksumAndAlgorithm.Item1)
+                    HashAlgorithm = (checksumAndAlgorithm.Item1.IsDefault ? default(GuidHandle) : _dynamicAnalysisDataHeaps.GetOrAddGuid(checksumAndAlgorithm.Item2)),
+                    Hash = (checksumAndAlgorithm.Item1.IsDefault) ? default(BlobHandle) : _dynamicAnalysisDataHeaps.GetOrAddBlob(checksumAndAlgorithm.Item1)
                 });
             }
 
@@ -144,7 +149,7 @@ namespace Microsoft.Cci
         private static readonly char[] s_separator1 = { '/' };
         private static readonly char[] s_separator2 = { '\\' };
 
-        private BlobIdx SerializeDocumentName(string name)
+        private BlobHandle SerializeDocumentName(string name)
         {
             Debug.Assert(name != null);
 
@@ -159,11 +164,11 @@ namespace Microsoft.Cci
             // TODO: avoid allocations
             foreach (var part in name.Split(separator))
             {
-                BlobIdx partIndex = _dynamicAnalysisDataHeaps.GetBlobIndex(ImmutableArray.Create(MetadataWriter.s_utf8Encoding.GetBytes(part)));
-                writer.WriteCompressedInteger((uint)_dynamicAnalysisDataHeaps.ResolveBlobIndex(partIndex));
+                BlobHandle partIndex = _dynamicAnalysisDataHeaps.GetOrAddBlob(ImmutableArray.Create(MetadataWriter.s_utf8Encoding.GetBytes(part)));
+                writer.WriteCompressedInteger(_dynamicAnalysisDataHeaps.GetHeapOffset(partIndex));
             }
 
-            return _dynamicAnalysisDataHeaps.GetBlobIndex(writer);
+            return _dynamicAnalysisDataHeaps.GetOrAddBlob(writer);
         }
 
         private static int Count(string str, char c)
@@ -200,7 +205,7 @@ namespace Microsoft.Cci
 
         internal void SerializeMetadataTables(BlobBuilder writer)
         {
-            _dynamicAnalysisDataHeaps.Complete();
+            _dynamicAnalysisDataHeaps.CompleteHeaps();
 
             var sizes = new Sizes(_dynamicAnalysisDataHeaps.GetHeapSizes());
 
@@ -211,8 +216,7 @@ namespace Microsoft.Cci
             SerializeMethodTable(writer, sizes);
 
             // heaps:
-            int guidHeapStartOffset;
-            _dynamicAnalysisDataHeaps.WriteTo(writer, out guidHeapStartOffset);
+            _dynamicAnalysisDataHeaps.WriteHeapsTo(writer);
         }
 
         private void SerializeHeader(BlobBuilder writer, Sizes sizes)
@@ -247,9 +251,9 @@ namespace Microsoft.Cci
         {
             foreach (var row in _documentTable)
             {
-                writer.WriteReference((uint)_dynamicAnalysisDataHeaps.ResolveBlobIndex(row.Name), sizes.BlobIndexSize);
-                writer.WriteReference(row.HashAlgorithm, sizes.GuidIndexSize);
-                writer.WriteReference((uint)_dynamicAnalysisDataHeaps.ResolveBlobIndex(row.Hash), sizes.BlobIndexSize);
+                writer.WriteReference((uint)_dynamicAnalysisDataHeaps.GetHeapOffset(row.Name), sizes.BlobIndexSize);
+                writer.WriteReference((uint)_dynamicAnalysisDataHeaps.GetHeapOffset(row.HashAlgorithm), sizes.GuidIndexSize);
+                writer.WriteReference((uint)_dynamicAnalysisDataHeaps.GetHeapOffset(row.Hash), sizes.BlobIndexSize);
             }
         }
 
@@ -257,7 +261,7 @@ namespace Microsoft.Cci
         {
             foreach (var row in _methodTable)
             {
-                writer.WriteReference((uint)_dynamicAnalysisDataHeaps.ResolveBlobIndex(row.Spans), sizes.BlobIndexSize);
+                writer.WriteReference((uint)_dynamicAnalysisDataHeaps.GetHeapOffset(row.Spans), sizes.BlobIndexSize);
             }
         }
 
