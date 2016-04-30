@@ -114,15 +114,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(info, location);
             }
-
-            if (this.IsPartial)
-            {
-                // Partial methods must be completed early because they are matched up
-                // by signature while producing the enclosing type's member list.
-                state.NotePartComplete(CompletionPart.StartMethodChecks);
-                MethodChecks(diagnostics);
-                state.NotePartComplete(CompletionPart.FinishMethodChecks);
-            }
         }
 
         public override bool ReturnsVoid
