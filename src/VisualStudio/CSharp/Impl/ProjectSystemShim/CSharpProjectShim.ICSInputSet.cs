@@ -102,17 +102,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
         public void SetFileAlignment(uint align)
         {
-            // This option is used only during emit. Since we no longer use our in-proc workspace to emit, we can ignore this value.
+            // This option is used only during emit.
+            SetOption(ref _fileAlignment, align);
         }
 
         public void SetImageBase2(ulong imageBase)
         {
-            // This option is used only during emit. Since we no longer use our in-proc workspace to emit, we can ignore this value.
+            // This option is used only during emit.
+            SetOption(ref _baseAddress, imageBase);
         }
 
         public void SetPdbFileName(string filename)
         {
-            // This option is used only during emit. Since we no longer use our in-proc workspace to emit, we can ignore this value.
+            // This option is used only during emit.
+            SetOption(ref _pdbFilePath, filename);
         }
 
         public string GetWin32Resource()

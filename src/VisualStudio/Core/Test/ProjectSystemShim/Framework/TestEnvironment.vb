@@ -5,6 +5,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
+Imports Microsoft.CodeAnalysis.Emit
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
 Imports Microsoft.VisualStudio.ComponentModelHost
@@ -249,9 +250,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
                 _workspace.OnMetadataReferenceRemoved(projectId, metadataReference)
             End Sub
 
-            Public Sub OnOptionsChanged(projectId As ProjectId, compilationOptions As CompilationOptions, parseOptions As ParseOptions) Implements IVisualStudioWorkspaceHost.OnOptionsChanged
+            Public Sub OnOptionsChanged(projectId As ProjectId, compilationOptions As CompilationOptions, parseOptions As ParseOptions, emitOptions As EmitOptions) Implements IVisualStudioWorkspaceHost.OnOptionsChanged
                 _workspace.OnCompilationOptionsChanged(projectId, compilationOptions)
                 _workspace.OnParseOptionsChanged(projectId, parseOptions)
+                _workspace.OnEmitOptionsChanged(projectId, emitOptions)
             End Sub
 
             Public Sub OnOutputFilePathChanged(id As ProjectId, outputFilePath As String) Implements IVisualStudioWorkspaceHost.OnOutputFilePathChanged

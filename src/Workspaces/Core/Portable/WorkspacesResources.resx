@@ -471,4 +471,7 @@
   <data name="MemberAccessShouldBeQualified" xml:space="preserve">
     <value>Member access should be qualified.</value>
   </data>
+  <data name="ChangingEmitOptionsNotSupported" xml:space="preserve">
+    <value>Changing emit options is not supported.</value>
+  </data>
 </root>

@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -25,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         void OnDocumentTextUpdatedOnDisk(DocumentId id);
         void OnAssemblyNameChanged(ProjectId id, string assemblyName);
         void OnOutputFilePathChanged(ProjectId id, string outputFilePath);
-        void OnOptionsChanged(ProjectId projectId, CompilationOptions compilationOptions, ParseOptions parseOptions);
+        void OnOptionsChanged(ProjectId projectId, CompilationOptions compilationOptions, ParseOptions parseOptions, EmitOptions emitOptions);
         void OnProjectNameChanged(ProjectId projectId, string name, string filePath);
         void OnAnalyzerReferenceAdded(ProjectId projectId, AnalyzerReference analyzerReference);
         void OnAnalyzerReferenceRemoved(ProjectId projectId, AnalyzerReference analyzerReference);

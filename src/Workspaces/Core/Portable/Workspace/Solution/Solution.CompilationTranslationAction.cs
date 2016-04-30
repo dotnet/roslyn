@@ -2,6 +2,7 @@
 
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Emit;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -22,6 +23,11 @@ namespace Microsoft.CodeAnalysis
             public static CompilationTranslationAction ProjectCompilationOptions(CompilationOptions options)
             {
                 return new ProjectCompilationOptionsAction(options);
+            }
+
+            public static CompilationTranslationAction ProjectEmitOptions(EmitOptions options)
+            {
+                return new ProjectEmitOptionsAction(options);
             }
 
             public static CompilationTranslationAction ProjectParseOptions(ProjectState state)

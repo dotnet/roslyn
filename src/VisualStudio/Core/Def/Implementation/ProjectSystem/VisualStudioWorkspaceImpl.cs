@@ -8,6 +8,7 @@ using System.Text;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
@@ -1175,10 +1176,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 _workspace = workspace;
             }
 
-            void IVisualStudioWorkspaceHost.OnOptionsChanged(ProjectId projectId, CompilationOptions compilationOptions, ParseOptions parseOptions)
+            void IVisualStudioWorkspaceHost.OnOptionsChanged(ProjectId projectId, CompilationOptions compilationOptions, ParseOptions parseOptions, EmitOptions emitOptions)
             {
                 _workspace.OnCompilationOptionsChanged(projectId, compilationOptions);
                 _workspace.OnParseOptionsChanged(projectId, parseOptions);
+                _workspace.OnEmitOptionsChanged(projectId, emitOptions);
             }
 
             void IVisualStudioWorkspaceHost.OnDocumentAdded(DocumentInfo documentInfo)

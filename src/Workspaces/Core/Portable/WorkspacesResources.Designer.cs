@@ -269,6 +269,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Changing emit options is not supported..
+        /// </summary>
+        internal static string ChangingEmitOptionsNotSupported {
+            get {
+                return ResourceManager.GetString("ChangingEmitOptionsNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Changing parse options is not supported..
         /// </summary>
         internal static string ChangingParseOptionsNotSupported {

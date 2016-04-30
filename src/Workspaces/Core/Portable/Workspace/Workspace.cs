@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
@@ -488,6 +489,22 @@ namespace Microsoft.CodeAnalysis
 
                 var oldSolution = this.CurrentSolution;
                 var newSolution = this.SetCurrentSolution(oldSolution.WithProjectCompilationOptions(projectId, options));
+
+                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
+            }
+        }
+
+        /// <summary>
+        /// Call this method when a project's emit options are changed in the host environment.
+        /// </summary>
+        protected internal void OnEmitOptionsChanged(ProjectId projectId, EmitOptions options)
+        {
+            using (_serializationLock.DisposableWait())
+            {
+                CheckProjectIsInCurrentSolution(projectId);
+
+                var oldSolution = this.CurrentSolution;
+                var newSolution = this.SetCurrentSolution(oldSolution.WithProjectEmitOptions(projectId, options));
 
                 this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.ProjectChanged, oldSolution, newSolution, projectId);
             }
@@ -1008,14 +1025,20 @@ namespace Microsoft.CodeAnalysis
 
         private void CheckAllowedProjectChanges(ProjectChanges projectChanges)
         {
-            if (projectChanges.OldProject.CompilationOptions != projectChanges.NewProject.CompilationOptions
-                && !this.CanApplyChange(ApplyChangesKind.ChangeCompilationOptions))
+            if (projectChanges.OldProject.CompilationOptions != projectChanges.NewProject.CompilationOptions &&
+                !CanApplyChange(ApplyChangesKind.ChangeCompilationOptions))
             {
                 throw new NotSupportedException(WorkspacesResources.ChangingCompilationOptionsNotSupported);
             }
 
-            if (projectChanges.OldProject.ParseOptions != projectChanges.NewProject.ParseOptions
-                && !this.CanApplyChange(ApplyChangesKind.ChangeParseOptions))
+            if (projectChanges.OldProject.EmitOptions != projectChanges.NewProject.EmitOptions &&
+                !CanApplyChange(ApplyChangesKind.ChangeEmitOptions))
+            {
+                throw new NotSupportedException(WorkspacesResources.ChangingEmitOptionsNotSupported);
+            }
+
+            if (projectChanges.OldProject.ParseOptions != projectChanges.NewProject.ParseOptions &&
+                !CanApplyChange(ApplyChangesKind.ChangeParseOptions))
             {
                 throw new NotSupportedException(WorkspacesResources.ChangingParseOptionsNotSupported);
             }
@@ -1092,6 +1115,12 @@ namespace Microsoft.CodeAnalysis
             if (projectChanges.OldProject.CompilationOptions != projectChanges.NewProject.CompilationOptions)
             {
                 this.ApplyCompilationOptionsChanged(projectChanges.ProjectId, projectChanges.NewProject.CompilationOptions);
+            }
+
+            // changed emit options
+            if (projectChanges.OldProject.EmitOptions != projectChanges.NewProject.EmitOptions)
+            {
+                this.ApplyEmitOptionsChanged(projectChanges.ProjectId, projectChanges.NewProject.EmitOptions);
             }
 
             // changed parse options
@@ -1233,7 +1262,8 @@ namespace Microsoft.CodeAnalysis
                 project.ProjectReferences,
                 project.MetadataReferences,
                 project.AnalyzerReferences,
-                project.AdditionalDocuments.Select(d => CreateDocumentInfoWithText(d)));
+                project.AdditionalDocuments.Select(d => CreateDocumentInfoWithText(d)),
+                emitOptions: project.EmitOptions);
         }
 
         private SourceText GetTextForced(TextDocument doc)
@@ -1288,6 +1318,17 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(CanApplyChange(ApplyChangesKind.ChangeCompilationOptions));
             this.OnCompilationOptionsChanged(projectId, options);
+        }
+
+        /// <summary>
+        /// This method is called during <see cref="TryApplyChanges"/> to change the emit options.
+        /// 
+        /// Override this method to implement the capability of changing emit options.
+        /// </summary>
+        protected virtual void ApplyEmitOptionsChanged(ProjectId projectId, EmitOptions options)
+        {
+            Debug.Assert(CanApplyChange(ApplyChangesKind.ChangeEmitOptions));
+            this.OnEmitOptionsChanged(projectId, options);
         }
 
         /// <summary>

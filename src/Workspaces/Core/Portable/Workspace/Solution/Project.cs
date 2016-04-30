@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Text;
@@ -114,6 +115,11 @@ namespace Microsoft.CodeAnalysis
         /// The options used when building the compilation for this project.
         /// </summary>
         public CompilationOptions CompilationOptions => _projectState.CompilationOptions;
+
+        /// <summary>
+        /// The options used when emitting the compilation for this project.
+        /// </summary>
+        public EmitOptions EmitOptions => _projectState.EmitOptions;
 
         /// <summary>
         /// The options used when parsing documents for this project.
@@ -349,6 +355,14 @@ namespace Microsoft.CodeAnalysis
         public Project WithCompilationOptions(CompilationOptions options)
         {
             return this.Solution.WithProjectCompilationOptions(this.Id, options).GetProject(this.Id);
+        }
+
+        /// <summary>
+        /// Creates a new instance of this project updated to have the specified emit options.
+        /// </summary>
+        public Project WithEmitOptions(EmitOptions options)
+        {
+            return this.Solution.WithProjectEmitOptions(this.Id, options).GetProject(this.Id);
         }
 
         /// <summary>

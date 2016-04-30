@@ -387,7 +387,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             If newOptions.CompilationOptions <> _lastOptions.CompilationOptions OrElse
                newOptions.ParseOptions <> _lastOptions.ParseOptions Then
 
-                SetOptions(newOptions.CompilationOptions, newOptions.ParseOptions)
+                SetOptions(newOptions.CompilationOptions, newOptions.ParseOptions, newOptions.EmitOptions)
             End If
 
             ' NOTE: _NOT_ using OrdinalIgnoreCase, even though this is a path. If the user
@@ -481,7 +481,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
             ' SetCompilationOptions later once we get the call through
             ' IVbCompiler.SetCompilerOptions
             If _lastOptions IsNot ConvertedVisualBasicProjectOptions.EmptyOptions Then
-                SetOptions(_lastOptions.CompilationOptions.WithGlobalImports(_imports), _lastOptions.ParseOptions)
+                SetOptions(_lastOptions.CompilationOptions.WithGlobalImports(_imports), _lastOptions.ParseOptions, _lastOptions.EmitOptions)
             End If
         End Sub
 
