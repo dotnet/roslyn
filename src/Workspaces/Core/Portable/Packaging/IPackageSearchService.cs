@@ -1,11 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 
 namespace Microsoft.CodeAnalysis.Packaging
@@ -27,24 +23,18 @@ namespace Microsoft.CodeAnalysis.Packaging
 
     internal class PackageWithTypeResult
     {
-        public readonly bool IsDesktopFramework;
         public readonly IReadOnlyList<string> ContainingNamespaceNames;
         public readonly string PackageName;
-        public readonly string AssemblyName;
         public readonly string TypeName;
         public readonly string Version;
 
         public PackageWithTypeResult(
-            bool isDesktopFramework,
             string packageName,
-            string assemblyName,
             string typeName, 
             string version,
             IReadOnlyList<string> containingNamespaceNames)
         {
-            IsDesktopFramework = isDesktopFramework;
             PackageName = packageName;
-            AssemblyName = assemblyName;
             TypeName = typeName;
             Version = string.IsNullOrWhiteSpace(version) ? null : version;
             ContainingNamespaceNames = containingNamespaceNames;

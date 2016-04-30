@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
@@ -75,6 +76,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                                 .Where(p => p.Language == project.Language)
                                 .ToImmutableArray();
 
+                            var progressTracker = fixAllContext.ProgressTracker;
+                            progressTracker.AddItems(projectsToFix.Length);
+
                             var diagnostics = new ConcurrentBag<Diagnostic>();
                             var tasks = new Task[projectsToFix.Length];
                             for (int i = 0; i < projectsToFix.Length; i++)
@@ -89,6 +93,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                                         fixAllContext.CancellationToken.ThrowIfCancellationRequested();
                                         diagnostics.Add(diagnostic);
                                     }
+
+                                    progressTracker.ItemCompleted();
                                 }, fixAllContext.CancellationToken);
                             }
 
