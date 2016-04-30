@@ -88,6 +88,11 @@ namespace Microsoft.CodeAnalysis
             string filePath = null,
             bool isGenerated = false)
         {
+            if (loader == null)
+            {
+                throw new ArgumentNullException(nameof(loader));
+            }
+
             return new DocumentInfo(id, name, folders, sourceCodeKind, loader, filePath, isGenerated);
         }
 
