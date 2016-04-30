@@ -6,6 +6,7 @@ using System.IO;
 using System.IO.Compression;
 using System;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using System.Threading;
@@ -152,17 +153,7 @@ class RelativeDirectory
 }
 
 abstract class PerfTest: RelativeDirectory {
-    private List<Tuple<int, string, object>> _metrics = new List<Tuple<int, string, object>>();
-    
     public PerfTest([CallerFilePath] string workingFile = ""): base(workingFile) {}
-    
-    /// Reports a metric to be recorded in the performance monitor.
-    protected void Report(ReportKind reportKind, string description, object value)
-    {
-        _metrics.Add(Tuple.Create((int) reportKind, description, value));
-        Log(description + ": " + value.ToString());
-    }
-    
     public abstract bool ProvidesScenarios { get; }
     public abstract string[] GetScenarios();
     public abstract void Setup();
@@ -194,6 +185,85 @@ static void TestThisPlease(params PerfTest[] tests)
             }
         }
     }
+}
+
+// This class built using reflection from PerfTest object to mimic it
+// This is a workaround for the issue where dynamic objects cannot be compiled
+// in a CSharpScript invoked run. When the issue is fixed, this reflection code can be removed
+class PerfTestReflected
+{
+    private readonly Func<string[]> _getScenariosMethodLambda;
+    private readonly Action _setupMethodLambda;
+    private readonly Action _testMethodLambda;
+
+    public int Iterations { get; set; }
+    public string MeasuredProc { get; set; }
+    public string Name { get; set; }
+    public bool ProvidesScenarios { get; private set; }
+
+    public PerfTestReflected(
+        Action setupMethodLambda,
+        Action testMethodLambda,
+        Func<string[]> getScenariosMethodLambda,
+        int iterations,
+        string measuredProc,
+        string name,
+        bool providesScenarios)
+    {
+        _setupMethodLambda = setupMethodLambda;
+        _testMethodLambda = testMethodLambda;
+        _getScenariosMethodLambda = getScenariosMethodLambda;
+
+        Iterations = iterations;
+        MeasuredProc = measuredProc;
+        Name = name;
+        ProvidesScenarios = providesScenarios;
+    }
+
+    public void Setup()
+    {
+        _setupMethodLambda();
+    }
+
+    public void Test()
+    {
+        _testMethodLambda();
+    }
+
+    public string[] GetScenarios()
+    {
+        return _getScenariosMethodLambda();
+    }
+}
+
+static PerfTestReflected ConvertToPerfTestReflected(object p)
+{
+    Action setupMethodLambda = GetMethod<Action>("Setup", p);
+    Action testMethodLambda = GetMethod<Action>("Test", p);
+    Func<string[]> getScenariosMethodLambda = GetMethod<Func<string[]>>("GetScenarios", p);
+    int iterations = GetProperty<int>("Iterations", p);
+    string measuredProc = GetProperty<string>("MeasuredProc", p);
+    string name = GetProperty<string>("Name", p);
+    bool providesScenarios = GetProperty<bool>("ProvidesScenarios", p);
+    return new PerfTestReflected(
+        setupMethodLambda,
+        testMethodLambda,
+        getScenariosMethodLambda,
+        iterations,
+        measuredProc,
+        name,
+        providesScenarios);
+}
+
+static T GetMethod<T>(string methodName, object obj)
+{
+    var methodInfo = obj.GetType().GetMethod(methodName, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public);
+    return Expression.Lambda<T>(Expression.Call(Expression.Constant(obj), methodInfo)).Compile();
+}
+
+static T GetProperty<T>(string propertyName, object obj)
+{
+    return (T)obj.GetType().GetProperty(propertyName, System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.Public).GetValue(obj, null);
 }
 
 //
@@ -353,19 +423,6 @@ static long WalltimeMs<R>(Func<R> action)
     action();
     return stopwatch.ElapsedMilliseconds;
 }
-
-//
-// Reporting and logging
-//
-
-enum ReportKind: int {
-    CompileTime,
-    RunTime,
-    FileSize,
-}
-
-/// A list of
-static var Metrics = new List<Tuple<int, string, object>>();
 
 /// Logs a message.
 ///
