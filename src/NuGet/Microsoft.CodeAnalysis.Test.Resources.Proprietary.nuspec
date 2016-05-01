@@ -19,6 +19,6 @@ Supported Platforms:
     <tags>$tags$</tags>
   </metadata>
   <files>
-    <file src="Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll" target="lib\net45" />
+    <file src="TestResourcesProprietary\Microsoft.CodeAnalysis.Test.Resources.Proprietary.dll" target="lib\net45" />
   </files>
 </package>
