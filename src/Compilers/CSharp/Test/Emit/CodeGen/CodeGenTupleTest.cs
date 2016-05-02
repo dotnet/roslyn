@@ -1,12 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Globalization;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -4493,6 +4490,168 @@ class D : C, I<(int a, int b), (int c, int d)>
 
             var comp = CompileAndVerify(source, expectedOutput: @"{1, 2} {3, 4}", sourceSymbolValidator: validator, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TupleTypeWithPatternIs()
+        {
+            var source = @"
+class C
+{
+    void Match(object o)
+    {
+        if (o is (int, int) t) { }
+    }
+}
+" + trivial2uple;
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature().WithPatternsFeature());
+            comp.VerifyDiagnostics(
+                // (6,19): error CS1525: Invalid expression term 'int'
+                //         if (o is (int, int) t)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 19),
+                // (6,24): error CS1525: Invalid expression term 'int'
+                //         if (o is (int, int) t)
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(6, 24),
+                // (6,29): error CS1026: ) expected
+                //         if (o is (int, int) t)
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "t").WithLocation(6, 29),
+                // (6,30): error CS1002: ; expected
+                //         if (o is (int, int) t)
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, ")").WithLocation(6, 30),
+                // (6,30): error CS1513: } expected
+                //         if (o is (int, int) t)
+                Diagnostic(ErrorCode.ERR_RbraceExpected, ")").WithLocation(6, 30),
+                // (6,29): error CS0103: The name 't' does not exist in the current context
+                //         if (o is (int, int) t)
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "t").WithArguments("t").WithLocation(6, 29)
+                );
+        }
+
+        [Fact]
+        public void TupleTypeWithPatternIs2()
+        {
+            var source = @"
+class C
+{
+    void Match(object o)
+    {
+        if (o is (int a, int b)) { }
+    }
+}
+" + trivial2uple;
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature().WithPatternsFeature());
+            comp.VerifyDiagnostics(
+                // (6,32): error CS1003: Syntax error, '=>' expected
+                //         if (o is (int a, int b)) { }
+                Diagnostic(ErrorCode.ERR_SyntaxError, ")").WithArguments("=>", ")").WithLocation(6, 32),
+                // (6,32): error CS1525: Invalid expression term ')'
+                //         if (o is (int a, int b)) { }
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(6, 32)
+                );
+        }
+
+        [Fact]
+        public void TupleDeclarationWithPatternIs()
+        {
+            var source = @"
+class C
+{
+    void Match(object o)
+    {
+        if (o is (1, 2)) { }
+    }
+}
+" + trivial2uple;
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature().WithPatternsFeature());
+            comp.VerifyDiagnostics(
+                // (6,18): error CS0150: A constant value is expected
+                //         if (o is (1, 2))
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(1, 2)").WithLocation(6, 18)
+                );
+        }
+
+        [Fact]
+        public void TupleTypeWithPatternSwitch()
+        {
+            var source = @"
+class C
+{
+    void Match(object o)
+    {
+        switch(o) {
+            case (int, int) tuple: return;
+        }
+    }
+}
+" + trivial2uple;
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature().WithPatternsFeature());
+            comp.VerifyDiagnostics(
+                // (7,19): error CS1525: Invalid expression term 'int'
+                //             case (int, int) tuple: return;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 19),
+                // (7,24): error CS1525: Invalid expression term 'int'
+                //             case (int, int) tuple: return;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 24),
+                // (7,29): error CS1003: Syntax error, ':' expected
+                //             case (int, int) tuple: return;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "tuple").WithArguments(":", "").WithLocation(7, 29),
+                // (7,29): warning CS0164: This label has not been referenced
+                //             case (int, int) tuple: return;
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "tuple").WithLocation(7, 29)
+               );
+        }
+
+        [Fact]
+        public void TupleLiteralWithPatternSwitch()
+        {
+            var source = @"
+class C
+{
+    void Match(object o)
+    {
+        switch(o) {
+            case (1, 1): return;
+        }
+    }
+}
+" + trivial2uple;
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature().WithPatternsFeature());
+            comp.VerifyDiagnostics(
+                // (7,18): error CS0150: A constant value is expected
+                //             case (1, 1): return;
+                Diagnostic(ErrorCode.ERR_ConstantExpected, "(1, 1)").WithLocation(7, 18)
+               );
+        }
+
+        [Fact]
+        public void TupleLiteralWithPatternSwitch2()
+        {
+            var source = @"
+class C
+{
+    void Match(object o)
+    {
+        switch(o) {
+            case (1, 1) t: return;
+        }
+    }
+}
+" + trivial2uple;
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature().WithPatternsFeature());
+            comp.VerifyDiagnostics(
+                // (7,25): error CS1003: Syntax error, ':' expected
+                //             case (1, 1) t: return;
+                Diagnostic(ErrorCode.ERR_SyntaxError, "t").WithArguments(":", "").WithLocation(7, 25),
+                // (7,25): warning CS0164: This label has not been referenced
+                //             case (1, 1) t: return;
+                Diagnostic(ErrorCode.WRN_UnreferencedLabel, "t").WithLocation(7, 25)
+               );
         }
     }
 }
