@@ -122,6 +122,7 @@
     <Compile Include="CodeGen\CodeGenTests.cs" />
     <Compile Include="CodeGen\CodeGenThrowTests.cs" />
     <Compile Include="CodeGen\CodeGenTryFinally.cs" />
+    <Compile Include="CodeGen\CodeGenTupleTest.cs" />
     <Compile Include="CodeGen\CodeGenTypeofTests.cs" />
     <Compile Include="CodeGen\CodeGenUsingStatementTests.cs" />
     <Compile Include="CodeGen\CompoundAssignmentForDelegate.cs" />

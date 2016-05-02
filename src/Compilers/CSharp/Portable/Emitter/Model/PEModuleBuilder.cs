@@ -773,6 +773,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 namedTypeSymbol = AnonymousTypeManager.TranslateAnonymousTypeSymbol(namedTypeSymbol);
             }
+            else if (namedTypeSymbol.IsTupleType)
+            {
+                namedTypeSymbol = ((TupleTypeSymbol)namedTypeSymbol).UnderlyingTupleType;
+            }
 
             // Substitute error types with a special singleton object.
             // Unreported bad types can come through NoPia embedding, for example.
@@ -931,6 +935,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             bool needDeclaration = false)
         {
             Debug.Assert(fieldSymbol.IsDefinitionOrDistinct());
+            Debug.Assert(!fieldSymbol.ContainingType.IsTupleType, "tuple fields should be rewritten to underlying by now");
 
             if (!fieldSymbol.IsDefinition)
             {

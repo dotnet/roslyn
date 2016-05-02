@@ -132,11 +132,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.ImplicitEnumeration;
             }
 
-            if (HasImplicitThrowConversion(sourceExpression, destination))
-            {
-                return Conversion.ImplicitThrow;
-            }
-
             var kind = ClassifyImplicitConstantExpressionConversion(sourceExpression, destination);
             if (kind != ConversionKind.NoConversion)
             {
@@ -147,6 +142,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case BoundKind.Literal:
                     kind = ClassifyNullLiteralConversion(sourceExpression, destination);
+                    if (kind != ConversionKind.NoConversion)
+                    {
+                        return new Conversion(kind);
+                    }
+                    break;
+
+                case BoundKind.TupleLiteral:
+                    kind = ClassifyImplicitTupleConversion(sourceExpression, destination, ref useSiteDiagnostics);
                     if (kind != ConversionKind.NoConversion)
                     {
                         return new Conversion(kind);
@@ -178,11 +181,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return Conversion.NoConversion;
-        }
-
-        private bool HasImplicitThrowConversion(BoundExpression sourceExpression, TypeSymbol destination)
-        {
-            return sourceExpression.Kind == BoundKind.ThrowExpression;
         }
 
         public Conversion ClassifyImplicitConversionFromExpression(BoundExpression sourceExpression, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -290,11 +288,39 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ConversionKind.ImplicitConstant;
             }
 
+            // strip nullable from the destination
+            //
+            // the following should work and it is an ImplicitNullable conversion
+            //    int? x = 1;
             if (destination.Kind == SymbolKind.NamedType)
             {
                 var nt = (NamedTypeSymbol)destination;
                 if (nt.OriginalDefinition.GetSpecialTypeSafe() == SpecialType.System_Nullable_T &&
                     HasImplicitConstantExpressionConversion(source, nt.TypeArgumentsNoUseSiteDiagnostics[0]))
+                {
+                    return ConversionKind.ImplicitNullable;
+                }
+            }
+
+            return ConversionKind.NoConversion;
+        }
+
+        private ConversionKind ClassifyImplicitTupleConversion(BoundExpression source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            if (HasImplicitTupleConversion(source, destination, ref useSiteDiagnostics))
+            {
+                return ConversionKind.ImplicitTuple;
+            }
+
+            // strip nullable from the destination
+            //
+            // the following should work and it is an ImplicitNullable conversion
+            //    (int, double)? x = (1,2);
+            if (destination.Kind == SymbolKind.NamedType)
+            {
+                var nt = (NamedTypeSymbol)destination;
+                if (nt.OriginalDefinition.GetSpecialTypeSafe() == SpecialType.System_Nullable_T &&
+                    HasImplicitTupleConversion(source, nt.TypeArgumentsNoUseSiteDiagnostics[0], ref useSiteDiagnostics))
                 {
                     return ConversionKind.ImplicitNullable;
                 }
@@ -670,6 +696,54 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ToConversion(resolution.OverloadResolutionResult, resolution.MethodGroup, (NamedTypeSymbol)destination);
             resolution.Free();
             return conversion;
+        }
+
+        protected override bool HasImplicitTupleConversion(BoundExpression source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            if (source.Kind != BoundKind.TupleLiteral)
+            {
+                // source must be a tuple literal with no conversions
+                return false;
+            }
+
+            var tupleExpression = (BoundTupleLiteral)source;
+            var arguments = tupleExpression.Arguments;
+
+            // unwrap tuple to its underlying
+            if (destination.IsTupleType)
+            {
+                destination = ((TupleTypeSymbol)destination).UnderlyingTupleType;
+            }
+
+            // check if underlying type is actually a possible underlying type for a tuple of given arity
+            if(!Compilation.IsWellKnownTupleType(destination, arguments.Length))
+            {
+                return false;
+            }
+
+            var targetElementTypes = ArrayBuilder<TypeSymbol>.GetInstance(arguments.Length);
+            TupleTypeSymbol.AddElementTypes((NamedTypeSymbol)destination, targetElementTypes);
+            Debug.Assert(arguments.Length == targetElementTypes.Count);
+
+            try
+            {
+                // check arguments against flattened list of target element types 
+                for (int i = 0; i < arguments.Length; i++)
+                {
+                    var argument = arguments[i];
+                    var result = ClassifyImplicitConversionFromExpression(argument, targetElementTypes[i], ref useSiteDiagnostics);
+                    if (!result.Exists)
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+            finally
+            {
+                targetElementTypes.Free();
+            }
         }
 
         protected override Conversion GetInterpolatedStringConversion(BoundInterpolatedString source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)

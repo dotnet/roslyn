@@ -489,7 +489,8 @@ End Namespace
                 CSharpRef,
                 SystemXmlRef,
                 SystemXmlLinqRef,
-                SystemWindowsFormsRef
+                SystemWindowsFormsRef,
+                ValueTupleRef
             }.Concat(WinRtRefs).ToArray()
 
             Dim comp = CreateCompilationWithReferences((<compilation/>), refs.Concat(MsvbRef_v4_0_30319_17929).ToArray())
@@ -498,8 +499,12 @@ End Namespace
                     Case WellKnownType.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators
                         ' Only present when embedding VB Core.
                         Continue For
-                    Case WellKnownType.System_FormattableString, WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory
+                    Case WellKnownType.System_FormattableString,
+                         WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory
                         ' Not available on all platforms.
+                        Continue For
+                    Case WellKnownType.ExtSentinel
+                        ' Not a real type
                         Continue For
                     Case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation
                         ' Not always available.
@@ -529,8 +534,12 @@ End Namespace
                          WellKnownType.Microsoft_VisualBasic_Interaction
                         ' Not embedded, so not available.
                         Continue For
-                    Case WellKnownType.System_FormattableString, WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory
+                    Case WellKnownType.System_FormattableString,
+                         WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory
                         ' Not available on all platforms.
+                        Continue For
+                    Case WellKnownType.ExtSentinel
+                        ' Not a real type
                         Continue For
                     Case WellKnownType.Microsoft_CodeAnalysis_Runtime_Instrumentation
                         ' Not always available.
@@ -554,7 +563,8 @@ End Namespace
                 CSharpRef,
                 SystemXmlRef,
                 SystemXmlLinqRef,
-                SystemWindowsFormsRef
+                SystemWindowsFormsRef,
+                ValueTupleRef
             }.Concat(WinRtRefs).ToArray()
 
             Dim comp = CreateCompilationWithReferences((<compilation/>), refs.Concat(MsvbRef_v4_0_30319_17929).ToArray())

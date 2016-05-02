@@ -294,6 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.PointerType:
                 case SyntaxKind.NullableType:
                 case SyntaxKind.PredefinedType:
+                case SyntaxKind.TupleType:
                     return true;
                 default:
                     return IsName(kind);
@@ -1033,7 +1034,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static IEnumerable<SyntaxKind> GetContextualKeywordKinds()
         {
-            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.MatchKeyword; i++)
+            for (int i = (int)SyntaxKind.YieldKeyword; i <= (int)SyntaxKind.WhenKeyword; i++)
             {
                 yield return (SyntaxKind)i;
             }
@@ -1076,7 +1077,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.AsyncKeyword:
                 case SyntaxKind.AwaitKeyword:
                 case SyntaxKind.WhenKeyword:
-                case SyntaxKind.MatchKeyword:
                     return true;
                 default:
                     return false;
@@ -1176,8 +1176,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return SyntaxKind.WhenKeyword;
                 case "nameof":
                     return SyntaxKind.NameOfKeyword;
-                case "match":
-                    return SyntaxKind.MatchKeyword;
                 default:
                     return SyntaxKind.None;
             }
@@ -1581,8 +1579,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "$\"";
                 case SyntaxKind.InterpolatedStringEndToken:
                     return "\"";
-                case SyntaxKind.MatchKeyword:
-                    return "match";
                 default:
                     return string.Empty;
             }

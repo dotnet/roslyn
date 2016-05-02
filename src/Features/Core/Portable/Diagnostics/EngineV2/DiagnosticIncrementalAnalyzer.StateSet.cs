@@ -3,6 +3,7 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.Utilities;
 
@@ -113,6 +114,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return _activeFileStates.ContainsKey(documentId);
             }
 
+            public bool FromBuild(ProjectId projectId)
+            {
+                ProjectState projectState;
+                if (!_projectStates.TryGetValue(projectId, out projectState))
+                {
+                    return false;
+                }
+
+                return projectState.FromBuild;
+            }
+
             public bool TryGetActiveFileState(DocumentId documentId, out ActiveFileState state)
             {
                 return _activeFileStates.TryGetValue(documentId, out state);
@@ -133,27 +145,67 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 return _projectStates.GetOrAdd(projectId, id => new ProjectState(this, id));
             }
 
-            public Task<bool> OnDocumentClosedAsync(Document document)
+            public async Task<bool> OnDocumentOpenedAsync(Document document)
             {
                 // can not be cancelled
-                return OnDocumentResetAsync(document);
+                ProjectState projectState;
+                if (!TryGetProjectState(document.Project.Id, out projectState) ||
+                    projectState.IsEmpty(document.Id))
+                {
+                    // nothing to do
+                    return false;
+                }
+
+                // always load data
+                var avoidLoadingData = false;
+                var result = await projectState.GetAnalysisDataAsync(document, avoidLoadingData, CancellationToken.None).ConfigureAwait(false);
+
+                // put project state to active file state
+                var activeFileState = GetActiveFileState(document.Id);
+
+                activeFileState.Save(AnalysisKind.Syntax, new DocumentAnalysisData(result.Version, result.GetResultOrEmpty(result.SyntaxLocals, document.Id)));
+                activeFileState.Save(AnalysisKind.Semantic, new DocumentAnalysisData(result.Version, result.GetResultOrEmpty(result.SemanticLocals, document.Id)));
+
+                return true;
             }
 
-            public async Task<bool> OnDocumentResetAsync(Document document)
+            public async Task<bool> OnDocumentClosedAsync(Document document)
             {
                 // can not be cancelled
                 // remove active file state and put it in project state
                 ActiveFileState activeFileState;
                 if (!_activeFileStates.TryRemove(document.Id, out activeFileState))
                 {
-                    // no active file state
                     return false;
                 }
 
+                // active file exist, put it in the project state
                 var projectState = GetProjectState(document.Project.Id);
                 await projectState.MergeAsync(activeFileState, document).ConfigureAwait(false);
-
                 return true;
+            }
+
+            public bool OnDocumentReset(Document document)
+            {
+                var changed = false;
+
+                // can not be cancelled
+                // remove active file state and put it in project state
+                ActiveFileState activeFileState;
+                if (TryGetActiveFileState(document.Id, out activeFileState))
+                {
+                    activeFileState.ResetVersion();
+                    changed |= true;
+                }
+
+                ProjectState projectState;
+                if (TryGetProjectState(document.Project.Id, out projectState))
+                {
+                    projectState.ResetVersion();
+                    changed |= true;
+                }
+
+                return changed;
             }
 
             public bool OnDocumentRemoved(DocumentId id)

@@ -562,6 +562,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity);
 
         /// <summary>
+        /// Get all instance field and event members.
+        /// </summary>
+        /// <remarks>
+        /// For source symbols may be called while calculating
+        /// <see cref="NamespaceOrTypeSymbol.GetMembersUnordered"/>.
+        /// </remarks>
+        internal virtual IEnumerable<Symbol> GetInstanceFieldsAndEvents()
+        {
+            return GetMembersUnordered().Where(IsInstanceFieldOrEvent);
+        }
+
+        protected static Func<Symbol, bool> IsInstanceFieldOrEvent = symbol =>
+        {
+            if (!symbol.IsStatic)
+            {
+                switch (symbol.Kind)
+                {
+                    case SymbolKind.Field:
+                    case SymbolKind.Event:
+                        return true;
+                }
+            }
+            return false;
+        };
+
+        /// <summary>
         /// Get this accessibility that was declared on this symbol. For symbols that do not have
         /// accessibility declared on them, returns NotApplicable.
         /// </summary>
@@ -639,15 +665,28 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal override bool Equals(TypeSymbol t2, bool ignoreCustomModifiersAndArraySizesAndLowerBounds = false, bool ignoreDynamic = false)
         {
-            if (ReferenceEquals(this, t2)) return true;
+            if ((object)t2 == this) return true;
             if ((object)t2 == null) return false;
 
-            // if ignoring dynamic, then treat dynamic the same as the type 'object'
-            if (ignoreDynamic &&
-                t2.TypeKind == TypeKind.Dynamic &&
-                this.SpecialType == SpecialType.System_Object)
+            if (ignoreDynamic)
             {
-                return true;
+                if (t2.TypeKind == TypeKind.Dynamic)
+                {
+                    // if ignoring dynamic, then treat dynamic the same as the type 'object'
+                    if (this.SpecialType == SpecialType.System_Object)
+                    {
+                        return true;
+                    }
+                }
+
+                // If ignoring dynamic, compare underlying tuple types
+                if (t2.IsTupleType)
+                {
+                    t2 = ((TupleTypeSymbol)t2).UnderlyingTupleType;
+                    if ((object)t2 == this) return true;
+                }
+
+                Debug.Assert(!this.IsTupleType);
             }
 
             NamedTypeSymbol other = t2 as NamedTypeSymbol;

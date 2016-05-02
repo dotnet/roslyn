@@ -877,13 +877,14 @@
 
   <Node Name="BoundCatchBlock" Base="BoundNode">
     <!-- 
-    Local symbol owned by the catch block. 
-    Null if the catch syntax doesn't declare a local variable.
+    Local symbols owned by the catch block. 
+    Empty if the catch syntax doesn't declare a local variable.
     
-    In the initial bound tree this is the exception variable (if present).
-    After the node is lowered it might be another variable or null.
+    In the initial bound tree the first variable is the exception variable (if present).
+    After the node is lowered the exception variable might become a field and will be removed from 
+    the array, otherwise it will stay at the first position.
     -->
-    <Field Name="LocalOpt" Type="LocalSymbol" Null="allow"/>
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
 
     <!--
     Refers to the location where the exception object is stored. 
@@ -1178,6 +1179,42 @@
     <Field Name="InitializerExpressionOpt" Type="BoundExpression" Null="allow"/>
   </Node>
   
+
+  <!-- 
+  Tuple literals can exist in two forms - literal and converted literal.
+  This is the base node for both forms.
+  -->
+  <AbstractNode Name="BoundTupleExpression" Base="BoundExpression">
+    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+  </AbstractNode>
+
+  <!-- 
+  Tuple literals can convert to the target type.
+  Once converted to a target type, they cannot be target-typed again. 
+  The tuple literal is one which has not been converted to a target type.
+  -->
+  <Node Name="BoundTupleLiteral" Base="BoundTupleExpression">
+    <!-- 
+    It is possible for a tuple to not have a type in a literal form
+    Ex: 
+     (a: 1, b: (c: 1, d: null))  does not have a natural type, because "null" does not have one
+    -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
+  </Node>
+
+  <!-- 
+  Tuple literals can convert to the target type.
+  Once converted to a target type, they cannot be target-typed again. 
+  The Converted tuple literal is one which has been already converted to a target type.
+  Converted tuple literal always has a type.
+  -->
+  <Node Name="BoundConvertedTupleLiteral" Base="BoundTupleExpression">
+    <!-- Converted tuple must have a type -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <!-- Natural type is preserved for the purpose of semantic model. Can be null -->
+    <Field Name="NaturalTypeOpt" Type="TypeSymbol" Null="allow"/>
+  </Node>
   
   <Node Name="BoundDynamicObjectCreationExpression" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
@@ -1444,29 +1481,6 @@
     <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
   </Node>
 
-  <Node Name="BoundMatchExpression" Base="BoundExpression">
-    <Field Name="Left" Type="BoundExpression" Null="disallow"/>
-    <Field Name="Cases" Type="ImmutableArray&lt;BoundMatchCase&gt;"/>
-  </Node>
-
-  <Node Name="BoundMatchCase" Base="BoundNode">
-    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
-    <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
-    <Field Name="Guard" Type="BoundExpression" Null="allow"/>
-    <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
-  </Node>
-
-  <Node Name="BoundThrowExpression" Base="BoundExpression">
-    <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
-  </Node>
-
-  <Node Name="BoundLetStatement" Base="BoundStatement">
-    <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
-    <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
-    <Field Name="Guard" Type="BoundExpression" Null="allow"/>
-    <Field Name="Else" Type="BoundStatement" Null="allow"/>
-  </Node>
-
   <AbstractNode Name="BoundPattern" Base="BoundNode"/>
 
   <Node Name="BoundDeclarationPattern" Base="BoundPattern">
@@ -1480,25 +1494,6 @@
   </Node>
 
   <Node Name="BoundWildcardPattern" Base="BoundPattern">
-  </Node>
-
-  <Node Name="BoundPropertyPattern" Base="BoundPattern">
-    <Field Name="Type" Type="TypeSymbol" Null="disallow"/>
-    <Field Name="Subpatterns" Type="ImmutableArray&lt;BoundSubPropertyPattern&gt;" Null="disallow"/>
-  </Node>
-
-  <Node Name="BoundSubPropertyPattern" Base="BoundNode">
-    <Field Name="Type" Type="TypeSymbol" Null="disallow"/>
-    <Field Name="Property" Type="Symbol" Null="allow"/>
-    <Field Name="ResultKind" Type="LookupResultKind"/>
-    <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
-  </Node>
-
-  <Node Name="BoundRecursivePattern" Base="BoundPattern">
-    <Field Name="Type" Type="TypeSymbol" Null="disallow"/>
-    <Field Name="IsOperator" Type="MethodSymbol" Null="allow"/>
-    <Field Name="Patterns" Type="ImmutableArray&lt;BoundPattern&gt;" Null="disallow"/>
-    <Field Name="PatternsToParams" Type="ImmutableArray&lt;int&gt;" Null="disallow"/>
   </Node>
 
 </Tree>

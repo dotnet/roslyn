@@ -496,18 +496,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return current;
                 }
 
+                // for tuple types, visit underlying type
+                if (current.IsTupleType)
+                {
+                    return ((TupleTypeSymbol)current).UnderlyingTupleType.VisitType(predicate, arg);
+                }
+
                 switch (current.TypeKind)
                 {
                     case TypeKind.Error:
                     case TypeKind.Dynamic:
                     case TypeKind.TypeParameter:
                     case TypeKind.Submission:
+                    case TypeKind.Enum:
                         return null;
 
                     case TypeKind.Class:
                     case TypeKind.Struct:
                     case TypeKind.Interface:
-                    case TypeKind.Enum:
                     case TypeKind.Delegate:
                         foreach (var typeArg in ((NamedTypeSymbol)current).TypeArgumentsNoUseSiteDiagnostics)
                         {

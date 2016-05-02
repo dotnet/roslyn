@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return node.Update(
-                node.LocalOpt,
+                node.Locals,
                 rewrittenExceptionSourceOpt,
                 rewrittenExceptionTypeOpt,
                 rewrittenFilter,

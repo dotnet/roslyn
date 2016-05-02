@@ -3,6 +3,8 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Reflection.Metadata;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Emit;
@@ -10,6 +12,8 @@ using EmitContext = Microsoft.CodeAnalysis.Emit.EmitContext;
 
 namespace Microsoft.Cci
 {
+    using Roslyn.Reflection.Metadata.Ecma335;
+
     internal sealed class FullMetadataWriter : MetadataWriter
     {
         private readonly DefinitionIndex<ITypeDefinition> _typeDefs;
@@ -30,7 +34,7 @@ namespace Microsoft.Cci
         private readonly InstanceAndStructuralReferenceIndex<IGenericMethodInstanceReference> _methodSpecIndex;
         private readonly HeapOrReferenceIndex<ITypeReference> _typeRefIndex;
         private readonly InstanceAndStructuralReferenceIndex<ITypeReference> _typeSpecIndex;
-        private readonly HeapOrReferenceIndex<BlobIdx> _standAloneSignatureIndex;
+        private readonly HeapOrReferenceIndex<BlobHandle> _standAloneSignatureIndex;
 
         public static MetadataWriter Create(
             EmitContext context,
@@ -40,37 +44,37 @@ namespace Microsoft.Cci
             bool hasPdbStream,
             CancellationToken cancellationToken)
         {
-            var heaps = new MetadataHeapsBuilder();
-            MetadataHeapsBuilder debugHeapsOpt;
+            var builder = new MetadataBuilder();
+            MetadataBuilder debugBuilderOpt;
             switch (context.ModuleBuilder.EmitOptions.DebugInformationFormat)
             {
                 case DebugInformationFormat.PortablePdb:
-                    debugHeapsOpt = hasPdbStream ? new MetadataHeapsBuilder() : null;
+                    debugBuilderOpt = hasPdbStream ? new MetadataBuilder() : null;
                     break;
 
                 case DebugInformationFormat.Embedded:
-                    debugHeapsOpt = heaps;
+                    debugBuilderOpt = builder;
                     break;
 
                 default:
-                    debugHeapsOpt = null;
+                    debugBuilderOpt = null;
                     break;
             }
 
             var dynamicAnalysisDataWriterOpt = context.ModuleBuilder.EmitOptions.EmitDynamicAnalysisData ? new DynamicAnalysisDataWriter() : null;
-            return new FullMetadataWriter(context, heaps, debugHeapsOpt, dynamicAnalysisDataWriterOpt, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken);
+            return new FullMetadataWriter(context, builder, debugBuilderOpt, dynamicAnalysisDataWriterOpt, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken);
         }
 
         private FullMetadataWriter(
             EmitContext context,
-            MetadataHeapsBuilder heaps,
-            MetadataHeapsBuilder debugHeapsOpt,
+            MetadataBuilder builder,
+            MetadataBuilder debugBuilderOpt,
             DynamicAnalysisDataWriter dynamicAnalysisDataWriterOpt,
             CommonMessageProvider messageProvider,
             bool allowMissingMethodBodies,
             bool deterministic,
             CancellationToken cancellationToken)
-            : base(heaps, debugHeapsOpt, dynamicAnalysisDataWriterOpt, context, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken)
+            : base(builder, debugBuilderOpt, dynamicAnalysisDataWriterOpt, context, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken)
         {
             // EDMAURER make some intelligent guesses for the initial sizes of these things.
             int numMethods = this.module.HintNumberOfMethodDefinitions;
@@ -96,7 +100,7 @@ namespace Microsoft.Cci
             _methodSpecIndex = new InstanceAndStructuralReferenceIndex<IGenericMethodInstanceReference>(this, new MethodSpecComparer(this));
             _typeRefIndex = new HeapOrReferenceIndex<ITypeReference>(this);
             _typeSpecIndex = new InstanceAndStructuralReferenceIndex<ITypeReference>(this, new TypeSpecComparer(this));
-            _standAloneSignatureIndex = new HeapOrReferenceIndex<BlobIdx>(this);
+            _standAloneSignatureIndex = new HeapOrReferenceIndex<BlobHandle>(this);
         }
 
         protected override ushort Generation
@@ -114,19 +118,22 @@ namespace Microsoft.Cci
             get { return Guid.Empty; }
         }
 
-        protected override bool TryGetTypeDefIndex(ITypeDefinition def, out int index)
+        protected override bool TryGetTypeDefinitionHandle(ITypeDefinition def, out TypeDefinitionHandle handle)
         {
-            return _typeDefs.TryGetValue(def, out index);
+            int index;
+            bool result = _typeDefs.TryGetValue(def, out index);
+            handle = MetadataTokens.TypeDefinitionHandle(index);
+            return result;
         }
 
-        protected override int GetTypeDefIndex(ITypeDefinition def)
+        protected override TypeDefinitionHandle GetTypeDefinitionHandle(ITypeDefinition def)
         {
-            return _typeDefs[def];
+            return MetadataTokens.TypeDefinitionHandle(_typeDefs[def]);
         }
 
-        protected override ITypeDefinition GetTypeDef(int index)
+        protected override ITypeDefinition GetTypeDef(TypeDefinitionHandle handle)
         {
-            return _typeDefs[index];
+            return _typeDefs[MetadataTokens.GetRowNumber(handle)];
         }
 
         protected override IReadOnlyList<ITypeDefinition> GetTypeDefs()
@@ -134,9 +141,9 @@ namespace Microsoft.Cci
             return _typeDefs.Rows;
         }
 
-        protected override int GetEventDefIndex(IEventDefinition def)
+        protected override EventDefinitionHandle GetEventDefinitionHandle(IEventDefinition def)
         {
-            return _eventDefs[def];
+            return MetadataTokens.EventDefinitionHandle(_eventDefs[def]);
         }
 
         protected override IReadOnlyList<IEventDefinition> GetEventDefs()
@@ -144,9 +151,9 @@ namespace Microsoft.Cci
             return _eventDefs.Rows;
         }
 
-        protected override int GetFieldDefIndex(IFieldDefinition def)
+        protected override FieldDefinitionHandle GetFieldDefinitionHandle(IFieldDefinition def)
         {
-            return _fieldDefs[def];
+            return MetadataTokens.FieldDefinitionHandle(_fieldDefs[def]);
         }
 
         protected override IReadOnlyList<IFieldDefinition> GetFieldDefs()
@@ -154,19 +161,22 @@ namespace Microsoft.Cci
             return _fieldDefs.Rows;
         }
 
-        protected override bool TryGetMethodDefIndex(IMethodDefinition def, out int index)
+        protected override bool TryGetMethodDefinitionHandle(IMethodDefinition def, out MethodDefinitionHandle handle)
         {
-            return _methodDefs.TryGetValue(def, out index);
+            int index;
+            bool result = _methodDefs.TryGetValue(def, out index);
+            handle = MetadataTokens.MethodDefinitionHandle(index);
+            return result;
         }
 
-        protected override int GetMethodDefIndex(IMethodDefinition def)
+        protected override MethodDefinitionHandle GetMethodDefinitionHandle(IMethodDefinition def)
         {
-            return _methodDefs[def];
+            return MetadataTokens.MethodDefinitionHandle(_methodDefs[def]);
         }
 
-        protected override IMethodDefinition GetMethodDef(int index)
+        protected override IMethodDefinition GetMethodDef(MethodDefinitionHandle handle)
         {
-            return _methodDefs[index];
+            return _methodDefs[MetadataTokens.GetRowNumber(handle)];
         }
 
         protected override IReadOnlyList<IMethodDefinition> GetMethodDefs()
@@ -174,9 +184,9 @@ namespace Microsoft.Cci
             return _methodDefs.Rows;
         }
 
-        protected override int GetPropertyDefIndex(IPropertyDefinition def)
+        protected override PropertyDefinitionHandle GetPropertyDefIndex(IPropertyDefinition def)
         {
-            return _propertyDefs[def];
+            return MetadataTokens.PropertyDefinitionHandle(_propertyDefs[def]);
         }
 
         protected override IReadOnlyList<IPropertyDefinition> GetPropertyDefs()
@@ -184,9 +194,9 @@ namespace Microsoft.Cci
             return _propertyDefs.Rows;
         }
 
-        protected override int GetParameterDefIndex(IParameterDefinition def)
+        protected override ParameterHandle GetParameterHandle(IParameterDefinition def)
         {
-            return _parameterDefs[def];
+            return MetadataTokens.ParameterHandle(_parameterDefs[def]);
         }
 
         protected override IReadOnlyList<IParameterDefinition> GetParameterDefs()
@@ -199,24 +209,24 @@ namespace Microsoft.Cci
             return _genericParameters.Rows;
         }
 
-        protected override int GetFieldDefIndex(INamedTypeDefinition typeDef)
+        protected override FieldDefinitionHandle GetFirstFieldDefinitionHandle(INamedTypeDefinition typeDef)
         {
-            return _fieldDefIndex[typeDef];
+            return MetadataTokens.FieldDefinitionHandle(_fieldDefIndex[typeDef]);
         }
 
-        protected override int GetMethodDefIndex(INamedTypeDefinition typeDef)
+        protected override MethodDefinitionHandle GetFirstMethodDefinitionHandle(INamedTypeDefinition typeDef)
         {
-            return _methodDefIndex[typeDef];
+            return MetadataTokens.MethodDefinitionHandle(_methodDefIndex[typeDef]);
         }
 
-        protected override int GetParameterDefIndex(IMethodDefinition methodDef)
+        protected override ParameterHandle GetFirstParameterHandle(IMethodDefinition methodDef)
         {
-            return _parameterListIndex[methodDef];
+            return MetadataTokens.ParameterHandle(_parameterListIndex[methodDef]);
         }
 
-        protected override int GetOrAddAssemblyRefIndex(IAssemblyReference reference)
+        protected override AssemblyReferenceHandle GetOrAddAssemblyReferenceHandle(IAssemblyReference reference)
         {
-            return _assemblyRefIndex.GetOrAdd(reference.Identity);
+            return MetadataTokens.AssemblyReferenceHandle(_assemblyRefIndex.GetOrAdd(reference.Identity));
         }
 
         protected override IReadOnlyList<AssemblyIdentity> GetAssemblyRefs()
@@ -224,9 +234,9 @@ namespace Microsoft.Cci
             return _assemblyRefIndex.Rows;
         }
 
-        protected override int GetOrAddModuleRefIndex(string reference)
+        protected override ModuleReferenceHandle GetOrAddModuleReferenceHandle(string reference)
         {
-            return _moduleRefIndex.GetOrAdd(reference);
+            return MetadataTokens.ModuleReferenceHandle(_moduleRefIndex.GetOrAdd(reference));
         }
 
         protected override IReadOnlyList<string> GetModuleRefs()
@@ -234,9 +244,9 @@ namespace Microsoft.Cci
             return _moduleRefIndex.Rows;
         }
 
-        protected override int GetOrAddMemberRefIndex(ITypeMemberReference reference)
+        protected override MemberReferenceHandle GetOrAddMemberReferenceHandle(ITypeMemberReference reference)
         {
-            return _memberRefIndex.GetOrAdd(reference);
+            return MetadataTokens.MemberReferenceHandle(_memberRefIndex.GetOrAdd(reference));
         }
 
         protected override IReadOnlyList<ITypeMemberReference> GetMemberRefs()
@@ -244,9 +254,9 @@ namespace Microsoft.Cci
             return _memberRefIndex.Rows;
         }
 
-        protected override int GetOrAddMethodSpecIndex(IGenericMethodInstanceReference reference)
+        protected override MethodSpecificationHandle GetOrAddMethodSpecificationHandle(IGenericMethodInstanceReference reference)
         {
-            return _methodSpecIndex.GetOrAdd(reference);
+            return MetadataTokens.MethodSpecificationHandle(_methodSpecIndex.GetOrAdd(reference));
         }
 
         protected override IReadOnlyList<IGenericMethodInstanceReference> GetMethodSpecs()
@@ -255,15 +265,18 @@ namespace Microsoft.Cci
         }
 
         protected override int GreatestMethodDefIndex => _methodDefs.NextRowId;
-       
-        protected override bool TryGetTypeRefIndex(ITypeReference reference, out int index)
+        
+        protected override bool TryGetTypeRefeferenceHandle(ITypeReference reference, out TypeReferenceHandle handle)
         {
-            return _typeRefIndex.TryGetValue(reference, out index);
+            int index;
+            bool result = _typeRefIndex.TryGetValue(reference, out index);
+            handle = MetadataTokens.TypeReferenceHandle(index);
+            return result;
         }
 
-        protected override int GetOrAddTypeRefIndex(ITypeReference reference)
+        protected override TypeReferenceHandle GetOrAddTypeReferenceHandle(ITypeReference reference)
         {
-            return _typeRefIndex.GetOrAdd(reference);
+            return MetadataTokens.TypeReferenceHandle(_typeRefIndex.GetOrAdd(reference));
         }
 
         protected override IReadOnlyList<ITypeReference> GetTypeRefs()
@@ -271,9 +284,9 @@ namespace Microsoft.Cci
             return _typeRefIndex.Rows;
         }
 
-        protected override int GetOrAddTypeSpecIndex(ITypeReference reference)
+        protected override TypeSpecificationHandle GetOrAddTypeSpecificationHandle(ITypeReference reference)
         {
-            return _typeSpecIndex.GetOrAdd(reference);
+            return MetadataTokens.TypeSpecificationHandle(_typeSpecIndex.GetOrAdd(reference));
         }
 
         protected override IReadOnlyList<ITypeReference> GetTypeSpecs()
@@ -281,12 +294,12 @@ namespace Microsoft.Cci
             return _typeSpecIndex.Rows;
         }
 
-        protected override int GetOrAddStandAloneSignatureIndex(BlobIdx blobIndex)
+        protected override StandaloneSignatureHandle GetOrAddStandaloneSignatureHandle(BlobHandle blobIndex)
         {
-            return _standAloneSignatureIndex.GetOrAdd(blobIndex);
+            return MetadataTokens.StandaloneSignatureHandle(_standAloneSignatureIndex.GetOrAdd(blobIndex));
         }
 
-        protected override IReadOnlyList<BlobIdx> GetStandAloneSignatures()
+        protected override IReadOnlyList<BlobHandle> GetStandaloneSignatureBlobHandles()
         {
             return _standAloneSignatureIndex.Rows;
         }
@@ -309,15 +322,15 @@ namespace Microsoft.Cci
             }
         }
 
-        protected override void PopulateEncLogTableRows(List<EncLogRow> table, ImmutableArray<int> rowCounts)
+        protected override void PopulateEncLogTableRows(ImmutableArray<int> rowCounts)
         {
         }
 
-        protected override void PopulateEncMapTableRows(List<EncMapRow> table, ImmutableArray<int> rowCounts)
+        protected override void PopulateEncMapTableRows(ImmutableArray<int> rowCounts)
         {
         }
 
-        protected override void PopulateEventMapTableRows(List<EventMapRow> table)
+        protected override void PopulateEventMapTableRows()
         {
             ITypeDefinition lastParent = null;
             foreach (IEventDefinition eventDef in this.GetEventDefs())
@@ -328,15 +341,14 @@ namespace Microsoft.Cci
                 }
 
                 lastParent = eventDef.ContainingTypeDefinition;
-                int eventIndex = this.GetEventDefIndex(eventDef);
-                EventMapRow r = new EventMapRow();
-                r.Parent = (uint)this.GetTypeDefIndex(lastParent);
-                r.EventList = (uint)eventIndex;
-                table.Add(r);
+
+                metadata.AddEventMap(
+                    declaringType: GetTypeDefinitionHandle(lastParent),
+                    eventList: GetEventDefinitionHandle(eventDef));
             }
         }
 
-        protected override void PopulatePropertyMapTableRows(List<PropertyMapRow> table)
+        protected override void PopulatePropertyMapTableRows()
         {
             ITypeDefinition lastParent = null;
             foreach (IPropertyDefinition propertyDef in this.GetPropertyDefs())
@@ -347,11 +359,10 @@ namespace Microsoft.Cci
                 }
 
                 lastParent = propertyDef.ContainingTypeDefinition;
-                int propertyIndex = this.GetPropertyDefIndex(propertyDef);
-                PropertyMapRow r = new PropertyMapRow();
-                r.Parent = (uint)this.GetTypeDefIndex(lastParent);
-                r.PropertyList = (uint)propertyIndex;
-                table.Add(r);
+
+                metadata.AddPropertyMap(
+                    declaringType: GetTypeDefinitionHandle(lastParent),
+                    propertyList: GetPropertyDefIndex(propertyDef));
             }
         }
 
@@ -422,6 +433,7 @@ namespace Microsoft.Cci
 
         private struct DefinitionIndex<T> where T : IReference
         {
+            // IReference to RowId
             private readonly Dictionary<T, int> _index;
             private readonly List<T> _rows;
 
@@ -431,9 +443,9 @@ namespace Microsoft.Cci
                 _rows = new List<T>(capacity);
             }
 
-            public bool TryGetValue(T item, out int index)
+            public bool TryGetValue(T item, out int rowId)
             {
-                return _index.TryGetValue(item, out index);
+                return _index.TryGetValue(item, out rowId);
             }
 
             public int this[T item]
@@ -441,9 +453,9 @@ namespace Microsoft.Cci
                 get { return _index[item]; }
             }
 
-            public T this[int index]
+            public T this[int rowId]
             {
-                get { return _rows[index]; }
+                get { return _rows[rowId - 1]; }
             }
 
             public IReadOnlyList<T> Rows

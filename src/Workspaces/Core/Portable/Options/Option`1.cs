@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.Options
     /// <summary>
     /// An global option. An instance of this class can be used to access an option value from an OptionSet.
     /// </summary>
-    public class Option<T> : IOption2, IOption
+    public class Option<T> : IOption
     {
         /// <summary>
         /// Feature this option is associated with.
@@ -22,7 +22,10 @@ namespace Microsoft.CodeAnalysis.Options
         /// <summary>
         /// The type of the option value.
         /// </summary>
-        public Type Type => typeof(T);
+        public Type Type
+        {
+            get { return typeof(T); }
+        }
 
         /// <summary>
         /// The default value of the option.
@@ -46,13 +49,19 @@ namespace Microsoft.CodeAnalysis.Options
             this.DefaultValue = defaultValue;
         }
 
-        Type IOption.Type => typeof(T);
-        object IOption.DefaultValue => this.DefaultValue;
-        bool IOption.IsPerLanguage => false;
-
-        object IOption2.GetDefaultValue(string language)
+        Type IOption.Type
         {
-            return this.DefaultValue;
+            get { return typeof(T); }
+        }
+
+        object IOption.DefaultValue
+        {
+            get { return this.DefaultValue; }
+        }
+
+        bool IOption.IsPerLanguage
+        {
+            get { return false; }
         }
 
         public override string ToString()

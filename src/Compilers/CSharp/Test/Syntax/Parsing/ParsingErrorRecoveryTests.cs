@@ -5259,7 +5259,35 @@ class C
         public void TestSemicolonAfterUntypedLambdaParameter()
         {
             var text = "class c { void m() { var x = (y, ; } }";
-            var file = this.ParseTree(text);
+            var file = this.ParseTree(text, options: TestOptions.Regular.WithTuplesFeature());
+
+            Assert.NotNull(file);
+            Assert.Equal(text, file.ToFullString());
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
+            var agg = (TypeDeclarationSyntax)file.Members[0];
+            Assert.Equal(1, agg.Members.Count);
+            Assert.Equal(SyntaxKind.MethodDeclaration, agg.Members[0].Kind());
+            var ms = (MethodDeclarationSyntax)agg.Members[0];
+            Assert.NotNull(ms.Body);
+            Assert.Equal(1, ms.Body.Statements.Count);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, ms.Body.Statements[0].Kind());
+            var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
+            Assert.Equal(1, ds.Declaration.Variables.Count);
+            Assert.NotNull(ds.Declaration.Variables[0].Initializer);
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
+            Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
+            Assert.Equal(SyntaxKind.TupleExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
+            Assert.Equal(2, file.Errors().Length);
+            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, file.Errors()[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_CloseParenExpected, file.Errors()[1].Code);
+        }
+
+        [Fact]
+        public void TestSemicolonAfterUntypedLambdaParameterWithCSharp6()
+        {
+            var text = "class c { void m() { var x = (y, ; } }";
+            var file = this.ParseTree(text, TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5320,6 +5348,36 @@ class C
 
         [Fact]
         public void TestStatementAfterUntypedLambdaParameter()
+        {
+            var text = "class c { void m() { var x = (y, while (c) { } } }";
+            var file = this.ParseTree(text, options: TestOptions.Regular.WithTuplesFeature());
+
+            Assert.NotNull(file);
+            Assert.Equal(text, file.ToFullString());
+            Assert.Equal(1, file.Members.Count);
+            Assert.Equal(SyntaxKind.ClassDeclaration, file.Members[0].Kind());
+            var agg = (TypeDeclarationSyntax)file.Members[0];
+            Assert.Equal(1, agg.Members.Count);
+            Assert.Equal(SyntaxKind.MethodDeclaration, agg.Members[0].Kind());
+            var ms = (MethodDeclarationSyntax)agg.Members[0];
+            Assert.NotNull(ms.Body);
+            Assert.Equal(2, ms.Body.Statements.Count);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, ms.Body.Statements[0].Kind());
+            Assert.Equal(SyntaxKind.WhileStatement, ms.Body.Statements[1].Kind());
+            var ds = (LocalDeclarationStatementSyntax)ms.Body.Statements[0];
+            Assert.Equal(1, ds.Declaration.Variables.Count);
+            Assert.NotNull(ds.Declaration.Variables[0].Initializer);
+            Assert.NotEqual(SyntaxKind.None, ds.Declaration.Variables[0].Initializer.EqualsToken.Kind());
+            Assert.NotNull(ds.Declaration.Variables[0].Initializer.Value);
+            Assert.Equal(SyntaxKind.TupleExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
+            Assert.Equal(3, file.Errors().Length);
+            Assert.Equal((int)ErrorCode.ERR_InvalidExprTerm, file.Errors()[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_CloseParenExpected, file.Errors()[1].Code);
+            Assert.Equal((int)ErrorCode.ERR_SemicolonExpected, file.Errors()[2].Code);
+        }
+
+        [Fact]
+        public void TestStatementAfterUntypedLambdaParameterWithCSharp6()
         {
             var text = "class c { void m() { var x = (y, while (c) { } } }";
             var file = this.ParseTree(text);

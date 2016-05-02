@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     F.CatchBlocks(
                         new BoundCatchBlock(
                             F.Syntax,
-                            exceptionLocal,
+                            ImmutableArray.Create(exceptionLocal),
                             F.Local(exceptionLocal),
                             exceptionLocal.Type,
                             exceptionFilterOpt: null,

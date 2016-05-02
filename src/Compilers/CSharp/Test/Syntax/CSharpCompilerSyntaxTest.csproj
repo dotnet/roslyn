@@ -104,6 +104,7 @@
     <Compile Include="Parsing\SeparatedSyntaxListParsingTests.cs" />
     <Compile Include="Parsing\StatementParsingTests.cs" />
     <Compile Include="Parsing\SyntaxExtensions.cs" />
+    <Compile Include="Parsing\ValueTupleTests.cs" />
     <Compile Include="Parsing\VerbatimCrefParsingTests.cs" />
     <Compile Include="Resources.Designer.cs">
       <AutoGen>True</AutoGen>
