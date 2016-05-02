@@ -6,10 +6,10 @@ namespace Microsoft.CodeAnalysis.Shared.Options
     {
         public const string FeatureName = "AddImport";
 
-        public static PerLanguageOption<bool> OfferForTypesFromNetReferenceAssemblies =
-            new PerLanguageOption<bool>(FeatureName, nameof(OfferForTypesFromNetReferenceAssemblies), defaultValue: false);
+        public static Option<bool> OfferForTypesFromNetReferenceAssemblies =
+            new Option<bool>(FeatureName, nameof(OfferForTypesFromNetReferenceAssemblies), defaultValue: false);
 
-        public static PerLanguageOption<bool> SuggestForTypesInNuGetPackages =
-            new PerLanguageOption<bool>(FeatureName, nameof(SuggestForTypesInNuGetPackages), defaultValue: false);
+        public static Option<bool> SuggestForTypesInNuGetPackages =
+            new Option<bool>(FeatureName, nameof(SuggestForTypesInNuGetPackages), defaultValue: false);
     }
 }
