@@ -186,6 +186,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ExtractInterfac
             {
                 get { return MemberSymbol.GetGlyph().GetImageSource(_glyphService); }
             }
+
+            public string MemberAutomationText
+            {
+                get { return MemberSymbol.Kind + " " + MemberName; }
+            }
         }
     }
 }
