@@ -385,34 +385,6 @@ namespace NS
             Assert.Null(ResolveSymbol(typeSym02, comp2, comp1, SymbolKeyComparison.CaseSensitive));
         }
 
-        [WpfFact(Skip = "530169"), WorkItem(530169, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530169")]
-        public void C2CAssemblyChanged02()
-        {
-            var src = @"[assembly: System.Reflection.AssemblyVersion(""1.2.3.4"")] public class C {}";
-
-            // same identity
-            var comp1 = CreateCompilationWithMscorlib(src, assemblyName: "Assembly");
-            var comp2 = CreateCompilationWithMscorlib(src, assemblyName: "Assembly");
-
-            Symbol sym1 = comp1.Assembly;
-            Symbol sym2 = comp2.Assembly;
-
-            // Not ignoreAssemblyAndModules
-            ResolveAndVerifySymbol(sym1, comp2, sym2, comp2);
-
-            AssertSymbolKeysEqual(sym1, comp1, sym2, comp2, SymbolKeyComparison.IgnoreAssemblyIds, true);
-            Assert.NotNull(ResolveSymbol(sym1, comp1, comp2, SymbolKeyComparison.IgnoreAssemblyIds));
-
-            // Module
-            sym1 = comp1.Assembly.Modules[0];
-            sym2 = comp2.Assembly.Modules[0];
-
-            ResolveAndVerifySymbol(sym1, comp1, sym2, comp2);
-
-            AssertSymbolKeysEqual(sym2, comp2, sym1, comp1, SymbolKeyComparison.IgnoreAssemblyIds, true);
-            Assert.NotNull(ResolveSymbol(sym2, comp2, comp1, SymbolKeyComparison.IgnoreAssemblyIds));
-        }
-
         [Fact, WorkItem(530170, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530170")]
         public void C2CAssemblyChanged03()
         {
