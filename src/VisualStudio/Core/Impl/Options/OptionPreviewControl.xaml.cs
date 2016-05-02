@@ -2,9 +2,12 @@
 
 using System;
 using System.Linq;
+using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Data;
 using System.Windows.Input;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
@@ -19,13 +22,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             InitializeComponent();
 
-            _serviceProvider = serviceProvider;
+            // AutomationDelegatingListView is defined in ServicesVisualStudio, which has
+            // InternalsVisibleTo this project. But, the markup compiler doesn't consider the IVT 
+            // relationship, so declaring the AutomationDelegatingListView in XAML would require 
+            // duplicating that type in this project. Declaring and setting it here avoids the 
+            // markup compiler completely, allowing us to reference the internal 
+            // AutomationDelegatingListView without issue.
+            var listview = new AutomationDelegatingListView();
+            listview.Name = "Options";
+            listview.SelectionMode = SelectionMode.Single;
+            listview.PreviewKeyDown += Options_PreviewKeyDown;
+            listview.SelectionChanged += Options_SelectionChanged;
+            listview.SetBinding(ItemsControl.ItemsSourceProperty, new Binding { Path = new PropertyPath(nameof(ViewModel.Items)) });
+
+            listViewContentControl.Content = listview;
+
+             _serviceProvider = serviceProvider;
             _createViewModel = createViewModel;
         }
 
         private void Options_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            var listView = (ListView)sender;
+            var listView = (AutomationDelegatingListView)sender;
             var checkbox = listView.SelectedItem as CheckBoxOptionViewModel;
             if (checkbox != null)
             {
@@ -43,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             if (e.Key == Key.Space && e.KeyboardDevice.Modifiers == ModifierKeys.None)
             {
-                var listView = (ListView)sender;
+                var listView = (AutomationDelegatingListView)sender;
                 var checkBox = listView.SelectedItem as CheckBoxOptionViewModel;
                 if (checkBox != null)
                 {

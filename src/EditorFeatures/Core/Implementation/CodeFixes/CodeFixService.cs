@@ -287,22 +287,21 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 // If the fix provider supports fix all occurrences, then get the corresponding FixAllProviderInfo and fix all context.
                 var fixAllProviderInfo = extensionManager.PerformFunction(fixer, () => ImmutableInterlocked.GetOrAdd(ref _fixAllProviderMap, fixer, FixAllProviderInfo.Create), defaultValue: null);
 
-                FixAllProvider fixAllProvider = null;
-                FixAllContext fixAllContext = null;
+                FixAllState fixAllState = null;
                 IEnumerable<FixAllScope> supportedScopes = null;
                 if (fixAllProviderInfo != null)
                 {
                     var codeFixProvider = (fixer as CodeFixProvider) ?? new WrapperCodeFixProvider((ISuppressionFixProvider)fixer, diagnostics.Select(d => d.Id));
-                    fixAllProvider = fixAllProviderInfo.FixAllProvider;
-                    fixAllContext = FixAllContext.Create(
+                    fixAllState = FixAllState.Create(
+                        fixAllProviderInfo.FixAllProvider,
                         document, fixAllProviderInfo, codeFixProvider, diagnostics,
-                        this.GetDocumentDiagnosticsAsync, this.GetProjectDiagnosticsAsync, cancellationToken);
+                        this.GetDocumentDiagnosticsAsync, this.GetProjectDiagnosticsAsync);
                     supportedScopes = fixAllProviderInfo.SupportedScopes;
                 }
 
                 result = result ?? new List<CodeFixCollection>();
                 var codeFix = new CodeFixCollection(
-                    fixer, span, fixes, fixAllProvider, fixAllContext,
+                    fixer, span, fixes, fixAllState,
                     supportedScopes, diagnostics.First());
                 result.Add(codeFix);
             }

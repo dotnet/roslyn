@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
-    public partial class FixAllContext
+    internal partial class FixAllState
     {
         // Internal for testing purposes.
         internal class FixAllDiagnosticProvider : FixAllContext.DiagnosticProvider
