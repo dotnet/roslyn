@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
     internal partial class MethodDebugInfo<TTypeSymbol, TLocalSymbol>
     {
         public unsafe static MethodDebugInfo<TTypeSymbol, TLocalSymbol> ReadMethodDebugInfo(
-            ISymUnmanagedReader symReader,
+            ISymUnmanagedReader3 symReader,
             EESymbolProvider<TTypeSymbol, TLocalSymbol> symbolProviderOpt, // TODO: only null in DTEE case where we looking for default namesapace
             int methodToken,
             int methodVersion,
@@ -138,7 +138,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         }
 
         private static void ReadCSharpNativeImportsInfo(
-            ISymUnmanagedReader reader,
+            ISymUnmanagedReader3 reader,
             EESymbolProvider<TTypeSymbol, TLocalSymbol> symbolProvider,
             int methodToken,
             int methodVersion,
@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
         }
 
         private static void ReadCSharpNativeCustomDebugInfo(
-            ISymUnmanagedReader reader,
+            ISymUnmanagedReader3 reader,
             int methodToken,
             int methodVersion,
             IEnumerable<ISymUnmanagedScope> scopes,
@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 {
                     string name = constant.GetName();
                     object rawValue = constant.GetValue();
-                    var signature = constant.GetSignature();
+                    var signature = constant.GetSignature().ToImmutableArray();
 
                     TTypeSymbol type;
                     try

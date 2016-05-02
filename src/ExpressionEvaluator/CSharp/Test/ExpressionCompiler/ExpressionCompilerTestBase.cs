@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator.UnitTests
             var symReader = runtime.Modules.Single(mi => mi.ModuleVersionId == peModule.Module.GetModuleVersionIdOrThrow()).SymReader;
             var symbolProvider = new CSharpEESymbolProvider((SourceAssemblySymbol)peCompilation.Assembly, peModule, peMethod);
 
-            return MethodDebugInfo<TypeSymbol, LocalSymbol>.ReadMethodDebugInfo((ISymUnmanagedReader)symReader, symbolProvider, MetadataTokens.GetToken(peMethod.Handle), methodVersion: 1, ilOffset: ilOffset, isVisualBasicMethod: false);
+            return MethodDebugInfo<TypeSymbol, LocalSymbol>.ReadMethodDebugInfo((ISymUnmanagedReader3)symReader, symbolProvider, MetadataTokens.GetToken(peMethod.Handle), methodVersion: 1, ilOffset: ilOffset, isVisualBasicMethod: false);
         }
     }
 }
