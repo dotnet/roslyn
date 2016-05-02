@@ -646,18 +646,6 @@ namespace Roslyn.Utilities
         }
     }
 
-    internal static class SimplePoolExtensions
-    {
-        public static Dictionary<TKey, TValue> AllocateAndClear<TKey, TValue>(
-            this SimplePool<Dictionary<TKey, TValue>> pool)
-        {
-            var map = pool.Allocate();
-            map.Clear();
-
-            return map;
-        }
-    }
-
     internal static class ArrayPool<T>
     {
         private const int MaxPooledArraySize = 256;
