@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Shared.Options
         public static PerLanguageOption<bool> OfferForTypesFromNetReferenceAssemblies =
             new PerLanguageOption<bool>(FeatureName, nameof(OfferForTypesFromNetReferenceAssemblies), defaultValue: false);
 
-        public static PerLanguageOption<bool> OfferForTypesFromNugetOrgPackages =
-            new PerLanguageOption<bool>(FeatureName, nameof(OfferForTypesFromNugetOrgPackages), defaultValue: false);
+        public static PerLanguageOption<bool> SuggestForTypesInNuGetPackages =
+            new PerLanguageOption<bool>(FeatureName, nameof(SuggestForTypesInNuGetPackages), defaultValue: false);
     }
 }

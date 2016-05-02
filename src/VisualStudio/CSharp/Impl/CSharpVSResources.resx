@@ -369,8 +369,8 @@
   <data name="Option_OptimizeForSolutionSize_Small" xml:space="preserve">
     <value>Small</value>
   </data>
-  <data name="Option_Add_using" xml:space="preserve">
-    <value>Add 'using'</value>
+  <data name="Option_Using_Directives" xml:space="preserve">
+    <value>Using Directives</value>
   </data>
   <data name="Option_Outlining" xml:space="preserve">
     <value>Outlining</value>
@@ -408,10 +408,10 @@
   <data name="NewLinesForBracesProperty" xml:space="preserve">
     <value>Place open brace on new line for properties, indexers, and events</value>
   </data>
-  <data name="Option_Offer_to_add_using_for_types_from_Net_reference_assemblies" xml:space="preserve">
-    <value>Offer to add 'using' for types from .Net reference assemblies</value>
+  <data name="Option_Suggest_usings_for_types_in_reference_assemblies" xml:space="preserve">
+    <value>Suggest usings for types in reference assemblies</value>
   </data>
-  <data name="Option_Offer_to_add_using_for_types_from_Nuget_org_packages" xml:space="preserve">
-    <value>Offer to add 'using' for types from Nuget.org packages</value>
+  <data name="Option_Suggest_usings_for_types_in_NuGet_packages" xml:space="preserve">
+    <value>Suggest usings for types in NuGet packages</value>
   </data>
 </root>

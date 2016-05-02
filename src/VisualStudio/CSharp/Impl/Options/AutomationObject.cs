@@ -300,16 +300,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(OrganizerOptions.PlaceSystemNamespaceFirst, value); }
         }
 
-        public int AddImport_OfferForTypesFromNetReferenceAssemblies
+        public int AddImport_SuggestForTypesInReferenceAssemblies
         {
             get { return GetBooleanOption(AddImportOptions.OfferForTypesFromNetReferenceAssemblies); }
             set { SetBooleanOption(AddImportOptions.OfferForTypesFromNetReferenceAssemblies, value); }
         }
 
-        public int AddImport_OfferForTypesFromNugetOrgPackages
+        public int AddImport_SuggestForTypesInNuGetPackages
         {
-            get { return GetBooleanOption(AddImportOptions.OfferForTypesFromNugetOrgPackages); }
-            set { SetBooleanOption(AddImportOptions.OfferForTypesFromNugetOrgPackages, value); }
+            get { return GetBooleanOption(AddImportOptions.SuggestForTypesInNuGetPackages); }
+            set { SetBooleanOption(AddImportOptions.SuggestForTypesInNuGetPackages, value); }
         }
 
         public int Space_AfterBasesColon
