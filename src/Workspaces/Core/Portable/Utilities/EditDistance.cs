@@ -112,7 +112,7 @@ namespace Roslyn.Utilities
 
         private const int MaxMatrixPoolDimension = 64;
         private static readonly ThreadLocal<int[,]> t_matrixPool = 
-            new ThreadLocal<int[,]>(() => InitializeMatrix(new int[64, 64]));
+            new ThreadLocal<int[,]>(() => InitializeMatrix(new int[MaxMatrixPoolDimension, MaxMatrixPoolDimension]));
 
         private static int[,] GetMatrix(int width, int height)
         {
