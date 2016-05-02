@@ -1,6 +1,6 @@
 ﻿#load "test_util.csx"
 
-var binaries = new RelativeDirectory().MyBinaries();
+var binariesDirectory = new RelativeDirectory().MyBinaries();
 var vsixes = new[]
 {
     "Roslyn.VisualStudio.Setup.vsix",
@@ -12,11 +12,11 @@ var vsixes = new[]
     "Microsoft.VisualStudio.LanguageServices.Telemetry.vsix"
 };
 
-var installer = Path.Combine(binaries, "VSIXExpInstaller.exe");
+var installer = Path.Combine(binariesDirectory, "VSIXExpInstaller.exe");
 
 foreach (var vsix in vsixes)
 {
-    ShellOutVital(installer, $"/rootSuffix:RoslynPerf {vsix}", binaries, System.Threading.CancellationToken.None);
+    ShellOutVital(installer, $"/rootSuffix:RoslynPerf {vsix}", binariesDirectory, System.Threading.CancellationToken.None);
 }
 
 
