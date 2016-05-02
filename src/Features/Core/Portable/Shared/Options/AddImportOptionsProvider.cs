@@ -14,7 +14,8 @@ namespace Microsoft.CodeAnalysis.Shared.Options
     internal class AddImportOptionsProvider : IOptionProvider
     {
         private readonly IEnumerable<IOption> _options = ImmutableArray.Create<IOption>(
-            AddImportOptions.SuggestForTypesInReferenceAssemblies);
+            AddImportOptions.SuggestForTypesInReferenceAssemblies,
+            AddImportOptions.SuggestForTypesInNuGetPackages);
 
         public IEnumerable<IOption> GetOptions() => _options;
     }

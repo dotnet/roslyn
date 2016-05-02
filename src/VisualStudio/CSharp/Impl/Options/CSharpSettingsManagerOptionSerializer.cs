@@ -82,6 +82,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             Type[] types = new[]
                 {
                     typeof(OrganizerOptions),
+                    typeof(AddImportOptions),
                     typeof(CSharpCompletionOptions),
                     typeof(SimplificationOptions),
                     typeof(CSharpCodeStyleOptions),
@@ -121,6 +122,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             if (option == OrganizerOptions.PlaceSystemNamespaceFirst ||
                 option == AddImportOptions.SuggestForTypesInReferenceAssemblies ||
+                option == AddImportOptions.SuggestForTypesInNuGetPackages ||
                 option == CSharpCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord ||
                 option == CSharpCompletionOptions.IncludeSnippets ||
                 option.Feature == CSharpCodeStyleOptions.FeatureName ||
