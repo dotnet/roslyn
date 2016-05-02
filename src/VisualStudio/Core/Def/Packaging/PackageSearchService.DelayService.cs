@@ -4,7 +4,7 @@ using System;
 
 namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
-    internal partial class PackageSearchService
+    internal partial class SymbolSearchService
     {
         private class DelayService : IPackageSearchDelayService
         {

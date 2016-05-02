@@ -8,7 +8,7 @@ using Microsoft.Internal.VisualStudio.Shell.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
-    internal partial class PackageSearchService
+    internal partial class SymbolSearchService
     {
         private class RemoteControlService : IPackageSearchRemoteControlService
         {

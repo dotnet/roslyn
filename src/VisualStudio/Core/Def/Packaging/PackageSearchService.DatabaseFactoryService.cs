@@ -5,7 +5,7 @@ using Microsoft.CodeAnalysis.Elfie.Model;
 
 namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
-    internal partial class PackageSearchService
+    internal partial class SymbolSearchService
     {
         private class DatabaseFactoryService : IPackageSearchDatabaseFactoryService
         {

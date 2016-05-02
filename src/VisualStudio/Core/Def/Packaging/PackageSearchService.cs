@@ -19,6 +19,8 @@ using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.Settings;
 using static System.FormattableString;
 using VSShell = Microsoft.VisualStudio.Shell;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
@@ -29,16 +31,19 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     /// This implementation also spawns a task which will attempt to keep that database up to
     /// date by downloading patches on a daily basis.
     /// </summary>
-    internal partial class PackageSearchService :
+    internal partial class SymbolSearchService :
         ForegroundThreadAffinitizedObject,
-        IPackageSearchService,
-        IReferenceAssemblySearchService,
+        ISymbolSearchService,
         IDisposable
     {
         private ConcurrentDictionary<string, AddReferenceDatabase> _sourceToDatabase = new ConcurrentDictionary<string, AddReferenceDatabase>();
 
-        public PackageSearchService(VSShell.SVsServiceProvider serviceProvider, IPackageInstallerService installerService)
-            : this(installerService, 
+        public SymbolSearchService(
+            VSShell.SVsServiceProvider serviceProvider,
+            Workspace workspace,
+            IPackageInstallerService installerService)
+            : this(workspace, 
+                   installerService, 
                    CreateRemoteControlService(serviceProvider),
                    new LogService((IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog))),
                    new DelayService(),
@@ -50,8 +55,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                    FatalError.ReportWithoutCrash,
                    new CancellationTokenSource())
         {
-            installerService.PackageSourcesChanged += OnPackageSourcesChanged;
-            OnPackageSourcesChanged(this, EventArgs.Empty);
+            installerService.PackageSourcesChanged += OnOptionChanged;
+            var optionsService = workspace.Services.GetService<IOptionService>();
+            optionsService.OptionChanged += OnOptionChanged;
+
+            OnOptionChanged(this, EventArgs.Empty);
         }
 
         private static IPackageSearchRemoteControlService CreateRemoteControlService(VSShell.SVsServiceProvider serviceProvider)
@@ -69,7 +77,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         /// <summary>
         /// For testing purposes only.
         /// </summary>
-        internal PackageSearchService(
+        internal SymbolSearchService(
+            Workspace workspace,
             IPackageInstallerService installerService,
             IPackageSearchRemoteControlService remoteControlService,
             IPackageSearchLogService logService,
@@ -87,6 +96,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 return;
             }
 
+            _workspace = workspace;
             _installerService = installerService;
             _delayService = delayService;
             _ioService = ioService;

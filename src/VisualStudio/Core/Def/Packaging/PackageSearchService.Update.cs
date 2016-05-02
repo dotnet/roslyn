@@ -17,6 +17,10 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 using static System.FormattableString;
+using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Shared.Options;
+using System.Linq;
+using System.Collections.Immutable;
 
 namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
@@ -27,7 +31,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     /// This implementation also spawns a task which will attempt to keep that database up to
     /// date by downloading patches on a daily basis.
     /// </summary>
-    internal partial class PackageSearchService
+    internal partial class SymbolSearchService
     {
         // Internal for testing purposes.
         internal const string ContentAttributeName = "content";
@@ -48,6 +52,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         /// </summary>
         private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly CancellationToken _cancellationToken;
+
+        private readonly Workspace _workspace;
 
         private readonly ConcurrentDictionary<string, object> _sourceToUpdateSentinel =
             new ConcurrentDictionary<string, object>();
@@ -76,12 +82,25 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         private void LogException(Exception e, string text) => _logService.LogException(e, text);
 
-        private void OnPackageSourcesChanged(object sender, EventArgs e)
+        private void OnOptionChanged(object sender, EventArgs e)
         {
+            var options = _workspace.Options;
+            if (!options.GetOption(AddImportOptions.SuggestForTypesInReferenceAssemblies) &&
+                !options.GetOption(AddImportOptions.SuggestForTypesInNuGetPackages))
+            {
+                // If we don't have any add-import features that would use these indices, then
+                // don't bother creating them.
+                return;
+            }
+
             // Kick off a database update.  Wait a few seconds before starting so we don't
             // interfere too much with solution loading.
             var sources = _installerService.PackageSources;
-            foreach (var source in sources)
+
+            // Always pull down the nuget.org index.  It contains the MS reference assembly index
+            // inside of it.
+            var allSources = sources.Concat(new PackageSource(NugetOrgSource, source: null));
+            foreach (var source in allSources)
             {
                 Task.Delay(TimeSpan.FromSeconds(10)).ContinueWith(_ =>
                     UpdateSourceInBackgroundAsync(source.Name), TaskScheduler.Default);
@@ -109,11 +128,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         private class Updater
         {
-            private readonly PackageSearchService _service;
+            private readonly SymbolSearchService _service;
             private readonly string _source;
             private readonly FileInfo _databaseFileInfo;
 
-            public Updater(PackageSearchService service, string source)
+            public Updater(SymbolSearchService service, string source)
             {
                 _service = service;
                 _source = source;

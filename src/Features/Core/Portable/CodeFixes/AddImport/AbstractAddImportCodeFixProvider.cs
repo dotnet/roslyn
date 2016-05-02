@@ -25,18 +25,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         private const int MaxResults = 3;
 
         private readonly IPackageInstallerService _packageInstallerService;
-        private readonly IPackageSearchService _packageSearchService;
-        private readonly IReferenceAssemblySearchService _referenceAssemblySearchService;
+        private readonly ISymbolSearchService _symbolSearchService;
 
         /// <summary>Values for these parameters can be provided (during testing) for mocking purposes.</summary> 
         protected AbstractAddImportCodeFixProvider(
             IPackageInstallerService packageInstallerService = null,
-            IPackageSearchService packageSearchService = null,
-            IReferenceAssemblySearchService referenceAssemblySearchService = null)
+            ISymbolSearchService symbolSearchService = null)
         {
             _packageInstallerService = packageInstallerService;
-            _packageSearchService = packageSearchService;
-            _referenceAssemblySearchService = referenceAssemblySearchService;
+            _symbolSearchService = symbolSearchService;
         }
 
         protected abstract bool CanAddImport(SyntaxNode node, CancellationToken cancellationToken);
@@ -81,7 +78,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return;
             }
 
-            var placeSystemNamespaceFirst = document.Project.Solution.Workspace.Options.GetOption(
+            var options = document.Project.Solution.Workspace.Options;
+            var placeSystemNamespaceFirst = options.GetOption(
                 OrganizerOptions.PlaceSystemNamespaceFirst, document.Project.Language);
 
             using (Logger.LogBlock(FunctionId.Refactoring_AddImport, cancellationToken))

@@ -120,7 +120,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         protected override bool SupportsOption(IOption option, string languageName)
         {
             if (option == OrganizerOptions.PlaceSystemNamespaceFirst ||
-                option == AddImportOptions.OfferForTypesFromNetReferenceAssemblies ||
+                option == AddImportOptions.SuggestForTypesInReferenceAssemblies ||
                 option == CSharpCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord ||
                 option == CSharpCompletionOptions.IncludeSnippets ||
                 option.Feature == CSharpCodeStyleOptions.FeatureName ||

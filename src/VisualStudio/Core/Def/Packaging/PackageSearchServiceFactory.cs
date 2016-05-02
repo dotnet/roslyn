@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
@@ -13,7 +14,7 @@ using VSShell = Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
-    [ExportWorkspaceServiceFactory(typeof(IPackageSearchService), WorkspaceKind.Host), Shared]
+    [ExportWorkspaceServiceFactory(typeof(ISymbolSearchService), WorkspaceKind.Host), Shared]
     internal class PackageSearchServiceFactory : IWorkspaceServiceFactory
     {
         private readonly VSShell.SVsServiceProvider _serviceProvider;
@@ -33,19 +34,27 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 // Only support package search in vs workspace.
                 if (workspaceServices.Workspace is VisualStudioWorkspace)
                 {
-                    return new PackageSearchService(_serviceProvider, workspaceServices.GetService<IPackageInstallerService>());
+                    return new SymbolSearchService(
+                        _serviceProvider, workspaceServices.Workspace,
+                        workspaceServices.GetService<IPackageInstallerService>());
                 }
             }
 
-            return new NullPackageSearchService();
+            return new NullSymbolSearchService();
         }
 
-        private class NullPackageSearchService : IPackageSearchService
+        private class NullSymbolSearchService : ISymbolSearchService
         {
             public IEnumerable<PackageWithTypeResult> FindPackagesWithType(
                 string source, string name, int arity, CancellationToken cancellationToken)
             {
                 return SpecializedCollections.EmptyEnumerable<PackageWithTypeResult>();
+            }
+
+            public IEnumerable<ReferenceAssemblyWithTypeResult> FindReferenceAssembliesWithType(
+                string name, int arity, CancellationToken cancellationToken)
+            {
+                return SpecializedCollections.EmptyEnumerable<ReferenceAssemblyWithTypeResult>();
             }
         }
     }

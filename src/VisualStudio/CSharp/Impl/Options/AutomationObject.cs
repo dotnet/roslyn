@@ -302,8 +302,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int AddImport_SuggestForTypesInReferenceAssemblies
         {
-            get { return GetBooleanOption(AddImportOptions.OfferForTypesFromNetReferenceAssemblies); }
-            set { SetBooleanOption(AddImportOptions.OfferForTypesFromNetReferenceAssemblies, value); }
+            get { return GetBooleanOption(AddImportOptions.SuggestForTypesInReferenceAssemblies); }
+            set { SetBooleanOption(AddImportOptions.SuggestForTypesInReferenceAssemblies, value); }
         }
 
         public int AddImport_SuggestForTypesInNuGetPackages
