@@ -4,9 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
-using Microsoft.CodeAnalysis;
-using static System.Math;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 
 namespace Roslyn.Utilities
 {
