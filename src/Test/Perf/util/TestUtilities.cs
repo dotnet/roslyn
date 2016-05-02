@@ -267,42 +267,5 @@ namespace Roslyn.Test.Performance.Utilities
             logger.Log($"Standard Out:\n{result.StdOut}");
             logger.Log($"\nStandard Error:\n{result.StdErr}");
         }
-
-        /// Downloads a zip from azure store and extracts it into
-        /// the ./temp directory.
-        ///
-        /// If this current version has already been downloaded
-        /// and extracted, do nothing.
-        //public static void DownloadProject(string name, int version, ILogger logger)
-        //{
-        //    var zipFileName = $"{name}.{version}.zip";
-        //    var zipPath = Path.Combine(MyTempDirectory(), zipFileName);
-        //    // If we've already downloaded the zip, assume that it
-        //    // has been downloaded *and* extracted.
-        //    if (File.Exists(zipPath))
-        //    {
-        //        logger.Log($"Didn't download and extract {zipFileName} because one already exists.");
-        //        return;
-        //    }
-        //
-        //    // Remove all .zip files that were downloaded before.
-        //    foreach (var path in Directory.EnumerateFiles(MyTempDirectory(), $"{name}.*.zip"))
-        //    {
-        //        logger.Log($"Removing old zip {path}");
-        //        File.Delete(path);
-        //    }
-        //
-        //    // Download zip file to temp directory
-        //    var downloadTarget = $"https://dotnetci.blob.core.windows.net/roslyn-perf/{zipFileName}";
-        //    logger.Log($"Downloading {downloadTarget}");
-        //    var client = new WebClient();
-        //    client.DownloadFile(downloadTarget, zipPath);
-        //    logger.Log($"Done Downloading");
-        //
-        //    // Extract to temp directory
-        //    logger.Log($"Extracting {zipPath} to {MyTempDirectory()}");
-        //    ZipFile.ExtractToDirectory(zipPath, MyTempDirectory());
-        //    logger.Log($"Done Extracting");
-        //}
     }
 }
