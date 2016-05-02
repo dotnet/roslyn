@@ -1,0 +1,14 @@
+﻿<?xml version='1.0' encoding='utf-8'?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+
+<SettingsFile xmlns="http://schemas.microsoft.com/VisualStudio/2004/01/settings" CurrentProfile="(Default)" GeneratedClassNamespace="Roslyn.VisualStudio.Test.Utilities" GeneratedClassName="Settings">
+  <Profiles />
+  <Settings>
+    <Setting Name="VsProductVersion" Type="System.String" Scope="User">
+      <Value Profile="(Default)">14.0</Value>
+    </Setting>
+    <Setting Name="VsRootSuffix" Type="System.String" Scope="User">
+      <Value Profile="(Default)">RoslynDev</Value>
+    </Setting>
+  </Settings>
+</SettingsFile>
