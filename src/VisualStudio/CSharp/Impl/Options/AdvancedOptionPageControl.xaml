@@ -45,9 +45,6 @@
             <GroupBox x:Uid="OrganizeUsingsGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_OrganizeUsings}">
                 <StackPanel>
-                    <CheckBox x:Name="WarnOnBuildErrors"
-                              Visibility="Collapsed"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_WarnOnBuildErrors}" />
                     <CheckBox x:Name="PlaceSystemNamespaceFirst"
                               x:Uid="SortUsings_PlaceSystemFirst"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_PlaceSystemNamespaceFirst}" />

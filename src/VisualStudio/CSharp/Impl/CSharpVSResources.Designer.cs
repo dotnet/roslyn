@@ -610,15 +610,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Warn if _build errors exist when organizing usings.
-        /// </summary>
-        internal static string Option_WarnOnBuildErrors {
-            get {
-                return ResourceManager.GetString("Option_WarnOnBuildErrors", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Prefer intrinsic predefined type keyword when declaring locals, parameters and members.
         /// </summary>
         internal static string PreferIntrinsicPredefinedTypeKeywordInDeclaration {

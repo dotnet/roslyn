@@ -108,10 +108,5 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             get { return CSharpVSResources.Option_PlaceSystemNamespaceFirst; }
         }
-
-        public static string Option_WarnOnBuildErrors
-        {
-            get { return CSharpVSResources.Option_WarnOnBuildErrors; }
-        }
     }
 }

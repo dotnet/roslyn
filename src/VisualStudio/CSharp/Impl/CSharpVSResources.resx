@@ -381,9 +381,6 @@
   <data name="Option_PlaceSystemNamespaceFirst" xml:space="preserve">
     <value>_Place 'System' directives first when sorting usings</value>
   </data>
-  <data name="Option_WarnOnBuildErrors" xml:space="preserve">
-    <value>Warn if _build errors exist when organizing usings</value>
-  </data>
   <data name="Option_BringUpOnIdentifier" xml:space="preserve">
     <value>_Show completion list after a character is typed</value>
   </data>
