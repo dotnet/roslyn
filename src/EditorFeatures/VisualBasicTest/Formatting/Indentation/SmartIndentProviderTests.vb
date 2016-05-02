@@ -29,8 +29,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indenta
         <Fact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub GetSmartIndent1()
-            Dim workspace = New TestWorkspace()
-
             Dim provider = New SmartIndentProvider()
 
             Assert.ThrowsAny(Of ArgumentException)(
@@ -40,51 +38,53 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indenta
         <Fact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub GetSmartIndent2()
-            Dim workspace = New TestWorkspace()
-            Dim optionsService = workspace.Services.GetService(Of IOptionService)()
-            Dim initialState = optionsService.GetOption(InternalFeatureOnOffOptions.SmartIndenter)
-            Assert.Equal(True, initialState)
+            Using workspace = New TestWorkspace()
+                Dim optionsService = workspace.Services.GetService(Of IOptionService)()
+                Dim initialState = optionsService.GetOption(InternalFeatureOnOffOptions.SmartIndenter)
+                Assert.Equal(True, initialState)
 
-            Dim provider = New SmartIndentProvider()
+                Dim provider = New SmartIndentProvider()
 
-            ' connect things together
-            Dim textView = New Mock(Of ITextView)(MockBehavior.Strict)
-            Dim subjectBuffer = workspace.ExportProvider.GetExportedValue(Of ITextBufferFactoryService)().CreateTextBuffer()
-            workspace.RegisterText(subjectBuffer.AsTextContainer())
+                ' connect things together
+                Dim textView = New Mock(Of ITextView)(MockBehavior.Strict)
+                Dim subjectBuffer = workspace.ExportProvider.GetExportedValue(Of ITextBufferFactoryService)().CreateTextBuffer()
+                workspace.RegisterText(subjectBuffer.AsTextContainer())
 
-            textView.SetupGet(Function(x) x.Options).Returns(TestEditorOptions.Instance)
-            textView.SetupGet(Function(x) x.TextBuffer).Returns(subjectBuffer)
-            textView.SetupGet(Function(x) x.Caret).Returns(New Mock(Of ITextCaret)(MockBehavior.Strict).Object)
+                textView.SetupGet(Function(x) x.Options).Returns(TestEditorOptions.Instance)
+                textView.SetupGet(Function(x) x.TextBuffer).Returns(subjectBuffer)
+                textView.SetupGet(Function(x) x.Caret).Returns(New Mock(Of ITextCaret)(MockBehavior.Strict).Object)
 
-            Dim smartIndenter = provider.CreateSmartIndent(textView.Object)
-            Assert.NotNull(smartIndenter)
+                Dim smartIndenter = provider.CreateSmartIndent(textView.Object)
+                Assert.NotNull(smartIndenter)
+            End Using
         End Sub
 
         <Fact>
         <Trait(Traits.Feature, Traits.Features.SmartIndent)>
         Public Sub GetSmartIndent3()
-            Dim workspace = New TestWorkspace()
-            Dim optionsService = workspace.Services.GetService(Of IOptionService)()
-            Dim initialState = optionsService.GetOption(InternalFeatureOnOffOptions.SmartIndenter)
-            Assert.Equal(True, initialState)
+            Using workspace = New TestWorkspace()
+                Dim optionsService = workspace.Services.GetService(Of IOptionService)()
+                Dim initialState = optionsService.GetOption(InternalFeatureOnOffOptions.SmartIndenter)
+                Assert.Equal(True, initialState)
 
-            optionsService.SetOptions(optionsService.GetOptions().WithChangedOption(InternalFeatureOnOffOptions.SmartIndenter, False))
+                optionsService.SetOptions(optionsService.GetOptions().WithChangedOption(InternalFeatureOnOffOptions.SmartIndenter, False))
 
-            Dim provider = New SmartIndentProvider()
+                Dim provider = New SmartIndentProvider()
 
-            ' connect things together
-            Dim textView = New Mock(Of ITextView)(MockBehavior.Strict)
-            Dim subjectBuffer = workspace.ExportProvider.GetExportedValue(Of ITextBufferFactoryService)().CreateTextBuffer()
-            workspace.RegisterText(subjectBuffer.AsTextContainer())
+                ' connect things together
+                Dim textView = New Mock(Of ITextView)(MockBehavior.Strict)
+                Dim subjectBuffer = workspace.ExportProvider.GetExportedValue(Of ITextBufferFactoryService)().CreateTextBuffer()
+                workspace.RegisterText(subjectBuffer.AsTextContainer())
 
-            textView.SetupGet(Function(x) x.Options).Returns(TestEditorOptions.Instance)
-            textView.SetupGet(Function(x) x.TextBuffer).Returns(subjectBuffer)
+                textView.SetupGet(Function(x) x.Options).Returns(TestEditorOptions.Instance)
+                textView.SetupGet(Function(x) x.TextBuffer).Returns(subjectBuffer)
 
-            Dim smartIndenter = provider.CreateSmartIndent(textView.Object)
+                Dim smartIndenter = provider.CreateSmartIndent(textView.Object)
 
-            optionsService.SetOptions(optionsService.GetOptions().WithChangedOption(InternalFeatureOnOffOptions.SmartIndenter, True))
+                optionsService.SetOptions(optionsService.GetOptions().WithChangedOption(InternalFeatureOnOffOptions.SmartIndenter, True))
 
-            Assert.Null(smartIndenter)
+                Assert.Null(smartIndenter)
+            End Using
         End Sub
     End Class
 End Namespace
