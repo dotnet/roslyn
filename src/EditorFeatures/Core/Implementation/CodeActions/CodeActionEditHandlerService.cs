@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.Undo;
 using Microsoft.CodeAnalysis.Navigation;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -92,7 +93,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             return currentResult;
         }
 
-        public void Apply(Workspace workspace, Document fromDocument, IEnumerable<CodeActionOperation> operations, string title, CancellationToken cancellationToken)
+        public void Apply(Workspace workspace, Document fromDocument, IEnumerable<CodeActionOperation> operations, string title, 
+            IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             this.AssertIsForeground();
 
@@ -146,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                 // can be undone at once.
                 using (var transaction = workspace.OpenGlobalUndoTransaction(title))
                 {
-                    updatedSolution = ProcessOperations(workspace, fromDocument, title, oldSolution, updatedSolution, operationsList, cancellationToken);
+                    updatedSolution = ProcessOperations(workspace, fromDocument, title, oldSolution, updatedSolution, operationsList, progressTracker, cancellationToken);
 
                     // link current file in the global undo transaction
                     if (fromDocument != null)
@@ -159,7 +161,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             }
             else
             {
-                updatedSolution = ProcessOperations(workspace, fromDocument, title, oldSolution, updatedSolution, operationsList, cancellationToken);
+                updatedSolution = ProcessOperations(
+                    workspace, fromDocument, title, oldSolution, updatedSolution, operationsList,
+                    progressTracker, cancellationToken);
             }
 
 #if DEBUG
@@ -178,7 +182,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
             TryStartRenameSession(workspace, oldSolution, updatedSolution, cancellationToken);
         }
 
-        private static Solution ProcessOperations(Workspace workspace, Document fromDocument, string title, Solution oldSolution, Solution updatedSolution, List<CodeActionOperation> operationsList, CancellationToken cancellationToken)
+        private static Solution ProcessOperations(
+            Workspace workspace, Document fromDocument, string title, Solution oldSolution, Solution updatedSolution, List<CodeActionOperation> operationsList, 
+            IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             foreach (var operation in operationsList)
             {
@@ -196,10 +202,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                     var projectChanges = updatedSolution.GetChanges(oldSolution).GetProjectChanges();
                     var changedDocuments = projectChanges.SelectMany(pd => pd.GetChangedDocuments());
                     var changedAdditionalDocuments = projectChanges.SelectMany(pd => pd.GetChangedAdditionalDocuments());
-                    var changedFiles = changedDocuments.Concat(changedAdditionalDocuments);
+                    var changedFiles = changedDocuments.Concat(changedAdditionalDocuments).ToList();
 
                     // 0 file changes
-                    if (!changedFiles.Any())
+                    if (changedFiles.Count == 0)
                     {
                         operation.Apply(workspace, cancellationToken);
                         continue;
@@ -207,7 +213,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
 
                     // 1 file change
                     SourceText text = null;
-                    if (!changedFiles.Skip(1).Any())
+                    if (changedFiles.Count == 1)
                     {
                         if (changedDocuments.Any())
                         {
@@ -231,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.CodeActions
                     // multiple file changes
                     using (var undoTransaction = workspace.OpenGlobalUndoTransaction(title))
                     {
-                        operation.Apply(workspace, cancellationToken);
+                        operation.Apply(workspace, progressTracker, cancellationToken);
 
                         // link current file in the global undo transaction
                         if (fromDocument != null)

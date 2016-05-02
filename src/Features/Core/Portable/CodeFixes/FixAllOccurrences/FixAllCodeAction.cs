@@ -7,6 +7,7 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
 {
@@ -48,7 +49,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         public FixAllState FixAllState => _fixAllState;
 
-        protected override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+        protected override Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(CancellationToken cancellationToken)
+        {
+            return ComputeOperationsAsync(new ProgressTracker(), cancellationToken);
+        }
+
+        internal override async Task<IEnumerable<CodeActionOperation>> ComputeOperationsAsync(
+            IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             FixAllLogger.LogState(_fixAllState, IsInternalCodeFixProvider(_fixAllState.CodeFixProvider));
@@ -57,11 +64,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             // Use the new cancellation token instead of the stale one present inside _fixAllContext.
             return await service.GetFixAllOperationsAsync(
-                _fixAllState.CreateFixAllContext(cancellationToken),
+                _fixAllState.CreateFixAllContext(progressTracker, cancellationToken),
                 _showPreviewChangesDialog).ConfigureAwait(false);
         }
 
-        protected async override Task<Solution> GetChangedSolutionAsync(CancellationToken cancellationToken)
+        internal async override Task<Solution> GetChangedSolutionAsync(
+            IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
             FixAllLogger.LogState(_fixAllState, IsInternalCodeFixProvider(_fixAllState.CodeFixProvider));
@@ -70,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
             // Use the new cancellation token instead of the stale one present inside _fixAllContext.
             return await service.GetFixAllChangedSolutionAsync(
-                _fixAllState.CreateFixAllContext(cancellationToken)).ConfigureAwait(false);
+                _fixAllState.CreateFixAllContext(progressTracker, cancellationToken)).ConfigureAwait(false);
         }
 
         private static bool IsInternalCodeFixProvider(CodeFixProvider fixer)

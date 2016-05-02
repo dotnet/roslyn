@@ -3,6 +3,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions
 {
@@ -43,7 +44,13 @@ namespace Microsoft.CodeAnalysis.CodeActions
 
         public override void Apply(Workspace workspace, CancellationToken cancellationToken)
         {
-            workspace.TryApplyChanges(_changedSolution);
+            this.Apply(workspace, new ProgressTracker(), cancellationToken);
+        }
+
+        internal override void Apply(
+            Workspace workspace, IProgressTracker progressTracker, CancellationToken cancellationToken)
+        {
+            workspace.TryApplyChanges(_changedSolution, progressTracker);
         }
     }
 }

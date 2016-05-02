@@ -10,7 +10,6 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
-using Roslyn.Reflection.Metadata.Decoding;
 
 namespace Roslyn.Test.MetadataUtilities
 {
