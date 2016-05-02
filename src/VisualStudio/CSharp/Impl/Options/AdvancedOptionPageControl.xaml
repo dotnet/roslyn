@@ -11,6 +11,20 @@
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel>
+            <GroupBox x:Uid="AddUsingGroupBox"
+                      Header="{x:Static local:AdvancedOptionPageStrings.Option_Add_using}">
+                <StackPanel>
+                    <CheckBox x:Name="PlaceSystemNamespaceFirst"
+                              x:Uid="SortUsings_PlaceSystemFirst"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_PlaceSystemNamespaceFirst}" />
+                    <CheckBox x:Name="OfferForTypesFromNetReferenceAssembly"
+                              x:Uid="AddImport_OfferForTypesFromNetReferenceAssemblies"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Offer_to_add_using_for_types_from_Net_reference_assemblies}" />
+                    <CheckBox x:Name="OfferForTypesFromNugetOrgPackages"
+                              x:Uid="AddImport_OfferForTypesFromNugetOrgPackages"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Offer_to_add_using_for_types_from_Nuget_org_packages}" />
+                </StackPanel>
+            </GroupBox>
             <GroupBox x:Uid="HighlightingGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Highlighting}">
                 <StackPanel>
@@ -40,14 +54,6 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_ClosedFileDiagnostics}" />
                     <CheckBox x:Name="RenameTrackingPreview"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_RenameTrackingPreview}" />
-                </StackPanel>
-            </GroupBox>
-            <GroupBox x:Uid="OrganizeUsingsGroupBox"
-                      Header="{x:Static local:AdvancedOptionPageStrings.Option_OrganizeUsings}">
-                <StackPanel>
-                    <CheckBox x:Name="PlaceSystemNamespaceFirst"
-                              x:Uid="SortUsings_PlaceSystemFirst"
-                              Content="{x:Static local:AdvancedOptionPageStrings.Option_PlaceSystemNamespaceFirst}" />
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="ExtractMethodGroupBox"

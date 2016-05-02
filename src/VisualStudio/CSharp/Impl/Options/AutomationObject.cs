@@ -300,6 +300,18 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(OrganizerOptions.PlaceSystemNamespaceFirst, value); }
         }
 
+        public int AddImport_OfferForTypesFromNetReferenceAssemblies
+        {
+            get { return GetBooleanOption(AddImportOptions.OfferForTypesFromNetReferenceAssemblies); }
+            set { SetBooleanOption(AddImportOptions.OfferForTypesFromNetReferenceAssemblies, value); }
+        }
+
+        public int AddImport_OfferForTypesFromNugetOrgPackages
+        {
+            get { return GetBooleanOption(AddImportOptions.OfferForTypesFromNugetOrgPackages); }
+            set { SetBooleanOption(AddImportOptions.OfferForTypesFromNugetOrgPackages, value); }
+        }
+
         public int Space_AfterBasesColon
         {
             get { return GetBooleanOption(CSharpFormattingOptions.SpaceAfterColonInBaseTypeDeclaration); }
@@ -471,12 +483,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             get { return GetBooleanOption(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals); }
             set { SetBooleanOption(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals, value); }
-        }
-
-        public int WarnOnBuildErrors
-        {
-            get { return GetBooleanOption(OrganizerOptions.WarnOnBuildErrors); }
-            set { SetBooleanOption(OrganizerOptions.WarnOnBuildErrors, value); }
         }
 
         public int Wrapping_IgnoreSpacesAroundBinaryOperators

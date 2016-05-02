@@ -89,9 +89,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             get { return CSharpVSResources.Option_OptimizeForSolutionSize_Small; }
         }
 
-        public static string Option_OrganizeUsings
+        public static string Option_Add_using
         {
-            get { return CSharpVSResources.Option_OrganizeUsings; }
+            get { return CSharpVSResources.Option_Add_using; }
         }
 
         public static string Option_Outlining
@@ -108,5 +108,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             get { return CSharpVSResources.Option_PlaceSystemNamespaceFirst; }
         }
+
+        public static string Option_Offer_to_add_using_for_types_from_Net_reference_assemblies =>
+            CSharpVSResources.Option_Offer_to_add_using_for_types_from_Net_reference_assemblies;
+
+        public static string Option_Offer_to_add_using_for_types_from_Nuget_org_packages =>
+            CSharpVSResources.Option_Offer_to_add_using_for_types_from_Nuget_org_packages;
     }
 }

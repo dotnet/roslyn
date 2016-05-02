@@ -367,6 +367,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add &apos;using&apos;.
+        /// </summary>
+        internal static string Option_Add_using {
+            get {
+                return ResourceManager.GetString("Option_Add_using", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to _Move local declaration to the extracted method if it is not used elsewhere.
         /// </summary>
         internal static string Option_AllowMovingDeclaration {
@@ -502,6 +511,24 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Offer to add &apos;using&apos; for types from .Net reference assemblies.
+        /// </summary>
+        internal static string Option_Offer_to_add_using_for_types_from_Net_reference_assemblies {
+            get {
+                return ResourceManager.GetString("Option_Offer_to_add_using_for_types_from_Net_reference_assemblies", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Offer to add &apos;using&apos; for types from Nuget.org packages.
+        /// </summary>
+        internal static string Option_Offer_to_add_using_for_types_from_Nuget_org_packages {
+            get {
+                return ResourceManager.GetString("Option_Offer_to_add_using_for_types_from_Nuget_org_packages", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Optimize for solution size.
         /// </summary>
         internal static string Option_OptimizeForSolutionSize {
@@ -534,15 +561,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Option_OptimizeForSolutionSize_Small {
             get {
                 return ResourceManager.GetString("Option_OptimizeForSolutionSize_Small", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Organize Usings.
-        /// </summary>
-        internal static string Option_OrganizeUsings {
-            get {
-                return ResourceManager.GetString("Option_OrganizeUsings", resourceCulture);
             }
         }
         
