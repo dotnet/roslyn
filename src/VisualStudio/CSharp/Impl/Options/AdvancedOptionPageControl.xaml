@@ -11,7 +11,7 @@
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel>
-            <GroupBox x:Uid="AddUsingGroupBox"
+            <GroupBox x:Uid="UsingDirectivesGroupBox"
                       Header="{x:Static local:AdvancedOptionPageStrings.Option_Using_Directives}">
                 <StackPanel>
                     <CheckBox x:Name="PlaceSystemNamespaceFirst"
