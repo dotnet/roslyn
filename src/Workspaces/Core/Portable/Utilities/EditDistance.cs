@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using static System.Math;
+using System.Threading;
 
 namespace Roslyn.Utilities
 {
@@ -110,7 +111,8 @@ namespace Roslyn.Utilities
         }
 
         private const int MaxMatrixPoolDimension = 64;
-        private static readonly SimplePool<int[,]> s_matrixPool = new SimplePool<int[,]>(() => InitializeMatrix(new int[64, 64]));
+        private static readonly ThreadLocal<int[,]> t_matrixPool = 
+            new ThreadLocal<int[,]>(() => InitializeMatrix(new int[64, 64]));
 
         private static int[,] GetMatrix(int width, int height)
         {
@@ -119,15 +121,7 @@ namespace Roslyn.Utilities
                 return InitializeMatrix(new int[width, height]);
             }
 
-            return s_matrixPool.Allocate();
-        }
-
-        private static void ReleaseMatrix(int[,] matrix)
-        {
-            if (matrix.GetLength(0) <= MaxMatrixPoolDimension && matrix.GetLength(1) <= MaxMatrixPoolDimension)
-            {
-                s_matrixPool.Free(matrix);
-            }
+            return t_matrixPool.Value;
         }
 
         private static int[,] InitializeMatrix(int[,] matrix)
@@ -562,7 +556,6 @@ namespace Roslyn.Utilities
             }
             finally
             {
-                ReleaseMatrix(matrix);
                 s_dictionaryPool.Free(characterToLastSeenIndex_inSource);
             }
         }
