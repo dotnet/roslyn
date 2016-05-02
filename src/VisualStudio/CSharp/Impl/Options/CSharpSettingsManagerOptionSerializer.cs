@@ -33,6 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
     [ExportLanguageSpecificOptionSerializer(
         LanguageNames.CSharp,
         OrganizerOptions.FeatureName,
+        AddImportOptions.FeatureName,
         CompletionOptions.FeatureName,
         CSharpCompletionOptions.FeatureName,
         CSharpCodeStyleOptions.FeatureName,
