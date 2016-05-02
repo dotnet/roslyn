@@ -55,8 +55,15 @@ namespace Roslyn.Test.Performance.Utilities
         public static string RoslynDirectory()
         {
             var workingDir = MyWorkingDirectory();
-            var srcTestPerf = Path.Combine("Binaries", "Debug", "Perf").ToString();
-            return workingDir.Substring(0, workingDir.IndexOf(srcTestPerf));
+            var binaryDebug = Path.Combine("Binaries", "Debug").ToString();
+            int binaryDebugIndex = workingDir.IndexOf(binaryDebug, StringComparison.OrdinalIgnoreCase);
+            if (binaryDebugIndex != -1)
+            {
+                return workingDir.Substring(0, binaryDebugIndex);
+            }
+
+            var binaryRelease= Path.Combine("Binaries", "Release").ToString();
+            return workingDir.Substring(0, workingDir.IndexOf(binaryRelease, StringComparison.OrdinalIgnoreCase));
         }
 
         public static string CscPath()

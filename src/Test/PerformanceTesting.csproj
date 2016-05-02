@@ -104,9 +104,6 @@
     <Content Include="Perf\util\runner_util.csx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Compile Include="Perf\util\ScenarioGenerator.cs">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Compile>
     <Content Include="Perf\util\test_util.csx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -126,6 +123,7 @@
     <Compile Include="Perf\util\ILogger.cs" />
     <Compile Include="Perf\util\ITraceManager.cs" />
     <Compile Include="Perf\util\NoOpTraceManager.cs" />
+    <Compile Include="Perf\util\ScenarioGenerator.cs"/>
     <Compile Include="Perf\util\TestUtilities.cs" />
     <Compile Include="Perf\util\TraceManager.cs" />
     <Compile Include="Perf\util\TraceManagerFactory.cs" />

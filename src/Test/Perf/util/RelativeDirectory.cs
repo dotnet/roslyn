@@ -51,22 +51,16 @@ namespace Roslyn.Test.Performance.Utilities
         {
             get
             {
-                try
+                var workingDir = MyWorkingDirectory;
+                var binaryDebug = Path.Combine("Binaries", "Debug").ToString();
+                int binaryDebugIndex = workingDir.IndexOf(binaryDebug, StringComparison.OrdinalIgnoreCase);
+                if (binaryDebugIndex != -1)
                 {
-                    // In Windows, our path could be reported as "src/Test/Perf" (as it should),
-                    // or "src/TeSt/PeRf" which is completely insane.
-                    var workingDir = MyWorkingDirectory;
-                    // Just the string Binaries should be enough I think
-                    var binaryDebugTestPerf = Path.Combine("Binaries", "Debug", "Perf").ToString();
-                    CompareInfo inv = CultureInfo.InvariantCulture.CompareInfo;
-                    var idx = inv.IndexOf(workingDir, binaryDebugTestPerf, CompareOptions.IgnoreCase);
-                    return workingDir.Substring(0, idx);
+                    return workingDir.Substring(0, binaryDebugIndex);
                 }
-                catch(Exception e)
-                {
-                    System.Console.WriteLine($"My Working Directory: {MyWorkingDirectory}");
-                    throw e;
-                }
+
+                var binaryRelease = Path.Combine("Binaries", "Release").ToString();
+                return workingDir.Substring(0, workingDir.IndexOf(binaryRelease, StringComparison.OrdinalIgnoreCase));
             }
         }
 
