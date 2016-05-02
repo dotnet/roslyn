@@ -67,8 +67,9 @@ Namespace BasicAnalyzers
 #Region "State intialization"
             Public Sub New(method As IMethodSymbol)
                 ' Initialization: Assume all parameters are unused.
-                _unusedParameters = New HashSet(Of IParameterSymbol)(method.Parameters)
-                _unusedParameterNames = New HashSet(Of String)(method.Parameters.Select(Function(p) p.Name))
+                Dim parameters = method.Parameters.Where(Function(p) Not p.IsImplicitlyDeclared)
+                _unusedParameters = New HashSet(Of IParameterSymbol)(parameters)
+                _unusedParameterNames = New HashSet(Of String)(parameters.Select(Function(p) p.Name))
             End Sub
 #End Region
 
