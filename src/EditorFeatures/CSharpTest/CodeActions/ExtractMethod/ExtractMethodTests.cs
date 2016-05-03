@@ -435,7 +435,7 @@ compareTokens: false);
 compareTokens: false);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Trait(Traits.Feature, Test.Utilities.Traits.Features.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
         public async Task TestTuple()
         {
             await TestAsync(
@@ -445,7 +445,7 @@ index: 0,
 parseOptions: TestOptions.Regular.WithTuplesFeature());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Trait(Traits.Feature, Test.Utilities.Traits.Features.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
         public async Task TestTupleDeclarationWithNames()
         {
             await TestAsync(
@@ -455,7 +455,7 @@ index: 0,
 parseOptions: TestOptions.Regular.WithTuplesFeature());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Trait(Traits.Feature, Test.Utilities.Traits.Features.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
         public async Task TestTupleLiteralWithNames()
         {
             await TestAsync(
@@ -465,7 +465,7 @@ index: 0,
 parseOptions: TestOptions.Regular.WithTuplesFeature());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Trait(Traits.Feature, Test.Utilities.Traits.Features.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
         public async Task TestTupleDeclarationAndLiteralWithNames()
         {
             await TestAsync(
@@ -475,7 +475,7 @@ index: 0,
 parseOptions: TestOptions.Regular.WithTuplesFeature());
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Trait(Traits.Feature, Test.Utilities.Traits.Features.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
         public async Task TestTupleIntoVar()
         {
             await TestAsync(
