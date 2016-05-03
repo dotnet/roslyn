@@ -9,7 +9,9 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Packaging;
+using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Moq;
 using Roslyn.Test.Utilities;
@@ -17,8 +19,6 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
 {
-    using CodeAnalysis.Shared.Options;
-    using Editor.UnitTests.Workspaces;
     using FixProviderData = Tuple<IPackageInstallerService, ISymbolSearchService>;
 
     public partial class AddUsingTests

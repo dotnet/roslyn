@@ -400,7 +400,7 @@
     <value>Selection In Completion List</value>
   </data>
   <data name="Option_RenameTrackingPreview" xml:space="preserve">
-    <value>Show preview for _rename tracking</value>
+    <value>Show preview for rename _tracking</value>
   </data>
   <data name="NewLinesForBracesAccessors" xml:space="preserve">
     <value>Place open brace on new line for property, indexer, and event accessors</value>
@@ -409,9 +409,9 @@
     <value>Place open brace on new line for properties, indexers, and events</value>
   </data>
   <data name="Option_Suggest_usings_for_types_in_reference_assemblies" xml:space="preserve">
-    <value>Suggest usings for types in reference assemblies</value>
+    <value>Suggest usings for types in _reference assemblies</value>
   </data>
   <data name="Option_Suggest_usings_for_types_in_NuGet_packages" xml:space="preserve">
-    <value>Suggest usings for types in NuGet packages</value>
+    <value>Suggest usings for types in _NuGet packages</value>
   </data>
 </root>
