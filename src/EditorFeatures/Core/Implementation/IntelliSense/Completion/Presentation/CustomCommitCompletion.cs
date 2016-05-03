@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         public string GetDescription_TestingOnly()
         {
-            return CommonCompletionItem.GetDescription(this.PresentationItem.Item).Text;
+            return GetDescriptionAsync(CancellationToken.None).WaitAndGetResult(CancellationToken.None).Text;
         }
 
         public override ImageMoniker IconMoniker
