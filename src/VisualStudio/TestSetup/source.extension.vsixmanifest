@@ -3,7 +3,7 @@
 
 <PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
   <Metadata>
-    <Identity Id="D0122878-51F1-4B36-95EC-DEC2079A2A84" Version="|%CurrentProject%;GetBuildVersion|" Language="en-US" Publisher="Microsoft" />
+    <Identity Id="d0122878-51f1-4b36-95ec-dec2079a2a84" Version="|%CurrentProject%;GetBuildVersion|" Language="en-US" Publisher="Microsoft" />
     <DisplayName>Roslyn Visual Studio Test Support</DisplayName>
     <Description xml:space="preserve">Support for running Roslyn Visual Studio integration tests.</Description>
   </Metadata>
