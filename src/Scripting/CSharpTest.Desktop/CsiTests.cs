@@ -79,7 +79,7 @@ Type ""#help"" for more information.
             var result = ProcessUtilities.Run(CsiPath, "/r:C.dll a.csx", workingDirectory: cwd.Path, additionalEnvironmentVars: new[] { KeyValuePair.Create("LIB", dir.Path) });
 
             // error CS0006: Metadata file 'C.dll' could not be found
-            Assert.True(result.Output.StartsWith("error CS0006", StringComparison.Ordinal));
+            Assert.True(result.Errors.StartsWith("error CS0006", StringComparison.Ordinal));
             Assert.True(result.ContainsErrors);
         }
 
