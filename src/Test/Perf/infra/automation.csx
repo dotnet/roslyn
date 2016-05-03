@@ -14,5 +14,8 @@ ShellOutVital(Path.Combine(directoryUtil.RoslynDirectory, "Restore.cmd"), "", wo
 // Build Roslyn in Release Mode
 ShellOutVital("msbuild", "./Roslyn.sln /p:Configuration=Release", workingDirectory: directoryUtil.RoslynDirectory);
 
+// Install the Vsixes to RoslynPerf hive
+await RunFile(Path.Combine(directoryUtil.MyWorkingDirectory, "install_vsixes.csx"));
+
 // Run run_and_report.csx
 await RunFile(Path.Combine(directoryUtil.MyWorkingDirectory, "run_and_report.csx"));
