@@ -64,6 +64,8 @@
     <ProjectReference Include="..\Setup\VisualStudioSetup.csproj">
       <Project>{201ec5b7-f91e-45e5-b9f2-67a266cce6fc}</Project>
       <Name>VisualStudioSetup</Name>
+      <Private>False</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="..\TestUtilities\VisualStudioTestUtilities.csproj">
       <Project>{3bed15fd-d608-4573-b432-1569c1026f6d}</Project>
