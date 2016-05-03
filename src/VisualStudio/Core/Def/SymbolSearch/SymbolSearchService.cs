@@ -21,6 +21,7 @@ using static System.FormattableString;
 using VSShell = Microsoft.VisualStudio.Shell;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {

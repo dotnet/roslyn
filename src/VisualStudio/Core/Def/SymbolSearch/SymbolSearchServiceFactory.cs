@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Options;
+using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
 using VSShell = Microsoft.VisualStudio.Shell;
 

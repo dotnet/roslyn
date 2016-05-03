@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Packaging;
+using Microsoft.CodeAnalysis.SymbolSearch;
 using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;

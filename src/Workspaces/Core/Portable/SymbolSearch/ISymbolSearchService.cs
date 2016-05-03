@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
 
-namespace Microsoft.CodeAnalysis.Packaging
+namespace Microsoft.CodeAnalysis.SymbolSearch
 {
     internal interface ISymbolSearchService : IWorkspaceService
     {
