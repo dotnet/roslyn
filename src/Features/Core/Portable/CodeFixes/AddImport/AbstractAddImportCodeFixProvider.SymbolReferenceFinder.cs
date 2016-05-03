@@ -236,9 +236,13 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 var symbolSearchService = _owner._symbolSearchService ?? workspaceServices.GetService<ISymbolSearchService>();
                 var installerService = _owner._packageInstallerService ?? workspaceServices.GetService<IPackageInstallerService>();
 
+                var language = _document.Project.Language;
+
                 var options = workspaceServices.Workspace.Options;
-                var searchReferenceAssemblies = options.GetOption(AddImportOptions.SuggestForTypesInReferenceAssemblies);
-                var searchNugetPackages = options.GetOption(AddImportOptions.SuggestForTypesInNuGetPackages);
+                var searchReferenceAssemblies = options.GetOption(
+                    AddImportOptions.SuggestForTypesInReferenceAssemblies, language);
+                var searchNugetPackages = options.GetOption(
+                    AddImportOptions.SuggestForTypesInNuGetPackages, language);
 
                 if (symbolSearchService != null &&
                     searchReferenceAssemblies)

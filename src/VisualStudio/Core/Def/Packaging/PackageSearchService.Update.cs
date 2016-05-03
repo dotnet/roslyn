@@ -85,8 +85,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         private void OnOptionChanged(object sender, EventArgs e)
         {
             var options = _workspace.Options;
-            if (!options.GetOption(AddImportOptions.SuggestForTypesInReferenceAssemblies) &&
-                !options.GetOption(AddImportOptions.SuggestForTypesInNuGetPackages))
+            if (!options.GetOption(AddImportOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.CSharp) &&
+                !options.GetOption(AddImportOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.VisualBasic) &&
+                !options.GetOption(AddImportOptions.SuggestForTypesInNuGetPackages, LanguageNames.CSharp) &&
+                !options.GetOption(AddImportOptions.SuggestForTypesInNuGetPackages, LanguageNames.VisualBasic))
             {
                 // If we don't have any add-import features that would use these indices, then
                 // don't bother creating them.
