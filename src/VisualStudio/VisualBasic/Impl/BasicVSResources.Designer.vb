@@ -308,7 +308,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Show preview for _rename tracking.
+        '''  Looks up a localized string similar to Show preview for rename _tracking.
         '''</summary>
         Friend Shared ReadOnly Property Option_RenameTrackingPreview() As String
             Get
@@ -317,7 +317,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Suggest imports for types in NuGet packages.
+        '''  Looks up a localized string similar to Suggest imports for types in _NuGet packages.
         '''</summary>
         Friend Shared ReadOnly Property Option_Suggest_imports_for_types_in_NuGet_packages() As String
             Get
@@ -326,7 +326,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Suggest imports for types in reference assemblies.
+        '''  Looks up a localized string similar to Suggest imports for types in _reference assemblies.
         '''</summary>
         Friend Shared ReadOnly Property Option_Suggest_imports_for_types_in_reference_assemblies() As String
             Get
