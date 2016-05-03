@@ -89,6 +89,8 @@ namespace Roslyn.Test.Performance.Utilities
             throw new Exception("Couldn't find binaries. Are you running from the binaries directory?");
         }
 
+        public string TaoPath => Path.Combine(MyBinaries(), "Tao");
+
         public string PerfDirectory => Path.Combine(RoslynDirectory, "src", "Test", "Perf");
 
         public string BinDirectory => Path.Combine(RoslynDirectory, "Binaries");
