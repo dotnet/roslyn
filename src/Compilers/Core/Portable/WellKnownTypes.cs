@@ -257,6 +257,8 @@ namespace Microsoft.CodeAnalysis
 
         System_ValueTuple_TRest,
 
+        System_Reflection_TypeInfo,
+        System_Reflection_IntrospectionExtensions,
         System_Reflection_Module,
         Microsoft_CodeAnalysis_Runtime_Instrumentation,
 
@@ -514,6 +516,8 @@ namespace Microsoft.CodeAnalysis
 
             "System.ValueTuple`8",
 
+            "System.Reflection.TypeInfo",
+            "System.Reflection.IntrospectionExtensions",
             "System.Reflection.Module",
             "Microsoft.CodeAnalysis.Runtime.Instrumentation",
 

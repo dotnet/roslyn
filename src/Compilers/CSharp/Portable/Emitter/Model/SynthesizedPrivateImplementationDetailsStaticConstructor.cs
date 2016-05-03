@@ -22,7 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override void GenerateMethodBody(TypeCompilationState compilationState, DiagnosticBag diagnostics)
         {
-            SyntheticBoundNodeFactory factory = new SyntheticBoundNodeFactory(this, this.GetNonNullSyntaxNode(), compilationState, diagnostics);
+            CSharpSyntaxNode syntax = this.GetNonNullSyntaxNode();
+            SyntheticBoundNodeFactory factory = new SyntheticBoundNodeFactory(this, syntax, compilationState, diagnostics);
             factory.CurrentMethod = this;
 
             // Initialize the payload root for for each kind of dynamic analysis instrumentation.
@@ -51,16 +52,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 body.Add(payloadInitialization);
             }
 
-            // MVID = TypeOf(PrivateImplementationDetails).Module.ModuleVersionId;
+            // MVID = System.Reflection.IntrospectionExtensions.GetTypeInfo(TypeOf(PrivateImplementationDetails)).Module.ModuleVersionId;
 
             BoundStatement mvidInitialization =
                 factory.Assignment(
                     factory.ModuleVersionId(),
                     factory.Property(
                         factory.Property(
-                            factory.TypeOfPrivateImplementationDetails(),
-                            WellKnownMember.System_Type__Module),
+                            factory.Call(
+                                null,
+                                (MethodSymbol)Binder.GetWellKnownTypeMember(compilationState.Compilation, WellKnownMember.System_Reflection_IntrospectionExtensions__GetTypeInfo, diagnostics, syntax: syntax),
+                                factory.TypeOfPrivateImplementationDetails()),
+                            WellKnownMember.System_Reflection_TypeInfo__Module),
                         WellKnownMember.System_Reflection_Module__ModuleVersionId));
+
             body.Add(mvidInitialization);
 
             BoundStatement returnStatement = factory.Return();
