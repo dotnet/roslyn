@@ -29,7 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             var options = workspaceServices.Workspace.Options;
-            if (options.GetOption(ServiceComponentOnOffOptions.PackageSearch))
+            if (options.GetOption(ServiceComponentOnOffOptions.SymbolSearch))
             {
                 // Only support package search in vs workspace.
                 if (workspaceServices.Workspace is VisualStudioWorkspace)
