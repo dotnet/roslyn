@@ -1,15 +1,41 @@
 @echo off
 
-call "%~dp0..\..\..\Restore.cmd"
+call "%VS140COMNTOOLS%VsDevCmd.bat"
 
 set MSBuild=%ProgramFiles%\MSBuild\14.0\bin\msbuild.exe
 if not exist "%MSBuild%" set MSBuild=%ProgramFiles(x86)%\MSBuild\14.0\bin\msbuild.exe
-"%MSBuild%" "%~dp0..\..\..\src\Interactive\csi\csi.csproj" /p:Configuration=Release /p:OutDir="%~dp0infra\bin\\"
 
-if "%USERDNSDOMAIN%" == "REDMOND.CORP.MICROSOFT.COM" (
-    if exist "%SYSTEMDRIVE%/CPC" ( rd /s /q "%SYSTEMDRIVE%/CPC" )
-    robocopy \\mlangfs1\public\basoundr\CpcBinaries %SYSTEMDRIVE%\CPC /mir 
-    robocopy \\mlangfs1\public\basoundr\vibenchcsv2json %SYSTEMDRIVE%\CPC /s 
+pushd %~dp0
+
+if not exist "%~dp0..\..\..\..\Init.cmd" (
+    :: Update Open Roslyn
+    cd ..\..\..\
+    git remote update
+    git pull origin master
+
+    call Restore.cmd
+    echo Build Open Roslyn
+    "%MSBuild%" "Roslyn.sln" /p:Configuration=Release
 ) else (
-    echo "Machine not in Microsoft Corp Net Domain. Hence not downloading internal tools"
+    :: Update Open Roslyn
+    cd ..\..\..\
+    git remote update
+    git pull origin master
+
+    :: Update Closed Roslyn
+    cd ..\
+    git remote update
+    git pull origin master
+
+    call Init.cmd
+    echo Build Closed Roslyn
+    "%MSBuild%" "Roslyn.sln" /p:Configuration=Release
+
+    :: Start the perf tests
+    cd Open\Binaries\Release\Perf\infra
+    csi automation.csx
 )
+
+popd
+
+exit /b 0
