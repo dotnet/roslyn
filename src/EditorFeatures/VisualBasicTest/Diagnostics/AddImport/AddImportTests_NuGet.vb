@@ -5,7 +5,9 @@ Imports System.Threading
 Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Packaging
+Imports Microsoft.CodeAnalysis.Shared.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
 Imports Moq
@@ -20,6 +22,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
 
             Private Shared ReadOnly NugetPackageSources As ImmutableArray(Of PackageSource) =
                 ImmutableArray.Create(New PackageSource(NugetOrgSource, "http://nuget.org"))
+
+            Protected Overrides Async Function CreateWorkspaceFromFileAsync(definition As String, parseOptions As ParseOptions, compilationOptions As CompilationOptions) As Task(Of TestWorkspace)
+                Dim workspace = Await MyBase.CreateWorkspaceFromFileAsync(definition, parseOptions, compilationOptions)
+                workspace.Options = workspace.Options.
+                    WithChangedOption(AddImportOptions.SuggestForTypesInNuGetPackages, LanguageNames.VisualBasic, True).
+                    WithChangedOption(AddImportOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.VisualBasic, True)
+                Return workspace
+            End Function
 
             Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace, fixProviderData As Object) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
                 Dim data = DirectCast(fixProviderData, ProviderData)

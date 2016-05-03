@@ -16,6 +16,8 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
 {
+    using CodeAnalysis.Shared.Options;
+    using Editor.UnitTests.Workspaces;
     using FixProviderData = Tuple<IPackageInstallerService, ISymbolSearchService>;
 
     public partial class AddUsingTests
@@ -26,6 +28,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
         {
             private static readonly ImmutableArray<PackageSource> NugetPackageSources =
                 ImmutableArray.Create(new PackageSource(NugetOrgSource, "http://nuget.org/"));
+
+            protected override async Task<TestWorkspace> CreateWorkspaceFromFileAsync(string definition, ParseOptions parseOptions, CompilationOptions compilationOptions)
+            {
+                var workspace = await base.CreateWorkspaceFromFileAsync(definition, parseOptions, compilationOptions);
+                workspace.Options = workspace.Options
+                    .WithChangedOption(AddImportOptions.SuggestForTypesInNuGetPackages, LanguageNames.CSharp, true)
+                    .WithChangedOption(AddImportOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.CSharp, true);
+                return workspace;
+            }
 
             internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(
                 Workspace workspace, object fixProviderData)
