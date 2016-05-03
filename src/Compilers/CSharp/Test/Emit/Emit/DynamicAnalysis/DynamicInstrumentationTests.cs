@@ -585,10 +585,67 @@ True
             verifier.VerifyIL("MyBox<T>.GetValue", expectedDebugGetValueIL);
         }
 
-        [Theory]
-        [InlineData(OptimizationLevel.Debug)]
-        [InlineData(OptimizationLevel.Release)]
-        public void ImplicitBlockMethodsCoverage(OptimizationLevel level)
+        [Fact]
+        public void NonStaticImplicitBlockMethodsCoverage()
+        {
+            string source = @"
+using System;
+
+public class Program
+{
+    public int Prop { get; }
+
+    public int Prop2 { get; } = 25;
+
+    public int Prop3 { get; set; }
+
+    public Program()
+    {
+        Prop = 12;
+        Prop3 = 12;
+        Prop2 = Prop3;
+    }
+
+    public static void Main(string[] args)
+    {
+        new Program();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+    }
+}
+";
+            string expectedOutput = @"Flushing
+3
+True
+4
+True
+5
+True
+True
+True
+6
+True
+True
+8
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+";
+
+            CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
+            CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput, options: TestOptions.DebugExe);
+        }
+
+        [Fact]
+        public void ImplicitBlockMethodsCoverage()
         {
             string source = @"
 using System;
@@ -647,7 +704,7 @@ True
 True
 9
 True
-10
+13
 True
 False
 True
@@ -662,7 +719,8 @@ True
 True
 ";
 
-            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput, options: TestOptions.ReleaseExe.WithOptimizationLevel(level));
+            CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
+            CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput, options: TestOptions.DebugExe);
         }
 
         [Fact]
