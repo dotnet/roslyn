@@ -8,7 +8,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
     internal partial class SymbolSearchService
     {
-        private class LogService : ForegroundThreadAffinitizedObject, IPackageSearchLogService
+        private class LogService : ForegroundThreadAffinitizedObject, ILogService
         {
             private readonly IVsActivityLog _activityLog;
 

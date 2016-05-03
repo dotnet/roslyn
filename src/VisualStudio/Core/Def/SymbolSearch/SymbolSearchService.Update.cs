@@ -64,12 +64,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         // Interfaces that abstract out the external functionality we need.  Used so we can easily
         // mock behavior during tests.
         private readonly IPackageInstallerService _installerService;
-        private readonly IPackageSearchDelayService _delayService;
-        private readonly IPackageSearchIOService _ioService;
-        private readonly IPackageSearchLogService _logService;
-        private readonly IPackageSearchRemoteControlService _remoteControlService;
-        private readonly IPackageSearchPatchService _patchService;
-        private readonly IPackageSearchDatabaseFactoryService _databaseFactoryService;
+        private readonly IDelayService _delayService;
+        private readonly IIOService _ioService;
+        private readonly ILogService _logService;
+        private readonly IRemoteControlService _remoteControlService;
+        private readonly IPatchService _patchService;
+        private readonly IDatabaseFactoryService _databaseFactoryService;
         private readonly Func<Exception, bool> _reportAndSwallowException;
 
         public void Dispose()
@@ -562,7 +562,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
 
             /// <summary>Returns 'null' if download is not available and caller should keep polling.</summary>
-            private async Task<XElement> TryDownloadFileAsync(IPackageSearchRemoteControlClient client)
+            private async Task<XElement> TryDownloadFileAsync(IRemoteControlClient client)
             {
                 _service.LogInfo("Read file from client");
 

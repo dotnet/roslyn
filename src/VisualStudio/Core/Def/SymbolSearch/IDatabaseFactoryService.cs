@@ -4,7 +4,7 @@ using Microsoft.CodeAnalysis.Elfie.Model;
 
 namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
-    internal interface IPackageSearchDatabaseFactoryService
+    internal interface IDatabaseFactoryService
     {
         AddReferenceDatabase CreateDatabaseFromBytes(byte[] bytes);
     }

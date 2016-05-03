@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     /// <summary>
     /// Used so we can mock out patching in unit tests.
     /// </summary>
-    internal interface IPackageSearchPatchService
+    internal interface IPatchService
     {
         byte[] ApplyPatch(byte[] databaseBytes, byte[] patchBytes);
     }

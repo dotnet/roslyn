@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     /// <summary>
     /// Used so we can mock out how the search service does IO for testing purposes.
     /// </summary>
-    internal interface IPackageSearchIOService
+    internal interface IIOService
     {
         void Create(DirectoryInfo directory);
         void Delete(FileInfo file);

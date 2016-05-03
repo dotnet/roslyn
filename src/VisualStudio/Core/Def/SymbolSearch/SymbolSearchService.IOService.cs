@@ -7,7 +7,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
     internal partial class SymbolSearchService
     {
-        private class IOService : IPackageSearchIOService
+        private class IOService : IIOService
         {
             public void Create(DirectoryInfo directory) => directory.Create();
 

@@ -63,7 +63,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             OnOptionChanged(this, EventArgs.Empty);
         }
 
-        private static IPackageSearchRemoteControlService CreateRemoteControlService(VSShell.SVsServiceProvider serviceProvider)
+        private static IRemoteControlService CreateRemoteControlService(VSShell.SVsServiceProvider serviceProvider)
         {
             var vsService = serviceProvider.GetService(typeof(SVsRemoteControlService));
             if (vsService == null)
@@ -81,12 +81,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         internal SymbolSearchService(
             Workspace workspace,
             IPackageInstallerService installerService,
-            IPackageSearchRemoteControlService remoteControlService,
-            IPackageSearchLogService logService,
-            IPackageSearchDelayService delayService,
-            IPackageSearchIOService ioService,
-            IPackageSearchPatchService patchService,
-            IPackageSearchDatabaseFactoryService databaseFactoryService,
+            IRemoteControlService remoteControlService,
+            ILogService logService,
+            IDelayService delayService,
+            IIOService ioService,
+            IPatchService patchService,
+            IDatabaseFactoryService databaseFactoryService,
             string localSettingsDirectory,
             Func<Exception, bool> reportAndSwallowException,
             CancellationTokenSource cancellationTokenSource)

@@ -10,15 +10,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     /// <summary>
     /// Used so we can mock out the remote control service in unit tests.
     /// </summary>
-    internal interface IPackageSearchRemoteControlService
+    internal interface IRemoteControlService
     {
-        IPackageSearchRemoteControlClient CreateClient(string hostId, string serverPath, int pollingMinutes);
+        IRemoteControlClient CreateClient(string hostId, string serverPath, int pollingMinutes);
     }
 
     /// <summary>
     /// Used so we can mock out the client in unit tests.
     /// </summary>
-    internal interface IPackageSearchRemoteControlClient : IDisposable
+    internal interface IRemoteControlClient : IDisposable
     {
         Task<Stream> ReadFileAsync(__VsRemoteControlBehaviorOnStale behavior);
     }

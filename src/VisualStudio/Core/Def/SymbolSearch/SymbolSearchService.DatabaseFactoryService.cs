@@ -7,7 +7,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
     internal partial class SymbolSearchService
     {
-        private class DatabaseFactoryService : IPackageSearchDatabaseFactoryService
+        private class DatabaseFactoryService : IDatabaseFactoryService
         {
             public AddReferenceDatabase CreateDatabaseFromBytes(byte[] bytes)
             {

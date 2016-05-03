@@ -6,7 +6,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
     internal partial class SymbolSearchService
     {
-        private class DelayService : IPackageSearchDelayService
+        private class DelayService : IDelayService
         {
             public TimeSpan CachePollDelay { get; } = TimeSpan.FromMinutes(1);
             public TimeSpan FileWriteDelay { get; } = TimeSpan.FromSeconds(10);

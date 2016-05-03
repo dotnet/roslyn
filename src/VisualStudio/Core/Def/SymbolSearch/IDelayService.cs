@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     /// <summary>
     /// Used so we can mock out how the search service delays work for testing purposes.
     /// </summary>
-    internal interface IPackageSearchDelayService
+    internal interface IDelayService
     {
         /// <summary>
         /// The time to wait after a successful update (default = 1 day).

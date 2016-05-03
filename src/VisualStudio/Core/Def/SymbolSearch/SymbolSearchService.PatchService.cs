@@ -4,7 +4,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
     internal partial class SymbolSearchService
     {
-        private class PatchService : IPackageSearchPatchService
+        private class PatchService : IPatchService
         {
             public byte[] ApplyPatch(byte[] databaseBytes, byte[] patchBytes)
             {

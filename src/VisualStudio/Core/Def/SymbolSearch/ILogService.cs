@@ -11,7 +11,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     /// <summary>
     /// Used so we can mock out logging in unit tests.
     /// </summary>
-    internal interface IPackageSearchLogService
+    internal interface ILogService
     {
         void LogException(Exception e, string text);
         void LogInfo(string text);

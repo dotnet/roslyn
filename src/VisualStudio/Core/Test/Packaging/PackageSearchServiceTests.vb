@@ -24,7 +24,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
             Using workspace = Await TestWorkspace.CreateCSharpAsync("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
 
-                Dim ioMock = New Mock(Of IPackageSearchIOService)(MockBehavior.Strict)
+                Dim ioMock = New Mock(Of IIOService)(MockBehavior.Strict)
 
                 ' Simulate the cache folder being missing.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
@@ -34,7 +34,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 ioMock.Setup(Sub(s) s.Create(It.IsAny(Of DirectoryInfo))).Callback(
                     AddressOf cancellationTokenSource.Cancel)
 
-                Dim remoteControlService = New Mock(Of IPackageSearchRemoteControlService)
+                Dim remoteControlService = New Mock(Of IRemoteControlService)
 
                 Dim service = New SymbolSearchService(
                     workspace,
@@ -60,14 +60,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
             Using workspace = Await TestWorkspace.CreateCSharpAsync("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
 
-                Dim ioMock = New Mock(Of IPackageSearchIOService)(MockBehavior.Strict)
+                Dim ioMock = New Mock(Of IIOService)(MockBehavior.Strict)
 
                 ' Simulate the cache folder being there.  We use a 'strict' mock so that 
                 ' we'll throw if we get the call to create the directory.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of DirectoryInfo))).Returns(True).Callback(
                     AddressOf cancellationTokenSource.Cancel)
 
-                Dim remoteControlService = New Mock(Of IPackageSearchRemoteControlService)
+                Dim remoteControlService = New Mock(Of IRemoteControlService)
 
                 Dim service = New SymbolSearchService(
                     workspace,
@@ -93,14 +93,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
             Using workspace = Await TestWorkspace.CreateCSharpAsync("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
 
-                Dim ioMock = New Mock(Of IPackageSearchIOService)()
+                Dim ioMock = New Mock(Of IIOService)()
 
                 ' Simlute the local database being missing.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
 
-                Dim clientMock = New Mock(Of IPackageSearchRemoteControlClient)
+                Dim clientMock = New Mock(Of IRemoteControlClient)
 
-                Dim serviceMock = New Mock(Of IPackageSearchRemoteControlService)(MockBehavior.Strict)
+                Dim serviceMock = New Mock(Of IRemoteControlService)(MockBehavior.Strict)
 
                 ' The client should request the 'Latest' database from the server. 
                 ' Cancel processing at that point so the test can complete.
@@ -134,7 +134,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
             Using workspace = Await TestWorkspace.CreateCSharpAsync("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
 
-                Dim ioMock = New Mock(Of IPackageSearchIOService)()
+                Dim ioMock = New Mock(Of IIOService)()
 
                 ' Simlute the local database being missing.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
@@ -143,7 +143,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                     New XAttribute(SymbolSearchService.ContentAttributeName, ""),
                     New XAttribute(SymbolSearchService.ChecksumAttributeName, Convert.ToBase64String(New Byte() {0, 1, 2})))))
 
-                Dim serviceMock = New Mock(Of IPackageSearchRemoteControlService)(MockBehavior.Strict)
+                Dim serviceMock = New Mock(Of IRemoteControlService)(MockBehavior.Strict)
 
                 ' The client should request the 'Latest' database from the server. 
                 ' Cancel processing at that point so the test can complete.
@@ -151,7 +151,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                     Function(s) s.CreateClient(It.IsAny(Of String), It.IsRegex(".*Latest.*"), It.IsAny(Of Integer))).
                     Returns(clientMock.Object)
 
-                Dim delayMock = New Mock(Of IPackageSearchDelayService)(MockBehavior.Strict)
+                Dim delayMock = New Mock(Of IDelayService)(MockBehavior.Strict)
                 delayMock.SetupGet(Function(s) s.CatastrophicFailureDelay).Returns(TimeSpan.Zero).Callback(
                     AddressOf cancellationTokenSource.Cancel)
 
@@ -181,13 +181,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
             Using workspace = Await TestWorkspace.CreateCSharpAsync("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
 
-                Dim ioMock = New Mock(Of IPackageSearchIOService)()
+                Dim ioMock = New Mock(Of IIOService)()
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
 
-                Dim clientMock = New Mock(Of IPackageSearchRemoteControlClient)(MockBehavior.Strict)
+                Dim clientMock = New Mock(Of IRemoteControlClient)(MockBehavior.Strict)
                 clientMock.Setup(Sub(c) c.Dispose())
 
-                Dim serviceMock = New Mock(Of IPackageSearchRemoteControlService)(MockBehavior.Strict)
+                Dim serviceMock = New Mock(Of IRemoteControlService)(MockBehavior.Strict)
                 serviceMock.Setup(
                     Function(s) s.CreateClient(It.IsAny(Of String), It.IsAny(Of String), It.IsAny(Of Integer))).
                     Returns(clientMock.Object).
@@ -218,12 +218,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
             Using workspace = Await TestWorkspace.CreateCSharpAsync("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
 
-                Dim ioMock = New Mock(Of IPackageSearchIOService)()
+                Dim ioMock = New Mock(Of IIOService)()
 
                 ' Simulate the database not being there.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
 
-                Dim clientMock = New Mock(Of IPackageSearchRemoteControlClient)(MockBehavior.Strict)
+                Dim clientMock = New Mock(Of IRemoteControlClient)(MockBehavior.Strict)
 
                 ' We should get a call to try to read the file. Simulate a crash in the client.
                 clientMock.Setup(Sub(c) c.ReadFileAsync(It.IsAny(Of __VsRemoteControlBehaviorOnStale))).
@@ -232,7 +232,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 ' Client should be disposed.
                 clientMock.Setup(Sub(c) c.Dispose())
 
-                Dim remoteControlMock = New Mock(Of IPackageSearchRemoteControlService)(MockBehavior.Strict)
+                Dim remoteControlMock = New Mock(Of IRemoteControlService)(MockBehavior.Strict)
                 remoteControlMock.Setup(
                     Function(s) s.CreateClient(It.IsAny(Of String), It.IsAny(Of String), It.IsAny(Of Integer))).
                     Returns(clientMock.Object)
@@ -240,7 +240,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 ' Because the client failed we will expect to call into the 'UpdateFailedDelay' to
                 ' control when we do our next loop.
                 ' Cancel processing at that point so the test can complete.
-                Dim delayMock = New Mock(Of IPackageSearchDelayService)(MockBehavior.Strict)
+                Dim delayMock = New Mock(Of IDelayService)(MockBehavior.Strict)
                 delayMock.SetupGet(Function(s) s.ExpectedFailureDelay).Returns(TimeSpan.Zero).Callback(
                     AddressOf cancellationTokenSource.Cancel)
 
@@ -270,7 +270,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
             Using workspace = Await TestWorkspace.CreateCSharpAsync("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
 
-                Dim ioMock = New Mock(Of IPackageSearchIOService)()
+                Dim ioMock = New Mock(Of IIOService)()
                 'Simulate the database file not existing.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
 
@@ -278,7 +278,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 Dim clientMock = CreateFullDatabaseClientMock()
                 Dim remoteControlMock = CreateRemoteControlServiceMock(clientMock, latest:=True)
 
-                Dim factoryMock = New Mock(Of IPackageSearchDatabaseFactoryService)(MockBehavior.Strict)
+                Dim factoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
                 ' Simulate Elfie throwing when trying to make a database from the contents of that response
                 factoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()))).
                     Throws(New NotImplementedException())
@@ -286,7 +286,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 ' Because the parsing failed we will expect to call into the 'UpdateFailedDelay' to
                 ' control when we do our next loop.
                 ' Cancel processing at that point so the test can complete.
-                Dim delayMock = New Mock(Of IPackageSearchDelayService)(MockBehavior.Strict)
+                Dim delayMock = New Mock(Of IDelayService)(MockBehavior.Strict)
                 delayMock.SetupGet(Function(s) s.CatastrophicFailureDelay).Returns(TimeSpan.Zero).Callback(
                     AddressOf cancellationTokenSource.Cancel)
 
@@ -317,7 +317,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
             Using workspace = Await TestWorkspace.CreateCSharpAsync("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
 
-                Dim ioMock = New Mock(Of IPackageSearchIOService)()
+                Dim ioMock = New Mock(Of IIOService)()
                 ' Simulate the local database not being there.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
 
@@ -326,14 +326,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 Dim remoteControlMock = CreateRemoteControlServiceMock(clientMock, latest:=True)
 
                 ' Successfully create a database from that response.
-                Dim factoryMock = New Mock(Of IPackageSearchDatabaseFactoryService)(MockBehavior.Strict)
+                Dim factoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
                 factoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()))).
                     Returns(New AddReferenceDatabase())
 
                 ' Expect that we'll write the database to disk successfully.
                 SetupWritesDatabaseSuccessfullyToDisk(ioMock)
 
-                Dim delayMock = New Mock(Of IPackageSearchDelayService)(MockBehavior.Strict)
+                Dim delayMock = New Mock(Of IDelayService)(MockBehavior.Strict)
 
                 ' Because writing to disk succeeded, we expect we'll loop on the 'UpdateSucceededDelay'.
                 ' Cancel processing at that point so the test can complete.
@@ -367,7 +367,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
             Using workspace = Await TestWorkspace.CreateCSharpAsync("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
 
-                Dim ioMock = New Mock(Of IPackageSearchIOService)()
+                Dim ioMock = New Mock(Of IIOService)()
 
                 ' Simulate the database being missing.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(False)
@@ -377,11 +377,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 Dim remoteControlMock = CreateRemoteControlServiceMock(clientMock, latest:=True)
 
                 ' Create a database from the client response.
-                Dim factoryMock = New Mock(Of IPackageSearchDatabaseFactoryService)(MockBehavior.Strict)
+                Dim factoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
                 factoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()))).
                     Returns(New AddReferenceDatabase())
 
-                Dim delayMock = New Mock(Of IPackageSearchDelayService)(MockBehavior.Strict)
+                Dim delayMock = New Mock(Of IDelayService)(MockBehavior.Strict)
 
                 ' Write the temp file out to disk.
                 ioMock.Setup(Sub(s) s.WriteAndFlushAllBytes(It.IsAny(Of String), It.IsAny(Of Byte())))
@@ -428,13 +428,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
             Using workspace = Await TestWorkspace.CreateCSharpAsync("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
 
-                Dim ioMock = New Mock(Of IPackageSearchIOService)()
+                Dim ioMock = New Mock(Of IIOService)()
 
                 ' Simulate the database being there.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(True)
 
                 ' We'll successfully read in the local database.
-                Dim databaseFactoryMock = New Mock(Of IPackageSearchDatabaseFactoryService)(MockBehavior.Strict)
+                Dim databaseFactoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
                 databaseFactoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()))).
                     Returns(New AddReferenceDatabase())
 
@@ -442,7 +442,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 Dim clientMock = CreatePatchClientMock(isUpToDate:=True)
                 Dim remoteControlMock = CreateRemoteControlServiceMock(clientMock, latest:=False)
 
-                Dim delayMock = New Mock(Of IPackageSearchDelayService)(MockBehavior.Strict)
+                Dim delayMock = New Mock(Of IDelayService)(MockBehavior.Strict)
 
                 ' Because everything is up to date, we expect we'll loop on the 'UpdateSucceededDelay'.
                 ' Cancel processing at that point so the test can complete.
@@ -476,13 +476,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
             Using workspace = Await TestWorkspace.CreateCSharpAsync("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
 
-                Dim ioMock = New Mock(Of IPackageSearchIOService)()
+                Dim ioMock = New Mock(Of IIOService)()
 
                 ' Simulate the database being there.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(True)
 
                 ' We'll successfully read in the local database.
-                Dim databaseFactoryMock = New Mock(Of IPackageSearchDatabaseFactoryService)(MockBehavior.Strict)
+                Dim databaseFactoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
                 databaseFactoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()))).
                     Returns(New AddReferenceDatabase())
 
@@ -498,7 +498,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 ' Expect that we'll write the database to disk successfully.
                 SetupWritesDatabaseSuccessfullyToDisk(ioMock)
 
-                Dim delayMock = New Mock(Of IPackageSearchDelayService)(MockBehavior.Strict)
+                Dim delayMock = New Mock(Of IDelayService)(MockBehavior.Strict)
 
                 ' Because we got the full database, we expect we'll loop on the 'UpdateSucceededDelay'.
                 ' Cancel processing at that point so the test can complete.
@@ -533,13 +533,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
             Using workspace = Await TestWorkspace.CreateCSharpAsync("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
 
-                Dim ioMock = New Mock(Of IPackageSearchIOService)()
+                Dim ioMock = New Mock(Of IIOService)()
 
                 ' Simulate the database being there.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(True)
 
                 ' We'll successfully read in the local database.
-                Dim databaseFactoryMock = New Mock(Of IPackageSearchDatabaseFactoryService)(MockBehavior.Strict)
+                Dim databaseFactoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
                 databaseFactoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()))).
                     Returns(New AddReferenceDatabase())
 
@@ -548,7 +548,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 Dim remoteControlMock = CreateRemoteControlServiceMock(clientMock, latest:=False)
 
                 ' Simulate a crash in the patching process.
-                Dim patchService = New Mock(Of IPackageSearchPatchService)(MockBehavior.Strict)
+                Dim patchService = New Mock(Of IPatchService)(MockBehavior.Strict)
                 patchService.Setup(Sub(s) s.ApplyPatch(It.IsAny(Of Byte()), It.IsAny(Of Byte()))).
                     Throws(New NotImplementedException())
 
@@ -560,7 +560,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 ' Expect that we'll write the database to disk successfully.
                 SetupWritesDatabaseSuccessfullyToDisk(ioMock)
 
-                Dim delayMock = New Mock(Of IPackageSearchDelayService)(MockBehavior.Strict)
+                Dim delayMock = New Mock(Of IDelayService)(MockBehavior.Strict)
 
                 ' Because we wrote the full database, we expect we'll loop on the 'UpdateSucceededDelay'.
                 ' Cancel processing at that point so the test can complete.
@@ -596,13 +596,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
             Using workspace = Await TestWorkspace.CreateCSharpAsync("")
                 Dim cancellationTokenSource = New CancellationTokenSource()
 
-                Dim ioMock = New Mock(Of IPackageSearchIOService)()
+                Dim ioMock = New Mock(Of IIOService)()
 
                 ' Simulate the database being there.
                 ioMock.Setup(Function(s) s.Exists(It.IsAny(Of FileSystemInfo))).Returns(True)
 
                 ' We'll successfully read in the local database.
-                Dim databaseFactoryMock = New Mock(Of IPackageSearchDatabaseFactoryService)(MockBehavior.Strict)
+                Dim databaseFactoryMock = New Mock(Of IDatabaseFactoryService)(MockBehavior.Strict)
                 databaseFactoryMock.Setup(Function(f) f.CreateDatabaseFromBytes(It.IsAny(Of Byte()))).
                     Returns(New AddReferenceDatabase())
 
@@ -611,14 +611,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
                 Dim remoteControlMock = CreateRemoteControlServiceMock(clientMock, latest:=False)
 
                 ' Simulate a crash in the patching process.
-                Dim patchMock = New Mock(Of IPackageSearchPatchService)(MockBehavior.Strict)
+                Dim patchMock = New Mock(Of IPatchService)(MockBehavior.Strict)
                 patchMock.Setup(Function(s) s.ApplyPatch(It.IsAny(Of Byte()), It.IsAny(Of Byte()))).
                     Returns(New Byte() {0})
 
                 ' Expect that we'll write the database to disk successfully.
                 SetupWritesDatabaseSuccessfullyToDisk(ioMock)
 
-                Dim delayMock = New Mock(Of IPackageSearchDelayService)(MockBehavior.Strict)
+                Dim delayMock = New Mock(Of IDelayService)(MockBehavior.Strict)
 
                 ' Because we wrote the full database, we expect we'll loop on the 'UpdateSucceededDelay'.
                 ' Cancel processing at that point so the test can complete.
@@ -648,7 +648,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
             End Using
         End Function
 
-        Private Shared Sub SetupWritesDatabaseSuccessfullyToDisk(ioMock As Mock(Of IPackageSearchIOService))
+        Private Shared Sub SetupWritesDatabaseSuccessfullyToDisk(ioMock As Mock(Of IIOService))
             ' Expect that we'll write out the temp file.
             ioMock.Setup(Sub(s) s.WriteAndFlushAllBytes(It.IsRegex(".*tmp"), It.IsAny(Of Byte())))
 
@@ -657,9 +657,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
         End Sub
 
         Private Shared Function CreateRemoteControlServiceMock(
-                clientMock As Mock(Of IPackageSearchRemoteControlClient),
-                latest As Boolean) As Mock(Of IPackageSearchRemoteControlService)
-            Dim remoteControlMock = New Mock(Of IPackageSearchRemoteControlService)(MockBehavior.Strict)
+                clientMock As Mock(Of IRemoteControlClient),
+                latest As Boolean) As Mock(Of IRemoteControlService)
+            Dim remoteControlMock = New Mock(Of IRemoteControlService)(MockBehavior.Strict)
 
             If latest Then
                 SetupDownloadLatest(remoteControlMock, clientMock)
@@ -669,24 +669,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
             Return remoteControlMock
         End Function
 
-        Private Shared Sub SetupDownloadPatch(clientMock As Mock(Of IPackageSearchRemoteControlClient), remoteControlMock As Mock(Of IPackageSearchRemoteControlService))
+        Private Shared Sub SetupDownloadPatch(clientMock As Mock(Of IRemoteControlClient), remoteControlMock As Mock(Of IRemoteControlService))
             remoteControlMock.Setup(
                 Function(s) s.CreateClient(It.IsAny(Of String), It.IsRegex(".*Patch.*"), It.IsAny(Of Integer))).
                 Returns(clientMock.Object)
         End Sub
 
-        Private Shared Sub SetupDownloadLatest(remoteControlMock As Mock(Of IPackageSearchRemoteControlService), clientMock As Mock(Of IPackageSearchRemoteControlClient))
+        Private Shared Sub SetupDownloadLatest(remoteControlMock As Mock(Of IRemoteControlService), clientMock As Mock(Of IRemoteControlClient))
             remoteControlMock.Setup(
                 Function(s) s.CreateClient(It.IsAny(Of String), It.IsRegex(".*Latest.*"), It.IsAny(Of Integer))).
                 Returns(clientMock.Object)
         End Sub
 
-        Private Function CreateFullDatabaseClientMock() As Mock(Of IPackageSearchRemoteControlClient)
+        Private Function CreateFullDatabaseClientMock() As Mock(Of IRemoteControlClient)
             Return CreateClientMock(CreateFullDownloadElementStream())
         End Function
 
-        Private Function CreateClientMock(stream As Stream) As Mock(Of IPackageSearchRemoteControlClient)
-            Dim clientMock = New Mock(Of IPackageSearchRemoteControlClient)(MockBehavior.Strict)
+        Private Function CreateClientMock(stream As Stream) As Mock(Of IRemoteControlClient)
+            Dim clientMock = New Mock(Of IRemoteControlClient)(MockBehavior.Strict)
 
             ' Return a full database element when the service asks for it.
             clientMock.Setup(Function(c) c.ReadFileAsync(It.IsAny(Of __VsRemoteControlBehaviorOnStale))).
@@ -698,7 +698,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
 
         Private Function CreatePatchClientMock(Optional isUpToDate As Boolean = False,
                                                Optional isTooOld As Boolean = False,
-                                               Optional contents As String = Nothing) As Mock(Of IPackageSearchRemoteControlClient)
+                                               Optional contents As String = Nothing) As Mock(Of IRemoteControlClient)
             Return CreateClientMock(CreatePatchElementStream(isUpToDate, isTooOld, contents))
         End Function
 
@@ -732,38 +732,38 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
         End Function
 
         Private Class TestDelayService
-            Implements IPackageSearchDelayService
+            Implements IDelayService
 
             Public Shared ReadOnly Instance As TestDelayService = New TestDelayService()
 
             Private Sub New()
             End Sub
 
-            Public ReadOnly Property CachePollDelay As TimeSpan Implements IPackageSearchDelayService.CachePollDelay
+            Public ReadOnly Property CachePollDelay As TimeSpan Implements IDelayService.CachePollDelay
                 Get
                     Return TimeSpan.Zero
                 End Get
             End Property
 
-            Public ReadOnly Property FileWriteDelay As TimeSpan Implements IPackageSearchDelayService.FileWriteDelay
+            Public ReadOnly Property FileWriteDelay As TimeSpan Implements IDelayService.FileWriteDelay
                 Get
                     Return TimeSpan.Zero
                 End Get
             End Property
 
-            Public ReadOnly Property ExpectedFailureDelay As TimeSpan Implements IPackageSearchDelayService.ExpectedFailureDelay
+            Public ReadOnly Property ExpectedFailureDelay As TimeSpan Implements IDelayService.ExpectedFailureDelay
                 Get
                     Return TimeSpan.Zero
                 End Get
             End Property
 
-            Public ReadOnly Property UpdateSucceededDelay As TimeSpan Implements IPackageSearchDelayService.UpdateSucceededDelay
+            Public ReadOnly Property UpdateSucceededDelay As TimeSpan Implements IDelayService.UpdateSucceededDelay
                 Get
                     Return TimeSpan.Zero
                 End Get
             End Property
 
-            Public ReadOnly Property CatastrophicFailureDelay As TimeSpan Implements IPackageSearchDelayService.CatastrophicFailureDelay
+            Public ReadOnly Property CatastrophicFailureDelay As TimeSpan Implements IDelayService.CatastrophicFailureDelay
                 Get
                     Return TimeSpan.Zero
                 End Get
@@ -810,17 +810,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
         End Class
 
         Private Class TestLogService
-            Implements IPackageSearchLogService
+            Implements ILogService
 
             Public Shared ReadOnly Instance As TestLogService = New TestLogService()
 
             Private Sub New()
             End Sub
 
-            Public Sub LogException(e As Exception, text As String) Implements IPackageSearchLogService.LogException
+            Public Sub LogException(e As Exception, text As String) Implements ILogService.LogException
             End Sub
 
-            Public Sub LogInfo(text As String) Implements IPackageSearchLogService.LogInfo
+            Public Sub LogInfo(text As String) Implements ILogService.LogInfo
             End Sub
         End Class
     End Class
