@@ -15,7 +15,7 @@ Imports Moq
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
-    Public Class PackageSearchServiceTests
+    Public Class SymbolSearchServiceTests
         Private Shared ReadOnly s_allButMoqExceptions As Func(Of Exception, Boolean) =
             Function(e) TypeOf e IsNot MockException
 
