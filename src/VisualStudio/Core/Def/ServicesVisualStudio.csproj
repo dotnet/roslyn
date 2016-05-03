@@ -160,14 +160,14 @@
     <Compile Include="Packaging\IPackageSearchRemoteControlService.cs" />
     <Compile Include="Packaging\PackageInstallerServiceFactory.cs" />
     <Compile Include="Packaging\PackageInstallerServiceFactory_UndoRedo.cs" />
-    <Compile Include="Packaging\SymbolSearchService.Update.cs" />
-    <Compile Include="Packaging\SymbolSearchService.cs" />
-    <Compile Include="Packaging\SymbolSearchService.DatabaseFactoryService.cs" />
-    <Compile Include="Packaging\SymbolSearchService.DelayService.cs" />
-    <Compile Include="Packaging\SymbolSearchService.IOService.cs" />
-    <Compile Include="Packaging\SymbolSearchService.LogService.cs" />
-    <Compile Include="Packaging\SymbolSearchService.RemoteControlService.cs" />
-    <Compile Include="Packaging\SymbolSearchServiceFactory.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchService.Update.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchService.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchService.DatabaseFactoryService.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchService.DelayService.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchService.IOService.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchService.LogService.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchService.RemoteControlService.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchServiceFactory.cs" />
     <Compile Include="Packaging\Patching\Delta.cs" />
     <Compile Include="RoslynPackage.cs" />
     <Compile Include="ServicesVSResources.Designer.cs">
@@ -737,7 +737,7 @@
     <Compile Include="Implementation\ProjectSystem\MetadataReferences\VisualStudioMetadataReferenceManager.Factory.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="Packaging\SymbolSearchService.PatchService.cs" />
+    <Compile Include="SymbolSearch\SymbolSearchService.PatchService.cs" />
     <None Include="project.json" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
