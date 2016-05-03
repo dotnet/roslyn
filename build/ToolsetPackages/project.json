@@ -8,8 +8,7 @@
         "Microsoft.Net.Compilers": "1.2.0-rc",
         "Microsoft.Net.RoslynDiagnostics": "1.1.1-beta1-20150818-01",
         "FakeSign": "0.9.2",
-        "xunit": "2.1.0-beta4-build3109",
-        "xunit.runner.console": "2.1.0-beta4-build3109",
+        "xunit.runner.console": "2.2.0-beta1-build3239",
         "Roslyn.Build.Util": "0.9.4-portable"
     },
     "frameworks": {
