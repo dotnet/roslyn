@@ -10,12 +10,11 @@ Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Elfie.Model
 Imports Microsoft.CodeAnalysis.Packaging
 Imports Microsoft.Internal.VisualStudio.Shell.Interop
-Imports Microsoft.VisualStudio.LanguageServices.Packaging
 Imports Microsoft.VisualStudio.LanguageServices.SymbolSearch
 Imports Moq
 Imports Roslyn.Test.Utilities
 
-Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Packaging
+Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.SymbolSearch
     Public Class PackageSearchServiceTests
         Private Shared ReadOnly s_allButMoqExceptions As Func(Of Exception, Boolean) =
             Function(e) TypeOf e IsNot MockException
