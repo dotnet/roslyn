@@ -34,6 +34,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BindingAttributes.cs" />
     <Compile Include="IntegrationTestServiceCommands.cs" />
     <Compile Include="IntegrationTestServicePackage.cs" />
     <Compile Include="TestExtensionErrorHandler.cs" />
