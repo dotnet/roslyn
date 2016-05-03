@@ -428,7 +428,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return _reducedFrom.GetHashCode();
         }
 
-        private sealed class ReducedExtensionMethodParameterSymbol : WrappedParameterSymbol
+        private sealed class ReducedExtensionMethodParameterSymbol : WrapperParameterSymbol
         {
             private readonly ReducedExtensionMethodSymbol _containingMethod;
 
@@ -446,20 +446,43 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public override int Ordinal
             {
-                get { return this.underlyingParameter.Ordinal - 1; }
+                get { return this._underlyingParameter.Ordinal - 1; }
             }
 
             public override TypeSymbol Type
             {
-                get { return _containingMethod._typeMap.SubstituteType(this.underlyingParameter.Type).Type; }
+                get { return _containingMethod._typeMap.SubstituteType(this._underlyingParameter.Type).Type; }
             }
 
             public override ImmutableArray<CustomModifier> CustomModifiers
             {
                 get
                 {
-                    return _containingMethod._typeMap.SubstituteCustomModifiers(this.underlyingParameter.Type, this.underlyingParameter.CustomModifiers);
+                    return _containingMethod._typeMap.SubstituteCustomModifiers(this._underlyingParameter.Type, this._underlyingParameter.CustomModifiers);
                 }
+            }
+
+            public sealed override bool Equals(object obj)
+            {
+                if ((object)this == obj)
+                {
+                    return true;
+                }
+
+                // Equality of ordinal and containing symbol is a correct
+                // implementation for all ParameterSymbols, but we don't 
+                // define it on the base type because most can simply use
+                // ReferenceEquals.
+
+                var other = obj as ReducedExtensionMethodParameterSymbol;
+                return (object)other != null &&
+                    this.Ordinal == other.Ordinal &&
+                    this.ContainingSymbol.Equals(other.ContainingSymbol);
+            }
+
+            public sealed override int GetHashCode()
+            {
+                return Hash.Combine(ContainingSymbol, _underlyingParameter.Ordinal);
             }
         }
     }

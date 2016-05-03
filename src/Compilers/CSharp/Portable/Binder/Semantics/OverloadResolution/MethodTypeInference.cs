@@ -650,16 +650,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var destination = (NamedTypeSymbol)target;
-
-            if (destination.IsTupleType)
-            {
-                destination = ((TupleTypeSymbol)destination).UnderlyingTupleType;
-            }
-
             var sourceArguments = argument.Arguments;
 
-            // check if underlying type is actually a possible underlying type for a tuple of given arity
-            if (!binder.Compilation.IsWellKnownTupleType(destination, sourceArguments.Length))
+            // check if the type is actually compatible type for a tuple of given cardinality
+            int cardinality;
+            if (!destination.IsTupleCompatible(out cardinality) || cardinality != sourceArguments.Length)
             {
                 // target is not a tuple of appropriate shape
                 return;
@@ -839,16 +834,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var destination = (NamedTypeSymbol)formalType;
 
-            if (destination.IsTupleType)
-            {
-                destination = ((TupleTypeSymbol)destination).UnderlyingTupleType;
-            }
-
             Debug.Assert(argument.Type == null, "should not need to dig into elements if tuple has natural type");
             var sourceArguments = argument.Arguments;
 
-            // check if underlying type is actually a possible underlying type for a tuple of given arity
-            if (!binder.Compilation.IsWellKnownTupleType(destination, sourceArguments.Length))
+            // check if the type is actually compatible type for a tuple of given cardinality
+            int cardinality;
+            if (!destination.IsTupleCompatible(out cardinality) || cardinality != sourceArguments.Length)
             {
                 return;
             }
@@ -1618,13 +1609,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasTuples = false;
             if (source.IsTupleType)
             {
-                source = ((TupleTypeSymbol)source).UnderlyingTupleType;
+                source = source.TupleUnderlyingType;
                 hasTuples = true;
             }
 
             if (target.IsTupleType)
             {
-                target = ((TupleTypeSymbol)target).UnderlyingTupleType;
+                target = target.TupleUnderlyingType;
                 hasTuples = true;
             }
 
@@ -2489,7 +2480,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (candidate.IsTupleType)
                     {
-                        best = ((TupleTypeSymbol)candidate).UnderlyingTupleType;
+                        best = candidate.TupleUnderlyingType;
                         break;
                     }
 

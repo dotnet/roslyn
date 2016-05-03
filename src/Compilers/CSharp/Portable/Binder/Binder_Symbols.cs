@@ -399,6 +399,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             int numElements = syntax.Elements.Count;
             var types = ArrayBuilder<TypeSymbol>.GetInstance(numElements);
+            var locations = ArrayBuilder<Location>.GetInstance(numElements);
             ArrayBuilder<string> elementNames = null;
 
             // set of names already used
@@ -417,16 +418,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Error(diagnostics, ErrorCode.ERR_FieldCantBeRefAny, argumentSyntax, argumentType);
                 }
 
-                string name = argumentSyntax.Name?.Identifier.ValueText;
+                string name =  null;
+                IdentifierNameSyntax nameSyntax = argumentSyntax.Name;
 
-                // validate name if we have one
-                if (name != null)
+                if (nameSyntax != null)
                 {
+                    name = nameSyntax.Identifier.ValueText;
+
+                    // validate name if we have one
                     countOfExplicitNames++;
-                    CheckTupleMemberName(name, i, argumentSyntax.Name, diagnostics, uniqueFieldNames);
+                    CheckTupleMemberName(name, i, nameSyntax, diagnostics, uniqueFieldNames);
+                    locations.Add(nameSyntax.Location);
                 }
+                else
+                {
+                    locations.Add(argumentSyntax.Location);
+                }
+
                 CollectTupleFieldMemberNames(name, i + 1, numElements, ref elementNames);
             }
+
             uniqueFieldNames.Free();
 
             if (countOfExplicitNames != 0 && countOfExplicitNames != numElements)
@@ -435,18 +446,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             ImmutableArray<TypeSymbol> typesArray = types.ToImmutableAndFree();
+            ImmutableArray<Location> locationsArray = locations.ToImmutableAndFree();
+
             if (typesArray.Length < 2)
             {
                 return new ExtendedErrorTypeSymbol(this.Compilation.Assembly.GlobalNamespace, LookupResultKind.NotCreatable, diagnostics.Add(ErrorCode.ERR_TupleTooFewElements, syntax.Location));
             }
 
-            return TupleTypeSymbol.Create(typesArray,
-                                          elementNames == null ?
+            return TupleTypeSymbol.Create(syntax.Location,
+                                            typesArray,
+                                            locationsArray,
+                                            elementNames == null ?
                                                 default(ImmutableArray<string>) :
                                                 elementNames.ToImmutableAndFree(),
-                                          this.Compilation,
-                                          syntax,
-                                          diagnostics);
+                                            this.Compilation,
+                                            syntax,
+                                            diagnostics);
         }
 
         private static void CollectTupleFieldMemberNames(string name, int position, int tupleSize, ref ArrayBuilder<string> elementNames)

@@ -464,6 +464,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 bool isNestedNamedType = false;
 
+                // for tuple types, visit underlying type
+                if (current.IsTupleType)
+                {
+                    current = current.TupleUnderlyingType;
+                }
+
                 // Visit containing types from outer-most to inner-most.
                 switch (current.TypeKind)
                 {
@@ -494,12 +500,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (predicate(current, arg, isNestedNamedType))
                 {
                     return current;
-                }
-
-                // for tuple types, visit underlying type
-                if (current.IsTupleType)
-                {
-                    return ((TupleTypeSymbol)current).UnderlyingTupleType.VisitType(predicate, arg);
                 }
 
                 switch (current.TypeKind)
