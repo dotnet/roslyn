@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Elfie.Model
 Imports Microsoft.CodeAnalysis.Packaging
 Imports Microsoft.Internal.VisualStudio.Shell.Interop
 Imports Microsoft.VisualStudio.LanguageServices.Packaging
+Imports Microsoft.VisualStudio.LanguageServices.SymbolSearch
 Imports Moq
 Imports Roslyn.Test.Utilities
 

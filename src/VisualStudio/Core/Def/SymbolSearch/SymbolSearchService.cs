@@ -23,7 +23,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SymbolSearch;
 
-namespace Microsoft.VisualStudio.LanguageServices.Packaging
+namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
     /// <summary>
     /// A service which enables searching for packages matching certain criteria.

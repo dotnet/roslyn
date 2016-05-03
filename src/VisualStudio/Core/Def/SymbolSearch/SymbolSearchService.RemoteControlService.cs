@@ -6,7 +6,7 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Packaging
+namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
     internal partial class SymbolSearchService
     {

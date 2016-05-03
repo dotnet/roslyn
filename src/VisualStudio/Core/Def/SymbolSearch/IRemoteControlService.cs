@@ -5,7 +5,7 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Packaging
+namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
     /// <summary>
     /// Used so we can mock out the remote control service in unit tests.

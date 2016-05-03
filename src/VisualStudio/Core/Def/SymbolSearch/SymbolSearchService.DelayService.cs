@@ -2,7 +2,7 @@
 
 using System;
 
-namespace Microsoft.VisualStudio.LanguageServices.Packaging
+namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
     internal partial class SymbolSearchService
     {

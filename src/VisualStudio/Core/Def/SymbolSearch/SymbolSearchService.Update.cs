@@ -22,7 +22,7 @@ using Microsoft.CodeAnalysis.Shared.Options;
 using System.Linq;
 using System.Collections.Immutable;
 
-namespace Microsoft.VisualStudio.LanguageServices.Packaging
+namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
     /// <summary>
     /// A service which enables searching for packages matching certain criteria.

@@ -2,7 +2,7 @@
 
 using Microsoft.CodeAnalysis.Elfie.Model;
 
-namespace Microsoft.VisualStudio.LanguageServices.Packaging
+namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
     internal interface IDatabaseFactoryService
     {

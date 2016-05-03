@@ -8,7 +8,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Microsoft.VisualStudio.LanguageServices.Packaging.Patching
+namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch.Patching
 {
     /// <summary>
     /// Wrapper around the msdelta api so we can consume patches produced by the Elfie service.

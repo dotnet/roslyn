@@ -168,7 +168,7 @@
     <Compile Include="SymbolSearch\SymbolSearchService.LogService.cs" />
     <Compile Include="SymbolSearch\SymbolSearchService.RemoteControlService.cs" />
     <Compile Include="SymbolSearch\SymbolSearchServiceFactory.cs" />
-    <Compile Include="Packaging\Patching\Delta.cs" />
+    <Compile Include="SymbolSearch\Patching\Delta.cs" />
     <Compile Include="RoslynPackage.cs" />
     <Compile Include="ServicesVSResources.Designer.cs">
       <AutoGen>True</AutoGen>

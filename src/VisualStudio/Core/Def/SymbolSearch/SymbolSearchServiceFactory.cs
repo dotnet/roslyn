@@ -12,7 +12,7 @@ using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
 using VSShell = Microsoft.VisualStudio.Shell;
 
-namespace Microsoft.VisualStudio.LanguageServices.Packaging
+namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
     [ExportWorkspaceServiceFactory(typeof(ISymbolSearchService), WorkspaceKind.Host), Shared]
     internal class SymbolSearchServiceFactory : IWorkspaceServiceFactory

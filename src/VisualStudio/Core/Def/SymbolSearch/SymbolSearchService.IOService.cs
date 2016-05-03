@@ -3,7 +3,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace Microsoft.VisualStudio.LanguageServices.Packaging
+namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
     internal partial class SymbolSearchService
     {
