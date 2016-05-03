@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Threading;
@@ -15,12 +14,12 @@ using VSShell = Microsoft.VisualStudio.Shell;
 namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
     [ExportWorkspaceServiceFactory(typeof(ISymbolSearchService), WorkspaceKind.Host), Shared]
-    internal class PackageSearchServiceFactory : IWorkspaceServiceFactory
+    internal class SymbolSearchServiceFactory : IWorkspaceServiceFactory
     {
         private readonly VSShell.SVsServiceProvider _serviceProvider;
 
         [ImportingConstructor]
-        public PackageSearchServiceFactory(
+        public SymbolSearchServiceFactory(
             VSShell.SVsServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
