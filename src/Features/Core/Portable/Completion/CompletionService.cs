@@ -1,76 +1,121 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
-    internal static class CompletionService
+    /// <summary>
+    /// A per language service for constructing context dependent list of completions that 
+    /// can be presented to a user during typing in an editor.
+    /// </summary>
+    public abstract class CompletionService : ILanguageService
     {
-        private static Task<CompletionList> s_emptyCompletionListTask;
-
-        public static IEnumerable<CompletionListProvider> GetDefaultCompletionListProviders(Document document)
+        /// <summary>
+        /// Gets the service corresponding to the specified document.
+        /// </summary>
+        public static CompletionService GetService(Document document)
         {
-            return document.GetLanguageService<ICompletionService>().GetDefaultCompletionProviders();
-        }
-
-        public static CompletionRules GetCompletionRules(Document document)
-        {
-            return document.GetLanguageService<ICompletionService>().GetCompletionRules();
+            return document.Project.LanguageServices.GetService<CompletionService>();
         }
 
         /// <summary>
-        /// Returns the <see cref="CompletionList"/> for the specified <paramref name="position"/>
-        /// in the <paramref name="document"/>.
+        /// The language from <see cref="LanguageNames"/> this service corresponds to.
         /// </summary>
-        public static Task<CompletionList> GetCompletionListAsync(
+        public abstract string Language { get; }
+
+        /// <summary>
+        /// Gets the current presentation and behavior rules.
+        /// </summary>
+        public virtual CompletionRules GetRules()
+        {
+            return CompletionRules.Default;
+        }
+
+        /// <summary>
+        /// Returns true if the character recently inserted or deleted in the text should trigger completion.
+        /// </summary>
+        /// <param name="text">The document text to trigger completion within </param>
+        /// <param name="caretPosition">The position of the caret after the triggering action.</param>
+        /// <param name="trigger">The potential triggering action.</param>
+        /// <param name="roles">Optional set of roles associated with the editor state.</param>
+        /// <param name="options">Optional options that override the default options.</param>
+        /// <remarks>
+        /// This API uses SourceText instead of Document so implementations can only be based on text, not syntax or semantics.
+        /// </remarks>
+        public virtual bool ShouldTriggerCompletion(
+            SourceText text, 
+            int caretPosition, 
+            CompletionTrigger trigger, 
+            ImmutableHashSet<string> roles = null, 
+            OptionSet options = null)
+        {
+            return false;
+        }
+
+        /// <summary>
+        /// Gets the span of the syntax element at the caret position.
+        /// This is the most common value used for <see cref="CompletionItem.Span"/>.
+        /// </summary>
+        /// <param name="text">The document text that completion is occurring within.</param>
+        /// <param name="caretPosition">The position of the caret within the text.</param>
+        public virtual TextSpan GetDefaultItemSpan(SourceText text, int caretPosition)
+        {
+            return CommonCompletionUtilities.GetWordSpan(text, caretPosition, c => char.IsLetter(c), c => char.IsLetterOrDigit(c));
+        }
+
+        /// <summary>
+        /// Gets the completions available at the caret position.
+        /// </summary>
+        /// <param name="document">The document that completion is occuring within.</param>
+        /// <param name="caretPosition">The position of the caret after the triggering action.</param>
+        /// <param name="trigger">The triggering action.</param>
+        /// <param name="roles">Optional set of roles associated with the editor state.</param>
+        /// <param name="options">Optional options that override the default options.</param>
+        /// <param name="cancellationToken"></param>
+        public abstract Task<CompletionList> GetCompletionsAsync(
             Document document,
-            int position,
-            CompletionTriggerInfo triggerInfo,
+            int caretPosition,
+            CompletionTrigger trigger = default(CompletionTrigger),
+            ImmutableHashSet<string> roles = null,
             OptionSet options = null,
-            IEnumerable<CompletionListProvider> providers = null,
+            CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Gets the description of the item.
+        /// </summary>
+        /// <param name="document">The document that completion is occurring within.</param>
+        /// <param name="item">The item to get the description for.</param>
+        /// <param name="cancellationToken"></param>
+        public virtual Task<CompletionDescription> GetDescriptionAsync(
+            Document document, 
+            CompletionItem item, 
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (document == null)
-            {
-                throw new ArgumentNullException(nameof(document));
-            }
-
-            var completionService = document.GetLanguageService<ICompletionService>();
-            if (completionService != null)
-            {
-                options = options ?? document.Project.Solution.Workspace.Options;
-                providers = providers ?? GetDefaultCompletionListProviders(document);
-
-                return completionService.GetCompletionListAsync(document, position, triggerInfo, options, providers, cancellationToken);
-            }
-            else
-            {
-                if (s_emptyCompletionListTask == null)
-                {
-                    var value = Task.FromResult(new CompletionList(ImmutableArray<CompletionItem>.Empty));
-                    Interlocked.CompareExchange(ref s_emptyCompletionListTask, value, null);
-                }
-
-                return s_emptyCompletionListTask;
-            }
+            return Task.FromResult(CompletionDescription.Empty);
         }
 
         /// <summary>
-        /// Returns true if the character at the specific position in the text snapshot should
-        /// trigger completion. Implementers of this will be called on the main UI thread and should
-        /// only do minimal textual checks to determine if they should be presented.
+        /// Gets the change to be applied when the item is committed.
         /// </summary>
-        public static async Task<bool> IsCompletionTriggerCharacterAsync(Document document, int characterPosition, IEnumerable<CompletionListProvider> completionProviders = null, CancellationToken cancellationToken = default(CancellationToken))
+        /// <param name="document">The document that completion is occurring within.</param>
+        /// <param name="item">The item to get the change for.</param>
+        /// <param name="commitCharacter">The typed character that caused the item to be committed. 
+        /// This character may be used as part of the change. 
+        /// This value is null when the commit was caused by the [TAB] or [ENTER] keys.</param>
+        /// <param name="cancellationToken"></param>
+        public virtual Task<CompletionChange> GetChangeAsync(
+            Document document, 
+            CompletionItem item, 
+            char? commitCharacter = null, 
+            CancellationToken cancellationToken = default(CancellationToken))
         {
-            var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var options = document.Project.Solution.Workspace.Options;
-            return document.GetLanguageService<ICompletionService>().IsTriggerCharacter(text, characterPosition, completionProviders, options);
+            return Task.FromResult(CompletionChange.Create(ImmutableArray.Create(new TextChange(item.Span, item.DisplayText))));
         }
     }
 }

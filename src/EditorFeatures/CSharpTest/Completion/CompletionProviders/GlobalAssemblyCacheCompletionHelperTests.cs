@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
                               select completion;
 
             Assert.True(systemsColl.Any(
-                completion => completion.GetDescriptionAsync().Result.GetFullText() == typeof(System.Diagnostics.Process).Assembly.FullName));
+                completion => CommonCompletionItem.GetDescription(completion).Text == typeof(System.Diagnostics.Process).Assembly.FullName));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
