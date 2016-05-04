@@ -6,77 +6,73 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
-using Roslyn.Utilities;
 
-namespace Microsoft.Cci
+#if SRM
+using System.Reflection.Internal;
+#else
+using Roslyn.Utilities;
+#endif
+
+#if SRM
+namespace System.Reflection.Metadata.Ecma335
+#else
+namespace Roslyn.Reflection.Metadata.Ecma335
+#endif
 {
-    internal sealed class MetadataTablesBuilder
+    partial class MetadataBuilder
     {
         private const byte MetadataFormatMajorVersion = 2;
         private const byte MetadataFormatMinorVersion = 0;
-
-        private readonly MetadataHeapsBuilder _heaps;
-        private readonly MetadataHeapsBuilder _debugHeapsOpt;
-
-        public MetadataTablesBuilder(MetadataHeapsBuilder heaps, MetadataHeapsBuilder debugHeaps)
-        {
-            if (heaps == null)
-            {
-                throw new ArgumentNullException(nameof(heaps));
-            }
-
-            _heaps = heaps;
-            _debugHeapsOpt = debugHeaps;
-        }
-
+        
         // type system table rows:
-        private struct AssemblyRefTableRow { public Version Version; public BlobIdx PublicKeyToken; public StringIdx Name; public StringIdx Culture; public uint Flags; public BlobIdx HashValue; }
-        private struct ModuleRow { public ushort Generation; public StringIdx Name; public int ModuleVersionId; public int EncId; public int EncBaseId; }
-        private struct AssemblyRow { public uint HashAlgorithm; public Version Version; public ushort Flags; public BlobIdx AssemblyKey; public StringIdx AssemblyName; public StringIdx AssemblyCulture; }
+        private struct AssemblyRefTableRow { public Version Version; public BlobHandle PublicKeyToken; public StringHandle Name; public StringHandle Culture; public uint Flags; public BlobHandle HashValue; }
+        private struct ModuleRow { public ushort Generation; public StringHandle Name; public GuidHandle ModuleVersionId; public GuidHandle EncId; public GuidHandle EncBaseId; }
+        private struct AssemblyRow { public uint HashAlgorithm; public Version Version; public ushort Flags; public BlobHandle AssemblyKey; public StringHandle AssemblyName; public StringHandle AssemblyCulture; }
         private struct ClassLayoutRow { public ushort PackingSize; public uint ClassSize; public uint Parent; }
-        private struct ConstantRow { public byte Type; public uint Parent; public BlobIdx Value; }
-        private struct CustomAttributeRow { public uint Parent; public uint Type; public BlobIdx Value; }
-        private struct DeclSecurityRow { public ushort Action; public uint Parent; public BlobIdx PermissionSet; }
+        private struct ConstantRow { public byte Type; public uint Parent; public BlobHandle Value; }
+        private struct CustomAttributeRow { public uint Parent; public uint Type; public BlobHandle Value; }
+        private struct DeclSecurityRow { public ushort Action; public uint Parent; public BlobHandle PermissionSet; }
         private struct EncLogRow { public uint Token; public byte FuncCode; }
         private struct EncMapRow { public uint Token; }
-        private struct EventRow { public ushort EventFlags; public StringIdx Name; public uint EventType; }
+        private struct EventRow { public ushort EventFlags; public StringHandle Name; public uint EventType; }
         private struct EventMapRow { public uint Parent; public uint EventList; }
-        private struct ExportedTypeRow { public uint Flags; public uint TypeDefId; public StringIdx TypeName; public StringIdx TypeNamespace; public uint Implementation; }
+        private struct ExportedTypeRow { public uint Flags; public uint TypeDefId; public StringHandle TypeName; public StringHandle TypeNamespace; public uint Implementation; }
         private struct FieldLayoutRow { public uint Offset; public uint Field; }
-        private struct FieldMarshalRow { public uint Parent; public BlobIdx NativeType; }
+        private struct FieldMarshalRow { public uint Parent; public BlobHandle NativeType; }
         private struct FieldRvaRow { public uint Offset; public uint Field; }
-        private struct FieldDefRow { public ushort Flags; public StringIdx Name; public BlobIdx Signature; }
-        private struct FileTableRow { public uint Flags; public StringIdx FileName; public BlobIdx HashValue; }
+        private struct FieldDefRow { public ushort Flags; public StringHandle Name; public BlobHandle Signature; }
+        private struct FileTableRow { public uint Flags; public StringHandle FileName; public BlobHandle HashValue; }
         private struct GenericParamConstraintRow { public uint Owner; public uint Constraint; }
-        private struct GenericParamRow { public ushort Number; public ushort Flags; public uint Owner; public StringIdx Name; }
-        private struct ImplMapRow { public ushort MappingFlags; public uint MemberForwarded; public StringIdx ImportName; public uint ImportScope; }
+        private struct GenericParamRow { public ushort Number; public ushort Flags; public uint Owner; public StringHandle Name; }
+        private struct ImplMapRow { public ushort MappingFlags; public uint MemberForwarded; public StringHandle ImportName; public uint ImportScope; }
         private struct InterfaceImplRow { public uint Class; public uint Interface; }
-        private struct ManifestResourceRow { public uint Offset; public uint Flags; public StringIdx Name; public uint Implementation; }
-        private struct MemberRefRow { public uint Class; public StringIdx Name; public BlobIdx Signature; }
+        private struct ManifestResourceRow { public uint Offset; public uint Flags; public StringHandle Name; public uint Implementation; }
+        private struct MemberRefRow { public uint Class; public StringHandle Name; public BlobHandle Signature; }
         private struct MethodImplRow { public uint Class; public uint MethodBody; public uint MethodDecl; }
         private struct MethodSemanticsRow { public ushort Semantic; public uint Method; public uint Association; }
-        private struct MethodSpecRow { public uint Method; public BlobIdx Instantiation; }
-        private struct MethodRow { public int Rva; public ushort ImplFlags; public ushort Flags; public StringIdx Name; public BlobIdx Signature; public uint ParamList; }
-        private struct ModuleRefRow { public StringIdx Name; }
+        private struct MethodSpecRow { public uint Method; public BlobHandle Instantiation; }
+        private struct MethodRow { public int BodyOffset; public ushort ImplFlags; public ushort Flags; public StringHandle Name; public BlobHandle Signature; public uint ParamList; }
+        private struct ModuleRefRow { public StringHandle Name; }
         private struct NestedClassRow { public uint NestedClass; public uint EnclosingClass; }
-        private struct ParamRow { public ushort Flags; public ushort Sequence; public StringIdx Name; }
+        private struct ParamRow { public ushort Flags; public ushort Sequence; public StringHandle Name; }
         private struct PropertyMapRow { public uint Parent; public uint PropertyList; }
-        private struct PropertyRow { public ushort PropFlags; public StringIdx Name; public BlobIdx Type; }
-        private struct TypeDefRow { public uint Flags; public StringIdx Name; public StringIdx Namespace; public uint Extends; public uint FieldList; public uint MethodList; }
-        private struct TypeRefRow { public uint ResolutionScope; public StringIdx Name; public StringIdx Namespace; }
-        private struct TypeSpecRow { public BlobIdx Signature; }
-        private struct StandaloneSigRow { public BlobIdx Signature; }
+        private struct PropertyRow { public ushort PropFlags; public StringHandle Name; public BlobHandle Type; }
+        private struct TypeDefRow { public uint Flags; public StringHandle Name; public StringHandle Namespace; public uint Extends; public uint FieldList; public uint MethodList; }
+        private struct TypeRefRow { public uint ResolutionScope; public StringHandle Name; public StringHandle Namespace; }
+        private struct TypeSpecRow { public BlobHandle Signature; }
+        private struct StandaloneSigRow { public BlobHandle Signature; }
        
         // debug table rows:
-        private struct DocumentRow { public BlobIdx Name; public uint HashAlgorithm; public BlobIdx Hash; public uint Language; }
-        private struct MethodDebugInformationRow { public uint Document; public BlobIdx SequencePoints; }
+        private struct DocumentRow { public BlobHandle Name; public GuidHandle HashAlgorithm; public BlobHandle Hash; public GuidHandle Language; }
+        private struct MethodDebugInformationRow { public uint Document; public BlobHandle SequencePoints; }
         private struct LocalScopeRow { public uint Method; public uint ImportScope; public uint VariableList; public uint ConstantList; public uint StartOffset; public uint Length; }
-        private struct LocalVariableRow { public ushort Attributes; public ushort Index; public StringIdx Name; } 
-        private struct LocalConstantRow { public StringIdx Name; public BlobIdx Signature; }
-        private struct ImportScopeRow { public uint Parent; public BlobIdx Imports; }
+        private struct LocalVariableRow { public ushort Attributes; public ushort Index; public StringHandle Name; } 
+        private struct LocalConstantRow { public StringHandle Name; public BlobHandle Signature; }
+        private struct ImportScopeRow { public uint Parent; public BlobHandle Imports; }
         private struct StateMachineMethodRow { public uint MoveNextMethod; public uint KickoffMethod; }
-        private struct CustomDebugInformationRow { public uint Parent; public uint Kind; public BlobIdx Value; }
+        private struct CustomDebugInformationRow { public uint Parent; public GuidHandle Kind; public BlobHandle Value; }
 
         // type system tables:
         private readonly List<ModuleRow> _moduleTable = new List<ModuleRow>(1);
@@ -107,7 +103,9 @@ namespace Microsoft.Cci
         private bool _fieldMarshalTableNeedsSorting;
 
         private readonly List<FieldRvaRow> _fieldRvaTable = new List<FieldRvaRow>();
+
         private readonly List<FieldDefRow> _fieldTable = new List<FieldDefRow>();
+
         private readonly List<FileTableRow> _fileTable = new List<FileTableRow>();
         private readonly List<GenericParamConstraintRow> _genericParamConstraintTable = new List<GenericParamConstraintRow>();
         private readonly List<GenericParamRow> _genericParamTable = new List<GenericParamRow>();
@@ -133,6 +131,7 @@ namespace Microsoft.Cci
         private readonly List<TypeSpecRow> _typeSpecTable = new List<TypeSpecRow>();
         private readonly List<AssemblyRefTableRow> _assemblyRefTable = new List<AssemblyRefTableRow>();
         private readonly List<StandaloneSigRow> _standAloneSigTable = new List<StandaloneSigRow>();
+
 
         // debug tables:
         private readonly List<DocumentRow> _documentTable = new List<DocumentRow>();
@@ -211,28 +210,30 @@ namespace Microsoft.Cci
 
         #region Building
 
-        public void AddModule(
+        public ModuleDefinitionHandle AddModule(
             int generation,
-            StringIdx moduleName,
-            Guid mvid, 
-            Guid encId, 
-            Guid encBaseId)
+            StringHandle moduleName,
+            GuidHandle mvid,
+            GuidHandle encId,
+            GuidHandle encBaseId)
         {
             _moduleTable.Add(new ModuleRow
             {
                 Generation = (ushort)generation,
                 Name = moduleName,
-                ModuleVersionId = _heaps.AllocateGuid(mvid),
-                EncId = _heaps.GetGuidIndex(encId),
-                EncBaseId = _heaps.GetGuidIndex(encBaseId),
+                ModuleVersionId = mvid,
+                EncId = encId,
+                EncBaseId = encBaseId,
             });
+
+            return EntityHandle.ModuleDefinition;
         }
 
-        public void AddAssembly(
-            StringIdx name, 
+        public AssemblyDefinitionHandle AddAssembly(
+            StringHandle name, 
             Version version,
-            StringIdx culture,
-            BlobIdx publicKey,
+            StringHandle culture,
+            BlobHandle publicKey,
             AssemblyFlags flags,
             AssemblyHashAlgorithm hashAlgorithm)
         {
@@ -245,15 +246,17 @@ namespace Microsoft.Cci
                 AssemblyName = name,
                 AssemblyCulture = culture
             });
+
+            return EntityHandle.AssemblyDefinition;
         }
 
-        public void AddAssemblyReference(
-            StringIdx name,
+        public AssemblyReferenceHandle AddAssemblyReference(
+            StringHandle name,
             Version version,
-            StringIdx culture,
-            BlobIdx publicKeyOrToken,
+            StringHandle culture,
+            BlobHandle publicKeyOrToken,
             AssemblyFlags flags,
-            BlobIdx hashValue)
+            BlobHandle hashValue)
         {
             _assemblyRefTable.Add(new AssemblyRefTableRow
             {
@@ -264,15 +267,17 @@ namespace Microsoft.Cci
                 Flags = (uint)flags,
                 HashValue = hashValue
             });
+
+            return MetadataTokens.AssemblyReferenceHandle(_assemblyRefTable.Count);
         }
 
-        public void AddTypeDefinition(
+        public TypeDefinitionHandle AddTypeDefinition(
             TypeAttributes attributes, 
-            StringIdx @namespace,
-            StringIdx name,
-            uint baseTypeCodedIndex,
-            int fieldList,
-            int methodList)
+            StringHandle @namespace,
+            StringHandle name,
+            EntityHandle baseType,
+            FieldDefinitionHandle fieldList,
+            MethodDefinitionHandle methodList)
         {
             Debug.Assert(@namespace != null);
             Debug.Assert(name != null);
@@ -282,90 +287,91 @@ namespace Microsoft.Cci
                 Flags = (uint)attributes,
                 Name = name,
                 Namespace = @namespace,
-                Extends = baseTypeCodedIndex,
-                FieldList = (uint)fieldList,
-                MethodList = (uint)methodList
+                Extends = baseType.IsNil ? 0 : (uint)CodedIndex.ToTypeDefOrRefOrSpec(baseType),
+                FieldList = (uint)MetadataTokens.GetRowNumber(fieldList),
+                MethodList = (uint)MetadataTokens.GetRowNumber(methodList)
             });
+
+            return MetadataTokens.TypeDefinitionHandle(_typeDefTable.Count);
         }
 
         public void AddTypeLayout(
-            int typeDefinitionRowId,
+            TypeDefinitionHandle type,
             ushort packingSize,
             uint size)
         {
             _classLayoutTable.Add(new ClassLayoutRow
             {
-                Parent = (uint)typeDefinitionRowId,
+                Parent = (uint)MetadataTokens.GetRowNumber(type),
                 PackingSize = packingSize,
                 ClassSize = size
             });
         }
 
-        public void AddInterfaceImplementation(
-            int typeDefinitionRowId,
-            uint interfaceCodedIndex)
+        public InterfaceImplementationHandle AddInterfaceImplementation(
+            TypeDefinitionHandle type,
+            EntityHandle implementedInterface)
         {
             _interfaceImplTable.Add(new InterfaceImplRow
             {
-                Class = (uint)typeDefinitionRowId,
-                Interface = interfaceCodedIndex
+                Class = (uint)MetadataTokens.GetRowNumber(type),
+                Interface = (uint)CodedIndex.ToTypeDefOrRefOrSpec(implementedInterface)
             });
+
+            // TODO:
+            return (InterfaceImplementationHandle)MetadataTokens.Handle(TableIndex.InterfaceImpl, _interfaceImplTable.Count);
         }
 
         public void AddNestedType(
-            int typeDefinitionRowId,
-            int enclosingTypeDefinitionRowId)
+            TypeDefinitionHandle type,
+            TypeDefinitionHandle enclosingType)
         {
             _nestedClassTable.Add(new NestedClassRow
             {
-                NestedClass = (uint)typeDefinitionRowId,
-                EnclosingClass = (uint)enclosingTypeDefinitionRowId
+                NestedClass = (uint)MetadataTokens.GetRowNumber(type),
+                EnclosingClass = (uint)MetadataTokens.GetRowNumber(enclosingType)
             });
         }
 
-        public int AddTypeReference(uint resolutionScope, StringIdx @namespace, StringIdx name)
+        public TypeReferenceHandle AddTypeReference(
+            EntityHandle resolutionScope, 
+            StringHandle @namespace, 
+            StringHandle name)
         {
             Debug.Assert(@namespace != null);
             Debug.Assert(name != null);
 
             _typeRefTable.Add(new TypeRefRow
             {
-                ResolutionScope = resolutionScope,
+                ResolutionScope = (uint)CodedIndex.ToResolutionScope(resolutionScope),
                 Name = name,
                 Namespace = @namespace
             });
 
-            // row id
-            return _typeRefTable.Count;
+            return MetadataTokens.TypeReferenceHandle(_typeRefTable.Count);
         }
 
-        public void SetTypeSpecificationTableCapacity(int capacity)
-        {
-            _typeSpecTable.Capacity = capacity;
-        }
-
-        public void AddTypeSpecification(BlobIdx signature)
+        public TypeSpecificationHandle AddTypeSpecification(BlobHandle signature)
         {
             _typeSpecTable.Add(new TypeSpecRow
             {
                 Signature = signature
             });
+
+            return MetadataTokens.TypeSpecificationHandle(_typeSpecTable.Count);
         }
 
-        public void SetStandaloneSigTableCapacity(int capacity)
-        {
-            _standAloneSigTable.Capacity = capacity;
-        }
-
-        public void AddStandaloneSignature(BlobIdx signature)
+        public StandaloneSignatureHandle AddStandaloneSignature(BlobHandle signature)
         {
             _standAloneSigTable.Add(new StandaloneSigRow
             {
                 Signature = signature
             });
+
+            return MetadataTokens.StandaloneSignatureHandle(_standAloneSigTable.Count);
         }
 
-        public void AddProperty(PropertyAttributes attributes, StringIdx name, BlobIdx signature)
+        public PropertyDefinitionHandle AddProperty(PropertyAttributes attributes, StringHandle name, BlobHandle signature)
         {
             _propertyTable.Add(new PropertyRow
             {
@@ -373,96 +379,114 @@ namespace Microsoft.Cci
                 Name = name,
                 Type = signature
             });
+
+            return MetadataTokens.PropertyDefinitionHandle(_propertyTable.Count);
         }
 
-        public void AddPropertyMap(int typeDefinitionRowId, int propertyList)
+        public void AddPropertyMap(TypeDefinitionHandle declaringType, PropertyDefinitionHandle propertyList)
         {
             _propertyMapTable.Add(new PropertyMapRow
             {
-                Parent = (uint)typeDefinitionRowId,
-                PropertyList = (uint)propertyList
+                Parent = (uint)MetadataTokens.GetRowNumber(declaringType),
+                PropertyList = (uint)MetadataTokens.GetRowNumber(propertyList)
             });
         }
 
-        public void AddEvent(EventAttributes attributes, StringIdx name, uint type)
+        public EventDefinitionHandle AddEvent(EventAttributes attributes, StringHandle name, EntityHandle type)
         {
             _eventTable.Add(new EventRow
             {
                 EventFlags = (ushort)attributes,
                 Name = name,
-                EventType = type
+                EventType = (uint)CodedIndex.ToTypeDefOrRefOrSpec(type)
             });
+
+            return MetadataTokens.EventDefinitionHandle(_eventTable.Count);
         }
 
-        public void AddEventMap(int typeDefinitionRowId, int eventList)
+        public void AddEventMap(TypeDefinitionHandle declaringType, EventDefinitionHandle eventList)
         {
             _eventMapTable.Add(new EventMapRow
             {
-                Parent = (uint)typeDefinitionRowId,
-                EventList = (uint)eventList
+                Parent = (uint)MetadataTokens.GetRowNumber(declaringType),
+                EventList = (uint)MetadataTokens.GetRowNumber(eventList)
             });
         }
 
-        public void AddConstant(uint parent, object value)
+        public ConstantHandle AddConstant(EntityHandle parent, object value)
         {
+            uint parentCodedIndex = (uint)CodedIndex.ToHasConstant(parent);
+
             // the table is required to be sorted by Parent:
-            _constantTableNeedsSorting |= parent < _constantTableLastParent;
-            _constantTableLastParent = parent;
+            _constantTableNeedsSorting |= parentCodedIndex < _constantTableLastParent;
+            _constantTableLastParent = parentCodedIndex;
 
             _constantTable.Add(new ConstantRow
             {
                 Type = (byte)MetadataWriterUtilities.GetConstantTypeCode(value),
-                Parent = parent,
-                Value = _heaps.GetConstantBlobIndex(value)
+                Parent = parentCodedIndex,
+                Value = GetOrAddConstantBlob(value)
             });
+
+            return MetadataTokens.ConstantHandle(_constantTable.Count);
         }
 
-        public void AddMethodSemantics(uint association, ushort semantics, int methodDefinitionRowId)
+        public void AddMethodSemantics(EntityHandle association, ushort semantics, MethodDefinitionHandle methodDefinition)
         {
+            uint associationCodedIndex = (uint)CodedIndex.ToHasSemantics(association);
+
             // the table is required to be sorted by Association:
-            _methodSemanticsTableNeedsSorting |= association < _methodSemanticsTableLastAssociation;
-            _methodSemanticsTableLastAssociation = association;
+            _methodSemanticsTableNeedsSorting |= associationCodedIndex < _methodSemanticsTableLastAssociation;
+            _methodSemanticsTableLastAssociation = associationCodedIndex;
 
             _methodSemanticsTable.Add(new MethodSemanticsRow
             {
-                Association = association,
-                Method = (uint)methodDefinitionRowId,
+                Association = associationCodedIndex,
+                Method = (uint)MetadataTokens.GetRowNumber(methodDefinition),
                 Semantic = semantics
             });
         }
 
-        public void AddCustomAttribute(uint parent, uint constructor, BlobIdx value)
+        public CustomAttributeHandle AddCustomAttribute(EntityHandle parent, EntityHandle constructor, BlobHandle value)
         {
+            uint parentCodedIndex = (uint)CodedIndex.ToHasCustomAttribute(parent);
+
             // the table is required to be sorted by Parent:
-            _customAttributeTableNeedsSorting |= parent < _customAttributeTableLastParent;
-            _customAttributeTableLastParent = parent;
+            _customAttributeTableNeedsSorting |= parentCodedIndex < _customAttributeTableLastParent;
+            _customAttributeTableLastParent = parentCodedIndex;
 
             _customAttributeTable.Add(new CustomAttributeRow
             {
-                Parent = parent,
-                Type = constructor,
+                Parent = parentCodedIndex,
+                Type = (uint)CodedIndex.ToCustomAttributeType(constructor),
                 Value = value
             });
+
+            return MetadataTokens.CustomAttributeHandle(_customAttributeTable.Count);
         }
 
-        public void AddMethodSpecification(uint method, BlobIdx instantiation)
+        public MethodSpecificationHandle AddMethodSpecification(EntityHandle method, BlobHandle instantiation)
         {
             _methodSpecTable.Add(new MethodSpecRow
             {
-                Method = method,
+                Method = (uint)CodedIndex.ToMethodDefOrRef(method),
                 Instantiation = instantiation
             });
+
+            return MetadataTokens.MethodSpecificationHandle(_methodSpecTable.Count);
         }
 
-        public void AddModuleReference(StringIdx moduleName)
+        public ModuleReferenceHandle AddModuleReference(StringHandle moduleName)
         {
             _moduleRefTable.Add(new ModuleRefRow
             {
                 Name = moduleName
             });
+
+            return MetadataTokens.ModuleReferenceHandle(_moduleRefTable.Count);
         }
 
-        public void AddParameter(ParameterAttributes attributes, StringIdx name, int sequenceNumber)
+        public ParameterHandle AddParameter(ParameterAttributes attributes, StringHandle name, int sequenceNumber)
         {
             _paramTable.Add(new ParamRow
             {
@@ -470,12 +494,14 @@ namespace Microsoft.Cci
                 Name = name,
                 Sequence = (ushort)sequenceNumber
             });
+
+            return MetadataTokens.ParameterHandle(_paramTable.Count);
         }
 
-        public int AddGenericParameter(
-            uint parent,
+        public GenericParameterHandle AddGenericParameter(
+            EntityHandle parent,
             GenericParameterAttributes attributes,
-            StringIdx name,
+            StringHandle name,
             int index)
         {
             _genericParamTable.Add(new GenericParamRow
@@ -483,28 +509,29 @@ namespace Microsoft.Cci
                 Flags = (ushort)attributes,
                 Name = name,
                 Number = (ushort)index,
-                Owner = parent
+                Owner = (uint)CodedIndex.ToTypeOrMethodDef(parent)
             });
 
-            // row id
-            return _genericParamTable.Count;
+            return MetadataTokens.GenericParameterHandle(_genericParamTable.Count);
         }
 
-        public void AddGenericParameterConstraint(
-            int genericParameterRowId,
-            uint constraint)
+        public GenericParameterConstraintHandle AddGenericParameterConstraint(
+            GenericParameterHandle genericParameter,
+            EntityHandle constraint)
         {
             _genericParamConstraintTable.Add(new GenericParamConstraintRow
             {
-                Owner = (uint)genericParameterRowId,
-                Constraint = constraint,
+                Owner = (uint)MetadataTokens.GetRowNumber(genericParameter),
+                Constraint = (uint)CodedIndex.ToTypeDefOrRefOrSpec(constraint),
             });
+
+            return MetadataTokens.GenericParameterConstraintHandle(_genericParamConstraintTable.Count);
         }
 
-        public void AddFieldDefinition(
+        public FieldDefinitionHandle AddFieldDefinition(
             FieldAttributes attributes,
-            StringIdx name,
-            BlobIdx signature)
+            StringHandle name,
+            BlobHandle signature)
         {
             _fieldTable.Add(new FieldDefRow
             {
@@ -512,51 +539,56 @@ namespace Microsoft.Cci
                 Name = name,
                 Signature = signature
             });
+
+            return MetadataTokens.FieldDefinitionHandle(_fieldTable.Count);
         }
 
         public void AddFieldLayout(
-            int fieldDefinitionRowId,
+            FieldDefinitionHandle field,
             int offset)
         {
             _fieldLayoutTable.Add(new FieldLayoutRow
             {
-                Field = (uint)fieldDefinitionRowId,
+                Field = (uint)MetadataTokens.GetRowNumber(field),
                 Offset = (uint)offset
             });
         }
+
         public void AddMarshallingDescriptor(
-            uint parent,
-            BlobIdx descriptor)
+            EntityHandle parent,
+            BlobHandle descriptor)
         {
+            uint codedIndex = (uint)CodedIndex.ToHasFieldMarshal(parent);
+
             // the table is required to be sorted by Parent:
-            _fieldMarshalTableNeedsSorting |= parent < _fieldMarshalTableLastParent;
-            _fieldMarshalTableLastParent = parent;
+            _fieldMarshalTableNeedsSorting |= codedIndex < _fieldMarshalTableLastParent;
+            _fieldMarshalTableLastParent = codedIndex;
 
             _fieldMarshalTable.Add(new FieldMarshalRow
             {
-                Parent = parent,
+                Parent = codedIndex,
                 NativeType = descriptor
             });
         }
 
         public void AddFieldRelativeVirtualAddress(
-            int fieldDefinitionRowId,
+            FieldDefinitionHandle field,
             int relativeVirtualAddress)
         {
             _fieldRvaTable.Add(new FieldRvaRow
             {
-                Field = (uint)fieldDefinitionRowId,
+                Field = (uint)MetadataTokens.GetRowNumber(field),
                 Offset = (uint)relativeVirtualAddress
             });
         }
 
-        public void AddMethodDefinition(
+        public MethodDefinitionHandle AddMethodDefinition(
             MethodAttributes attributes, 
             MethodImplAttributes implAttributes,
-            StringIdx name,
-            BlobIdx signature,
-            int relativeVirtualAddress,
-            int paramList)
+            StringHandle name,
+            BlobHandle signature,
+            int bodyOffset,
+            ParameterHandle paramList)
         {
             _methodDefTable.Add(new MethodRow
             {
@@ -564,70 +596,78 @@ namespace Microsoft.Cci
                 ImplFlags = (ushort)implAttributes,
                 Name = name,
                 Signature = signature,
-                Rva = relativeVirtualAddress,
-                ParamList = (uint)paramList
+                BodyOffset = bodyOffset,
+                ParamList = (uint)MetadataTokens.GetRowNumber(paramList)
             });
+
+            return MetadataTokens.MethodDefinitionHandle(_methodDefTable.Count);
         }
 
         public void AddMethodImport(
-            uint member,
+            EntityHandle member,
             MethodImportAttributes attributes, 
-            StringIdx name, 
-            int moduleReferenceRowId)
+            StringHandle name, 
+            ModuleReferenceHandle module)
         {
             _implMapTable.Add(new ImplMapRow
             {
-                MemberForwarded = member,
+                MemberForwarded = (uint)CodedIndex.ToMemberForwarded(member),
                 ImportName = name,
-                ImportScope = (uint)moduleReferenceRowId,
+                ImportScope = (uint)MetadataTokens.GetRowNumber(module),
                 MappingFlags = (ushort)attributes,
             });
         }
 
-        public void AddMethodImplementation(
-            int typeDefinitionRowId,
-            uint methodBody,
-            uint methodDeclaration)
+        public MethodImplementationHandle AddMethodImplementation(
+            TypeDefinitionHandle type,
+            EntityHandle methodBody,
+            EntityHandle methodDeclaration)
         {
             _methodImplTable.Add(new MethodImplRow
             {
-                Class = (uint)typeDefinitionRowId,
-                MethodBody = methodBody,
-                MethodDecl = methodDeclaration
+                Class = (uint)MetadataTokens.GetRowNumber(type),
+                MethodBody = (uint)CodedIndex.ToMethodDefOrRef(methodBody),
+                MethodDecl = (uint)CodedIndex.ToMethodDefOrRef(methodDeclaration)
             });
+
+            return MetadataTokens.MethodImplementationHandle(_methodImplTable.Count);
         }
 
-        public void AddMemberReference(
-            uint type,
-            StringIdx name,
-            BlobIdx signature)
+        public MemberReferenceHandle AddMemberReference(
+            EntityHandle parent,
+            StringHandle name,
+            BlobHandle signature)
         {
             _memberRefTable.Add(new MemberRefRow
             {
-                Class = type,
+                Class = (uint)CodedIndex.ToMemberRefParent(parent),
                 Name = name,
                 Signature = signature
             });
+
+            return MetadataTokens.MemberReferenceHandle(_memberRefTable.Count);
         }
 
-        public void AddManifestResource(
+        public ManifestResourceHandle AddManifestResource(
             ManifestResourceAttributes attributes,
-            StringIdx name,
-            uint implementation,
+            StringHandle name,
+            EntityHandle implementation,
             long offset)
         {
             _manifestResourceTable.Add(new ManifestResourceRow
             {
                 Flags = (uint)attributes,
                 Name = name,
-                Implementation = implementation,
+                Implementation = implementation.IsNil ? 0 : (uint)CodedIndex.ToImplementation(implementation),
                 Offset = (uint)offset
             });
+
+            return MetadataTokens.ManifestResourceHandle(_manifestResourceTable.Count);
         }
 
-        public void AddAssemblyFile(
-            StringIdx name,
-            BlobIdx hashValue,
+        public AssemblyFileHandle AddAssemblyFile(
+            StringHandle name,
+            BlobHandle hashValue,
             bool containsMetadata)
         {
             _fileTable.Add(new FileTableRow
@@ -636,23 +676,27 @@ namespace Microsoft.Cci
                 Flags = containsMetadata ? 0u : 1u,
                 HashValue = hashValue
             });
+
+            return MetadataTokens.AssemblyFileHandle(_fileTable.Count);
         }
 
-        public void AddExportedType(
+        public ExportedTypeHandle AddExportedType(
             TypeAttributes attributes,
-            StringIdx @namespace,
-            StringIdx name,
-            uint implementation,
+            StringHandle @namespace,
+            StringHandle name,
+            EntityHandle implementation,
             int typeDefinitionId)
         {
             _exportedTypeTable.Add(new ExportedTypeRow
             {
                 Flags = (uint)attributes,
-                Implementation = implementation,
+                Implementation = (uint)CodedIndex.ToImplementation(implementation),
                 TypeNamespace = @namespace,
                 TypeName = name,
                 TypeDefId = (uint)typeDefinitionId
             });
+
+            return MetadataTokens.ExportedTypeHandle(_exportedTypeTable.Count);
         }
 
         // TODO: remove
@@ -661,38 +705,137 @@ namespace Microsoft.Cci
             return _exportedTypeTable[rowId].Flags;
         }
 
-        public void AddDeclarativeSecurityAttribute(
-            uint parent,
+        public DeclarativeSecurityAttributeHandle AddDeclarativeSecurityAttribute(
+            EntityHandle parent,
             DeclarativeSecurityAction action,
-            BlobIdx permissionSet)
+            BlobHandle permissionSet)
         {
+            uint parentCodedIndex = (uint)CodedIndex.ToHasDeclSecurity(parent);
+
             // the table is required to be sorted by Parent:
-            _declSecurityTableNeedsSorting |= parent < _declSecurityTableLastParent;
-            _declSecurityTableLastParent = parent;
+            _declSecurityTableNeedsSorting |= parentCodedIndex < _declSecurityTableLastParent;
+            _declSecurityTableLastParent = parentCodedIndex;
 
             _declSecurityTable.Add(new DeclSecurityRow
             {
-                Parent = parent,
+                Parent = parentCodedIndex,
                 Action = (ushort)action,
                 PermissionSet = permissionSet
             });
+
+            return MetadataTokens.DeclarativeSecurityAttributeHandle(_declSecurityTable.Count);
         }
 
-        public void AddEncLogEntry(int token, EncFuncCode code)
+        public void AddEncLogEntry(EntityHandle entity, EditAndContinueOperation code)
         {
             _encLogTable.Add(new EncLogRow
             {
-                Token = (uint)token,
+                Token = (uint)MetadataTokens.GetToken(entity),
                 FuncCode = (byte)code
             });
         }
 
-        public void AddEncMapEntry(int token)
+        public void AddEncMapEntry(EntityHandle entity)
         {
             _encMapTable.Add(new EncMapRow
             {
-                Token = (uint)token
+                Token = (uint)MetadataTokens.GetToken(entity)
             });
+        }
+
+        public DocumentHandle AddDocument(BlobHandle name, GuidHandle hashAlgorithm, BlobHandle hash, GuidHandle language)
+        {
+            _documentTable.Add(new DocumentRow
+            {
+                Name = name,
+                HashAlgorithm = hashAlgorithm,
+                Hash = hash,
+                Language = language
+            });
+
+            return MetadataTokens.DocumentHandle(_documentTable.Count);
+        }
+
+        public MethodDebugInformationHandle AddMethodDebugInformation(DocumentHandle document, BlobHandle sequencePoints)
+        {
+            _methodDebugInformationTable.Add(new MethodDebugInformationRow
+            {
+                Document = (uint)MetadataTokens.GetRowNumber(document),
+                SequencePoints = sequencePoints
+            });
+
+            // TODO:
+            return (MethodDebugInformationHandle)MetadataTokens.Handle(TableIndex.MethodDebugInformation, _methodDebugInformationTable.Count);
+        }
+
+        public LocalScopeHandle AddLocalScope(MethodDefinitionHandle method, ImportScopeHandle importScope, LocalVariableHandle variableList, LocalConstantHandle constantList, int startOffset, int length)
+        {
+            _localScopeTable.Add(new LocalScopeRow
+            {
+                Method = (uint)MetadataTokens.GetRowNumber(method),
+                ImportScope = (uint)MetadataTokens.GetRowNumber(importScope),
+                VariableList = (uint)MetadataTokens.GetRowNumber(variableList),
+                ConstantList = (uint)MetadataTokens.GetRowNumber(constantList),
+                StartOffset = (uint)startOffset,
+                Length = (uint)length
+            });
+
+            return MetadataTokens.LocalScopeHandle(_localScopeTable.Count);
+        }
+
+        public LocalVariableHandle AddLocalVariable(LocalVariableAttributes attributes, int index, StringHandle name)
+        {
+            _localVariableTable.Add(new LocalVariableRow
+            {
+                Attributes = (ushort)attributes,
+                Index = (ushort)index,
+                Name = name
+            });
+
+            return MetadataTokens.LocalVariableHandle(_localVariableTable.Count);
+        }
+        
+        public LocalConstantHandle AddLocalConstant(StringHandle name, BlobHandle signature)
+        {
+            _localConstantTable.Add(new LocalConstantRow
+            {
+                Name = name,
+                Signature = signature
+            });
+
+            return MetadataTokens.LocalConstantHandle(_localConstantTable.Count);
+        }
+
+        public ImportScopeHandle AddImportScope(ImportScopeHandle parentScope, BlobHandle imports)
+        {
+            _importScopeTable.Add(new ImportScopeRow
+            {
+                Parent = (uint)MetadataTokens.GetRowNumber(parentScope),
+                Imports = imports
+            });
+
+            return MetadataTokens.ImportScopeHandle(_importScopeTable.Count);
+        }
+
+        public void AddStateMachineMethod(MethodDefinitionHandle moveNextMethod, MethodDefinitionHandle kickoffMethod)
+        {
+            _stateMachineMethodTable.Add(new StateMachineMethodRow
+            {
+                MoveNextMethod  = (uint)MetadataTokens.GetRowNumber(moveNextMethod),
+                KickoffMethod = (uint)MetadataTokens.GetRowNumber(kickoffMethod)
+            });
+        }
+
+        public CustomDebugInformationHandle AddCustomDebugInformation(EntityHandle parent, GuidHandle kind, BlobHandle value)
+        {
+            _customDebugInformationTable.Add(new CustomDebugInformationRow
+            {
+                Parent = (uint)CodedIndex.ToHasCustomDebugInformation(parent),
+                Kind = kind,
+                Value = value
+            });
+
+            return MetadataTokens.CustomDebugInformationHandle(_customDebugInformationTable.Count);
         }
 
         #endregion
@@ -728,7 +871,7 @@ namespace Microsoft.Cci
             rowCounts[(int)TableIndex.MethodSpec] = _methodSpecTable.Count;
             rowCounts[(int)TableIndex.MethodDef] = _methodDefTable.Count;
             rowCounts[(int)TableIndex.ModuleRef] = _moduleRefTable.Count;
-            rowCounts[(int)TableIndex.Module] = 1;
+            rowCounts[(int)TableIndex.Module] = _moduleTable.Count;
             rowCounts[(int)TableIndex.NestedClass] = _nestedClassTable.Count;
             rowCounts[(int)TableIndex.Param] = _paramTable.Count;
             rowCounts[(int)TableIndex.PropertyMap] = _propertyMapTable.Count;
@@ -750,20 +893,9 @@ namespace Microsoft.Cci
             return ImmutableArray.CreateRange(rowCounts);
         }
 
-        public int GetModuleVersionGuidOffsetInMetadataStream(int guidHeapOffsetInMetadataStream)
-        {
-            // index of module version ID in the guidWriter stream
-            int moduleVersionIdIndex = _moduleTable[0].ModuleVersionId;
-
-            // offset into the guidWriter stream of the module version ID
-            int moduleVersionOffsetInGuidTable = (moduleVersionIdIndex - 1) << 4;
-
-            return guidHeapOffsetInMetadataStream + moduleVersionOffsetInGuidTable;
-        }
-
         #region Serialization
 
-        private void SerializeMetadataTables(
+        internal void SerializeMetadataTables(
             BlobBuilder writer,
             MetadataSizes metadataSizes,
             int methodBodyStreamRva,
@@ -775,7 +907,7 @@ namespace Microsoft.Cci
 
             if (metadataSizes.IsPresent(TableIndex.Module))
             {
-                SerializeModuleTable(writer, metadataSizes, _heaps);
+                SerializeModuleTable(writer, metadataSizes);
             }
 
             if (metadataSizes.IsPresent(TableIndex.TypeRef))
@@ -1038,36 +1170,21 @@ namespace Microsoft.Cci
             writer.WriteByte(1); // reserved
             writer.WriteUInt64(metadataSizes.PresentTablesMask);
             writer.WriteUInt64(sortedTables);
-            SerializeRowCounts(writer, metadataSizes.RowCounts, metadataSizes.PresentTablesMask);
+            MetadataWriterUtilities.SerializeRowCounts(writer, metadataSizes.RowCounts);
 
             int endPosition = writer.Position;
             Debug.Assert(metadataSizes.CalculateTableStreamHeaderSize() == endPosition - startPosition);
         }
 
-        private static void SerializeRowCounts(BlobBuilder writer, ImmutableArray<int> rowCounts, ulong includeTables)
-        {
-            for (int i = 0; i < rowCounts.Length; i++)
-            {
-                if (((1UL << i) & includeTables) != 0)
-                {
-                    int rowCount = rowCounts[i];
-                    if (rowCount > 0)
-                    {
-                        writer.WriteInt32(rowCount);
-                    }
-                }
-            }
-        }
-
-        private void SerializeModuleTable(BlobBuilder writer, MetadataSizes metadataSizes, MetadataHeapsBuilder heaps)
+        private void SerializeModuleTable(BlobBuilder writer, MetadataSizes metadataSizes)
         {
             foreach (var moduleRow in _moduleTable)
             {
                 writer.WriteUInt16(moduleRow.Generation);
-                writer.WriteReference((uint)heaps.ResolveStringIndex(moduleRow.Name), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)moduleRow.ModuleVersionId, metadataSizes.GuidIndexSize);
-                writer.WriteReference((uint)moduleRow.EncId, metadataSizes.GuidIndexSize);
-                writer.WriteReference((uint)moduleRow.EncBaseId, metadataSizes.GuidIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(moduleRow.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(moduleRow.ModuleVersionId), metadataSizes.GuidIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(moduleRow.EncId), metadataSizes.GuidIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(moduleRow.EncBaseId), metadataSizes.GuidIndexSize);
             }
         }
 
@@ -1093,8 +1210,8 @@ namespace Microsoft.Cci
             foreach (TypeRefRow typeRef in _typeRefTable)
             {
                 writer.WriteReference(typeRef.ResolutionScope, metadataSizes.ResolutionScopeCodedIndexSize);
-                writer.WriteReference((uint)_heaps.ResolveStringIndex(typeRef.Name), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)_heaps.ResolveStringIndex(typeRef.Namespace), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(typeRef.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(typeRef.Namespace), metadataSizes.StringIndexSize);
             }
         }
 
@@ -1103,8 +1220,8 @@ namespace Microsoft.Cci
             foreach (TypeDefRow typeDef in _typeDefTable)
             {
                 writer.WriteUInt32(typeDef.Flags);
-                writer.WriteReference((uint)_heaps.ResolveStringIndex(typeDef.Name), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)_heaps.ResolveStringIndex(typeDef.Namespace), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(typeDef.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(typeDef.Namespace), metadataSizes.StringIndexSize);
                 writer.WriteReference(typeDef.Extends, metadataSizes.TypeDefOrRefCodedIndexSize);
                 writer.WriteReference(typeDef.FieldList, metadataSizes.FieldDefIndexSize);
                 writer.WriteReference(typeDef.MethodList, metadataSizes.MethodDefIndexSize);
@@ -1116,8 +1233,8 @@ namespace Microsoft.Cci
             foreach (FieldDefRow fieldDef in _fieldTable)
             {
                 writer.WriteUInt16(fieldDef.Flags);
-                writer.WriteReference((uint)_heaps.ResolveStringIndex(fieldDef.Name), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)_heaps.ResolveBlobIndex(fieldDef.Signature), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(fieldDef.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(fieldDef.Signature), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1125,19 +1242,19 @@ namespace Microsoft.Cci
         {
             foreach (MethodRow method in _methodDefTable)
             {
-                if (method.Rva == -1)
+                if (method.BodyOffset == -1)
                 {
                     writer.WriteUInt32(0);
                 }
                 else
                 {
-                    writer.WriteUInt32((uint)(methodBodyStreamRva + method.Rva));
+                    writer.WriteUInt32((uint)(methodBodyStreamRva + method.BodyOffset));
                 }
 
                 writer.WriteUInt16(method.ImplFlags);
                 writer.WriteUInt16(method.Flags);
-                writer.WriteReference((uint)_heaps.ResolveStringIndex(method.Name), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)_heaps.ResolveBlobIndex(method.Signature), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(method.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(method.Signature), metadataSizes.BlobIndexSize);
                 writer.WriteReference(method.ParamList, metadataSizes.ParameterIndexSize);
             }
         }
@@ -1148,7 +1265,7 @@ namespace Microsoft.Cci
             {
                 writer.WriteUInt16(param.Flags);
                 writer.WriteUInt16(param.Sequence);
-                writer.WriteReference((uint)_heaps.ResolveStringIndex(param.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(param.Name), metadataSizes.StringIndexSize);
             }
         }
 
@@ -1168,22 +1285,22 @@ namespace Microsoft.Cci
             foreach (MemberRefRow memberRef in _memberRefTable)
             {
                 writer.WriteReference(memberRef.Class, metadataSizes.MemberRefParentCodedIndexSize);
-                writer.WriteReference((uint)_heaps.ResolveStringIndex(memberRef.Name), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)_heaps.ResolveBlobIndex(memberRef.Signature), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(memberRef.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(memberRef.Signature), metadataSizes.BlobIndexSize);
             }
         }
 
         private void SerializeConstantTable(BlobBuilder writer, MetadataSizes metadataSizes)
         {
             // Note: we can sort the table at this point since no other table can reference its rows via RowId or CodedIndex (which would need updating otherwise).
-            var ordered = _constantTableNeedsSorting ? _constantTable.OrderBy((x, y) => (int)x.Parent - (int)y.Parent) : _constantTable;
+            var ordered = _constantTableNeedsSorting ? (IEnumerable<ConstantRow>)_constantTable.OrderBy((x, y) => (int)x.Parent - (int)y.Parent) : _constantTable;
 
             foreach (ConstantRow constant in ordered)
             {
                 writer.WriteByte(constant.Type);
                 writer.WriteByte(0);
                 writer.WriteReference(constant.Parent, metadataSizes.HasConstantCodedIndexSize);
-                writer.WriteReference((uint)_heaps.ResolveBlobIndex(constant.Value), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(constant.Value), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1191,25 +1308,25 @@ namespace Microsoft.Cci
         {
             // Note: we can sort the table at this point since no other table can reference its rows via RowId or CodedIndex (which would need updating otherwise).
             // OrderBy performs a stable sort, so multiple attributes with the same parent will be sorted in the order they were added to the table.
-            var ordered = _customAttributeTableNeedsSorting ? _customAttributeTable.OrderBy((x, y) => (int)x.Parent - (int)y.Parent) : _customAttributeTable;
+            var ordered = _customAttributeTableNeedsSorting ? (IEnumerable<CustomAttributeRow>)_customAttributeTable.OrderBy((x, y) => (int)x.Parent - (int)y.Parent) : _customAttributeTable;
 
             foreach (CustomAttributeRow customAttribute in ordered)
             {
                 writer.WriteReference(customAttribute.Parent, metadataSizes.HasCustomAttributeCodedIndexSize);
                 writer.WriteReference(customAttribute.Type, metadataSizes.CustomAttributeTypeCodedIndexSize);
-                writer.WriteReference((uint)_heaps.ResolveBlobIndex(customAttribute.Value), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(customAttribute.Value), metadataSizes.BlobIndexSize);
             }
         }
 
         private void SerializeFieldMarshalTable(BlobBuilder writer, MetadataSizes metadataSizes)
         {
             // Note: we can sort the table at this point since no other table can reference its rows via RowId or CodedIndex (which would need updating otherwise).
-            var ordered = _fieldMarshalTableNeedsSorting ? _fieldMarshalTable.OrderBy((x, y) => (int)x.Parent - (int)y.Parent) : _fieldMarshalTable;
+            var ordered = _fieldMarshalTableNeedsSorting ? (IEnumerable<FieldMarshalRow>)_fieldMarshalTable.OrderBy((x, y) => (int)x.Parent - (int)y.Parent) : _fieldMarshalTable;
             
             foreach (FieldMarshalRow fieldMarshal in ordered)
             {
                 writer.WriteReference(fieldMarshal.Parent, metadataSizes.HasFieldMarshalCodedIndexSize);
-                writer.WriteReference((uint)_heaps.ResolveBlobIndex(fieldMarshal.NativeType), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(fieldMarshal.NativeType), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1217,13 +1334,13 @@ namespace Microsoft.Cci
         {
             // Note: we can sort the table at this point since no other table can reference its rows via RowId or CodedIndex (which would need updating otherwise).
             // OrderBy performs a stable sort, so multiple attributes with the same parent will be sorted in the order they were added to the table.
-            var ordered = _declSecurityTableNeedsSorting ? _declSecurityTable.OrderBy((x, y) => (int)x.Parent - (int)y.Parent) : _declSecurityTable;
+            var ordered = _declSecurityTableNeedsSorting ? (IEnumerable<DeclSecurityRow>)_declSecurityTable.OrderBy((x, y) => (int)x.Parent - (int)y.Parent) : _declSecurityTable;
             
             foreach (DeclSecurityRow declSecurity in ordered)
             {
                 writer.WriteUInt16(declSecurity.Action);
                 writer.WriteReference(declSecurity.Parent, metadataSizes.DeclSecurityCodedIndexSize);
-                writer.WriteReference((uint)_heaps.ResolveBlobIndex(declSecurity.PermissionSet), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(declSecurity.PermissionSet), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1262,7 +1379,7 @@ namespace Microsoft.Cci
         {
             foreach (StandaloneSigRow row in _standAloneSigTable)
             {
-                writer.WriteReference((uint)_heaps.ResolveBlobIndex(row.Signature), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.Signature), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1280,7 +1397,7 @@ namespace Microsoft.Cci
             foreach (EventRow eventRow in _eventTable)
             {
                 writer.WriteUInt16(eventRow.EventFlags);
-                writer.WriteReference((uint)_heaps.ResolveStringIndex(eventRow.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(eventRow.Name), metadataSizes.StringIndexSize);
                 writer.WriteReference(eventRow.EventType, metadataSizes.TypeDefOrRefCodedIndexSize);
             }
         }
@@ -1299,8 +1416,8 @@ namespace Microsoft.Cci
             foreach (PropertyRow property in _propertyTable)
             {
                 writer.WriteUInt16(property.PropFlags);
-                writer.WriteReference((uint)_heaps.ResolveStringIndex(property.Name), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)_heaps.ResolveBlobIndex(property.Type), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(property.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(property.Type), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1308,7 +1425,7 @@ namespace Microsoft.Cci
         {
             // Note: we can sort the table at this point since no other table can reference its rows via RowId or CodedIndex (which would need updating otherwise).
             // OrderBy performs a stable sort, so multiple attributes with the same parent will be sorted in the order they were added to the table.
-            var ordered = _methodSemanticsTableNeedsSorting ? _methodSemanticsTable.OrderBy((x, y) => (int)x.Association - (int)y.Association) : _methodSemanticsTable;
+            var ordered = _methodSemanticsTableNeedsSorting ? (IEnumerable<MethodSemanticsRow>)_methodSemanticsTable.OrderBy((x, y) => (int)x.Association - (int)y.Association) : _methodSemanticsTable;
             
             foreach (MethodSemanticsRow methodSemantic in ordered)
             {
@@ -1338,7 +1455,7 @@ namespace Microsoft.Cci
         {
             foreach (ModuleRefRow moduleRef in _moduleRefTable)
             {
-                writer.WriteReference((uint)_heaps.ResolveStringIndex(moduleRef.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(moduleRef.Name), metadataSizes.StringIndexSize);
             }
         }
 
@@ -1346,7 +1463,7 @@ namespace Microsoft.Cci
         {
             foreach (TypeSpecRow typeSpec in _typeSpecTable)
             {
-                writer.WriteReference((uint)_heaps.ResolveBlobIndex(typeSpec.Signature), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(typeSpec.Signature), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1362,7 +1479,7 @@ namespace Microsoft.Cci
             {
                 writer.WriteUInt16(implMap.MappingFlags);
                 writer.WriteReference(implMap.MemberForwarded, metadataSizes.MemberForwardedCodedIndexSize);
-                writer.WriteReference((uint)_heaps.ResolveStringIndex(implMap.ImportName), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(implMap.ImportName), metadataSizes.StringIndexSize);
                 writer.WriteReference(implMap.ImportScope, metadataSizes.ModuleRefIndexSize);
             }
         }
@@ -1392,9 +1509,9 @@ namespace Microsoft.Cci
                 writer.WriteUInt16((ushort)row.Version.Build);
                 writer.WriteUInt16((ushort)row.Version.Revision);
                 writer.WriteUInt32(row.Flags);
-                writer.WriteReference((uint)_heaps.ResolveBlobIndex(row.AssemblyKey), metadataSizes.BlobIndexSize);
-                writer.WriteReference((uint)_heaps.ResolveStringIndex(row.AssemblyName), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)_heaps.ResolveStringIndex(row.AssemblyCulture), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.AssemblyKey), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.AssemblyName), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.AssemblyCulture), metadataSizes.StringIndexSize);
             }
         }
 
@@ -1407,10 +1524,10 @@ namespace Microsoft.Cci
                 writer.WriteUInt16((ushort)row.Version.Build);
                 writer.WriteUInt16((ushort)row.Version.Revision);
                 writer.WriteUInt32(row.Flags);
-                writer.WriteReference((uint)_heaps.ResolveBlobIndex(row.PublicKeyToken), metadataSizes.BlobIndexSize);
-                writer.WriteReference((uint)_heaps.ResolveStringIndex(row.Name), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)_heaps.ResolveStringIndex(row.Culture), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)_heaps.ResolveBlobIndex(row.HashValue), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.PublicKeyToken), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.Culture), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.HashValue), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1419,8 +1536,8 @@ namespace Microsoft.Cci
             foreach (FileTableRow fileReference in _fileTable)
             {
                 writer.WriteUInt32(fileReference.Flags);
-                writer.WriteReference((uint)_heaps.ResolveStringIndex(fileReference.FileName), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)_heaps.ResolveBlobIndex(fileReference.HashValue), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(fileReference.FileName), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(fileReference.HashValue), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1430,8 +1547,8 @@ namespace Microsoft.Cci
             {
                 writer.WriteUInt32((uint)exportedType.Flags);
                 writer.WriteUInt32(exportedType.TypeDefId);
-                writer.WriteReference((uint)_heaps.ResolveStringIndex(exportedType.TypeName), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)_heaps.ResolveStringIndex(exportedType.TypeNamespace), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(exportedType.TypeName), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(exportedType.TypeNamespace), metadataSizes.StringIndexSize);
                 writer.WriteReference(exportedType.Implementation, metadataSizes.ImplementationCodedIndexSize);
             }
         }
@@ -1442,7 +1559,7 @@ namespace Microsoft.Cci
             {
                 writer.WriteUInt32(manifestResource.Offset);
                 writer.WriteUInt32(manifestResource.Flags);
-                writer.WriteReference((uint)_heaps.ResolveStringIndex(manifestResource.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(manifestResource.Name), metadataSizes.StringIndexSize);
                 writer.WriteReference(manifestResource.Implementation, metadataSizes.ImplementationCodedIndexSize);
             }
         }
@@ -1477,7 +1594,7 @@ namespace Microsoft.Cci
                 writer.WriteUInt16(genericParam.Number);
                 writer.WriteUInt16(genericParam.Flags);
                 writer.WriteReference(genericParam.Owner, metadataSizes.TypeOrMethodDefCodedIndexSize);
-                writer.WriteReference((uint)_heaps.ResolveStringIndex(genericParam.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(genericParam.Name), metadataSizes.StringIndexSize);
             }
         }
 
@@ -1501,7 +1618,7 @@ namespace Microsoft.Cci
             foreach (MethodSpecRow methodSpec in _methodSpecTable)
             {
                 writer.WriteReference(methodSpec.Method, metadataSizes.MethodDefOrRefCodedIndexSize);
-                writer.WriteReference((uint)_heaps.ResolveBlobIndex(methodSpec.Instantiation), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(methodSpec.Instantiation), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1509,10 +1626,10 @@ namespace Microsoft.Cci
         {
             foreach (var row in _documentTable)
             {
-                writer.WriteReference((uint)_debugHeapsOpt.ResolveBlobIndex(row.Name), metadataSizes.BlobIndexSize);
-                writer.WriteReference(row.HashAlgorithm, metadataSizes.GuidIndexSize);
-                writer.WriteReference((uint)_debugHeapsOpt.ResolveBlobIndex(row.Hash), metadataSizes.BlobIndexSize);
-                writer.WriteReference(row.Language, metadataSizes.GuidIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.Name), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.HashAlgorithm), metadataSizes.GuidIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.Hash), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.Language), metadataSizes.GuidIndexSize);
             }
         }
 
@@ -1521,7 +1638,7 @@ namespace Microsoft.Cci
             foreach (var row in _methodDebugInformationTable)
             {
                 writer.WriteReference(row.Document, metadataSizes.DocumentIndexSize);
-                writer.WriteReference((uint)_debugHeapsOpt.ResolveBlobIndex(row.SequencePoints), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.SequencePoints), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1559,7 +1676,7 @@ namespace Microsoft.Cci
             {
                 writer.WriteUInt16(row.Attributes);
                 writer.WriteUInt16(row.Index);
-                writer.WriteReference((uint)_debugHeapsOpt.ResolveStringIndex(row.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.Name), metadataSizes.StringIndexSize);
             }
         }
 
@@ -1567,8 +1684,8 @@ namespace Microsoft.Cci
         {
             foreach (var row in _localConstantTable)
             {
-                writer.WriteReference((uint)_debugHeapsOpt.ResolveStringIndex(row.Name), metadataSizes.StringIndexSize);
-                writer.WriteReference((uint)_debugHeapsOpt.ResolveBlobIndex(row.Signature), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.Name), metadataSizes.StringIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.Signature), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1577,7 +1694,7 @@ namespace Microsoft.Cci
             foreach (var row in _importScopeTable)
             {
                 writer.WriteReference(row.Parent, metadataSizes.ImportScopeIndexSize);
-                writer.WriteReference((uint)_debugHeapsOpt.ResolveBlobIndex(row.Imports), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.Imports), metadataSizes.BlobIndexSize);
             }
         }
 
@@ -1603,12 +1720,12 @@ namespace Microsoft.Cci
             foreach (CustomDebugInformationRow row in _customDebugInformationTable.OrderBy((x, y) =>
             {
                 int result = (int)x.Parent - (int)y.Parent;
-                return (result != 0) ? result : (int)x.Kind - (int)y.Kind;
+                return (result != 0) ? result : MetadataTokens.GetHeapOffset(x.Kind) - MetadataTokens.GetHeapOffset(y.Kind);
             }))
             {
                 writer.WriteReference(row.Parent, metadataSizes.HasCustomDebugInformationSize);
-                writer.WriteReference(row.Kind, metadataSizes.GuidIndexSize);
-                writer.WriteReference((uint)_debugHeapsOpt.ResolveBlobIndex(row.Value), metadataSizes.BlobIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.Kind), metadataSizes.GuidIndexSize);
+                writer.WriteReference((uint)GetHeapOffset(row.Value), metadataSizes.BlobIndexSize);
             }
         }
 
