@@ -478,7 +478,7 @@ True
 True
 ";
 
-            string expectedGetValueIL = @"{
+            string expectedReleaseGetValueIL = @"{
   // Code size       89 (0x59)
   .maxstack  4
   .locals init (bool[] V_0,
@@ -521,10 +521,129 @@ True
   IL_0053:  ldfld      ""T MyBox<T>._value""
   IL_0058:  ret
 }";
-            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
-            verifier.VerifyIL("MyBox<T>.GetValue", expectedGetValueIL);
+
+            string expectedDebugGetValueIL = @"{
+  // Code size      102 (0x66)
+  .maxstack  4
+  .locals init (bool[] V_0,
+                bool V_1,
+                T V_2,
+                T V_3)
+  IL_0000:  nop
+  IL_0001:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
+  IL_0006:  ldtoken    ""T MyBox<T>.GetValue()""
+  IL_000b:  ldelem.ref
+  IL_000c:  stloc.0
+  IL_000d:  ldloc.0
+  IL_000e:  brtrue.s   IL_0030
+  IL_0010:  ldsfld     ""System.Guid <PrivateImplementationDetails>.MVID""
+  IL_0015:  ldtoken    ""T MyBox<T>.GetValue()""
+  IL_001a:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
+  IL_001f:  ldtoken    ""T MyBox<T>.GetValue()""
+  IL_0024:  ldelema    ""bool[]""
+  IL_0029:  ldc.i4.3
+  IL_002a:  call       ""bool[] Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, ref bool[], int)""
+  IL_002f:  stloc.0
+  IL_0030:  ldloc.0
+  IL_0031:  ldc.i4.1
+  IL_0032:  ldc.i4.1
+  IL_0033:  stelem.i1
+  IL_0034:  ldarg.0
+  IL_0035:  ldfld      ""T MyBox<T>._value""
+  IL_003a:  box        ""T""
+  IL_003f:  ldnull
+  IL_0040:  ceq
+  IL_0042:  stloc.1
+  IL_0043:  ldloc.1
+  IL_0044:  brfalse.s  IL_0057
+  IL_0046:  nop
+  IL_0047:  ldloc.0
+  IL_0048:  ldc.i4.0
+  IL_0049:  ldc.i4.1
+  IL_004a:  stelem.i1
+  IL_004b:  ldloca.s   V_2
+  IL_004d:  initobj    ""T""
+  IL_0053:  ldloc.2
+  IL_0054:  stloc.3
+  IL_0055:  br.s       IL_0064
+  IL_0057:  ldloc.0
+  IL_0058:  ldc.i4.2
+  IL_0059:  ldc.i4.1
+  IL_005a:  stelem.i1
+  IL_005b:  ldarg.0
+  IL_005c:  ldfld      ""T MyBox<T>._value""
+  IL_0061:  stloc.3
+  IL_0062:  br.s       IL_0064
+  IL_0064:  ldloc.3
+  IL_0065:  ret
+}";
+
+            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
+            verifier.VerifyIL("MyBox<T>.GetValue", expectedReleaseGetValueIL);
+            
+            verifier = CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput, options: TestOptions.DebugExe);
+            verifier.VerifyIL("MyBox<T>.GetValue", expectedDebugGetValueIL);
         }
-       
+
+        [Fact]
+        public void NonStaticImplicitBlockMethodsCoverage()
+        {
+            string source = @"
+using System;
+
+public class Program
+{
+    public int Prop { get; }
+
+    public int Prop2 { get; } = 25;
+
+    public int Prop3 { get; set; }
+
+    public Program()
+    {
+        Prop = 12;
+        Prop3 = 12;
+        Prop2 = Prop3;
+    }
+
+    public static void Main(string[] args)
+    {
+        new Program();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+    }
+}
+";
+            string expectedOutput = @"Flushing
+3
+True
+4
+True
+5
+True
+True
+True
+6
+True
+True
+8
+True
+False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
+";
+
+            CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
+            CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput, options: TestOptions.DebugExe);
+        }
+
         [Fact]
         public void ImplicitBlockMethodsCoverage()
         {
@@ -544,6 +663,7 @@ public class Program
         int x = Count;
         x += Prop;
         Prop = x;
+        x += Prop2;
         Lambda(x, (y) => y + 1);
     }
 
@@ -553,17 +673,21 @@ public class Program
 
     static int Prop { get; set; }
 
+    static int Prop2 { get; set; } = 12;
+
     static int Lambda(int x, Func<int, int> l)
     {
         return l(x);
     }
 }
 ";
+            // There is no entry for method '8' since it's a Prop2_set which is never called.
             string expectedOutput = @"Flushing
 1
 True
 True
 2
+True
 True
 True
 True
@@ -578,7 +702,9 @@ True
 True
 7
 True
-10
+9
+True
+13
 True
 False
 True
@@ -593,7 +719,8 @@ True
 True
 ";
 
-            CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
+            CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
+            CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput, options: TestOptions.DebugExe);
         }
 
         [Fact]
@@ -952,7 +1079,7 @@ public class Program
         if (tester(20) > 50)
             Console.WriteLine(""OK"");
         else
-            Console.WriteLine(""Bad"");        
+            Console.WriteLine(""Bad"");
     }
 }
 ";
