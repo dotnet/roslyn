@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
                     body = (node as AccessorDeclarationSyntax).Body;
                 }
 
-                if (body != null || body.Statements.Any())
+                if (body != null && body.Statements.Any())
                 {
                     list.Add(body);
                 }
