@@ -10,7 +10,7 @@ namespace Roslyn.Test.Performance.Utilities
             var scenarioPath = TestUtilities.GetCPCDirectoryPath();
             if (File.Exists(cpcFullPath))
             {
-                return new TraceManager(cpcFullPath, scenarioPath, verbose: false, logger: null);
+                return new TraceManager(cpcFullPath, scenarioPath, verbose: true, logger: null);
             }
             else
             {

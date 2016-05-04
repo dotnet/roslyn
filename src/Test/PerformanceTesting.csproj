@@ -98,6 +98,9 @@
     <Content Include="Perf\tests\helloworld\hello_world.csx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include="Perf\infra\TriggerAutomation.bat">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Include="Perf\tests\csharp\csharp_compiler.csx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -123,7 +126,7 @@
     <Compile Include="Perf\util\ILogger.cs" />
     <Compile Include="Perf\util\ITraceManager.cs" />
     <Compile Include="Perf\util\NoOpTraceManager.cs" />
-    <Compile Include="Perf\util\ScenarioGenerator.cs"/>
+    <Compile Include="Perf\util\ScenarioGenerator.cs" />
     <Compile Include="Perf\util\TestUtilities.cs" />
     <Compile Include="Perf\util\TraceManager.cs" />
     <Compile Include="Perf\util\TraceManagerFactory.cs" />

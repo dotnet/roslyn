@@ -3,7 +3,7 @@
 #r "./../../Roslyn.Test.Performance.Utilities.dll"
 
 // IsVerbose()
-#load "../util/test_util.csx"
+#load "../util/tools_util.csx"
 #load "./assemblies.csx"
 #load "./ngen.csx"
 

@@ -2,8 +2,9 @@
 #r "../../../Roslyn.Test.Performance.Utilities.dll"
 
 // TestThisPlease()
-// IsVerbose()
 #load "../../util/test_util.csx"
+// IsVerbose()
+#load "../../util/tools_util.csx"
 
 using System.IO;
 using System.Collections.Generic;

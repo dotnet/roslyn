@@ -6,7 +6,7 @@
 #load "./util/runner_util.csx"
 // Log()
 // StdoutFrom()
-#load "./util/test_util.csx"
+#load "./util/tools_util.csx"
 
 using System.Collections.Generic;
 using System.IO;
