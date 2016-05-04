@@ -51,6 +51,8 @@ Microsoft.CodeAnalysis.IOperation.Kind.get -> Microsoft.CodeAnalysis.OperationKi
 Microsoft.CodeAnalysis.IOperation.Syntax.get -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.IOperation.Type.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.IPropertySymbol.ReturnsByRef.get -> bool
+Microsoft.CodeAnalysis.ISourceAssemblySymbol
+Microsoft.CodeAnalysis.ISourceAssemblySymbol.Compilation.get -> Microsoft.CodeAnalysis.Compilation
 Microsoft.CodeAnalysis.ITypeSymbol.IsTupleType.get -> bool
 Microsoft.CodeAnalysis.MethodKind.LocalFunction = 17 -> Microsoft.CodeAnalysis.MethodKind
 Microsoft.CodeAnalysis.OperationKind

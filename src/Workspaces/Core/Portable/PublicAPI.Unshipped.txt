@@ -1,3 +1,4 @@
+static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.TryParse(string value, out Microsoft.CodeAnalysis.Editing.DeclarationModifiers modifiers) -> bool
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.NameOfExpression(Microsoft.CodeAnalysis.SyntaxNode expression) -> Microsoft.CodeAnalysis.SyntaxNode
 static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.NamingPreferences.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<string>
 static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.QualifyEventAccess.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>

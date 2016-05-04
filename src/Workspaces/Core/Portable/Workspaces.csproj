@@ -399,6 +399,7 @@
     <Compile Include="Packaging\IPackageSearchService.cs" />
     <Compile Include="FindSymbols\SymbolTree\ISymbolTreeInfoCacheService.cs" />
     <Compile Include="FindSymbols\FindReferences\MetadataUnifyingEquivalenceComparer.cs" />
+    <Compile Include="SymbolId\SymbolId.cs" />
     <Compile Include="Shared\Utilities\IProgressTracker.cs" />
     <Compile Include="Packaging\IReferenceAssemblySearchService.cs" />
     <Compile Include="SymbolId\SymbolKey.TupleTypeSymbolKey.cs" />
@@ -442,6 +443,7 @@
     <Compile Include="Utilities\ForegroundThreadDataKind.cs" />
     <Compile Include="Utilities\IReadOnlyDictionaryExtensions.cs" />
     <Compile Include="Utilities\SpellChecker.cs" />
+    <Compile Include="Utilities\StringEscapeEncoder.cs" />
     <Compile Include="Utilities\ValuesSources\CachedWeakValueSource.cs" />
     <Compile Include="Utilities\WeakEventHandler.cs" />
     <Compile Include="Versions\Extensions.cs" />

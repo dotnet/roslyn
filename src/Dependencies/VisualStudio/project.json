@@ -4,6 +4,7 @@
     "Microsoft.VisualStudio.Designer.Interfaces": "1.1.4322",
     "Microsoft.VisualStudio.Editor": "14.1.24720",
     "Microsoft.VisualStudio.ImageCatalog": "14.1.24720",
+    "Microsoft.VisualStudio.OLE.Interop": "7.10.6070",
     "Microsoft.VisualStudio.Shell.Design": "14.1.24720",
     "Microsoft.VisualStudio.Shell.14.0": "14.1.24720",
     "Microsoft.VisualStudio.Shell.Interop.10.0": "10.0.30319",

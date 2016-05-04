@@ -54,14 +54,17 @@ Microsoft (R) Visual C# Interactive Compiler version {s_compilerVersion}
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 Type ""#help"" for more information.
-> (1,7): error CS1504: Source file 'a.csx' could not be opened -- Could not find file.
-> (1,1): error CS0006: Metadata file 'C.dll' could not be found
-> > > > 1
+> > > > > > 1
 > C {{ }}
 > 
 ", result.Output);
 
-            Assert.False(result.ContainsErrors);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
+(1,7): error CS1504: Source file 'a.csx' could not be opened -- Could not find file.
+(1,1): error CS0006: Metadata file 'C.dll' could not be found
+", result.Errors);
+
+            Assert.Equal(0, result.ExitCode);
         }
 
         /// <summary>
@@ -79,7 +82,7 @@ Type ""#help"" for more information.
             var result = ProcessUtilities.Run(CsiPath, "/r:C.dll a.csx", workingDirectory: cwd.Path, additionalEnvironmentVars: new[] { KeyValuePair.Create("LIB", dir.Path) });
 
             // error CS0006: Metadata file 'C.dll' could not be found
-            Assert.True(result.Output.StartsWith("error CS0006", StringComparison.Ordinal));
+            Assert.True(result.Errors.StartsWith("error CS0006", StringComparison.Ordinal));
             Assert.True(result.ContainsErrors);
         }
 
