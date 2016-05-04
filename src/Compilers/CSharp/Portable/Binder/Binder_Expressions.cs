@@ -681,20 +681,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     name = nameSyntax.Identifier.ValueText;
                     elementLocations.Add(nameSyntax.Location);
-                }
-                else
-                {
-                    elementLocations.Add(argumentSyntax.Location);
-                }
 
-                // validate name if we have one
-                if (name != null)
-                {
                     countOfExplicitNames++;
                     if (!CheckTupleMemberName(name, i, argumentSyntax.NameColon.Name, diagnostics, uniqueFieldNames))
                     {
                         hasErrors = true;
                     }
+                }
+                else
+                {
+                    elementLocations.Add(argumentSyntax.Location);
                 }
 
                 CollectTupleFieldMemberNames(name, i + 1, numElements, ref elementNames);

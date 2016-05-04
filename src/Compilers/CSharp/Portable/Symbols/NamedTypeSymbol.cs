@@ -1261,7 +1261,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         internal abstract bool IsInterface { get; }
 
         /// <summary>
-        /// Verify if the given type can be used to back a tuple type and return cardinality of that tuple type in <paramref name="tupleCardinality"/>. 
+        /// Verify if the given type can be used to back a tuple type 
+        /// and return cardinality of that tuple type in <paramref name="tupleCardinality"/>. 
         /// </summary>
         /// <param name="tupleCardinality">If method returns true, contains cardinality of the compatible tuple type.</param>
         /// <returns></returns>
@@ -1269,15 +1270,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (IsTupleType)
             {
-                tupleCardinality = TupleElementTypes.Length;
-                return true;
+                tupleCardinality = 0;
+                return false;
             }
 
             // Should this be optimized for perf (caching for VT<0> to VT<7>, etc.)?
             if (!IsUnboundGenericType &&
-                ContainingSymbol.Kind == SymbolKind.Namespace &&
-                Name == TupleTypeSymbol.TupleTypeName && ContainingNamespace.Name == "System" &&
-                ContainingNamespace.ContainingNamespace?.IsGlobalNamespace == true)
+                ContainingSymbol?.Kind == SymbolKind.Namespace &&
+                ContainingNamespace.ContainingNamespace?.IsGlobalNamespace == true &&
+                Name == TupleTypeSymbol.TupleTypeName && 
+                ContainingNamespace.Name == MetadataHelpers.SystemString)
             {
                 int arity = Arity;
 
@@ -1301,6 +1303,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (typeToCheck.IsTupleType)
                     {
+                        var underlying = typeToCheck.TupleUnderlyingType;
+                        if (underlying.Arity == TupleTypeSymbol.RestPosition && underlying.OriginalDefinition != this.OriginalDefinition)
+                        {
+                            tupleCardinality = 0;
+                            return false;
+                        }
+
                         tupleCardinality = (TupleTypeSymbol.RestPosition - 1) * levelsOfNesting + typeToCheck.TupleElementTypes.Length;
                         return true;
                     }
@@ -1309,6 +1318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     if (arity > 0 && arity < TupleTypeSymbol.RestPosition && typeToCheck.IsTupleCompatible(out tupleCardinality))
                     {
+                        Debug.Assert(tupleCardinality < TupleTypeSymbol.RestPosition);
                         tupleCardinality += (TupleTypeSymbol.RestPosition - 1) * levelsOfNesting;
                         return true;
                     }
@@ -1438,6 +1448,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// If this symbol represents a tuple type, get the names of the tuple's elements.
         /// </summary>
         ImmutableArray<string> INamedTypeSymbol.TupleElementNames => this.TupleElementNames;
+
+        /// <summary>
+        /// If this is a tuple type symbol, returns the symbol for its underlying type.
+        /// Otherwise, returns null.
+        /// </summary>
+        INamedTypeSymbol INamedTypeSymbol.TupleUnderlyingType => this.TupleUnderlyingType;
 
         #endregion
 

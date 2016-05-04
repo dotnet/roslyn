@@ -35,16 +35,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _tupleFieldId = tupleFieldId;
         }
 
-        /// <summary>
-        /// If this field represents a tuple element (including the name match), 
-        /// id is an index of the element (zero-based).
-        /// Otherwise, (-1 - [index in members array]);
-        /// </summary>
         public override bool IsTupleField
         {
             get
             {
                 return true;
+            }
+        }
+
+        /// <summary>
+        /// If this field represents a tuple element (including the name match), 
+        /// id is an index of the element (zero-based).
+        /// Otherwise, (-1 - [index in members array]);
+        /// </summary>
+        public int TupleFieldId
+        {
+            get
+            {
+                return _tupleFieldId;
             }
         }
 

@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return type;
                 }
 
-                TypeWithModifiers substituted = ((TypeMap)mapOrType).SubstituteType(this._underlyingParameter.Type);
+                TypeWithModifiers substituted = ((TypeMap)mapOrType).SubstituteTypeWithTupleUnification(this._underlyingParameter.Type);
 
                 type = substituted.Type;
 

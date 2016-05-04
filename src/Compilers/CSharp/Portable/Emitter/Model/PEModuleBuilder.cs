@@ -929,12 +929,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             DiagnosticBag diagnostics,
             bool needDeclaration = false)
         {
-            if (fieldSymbol.IsTupleField)
-            {
-                fieldSymbol = fieldSymbol.TupleUnderlyingField;
-            }
-
             Debug.Assert(fieldSymbol.IsDefinitionOrDistinct());
+            Debug.Assert(!fieldSymbol.IsTupleField, "tuple fields should be rewritten to underlying by now");
 
             if (!fieldSymbol.IsDefinition)
             {

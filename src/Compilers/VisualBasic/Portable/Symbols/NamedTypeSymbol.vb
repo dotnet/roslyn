@@ -1213,6 +1213,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public ReadOnly Property TupleUnderlyingType As INamedTypeSymbol Implements INamedTypeSymbol.TupleUnderlyingType
+            Get
+                Return Nothing
+            End Get
+        End Property
+
         Public Overrides Sub Accept(visitor As SymbolVisitor)
             visitor.VisitNamedType(Me)
         End Sub

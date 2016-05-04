@@ -1075,6 +1075,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 type.CheckConstraints(this.Conversions, typeSyntax, typeArgumentsSyntax, this.Compilation, basesBeingResolved, diagnostics);
             }
 
+            type = (NamedTypeSymbol)TupleTypeSymbol.TransformToTupleIfCompatible(type);
+
             return type;
         }
 

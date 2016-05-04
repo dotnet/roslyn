@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)underlyingField == null)
             {
-                // Use-site error must have been repoted elsewhere.
+                // Use-site error must have been reported elsewhere.
                 return new BoundFieldAccess(syntax, rewrittenReceiver, tupleField, constantValueOpt, resultKind, type, hasErrors: true);
             }
 

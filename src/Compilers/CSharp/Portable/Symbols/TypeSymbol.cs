@@ -559,7 +559,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public virtual bool IsTupleType => false;
 
         /// <summary>
-        /// Verify if the given type can be used to back a tuple type and return cardinality of that tuple type in <paramref name="tupleCardinality"/>. 
+        /// Verify if the given type can be used to back a tuple type 
+        /// and return cardinality of that tuple type in <paramref name="tupleCardinality"/>. 
         /// </summary>
         /// <param name="tupleCardinality">If method returns true, contains cardinality of the compatible tuple type.</param>
         /// <returns></returns>
@@ -576,6 +577,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             int countOfItems;
             return IsTupleCompatible(out countOfItems);
+        }
+
+        /// <summary>
+        /// Verify if the given type is a tuple of a given cardinality, or can be used to back a tuple type 
+        /// with the given cardinality. 
+        /// </summary>
+        public bool IsTupleOrCompatibleWithTupleOfCardinality(int targetCardinality)
+        {
+            if (IsTupleType)
+            {
+                return TupleElementTypes.Length == targetCardinality;
+            }
+
+            int countOfItems;
+            return IsTupleCompatible(out countOfItems) && countOfItems == targetCardinality;
         }
 
         /// <summary>

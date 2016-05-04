@@ -710,8 +710,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var arguments = tupleExpression.Arguments;
 
             // check if the type is actually compatible type for a tuple of given cardinality
-            int cardinality;
-            if (!destination.IsTupleCompatible(out cardinality) || cardinality != arguments.Length)
+            if (!destination.IsTupleOrCompatibleWithTupleOfCardinality(arguments.Length))
             {
                 return false;
             }
