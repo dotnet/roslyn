@@ -59,11 +59,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     factory.ModuleVersionId(),
                     factory.Property(
                         factory.Property(
-                            factory.Call(
-                                null,
-                                (MethodSymbol)Binder.GetWellKnownTypeMember(compilationState.Compilation, WellKnownMember.System_Reflection_IntrospectionExtensions__GetTypeInfo, diagnostics, syntax: syntax),
-                                factory.TypeOfPrivateImplementationDetails()),
-                            WellKnownMember.System_Reflection_TypeInfo__Module),
+                            factory.Convert(
+                                factory.WellKnownType(WellKnownType.System_Type),
+                                factory.Call(
+                                    null,
+                                    (MethodSymbol)Binder.GetWellKnownTypeMember(compilationState.Compilation, WellKnownMember.System_Reflection_IntrospectionExtensions__GetTypeInfo, diagnostics, syntax: syntax),
+                                    factory.TypeOfPrivateImplementationDetails()),
+                                ConversionKind.ImplicitReference),
+                            WellKnownMember.System_Type__Module),
                         WellKnownMember.System_Reflection_Module__ModuleVersionId));
 
             body.Add(mvidInitialization);

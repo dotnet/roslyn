@@ -443,15 +443,15 @@ namespace Microsoft.CodeAnalysis
 
                 // System_Reflection_IntrospectionExtensions__GetTypeInfo
                 (byte)(MemberFlags.Method | MemberFlags.Static),                                                            // Flags
-                (byte)(WellKnownType.System_Reflection_IntrospectionExtensions - WellKnownType.ExtSentinel),                // DeclaringTypeId
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Reflection_IntrospectionExtensions - WellKnownType.ExtSentinel), // DeclaringTypeId
                 0,                                                                                                          // Arity
                     1,                                                                                                      // Method Signature
-                    (byte)SignatureTypeCode.TypeHandle, (byte)(WellKnownType.System_Reflection_TypeInfo - WellKnownType.ExtSentinel),
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Reflection_TypeInfo - WellKnownType.ExtSentinel),
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Type,
 
-                // System_Reflection_TypeInfo__Module
+                // System_Type__Module
                 (byte)(MemberFlags.Property | MemberFlags.Virtual),                                                         // Flags
-                (byte)(WellKnownType.System_Reflection_TypeInfo - WellKnownType.ExtSentinel),                               // DeclaringTypeId
+                (byte)WellKnownType.System_Type,                                                                            // DeclaringTypeId
                 0,                                                                                                          // Arity
                     0,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Reflection_Module - WellKnownType.ExtSentinel),
