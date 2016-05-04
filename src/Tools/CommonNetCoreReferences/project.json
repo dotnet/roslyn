@@ -21,7 +21,7 @@
     "System.IO.FileSystem.Watcher": "4.0.0-rc3-24102-00",
     "System.IO.Pipes": "4.0.0-rc3-24102-00",
     "System.Linq": "4.1.0-rc3-24102-00",
-    "System.Linq.Expressions": "4.0.11-rc3-24102-00",
+    "System.Linq.Expressions": "4.1.0-rc3-24102-00",
     "System.Net.NameResolution": "4.0.0-rc3-24102-00",
     "System.Net.Sockets": "4.1.0-rc3-24102-00",
     "System.Reflection": "4.1.0-rc3-24102-00",
