@@ -2,7 +2,7 @@
 #r "./../../Roslyn.Test.Performance.Utilities.dll"
 
 // IsVerbose()
-#load "../util/test_util.csx"
+#load "../util/tools_util.csx"
 
 using System.IO;
 using Roslyn.Test.Performance.Utilities;

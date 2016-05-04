@@ -1,7 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-// Log()
-#load "../util/test_util.csx"
+// CopyDirectory()
 #load "../util/tools_util.csx"
 
 using System;
@@ -16,7 +15,7 @@ var destinationFolder = Args.Count() == 2 ? Args[1] : @"C:\Roslyn\Binaries\Relea
 var sourceFolder = $@"\\cpvsbuild\drops\Roslyn\Roslyn-{branch}-Signed-Release";
 
 string latestBuild = null;
-foreach (var folder in Directory.GetFiles(sourceFolder, "????????.?").Reverse())
+foreach (var folder in Directory.GetDirectories(sourceFolder, "????????.?").Reverse())
 {
     if (SanityTestPassesForBuild(folder))
     {
@@ -31,7 +30,6 @@ if (latestBuild == null)
 }
 
 var latestBuildFolder = Path.Combine(sourceFolder, latestBuild);
-Log($"Fetching build \"{latestBuildFolder}\".");
 
 Directory.Delete(destinationFolder, recursive: true);
 

@@ -3,8 +3,9 @@
 #r "../../../Roslyn.Test.Performance.Utilities.dll"
 
 // TestThisPlease()
+#load "../../util/test_util.csx"
 // IsVerbose()
-#load "./../../util/test_util.csx"
+#load "../../util/tools_util.csx"
 
 using System.IO;
 using Roslyn.Test.Performance.Utilities;
