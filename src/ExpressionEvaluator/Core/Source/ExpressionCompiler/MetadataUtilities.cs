@@ -365,8 +365,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var builder = ArrayBuilder<string>.GetInstance();
             foreach (var scope in scopes)
             {
-                var locals = scope.GetLocals();
-                foreach (var local in locals)
+                foreach (var local in scope.GetLocals())
                 {
                     int attributes;
                     local.GetAttributes(out attributes);
