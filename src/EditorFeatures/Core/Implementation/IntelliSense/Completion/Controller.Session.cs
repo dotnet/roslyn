@@ -12,8 +12,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         {
             #region Fields that can be accessed from either thread
 
-            private readonly CompletionRules _completionRules;
-
             // When we issue filter tasks, provide them with a (monotonically increasing) id.  That
             // way, when they run we can bail on computation if they've been superseded by another
             // filter task.  
@@ -21,11 +19,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             #endregion
 
-            public Session(Controller controller, ModelComputation<Model> computation, CompletionRules completionRules, ICompletionPresenterSession presenterSession)
+            public Session(Controller controller, ModelComputation<Model> computation, ICompletionPresenterSession presenterSession)
                 : base(controller, computation, presenterSession)
             {
-                _completionRules = completionRules;
-
                 this.PresenterSession.ItemCommitted += OnPresenterSessionItemCommitted;
                 this.PresenterSession.ItemSelected += OnPresenterSessionItemSelected;
                 this.PresenterSession.FilterStateChanged += OnPresenterSessionCompletionItemFilterStateChanged;
@@ -80,20 +76,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return Controller.GetCaretPointInViewBuffer();
             }
 
-            private void OnPresenterSessionItemCommitted(object sender, CompletionItemEventArgs e)
+            private void OnPresenterSessionItemCommitted(object sender, PresentationItemEventArgs e)
             {
                 AssertIsForeground();
                 Contract.ThrowIfFalse(ReferenceEquals(this.PresenterSession, sender));
 
-                this.Controller.CommitItem(e.CompletionItem);
+                this.Controller.CommitItem(e.PresentationItem);
             }
 
-            private void OnPresenterSessionItemSelected(object sender, CompletionItemEventArgs e)
+            private void OnPresenterSessionItemSelected(object sender, PresentationItemEventArgs e)
             {
                 AssertIsForeground();
                 Contract.ThrowIfFalse(ReferenceEquals(this.PresenterSession, sender));
 
-                SetModelSelectedItem(m => e.CompletionItem.IsBuilder ? m.DefaultBuilder : e.CompletionItem);
+                SetModelSelectedItem(m => e.PresentationItem.IsSuggestionModeItem ? m.DefaultSuggestionModeItem : e.PresentationItem);
             }
 
             private void OnPresenterSessionCompletionItemFilterStateChanged(

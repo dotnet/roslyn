@@ -11,13 +11,12 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Completion.CompletionProviders
 {
-    internal abstract class ReplCompletionProvider : CompletionListProvider
+    internal abstract class ReplCompletionProvider : CommonCompletionProvider
     {
-        protected abstract Task<TextSpan> GetTextChangeSpanAsync(Document document, int position, CancellationToken cancellationToken);
         protected abstract Task<bool> ShouldDisplayCommandCompletionsAsync(SyntaxTree tree, int position, CancellationToken cancellationToken);
         protected abstract string GetCompletionString(string commandName);
 
-        public override async Task ProduceCompletionListAsync(CompletionListContext context)
+        public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
             var document = context.Document;
             var position = context.Position;
@@ -36,8 +35,6 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.CompletionProviders
 
                     if (await ShouldDisplayCommandCompletionsAsync(tree, position, cancellationToken).ConfigureAwait(false))
                     {
-                        var filterSpan = await this.GetTextChangeSpanAsync(document, position, cancellationToken).ConfigureAwait(false);
-
                         IInteractiveWindowCommands commands = window.GetInteractiveCommands();
                         if (commands != null)
                         {
@@ -46,8 +43,8 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.CompletionProviders
                                 foreach (var commandName in command.Names)
                                 {
                                     string completion = GetCompletionString(commandName);
-                                    context.AddItem(new CompletionItem(
-                                        this, completion, filterSpan, c => Task.FromResult(command.Description.ToSymbolDisplayParts()), glyph: Glyph.Intrinsic));
+                                    context.AddItem(CommonCompletionItem.Create(
+                                        completion, context.DefaultItemSpan, description: command.Description.ToSymbolDisplayParts(), glyph: Glyph.Intrinsic));
                                 }
                             }
                         }

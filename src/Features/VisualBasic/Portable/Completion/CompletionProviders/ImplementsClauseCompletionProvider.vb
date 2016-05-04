@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Partial Friend Class ImplementsClauseCompletionProvider
         Inherits AbstractSymbolCompletionProvider
 
-        Public Overrides Function IsTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
         End Function
 
@@ -263,17 +263,41 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return ValueTuple.Create(displayText, insertionText)
         End Function
 
-        Protected Overrides Function GetTextChangeSpan(text As SourceText, position As Integer) As TextSpan
-            Return CompletionUtilities.GetTextChangeSpan(text, position)
-        End Function
-
         Protected Overrides Async Function CreateContext(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of AbstractSyntaxContext)
             Dim semanticModel = Await document.GetSemanticModelForSpanAsync(New TextSpan(position, 0), cancellationToken).ConfigureAwait(False)
             Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Function GetCompletionItemRules() As CompletionItemRules
-            Return ItemRules.Instance
+        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol), context As AbstractSyntaxContext) As CompletionItemRules
+            Return CompletionItemRules.Default
         End Function
+
+        Public Overrides Async Function GetTextChangeAsync(document As Document, selectedItem As CompletionItem, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)
+            If SymbolCompletionItem.HasSymbols(selectedItem) Then
+                Dim insertionText As String
+
+                If ch Is Nothing Then
+                    insertionText = SymbolCompletionItem.GetInsertionText(selectedItem)
+                Else
+                    Dim symbols = Await SymbolCompletionItem.GetSymbolsAsync(selectedItem, document, cancellationToken).ConfigureAwait(False)
+                    Dim position = SymbolCompletionItem.GetContextPosition(selectedItem)
+                    Dim context = Await CreateContext(document, position, cancellationToken).ConfigureAwait(False)
+                    If symbols.Length > 0 Then
+                        insertionText = GetInsertionTextAtInsertionTime(symbols(0), context, ch.Value)
+                    Else
+                        insertionText = selectedItem.DisplayText
+                    End If
+                End If
+
+                Return New TextChange(selectedItem.Span, insertionText)
+            End If
+
+            Return Await MyBase.GetTextChangeAsync(document, selectedItem, ch, cancellationToken).ConfigureAwait(False)
+        End Function
+
+        Protected Overrides Function GetInsertionText(symbol As ISymbol, context As AbstractSyntaxContext, ch As Char) As String
+            Return CompletionUtilities.GetInsertionTextAtInsertionTime(symbol, context, ch)
+        End Function
+
     End Class
 End Namespace

@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
+Imports System.Collections.Immutable
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Partial Friend Class HandlesClauseCompletionProvider
@@ -40,7 +41,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return SpecializedTasks.EmptyEnumerable(Of ISymbol)()
         End Function
 
-        Public Overrides Function IsTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
         End Function
 
@@ -116,13 +117,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Dim displayAndInsertionText = CompletionUtilities.GetDisplayAndInsertionText(
                 symbol, isAttributeNameContext:=False, isAfterDot:=context.IsRightOfNameSeparator, isWithinAsyncMethod:=context.WithinAsyncMethod, syntaxFacts:=context.GetLanguageService(Of ISyntaxFactsService)())
 
-            Return New SymbolCompletionItem(Me,
-                                            displayAndInsertionText.Item1,
-                                            displayAndInsertionText.Item2,
-                                            span,
-                                            position,
-                                            {symbol}.ToList(),
-                                            context, rules:=ItemRules.Instance)
+            Return SymbolCompletionItem.Create(
+                displayText:=displayAndInsertionText.Item1,
+                insertionText:=displayAndInsertionText.Item2,
+                span:=span,
+                symbol:=symbol,
+                contextPosition:=context.Position,
+                descriptionPosition:=position,
+                rules:=CompletionItemRules.Default)
         End Function
 
         Private Function IsWithEvents(s As ISymbol) As Boolean
@@ -145,12 +147,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Function GetTextChangeSpan(text As SourceText, position As Integer) As TextSpan
-            Return CompletionUtilities.GetTextChangeSpan(text, position)
+        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol), context As AbstractSyntaxContext) As CompletionItemRules
+            Return CompletionItemRules.Default
         End Function
 
-        Protected Overrides Function GetCompletionItemRules() As CompletionItemRules
-            Return ItemRules.Instance
+        Protected Overrides Function GetInsertionText(symbol As ISymbol, context As AbstractSyntaxContext, ch As Char) As String
+            Return CompletionUtilities.GetInsertionTextAtInsertionTime(symbol, context, ch)
         End Function
+
     End Class
 End Namespace
