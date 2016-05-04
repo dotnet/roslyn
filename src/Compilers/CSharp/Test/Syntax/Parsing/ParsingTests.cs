@@ -1,23 +1,27 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-//#define PARSING_TESTS_DUMP
-
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public abstract class ParsingTests
+    public abstract class ParsingTests : CSharpTestBase
     {
         private IEnumerator<SyntaxNodeOrToken> _treeEnumerator;
 
-        protected abstract SyntaxTree ParseTree(string text, CSharpParseOptions options);
+        protected virtual SyntaxTree ParseTree(string text, CSharpParseOptions options) => SyntaxFactory.ParseSyntaxTree(text, options);
 
-        protected virtual CSharpSyntaxNode ParseNode(string text, CSharpParseOptions options)
-        {
-            return ParseTree(text, options).GetCompilationUnitRoot();
-        }
+        public CompilationUnitSyntax ParseFile(string text, CSharpParseOptions parseOptions = null) =>
+            SyntaxFactory.ParseCompilationUnit(text, options: parseOptions);
+
+        public CompilationUnitSyntax ParseFileExperimental(string text) =>
+            ParseFile(text, parseOptions: TestOptions.ExperimentalParseOptions);
+
+        protected virtual CSharpSyntaxNode ParseNode(string text, CSharpParseOptions options) =>
+            ParseTree(text, options).GetCompilationUnitRoot();
 
         /// <summary>
         /// Parses given string and initializes a depth-first preorder enumerator.

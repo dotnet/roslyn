@@ -8,15 +8,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer
 {
     public class Program
     {
-        public static void Main(string[] args)
-        {
-            var ipAddress = IPAddress.Parse("127.0.0.1");
-            var endPoint = new IPEndPoint(ipAddress, port: 12000);
-            var clientDirectory = AppContext.BaseDirectory;
-            var compilerHost = new CoreClrCompilerServerHost(clientDirectory);
-            var connectionHost = new TcpClientConnectionHost(compilerHost, endPoint);
-            var serverDispatcher = new ServerDispatcher(connectionHost);
-            serverDispatcher.ListenAndDispatchConnections(keepAlive: null, cancellationToken: CancellationToken.None);
-        }
+        public static void Main(string[] args) => new PortableBuildServerController().Run(args);
     }
 }

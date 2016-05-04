@@ -2,6 +2,7 @@
 
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.CodeModel.VisualBasic
@@ -1136,6 +1137,654 @@ End Class
 </Code>
 
             Await TestSetTypeProp(code, expected, CType(Nothing, EnvDTE.CodeTypeRef))
+        End Function
+
+#End Region
+
+#Region "IParameterKind.GetParameterPassingMode tests"
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_GetParameterPassingMode_NoModifier() As Task
+            Dim code =
+<Code>
+Class C
+    Sub Foo($$s As String)
+    End Sub
+End Class
+</Code>
+
+            Await TestGetParameterPassingMode(code, PARAMETER_PASSING_MODE.cmParameterTypeIn)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_GetParameterPassingMode_ByRefModifier() As Task
+            Dim code =
+<Code>
+Class C
+    Sub Foo(ByRef $$s As String)
+    End Sub
+End Class
+</Code>
+
+            Await TestGetParameterPassingMode(code, PARAMETER_PASSING_MODE.cmParameterTypeInOut)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_GetParameterPassingMode_ParamArrayModifier() As Task
+            Dim code =
+<Code>
+Class C
+    Sub Foo(ParamArray $$s As String())
+    End Sub
+End Class
+</Code>
+
+            Await TestGetParameterPassingMode(code, PARAMETER_PASSING_MODE.cmParameterTypeIn)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_GetParameterPassingMode_OptionalModifier() As Task
+            Dim code =
+<Code>
+Class C
+    Sub Foo(Optional $$s As String = "Foo")
+    End Sub
+End Class
+</Code>
+
+            Await TestGetParameterPassingMode(code, PARAMETER_PASSING_MODE.cmParameterTypeIn)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_GetParameterPassingMode_OptionalAndByRefModifiers() As Task
+            Dim code =
+<Code>
+Class C
+    Sub Foo(Optional ByRef $$s As String = "Foo")
+    End Sub
+End Class
+</Code>
+
+            Await TestGetParameterPassingMode(code, PARAMETER_PASSING_MODE.cmParameterTypeInOut)
+        End Function
+
+#End Region
+
+#Region "IParmeterKind.SetParameterPassingMode tests"
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_SetParameterPassingMode_NoModifier_In() As Task
+            Dim code =
+<Code>
+Class C
+    Sub M($$s As String)
+    End Sub
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Class C
+    Sub M(s As String)
+    End Sub
+End Class
+</Code>
+
+            Await TestSetParameterPassingMode(code, expected, PARAMETER_PASSING_MODE.cmParameterTypeIn)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_SetParameterPassingMode_NoModifier_InOut() As Task
+            Dim code =
+<Code>
+Class C
+    Sub M($$s As String)
+    End Sub
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Class C
+    Sub M(ByRef s As String)
+    End Sub
+End Class
+</Code>
+
+            Await TestSetParameterPassingMode(code, expected, PARAMETER_PASSING_MODE.cmParameterTypeInOut)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_SetParameterPassingMode_NoModifier_Out() As Task
+            Dim code =
+<Code>
+Class C
+    Sub M($$s As String)
+    End Sub
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Class C
+    Sub M(s As String)
+    End Sub
+End Class
+</Code>
+
+            Await TestSetParameterPassingMode(code, expected, PARAMETER_PASSING_MODE.cmParameterTypeOut, ThrowsArgumentException(Of PARAMETER_PASSING_MODE)())
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_SetParameterPassingMode_ByValModifier_In() As Task
+            Dim code =
+<Code>
+Class C
+    Sub M(ByVal $$s As String)
+    End Sub
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Class C
+    Sub M(ByVal s As String)
+    End Sub
+End Class
+</Code>
+
+            Await TestSetParameterPassingMode(code, expected, PARAMETER_PASSING_MODE.cmParameterTypeIn)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_SetParameterPassingMode_ByValModifier_InOut() As Task
+            Dim code =
+<Code>
+Class C
+    Sub M(ByVal $$s As String)
+    End Sub
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Class C
+    Sub M(ByRef s As String)
+    End Sub
+End Class
+</Code>
+
+            Await TestSetParameterPassingMode(code, expected, PARAMETER_PASSING_MODE.cmParameterTypeInOut)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_SetParameterPassingMode_ByValModifier_Out() As Task
+            Dim code =
+<Code>
+Class C
+    Sub M(ByVal $$s As String)
+    End Sub
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Class C
+    Sub M(ByVal s As String)
+    End Sub
+End Class
+</Code>
+
+            Await TestSetParameterPassingMode(code, expected, PARAMETER_PASSING_MODE.cmParameterTypeOut, ThrowsArgumentException(Of PARAMETER_PASSING_MODE)())
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_SetParameterPassingMode_ByRefModifier_In() As Task
+            Dim code =
+<Code>
+Class C
+    Sub M(ByRef $$s As String)
+    End Sub
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Class C
+    Sub M(s As String)
+    End Sub
+End Class
+</Code>
+
+            Await TestSetParameterPassingMode(code, expected, PARAMETER_PASSING_MODE.cmParameterTypeIn)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_SetParameterPassingMode_ByRefModifier_InOut() As Task
+            Dim code =
+<Code>
+Class C
+    Sub M(ByRef $$s As String)
+    End Sub
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Class C
+    Sub M(ByRef s As String)
+    End Sub
+End Class
+</Code>
+
+            Await TestSetParameterPassingMode(code, expected, PARAMETER_PASSING_MODE.cmParameterTypeInOut)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_SetParameterPassingMode_ByRefModifier_Out() As Task
+            Dim code =
+<Code>
+Class C
+    Sub M(ByRef $$s As String)
+    End Sub
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Class C
+    Sub M(ByRef s As String)
+    End Sub
+End Class
+</Code>
+
+            Await TestSetParameterPassingMode(code, expected, PARAMETER_PASSING_MODE.cmParameterTypeOut, ThrowsArgumentException(Of PARAMETER_PASSING_MODE)())
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_SetParameterPassingMode_ParamArrayModifier_In() As Task
+            Dim code =
+<Code>
+Class C
+    Sub M(ParamArray $$s As String())
+    End Sub
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Class C
+    Sub M(ParamArray s As String())
+    End Sub
+End Class
+</Code>
+
+            Await TestSetParameterPassingMode(code, expected, PARAMETER_PASSING_MODE.cmParameterTypeIn)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_SetParameterPassingMode_ParamArrayModifier_InOut() As Task
+            Dim code =
+<Code>
+Class C
+    Sub M(ParamArray $$s As String())
+    End Sub
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Class C
+    Sub M(ParamArray s As String())
+    End Sub
+End Class
+</Code>
+
+            Await TestSetParameterPassingMode(code, expected, PARAMETER_PASSING_MODE.cmParameterTypeInOut, ThrowsArgumentException(Of PARAMETER_PASSING_MODE)())
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_SetParameterPassingMode_ParamArrayModifier_Out() As Task
+            Dim code =
+<Code>
+Class C
+    Sub M(ParamArray $$s As String())
+    End Sub
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Class C
+    Sub M(ParamArray s As String())
+    End Sub
+End Class
+</Code>
+
+            Await TestSetParameterPassingMode(code, expected, PARAMETER_PASSING_MODE.cmParameterTypeOut, ThrowsArgumentException(Of PARAMETER_PASSING_MODE)())
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_SetParameterPassingMode_OptionalModifier_In() As Task
+            Dim code =
+<Code>
+Class C
+    Sub M(Optional $$s As String = "hello")
+    End Sub
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Class C
+    Sub M(Optional s As String = "hello")
+    End Sub
+End Class
+</Code>
+
+            Await TestSetParameterPassingMode(code, expected, PARAMETER_PASSING_MODE.cmParameterTypeIn)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_SetParameterPassingMode_OptionalModifier_InOut() As Task
+            Dim code =
+<Code>
+Class C
+    Sub M(Optional $$s As String = "hello")
+    End Sub
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Class C
+    Sub M(Optional ByRef s As String = "hello")
+    End Sub
+End Class
+</Code>
+
+            Await TestSetParameterPassingMode(code, expected, PARAMETER_PASSING_MODE.cmParameterTypeInOut)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_SetParameterPassingMode_OptionalModifier_Out() As Task
+            Dim code =
+<Code>
+Class C
+    Sub M(Optional $$s As String = "hello")
+    End Sub
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Class C
+    Sub M(Optional s As String = "hello")
+    End Sub
+End Class
+</Code>
+
+            Await TestSetParameterPassingMode(code, expected, PARAMETER_PASSING_MODE.cmParameterTypeOut, ThrowsArgumentException(Of PARAMETER_PASSING_MODE)())
+        End Function
+
+#End Region
+
+#Region "IParameterKind.GetParameterArrayCount tests"
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_GetParameterArrayCount_0() As Task
+            Dim code =
+<Code>
+Class C
+    Sub M($$s As String)
+    End Sub
+End Class
+</Code>
+
+
+            Await TestGetParameterArrayCount(code, 0)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_GetParameterArrayCount_1() As Task
+            Dim code =
+<Code>
+Class C
+    Sub M($$s As String())
+    End Sub
+End Class
+</Code>
+
+
+            Await TestGetParameterArrayCount(code, 1)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_GetParameterArrayCount_2() As Task
+            Dim code =
+<Code>
+Class C
+    Sub M($$s As String()())
+    End Sub
+End Class
+</Code>
+
+
+            Await TestGetParameterArrayCount(code, 2)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_GetParameterArrayCount_1_Multi() As Task
+            Dim code =
+<Code>
+Class C
+    Sub M($$s As String(,,))
+    End Sub
+End Class
+</Code>
+
+
+            Await TestGetParameterArrayCount(code, 1)
+        End Function
+
+#End Region
+
+#Region "IParameterKind.GetParameterArrayDimensions tests"
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_GetParameterArrayDimensions_0_1() As Task
+            Dim code =
+<Code>
+Class C
+    Sub M($$s As String())
+    End Sub
+End Class
+</Code>
+
+
+            Await TestGetParameterArrayDimensions(code, index:=0, expected:=1)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_GetParameterArrayDimensions_0_2() As Task
+            Dim code =
+<Code>
+Class C
+    Sub M($$s As String(,))
+    End Sub
+End Class
+</Code>
+
+
+            Await TestGetParameterArrayDimensions(code, index:=0, expected:=2)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_GetParameterArrayDimensions_0_3() As Task
+            Dim code =
+<Code>
+Class C
+    Sub M($$s As String(,,))
+    End Sub
+End Class
+</Code>
+
+
+            Await TestGetParameterArrayDimensions(code, index:=0, expected:=3)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_GetParameterArrayDimensions_1_1() As Task
+            Dim code =
+<Code>
+Class C
+    Sub M($$s As String(,,)())
+    End Sub
+End Class
+</Code>
+
+
+            Await TestGetParameterArrayDimensions(code, index:=1, expected:=1)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_GetParameterArrayDimensions_1_2() As Task
+            Dim code =
+<Code>
+Class C
+    Sub M($$s As String(,,)(,))
+    End Sub
+End Class
+</Code>
+
+
+            Await TestGetParameterArrayDimensions(code, index:=1, expected:=2)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_GetParameterArrayDimensions_2_1() As Task
+            Dim code =
+<Code>
+Class C
+    Sub M($$s As String(,,)(,)())
+    End Sub
+End Class
+</Code>
+
+
+            Await TestGetParameterArrayDimensions(code, index:=2, expected:=1)
+        End Function
+
+#End Region
+
+#Region "IParmeterKind.SetParameterArrayDimensions tests"
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_SetParameterArrayDimensions_None_0() As Task
+            ' The C# implementation had a weird behavior where it wold allow setting array dimensions
+            ' to 0 to create an array with a single rank.
+
+            Dim code =
+<Code>
+Class C
+    Sub M($$s As String)
+    End Sub
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Class C
+    Sub M(s As String())
+    End Sub
+End Class
+</Code>
+
+            Await TestSetParameterArrayDimensions(code, expected, dimensions:=0)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_SetParameterArrayDimensions_None_1() As Task
+            Dim code =
+<Code>
+Class C
+    Sub M($$s As String)
+    End Sub
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Class C
+    Sub M(s As String())
+    End Sub
+End Class
+</Code>
+
+            Await TestSetParameterArrayDimensions(code, expected, dimensions:=1)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_SetParameterArrayDimensions_None_2() As Task
+            Dim code =
+<Code>
+Class C
+    Sub M($$s As String)
+    End Sub
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Class C
+    Sub M(s As String(,))
+    End Sub
+End Class
+</Code>
+
+            Await TestSetParameterArrayDimensions(code, expected, dimensions:=2)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_SetParameterArrayDimensions_1_2() As Task
+            Dim code =
+<Code>
+Class C
+    Sub M($$s As String())
+    End Sub
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Class C
+    Sub M(s As String(,))
+    End Sub
+End Class
+</Code>
+
+            Await TestSetParameterArrayDimensions(code, expected, dimensions:=2)
+        End Function
+
+        <ConditionalWpfFact(GetType(x86)), Trait(Traits.Feature, Traits.Features.CodeModel)>
+        Public Async Function Test_IParameterKind_SetParameterArrayDimensions_1_2_WithInnerArray() As Task
+            Dim code =
+<Code>
+Class C
+    Sub M($$s As String()())
+    End Sub
+End Class
+</Code>
+
+            Dim expected =
+<Code>
+Class C
+    Sub M(s As String(,)())
+    End Sub
+End Class
+</Code>
+
+            Await TestSetParameterArrayDimensions(code, expected, dimensions:=2)
         End Function
 
 #End Region

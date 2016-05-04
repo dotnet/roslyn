@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.ImplementInterface;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
@@ -2689,5 +2690,15 @@ public class Holder
 @"using System ; using System . Collections ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Issue2785 < T > : IList < object > { private static List < object > innerList = new List < object > ( ) ; public object this [ int index ] { get { return ( ( IList < object > ) innerList ) [ index ] ; } set { ( ( IList < object > ) innerList ) [ index ] = value ; } } public int Count { get { return ( ( IList < object > ) innerList ) . Count ; } } public bool IsReadOnly { get { return ( ( IList < object > ) innerList ) . IsReadOnly ; } } public void Add ( object item ) { ( ( IList < object > ) innerList ) . Add ( item ) ; } public void Clear ( ) { ( ( IList < object > ) innerList ) . Clear ( ) ; } public bool Contains ( object item ) { return ( ( IList < object > ) innerList ) . Contains ( item ) ; } public void CopyTo ( object [ ] array , int arrayIndex ) { ( ( IList < object > ) innerList ) . CopyTo ( array , arrayIndex ) ; } public IEnumerator < object > GetEnumerator ( ) { return ( ( IList < object > ) innerList ) . GetEnumerator ( ) ; } public int IndexOf ( object item ) { return ( ( IList < object > ) innerList ) . IndexOf ( item ) ; } public void Insert ( int index , object item ) { ( ( IList < object > ) innerList ) . Insert ( index , item ) ; } public bool Remove ( object item ) { return ( ( IList < object > ) innerList ) . Remove ( item ) ; } public void RemoveAt ( int index ) { ( ( IList < object > ) innerList ) . RemoveAt ( index ) ; } IEnumerator IEnumerable . GetEnumerator ( ) { return ( ( IList < object > ) innerList ) . GetEnumerator ( ) ; } } ",
 index: 1);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), Trait(Traits.Feature, Test.Utilities.Traits.Features.Tuples)]
+        public async Task Tuple()
+        {
+            await TestAsync(
+@"interface IInterface { void Method1 ( ) ; } class Class : [|IInterface|] { (int, string) x; } ",
+@"using System; interface IInterface { void Method1 ( ) ; } class Class : IInterface { (int, string) x; public void Method1 ( ) { throw new NotImplementedException ( ) ; } } ",
+parseOptions: TestOptions.Regular.WithTuplesFeature());
+        }
+
     }
 }

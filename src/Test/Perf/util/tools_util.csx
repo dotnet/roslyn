@@ -31,6 +31,7 @@ bool ConvertConsumptionToCsv(string source, string destination, string requiredM
                     if (xmlReader.Name.Equals("ScenarioResult"))
                     {
                         currentScenarioName = xmlReader.GetAttribute("Name");
+                        currentScenarioName = new string(currentScenarioName.TakeWhile(c => !Char.IsDigit(c)).ToArray());
 
                         // These are not test results
                         if (string.Equals(currentScenarioName, "..TestDiagnostics.."))
@@ -69,6 +70,7 @@ bool ConvertConsumptionToCsv(string source, string destination, string requiredM
 /// Gets a csv file with metrics and converts them to ViBench supported JSON file
 string GetViBenchJsonFromCsv(string compilerTimeCsvFilePath, string execTimeCsvFilePath, string fileSizeCsvFilePath)
 {
+    var directoryUtil = new RelativeDirectory();
     Log("Convert the csv to JSON using ViBench tool");
     string branch = StdoutFrom("git", "rev-parse --abbrev-ref HEAD");
     string date = FirstLine(StdoutFrom("git", $"show --format=\"%aI\" {branch} --"));
@@ -79,17 +81,20 @@ string GetViBenchJsonFromCsv(string compilerTimeCsvFilePath, string execTimeCsvF
     string architecture = System.Environment.Is64BitOperatingSystem ? "x86-64" : "x86";
 
     // File locations
-    string outJson = Path.Combine(GetCPCDirectoryPath(), $"Roslyn-{longHash}.json");
+    string outJson = Path.Combine(directoryUtil.CPCDirectoryPath, $"Roslyn-{longHash}.json");
 
     // ViBenchToJson does not like empty csv files.
     string files = "";
-    if (compilerTimeCsvFilePath != null && new FileInfo(compilerTimeCsvFilePath).Length != 0) {
+    if (compilerTimeCsvFilePath != null && new FileInfo(compilerTimeCsvFilePath).Length != 0)
+    {
         files += $@"compilertime:""{compilerTimeCsvFilePath}""";
     }
-    if (execTimeCsvFilePath != null && new FileInfo(execTimeCsvFilePath).Length != 0) {
+    if (execTimeCsvFilePath != null && new FileInfo(execTimeCsvFilePath).Length != 0)
+    {
         files += $@"exectime:""{execTimeCsvFilePath}""";
     }
-    if (fileSizeCsvFilePath != null && new FileInfo(fileSizeCsvFilePath).Length != 0) {
+    if (fileSizeCsvFilePath != null && new FileInfo(fileSizeCsvFilePath).Length != 0)
+    {
         files += $@"filesize:""{fileSizeCsvFilePath}""";
     }
     string arguments = $@"
@@ -113,12 +118,13 @@ string GetViBenchJsonFromCsv(string compilerTimeCsvFilePath, string execTimeCsvF
 
     arguments = arguments.Replace("\r\n", " ").Replace("\n", "");
 
-    ShellOutVital(Path.Combine(GetCPCDirectoryPath(), "ViBenchToJson.exe"), arguments);
-    
+    ShellOutVital(Path.Combine(directoryUtil.CPCDirectoryPath, "ViBenchToJson.exe"), arguments);
+
     return outJson;
 }
 
-string FirstLine(string input) {
+string FirstLine(string input)
+{
     return input.Split(new[] {"\r\n", "\r", "\n"}, System.StringSplitOptions.None)[0];
 }
 
@@ -127,17 +133,27 @@ void UploadTraces(string sourceFolderPath, string destinationFolderPath)
     Log("Uploading traces");
     if (Directory.Exists(sourceFolderPath))
     {
-        // Get the latest written databackup
-        var directoryToUpload = new DirectoryInfo(sourceFolderPath).GetDirectories("DataBackup*").OrderByDescending(d=>d.LastWriteTimeUtc).FirstOrDefault();
-        if (directoryToUpload == null)
+        var directoriesToUpload = new DirectoryInfo(sourceFolderPath).GetDirectories("DataBackup*");
+        if (directoriesToUpload.Count() == 0)
         {
             Log($"There are no trace directory starting with DataBackup in {sourceFolderPath}");
             return;
         }
 
-        var destination = Path.Combine(destinationFolderPath, directoryToUpload.Name);
-        CopyDirectory(directoryToUpload.FullName, destination);
+        var perfResultDestinationFolderName = string.Format("PerfResults-{0:yyyy-MM-dd_hh-mm-ss-tt}", DateTime.Now);
         
+       var destination = Path.Combine(destinationFolderPath, perfResultDestinationFolderName);
+        foreach (var directoryToUpload in directoriesToUpload)
+        {
+            var destinationDataBackupDirectory = Path.Combine(destination, directoryToUpload.Name);
+            if (Directory.Exists(destinationDataBackupDirectory))
+            {
+                Directory.CreateDirectory(destinationDataBackupDirectory);
+            }
+            
+            CopyDirectory(directoryToUpload.FullName, destinationDataBackupDirectory);
+        }
+
         foreach(var file in new DirectoryInfo(sourceFolderPath).GetFiles().Where(f => f.Name.StartsWith("ConsumptionTemp", StringComparison.OrdinalIgnoreCase) || f.Name.StartsWith("Roslyn-", StringComparison.OrdinalIgnoreCase)))
         {
             File.Copy(file.FullName, Path.Combine(destination, file.Name));
@@ -151,8 +167,8 @@ void UploadTraces(string sourceFolderPath, string destinationFolderPath)
 
 void CopyDirectory(string source, string destination, string argument = @"/mir")
 {
-    var result = ShellOut("Robocopy", $"{argument} {source} {destination}");
-    
+    var result = ShellOut("Robocopy", $"{argument} {source} {destination}", "");
+
     // Robocopy has a success exit code from 0 - 7
     if (result.Code > 7)
     {

@@ -75,6 +75,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.InlineRename
                 return new FailureInlineRenameInfo(EditorFeaturesResources.YouCannotRenameThisElement);
             }
 
+            // see https://github.com/dotnet/roslyn/issues/10898
+            // we are disabling rename for tuple fields for now
+            // 1) compiler does not return correct location information in these symbols
+            // 2) renaming tuple fields seems a complex enough thing to require some design
+            if (triggerSymbol.ContainingType?.IsTupleType == true)
+            {
+                return new FailureInlineRenameInfo(EditorFeaturesResources.YouCannotRenameThisElement);
+            }
+
             // If rename is invoked on a member group reference in a nameof expression, then the
             // RenameOverloads option should be forced on.
             var forceRenameOverloads = tokenRenameInfo.IsMemberGroup;

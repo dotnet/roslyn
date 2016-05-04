@@ -1566,7 +1566,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     binder = new ExecutableCodeBinder(arrowExpression, sourceMethod, binder);
                     importChain = binder.ImportChain;
                     // Add locals
-                    return binder.WithPatternVariablesIfAny(arrowExpression.Expression).BindExpressionBodyAsBlock(arrowExpression, diagnostics);
+                    return binder.BindExpressionBodyAsBlock(arrowExpression, diagnostics);
                 }
                 else
                 {
@@ -1743,8 +1743,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // wrap in ConstructorInitializerBinder for appropriate errors
             // Handle scoping for possible pattern variables declared in the initializer
-            Binder initializerBinder = outerBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.ConstructorInitializer, constructor).
-                                       WithPatternVariablesIfAny(initializerArgumentListOpt);
+            Binder initializerBinder = outerBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.ConstructorInitializer, constructor);
+
+            if (initializerArgumentListOpt != null)
+            {
+                initializerBinder = new ExecutableCodeBinder(initializerArgumentListOpt, constructor, initializerBinder);
+            }
 
             return initializerBinder.BindConstructorInitializer(initializerArgumentListOpt, constructor, diagnostics);
         }

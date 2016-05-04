@@ -87,11 +87,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Note, there is no guarantee that the factory always gives back the same binder instance for the same <param name="node"/>.
+        /// Return binder for binding at node.
+        /// <paramref name="memberDeclarationOpt"/> and <paramref name="memberOpt"/>
+        /// are optional syntax and symbol for the member containing <paramref name="node"/>.
+        /// If provided, the <see cref="BinderFactoryVisitor"/> will use the member symbol rather
+        /// than looking up the member in the containing type, allowing this method to be called
+        /// while calculating the member list.
         /// </summary>
-        /// <param name="memberDeclarationOpt"/>
-        /// <param name="memberOpt"/>
-        internal Binder GetBinder(CSharpSyntaxNode node, MemberDeclarationSyntax memberDeclarationOpt = null, Symbol memberOpt = null)
+        /// <remarks>
+        /// Note, there is no guarantee that the factory always gives back the same binder instance for the same node.
+        /// </remarks>
+        internal Binder GetBinder(CSharpSyntaxNode node, CSharpSyntaxNode memberDeclarationOpt = null, Symbol memberOpt = null)
         {
             int position = node.SpanStart;
 
@@ -106,15 +112,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetBinder(node, position, memberDeclarationOpt, memberOpt);
         }
 
-        internal Binder GetBinder(CSharpSyntaxNode node, int position, MemberDeclarationSyntax memberDeclarationOpt = null, Symbol memberOpt = null)
+        internal Binder GetBinder(CSharpSyntaxNode node, int position, CSharpSyntaxNode memberDeclarationOpt = null, Symbol memberOpt = null)
         {
             Debug.Assert(node != null);
 
-            Binder result = null;
-
             BinderFactoryVisitor visitor = _binderFactoryVisitorPool.Allocate();
             visitor.Initialize(position, memberDeclarationOpt, memberOpt);
-            result = node.Accept(visitor);
+            Binder result = node.Accept(visitor);
             _binderFactoryVisitorPool.Free(visitor);
 
             return result;

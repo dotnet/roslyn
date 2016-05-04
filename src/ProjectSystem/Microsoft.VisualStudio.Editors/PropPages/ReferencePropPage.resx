@@ -1,0 +1,822 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<root>
+  <!-- 
+    Microsoft ResX Schema 
+    
+    Version 2.0
+    
+    The primary goals of this format is to allow a simple XML format 
+    that is mostly human readable. The generation and parsing of the 
+    various data types are done through the TypeConverter classes 
+    associated with the data types.
+    
+    Example:
+    
+    ... ado.net/XML headers & schema ...
+    <resheader name="resmimetype">text/microsoft-resx</resheader>
+    <resheader name="version">2.0</resheader>
+    <resheader name="reader">System.Resources.ResXResourceReader, System.Windows.Forms, ...</resheader>
+    <resheader name="writer">System.Resources.ResXResourceWriter, System.Windows.Forms, ...</resheader>
+    <data name="Name1"><value>this is my long string</value><comment>this is a comment</comment></data>
+    <data name="Color1" type="System.Drawing.Color, System.Drawing">Blue</data>
+    <data name="Bitmap1" mimetype="application/x-microsoft.net.object.binary.base64">
+        <value>[base64 mime encoded serialized .NET Framework object]</value>
+    </data>
+    <data name="Icon1" type="System.Drawing.Icon, System.Drawing" mimetype="application/x-microsoft.net.object.bytearray.base64">
+        <value>[base64 mime encoded string representing a byte array form of the .NET Framework object]</value>
+        <comment>This is a comment</comment>
+    </data>
+                
+    There are any number of "resheader" rows that contain simple 
+    name/value pairs.
+    
+    Each data row contains a name, and value. The row also contains a 
+    type or mimetype. Type corresponds to a .NET class that support 
+    text/value conversion through the TypeConverter architecture. 
+    Classes that don't support this are serialized and stored with the 
+    mimetype set.
+    
+    The mimetype is used for serialized objects, and tells the 
+    ResXResourceReader how to depersist the object. This is currently not 
+    extensible. For a given mimetype the value must be set accordingly:
+    
+    Note - application/x-microsoft.net.object.binary.base64 is the format 
+    that the ResXResourceWriter will generate, however the reader can 
+    read any of the formats listed below.
+    
+    mimetype: application/x-microsoft.net.object.binary.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Binary.BinaryFormatter
+            : and then encoded with base64 encoding.
+    
+    mimetype: application/x-microsoft.net.object.soap.base64
+    value   : The object must be serialized with 
+            : System.Runtime.Serialization.Formatters.Soap.SoapFormatter
+            : and then encoded with base64 encoding.
+
+    mimetype: application/x-microsoft.net.object.bytearray.base64
+    value   : The object must be serialized into a byte array 
+            : using a System.ComponentModel.TypeConverter
+            : and then encoded with base64 encoding.
+    -->
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="metadata">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" />
+              </xsd:sequence>
+              <xsd:attribute name="name" use="required" type="xsd:string" />
+              <xsd:attribute name="type" type="xsd:string" />
+              <xsd:attribute name="mimetype" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="assembly">
+            <xsd:complexType>
+              <xsd:attribute name="alias" type="xsd:string" />
+              <xsd:attribute name="name" type="xsd:string" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>2.0</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <assembly alias="System.Windows.Forms" name="System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="ReferenceListLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Bottom, Left</value>
+  </data>
+  <assembly alias="mscorlib" name="mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089" />
+  <data name="ReferenceListLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="ReferenceListLabel.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <assembly alias="System.Drawing" name="System.Drawing, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
+  <data name="ReferenceListLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 13</value>
+  </data>
+  <data name="ReferenceListLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>62, 13</value>
+  </data>
+  <data name="ReferenceListLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="ReferenceListLabel.Text">
+    <value xml:space="preserve">&amp;References:</value>
+  </data>
+  <data name="&gt;&gt;ReferenceListLabel.Name">
+    <value xml:space="preserve">ReferenceListLabel</value>
+  </data>
+  <data name="&gt;&gt;ReferenceListLabel.Type">
+    <value xml:space="preserve">System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ReferenceListLabel.Parent">
+    <value xml:space="preserve">ReferencePageTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;ReferenceListLabel.ZOrder">
+    <value xml:space="preserve">1</value>
+  </data>
+  <data name="ReferenceList.Columns">
+    <value />
+  </data>
+  <data name="ColHdr_RefName.Text">
+    <value xml:space="preserve">Reference Name</value>
+  </data>
+  <data name="ColHdr_RefName.Width" type="System.Int32, mscorlib">
+    <value>240</value>
+  </data>
+  <data name="ReferenceList.Columns1">
+    <value />
+  </data>
+  <data name="ColHdr_Type.Text">
+    <value xml:space="preserve">Type</value>
+  </data>
+  <data name="ColHdr_Type.Width" type="System.Int32, mscorlib">
+    <value>40</value>
+  </data>
+  <data name="ReferenceList.Columns2">
+    <value />
+  </data>
+  <data name="ColHdr_Version.Text">
+    <value xml:space="preserve">Version</value>
+  </data>
+  <data name="ColHdr_Version.Width" type="System.Int32, mscorlib">
+    <value>80</value>
+  </data>
+  <data name="ReferenceList.Columns3">
+    <value />
+  </data>
+  <data name="ColHdr_CopyLocal.Text">
+    <value xml:space="preserve">Copy Local</value>
+  </data>
+  <data name="ReferenceList.Columns4">
+    <value />
+  </data>
+  <data name="ColHdr_Path.Text">
+    <value xml:space="preserve">Path</value>
+  </data>
+  <data name="ColHdr_Path.Width" type="System.Int32, mscorlib">
+    <value>50</value>
+  </data>
+  <data name="ReferencePageTableLayoutPanel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="ReferencePageTableLayoutPanel.ColumnCount" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="referenceButtonsTableLayoutPanel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Right</value>
+  </data>
+  <data name="referenceButtonsTableLayoutPanel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="referenceButtonsTableLayoutPanel.ColumnCount" type="System.Int32, mscorlib">
+    <value>2</value>
+  </data>
+  <data name="UnusedReferences.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="UnusedReferences.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="UnusedReferences.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="UnusedReferences.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 0</value>
+  </data>
+  <data name="UnusedReferences.Size" type="System.Drawing.Size, System.Drawing">
+    <value>139, 23</value>
+  </data>
+  <data name="UnusedReferences.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="UnusedReferences.Text">
+    <value xml:space="preserve">U&amp;nused References...</value>
+  </data>
+  <data name="&gt;&gt;UnusedReferences.Name">
+    <value xml:space="preserve">UnusedReferences</value>
+  </data>
+  <data name="&gt;&gt;UnusedReferences.Type">
+    <value xml:space="preserve">System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;UnusedReferences.Parent">
+    <value xml:space="preserve">referenceButtonsTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;UnusedReferences.ZOrder">
+    <value xml:space="preserve">0</value>
+  </data>
+  <data name="ReferencePathsButton.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Left, Right</value>
+  </data>
+  <data name="ReferencePathsButton.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="ReferencePathsButton.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="ReferencePathsButton.Location" type="System.Drawing.Point, System.Drawing">
+    <value>145, 0</value>
+  </data>
+  <data name="ReferencePathsButton.Size" type="System.Drawing.Size, System.Drawing">
+    <value>136, 23</value>
+  </data>
+  <data name="ReferencePathsButton.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="ReferencePathsButton.Text">
+    <value xml:space="preserve">Reference &amp;Paths...</value>
+  </data>
+  <data name="&gt;&gt;ReferencePathsButton.Name">
+    <value xml:space="preserve">ReferencePathsButton</value>
+  </data>
+  <data name="&gt;&gt;ReferencePathsButton.Type">
+    <value xml:space="preserve">System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ReferencePathsButton.Parent">
+    <value xml:space="preserve">referenceButtonsTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;ReferencePathsButton.ZOrder">
+    <value xml:space="preserve">1</value>
+  </data>
+  <data name="referenceButtonsTableLayoutPanel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>254, 0</value>
+  </data>
+  <data name="referenceButtonsTableLayoutPanel.RowCount" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="referenceButtonsTableLayoutPanel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>284, 23</value>
+  </data>
+  <data name="referenceButtonsTableLayoutPanel.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;referenceButtonsTableLayoutPanel.Name">
+    <value xml:space="preserve">referenceButtonsTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;referenceButtonsTableLayoutPanel.Type">
+    <value xml:space="preserve">System.Windows.Forms.TableLayoutPanel, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;referenceButtonsTableLayoutPanel.Parent">
+    <value xml:space="preserve">ReferencePageTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;referenceButtonsTableLayoutPanel.ZOrder">
+    <value xml:space="preserve">0</value>
+  </data>
+  <data name="referenceButtonsTableLayoutPanel.LayoutSettings">
+    <value xml:space="preserve">&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="UnusedReferences" Row="0" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="ReferencePathsButton" Row="0" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;/Controls&gt;&lt;Columns Styles="Percent,50,Percent,50" /&gt;&lt;Rows Styles="AutoSize,0" /&gt;&lt;/TableLayoutSettings&gt;</value>
+  </data>
+  <data name="addRemoveButtonsTableLayoutPanel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Right</value>
+  </data>
+  <data name="addRemoveButtonsTableLayoutPanel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="addRemoveButtonsTableLayoutPanel.ColumnCount" type="System.Int32, mscorlib">
+    <value>3</value>
+  </data>
+  <data name="RemoveReference.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>None</value>
+  </data>
+  <data name="RemoveReference.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="RemoveReference.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="RemoveReference.Location" type="System.Drawing.Point, System.Drawing">
+    <value>81, 0</value>
+  </data>
+  <data name="RemoveReference.TabIndex" type="System.Int32, mscorlib">
+    <value>5</value>
+  </data>
+  <data name="RemoveReference.Text">
+    <value xml:space="preserve">Remo&amp;ve</value>
+  </data>
+  <data name="&gt;&gt;RemoveReference.Name">
+    <value xml:space="preserve">RemoveReference</value>
+  </data>
+  <data name="&gt;&gt;RemoveReference.Type">
+    <value xml:space="preserve">System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;RemoveReference.Parent">
+    <value xml:space="preserve">addRemoveButtonsTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;RemoveReference.ZOrder">
+    <value xml:space="preserve">0</value>
+  </data>
+  <data name="addSplitButton.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>None</value>
+  </data>
+  <data name="addSplitButton.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="addContextMenuStrip.Enabled" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="referenceToolStripMenuItem.Text">
+    <value xml:space="preserve">Reference...</value>
+  </data>
+  <data name="webReferenceToolStripMenuItem.Text">
+    <value xml:space="preserve">Web Reference...</value>
+  </data>
+  <data name="serviceReferenceToolStripMenuItem.Text">
+    <value xml:space="preserve">Service Reference...</value>
+  </data>
+  <data name="addContextMenuStrip.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 0</value>
+  </data>
+  <data name="addContextMenuStrip.RightToLeft" type="System.Windows.Forms.RightToLeft, System.Windows.Forms">
+    <value>No</value>
+  </data>
+  <data name="addContextMenuStrip.Size" type="System.Drawing.Size, System.Drawing">
+    <value>151, 72</value>
+  </data>
+  <data name="&gt;&gt;addContextMenuStrip.Name">
+    <value xml:space="preserve">addContextMenuStrip</value>
+  </data>
+  <data name="&gt;&gt;addContextMenuStrip.Type">
+    <value xml:space="preserve">System.Windows.Forms.ContextMenuStrip, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="addSplitButton.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 0</value>
+  </data>
+  <data name="addSplitButton.TabIndex" type="System.Int32, mscorlib">
+    <value>4</value>
+  </data>
+  <data name="addSplitButton.Text">
+    <value xml:space="preserve">&amp;Add...</value>
+  </data>
+  <data name="&gt;&gt;addSplitButton.Name">
+    <value xml:space="preserve">addSplitButton</value>
+  </data>
+  <data name="&gt;&gt;addSplitButton.Type">
+    <value xml:space="preserve">Microsoft.VisualStudio.Editors.PropertyPages.ReferencePropPage+SplitButton, Microsoft.VisualStudio.Editors, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+  <data name="&gt;&gt;addSplitButton.Parent">
+    <value xml:space="preserve">addRemoveButtonsTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;addSplitButton.ZOrder">
+    <value xml:space="preserve">1</value>
+  </data>
+  <data name="UpdateReferences.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="UpdateReferences.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="UpdateReferences.Location" type="System.Drawing.Point, System.Drawing">
+    <value>162, 0</value>
+  </data>
+  <data name="UpdateReferences.Size" type="System.Drawing.Size, System.Drawing">
+    <value>158, 23</value>
+  </data>
+  <data name="UpdateReferences.TabIndex" type="System.Int32, mscorlib">
+    <value>6</value>
+  </data>
+  <data name="UpdateReferences.Text">
+    <value xml:space="preserve">&amp;Update</value>
+  </data>
+  <data name="&gt;&gt;UpdateReferences.Name">
+    <value xml:space="preserve">UpdateReferences</value>
+  </data>
+  <data name="&gt;&gt;UpdateReferences.Type">
+    <value xml:space="preserve">System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;UpdateReferences.Parent">
+    <value xml:space="preserve">addRemoveButtonsTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;UpdateReferences.ZOrder">
+    <value xml:space="preserve">2</value>
+  </data>
+  <data name="addRemoveButtonsTableLayoutPanel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>215, 273</value>
+  </data>
+  <data name="addRemoveButtonsTableLayoutPanel.RowCount" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="addRemoveButtonsTableLayoutPanel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>323, 23</value>
+  </data>
+  <data name="addRemoveButtonsTableLayoutPanel.TabIndex" type="System.Int32, mscorlib">
+    <value>4</value>
+  </data>
+  <data name="&gt;&gt;addRemoveButtonsTableLayoutPanel.Name">
+    <value xml:space="preserve">addRemoveButtonsTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;addRemoveButtonsTableLayoutPanel.Type">
+    <value xml:space="preserve">System.Windows.Forms.TableLayoutPanel, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;addRemoveButtonsTableLayoutPanel.Parent">
+    <value xml:space="preserve">ReferencePageTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;addRemoveButtonsTableLayoutPanel.ZOrder">
+    <value xml:space="preserve">3</value>
+  </data>
+  <data name="addRemoveButtonsTableLayoutPanel.LayoutSettings">
+    <value xml:space="preserve">&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="RemoveReference" Row="0" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="addSplitButton" Row="0" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="UpdateReferences" Row="0" RowSpan="1" Column="2" ColumnSpan="1" /&gt;&lt;/Controls&gt;&lt;Columns Styles="AutoSize,0,AutoSize,0,AutoSize,0,Absolute,20,Absolute,20" /&gt;&lt;Rows Styles="AutoSize,0" /&gt;&lt;/TableLayoutSettings&gt;</value>
+  </data>
+  <data name="ReferencePageTableLayoutPanel.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="ReferencePageTableLayoutPanel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 0</value>
+  </data>
+  <data name="ReferencePageTableLayoutPanel.RowCount" type="System.Int32, mscorlib">
+    <value>3</value>
+  </data>
+  <data name="ReferencePageTableLayoutPanel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>538, 299</value>
+  </data>
+  <data name="ReferencePageTableLayoutPanel.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;ReferencePageTableLayoutPanel.Name">
+    <value xml:space="preserve">ReferencePageTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;ReferencePageTableLayoutPanel.Type">
+    <value xml:space="preserve">System.Windows.Forms.TableLayoutPanel, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ReferencePageTableLayoutPanel.Parent">
+    <value xml:space="preserve">ReferencePageSplitContainer.Panel1</value>
+  </data>
+  <data name="&gt;&gt;ReferencePageTableLayoutPanel.ZOrder">
+    <value xml:space="preserve">0</value>
+  </data>
+  <data name="ReferencePageTableLayoutPanel.LayoutSettings">
+    <value xml:space="preserve">&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="referenceButtonsTableLayoutPanel" Row="0" RowSpan="1" Column="1" ColumnSpan="1" /&gt;&lt;Control Name="ReferenceListLabel" Row="0" RowSpan="1" Column="0" ColumnSpan="1" /&gt;&lt;Control Name="ReferenceList" Row="1" RowSpan="1" Column="0" ColumnSpan="2" /&gt;&lt;Control Name="addRemoveButtonsTableLayoutPanel" Row="2" RowSpan="1" Column="0" ColumnSpan="2" /&gt;&lt;/Controls&gt;&lt;Columns Styles="AutoSize,0,Percent,100" /&gt;&lt;Rows Styles="AutoSize,0,Percent,100,AutoSize,0" /&gt;&lt;/TableLayoutSettings&gt;</value>
+  </data>
+  <data name="ReferenceList.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="ReferenceList.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 29</value>
+  </data>
+  <data name="ReferenceList.Size" type="System.Drawing.Size, System.Drawing">
+    <value>535, 238</value>
+  </data>
+  <data name="ReferenceList.TabIndex" type="System.Int32, mscorlib">
+    <value>3</value>
+  </data>
+  <data name="&gt;&gt;ReferenceList.Name">
+    <value xml:space="preserve">ReferenceList</value>
+  </data>
+  <data name="&gt;&gt;ReferenceList.Type">
+    <value xml:space="preserve">System.Windows.Forms.ListView, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ReferenceList.Parent">
+    <value xml:space="preserve">ReferencePageTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;ReferenceList.ZOrder">
+    <value xml:space="preserve">2</value>
+  </data>
+  <data name="ImportsListLabel.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Bottom, Left</value>
+  </data>
+  <data name="ImportsListLabel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="addUserImportTableLayoutPanel.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="addUserImportTableLayoutPanel.ColumnCount" type="System.Int32, mscorlib">
+    <value>4</value>
+  </data>
+  <data name="AddUserImportButton.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="AddUserImportButton.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="AddUserImportButton.Location" type="System.Drawing.Point, System.Drawing">
+    <value>289, 18</value>
+  </data>
+  <data name="AddUserImportButton.Size" type="System.Drawing.Size, System.Drawing">
+    <value>112, 23</value>
+  </data>
+  <data name="AddUserImportButton.TabIndex" type="System.Int32, mscorlib">
+    <value>9</value>
+  </data>
+  <data name="AddUserImportButton.Text">
+    <value xml:space="preserve">Add User Imp&amp;ort</value>
+  </data>
+  <data name="&gt;&gt;AddUserImportButton.Name">
+    <value xml:space="preserve">AddUserImportButton</value>
+  </data>
+  <data name="&gt;&gt;AddUserImportButton.Type">
+    <value xml:space="preserve">System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;AddUserImportButton.Parent">
+    <value xml:space="preserve">addUserImportTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;AddUserImportButton.ZOrder">
+    <value xml:space="preserve">0</value>
+  </data>
+  <data name="UpdateUserImportButton.Anchor" type="System.Windows.Forms.AnchorStyles, System.Windows.Forms">
+    <value>Bottom, Left, Right</value>
+  </data>
+  <data name="UpdateUserImportButton.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="UpdateUserImportButton.Location" type="System.Drawing.Point, System.Drawing">
+    <value>407, 151</value>
+  </data>
+  <data name="UpdateUserImportButton.Size" type="System.Drawing.Size, System.Drawing">
+    <value>128, 23</value>
+  </data>
+  <data name="UpdateUserImportButton.TabIndex" type="System.Int32, mscorlib">
+    <value>12</value>
+  </data>
+  <data name="UpdateUserImportButton.Text">
+    <value xml:space="preserve">Up&amp;date User Import</value>
+  </data>
+  <data name="&gt;&gt;UpdateUserImportButton.Name">
+    <value xml:space="preserve">UpdateUserImportButton</value>
+  </data>
+  <data name="&gt;&gt;UpdateUserImportButton.Type">
+    <value xml:space="preserve">System.Windows.Forms.Button, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;UpdateUserImportButton.Parent">
+    <value xml:space="preserve">addUserImportTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;UpdateUserImportButton.ZOrder">
+    <value xml:space="preserve">1</value>
+  </data>
+  <data name="ImportList.AccessibleDescription">
+    <value xml:space="preserve">List of imported namespaces.</value>
+  </data>
+  <data name="ImportList.AccessibleName">
+    <value xml:space="preserve">Imported Namespaces:</value>
+  </data>
+  <data name="ImportList.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="ImportList.IntegralHeight" type="System.Boolean, mscorlib">
+    <value>False</value>
+  </data>
+  <data name="ImportList.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 46</value>
+  </data>
+  <data name="ImportList.Size" type="System.Drawing.Size, System.Drawing">
+    <value>401, 128</value>
+  </data>
+  <data name="ImportList.TabIndex" type="System.Int32, mscorlib">
+    <value>11</value>
+  </data>
+  <data name="&gt;&gt;ImportList.Name">
+    <value xml:space="preserve">ImportList</value>
+  </data>
+  <data name="&gt;&gt;ImportList.Type">
+    <value xml:space="preserve">System.Windows.Forms.CheckedListBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ImportList.Parent">
+    <value xml:space="preserve">addUserImportTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;ImportList.ZOrder">
+    <value xml:space="preserve">3</value>
+  </data>
+  <data name="UserImportTextBox.AccessibleName">
+    <value xml:space="preserve">Imported Namespace:</value>
+  </data>
+  <data name="UserImportTextBox.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="UserImportTextBox.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 19</value>
+  </data>
+  <data name="UserImportTextBox.Size" type="System.Drawing.Size, System.Drawing">
+    <value>283, 21</value>
+  </data>
+  <data name="UserImportTextBox.TabIndex" type="System.Int32, mscorlib">
+    <value>8</value>
+  </data>
+  <data name="&gt;&gt;UserImportTextBox.Name">
+    <value xml:space="preserve">UserImportTextBox</value>
+  </data>
+  <data name="&gt;&gt;UserImportTextBox.Type">
+    <value xml:space="preserve">System.Windows.Forms.TextBox, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;UserImportTextBox.Parent">
+    <value xml:space="preserve">addUserImportTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;UserImportTextBox.ZOrder">
+    <value xml:space="preserve">4</value>
+  </data>
+  <data name="addUserImportTableLayoutPanel.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="addUserImportTableLayoutPanel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 0</value>
+  </data>
+  <data name="addUserImportTableLayoutPanel.RowCount" type="System.Int32, mscorlib">
+    <value>3</value>
+  </data>
+  <data name="addUserImportTableLayoutPanel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>538, 177</value>
+  </data>
+  <data name="addUserImportTableLayoutPanel.TabIndex" type="System.Int32, mscorlib">
+    <value>0</value>
+  </data>
+  <data name="&gt;&gt;addUserImportTableLayoutPanel.Name">
+    <value xml:space="preserve">addUserImportTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;addUserImportTableLayoutPanel.Type">
+    <value xml:space="preserve">System.Windows.Forms.TableLayoutPanel, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;addUserImportTableLayoutPanel.Parent">
+    <value xml:space="preserve">ReferencePageSplitContainer.Panel2</value>
+  </data>
+  <data name="&gt;&gt;addUserImportTableLayoutPanel.ZOrder">
+    <value xml:space="preserve">0</value>
+  </data>
+  <data name="addUserImportTableLayoutPanel.LayoutSettings">
+    <value xml:space="preserve">&lt;?xml version="1.0" encoding="utf-16"?&gt;&lt;TableLayoutSettings&gt;&lt;Controls&gt;&lt;Control Name="AddUserImportButton" Row="1" RowSpan="1" Column="2" ColumnSpan="1" /&gt;&lt;Control Name="UpdateUserImportButton" Row="2" RowSpan="1" Column="3" ColumnSpan="1" /&gt;&lt;Control Name="ImportsListLabel" Row="0" RowSpan="1" Column="0" ColumnSpan="4" /&gt;&lt;Control Name="ImportList" Row="2" RowSpan="1" Column="0" ColumnSpan="3" /&gt;&lt;Control Name="UserImportTextBox" Row="1" RowSpan="1" Column="0" ColumnSpan="2" /&gt;&lt;/Controls&gt;&lt;Columns Styles="Percent,100,AutoSize,0,AutoSize,0,AutoSize,0" /&gt;&lt;Rows Styles="AutoSize,0,AutoSize,0,Percent,100,Absolute,20" /&gt;&lt;/TableLayoutSettings&gt;</value>
+  </data>
+  <data name="ImportsListLabel.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="ImportsListLabel.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 3</value>
+  </data>
+  <data name="ImportsListLabel.Size" type="System.Drawing.Size, System.Drawing">
+    <value>113, 13</value>
+  </data>
+  <data name="ImportsListLabel.TabIndex" type="System.Int32, mscorlib">
+    <value>7</value>
+  </data>
+  <data name="ImportsListLabel.Text">
+    <value xml:space="preserve">&amp;Imported namespaces:</value>
+  </data>
+  <data name="&gt;&gt;ImportsListLabel.Name">
+    <value xml:space="preserve">ImportsListLabel</value>
+  </data>
+  <data name="&gt;&gt;ImportsListLabel.Type">
+    <value xml:space="preserve">System.Windows.Forms.Label, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ImportsListLabel.Parent">
+    <value xml:space="preserve">addUserImportTableLayoutPanel</value>
+  </data>
+  <data name="&gt;&gt;ImportsListLabel.ZOrder">
+    <value xml:space="preserve">2</value>
+  </data>
+  <data name="ReferencePageSplitContainer.Dock" type="System.Windows.Forms.DockStyle, System.Windows.Forms">
+    <value>Fill</value>
+  </data>
+  <data name="ReferencePageSplitContainer.Location" type="System.Drawing.Point, System.Drawing">
+    <value>0, 0</value>
+  </data>
+  <data name="ReferencePageSplitContainer.Orientation" type="System.Windows.Forms.Orientation, System.Windows.Forms">
+    <value>Horizontal</value>
+  </data>
+  <data name="&gt;&gt;ReferencePageSplitContainer.Panel1.Name">
+    <value xml:space="preserve">ReferencePageSplitContainer.Panel1</value>
+  </data>
+  <data name="&gt;&gt;ReferencePageSplitContainer.Panel1.Type">
+    <value xml:space="preserve">System.Windows.Forms.SplitterPanel, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ReferencePageSplitContainer.Panel1.Parent">
+    <value xml:space="preserve">ReferencePageSplitContainer</value>
+  </data>
+  <data name="&gt;&gt;ReferencePageSplitContainer.Panel1.ZOrder">
+    <value xml:space="preserve">0</value>
+  </data>
+  <data name="&gt;&gt;ReferencePageSplitContainer.Panel2.Name">
+    <value xml:space="preserve">ReferencePageSplitContainer.Panel2</value>
+  </data>
+  <data name="&gt;&gt;ReferencePageSplitContainer.Panel2.Type">
+    <value xml:space="preserve">System.Windows.Forms.SplitterPanel, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ReferencePageSplitContainer.Panel2.Parent">
+    <value xml:space="preserve">ReferencePageSplitContainer</value>
+  </data>
+  <data name="&gt;&gt;ReferencePageSplitContainer.Panel2.ZOrder">
+    <value xml:space="preserve">1</value>
+  </data>
+  <data name="ReferencePageSplitContainer.Size" type="System.Drawing.Size, System.Drawing">
+    <value>538, 480</value>
+  </data>
+  <data name="ReferencePageSplitContainer.SplitterDistance" type="System.Int32, mscorlib">
+    <value>299</value>
+  </data>
+  <data name="ReferencePageSplitContainer.TabIndex" type="System.Int32, mscorlib">
+    <value>1</value>
+  </data>
+  <data name="ReferencePageSplitContainer.Text">
+    <value xml:space="preserve">ReferencePageSplitContainer</value>
+  </data>
+  <data name="&gt;&gt;ReferencePageSplitContainer.Name">
+    <value xml:space="preserve">ReferencePageSplitContainer</value>
+  </data>
+  <data name="&gt;&gt;ReferencePageSplitContainer.Type">
+    <value xml:space="preserve">System.Windows.Forms.SplitContainer, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ReferencePageSplitContainer.Parent">
+    <value xml:space="preserve">$this</value>
+  </data>
+  <data name="&gt;&gt;ReferencePageSplitContainer.ZOrder">
+    <value xml:space="preserve">1</value>
+  </data>
+  <metadata name="$this.Localizable" type="System.Boolean, mscorlib, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089">
+    <value>True</value>
+  </metadata>
+  <data name="$this.AutoSize" type="System.Boolean, mscorlib">
+    <value>True</value>
+  </data>
+  <data name="$this.Font" type="System.Drawing.Font, System.Drawing">
+    <value>Tahoma, 8.25pt</value>
+  </data>
+  <data name="$this.ImeMode" type="System.Windows.Forms.ImeMode, System.Windows.Forms">
+    <value>NoControl</value>
+  </data>
+  <data name="$this.Size" type="System.Drawing.Size, System.Drawing">
+    <value>538, 480</value>
+  </data>
+  <data name="&gt;&gt;ColHdr_RefName.Name">
+    <value xml:space="preserve">ColHdr_RefName</value>
+  </data>
+  <data name="&gt;&gt;ColHdr_RefName.Type">
+    <value xml:space="preserve">System.Windows.Forms.ColumnHeader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ColHdr_Type.Name">
+    <value xml:space="preserve">ColHdr_Type</value>
+  </data>
+  <data name="&gt;&gt;ColHdr_Type.Type">
+    <value xml:space="preserve">System.Windows.Forms.ColumnHeader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ColHdr_Version.Name">
+    <value xml:space="preserve">ColHdr_Version</value>
+  </data>
+  <data name="&gt;&gt;ColHdr_Version.Type">
+    <value xml:space="preserve">System.Windows.Forms.ColumnHeader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ColHdr_CopyLocal.Name">
+    <value xml:space="preserve">ColHdr_CopyLocal</value>
+  </data>
+  <data name="&gt;&gt;ColHdr_CopyLocal.Type">
+    <value xml:space="preserve">System.Windows.Forms.ColumnHeader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;ColHdr_Path.Name">
+    <value xml:space="preserve">ColHdr_Path</value>
+  </data>
+  <data name="&gt;&gt;ColHdr_Path.Type">
+    <value xml:space="preserve">System.Windows.Forms.ColumnHeader, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;referenceToolStripMenuItem.Name">
+    <value xml:space="preserve">referenceToolStripMenuItem</value>
+  </data>
+  <data name="&gt;&gt;referenceToolStripMenuItem.Type">
+    <value xml:space="preserve">System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;webReferenceToolStripMenuItem.Name">
+    <value xml:space="preserve">webReferenceToolStripMenuItem</value>
+  </data>
+  <data name="&gt;&gt;webReferenceToolStripMenuItem.Type">
+    <value xml:space="preserve">System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;serviceReferenceToolStripMenuItem.Name">
+    <value xml:space="preserve">serviceReferenceToolStripMenuItem</value>
+  </data>
+  <data name="&gt;&gt;serviceReferenceToolStripMenuItem.Type">
+    <value xml:space="preserve">System.Windows.Forms.ToolStripMenuItem, System.Windows.Forms, Version=2.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </data>
+  <data name="&gt;&gt;$this.Name">
+    <value xml:space="preserve">ReferencePropPage</value>
+  </data>
+  <data name="&gt;&gt;$this.Type">
+    <value xml:space="preserve">Microsoft.VisualStudio.Editors.PropertyPages.PropPageUserControlBase, Microsoft.VisualStudio.Editors, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a</value>
+  </data>
+</root>

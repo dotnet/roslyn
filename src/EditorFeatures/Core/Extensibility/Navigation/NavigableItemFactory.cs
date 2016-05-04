@@ -28,7 +28,8 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
             return locations.Select(loc => GetItemFromSymbolLocation(solution, symbol, loc, displayString));
         }
 
-        public static IEnumerable<Location> GetPreferredSourceLocations(Solution solution, ISymbol symbol)
+        public static IEnumerable<Location> GetPreferredSourceLocations(
+            Solution solution, ISymbol symbol)
         {
             // Prefer non-generated source locations over generated ones.
 

@@ -30,7 +30,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             IList<TextSpan> expectedSpans,
             SyntaxNode fixedRoot,
             string annotationKind,
-            bool compareTokens)
+            bool compareTokens, 
+            ParseOptions parseOptions = null)
         {
             expectedSpans = expectedSpans ?? new List<TextSpan>();
             var annotatedTokens = fixedRoot.GetAnnotatedNodesAndTokens(annotationKind).Select(n => (SyntaxToken)n).ToList();
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
 
             if (expectedSpans.Count > 0)
             {
-                var expectedTokens = TokenUtilities.GetTokens(TokenUtilities.GetSyntaxRoot(expectedText, GetLanguage()));
+                var expectedTokens = TokenUtilities.GetTokens(TokenUtilities.GetSyntaxRoot(expectedText, GetLanguage(), parseOptions));
                 var actualTokens = TokenUtilities.GetTokens(fixedRoot);
 
                 for (var i = 0; i < Math.Min(expectedTokens.Count, actualTokens.Count); i++)
@@ -193,7 +194,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     workspace, expected, index,
                     actions,
                     conflictSpans, renameSpans, warningSpans,
-                    compareTokens: compareTokens);
+                    compareTokens: compareTokens,
+                    parseOptions: parseOptions);
             }
         }
 
@@ -201,10 +203,11 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             TestWorkspace workspace, string expected,
             int index, IList<CodeAction> actions,
             IList<TextSpan> conflictSpans, IList<TextSpan> renameSpans, IList<TextSpan> warningSpans,
-            bool compareTokens)
+            bool compareTokens,
+            ParseOptions parseOptions = null)
         {
             var operations = await VerifyInputsAndGetOperationsAsync(index, actions);
-            return await TestOperationsAsync(workspace, expected, operations.ToList(), conflictSpans, renameSpans, warningSpans, compareTokens, expectedChangedDocumentId: null);
+            return await TestOperationsAsync(workspace, expected, operations.ToList(), conflictSpans, renameSpans, warningSpans, compareTokens, expectedChangedDocumentId: null, parseOptions: parseOptions);
         }
 
         private static bool IsWorkspaceElement(string text)
@@ -220,7 +223,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             IList<TextSpan> renameSpans,
             IList<TextSpan> warningSpans,
             bool compareTokens,
-            DocumentId expectedChangedDocumentId)
+            DocumentId expectedChangedDocumentId,
+            ParseOptions parseOptions = null)
         {
             var appliedChanges = ApplyOperationsAndGetSolution(workspace, operations);
             var oldSolution = appliedChanges.Item1;
@@ -246,9 +250,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 Assert.Equal(expectedText, actualText);
             }
 
-            TestAnnotations(expectedText, conflictSpans, fixedRoot, ConflictAnnotation.Kind, compareTokens);
-            TestAnnotations(expectedText, renameSpans, fixedRoot, RenameAnnotation.Kind, compareTokens);
-            TestAnnotations(expectedText, warningSpans, fixedRoot, WarningAnnotation.Kind, compareTokens);
+            TestAnnotations(expectedText, conflictSpans, fixedRoot, ConflictAnnotation.Kind, compareTokens, parseOptions);
+            TestAnnotations(expectedText, renameSpans, fixedRoot, RenameAnnotation.Kind, compareTokens, parseOptions);
+            TestAnnotations(expectedText, warningSpans, fixedRoot, WarningAnnotation.Kind, compareTokens, parseOptions);
 
             return Tuple.Create(oldSolution, newSolution);
         }

@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor.Host;
@@ -49,8 +50,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             string waitDialogMessage,
             CancellationToken cancellationToken)
         {
-            var fixMultipleContext = FixMultipleContext.Create(diagnosticsToFix, fixProvider, equivalenceKey, cancellationToken);
-            var suggestedAction = GetSuggestedAction(fixMultipleContext, workspace, fixAllProvider, waitDialogTitle, waitDialogMessage, showPreviewChangesDialog: false, cancellationToken: cancellationToken);
+            var fixMultipleState = FixAllState.Create(fixAllProvider, diagnosticsToFix, fixProvider, equivalenceKey);
+            var triggerDiagnostic = diagnosticsToFix.First().Value.First();
+
+            var suggestedAction = GetSuggestedAction(fixMultipleState, triggerDiagnostic, workspace, waitDialogTitle, waitDialogMessage, showPreviewChangesDialog: false, cancellationToken: cancellationToken);
             return suggestedAction.GetChangedSolution(cancellationToken);
         }
 
@@ -64,22 +67,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             string waitDialogMessage,
             CancellationToken cancellationToken)
         {
-            var fixMultipleContext = FixMultipleContext.Create(diagnosticsToFix, fixProvider, equivalenceKey, cancellationToken);
-            var suggestedAction = GetSuggestedAction(fixMultipleContext, workspace, fixAllProvider, waitDialogTitle, waitDialogMessage, showPreviewChangesDialog: false, cancellationToken: cancellationToken);
+            var fixMultipleState = FixAllState.Create(fixAllProvider, diagnosticsToFix, fixProvider, equivalenceKey);
+            var triggerDiagnostic = diagnosticsToFix.First().Value.First();
+
+            var suggestedAction = GetSuggestedAction(fixMultipleState, triggerDiagnostic, workspace, waitDialogTitle, waitDialogMessage, showPreviewChangesDialog: false, cancellationToken: cancellationToken);
             return suggestedAction.GetChangedSolution(cancellationToken);
         }
 
         private FixMultipleSuggestedAction GetSuggestedAction(
-            FixMultipleContext fixMultipleContext,
+            FixAllState fixAllState,
+            Diagnostic triggerDiagnostic,
             Workspace workspace,
-            FixAllProvider fixAllProvider,
             string title,
             string waitDialogMessage,
             bool showPreviewChangesDialog,
             CancellationToken cancellationToken)
         {
-            var fixMultipleCodeAction = new FixMultipleCodeAction(fixMultipleContext, fixAllProvider, title, waitDialogMessage, showPreviewChangesDialog);
-            return new FixMultipleSuggestedAction(_listener, workspace, _editHandler, _waitIndicator, fixMultipleCodeAction, fixAllProvider);
+            var fixMultipleCodeAction = new FixMultipleCodeAction(fixAllState, triggerDiagnostic, title, waitDialogMessage, showPreviewChangesDialog);
+            return new FixMultipleSuggestedAction(
+                _listener, workspace, _editHandler, _waitIndicator, 
+                fixMultipleCodeAction, fixAllState.FixAllProvider);
         }
     }
 }

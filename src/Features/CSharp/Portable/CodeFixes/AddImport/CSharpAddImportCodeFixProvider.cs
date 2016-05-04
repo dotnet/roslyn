@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
                 {
                     // It does not matter if it is fully qualified or simple so lets return the simple name.
                     return root.AddUsingDirective(
-                        simplifiedUsing.WithoutTrivia().WithoutAnnotations(), contextNode, placeSystemNamespaceFirst,
+                        simplifiedUsing.WithoutAnnotations(), contextNode, placeSystemNamespaceFirst,
                         Formatter.Annotation);
                 }
             }

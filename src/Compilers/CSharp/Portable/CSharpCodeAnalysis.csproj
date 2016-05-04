@@ -420,6 +420,7 @@
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_IndexerAccess.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_IsOperator.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_LabeledStatement.cs" />
+    <Compile Include="Lowering\LocalRewriter\LocalRewriter_TupleCreationExpression.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_Literal.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_LocalDeclaration.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_LockStatement.cs" />
@@ -510,6 +511,8 @@
     <Compile Include="Symbols\AnonymousTypes\SynthesizedSymbols\AnonymousType.TemplateSymbol.cs" />
     <Compile Include="Symbols\AnonymousTypes\SynthesizedSymbols\AnonymousType.ToStringMethodSymbol.cs" />
     <Compile Include="Symbols\AnonymousTypes\SynthesizedSymbols\AnonymousType.TypeParameterSymbol.cs" />
+    <Compile Include="Symbols\TupleFieldSymbol.cs" />
+    <Compile Include="Symbols\TupleTypeSymbol.cs" />
     <Compile Include="Symbols\ArrayTypeSymbol.cs" />
     <Compile Include="Symbols\AssemblySymbol.cs" />
     <Compile Include="Symbols\Attributes\AttributeData.cs" />

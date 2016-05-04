@@ -104,16 +104,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return _lazyFiles;
         }
 
-        uint Cci.IAssembly.Flags
+        AssemblyFlags Cci.IAssembly.Flags
         {
             get
             {
-                AssemblyNameFlags result = _sourceAssembly.Flags & ~AssemblyNameFlags.PublicKey;
+                AssemblyFlags result = _sourceAssembly.Flags & ~AssemblyFlags.PublicKey;
 
                 if (!_sourceAssembly.PublicKey.IsDefaultOrEmpty)
-                    result |= AssemblyNameFlags.PublicKey;
+                {
+                    result |= AssemblyFlags.PublicKey;
+                }
 
-                return (uint)result;
+                return result;
             }
         }
 
@@ -162,6 +164,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         }
 
         AssemblyIdentity Cci.IAssemblyReference.Identity => _sourceAssembly.Identity;
+        Version Cci.IAssemblyReference.AssemblyVersionPattern => _sourceAssembly.AssemblyVersionPattern;
 
         internal override string Name
         {

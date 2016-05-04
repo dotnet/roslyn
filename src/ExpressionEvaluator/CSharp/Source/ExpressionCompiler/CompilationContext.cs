@@ -532,6 +532,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         {
             var flags = DkmClrCompilationResultFlags.None;
 
+            binder = binder.GetBinder(syntax);
+            Debug.Assert(binder != null);
+
             // In addition to C# expressions, the native EE also supports
             // type names which are bound to a representation of the type
             // (but not System.Type) that the user can expand to see the
@@ -590,7 +593,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
 
             resultProperties = expression.ExpressionSymbol.GetResultProperties(flags, expression.ConstantValue != null);
-            return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
+            return binder.WrapWithVariablesIfAny(syntax,
+                                                 new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true });
         }
 
         private static BoundStatement BindStatement(Binder binder, StatementSyntax syntax, DiagnosticBag diagnostics, out ResultProperties properties)
@@ -614,13 +618,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         private static BoundStatement BindAssignment(Binder binder, ExpressionSyntax syntax, DiagnosticBag diagnostics)
         {
+            binder = binder.GetBinder(syntax);
+            Debug.Assert(binder != null);
+
             var expression = binder.BindValue(syntax, diagnostics, Binder.BindValueKind.RValue);
             if (diagnostics.HasAnyErrors())
             {
                 return null;
             }
 
-            return new BoundExpressionStatement(expression.Syntax, expression) { WasCompilerGenerated = true };
+            return binder.WrapWithVariablesIfAny(syntax,
+                                                 new BoundExpressionStatement(expression.Syntax, expression) { WasCompilerGenerated = true });
         }
 
         private static Binder CreateBinderChain(
@@ -826,6 +834,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 binder = new SimpleLocalScopeBinder(method.LocalsForBinding, binder);
             }
 
+            binder = new ExecutableCodeBinder(syntax, binder.ContainingMemberOrLambda, binder);
             return binder;
         }
 

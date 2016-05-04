@@ -51,9 +51,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         private const string SpaceAroundBinaryOperator = nameof(AutomationObject.Space_AroundBinaryOperator);
         private const string UnindentLabels = nameof(AutomationObject.Indent_UnindentLabels);
         private const string FlushLabelsLeft = nameof(AutomationObject.Indent_FlushLabelsLeft);
-        private const string Style_UseVarForIntrinsicTypes = nameof(AutomationObject.Style_UseVarForIntrinsicTypes);
-        private const string Style_UseVarWhenTypeIsApparent = nameof(AutomationObject.Style_UseVarWhenTypeIsApparent);
-        private const string Style_UseVarWherePossible = nameof(AutomationObject.Style_UseVarWherePossible);
+        private const string Style_UseImplicitTypeForIntrinsicTypes = nameof(AutomationObject.Style_UseImplicitTypeForIntrinsicTypes);
+        private const string Style_UseImplicitTypeWhereApparent = nameof(AutomationObject.Style_UseImplicitTypeWhereApparent);
+        private const string Style_UseImplicitTypeWherePossible = nameof(AutomationObject.Style_UseImplicitTypeWherePossible);
 
         private KeyValuePair<string, IOption> GetOptionInfoForOnOffOptions(FieldInfo fieldInfo)
         {
@@ -99,6 +99,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         protected override string LanguageName { get { return LanguageNames.CSharp; } }
 
         protected override string SettingStorageRoot { get { return "TextEditor.CSharp.Specific."; } }
+
+        protected override string GetStorageKeyForOption(IOption option)
+        {
+            var name = option.Name;
+            if (option == ServiceFeatureOnOffOptions.ClosedFileDiagnostic)
+            {
+                // ClosedFileDiagnostics has been deprecated in favor of CSharpClosedFileDiagnostics.
+                // ClosedFileDiagnostics had a default value of 'true', while CSharpClosedFileDiagnostics has a default value of 'false'.
+                // We want to ensure that we don't fetch the setting store value for the old flag, as that can cause the default value for this option to change.
+                name = nameof(AutomationObject.CSharpClosedFileDiagnostics);
+            }
+
+            return SettingStorageRoot + name;
+        }
 
         protected override bool SupportsOption(IOption option, string languageName)
         {
@@ -206,18 +220,18 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             // code style: use var options.
             if (optionKey.Option == CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes)
             {
-                var useVarValue = this.Manager.GetValueOrDefault<string>(Style_UseVarForIntrinsicTypes);
-                return FetchUseVarOption(useVarValue, out value);
+                var typeStyleValue = this.Manager.GetValueOrDefault<string>(Style_UseImplicitTypeForIntrinsicTypes);
+                return FetchTypeStyleOption(typeStyleValue, out value);
             }
             else if (optionKey.Option == CSharpCodeStyleOptions.UseImplicitTypeWhereApparent)
             {
-                var useVarValue = this.Manager.GetValueOrDefault<string>(Style_UseVarWhenTypeIsApparent);
-                return FetchUseVarOption(useVarValue, out value);
+                var typeStyleValue = this.Manager.GetValueOrDefault<string>(Style_UseImplicitTypeWhereApparent);
+                return FetchTypeStyleOption(typeStyleValue, out value);
             }
             else if (optionKey.Option == CSharpCodeStyleOptions.UseImplicitTypeWherePossible)
             {
-                var useVarValue = this.Manager.GetValueOrDefault<string>(Style_UseVarWherePossible);
-                return FetchUseVarOption(useVarValue, out value);
+                var typeStyleValue = this.Manager.GetValueOrDefault<string>(Style_UseImplicitTypeWherePossible);
+                return FetchTypeStyleOption(typeStyleValue, out value);
             }
 
             return base.TryFetch(optionKey, out value);
@@ -292,36 +306,36 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             // code style: use var options.
             if (optionKey.Option == CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes)
             {
-                return PersistUseVarOption(Style_UseVarForIntrinsicTypes, value);
+                return PersistTypeStyleOption(Style_UseImplicitTypeForIntrinsicTypes, value);
             }
             else if (optionKey.Option == CSharpCodeStyleOptions.UseImplicitTypeWhereApparent)
             {
-                return PersistUseVarOption(Style_UseVarWhenTypeIsApparent, value);
+                return PersistTypeStyleOption(Style_UseImplicitTypeWhereApparent, value);
             }
             else if (optionKey.Option == CSharpCodeStyleOptions.UseImplicitTypeWherePossible)
             {
-                return PersistUseVarOption(Style_UseVarWherePossible, value);
+                return PersistTypeStyleOption(Style_UseImplicitTypeWherePossible, value);
             }
 
             return base.TryPersist(optionKey, value);
         }
 
-        private bool PersistUseVarOption(string option, object value)
+        private bool PersistTypeStyleOption(string option, object value)
         {
             var serializedValue = ((SimpleCodeStyleOption)value).ToXElement().ToString();
             this.Manager.SetValueAsync(option, value: serializedValue, isMachineLocal: false);
             return true;
         }
 
-        private static bool FetchUseVarOption(string useVarOptionValue, out object value)
+        private static bool FetchTypeStyleOption(string typeStyleOptionValue, out object value)
         {
-            if (string.IsNullOrEmpty(useVarOptionValue))
+            if (string.IsNullOrEmpty(typeStyleOptionValue))
             {
                 value = SimpleCodeStyleOption.Default;
             }
             else
             {
-                value = SimpleCodeStyleOption.FromXElement(XElement.Parse(useVarOptionValue));
+                value = SimpleCodeStyleOption.FromXElement(XElement.Parse(typeStyleOptionValue));
             }
 
             return true;

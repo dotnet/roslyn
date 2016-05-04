@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
@@ -24,8 +26,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         public event EventHandler<EventArgs> Dismissed;
         public event EventHandler<CompletionItemEventArgs> ItemCommitted;
         public event EventHandler<CompletionItemEventArgs> ItemSelected;
+        public event EventHandler<CompletionItemFilterStateChangedEventArgs> FilterStateChanged;
 
-        private readonly CompletionSet2 _completionSet;
+        private readonly CompletionSet3 _completionSet;
 
         private ICompletionSession _editorSessionOpt;
         private bool _ignoreSelectionStatusChangedEvent;
@@ -46,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             _textView = textView;
             _subjectBuffer = subjectBuffer;
 
-            _completionSet = new CompletionSet2(this, textView, subjectBuffer);
+            _completionSet = new CompletionSet3(this, textView, subjectBuffer);
             _completionSet.SelectionStatusChanged += OnCompletionSetSelectionStatusChanged;
         }
 
@@ -56,7 +59,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             CompletionItem selectedItem,
             CompletionItem presetBuilder,
             bool suggestionMode,
-            bool isSoftSelected)
+            bool isSoftSelected,
+            ImmutableArray<CompletionItemFilter> completionItemFilters,
+            IReadOnlyDictionary<CompletionItem, string> completionItemToFilterText)
         {
             AssertIsForeground();
 
@@ -66,12 +71,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 return;
             }
 
-            _completionSet.SetTrackingSpan(triggerSpan);
+            if (triggerSpan != null)
+            {
+                _completionSet.SetTrackingSpan(triggerSpan);
+            }
 
             _ignoreSelectionStatusChangedEvent = true;
             try
             {
-                _completionSet.SetCompletionItems(completionItems, selectedItem, presetBuilder, suggestionMode, isSoftSelected);
+                _completionSet.SetCompletionItems(
+                    completionItems, selectedItem, presetBuilder, suggestionMode, 
+                    isSoftSelected, completionItemFilters, completionItemToFilterText);
             }
             finally
             {
@@ -105,6 +115,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 _editorSessionOpt.Properties.AddProperty(Key, this);
                 _editorSessionOpt.Start();
             }
+
+            // Call so that the editor will refresh the completion text to embolden.
+            _editorSessionOpt?.Match();
         }
 
         private void OnEditorSessionDismissed()
@@ -140,6 +153,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         {
             Contract.ThrowIfTrue(completionSets.Contains(_completionSet));
             completionSets.Add(_completionSet);
+        }
+
+        internal void OnIntelliSenseFiltersChanged(IReadOnlyList<IntellisenseFilter2> filters)
+        {
+            this.FilterStateChanged?.Invoke(this,
+                new CompletionItemFilterStateChangedEventArgs(
+                    filters.ToImmutableDictionary(f => f.CompletionItemFilter, f => f.IsChecked)));
         }
 
         public void Dismiss()

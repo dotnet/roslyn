@@ -31,6 +31,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Editor.OptionsExtensionMethods;
 using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.GeneratedCodeRecognition;
+using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 {
@@ -732,6 +733,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
 
         public abstract EnvDTE80.vsCMParameterKind GetParameterKind(SyntaxNode node);
         public abstract SyntaxNode SetParameterKind(SyntaxNode node, EnvDTE80.vsCMParameterKind kind);
+        public abstract EnvDTE80.vsCMParameterKind UpdateParameterKind(EnvDTE80.vsCMParameterKind parameterKind, PARAMETER_PASSING_MODE passingMode);
+
         public abstract SyntaxNode CreateParameterNode(string name, string type);
 
         public abstract EnvDTE.vsCMFunction ValidateFunctionKind(SyntaxNode containerNode, EnvDTE.vsCMFunction kind, string name);

@@ -495,6 +495,27 @@ class C
 
         [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
         [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
+        [WorkItem(10588, "https://github.com/dotnet/roslyn/issues/10588")]
+        public async Task PreviousFromInsideCurrent()
+        {
+            var code = @"
+class C
+{
+    [||]void M1()
+    {
+        Console.WriteLine($$);
+    }
+
+    void M2()
+    {
+    }
+}";
+
+            await AssertNavigatedAsync(code, next: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)]
+        [WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")]
         public async Task NextInScript()
         {
             var code = @"

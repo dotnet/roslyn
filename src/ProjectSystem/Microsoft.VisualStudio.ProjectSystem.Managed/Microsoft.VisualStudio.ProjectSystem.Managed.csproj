@@ -12,8 +12,7 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <SignAssembly>true</SignAssembly>
     <OutDir>$(OutDir)\ProjectSystem\</OutDir>
-    <CopyNuGetImplementations>false</CopyNuGetImplementations>
-    <CopyReferencesByDefault>false</CopyReferencesByDefault>
+    <UseCommonOutputDirectory>true</UseCommonOutputDirectory>
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.VisualStudio.ProjectSystem.Managed.VS" />
