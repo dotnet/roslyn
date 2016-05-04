@@ -3,11 +3,11 @@
 using System.IO;
 using Microsoft.CodeAnalysis.Elfie.Model;
 
-namespace Microsoft.VisualStudio.LanguageServices.Packaging
+namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
-    internal partial class PackageSearchService
+    internal partial class SymbolSearchService
     {
-        private class DatabaseFactoryService : IPackageSearchDatabaseFactoryService
+        private class DatabaseFactoryService : IDatabaseFactoryService
         {
             public AddReferenceDatabase CreateDatabaseFromBytes(byte[] bytes)
             {

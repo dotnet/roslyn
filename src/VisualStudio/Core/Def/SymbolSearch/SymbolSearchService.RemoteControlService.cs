@@ -6,11 +6,11 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 
-namespace Microsoft.VisualStudio.LanguageServices.Packaging
+namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
-    internal partial class PackageSearchService
+    internal partial class SymbolSearchService
     {
-        private class RemoteControlService : IPackageSearchRemoteControlService
+        private class RemoteControlService : IRemoteControlService
         {
             private readonly object _remoteControlService;
 
@@ -19,7 +19,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 _remoteControlService = remoteControlService;
             }
 
-            public IPackageSearchRemoteControlClient CreateClient(string hostId, string serverPath, int pollingMinutes)
+            public IRemoteControlClient CreateClient(string hostId, string serverPath, int pollingMinutes)
             {
                 var serviceType = _remoteControlService.GetType();
                 var serviceAssembly = serviceType.Assembly;
@@ -39,7 +39,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
         }
 
-        private class RemoteControlClient : IPackageSearchRemoteControlClient
+        private class RemoteControlClient : IRemoteControlClient
         {
             // Have to keep the vsClient around as it will try to dispose the underlying
             // client when it gets GC'ed

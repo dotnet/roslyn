@@ -141,5 +141,28 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Get
         End Property
 
+        Public ReadOnly Property Option_Import_Directives As String
+            Get
+                Return BasicVSResources.Option_Import_Directives
+            End Get
+        End Property
+
+        Public ReadOnly Property Option_PlaceSystemNamespaceFirst As String
+            Get
+                Return BasicVSResources.Option_PlaceSystemNamespaceFirst
+            End Get
+        End Property
+
+        Public ReadOnly Property Option_Suggest_imports_for_types_in_reference_assemblies As String
+            Get
+                Return BasicVSResources.Option_Suggest_imports_for_types_in_reference_assemblies
+            End Get
+        End Property
+
+        Public ReadOnly Property Option_Suggest_imports_for_types_in_NuGet_packages As String
+            Get
+                Return BasicVSResources.Option_Suggest_imports_for_types_in_NuGet_packages
+            End Get
+        End Property
     End Module
 End Namespace

@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport.AddImportDiagnosticIds;
 
@@ -154,8 +155,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
         /// <summary>For testing purposes only (so that tests can pass in mock values)</summary> 
         internal CSharpAddImportCodeFixProvider(
             IPackageInstallerService installerService,
-            IPackageSearchService packageSearchService)
-            : base(installerService, packageSearchService)
+            ISymbolSearchService symbolSearchService)
+            : base(installerService, symbolSearchService)
         {
         }
 

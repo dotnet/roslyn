@@ -8,18 +8,19 @@ using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Options;
+using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
 using VSShell = Microsoft.VisualStudio.Shell;
 
-namespace Microsoft.VisualStudio.LanguageServices.Packaging
+namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
-    [ExportWorkspaceServiceFactory(typeof(IPackageSearchService), WorkspaceKind.Host), Shared]
-    internal class PackageSearchServiceFactory : IWorkspaceServiceFactory
+    [ExportWorkspaceServiceFactory(typeof(ISymbolSearchService), WorkspaceKind.Host), Shared]
+    internal class SymbolSearchServiceFactory : IWorkspaceServiceFactory
     {
         private readonly VSShell.SVsServiceProvider _serviceProvider;
 
         [ImportingConstructor]
-        public PackageSearchServiceFactory(
+        public SymbolSearchServiceFactory(
             VSShell.SVsServiceProvider serviceProvider)
         {
             _serviceProvider = serviceProvider;
@@ -28,24 +29,32 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
             var options = workspaceServices.Workspace.Options;
-            if (options.GetOption(ServiceComponentOnOffOptions.PackageSearch))
+            if (options.GetOption(ServiceComponentOnOffOptions.SymbolSearch))
             {
                 // Only support package search in vs workspace.
                 if (workspaceServices.Workspace is VisualStudioWorkspace)
                 {
-                    return new PackageSearchService(_serviceProvider, workspaceServices.GetService<IPackageInstallerService>());
+                    return new SymbolSearchService(
+                        _serviceProvider, workspaceServices.Workspace,
+                        workspaceServices.GetService<IPackageInstallerService>());
                 }
             }
 
-            return new NullPackageSearchService();
+            return new NullSymbolSearchService();
         }
 
-        private class NullPackageSearchService : IPackageSearchService
+        private class NullSymbolSearchService : ISymbolSearchService
         {
             public IEnumerable<PackageWithTypeResult> FindPackagesWithType(
                 string source, string name, int arity, CancellationToken cancellationToken)
             {
                 return SpecializedCollections.EmptyEnumerable<PackageWithTypeResult>();
+            }
+
+            public IEnumerable<ReferenceAssemblyWithTypeResult> FindReferenceAssembliesWithType(
+                string name, int arity, CancellationToken cancellationToken)
+            {
+                return SpecializedCollections.EmptyEnumerable<ReferenceAssemblyWithTypeResult>();
             }
         }
     }

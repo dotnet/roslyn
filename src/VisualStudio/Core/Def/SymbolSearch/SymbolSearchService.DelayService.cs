@@ -2,11 +2,11 @@
 
 using System;
 
-namespace Microsoft.VisualStudio.LanguageServices.Packaging
+namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
-    internal partial class PackageSearchService
+    internal partial class SymbolSearchService
     {
-        private class DelayService : IPackageSearchDelayService
+        private class DelayService : IDelayService
         {
             public TimeSpan CachePollDelay { get; } = TimeSpan.FromMinutes(1);
             public TimeSpan FileWriteDelay { get; } = TimeSpan.FromSeconds(10);

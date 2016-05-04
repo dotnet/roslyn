@@ -166,6 +166,33 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
+        Public Property Option_PlaceSystemNamespaceFirst As Boolean
+            Get
+                Return GetBooleanOption(OrganizerOptions.PlaceSystemNamespaceFirst)
+            End Get
+            Set(value As Boolean)
+                SetBooleanOption(OrganizerOptions.PlaceSystemNamespaceFirst, value)
+            End Set
+        End Property
+
+        Public Property Option_Suggest_imports_for_types_in_reference_assemblies As Boolean
+            Get
+                Return GetBooleanOption(AddImportOptions.SuggestForTypesInReferenceAssemblies)
+            End Get
+            Set(value As Boolean)
+                SetBooleanOption(AddImportOptions.SuggestForTypesInReferenceAssemblies, value)
+            End Set
+        End Property
+
+        Public Property Option_Suggest_imports_for_types_in_NuGet_packages As Boolean
+            Get
+                Return GetBooleanOption(AddImportOptions.SuggestForTypesInNuGetPackages)
+            End Get
+            Set(value As Boolean)
+                SetBooleanOption(AddImportOptions.SuggestForTypesInNuGetPackages, value)
+            End Set
+        End Property
+
         Private Function GetBooleanOption(key As [Option](Of Boolean)) As Boolean
             Return _optionService.GetOption(key)
         End Function
