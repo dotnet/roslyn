@@ -1,0 +1,99 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
+  <PropertyGroup>
+    <ProjectGuid>{3BED15FD-D608-4573-B432-1569C1026F6D}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>Roslyn.VisualStudio.Test.Utilities</RootNamespace>
+    <AssemblyName>Roslyn.VisualStudio.Test.Utilities</AssemblyName>
+    <PlatformTarget>x86</PlatformTarget>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <Nonshipping>true</Nonshipping>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)' == 'Release'">
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="IntegrationHelper.cs" />
+    <Compile Include="VisualStudioCommandNames.cs" />
+    <Compile Include="VisualStudioInstance.cs" />
+    <Compile Include="IntegrationService.cs" />
+    <Compile Include="Interop\Ole32.cs" />
+    <Compile Include="Interop\User32.cs" />
+    <Compile Include="Remoting\InteractiveWindowWrapper.cs" />
+    <Compile Include="Remoting\RemotingHelper.cs" />
+    <Compile Include="Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
+    <Compile Include="VisualStudioInstanceContext.cs" />
+    <Compile Include="VisualStudioInstanceFactory.cs" />
+    <Compile Include="Window\EditorWindow.cs" />
+    <Compile Include="Window\InteractiveWindow.cs" />
+    <Compile Include="Workspace\Project.cs" />
+    <Compile Include="Workspace\ProjectLanguage.cs" />
+    <Compile Include="Workspace\ProjectTemplate.cs" />
+    <Compile Include="Workspace\Solution.cs" />
+    <Compile Include="Workspace\SolutionExplorer.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Setup" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="App.config" />
+    <None Include="project.json" />
+    <None Include="Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="envdte, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="envdte80, Version=8.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="Microsoft.VisualStudio.ComponentModelHost, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="PresentationFramework" />
+    <Reference Include="System" />
+    <Reference Include="System.Runtime.Remoting" />
+    <Reference Include="UIAutomationClient" />
+    <Reference Include="UIAutomationTypes" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Dependencies\VisualStudio\VisualStudio.csproj">
+      <Project>{8da861d8-0cce-4334-b6c0-01a846c881ec}</Project>
+      <Name>VisualStudio</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\EditorFeatures\TestUtilities\ServicesTestUtilities.csproj">
+      <Project>{76c6f005-c89d-4348-bb4a-39189ddbeb52}</Project>
+      <Name>ServicesTestUtilities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\InteractiveWindow\Editor\InteractiveWindow.csproj">
+      <Project>{01e9bd68-0339-4a13-b42f-a3ca84d164f3}</Project>
+      <Name>InteractiveWindow</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\InteractiveWindow\VisualStudio\VisualStudioInteractiveWindow.csproj">
+      <Project>{20bb6fac-44d2-4d76-abfe-0c1e163a1a4f}</Project>
+      <Name>VisualStudioInteractiveWindow</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\CSharp\Repl\CSharpVisualStudioRepl.csproj">
+      <Project>{737ff62c-f068-4317-84d0-bfb210c17a4e}</Project>
+      <Name>CSharpVisualStudioRepl</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\InteractiveServices\VisualStudioInteractiveServices.csproj">
+      <Project>{a31228bb-f05c-4d4a-b98a-0e681d876b7c}</Project>
+      <Name>VisualStudioInteractiveServices</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
+</Project>

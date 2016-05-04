@@ -17,7 +17,12 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
         }
 
         private TestConsoleIO(Reader reader)
-            : base(output: new Writer(reader), error: new StringWriter(), input: reader)
+            : this(reader, new Writer(reader))
+        {
+        }
+
+        private TestConsoleIO(Reader reader, TextWriter output)
+            : base(output: output, error: new TeeWriter(output), input: reader)
         {
         }
 
@@ -99,6 +104,41 @@ namespace Microsoft.CodeAnalysis.Scripting.Test
             public override void WriteLine()
             {
                 OnBeforeWrite();
+                base.WriteLine();
+            }
+        }
+
+        private sealed class TeeWriter : StringWriter
+        {
+            public override Encoding Encoding => Encoding.UTF8;
+            private readonly TextWriter _other;
+
+            public TeeWriter(TextWriter other)
+            {
+                _other = other;
+            }
+
+            public override void Write(char value)
+            {
+                _other.Write(value);
+                base.Write(value);
+            }
+
+            public override void Write(string value)
+            {
+                _other.Write(value);
+                base.Write(value);
+            }
+
+            public override void WriteLine(string value)
+            {
+                _other.WriteLine(value);
+                base.WriteLine(value);
+            }
+
+            public override void WriteLine()
+            {
+                _other.WriteLine();
                 base.WriteLine();
             }
         }

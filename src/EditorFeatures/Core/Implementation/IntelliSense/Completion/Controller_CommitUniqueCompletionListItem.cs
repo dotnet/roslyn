@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Threading;
 using Microsoft.CodeAnalysis.Editor.Commands;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
@@ -51,10 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             if (model.IsUnique)
             {
                 // We had a unique item in the list.  Commit it and dismiss this session.
-
-                var selectedItem = Controller.GetExternallyUsableCompletionItem(model.SelectedItem);
-                var textChange = GetCompletionRules().GetTextChange(selectedItem);
-                this.Commit(selectedItem, textChange, model, null);
+                this.Commit(model.SelectedItem, model, commitChar: null);
             }
         }
     }

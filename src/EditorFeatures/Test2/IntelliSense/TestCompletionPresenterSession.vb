@@ -18,14 +18,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Private ReadOnly _testState As IIntelliSenseTestState
 
         Public TriggerSpan As ITrackingSpan
-        Public CompletionItems As IList(Of CompletionItem)
-        Public SelectedItem As CompletionItem
+        Public PresentationItems As IList(Of PresentationItem)
+        Public SelectedItem As PresentationItem
         Public IsSoftSelected As Boolean
-        Public Builder As CompletionItem
+        Public SuggestionModeItem As PresentationItem
 
         Public Event Dismissed As EventHandler(Of EventArgs) Implements ICompletionPresenterSession.Dismissed
-        Public Event ItemSelected As EventHandler(Of CompletionItemEventArgs) Implements ICompletionPresenterSession.ItemSelected
-        Public Event ItemCommitted As EventHandler(Of CompletionItemEventArgs) Implements ICompletionPresenterSession.ItemCommitted
+        Public Event ItemSelected As EventHandler(Of PresentationItemEventArgs) Implements ICompletionPresenterSession.ItemSelected
+        Public Event ItemCommitted As EventHandler(Of PresentationItemEventArgs) Implements ICompletionPresenterSession.ItemCommitted
         Public Event CompletionFiltersChanged As EventHandler(Of CompletionItemFilterStateChangedEventArgs) Implements ICompletionPresenterSession.FilterStateChanged
 
         Public Sub New(testState As IIntelliSenseTestState)
@@ -33,40 +33,40 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Sub
 
         Public Sub PresentItems(triggerSpan As ITrackingSpan,
-                                completionItems As IList(Of CompletionItem),
-                                selectedItem As CompletionItem,
-                                presetBuilder As CompletionItem,
+                                presentationItems As IList(Of PresentationItem),
+                                selectedItem As PresentationItem,
+                                suggestionModeItem As PresentationItem,
                                 suggestionMode As Boolean,
                                 isSoftSelected As Boolean,
                                 completionItemFilters As ImmutableArray(Of CompletionItemFilter),
                                 completionItemToFilterText As IReadOnlyDictionary(Of CompletionItem, String)) Implements ICompletionPresenterSession.PresentItems
             _testState.CurrentCompletionPresenterSession = Me
             Me.TriggerSpan = triggerSpan
-            Me.CompletionItems = completionItems
+            Me.PresentationItems = presentationItems
             Me.SelectedItem = selectedItem
             Me.IsSoftSelected = isSoftSelected
-            Me.Builder = presetBuilder
+            Me.SuggestionModeItem = suggestionModeItem
         End Sub
 
         Public Sub Dismiss() Implements ICompletionPresenterSession.Dismiss
             _testState.CurrentCompletionPresenterSession = Nothing
         End Sub
 
-        Public Sub SetSelectedItem(item As CompletionItem)
+        Public Sub SetSelectedItem(item As PresentationItem)
             Me.SelectedItem = item
-            RaiseEvent ItemSelected(Me, New CompletionItemEventArgs(item))
+            RaiseEvent ItemSelected(Me, New PresentationItemEventArgs(item))
         End Sub
 
-        Private Function GetFilteredItemAt(index As Integer) As CompletionItem
-            index = Math.Max(0, Math.Min(CompletionItems.Count - 1, index))
-            Return CompletionItems(index)
+        Private Function GetFilteredItemAt(index As Integer) As PresentationItem
+            index = Math.Max(0, Math.Min(PresentationItems.Count - 1, index))
+            Return PresentationItems(index)
         End Function
 
         Private Sub SelectPreviousItem() Implements ICompletionPresenterSession.SelectPreviousItem
             If IsSoftSelected Then
                 IsSoftSelected = False
             Else
-                SetSelectedItem(GetFilteredItemAt(CompletionItems.IndexOf(SelectedItem) - 1))
+                SetSelectedItem(GetFilteredItemAt(PresentationItems.IndexOf(SelectedItem) - 1))
             End If
         End Sub
 
@@ -74,18 +74,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             If IsSoftSelected Then
                 IsSoftSelected = False
             Else
-                SetSelectedItem(GetFilteredItemAt(CompletionItems.IndexOf(SelectedItem) + 1))
+                SetSelectedItem(GetFilteredItemAt(PresentationItems.IndexOf(SelectedItem) + 1))
             End If
         End Sub
 
         Private Const s_itemsPerPage = 9
 
         Public Sub SelectPreviousPageItem() Implements ICompletionPresenterSession.SelectPreviousPageItem
-            SetSelectedItem(GetFilteredItemAt(CompletionItems.IndexOf(SelectedItem) - s_itemsPerPage))
+            SetSelectedItem(GetFilteredItemAt(PresentationItems.IndexOf(SelectedItem) - s_itemsPerPage))
         End Sub
 
         Public Sub SelectNextPageItem() Implements ICompletionPresenterSession.SelectNextPageItem
-            SetSelectedItem(GetFilteredItemAt(CompletionItems.IndexOf(SelectedItem) + s_itemsPerPage))
+            SetSelectedItem(GetFilteredItemAt(PresentationItems.IndexOf(SelectedItem) + s_itemsPerPage))
         End Sub
     End Class
 End Namespace
