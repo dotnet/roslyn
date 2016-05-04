@@ -1,13 +1,11 @@
 SHELL = /usr/bin/env bash
 OS_NAME = $(shell uname -s)
-NUGET_PACKAGE_NAME = nuget.71
 BUILD_CONFIGURATION = Debug
 BINARIES_PATH = $(shell pwd)/Binaries
 TOOLSET_PATH = $(BINARIES_PATH)/toolset
 RESTORE_SEMAPHORE_PATH = $(TOOLSET_PATH)/restore.semaphore
 BOOTSTRAP_PATH = $(BINARIES_PATH)/Bootstrap
 BUILD_LOG_PATH =
-XUNIT_VERSION = 2.1.0
 HOME_DIR = $(shell cd ~ && pwd)
 
 MSBUILD_ADDITIONALARGS := /v:m /fl /fileloggerparameters:Verbosity=normal /p:Configuration=$(BUILD_CONFIGURATION)
