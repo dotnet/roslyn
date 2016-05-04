@@ -1,5 +1,8 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectLanguage>CSharp</ProjectLanguage>
+  </PropertyGroup>
   <ImportGroup Label="Settings">
     <Import Project="..\..\..\..\build\Targets\VSL.Settings.targets" />
   </ImportGroup>
@@ -131,6 +134,7 @@
     <Compile Include="Implementation\TableDataSource\VisualStudioDiagnosticListTable.cs" />
     <Compile Include="Implementation\TableDataSource\VisualStudioTodoListTable.cs" />
     <Compile Include="Implementation\Utilities\BrowserHelper.cs" />
+    <Compile Include="Implementation\Utilities\AutomationDelegatingListView.cs" />
     <Compile Include="Implementation\Utilities\HyperlinkStyleHelper.cs" />
     <Compile Include="Implementation\Venus\VenusTaskExtensions.cs" />
     <Compile Include="Implementation\Versions\SemanticVersionTrackingService.cs" />
@@ -319,6 +323,8 @@
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
+    <Reference Include="UIAutomationProvider" />
+    <Reference Include="UIAutomationTypes" />
     <Reference Include="VSLangProj, Version=7.0.3300.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>false</Private>
     </Reference>
