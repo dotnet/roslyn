@@ -22,8 +22,7 @@
 2. Run the "Developer Command Prompt for VS2015" from your start menu.
 3. Navigate to the directory of your Git clone.
 4. Run `Restore.cmd` in the command prompt to restore NuGet packages.
-5. Due to [Issue #5876](https://github.com/dotnet/roslyn/issues/5876), you should build on the command line before opening in Visual Studio. Run `msbuild /v:m /m Roslyn.sln`
-6. Open _Roslyn.sln_
+5. Open _Roslyn.sln_
 
 # Running Tests
 
