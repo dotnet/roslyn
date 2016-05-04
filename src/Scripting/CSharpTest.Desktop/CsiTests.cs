@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting.UnitTests
             Assert.False(result.ContainsErrors);
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/7826")]
+        [Fact]
         public void CurrentWorkingDirectory_Change()
         {
             var dir = Temp.CreateDirectory();
@@ -54,14 +54,17 @@ Microsoft (R) Visual C# Interactive Compiler version {s_compilerVersion}
 Copyright (C) Microsoft Corporation. All rights reserved.
 
 Type ""#help"" for more information.
-> (1,7): error CS1504: Source file 'a.csx' could not be opened -- Could not find file.
-> (1,1): error CS0006: Metadata file 'C.dll' could not be found
-> > > > 1
+> > > > > > 1
 > C {{ }}
 > 
 ", result.Output);
 
-            Assert.False(result.ContainsErrors);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences($@"
+(1,7): error CS1504: Source file 'a.csx' could not be opened -- Could not find file.
+(1,1): error CS0006: Metadata file 'C.dll' could not be found
+", result.Errors);
+
+            Assert.Equal(0, result.ExitCode);
         }
 
         /// <summary>
