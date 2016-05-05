@@ -92,7 +92,7 @@ namespace Microsoft.CodeAnalysis.Options
 
         public OptionSet GetOptions()
         {
-            return new OptionSet(this);
+            return new WorkspaceOptionSet(this);
         }
 
         public T GetOption<T>(Option<T> option)
@@ -131,11 +131,18 @@ namespace Microsoft.CodeAnalysis.Options
                 throw new ArgumentNullException(nameof(optionSet));
             }
 
+            var workspaceOptionSet = optionSet as WorkspaceOptionSet;
+
+            if (workspaceOptionSet == null)
+            {
+                throw new ArgumentException(WorkspacesResources.OptionsDidNotComeFromWorkspace, paramName: nameof(optionSet));
+            }
+
             var changedOptions = new List<OptionChangedEventArgs>();
 
             lock (_gate)
             {
-                foreach (var optionKey in optionSet.GetAccessedOptions())
+                foreach (var optionKey in workspaceOptionSet.GetAccessedOptions())
                 {
                     var setValue = optionSet.GetOption(optionKey);
                     object currentValue = this.GetOption(optionKey);
