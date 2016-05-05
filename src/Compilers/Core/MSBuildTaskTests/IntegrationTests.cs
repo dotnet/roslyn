@@ -16,6 +16,8 @@ using Xunit;
 using System.Xml;
 using System.Threading.Tasks;
 
+using static System.FormattableString;
+
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
     public class IntegrationTests : TestBase
@@ -25,7 +27,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
         static IntegrationTests()
         {
-            using (var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\MSBuild\ToolsVersions\14.0", writable: false))
+            var vsVersion = Environment.GetEnvironmentVariable("VisualStudioVersion") ?? "14.0";
+            using (var key = Registry.LocalMachine.OpenSubKey(Invariant($@"SOFTWARE\Microsoft\MSBuild\ToolsVersions\{vsVersion}"), writable: false))
             {
                 if (key != null)
                 {

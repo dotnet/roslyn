@@ -22,6 +22,8 @@ using MSBuildTask::Microsoft.CodeAnalysis.BuildTasks;
 using Microsoft.CodeAnalysis.CommandLine;
 using Moq;
 
+using static System.FormattableString;
+
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     public class CompilerServerUnitTests : TestBase
@@ -76,7 +78,8 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
         private static string GetMSBuildDirectory()
         {
-            using (var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\MSBuild\ToolsVersions\14.0", false))
+            var vsVersion = Environment.GetEnvironmentVariable("VisualStudioVersion") ?? "14.0";
+            using (var key = Registry.LocalMachine.OpenSubKey(Invariant($@"SOFTWARE\Microsoft\MSBuild\ToolsVersions\{vsVersion}"), false))
             {
                 if (key != null)
                 {
