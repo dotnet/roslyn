@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
 
             if (symbol.Kind == SymbolKind.Namespace)
             {
-                throw new ArgumentException(EditorFeaturesResources.SymbolCannotBeNamespace, "symbol");
+                throw new ArgumentException(EditorFeaturesResources.SymbolCannotBeNamespace, nameof(symbol));
             }
 
             symbol = symbol.GetOriginalUnreducedDefinition();

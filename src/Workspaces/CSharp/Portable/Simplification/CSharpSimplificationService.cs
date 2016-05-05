@@ -51,9 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Simplification
                 }
                 else
                 {
-                    throw new ArgumentException(
-                        CSharpWorkspaceResources.OnlyAttributesConstructorI,
-                        paramName: "node");
+                    throw new ArgumentException(CSharpWorkspaceResources.OnlyAttributesConstructorI, nameof(node));
                 }
             }
         }
