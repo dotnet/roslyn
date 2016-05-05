@@ -62,9 +62,6 @@
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs">
       <Link>InternalUtilities\ExceptionUtilities.cs</Link>
     </Compile>
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ComStreamWrapper.cs">
-      <Link>InternalUtilities\ComStreamWrapper.cs</Link>
-    </Compile>
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\Hash.cs">
       <Link>InternalUtilities\Hash.cs</Link>
     </Compile>
@@ -91,7 +88,6 @@
     <Compile Include="Shared\DateTimeUtilities.cs" />
     <Compile Include="Shared\DummyMetadataImport.cs" />
     <Compile Include="Shared\StringUtilities.cs" />
-    <Compile Include="Shared\SymUnmanagedReaderTestExtensions.cs" />
     <Compile Include="Shared\SymUnmanagedReaderExtensions.cs" />
   </ItemGroup>
   <ItemGroup>

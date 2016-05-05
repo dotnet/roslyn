@@ -82,7 +82,7 @@ End Class]]></document>
         Private Function CreateVisualBasicSnippetExpansionNoteTestState(xElement As XElement, ParamArray snippetShortcuts As String()) As TestState
             Dim state = TestState.CreateVisualBasicTestState(
                 xElement,
-                New CompletionListProvider() {New MockCompletionProvider(New TextSpan(31, 10))},
+                New CompletionProvider() {New MockCompletionProvider(New TextSpan(31, 10))},
                 Nothing,
                 New List(Of Type) From {GetType(TestVisualBasicSnippetInfoService)})
 

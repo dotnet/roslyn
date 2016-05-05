@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Pool of event queues to serve each diagnostics request.
         /// </summary>
-        private static readonly ObjectPool<AsyncQueue<CompilationEvent>> s_eventQueuePool = new ObjectPool<AsyncQueue<CompilationEvent>>(() => new AsyncQueue<CompilationEvent>());
+        private readonly ObjectPool<AsyncQueue<CompilationEvent>> _eventQueuePool = new ObjectPool<AsyncQueue<CompilationEvent>>(() => new AsyncQueue<CompilationEvent>());
         private static readonly AsyncQueue<CompilationEvent> s_EmptyEventQueue = new AsyncQueue<CompilationEvent>();
 
         /// <summary>
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return;
             }
 
-            AsyncQueue<CompilationEvent> eventQueue = s_eventQueuePool.Allocate();
+            AsyncQueue<CompilationEvent> eventQueue = _eventQueuePool.Allocate();
             AnalyzerDriver driver = null;
 
             try
@@ -422,13 +422,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             finally
             {
                 driver?.Dispose();
-                FreeEventQueue(eventQueue);
+                FreeEventQueue(eventQueue, _eventQueuePool);
             }
         }
 
         private async Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsWithoutStateTrackingAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
         {
-            AsyncQueue<CompilationEvent> eventQueue = s_eventQueuePool.Allocate();
+            AsyncQueue<CompilationEvent> eventQueue = _eventQueuePool.Allocate();
             AnalyzerDriver driver = null;
 
             try
@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             finally
             {
                 driver?.Dispose();
-                FreeEventQueue(eventQueue);
+                FreeEventQueue(eventQueue, _eventQueuePool);
             }
         }
 
@@ -660,7 +660,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                                 }
                                                 finally
                                                 {
-                                                    FreeEventQueue(eventQueue);
+                                                    FreeEventQueue(eventQueue, _eventQueuePool);
                                                 }
                                             }
                                             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
@@ -951,7 +951,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private AsyncQueue<CompilationEvent> GetPendingEvents(ImmutableArray<DiagnosticAnalyzer> analyzers, SyntaxTree tree)
         {
-            var eventQueue = s_eventQueuePool.Allocate();
+            var eventQueue = _eventQueuePool.Allocate();
             Debug.Assert(!eventQueue.IsCompleted);
             Debug.Assert(eventQueue.Count == 0);
 
@@ -967,7 +967,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             Debug.Assert(includeSourceEvents || includeNonSourceEvents);
 
-            var eventQueue = s_eventQueuePool.Allocate();
+            var eventQueue = _eventQueuePool.Allocate();
             Debug.Assert(!eventQueue.IsCompleted);
             Debug.Assert(eventQueue.Count == 0);
 
@@ -979,7 +979,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return eventQueue;
         }
 
-        private static void FreeEventQueue(AsyncQueue<CompilationEvent> eventQueue)
+        private static void FreeEventQueue(AsyncQueue<CompilationEvent> eventQueue, ObjectPool<AsyncQueue<CompilationEvent>> eventQueuePool)
         {
             if (eventQueue == null || ReferenceEquals(eventQueue, s_EmptyEventQueue))
             {
@@ -994,11 +994,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (!eventQueue.IsCompleted)
             {
-                s_eventQueuePool.Free(eventQueue);
+                eventQueuePool.Free(eventQueue);
             }
             else
             {
-                s_eventQueuePool.ForgetTrackedObject(eventQueue);
+                eventQueuePool.ForgetTrackedObject(eventQueue);
             }
         }
 

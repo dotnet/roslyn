@@ -66,13 +66,12 @@ namespace Roslyn.Compilers.Extension
                     $@"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <PropertyGroup Condition=""'$(RoslynHive)' == '{hiveName}'"">
-    <RoslynCompilerExtensionActive>true</RoslynCompilerExtensionActive>
     <CSharpCoreTargetsPath>{packagePath}\Microsoft.CSharp.Core.targets</CSharpCoreTargetsPath>
     <VisualBasicCoreTargetsPath>{packagePath}\Microsoft.VisualBasic.Core.targets</VisualBasicCoreTargetsPath>
   </PropertyGroup> 
 
-  <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""{packagePath}\Microsoft.Build.Tasks.CodeAnalysis.dll"" Condition=""'$(RoslynCompilerExtensionActive)' == 'true'"" />
-  <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Vbc"" AssemblyFile=""{packagePath}\Microsoft.Build.Tasks.CodeAnalysis.dll"" Condition=""'$(RoslynCompilerExtensionActive)' == 'true'"" />
+  <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Csc"" AssemblyFile=""{packagePath}\Microsoft.Build.Tasks.CodeAnalysis.dll"" Condition=""'$(RoslynHive)' == '{hiveName}'"" />
+  <UsingTask TaskName=""Microsoft.CodeAnalysis.BuildTasks.Vbc"" AssemblyFile=""{packagePath}\Microsoft.Build.Tasks.CodeAnalysis.dll"" Condition=""'$(RoslynHive)' == '{hiveName}'"" />
 </Project>";
 
                 WriteMSBuildFile(propsContent, $@"Imports\Microsoft.Common.props\ImportBefore\Roslyn.Compilers.Extension.{hiveName}.props");
@@ -82,7 +81,7 @@ namespace Roslyn.Compilers.Extension
                     $@"<?xml version=""1.0"" encoding=""utf-8""?>
 <Project xmlns=""http://schemas.microsoft.com/developer/msbuild/2003"">
   <!-- If we're not using the compiler server, set ToolPath/Exe to direct to the exes in this package -->
-  <PropertyGroup Condition=""'$(RoslynCompilerExtensionActive)' == 'true' and '$(UseSharedCompilation)' != 'true'"">
+  <PropertyGroup Condition=""'$(RoslynHive)' == '{hiveName}' and '$(UseSharedCompilation)' != 'true'"">
     <CscToolPath>{packagePath}</CscToolPath>
     <CscToolExe>csc.exe</CscToolExe>
     <VbcToolPath>{packagePath}</VbcToolPath>

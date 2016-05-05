@@ -1,6 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -13,6 +15,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -23,12 +26,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return Recommender.GetRecommendedSymbolsAtPositionAsync(context.SemanticModel, position, context.Workspace, options, cancellationToken);
         }
 
-        protected override TextSpan GetTextChangeSpan(SourceText text, int position)
+        protected override string GetInsertionText(ISymbol symbol, AbstractSyntaxContext context, char ch)
         {
-            return CompletionUtilities.GetTextChangeSpan(text, position);
+            return GetInsertionText(symbol, context);
         }
 
-        public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
+        public static string GetInsertionText(ISymbol symbol, AbstractSyntaxContext context)
+        {
+            string name;
+
+            if (CommonCompletionUtilities.TryRemoveAttributeSuffix(symbol, context.IsAttributeNameContext, context.GetLanguageService<ISyntaxFactsService>(), out name))
+            {
+                // Cannot escape Attribute name with the suffix removed. Only use the name with
+                // the suffix removed if it does not need to be escaped.
+                if (name.Equals(name.EscapeIdentifier()))
+                {
+                    return name;
+                }
+            }
+
+            return symbol.Name.EscapeIdentifier(isQueryContext: context.IsInQuery);
+        }
+
+        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
@@ -73,15 +93,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
         protected override ValueTuple<string, string> GetDisplayAndInsertionText(ISymbol symbol, AbstractSyntaxContext context)
         {
-            var insertionText = ItemRules.GetInsertionText(symbol, context);
+            var insertionText = GetInsertionText(symbol, context);
             var displayText = symbol.GetArity() == 0 ? insertionText : string.Format("{0}<>", insertionText);
 
             return ValueTuple.Create(displayText, insertionText);
         }
 
-        protected override CompletionItemRules GetCompletionItemRules()
+        private static CompletionItemRules s_importDirectiveRules =
+            CompletionItemRules.Create(commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '.', ';')));
+
+        protected override CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols, AbstractSyntaxContext context)
         {
-            return ItemRules.Instance;
+            if (context.IsInImportsDirective)
+            {
+                return s_importDirectiveRules;
+            }
+            else
+            {
+                return CompletionItemRules.Default;
+            }
         }
     }
 }
