@@ -61,13 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                Symbol underlyingAssociated = _underlyingField.AssociatedSymbol;
-                if ((object)underlyingAssociated == null)
-                {
-                    return null;
-                }
-
-                return _containingTuple.GetTupleMemberSymbolForUnderlyingMember(underlyingAssociated);
+                return _containingTuple.GetTupleMemberSymbolForUnderlyingMember(_underlyingField.AssociatedSymbol);
             }
         }
 
