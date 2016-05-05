@@ -46,11 +46,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
         public async Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
         {
-            Contract.ThrowIfFalse(document.IsFromPrimaryBranch());
-
             // it has an assumption that this will not be called concurrently for same document.
             // in fact, in current design, it won't be even called concurrently for different documents.
             // but, can be called concurrently for different documents in future if we choose to.
+            Contract.ThrowIfFalse(document.IsFromPrimaryBranch());
+
             if (!_optionService.GetOption(InternalFeatureOnOffOptions.TodoComments))
             {
                 return;
