@@ -92,8 +92,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             private readonly IWaitIndicator _waitIndicator;
 
-            public readonly ITextBuffer OutputBuffer;
-            public readonly ITextBuffer StandardInputBuffer;
+            public ITextBuffer OutputBuffer { get; }
+            public ITextBuffer HistoryBuffer { get; private set; }
+            public ITextBuffer StandardInputBuffer { get; }
             public ITextBuffer CurrentLanguageBuffer { get; private set; }
 
             public readonly TextWriter OutputWriter;
@@ -122,6 +123,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             /// <remarks>Always access through <see cref="State"/>.</remarks>
             private State _state;
+
+            private ITextBufferFactoryService _textBufferFactory;
+
             public State State
             {
                 get
@@ -152,6 +156,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             {
                 _window = window;
                 _factory = factory;
+                _textBufferFactory = bufferFactory;
                 _textBufferUndoManagerProvider = textBufferUndoManagerProvider;
                 _rtfBuilderService = (IRtfBuilderService2)rtfBuilderService;
                 _intellisenseSessionStackMap = intellisenseSessionStackMap;
@@ -307,6 +312,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     edit.Apply();
                 }
 
+                if (HistoryBuffer != null) {
+                    using (var edit = HistoryBuffer.CreateEdit(EditOptions.None, null, s_suppressPromptInjectionTag)) {
+                        edit.Delete(0, HistoryBuffer.CurrentSnapshot.Length);
+                        edit.Apply();
+                    }
+                }
+
                 // Insert an empty output buffer.
                 // We do it for two reasons: 
                 // 1) When output is written to asynchronously we need a buffer to store it.
@@ -452,7 +464,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 // We can also have an interleaving output span, so we'll search back for the last input span.
                 var sourceSpans = _projectionBuffer.CurrentSnapshot.GetSourceSpans();
 
-                int index = IndexOfLastStandardInputSpan(sourceSpans);
+                int index = IndexOfLastSpan(sourceSpans, ReplSpanKind.StandardInput);
                 Debug.Assert(index >= 0);
 
                 RemoveProtection(StandardInputBuffer, _standardInputProtection);
@@ -631,7 +643,74 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 FinishCurrentSubmissionInput();
             }
 
-            private void AppendUncommittedInput(string text)
+            /// <summary>Implements <see cref="IInteractiveWindow.AddToHistory"/>.</summary>
+            public void AddToHistory(string command) {
+                if (string.IsNullOrEmpty(command)) {
+                    return;
+                }
+
+                if (HistoryBuffer == null) {
+                    IContentType inputContentType;
+                    if (!((IPropertyOwner)_window).Properties.TryGetProperty(typeof(IContentType), out inputContentType)) {
+                        inputContentType = _textBufferFactory.TextContentType;
+                    }
+
+                    HistoryBuffer = _textBufferFactory.CreateTextBuffer(inputContentType);
+                }
+
+                _buffer.Flush();
+
+                var start = HistoryBuffer.CurrentSnapshot.Length;
+                using (var edit = HistoryBuffer.CreateEdit(EditOptions.None, null, s_suppressPromptInjectionTag)) {
+                    if (!command.EndsWith(_lineBreakString)) {
+                        edit.Insert(start, command + _lineBreakString);
+                    } else {
+                        edit.Insert(start, command);
+                    }
+                    edit.Apply();
+                }
+                var end = HistoryBuffer.CurrentSnapshot.Length;
+
+                var historySpan = new SnapshotSpan(HistoryBuffer.CurrentSnapshot, Span.FromBounds(start, end -_lineBreakString.Length));
+                _history.Add(historySpan);
+
+                var sourceSpans = _projectionBuffer.CurrentSnapshot.GetSourceSpans();
+                int insertionIndex;
+                switch (State) {
+                    case State.Starting:
+                    case State.Initializing:
+                        throw new InvalidOperationException(InteractiveWindowResources.NotInitialized);
+                    case State.Resetting:
+                    case State.ResettingAndReadingStandardInput:
+                        throw new InvalidOperationException(InteractiveWindowResources.IsResettings);
+                    case State.ExecutingInput:
+                        insertionIndex = sourceSpans.Count;
+                        break;
+                    case State.ExecutingInputAndReadingStandardInput:
+                    case State.WaitingForInput:
+                    case State.WaitingForInputAndReadingStandardInput:
+                        insertionIndex = IndexOfLastSpan(sourceSpans, ReplSpanKind.Prompt);
+                        break;
+                    default:
+                        throw new ArgumentOutOfRangeException();
+                }
+
+                if (insertionIndex == -1) {
+                    insertionIndex = 0;
+                }
+                
+                // If current output buffer span is empty, it is safe to add history span before it instead of creating a new output buffer span
+                if (_currentOutputProjectionSpan + 1 == insertionIndex && sourceSpans[_currentOutputProjectionSpan].IsEmpty) {
+                    insertionIndex--;
+                } else {
+                    NewOutputBuffer(insertionIndex);
+                }
+
+                var trackingSpan = new CustomTrackingSpan(HistoryBuffer.CurrentSnapshot, Span.FromBounds(start, end));
+                InsertProjectionSpans(insertionIndex, CreatePrimaryPrompt(), trackingSpan);
+            }
+
+            private void AppendUncommittedInput(string text) 
             {
                 if (string.IsNullOrEmpty(text))
                 {
@@ -947,7 +1026,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 }
             }
 
-            private void NewOutputBuffer()
+            private void NewOutputBuffer() 
+            {
+                NewOutputBuffer(_projectionBuffer.CurrentSnapshot.SpanCount);
+            }
+
+            private void NewOutputBuffer(int outputBufferPosition) 
             {
                 // Stop growing the current output projection span.
                 var sourceSpan = _projectionBuffer.CurrentSnapshot.GetSourceSpan(_currentOutputProjectionSpan);
@@ -957,31 +1041,31 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     sourceSpan.Span);
                 ReplaceProjectionSpan(_currentOutputProjectionSpan, nonGrowingSpan);
 
-                AppendNewOutputProjectionBuffer();
+                AppendNewOutputProjectionBuffer(outputBufferPosition);
                 _outputTrackingCaretPosition = TextView.Caret.Position.BufferPosition;
             }
 
             private void AppendNewOutputProjectionBuffer()
             {
+                AppendNewOutputProjectionBuffer(_projectionBuffer.CurrentSnapshot.SpanCount);
+            }
+
+            private void AppendNewOutputProjectionBuffer(int outputBufferPosition) 
+            {
                 var currentSnapshot = OutputBuffer.CurrentSnapshot;
-                var trackingSpan = new CustomTrackingSpan(
-                    currentSnapshot,
-                    new Span(currentSnapshot.Length, 0),
-                    canAppend: true);
+                var trackingSpan = new CustomTrackingSpan(currentSnapshot, new Span(currentSnapshot.Length, 0), canAppend: true);
 
-                _currentOutputProjectionSpan = AppendProjectionSpan(trackingSpan);
+                InsertProjectionSpans(outputBufferPosition, trackingSpan);
+                _currentOutputProjectionSpan = outputBufferPosition;
             }
-
-            private int AppendProjectionSpan(ITrackingSpan span)
+            
+            private void InsertProjectionSpans(int index, params object[] spans) 
             {
-                int index = _projectionBuffer.CurrentSnapshot.SpanCount;
-                InsertProjectionSpan(index, span);
-                return index;
-            }
-
-            private void InsertProjectionSpan(int index, object span)
-            {
-                _projectionBuffer.ReplaceSpans(index, 0, new[] { span }, EditOptions.None, editTag: s_suppressPromptInjectionTag);
+                _projectionBuffer.ReplaceSpans(index, 0, spans, EditOptions.None, editTag: s_suppressPromptInjectionTag);
+                if (index <= _currentOutputProjectionSpan) 
+                {
+                    _currentOutputProjectionSpan += spans.Length;
+                }
             }
 
             private void ReplaceProjectionSpan(int spanToReplace, ITrackingSpan newSpan)
@@ -1034,7 +1118,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 else if (!endsWithLineBreak && !hasLineBreakProjection)
                 {
                     // Insert line break.
-                    InsertProjectionSpan(lineBreakProjectionSpanIndex, _lineBreakString);
+                    InsertProjectionSpans(lineBreakProjectionSpanIndex, _lineBreakString);
                 }
 
                 // caret didn't move since last time we moved it to track output:
@@ -1376,19 +1460,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 {
                     _executionTimer.Stop();
                 }
-            }
-
-            private int IndexOfLastStandardInputSpan(ReadOnlyCollection<SnapshotSpan> sourceSpans)
-            {
-                for (int i = sourceSpans.Count - 1; i >= 0; i--)
-                {
-                    if (GetSpanKind(sourceSpans[i]) == ReplSpanKind.StandardInput)
-                    {
-                        return i;
-                    }
-                }
-
-                return -1;
             }
 
             private void RemoveLastInputPrompt()
@@ -2229,22 +2300,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                         PositionAffinity.Predecessor,
                         textBuffer).Value);
             }
-
-            private bool OverlapsWithEditableBuffer(NormalizedSnapshotSpanCollection spans)
-            {
-                var editableBuffer = (ReadingStandardInput) ? StandardInputBuffer : CurrentLanguageBuffer;
-
-                foreach (var span in spans)
-                {
-                    var editableSpans = TextView.BufferGraph.MapDownToBuffer(span, SpanTrackingMode.EdgeInclusive, editableBuffer);
-                    if (editableSpans.Count > 0)
-                    {
-                        return true;
-                    }
-                }
-                return false;
-            }
-
             private bool IsEmptyBoxSelection()
             {
                 return !TextView.Selection.IsEmpty &&
@@ -3352,6 +3407,16 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                         ReplSpanKind.Prompt;
                 }
                 return ReplSpanKind.Input;
+            }
+
+            private int IndexOfLastSpan(ReadOnlyCollection<SnapshotSpan> sourceSpans, ReplSpanKind spanKind) {
+                for (var i = sourceSpans.Count - 1; i >= 0; i--) {
+                    if (GetSpanKind(sourceSpans[i]) == spanKind) {
+                        return i;
+                    }
+                }
+
+                return -1;
             }
 
             #region Output
