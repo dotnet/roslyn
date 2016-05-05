@@ -9,8 +9,8 @@
     <ProjectGuid>{DA0D2A70-A2F9-4654-A99A-3227EDF54FF1}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>PerformanceTesting</RootNamespace>
-    <AssemblyName>PerformanceTesting</AssemblyName>
+    <RootNamespace>Roslyn.Test.Performance</RootNamespace>
+    <AssemblyName>Roslyn.Test.Performance.Utilities</AssemblyName>
     <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
@@ -24,7 +24,8 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <NoWarn>CS2008</NoWarn>
+    <NoWarn>
+    </NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -41,6 +42,7 @@
   <ItemGroup>
     <Reference Include="System" />
     <Reference Include="System.Core" />
+    <Reference Include="System.IO.Compression.FileSystem" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -49,11 +51,13 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Folder Include="Perf\projects\csharp\" />
-    <Folder Include="Perf\temp\cpc\" />
     <Folder Include="Properties\" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Perf\util\Logger.cs" />
+    <Compile Include="Perf\util\PerfTestBase.cs" />
+    <Compile Include="Perf\util\RelativeDirectory.cs" />
+    <Compile Include="Perf\util\Tools.cs" />
     <None Include="Perf\.gitignore" />
     <Content Include="Perf\bootstrap.bat">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
@@ -82,9 +86,6 @@
     <Content Include="Perf\infra\run_and_report.csx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Perf\infra\transform_csv.csx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="Perf\infra\uninstall.csx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
@@ -94,22 +95,16 @@
     <Content Include="Perf\runner.csx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <None Include="Perf\temp\compiler_time.csv" />
-    <None Include="Perf\temp\file_size.csv" />
-    <None Include="Perf\temp\run_time.csv" />
-    <Content Include="Perf\tests\csharp\csharp_compiler.csx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
     <Content Include="Perf\tests\helloworld\hello_world.csx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Perf\util\Download_util.csx">
+    <None Include="Perf\infra\TriggerAutomation.bat">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
+    </None>
+    <None Include="Perf\tests\csharp\csharp_compiler.csx">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <Content Include="Perf\util\runner_util.csx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Perf\util\scenario_generator_util.csx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
     <Content Include="Perf\util\test_util.csx">
@@ -118,10 +113,7 @@
     <Content Include="Perf\util\tools_util.csx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <Content Include="Perf\util\trace_manager_util.csx">
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </Content>
-    <Content Include="Perf\util\InstallVsixes.csx">
+    <Content Include="Perf\infra\install_vsixes.csx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
@@ -129,6 +121,15 @@
     <Content Include="Perf\tests\helloworld\HelloWorld.cs">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Perf\util\ILogger.cs" />
+    <Compile Include="Perf\util\ITraceManager.cs" />
+    <Compile Include="Perf\util\NoOpTraceManager.cs" />
+    <Compile Include="Perf\util\ScenarioGenerator.cs" />
+    <Compile Include="Perf\util\TestUtilities.cs" />
+    <Compile Include="Perf\util\TraceManager.cs" />
+    <Compile Include="Perf\util\TraceManagerFactory.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

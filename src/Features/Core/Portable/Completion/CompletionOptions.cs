@@ -6,8 +6,8 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal static class CompletionOptions
     {
-        public const string FeatureName = "Completion";
-        public const string ControllerFeatureName = "CompletionController";
+        internal const string FeatureName = "Completion";
+        internal const string ControllerFeatureName = "CompletionController";
 
         public static readonly PerLanguageOption<bool> HideAdvancedMembers = new PerLanguageOption<bool>(FeatureName, "HideAdvancedMembers", defaultValue: false);
         public static readonly PerLanguageOption<bool> IncludeKeywords = new PerLanguageOption<bool>(FeatureName, "IncludeKeywords", defaultValue: true);

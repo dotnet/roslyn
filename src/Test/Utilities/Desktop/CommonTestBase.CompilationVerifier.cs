@@ -243,7 +243,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
                 return this;
             }
 
-            public ISymUnmanagedReader CreateSymReader()
+            public ISymUnmanagedReader3 CreateSymReader()
             {
                 var pdbStream = new MemoryStream(EmittedAssemblyPdb.ToArray());
                 return SymReaderFactory.CreateReader(pdbStream, metadataReaderOpt: null, metadataMemoryOwnerOpt: null);

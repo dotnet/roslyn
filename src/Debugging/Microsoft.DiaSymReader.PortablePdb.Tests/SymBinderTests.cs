@@ -299,10 +299,8 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
         {
             var importer = new SymMetadataImport(new MemoryStream(TestResources.Documents.PortableDll));
             var stream = new MemoryStream(TestResources.Documents.PortablePdb);
-            var wrapper = new ComStreamWrapper(stream);
 
-            ISymUnmanagedReader symReader;
-            Assert.Equal(HResult.S_OK, SymBinder.GetReaderFromStream(importer, wrapper, out symReader));
+            ISymUnmanagedReader symReader = SymBinder.GetReaderFromStream(stream, importer);
 
             int actualCount;
             Assert.Equal(HResult.S_OK, symReader.GetDocuments(0, out actualCount, null));
@@ -318,10 +316,8 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
         public void GetReaderFromPdbStream()
         {
             var stream = new MemoryStream(TestResources.Documents.PortablePdb);
-            var wrapper = new ComStreamWrapper(stream);
 
-            ISymUnmanagedReader symReader;
-            Assert.Equal(HResult.S_OK, SymBinder.GetReaderFromPdbStream(NotImplementedMetadataProvider.Instance, wrapper, out symReader));
+            ISymUnmanagedReader symReader = SymBinder.GetReaderFromPdbStream(stream, NotImplementedMetadataProvider.Instance);
 
             int actualCount;
             Assert.Equal(HResult.S_OK, symReader.GetDocuments(0, out actualCount, null));
@@ -337,14 +333,13 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
         public void LazyMetadataImport()
         {
             bool importCreated = false;
-            ISymUnmanagedReader symReader;
-            Assert.Equal(HResult.S_OK, SymBinder.GetReaderFromPdbStream(
+            ISymUnmanagedReader symReader = SymBinder.GetReaderFromPdbStream(
+                new MemoryStream(TestResources.Scopes.Pdb),
                 new TestMetadataProvider(() =>
                 {
                     importCreated = true;
                     return new SymMetadataImport(new MemoryStream(TestResources.Scopes.Dll));
-                }),
-                new ComStreamWrapper(new MemoryStream(TestResources.Scopes.Pdb)), out symReader));
+                }));
 
             int count;
 
