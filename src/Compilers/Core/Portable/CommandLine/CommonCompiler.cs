@@ -383,14 +383,10 @@ namespace Microsoft.CodeAnalysis
 
                 if (!sourceGenerators.IsEmpty)
                 {
-                    // PROTOTYPE(generators): Generated source path should include a "GeneratedFiles" subdirectory
-                    // so that "build clean" can be modified to delete the entire directory.
                     var trees = compilation.GenerateSource(sourceGenerators, this.Arguments.OutputDirectory, writeToDisk: true, cancellationToken: cancellationToken);
                     if (!trees.IsEmpty)
                     {
                         compilation = compilation.AddSyntaxTrees(trees);
-                        // PROTOTYPE(generators): If there are parse warnings, we'll report warnings
-                        // from the previous GetParseDiagnostics() call again here.
                         if (ReportErrors(compilation.GetParseDiagnostics(), consoleOutput, errorLogger))
                         {
                             return Failed;
@@ -398,7 +394,6 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                // PROTOTYPE(generators): Are we missing parse events?
                 ConcurrentSet<Diagnostic> analyzerExceptionDiagnostics = null;
 
                 if (!analyzers.IsEmpty)

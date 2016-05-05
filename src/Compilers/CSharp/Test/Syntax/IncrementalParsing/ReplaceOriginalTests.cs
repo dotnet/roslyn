@@ -1,12 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class ReplaceOriginalTests
     {
-        [Fact(Skip = "PROTOTYPE(generators): Incremental parsing")]
+        [WorkItem(11121, "https://github.com/dotnet/roslyn/issues/11121")]
+        [Fact(Skip = "11121")]
         public void AddReplace()
         {
             string oldText =
@@ -23,7 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotEqual(default(SyntaxNodeOrToken), newTree.FindNodeOrTokenByKind(SyntaxKind.OriginalExpression));
         }
 
-        [Fact(Skip = "PROTOTYPE(generators): Incremental parsing")]
+        [WorkItem(11121, "https://github.com/dotnet/roslyn/issues/11121")]
+        [Fact(Skip = "11121")]
         public void RemoveReplace()
         {
             string oldText =

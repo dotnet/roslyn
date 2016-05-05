@@ -446,8 +446,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 if (replaced.IsImplicitlyDeclared &&
                                     (replaced.MethodKind == MethodKind.EventAdd || replaced.MethodKind == MethodKind.EventRemove))
                                 {
-                                    // PROTOTYPE(generators): Not handling field-like event accessors.
-                                    // (See EventHandler E in ReplaceOriginalTests.MultipleReplaces.)
                                     continue;
                                 }
                                 CompileMethod(replaced, extendedOrdinal, ref processedInitializers, synthesizedSubmissionFields, compilationState);

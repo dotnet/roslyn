@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
     public class ReplaceOriginalTests : CSharpTestBase
     {
+        [WorkItem(11123, "https://github.com/dotnet/roslyn/issues/11123")]
         [Fact]
         public void Members()
         {
@@ -46,8 +47,6 @@ partial struct S
 }";
             var compilation = CreateCompilationWithMscorlib(source);
             compilation.VerifyDiagnostics();
-            // PROTOTYPE(generators): Check ReplacedMethod/Property/Event.
-            // PROTOTYPE(generators): Check generated metadata includes replaced accessors but not replaced property or event.
         }
 
         [Fact]
@@ -314,6 +313,7 @@ struct S
                 Diagnostic(ErrorCode.ERR_OverrideFinalizeDeprecated, "Finalize").WithLocation(4, 37));
         }
 
+        [WorkItem(11122, "https://github.com/dotnet/roslyn/issues/11122")]
         [Fact]
         public void ExplicitImplementation()
         {
@@ -352,7 +352,6 @@ class C : I
     event EventHandler I.E { add { } remove { } }
 }";
             var compilation = CreateCompilationWithMscorlib(source);
-            // PROTOTYPE(generators): Should note report any errors.
             compilation.VerifyDiagnostics(
                 // (19,22): error CS0539: 'C.this[int]' in explicit interface declaration is not a member of interface
                 //     replace object I.this[int index]
@@ -430,6 +429,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(20, 24));
         }
 
+        [WorkItem(11124, "https://github.com/dotnet/roslyn/issues/11124")]
         [Fact]
         public void NoOriginal()
         {
@@ -486,10 +486,11 @@ class C
             {
                 var symbolInfo = model.GetSymbolInfo(expr);
                 var symbol = symbolInfo.Symbol;
-                // PROTOTYPE(generators): Assert this is the replace symbol.
+                // Assert this is the replace symbol.
             }
         }
 
+        [WorkItem(11125, "https://github.com/dotnet/roslyn/issues/11125")]
         [Fact]
         public void DifferentSignatures()
         {
@@ -519,9 +520,10 @@ class C
     static void M7(out object o) { o = null; }
 }";
             var compilation = CreateCompilationWithMscorlib(source);
-            compilation.VerifyDiagnostics(); // PROTOTYPE(generators): Report errors.
+            compilation.VerifyDiagnostics(); 
         }
 
+        [WorkItem(11126, "https://github.com/dotnet/roslyn/issues/11126")]
         [Fact]
         public void DifferentTypeParameters()
         {
@@ -534,9 +536,10 @@ class C
     replace static void N<T>() { }
 }";
             var compilation = CreateCompilationWithMscorlib(source);
-            compilation.VerifyDiagnostics(); // PROTOTYPE(generators): Report errors.
+            compilation.VerifyDiagnostics();
         }
 
+        [WorkItem(11127, "https://github.com/dotnet/roslyn/issues/11127")]
         [Fact]
         public void Abstract()
         {
@@ -549,7 +552,7 @@ class C
     replace internal virtual void F() { }
 }";
             var compilation = CreateCompilationWithMscorlib(source);
-            compilation.VerifyDiagnostics(); // PROTOTYPE(generators): Report errors.
+            compilation.VerifyDiagnostics(); 
         }
 
         [Fact]
@@ -673,6 +676,7 @@ class C
             compilation.VerifyDiagnostics();
         }
 
+        [WorkItem(11129, "https://github.com/dotnet/roslyn/issues/11129")]
         [Fact]
         public void DifferentAttributes()
         {
@@ -691,13 +695,14 @@ class C
     [A(F = 2)] replace void H() { }
 }";
             var compilation = CreateCompilationWithMscorlib(source);
-            compilation.VerifyDiagnostics(); // PROTOTYPE(generators): Report errors.
+            compilation.VerifyDiagnostics(); 
         }
 
+        [WorkItem(11130, "https://github.com/dotnet/roslyn/issues/11130")]
         [Fact]
         public void Modifiers()
         {
-            // PROTOTYPE(generators): Test extern, partial, unsafe, async
+            // Test extern, partial, unsafe, async
         }
 
         [Fact]
@@ -783,6 +788,7 @@ class C
             CompileAndVerify(compilation, expectedOutput: @"21");
         }
 
+        [WorkItem(11131, "https://github.com/dotnet/roslyn/issues/11131")]
         [Fact]
         public void MissingAccessors()
         {
@@ -795,9 +801,10 @@ class C
     replace object Q { set { } }
 }";
             var compilation = CreateCompilationWithMscorlib(source);
-            compilation.VerifyDiagnostics(); // PROTOTYPE(generators): Report errors.
+            compilation.VerifyDiagnostics();
         }
 
+        [WorkItem(11131, "https://github.com/dotnet/roslyn/issues/11131")]
         [Fact]
         public void AdditionalAccessors()
         {
@@ -810,9 +817,10 @@ class C
     replace object Q { get { return null; } set { } }
 }";
             var compilation = CreateCompilationWithMscorlib(source);
-            compilation.VerifyDiagnostics(); // PROTOTYPE(generators): Report errors.
+            compilation.VerifyDiagnostics(); 
         }
 
+        [WorkItem(11131, "https://github.com/dotnet/roslyn/issues/11131")]
         [Fact]
         public void DifferentAccessors()
         {
@@ -825,7 +833,7 @@ class C
     replace object Q { get { return null; } }
 }";
             var compilation = CreateCompilationWithMscorlib(source);
-            compilation.VerifyDiagnostics(); // PROTOTYPE(generators): Report errors.
+            compilation.VerifyDiagnostics(); 
         }
 
         [Fact]
@@ -930,6 +938,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadArgType, "2").WithArguments("2", "int", "U").WithLocation(9, 21));
         }
 
+        [WorkItem(11132, "https://github.com/dotnet/roslyn/issues/11132")]
         [Fact]
         public void OriginalMethodExplicitTypeArguments()
         {
@@ -946,7 +955,7 @@ class C
     }
 }";
             var compilation = CreateCompilationWithMscorlib(source);
-            // PROTOTYPE(generators): We might be able to report better errors if 'original'
+            // We might be able to report better errors if 'original'
             // is not treated as a (contextual) keyword by the parser.
             // (ParseTerm is not calling ParseAliasQualifiedName in this case.)
             compilation.VerifyDiagnostics(
@@ -1011,7 +1020,7 @@ class C
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M4").WithArguments("M4", "C").WithLocation(18, 26));
         }
 
-        // PROTOTYPE(generators): Should allow replacing partial methods.
+        [WorkItem(11117, "https://github.com/dotnet/roslyn/issues/11117")]
         [Fact]
         public void ReplacePartial()
         {
@@ -1145,10 +1154,11 @@ class C
 }");
         }
 
+        [WorkItem(11134, "https://github.com/dotnet/roslyn/issues/11134")]
         [Fact]
         public void UseSiteDiagnostics()
         {
-            // PROTOTYPE(generators): Can we test useSiteDiagnostics in BindInvocationExpression?
+            // Can we test useSiteDiagnostics in BindInvocationExpression?
         }
 
         [Fact]
