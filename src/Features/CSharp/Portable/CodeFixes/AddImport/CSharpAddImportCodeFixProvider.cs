@@ -481,8 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
                     .Single();
                 newRoot = newRoot.TrackNodes(newUsing);
                 var documentWithSyntaxRoot = document.WithSyntaxRoot(newRoot);
-                var options = document.Project.Solution.Workspace.Options;
-                var simplifiedDocument = await Simplifier.ReduceAsync(documentWithSyntaxRoot, newUsing.Span, options, cancellationToken).ConfigureAwait(false);
+                var simplifiedDocument = await Simplifier.ReduceAsync(documentWithSyntaxRoot, newUsing.Span, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 newRoot = (CompilationUnitSyntax)await simplifiedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var simplifiedUsing = newRoot.GetCurrentNode(newUsing);

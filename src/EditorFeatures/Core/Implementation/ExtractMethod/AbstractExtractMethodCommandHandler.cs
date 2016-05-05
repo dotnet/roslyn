@@ -127,15 +127,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
                 return false;
             }
 
-            var options = document.Project.Solution.Workspace.Options;
             var result = ExtractMethodService.ExtractMethodAsync(
-                document, spans.Single().Span.ToTextSpan(), options, cancellationToken).WaitAndGetResult(cancellationToken);
+                document, spans.Single().Span.ToTextSpan(), cancellationToken: cancellationToken).WaitAndGetResult(cancellationToken);
             Contract.ThrowIfNull(result);
 
             if (!result.Succeeded && !result.SucceededWithSuggestion)
             {
                 // if it failed due to out/ref parameter in async method, try it with different option
-                var newResult = TryWithoutMakingValueTypesRef(document, spans, options, result, cancellationToken);
+                var newResult = TryWithoutMakingValueTypesRef(document, spans, result, cancellationToken);
                 if (newResult != null)
                 {
                     var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
@@ -191,7 +190,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
             var notificationService = document.Project.Solution.Workspace.Services.GetService<INotificationService>();
 
             // see whether we will allow best effort extraction and if it is possible.
-            if (!document.Project.Solution.Workspace.Options.GetOption(ExtractMethodOptions.AllowBestEffort, document.Project.Language) ||
+            if (!document.Options.GetOption(ExtractMethodOptions.AllowBestEffort) ||
                 !result.Status.HasBestEffort() || result.Document == null)
             {
                 if (notificationService != null)
@@ -224,8 +223,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ExtractMethod
         }
 
         private static ExtractMethodResult TryWithoutMakingValueTypesRef(
-            Document document, NormalizedSnapshotSpanCollection spans, OptionSet options, ExtractMethodResult result, CancellationToken cancellationToken)
+            Document document, NormalizedSnapshotSpanCollection spans, ExtractMethodResult result, CancellationToken cancellationToken)
         {
+            OptionSet options = document.Options;
+
             if (options.GetOption(ExtractMethodOptions.DontPutOutOrRefOnStruct, document.Project.Language) || !result.Reasons.IsSingle())
             {
                 return null;

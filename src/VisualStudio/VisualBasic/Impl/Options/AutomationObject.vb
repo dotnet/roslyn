@@ -47,7 +47,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         <Obsolete("This SettingStore option has now been deprecated in favor of BasicClosedFileDiagnostics")>
         Public Property ClosedFileDiagnostics As Boolean
             Get
-                Return ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(_workspace, LanguageNames.VisualBasic)
+                Return ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(_workspace.Options, LanguageNames.VisualBasic)
             End Get
             Set(value As Boolean)
                 ' Even though this option has been deprecated, we want to respect the setting if the user has explicitly turned off closed file diagnostics (which is the non-default value for 'ClosedFileDiagnostics').

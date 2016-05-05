@@ -71,9 +71,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 
         private TokenInfo _lastTokenInfo;
 
-        public ImmutableArray<TodoCommentDescriptor> GetTokens(Workspace workspace)
+        public ImmutableArray<TodoCommentDescriptor> GetTokens(Document document)
         {
-            var optionText = workspace.Options.GetOption(TodoCommentOptions.TokenList);
+            var optionText = document.Options.GetOption(TodoCommentOptions.TokenList);
 
             var lastInfo = _lastTokenInfo;
             if (lastInfo != null && lastInfo.OptionText == optionText)

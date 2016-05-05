@@ -11,11 +11,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames
         {
             internal static new readonly SimplifyTypeNamesFixAllProvider Instance = new SimplifyTypeNamesFixAllProvider();
 
-            protected override SyntaxNode GetNodeToSimplify(SyntaxNode root, SemanticModel model, Diagnostic diagnostic, Workspace workspace, out string codeActionId, CancellationToken cancellationToken)
+            protected override SyntaxNode GetNodeToSimplify(SyntaxNode root, SemanticModel model, Diagnostic diagnostic, Document document, out string codeActionId, CancellationToken cancellationToken)
             {
                 codeActionId = null;
                 string diagnosticId;
-                var node = SimplifyTypeNamesCodeFixProvider.GetNodeToSimplify(root, model, diagnostic.Location.SourceSpan, workspace.Options, out diagnosticId, cancellationToken);
+                var node = SimplifyTypeNamesCodeFixProvider.GetNodeToSimplify(root, model, diagnostic.Location.SourceSpan, document.Options, out diagnosticId, cancellationToken);
                 if (node != null)
                 {
                     codeActionId = GetCodeActionId(diagnosticId, node.ToString());

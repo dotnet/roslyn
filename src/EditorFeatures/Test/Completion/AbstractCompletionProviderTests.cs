@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
         internal static async Task<CompletionContext> GetCompletionListContextAsync(CompletionProvider provider, Document document, int position, CompletionTrigger triggerInfo, OptionSet options = null)
         {
-            options = options ?? document.Project.Solution.Workspace.Options;
+            options = options ?? document.Options;
             var service = document.Project.LanguageServices.GetService<CompletionService>();
             var text = await document.GetTextAsync();
             var span = service.GetDefaultItemSpan(text, position);
