@@ -2,7 +2,6 @@
 // Copyright (c) Microsoft Corporation
 // All rights reserved
 // REMOVE ONCE WE ACTUALLY REFERENCE THE REAL EDITOR DLLS.
-using System;
 using Microsoft.VisualStudio.Imaging.Interop;
 
 namespace Microsoft.VisualStudio.Language.Intellisense
