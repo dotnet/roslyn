@@ -27,6 +27,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
     [ExportLanguageSpecificOptionSerializer(
         LanguageNames.CSharp,
         OrganizerOptions.FeatureName,
+        AddImportOptions.FeatureName,
         CompletionOptions.FeatureName,
         CSharpCompletionOptions.FeatureName,
         CSharpCodeStyleOptions.FeatureName,
@@ -79,6 +80,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             Type[] types = new[]
                 {
                     typeof(OrganizerOptions),
+                    typeof(AddImportOptions),
                     typeof(CSharpCompletionOptions),
                     typeof(SimplificationOptions),
                     typeof(CSharpCodeStyleOptions),
@@ -117,7 +119,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         protected override bool SupportsOption(IOption option, string languageName)
         {
             if (option == OrganizerOptions.PlaceSystemNamespaceFirst ||
-                option == OrganizerOptions.WarnOnBuildErrors ||
+                option == AddImportOptions.SuggestForTypesInReferenceAssemblies ||
+                option == AddImportOptions.SuggestForTypesInNuGetPackages ||
                 option == CSharpCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord ||
                 option == CSharpCompletionOptions.IncludeSnippets ||
                 option.Feature == CSharpCodeStyleOptions.FeatureName ||
