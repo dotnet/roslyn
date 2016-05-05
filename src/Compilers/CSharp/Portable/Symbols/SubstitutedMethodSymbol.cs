@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return returnType;
                 }
 
-                returnType = Map.SubstituteType(OriginalDefinition.ReturnType).Type;
+                returnType = Map.SubstituteTypeWithTupleUnification(OriginalDefinition.ReturnType).Type;
                 return Interlocked.CompareExchange(ref _lazyReturnType, returnType, null) ?? returnType;
             }
         }

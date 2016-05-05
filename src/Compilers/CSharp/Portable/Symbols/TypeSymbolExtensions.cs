@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        private static readonly string[] s_expressionsNamespaceName = { "Expressions", "Linq", "System", "" };
+        private static readonly string[] s_expressionsNamespaceName = { "Expressions", "Linq", MetadataHelpers.SystemString, "" };
 
         private static bool CheckFullName(Symbol symbol, string[] names)
         {

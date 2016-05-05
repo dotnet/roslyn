@@ -18,23 +18,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// </summary>
     internal sealed class TupleTypeSymbol : WrapperNamedTypeSymbol
     {
+        /// <summary>
+        /// Declaration location for this tuple type symbol
+        /// </summary>
         private readonly ImmutableArray<Location> _locations;
+
+        /// <summary>
+        /// Declaration locations for individual elements, if provided.
+        /// </summary>
         private readonly ImmutableArray<Location> _elementLocations;
+
+        /// <summary>
+        /// Element names, if provided. 
+        /// </summary>
         private readonly ImmutableArray<string> _elementNames;
+
+        /// <summary>
+        /// Element types.
+        /// </summary>
         private readonly ImmutableArray<TypeSymbol> _elementTypes;
+
         private ImmutableArray<Symbol> _lazyMembers;
         private SmallDictionary<Symbol, Symbol> _lazyUnderlyingDefinitionToMemberMap;
 
         internal const int RestPosition = 8; // The Rest field is in 8th position
         internal const string TupleTypeName = "ValueTuple";
 
-        public TupleTypeSymbol(Location locationOpt, NamedTypeSymbol underlyingType, ImmutableArray<Location> elementLocations, ImmutableArray<string> elementNames, ImmutableArray<TypeSymbol> elementTypes)
+        private TupleTypeSymbol(Location locationOpt, NamedTypeSymbol underlyingType, ImmutableArray<Location> elementLocations, ImmutableArray<string> elementNames, ImmutableArray<TypeSymbol> elementTypes)
             : this(locationOpt == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create(locationOpt),
                   underlyingType, elementLocations, elementNames, elementTypes)
         {
         }
 
-        public TupleTypeSymbol(ImmutableArray<Location> locations, NamedTypeSymbol underlyingType, ImmutableArray<Location> elementLocations, ImmutableArray<string> elementNames, ImmutableArray<TypeSymbol> elementTypes)
+        private TupleTypeSymbol(ImmutableArray<Location> locations, NamedTypeSymbol underlyingType, ImmutableArray<Location> elementLocations, ImmutableArray<string> elementNames, ImmutableArray<TypeSymbol> elementTypes)
             : base(underlyingType)
         {
             Debug.Assert(elementLocations.IsDefault || elementNames.IsDefault || elementLocations.Length == elementNames.Length);
@@ -75,6 +91,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Create(locationOpt, underlyingType, elementLocations, elementNames);
         }
 
+        public static TupleTypeSymbol Create(NamedTypeSymbol tupleCompatibleType)
+        {
+            return Create(ImmutableArray<Location>.Empty,
+                          tupleCompatibleType, 
+                          default(ImmutableArray<Location>), 
+                          default(ImmutableArray<string>));
+        }
+
         public static TupleTypeSymbol Create(Location locationOpt, NamedTypeSymbol tupleCompatibleType, ImmutableArray<Location> elementLocations, ImmutableArray<string> elementNames)
         {
             return Create(locationOpt == null ? ImmutableArray<Location>.Empty : ImmutableArray.Create(locationOpt),
@@ -83,7 +107,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public static TupleTypeSymbol Create(ImmutableArray<Location> locations, NamedTypeSymbol tupleCompatibleType, ImmutableArray<Location> elementLocations, ImmutableArray<string> elementNames)
         {
-            Debug.Assert(tupleCompatibleType.IsTupleCompatible() && !tupleCompatibleType.IsTupleType);
+            Debug.Assert(tupleCompatibleType.IsTupleCompatible());
 
             ImmutableArray<TypeSymbol> elementTypes;
 
@@ -106,6 +130,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return new TupleTypeSymbol(locations, tupleCompatibleType, elementLocations, elementNames, elementTypes);
         }
 
+        /// <summary>
+        /// Adjust the <paramref name="tupleCompatibleType"/> in such a way so that 
+        /// all types used by Rest fields are tuples. Throughout the entire nesting chain.
+        /// </summary>
         private static NamedTypeSymbol EnsureRestExtensionsAreTuples(NamedTypeSymbol tupleCompatibleType)
         {
             if (!tupleCompatibleType.TypeArgumentsNoUseSiteDiagnostics[RestPosition - 1].IsTupleType)
@@ -188,7 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal TupleTypeSymbol WithUnderlyingType(NamedTypeSymbol newUnderlyingType)
         {
-            Debug.Assert((object)newUnderlyingType.OriginalDefinition == (object)_underlyingType.OriginalDefinition);
+            Debug.Assert(!newUnderlyingType.IsTupleType && newUnderlyingType.IsTupleOrCompatibleWithTupleOfCardinality(_elementTypes.Length));
 
             return Create(_locations, newUnderlyingType, _elementLocations, _elementNames);
         }
@@ -618,6 +646,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        /// <summary>
+        /// Returns all members of the tuple type - a combination of members from the underlying type 
+        /// and synthesized fields for tuple elements.
+        /// </summary>
         public override ImmutableArray<Symbol> GetMembers()
         {
             if (_lazyMembers.IsDefault)
@@ -649,10 +681,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamedTypeSymbol currentUnderlying = _underlyingType;
             int currentNestingLevel = 0;
 
-            var fieldsForElements = ArrayBuilder<FieldSymbol>.GetInstance(currentUnderlying.Arity);
+            var currentFieldsForElements = ArrayBuilder<FieldSymbol>.GetInstance(currentUnderlying.Arity);
 
             // Lookup field definitions that we are interested in
-            CollectTargetTupleFields(currentUnderlying, fieldsForElements);
+            CollectTargetTupleFields(currentUnderlying, currentFieldsForElements);
 
             ImmutableArray<Symbol> underlyingMembers = currentUnderlying.OriginalDefinition.GetMembers();
 
@@ -672,7 +704,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         case SymbolKind.Field:
                             var field = (FieldSymbol)member;
 
-                            int tupleFieldIndex = fieldsForElements.IndexOf(field, ReferenceEqualityComparer.Instance);
+                            int tupleFieldIndex = currentFieldsForElements.IndexOf(field, ReferenceEqualityComparer.Instance);
                             if (tupleFieldIndex >= 0)
                             {
                                 // This is a tuple backing field
@@ -760,8 +792,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     // refresh members and target fields
                     underlyingMembers = currentUnderlying.OriginalDefinition.GetMembers();
-                    fieldsForElements.Clear();
-                    CollectTargetTupleFields(currentUnderlying, fieldsForElements);
+                    currentFieldsForElements.Clear();
+                    CollectTargetTupleFields(currentUnderlying, currentFieldsForElements);
                 }
                 else
                 {
@@ -769,7 +801,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            fieldsForElements.Free();
+            currentFieldsForElements.Free();
 
             // At the end, add remaining virtual fields
             for (int i = 0; i < namesOfVirtualFields.Count; i++)
@@ -1330,5 +1362,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         #endregion
+
+        public static TypeSymbol TransformToTupleIfCompatible(TypeSymbol target)
+        {
+            if (target.IsTupleCompatible())
+            {
+                return TupleTypeSymbol.Create((NamedTypeSymbol)target);
+            }
+
+            return target;
+        }
     }
 }

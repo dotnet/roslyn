@@ -653,8 +653,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var sourceArguments = argument.Arguments;
 
             // check if the type is actually compatible type for a tuple of given cardinality
-            int cardinality;
-            if (!destination.IsTupleCompatible(out cardinality) || cardinality != sourceArguments.Length)
+            if (!destination.IsTupleOrCompatibleWithTupleOfCardinality(sourceArguments.Length))
             {
                 // target is not a tuple of appropriate shape
                 return;
@@ -838,8 +837,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var sourceArguments = argument.Arguments;
 
             // check if the type is actually compatible type for a tuple of given cardinality
-            int cardinality;
-            if (!destination.IsTupleCompatible(out cardinality) || cardinality != sourceArguments.Length)
+            if (!destination.IsTupleOrCompatibleWithTupleOfCardinality(sourceArguments.Length))
             {
                 return;
             }

@@ -386,7 +386,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// If this is a field of a tuple type, return corresponding underlying field from the
-        /// tuple underlying type. Otherwise, null. In case of a mulformed underlying type
+        /// tuple underlying type. Otherwise, null. In case of a malformed underlying type
         /// the corresponding underlying field might be missing, return null in this case too.
         /// </summary>
         public virtual FieldSymbol TupleUnderlyingField

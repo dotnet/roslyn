@@ -240,8 +240,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (symbol.IsTupleType)
             {
-                AddTupleTypeName(symbol);
-                return;
+                if (CanUseTupleTypeName(symbol))
+                {
+                    AddTupleTypeName(symbol);
+                    return;
+                }
+
+                // Fall back to displaying the underlying type.
+                symbol = symbol.TupleUnderlyingType;
             }
 
             string symbolName = null;
@@ -381,6 +387,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var name = $"<anonymous type: {members}>";
                 builder.Add(new SymbolDisplayPart(SymbolDisplayPartKind.ClassName, symbol, name));
             }
+        }
+
+        /// <summary>
+        /// Returns true if tuple type syntax can be used to refer to the tuple type without loss of information.
+        /// For example, it cannot be used when extension tuple is using non-default friendly names. 
+        /// </summary>
+        /// <param name="symbol"></param>
+        /// <returns></returns>
+        private bool CanUseTupleTypeName(INamedTypeSymbol symbol)
+        {
+            INamedTypeSymbol currentUnderlying = symbol.TupleUnderlyingType;
+
+            if (currentUnderlying.Arity == TupleTypeSymbol.RestPosition)
+            {
+                do
+                {
+                    var currentTuple = (INamedTypeSymbol)currentUnderlying.TypeArguments[TupleTypeSymbol.RestPosition - 1];
+                    Debug.Assert(currentTuple.IsTupleType);
+
+                    var elementNames = currentTuple.TupleElementNames;
+                    if (!elementNames.IsDefault)
+                    {
+                        for (int i = 0; i < elementNames.Length; i++)
+                        {
+                            if (elementNames[i] != TupleTypeSymbol.TupleMemberName(i + 1))
+                            {
+                                return false;
+                            }
+                        }
+                    }
+
+                    currentUnderlying = currentTuple.TupleUnderlyingType;
+                }
+                while (currentUnderlying.Arity == TupleTypeSymbol.RestPosition);
+            }
+
+            return true;
         }
 
         private void AddTupleTypeName(INamedTypeSymbol symbol)

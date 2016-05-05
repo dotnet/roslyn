@@ -149,5 +149,11 @@ namespace Microsoft.CodeAnalysis
         /// If this type has no friendly-names, then returns default.
         /// </summary>
         ImmutableArray<string> TupleElementNames { get; }
+
+        /// <summary>
+        /// If this is a tuple type symbol, returns the symbol for its underlying type.
+        /// Otherwise, returns null.
+        /// </summary>
+        INamedTypeSymbol TupleUnderlyingType { get; }
     }
 }
