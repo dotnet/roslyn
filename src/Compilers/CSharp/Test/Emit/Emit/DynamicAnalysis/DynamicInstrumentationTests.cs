@@ -1077,11 +1077,112 @@ True
             CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
         }
 
-        private CompilationVerifier CompileAndVerify(string source, EmitOptions emitOptions, string expectedOutput = null, CompilationOptions options = null)
+        [Fact]
+        public void PortableCoverage()
         {
-            return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: s_asyncRefs, options: options, emitOptions: emitOptions);
+            string source = @"
+namespace System
+{
+    public class Object { }  
+    public struct Int32 { }  
+    public struct Boolean { }  
+    public class String { }  
+    public class Exception { }  
+    public class ValueType { }  
+    public class Enum { }  
+    public struct Void { }  
+    public class Guid { }
+    public struct RuntimeTypeHandle { }
+
+    public class Type
+    {
+        public static Type GetTypeFromHandle(RuntimeTypeHandle handle) { return new Type(); }
+    }
+}
+
+public class Console
+{
+    public static void WriteLine(string s) { }
+    public static void WriteLine(int i) { }
+    public static void WriteLine(bool b) { }
+}
+
+namespace System.Reflection
+{
+    public class MemberInfo
+    {
+        public virtual Module Module => new Module();
+    }
+
+    public class TypeInfo : MemberInfo
+    {
+    }
+
+    public class Module
+    {
+        public virtual Guid ModuleVersionId => new Guid();
+    }
+
+    public static class IntrospectionExtensions
+    {
+        public static TypeInfo GetTypeInfo(System.Type t) { return new TypeInfo(); }
+    }
+}
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        TestMain();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+    }
+
+    static int TestMain()
+    {
+        return 3;
+    }
+}
+";
+
+            string expectedTestMainIL = @"{
+  // Code size       53 (0x35)
+  .maxstack  4
+  .locals init (bool[] V_0)
+  IL_0000:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
+  IL_0005:  ldtoken    ""int Program.TestMain()""
+  IL_000a:  ldelem.ref
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  brtrue.s   IL_002f
+  IL_000f:  ldsfld     ""System.Guid <PrivateImplementationDetails>.MVID""
+  IL_0014:  ldtoken    ""int Program.TestMain()""
+  IL_0019:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
+  IL_001e:  ldtoken    ""int Program.TestMain()""
+  IL_0023:  ldelema    ""bool[]""
+  IL_0028:  ldc.i4.1
+  IL_0029:  call       ""bool[] Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, ref bool[], int)""
+  IL_002e:  stloc.0
+  IL_002f:  ldloc.0
+  IL_0030:  ldc.i4.0
+  IL_0031:  ldc.i4.1
+  IL_0032:  stelem.i1
+  IL_0033:  ldc.i4.3
+  IL_0034:  ret
+}";
+            CompilationVerifier verifier = CompileWithNoFramework(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"));
+            verifier.VerifyIL("Program.TestMain", expectedTestMainIL);
         }
 
-        private static readonly MetadataReference[] s_asyncRefs = new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 };
+        private CompilationVerifier CompileWithNoFramework(string source, EmitOptions emitOptions, CompilationOptions options = null)
+        {
+            return base.CompileAndVerify(source, verify: false, options: options, emitOptions: emitOptions);
+        }
+
+        private CompilationVerifier CompileAndVerify(string source, EmitOptions emitOptions, string expectedOutput = null, CompilationOptions options = null)
+        {
+            return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: s_refs, options: options, emitOptions: emitOptions);
+        }
+
+        private static readonly MetadataReference[] s_refs = new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 };
     }
 }
