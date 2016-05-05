@@ -64,10 +64,10 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var updatedTypeParameters = RenameTypeParameters(
                 method.TypeParameters, newNames, typeGenerator);
 
-            var mapping = new Dictionary<ITypeSymbol, ITypeSymbol>();
+            var mapping = new List<KeyValuePair<ITypeSymbol, ITypeSymbol>>();
             for (int i = 0; i < method.TypeParameters.Length; i++)
             {
-                mapping.Add(method.TypeParameters[i], updatedTypeParameters[i]);
+                mapping.Add(KeyValuePair.Create((ITypeSymbol)method.TypeParameters[i], (ITypeSymbol)updatedTypeParameters[i]));
             }
 
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
@@ -114,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             // We generate the type parameter in two passes.  The first creates the new type
             // parameter.  The second updates the constraints to point at this new type parameter.
             var newTypeParameters = new List<CodeGenerationTypeParameterSymbol>();
-            var mapping = new Dictionary<ITypeSymbol, ITypeSymbol>();
+            var mapping = new List<KeyValuePair<ITypeSymbol, ITypeSymbol>>();
             for (int i = 0; i < typeParameters.Count; i++)
             {
                 var typeParameter = typeParameters[i];
@@ -131,7 +131,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     typeParameter.Ordinal);
 
                 newTypeParameters.Add(newTypeParameter);
-                mapping.Add(typeParameter, newTypeParameter);
+                var map = KeyValuePair.Create<ITypeSymbol, ITypeSymbol>(typeParameter, newTypeParameter);
+                mapping.Add(map);
             }
 
             // Now we update the constraints.

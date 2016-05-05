@@ -16,11 +16,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             where TType2 : ITypeSymbol
         {
             // private readonly Compilation compilation;
-            private readonly IDictionary<TType1, TType2> _map;
+            private readonly IEnumerable<KeyValuePair<TType1, TType2>> _map;
             private readonly ITypeGenerator _typeGenerator;
 
             internal SubstituteTypesVisitor(
-                IDictionary<TType1, TType2> map,
+                IEnumerable<KeyValuePair<TType1, TType2>> map,
                 ITypeGenerator typeGenerator)
             {
                 _map = map;
@@ -35,12 +35,25 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             private ITypeSymbol VisitType(ITypeSymbol symbol)
             {
                 TType2 converted;
-                if (symbol is TType1 && _map.TryGetValue((TType1)symbol, out converted))
+                if (symbol is TType1 && TryGetValue(_map, (TType1)symbol, out converted))
                 {
                     return converted;
                 }
 
                 return symbol;
+            }
+
+            public static bool TryGetValue<TKey, TValue>(IEnumerable<KeyValuePair<TKey, TValue>> map, TKey symbol, out TValue converted)
+            {
+                var types = map.Where(kvp => kvp.Key.GetHashCode() == symbol.GetHashCode());
+                if (!types.Any())
+                {
+                    converted = default(TValue);
+                    return false;
+                }
+
+                converted = types.SingleOrDefault().Value;
+                return converted != null;
             }
 
             public override ITypeSymbol VisitDynamicType(IDynamicTypeSymbol symbol)
