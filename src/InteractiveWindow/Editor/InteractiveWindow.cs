@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
     /// <summary>
     /// Provides implementation of a Repl Window built on top of the VS editor using projection buffers.
     /// </summary>
-    internal partial class InteractiveWindow : IInteractiveWindow, IInteractiveWindowOperations2
+    internal partial class InteractiveWindow : IInteractiveWindow2, IInteractiveWindowOperations2
     {
         internal const string ClipboardFormat = "89344A36-9821-495A-8255-99A63969F87D";
 
@@ -240,6 +240,11 @@ namespace Microsoft.VisualStudio.InteractiveWindow
         void IInteractiveWindow.AddInput(string command)
         {
             UIThread(uiOnly => uiOnly.AddInput(command));
+        }
+
+        void IInteractiveWindow2.AddToHistory(string input)
+        {
+            UIThread(uiOnly => uiOnly.AddToHistory(input));
         }
 
         void IInteractiveWindow.FlushOutput()
