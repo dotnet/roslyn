@@ -105,6 +105,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Called when visiting an <see cref="TupleTypeSymbol" />; Override this with specific
+        /// implementation; Calling <see cref="DefaultVisit" /> if it's not overridden 
+        /// </summary>
+        /// <param name="symbol">The visited symbol</param>
+        /// <param name="argument">Additional argument</param>
+        /// <returns></returns>
+        public virtual TResult VisitTupleType(TupleTypeSymbol symbol, TArgument argument)
+        {
+            return DefaultVisit(symbol, argument);
+        }
+
+        /// <summary>
         /// Called when visiting a <see cref="PointerTypeSymbol" />; Override this with specific
         /// implementation; Calling <see cref="DefaultVisit" /> if it's not overridden 
         /// </summary>

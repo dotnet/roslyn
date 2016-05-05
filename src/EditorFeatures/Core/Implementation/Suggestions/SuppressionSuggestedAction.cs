@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -87,7 +88,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return SpecializedTasks.Default<IEnumerable<SuggestedActionSet>>();
         }
 
-        protected override Task InvokeAsync(CancellationToken cancellationToken)
+        protected override Task InvokeAsync(
+            IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             // The top-level action cannot be invoked.
             // However, the nested sub-actions returned above can be.

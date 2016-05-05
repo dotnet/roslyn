@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -22,7 +23,7 @@ namespace Microsoft.CodeAnalysis
     /// associated syntax trees, compilations and semantic models. A workspace has a current solution
     /// that is an immutable snapshot of the projects and documents. This property may change over time 
     /// as the workspace is updated either from live interactions in the environment or via call to the
-    /// workspace's <see cref="TryApplyChanges"/> method.
+    /// workspace's <see cref="TryApplyChanges(Solution)"/> method.
     /// </summary>
     public abstract partial class Workspace : IDisposable
     {
@@ -139,7 +140,7 @@ namespace Microsoft.CodeAnalysis
         /// It provides access to source text, syntax trees and semantics.
         /// 
         /// This property may change as the workspace reacts to changes in the environment or
-        /// after <see cref="TryApplyChanges"/> is called.
+        /// after <see cref="TryApplyChanges(Solution)"/> is called.
         /// </summary>
         public Solution CurrentSolution
         {
@@ -965,7 +966,7 @@ namespace Microsoft.CodeAnalysis
         #region Apply Changes
 
         /// <summary>
-        /// Determines if the specific kind of change is supported by the <see cref="TryApplyChanges"/> method.
+        /// Determines if the specific kind of change is supported by the <see cref="TryApplyChanges(Solution)"/> method.
         /// </summary>
         public virtual bool CanApplyChange(ApplyChangesKind feature)
         {
@@ -992,6 +993,11 @@ namespace Microsoft.CodeAnalysis
         /// <exception cref="NotSupportedException">Thrown if the solution contains changes not supported according to the
         /// <see cref="CanApplyChange(ApplyChangesKind)"/> method.</exception>
         public virtual bool TryApplyChanges(Solution newSolution)
+        {
+            return TryApplyChanges(newSolution, new ProgressTracker());
+        }
+
+        internal virtual bool TryApplyChanges(Solution newSolution, IProgressTracker progressTracker)
         {
             using (Logger.LogBlock(FunctionId.Workspace_ApplyChanges, CancellationToken.None))
             {
@@ -1032,9 +1038,13 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 // changed projects
-                foreach (var projectChanges in solutionChanges.GetProjectChanges())
+                var projectChangesList = solutionChanges.GetProjectChanges().ToList();
+                progressTracker.AddItems(projectChangesList.Count);
+
+                foreach (var projectChanges in projectChangesList)
                 {
                     this.ApplyProjectChanges(projectChanges);
+                    progressTracker.ItemCompleted();
                 }
 
                 // removed projects
@@ -1141,7 +1151,8 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// This method is called during <see cref="TryApplyChanges"/> for each project that has been added, removed or changed.
+        /// This method is called during <see cref="TryApplyChanges(Solution)"/> for each project 
+        /// that has been added, removed or changed.
         /// 
         /// Override this method if you want to modify how project changes are applied.
         /// </summary>
@@ -1228,31 +1239,7 @@ namespace Microsoft.CodeAnalysis
             // changed documents
             foreach (var documentId in projectChanges.GetChangedDocuments())
             {
-                var oldDoc = projectChanges.OldProject.GetDocument(documentId);
-                var newDoc = projectChanges.NewProject.GetDocument(documentId);
-
-                // see whether we can get oldText
-                SourceText oldText;
-                if (!oldDoc.TryGetText(out oldText))
-                {
-                    // we can't get old text, there is not much we can do except replacing whole text.
-                    var currentText = newDoc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None); // needs wait
-                    this.ApplyDocumentTextChanged(documentId, currentText);
-                    continue;
-                }
-
-                // see whether we can get new text
-                SourceText newText;
-                if (!newDoc.TryGetText(out newText))
-                {
-                    // okay, we have old text, but no new text. let document determine text changes
-                    var textChanges = newDoc.GetTextChangesAsync(oldDoc, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None); // needs wait
-                    this.ApplyDocumentTextChanged(documentId, oldText.WithChanges(textChanges));
-                    continue;
-                }
-
-                // we have both old and new text, just update using the new text.
-                this.ApplyDocumentTextChanged(documentId, newText);
+                ApplyChangedDocument(projectChanges, documentId);
             }
 
             // changed additional documents
@@ -1265,6 +1252,36 @@ namespace Microsoft.CodeAnalysis
                 var currentText = newDoc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None); // needs wait
                 this.ApplyAdditionalDocumentTextChanged(documentId, currentText);
             }
+        }
+
+        private void ApplyChangedDocument(
+            ProjectChanges projectChanges, DocumentId documentId)
+        {
+            var oldDoc = projectChanges.OldProject.GetDocument(documentId);
+            var newDoc = projectChanges.NewProject.GetDocument(documentId);
+
+            // see whether we can get oldText
+            SourceText oldText;
+            if (!oldDoc.TryGetText(out oldText))
+            {
+                // we can't get old text, there is not much we can do except replacing whole text.
+                var currentText = newDoc.GetTextAsync(CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None); // needs wait
+                this.ApplyDocumentTextChanged(documentId, currentText);
+                return;
+            }
+
+            // see whether we can get new text
+            SourceText newText;
+            if (!newDoc.TryGetText(out newText))
+            {
+                // okay, we have old text, but no new text. let document determine text changes
+                var textChanges = newDoc.GetTextChangesAsync(oldDoc, CancellationToken.None).WaitAndGetResult_CanCallOnBackground(CancellationToken.None); // needs wait
+                this.ApplyDocumentTextChanged(documentId, oldText.WithChanges(textChanges));
+                return;
+            }
+
+            // we have both old and new text, just update using the new text.
+            this.ApplyDocumentTextChanged(documentId, newText);
         }
 
         [Conditional("DEBUG")]
@@ -1317,7 +1334,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// This method is called during <see cref="TryApplyChanges"/> to add a project to the current solution.
+        /// This method is called during <see cref="TryApplyChanges(Solution)"/> to add a project to the current solution.
         /// 
         /// Override this method to implement the capability of adding projects.
         /// </summary>
@@ -1328,7 +1345,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// This method is called during <see cref="TryApplyChanges"/> to remove a project from the current solution.
+        /// This method is called during <see cref="TryApplyChanges(Solution)"/> to remove a project from the current solution.
         /// 
         /// Override this method to implement the capability of removing projects.
         /// </summary>
@@ -1339,7 +1356,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// This method is called during <see cref="TryApplyChanges"/> to change the compilation options.
+        /// This method is called during <see cref="TryApplyChanges(Solution)"/> to change the compilation options.
         /// 
         /// Override this method to implement the capability of changing compilation options.
         /// </summary>
@@ -1350,7 +1367,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// This method is called during <see cref="TryApplyChanges"/> to change the parse options.
+        /// This method is called during <see cref="TryApplyChanges(Solution)"/> to change the parse options.
         /// 
         /// Override this method to implement the capability of changing parse options.
         /// </summary>
@@ -1361,7 +1378,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// This method is called during <see cref="TryApplyChanges"/> to add a project reference to a project.
+        /// This method is called during <see cref="TryApplyChanges(Solution)"/> to add a project reference to a project.
         /// 
         /// Override this method to implement the capability of adding project references.
         /// </summary>
@@ -1372,7 +1389,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// This method is called during <see cref="TryApplyChanges"/> to remove a project reference from a project.
+        /// This method is called during <see cref="TryApplyChanges(Solution)"/> to remove a project reference from a project.
         /// 
         /// Override this method to implement the capability of removing project references.
         /// </summary>
@@ -1383,7 +1400,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// This method is called during <see cref="TryApplyChanges"/> to add a metadata reference to a project.
+        /// This method is called during <see cref="TryApplyChanges(Solution)"/> to add a metadata reference to a project.
         /// 
         /// Override this method to implement the capability of adding metadata references.
         /// </summary>
@@ -1394,7 +1411,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// This method is called during <see cref="TryApplyChanges"/> to remove a metadata reference from a project.
+        /// This method is called during <see cref="TryApplyChanges(Solution)"/> to remove a metadata reference from a project.
         /// 
         /// Override this method to implement the capability of removing metadata references.
         /// </summary>
@@ -1405,7 +1422,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// This method is called during <see cref="TryApplyChanges"/> to add an analyzer reference to a project.
+        /// This method is called during <see cref="TryApplyChanges(Solution)"/> to add an analyzer reference to a project.
         /// 
         /// Override this method to implement the capability of adding analyzer references.
         /// </summary>
@@ -1416,7 +1433,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// This method is called during <see cref="TryApplyChanges"/> to remove an analyzer reference from a project.
+        /// This method is called during <see cref="TryApplyChanges(Solution)"/> to remove an analyzer reference from a project.
         /// 
         /// Override this method to implement the capability of removing analyzer references.
         /// </summary>
@@ -1427,7 +1444,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// This method is called during <see cref="TryApplyChanges"/> to add a new document to a project.
+        /// This method is called during <see cref="TryApplyChanges(Solution)"/> to add a new document to a project.
         /// 
         /// Override this method to implement the capability of adding documents.
         /// </summary>
@@ -1438,7 +1455,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// This method is called during <see cref="TryApplyChanges"/> to remove a document from a project.
+        /// This method is called during <see cref="TryApplyChanges(Solution)"/> to remove a document from a project.
         /// 
         /// Override this method to implement the capability of removing documents.
         /// </summary>
@@ -1460,7 +1477,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// This method is called during <see cref="TryApplyChanges"/> to add a new additional document to a project.
+        /// This method is called during <see cref="TryApplyChanges(Solution)"/> to add a new additional document to a project.
         /// 
         /// Override this method to implement the capability of adding additional documents.
         /// </summary>
@@ -1471,7 +1488,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// This method is called during <see cref="TryApplyChanges"/> to remove an additional document from a project.
+        /// This method is called during <see cref="TryApplyChanges(Solution)"/> to remove an additional document from a project.
         /// 
         /// Override this method to implement the capability of removing additional documents.
         /// </summary>

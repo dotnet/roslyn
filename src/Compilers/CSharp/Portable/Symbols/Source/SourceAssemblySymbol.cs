@@ -378,6 +378,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override Version AssemblyVersionPattern
+        {
+            get
+            {
+                var attributeValue = AssemblyVersionAttributeSetting;
+                return (object)attributeValue == null || (attributeValue.Build != ushort.MaxValue && attributeValue.Revision != ushort.MaxValue) ? null : attributeValue;
+            }
+        }
+         
         internal AssemblyHashAlgorithm AssemblyHashAlgorithm
         {
             get
@@ -415,11 +424,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// This represents what the user claimed in source through the AssemblyFlagsAttribute.
         /// It may be modified as emitted due to presence or absence of the public key.
         /// </summary>
-        internal AssemblyNameFlags Flags
+        internal AssemblyFlags Flags
         {
             get
             {
-                var defaultValue = default(AssemblyNameFlags);
+                var defaultValue = default(AssemblyFlags);
                 var fieldValue = defaultValue;
 
                 var data = GetSourceDecodedWellKnownAttributeData();
@@ -2168,6 +2177,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.AssemblyInformationalVersionAttribute))
             {
+                Version dummy;
+                string verString = (string)attribute.CommonConstructorArguments[0].Value;
+                if (!VersionHelper.TryParse(verString, version: out dummy))
+                {
+                    Location attributeArgumentSyntaxLocation = attribute.GetAttributeArgumentSyntaxLocation(0, arguments.AttributeSyntaxOpt);
+                    arguments.Diagnostics.Add(ErrorCode.WRN_InvalidVersionFormat, attributeArgumentSyntaxLocation);
+                }
                 arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().AssemblyInformationalVersionAttributeSetting = (string)attribute.CommonConstructorArguments[0].Value;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SatelliteContractVersionAttribute))
@@ -2193,15 +2209,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if ((signature = attribute.GetTargetAttributeSignatureIndex(this, AttributeDescription.AssemblyFlagsAttribute)) != -1)
             {
                 object value = attribute.CommonConstructorArguments[0].Value;
-                System.Reflection.AssemblyNameFlags nameFlags;
+                AssemblyFlags nameFlags;
 
                 if (signature == 0 || signature == 1)
                 {
-                    nameFlags = (System.Reflection.AssemblyNameFlags)value;
+                    nameFlags = (AssemblyFlags)(AssemblyNameFlags)value;
                 }
                 else
                 {
-                    nameFlags = (System.Reflection.AssemblyNameFlags)(uint)value;
+                    nameFlags = (AssemblyFlags)(uint)value;
                 }
 
                 arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().AssemblyFlagsAttributeSetting = nameFlags;
@@ -2508,7 +2524,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (wellKnownAttributeData != null && wellKnownAttributeData.ForwardedTypes != null)
                 {
-                    forwardedTypesFromSource = new Dictionary<string, NamedTypeSymbol>();
+                    forwardedTypesFromSource = new Dictionary<string, NamedTypeSymbol>(StringOrdinalComparer.Instance);
 
                     foreach (NamedTypeSymbol forwardedType in wellKnownAttributeData.ForwardedTypes)
                     {

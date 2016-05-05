@@ -641,16 +641,11 @@ namespace Microsoft.CodeAnalysis
                 //There's nothing guaranteeing that these are n.n.n.n format.
                 //The documentation says that if they're not that format the behavior is undefined.
                 Version fileVersion;
-                if (!VersionHelper.TryParse(_fileVersionContents, version: out fileVersion))
-                {
-                    fileVersion = new Version(0, 0, 0, 0);
-                }
+                VersionHelper.TryParse(_fileVersionContents, version: out fileVersion);
+
 
                 Version productVersion;
-                if (!VersionHelper.TryParse(_productVersionContents, version: out productVersion))
-                {
-                    productVersion = new Version(0, 0, 0, 0);
-                }
+                VersionHelper.TryParse(_productVersionContents, version: out productVersion);
 
                 writer.Write((DWORD)0xFEEF04BD);
                 writer.Write((DWORD)0x00010000);

@@ -42,7 +42,7 @@ namespace Microsoft.Cci
         /// A possibly empty list of lower bounds for dimension indices. When not explicitly specified, a lower bound defaults to zero.
         /// The first lower bound in the list corresponds to the first dimension. Dimensions cannot be skipped.
         /// </summary>
-        IEnumerable<int> LowerBounds
+        ImmutableArray<int> LowerBounds
         {
             get;
             // ^ ensures count(result) <= Rank;
@@ -51,7 +51,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// The number of array dimensions.
         /// </summary>
-        uint Rank
+        int Rank
         {
             get;
             // ^ ensures result > 0;
@@ -62,7 +62,7 @@ namespace Microsoft.Cci
         /// The first upper bound in the list corresponds to the first dimension. Dimensions cannot be skipped.
         /// An unspecified upper bound means that instances of this type can have an arbitrary upper bound for that dimension.
         /// </summary>
-        IEnumerable<ulong> Sizes
+        ImmutableArray<int> Sizes
         {
             get;
             // ^ ensures count(result) <= Rank;
@@ -705,49 +705,34 @@ namespace Microsoft.Cci
     internal enum TypeMemberVisibility
     {
         /// <summary>
-        /// The visibility has not been specified. Use the applicable default.
+        /// The member is visible only within its own type.
         /// </summary>
-        Default,
-
-        /// <summary>
-        /// The member is visible only within its own assembly.
-        /// </summary>
-        Assembly,
-
-        /// <summary>
-        /// The member is visible only within its own type and any subtypes.
-        /// </summary>
-        Family,
+        Private = 1,
 
         /// <summary>
         /// The member is visible only within the intersection of its family (its own type and any subtypes) and assembly. 
         /// </summary>
-        FamilyAndAssembly,
+        FamilyAndAssembly = 2,
+
+        /// <summary>
+        /// The member is visible only within its own assembly.
+        /// </summary>
+        Assembly = 3,
+
+        /// <summary>
+        /// The member is visible only within its own type and any subtypes.
+        /// </summary>
+        Family = 4,
 
         /// <summary>
         /// The member is visible only within the union of its family and assembly. 
         /// </summary>
-        FamilyOrAssembly,
-
-        /// <summary>
-        /// The member is visible only to the compiler producing its assembly.
-        /// </summary>
-        Other,
-
-        /// <summary>
-        /// The member is visible only within its own type.
-        /// </summary>
-        Private,
+        FamilyOrAssembly = 5,
 
         /// <summary>
         /// The member is visible everywhere its declaring type is visible.
         /// </summary>
-        Public,
-
-        /// <summary>
-        /// A mask that can be used to mask out flag bits when the latter are stored in the same memory word as this enumeration.
-        /// </summary>
-        Mask = 0xF
+        Public = 6
     }
 
     /// <summary>
@@ -758,23 +743,18 @@ namespace Microsoft.Cci
         /// <summary>
         /// Two type or method instances are compatible only if they have exactly the same type argument for this parameter.
         /// </summary>
-        NonVariant,
+        NonVariant = 0,
 
         /// <summary>
         /// A type or method instance will match another instance if it has a type for this parameter that is the same or a subtype of the type the
         /// other instance has for this parameter.
         /// </summary>
-        Covariant,
+        Covariant = 1,
 
         /// <summary>
         /// A type or method instance will match another instance if it has a type for this parameter that is the same or a supertype of the type the
         /// other instance has for this parameter.
         /// </summary>
-        Contravariant,
-
-        /// <summary>
-        /// A mask that can be used to mask out flag bits when the latter are stored in the same memory word as the enumeration.
-        /// </summary>
-        Mask = 3,
+        Contravariant = 2,
     }
 }

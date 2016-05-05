@@ -13,7 +13,7 @@
     <OutputType>Library</OutputType>
     <AssemblyName>Roslyn.Compilers.CSharp.Test.Utilities.Desktop</AssemblyName>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <TargetFrameworkProfile />
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
   </PropertyGroup>

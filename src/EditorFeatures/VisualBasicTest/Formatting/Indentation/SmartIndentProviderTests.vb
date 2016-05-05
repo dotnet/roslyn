@@ -17,11 +17,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting.Indenta
     Public Class SmartIndentProviderTests
         Private Class MockWaitIndicator
             Implements IWaitIndicator
-            Public Function StartWait(title As String, message As String, allowCancel As Boolean) As IWaitContext Implements IWaitIndicator.StartWait
+            Public Function StartWait(title As String, message As String, allowCancel As Boolean, showProgress As Boolean) As IWaitContext Implements IWaitIndicator.StartWait
                 Throw New NotImplementedException()
             End Function
 
-            Public Function Wait(title As String, message As String, allowCancel As Boolean, action As Action(Of IWaitContext)) As WaitIndicatorResult Implements IWaitIndicator.Wait
+            Public Function Wait(title As String, message As String, allowCancel As Boolean, showProgress As Boolean, action As Action(Of IWaitContext)) As WaitIndicatorResult Implements IWaitIndicator.Wait
                 Throw New NotImplementedException()
             End Function
         End Class

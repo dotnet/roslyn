@@ -27,6 +27,12 @@
   <ItemGroup>
     <None Include="project.json" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\CommonCoreClrRuntime\CommonCoreClrRuntime.csproj">
+      <Project>{1b665337-9d6a-451a-aeac-f7bf1af95ffb}</Project>
+      <Name>CommonCoreClrRuntime</Name>
+    </ProjectReference>
+  </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
   </ImportGroup>

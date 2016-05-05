@@ -33,22 +33,15 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
             var syntaxKindsPatterns = new HashSet<SyntaxKind>();
             syntaxKindsPatterns.Add(SyntaxKind.IsPatternExpression);
             syntaxKindsPatterns.Add(SyntaxKind.DeclarationPattern);
-            syntaxKindsPatterns.Add(SyntaxKind.WildcardPattern);
             syntaxKindsPatterns.Add(SyntaxKind.ConstantPattern);
-            syntaxKindsPatterns.Add(SyntaxKind.RecursivePattern);
-            syntaxKindsPatterns.Add(SyntaxKind.SubRecursivePattern);
-            syntaxKindsPatterns.Add(SyntaxKind.MatchSection);
-            syntaxKindsPatterns.Add(SyntaxKind.MatchExpression);
-            syntaxKindsPatterns.Add(SyntaxKind.ThrowExpression);
             syntaxKindsPatterns.Add(SyntaxKind.WhenClause);
-            syntaxKindsPatterns.Add(SyntaxKind.LetStatement);
             syntaxKindsPatterns.Add(SyntaxKind.CasePatternSwitchLabel);
 
             // AllInOneCSharpCode has no replace/original.
             syntaxKindsPatterns.Add(SyntaxKind.OriginalExpression);
 
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(source, TestOptions.Regular))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(source, TestOptions.ExperimentalParseOptions))
             {
                 var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
                 AccessSupportedDiagnostics(analyzer);

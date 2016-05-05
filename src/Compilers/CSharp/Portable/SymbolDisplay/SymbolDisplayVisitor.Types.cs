@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (this.IsMinimizing)
+            if (this.IsMinimizing || symbol.IsTupleType)
             {
                 MinimallyQualify(symbol);
                 return;
@@ -236,6 +236,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (symbol.IsAnonymousType)
             {
                 AddAnonymousTypeName(symbol);
+                return;
+            }
+            else if (symbol.IsTupleType)
+            {
+                AddTupleTypeName(symbol);
                 return;
             }
 
@@ -378,6 +383,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        private void AddTupleTypeName(INamedTypeSymbol symbol)
+        {
+            Debug.Assert(symbol.IsTupleType);
+
+            ImmutableArray<ITypeSymbol> elementTypes = symbol.TupleElementTypes;
+            ImmutableArray<string> elementNames = symbol.TupleElementNames;
+            bool hasNames = !elementNames.IsDefault;
+
+            AddPunctuation(SyntaxKind.OpenParenToken);
+
+            bool first = true;
+            for (int i = 0; i < elementTypes.Length; i++)
+            {
+                if (!first)
+                {
+                    AddPunctuation(SyntaxKind.CommaToken);
+                    AddSpace();
+                }
+
+                first = false;
+
+                elementTypes[i].Accept(this.NotFirstVisitor);
+                if (hasNames)
+                {
+                    AddSpace();
+                    builder.Add(CreatePart(SymbolDisplayPartKind.FieldName, symbol, elementNames[i]));
+                }
+            }
+
+            AddPunctuation(SyntaxKind.CloseParenToken);
+        }
+
         private string CreateAnonymousTypeMember(IPropertySymbol property)
         {
             return property.Type.ToDisplayString(format) + " " + property.Name;
@@ -477,6 +514,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (symbol.IsAnonymousType)
                 {
                     builder.Add(new SymbolDisplayPart(SymbolDisplayPartKind.AnonymousTypeIndicator, null, "AnonymousType"));
+                    AddSpace();
+                }
+                else if (symbol.IsTupleType)
+                {
+                    builder.Add(new SymbolDisplayPart(SymbolDisplayPartKind.AnonymousTypeIndicator, null, "Tuple"));
                     AddSpace();
                 }
                 else

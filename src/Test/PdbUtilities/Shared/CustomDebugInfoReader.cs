@@ -8,6 +8,7 @@ using System.Globalization;
 using System.Linq;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.DiaSymReader;
+using Roslyn.Utilities;
 using CDI = Microsoft.Cci.CustomDebugInfoConstants;
 
 #pragma warning disable RS0010 // Avoid using cref tags with a prefix
@@ -217,7 +218,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
-        /// Does for locals what <see cref="System.Runtime.CompilerServices.DynamicAttribute"/> does for parameters, return types, and fields.
+        /// Does for locals what System.Runtime.CompilerServices.DynamicAttribute does for parameters, return types, and fields.
         /// In particular, indicates which occurrences of <see cref="object"/> in the signature are really dynamic.
         /// </summary>
         /// <remarks>
@@ -300,7 +301,7 @@ namespace Microsoft.CodeAnalysis
         /// For each namespace enclosing the method, a list of import strings, innermost to outermost.
         /// There should always be at least one entry, for the global namespace.
         /// </returns>
-        public static ImmutableArray<ImmutableArray<string>> GetCSharpGroupedImportStrings(this ISymUnmanagedReader reader, int methodToken, int methodVersion, out ImmutableArray<string> externAliasStrings)
+        public static ImmutableArray<ImmutableArray<string>> GetCSharpGroupedImportStrings(this ISymUnmanagedReader3 reader, int methodToken, int methodVersion, out ImmutableArray<string> externAliasStrings)
         {
             externAliasStrings = default(ImmutableArray<string>);
 
@@ -586,6 +587,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
             }
+
             return null;
         }
 

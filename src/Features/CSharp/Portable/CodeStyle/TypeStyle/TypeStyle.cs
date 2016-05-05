@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
 {
     [Flags]
-    internal enum TypeStyle
+    internal enum TypeStylePreference
     {
         None = 0,
         ImplicitTypeForIntrinsicTypes = 1 << 0,

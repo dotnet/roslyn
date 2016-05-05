@@ -1644,9 +1644,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If _lazyCompilationUnitCompletedTrees.Count = SyntaxTrees.Length Then
                         ' if that was the last tree, signal the end of compilation
-                        EventQueue.TryEnqueue(New CompilationCompletedEvent(Me))
-                        EventQueue.PromiseNotToEnqueue()
-                        EventQueue.TryComplete()
+                        CompleteCompilationEventQueue_NoLock()
                     End If
                 End If
             End SyncLock
@@ -1925,6 +1923,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 builder.AddRange(GetBoundReferenceManager().Diagnostics)
                 builder.AddRange(SourceAssembly.GetAllDeclarationErrors(cancellationToken))
                 builder.AddRange(GetClsComplianceDiagnostics(cancellationToken))
+
+                If EventQueue IsNot Nothing AndAlso SyntaxTrees.Length = 0 Then
+                    EnsureCompilationEventQueueCompleted()
+                End If
             End If
 
             ' Add method body compilation errors.
@@ -2579,6 +2581,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Protected Overrides Function CommonCreateArrayTypeSymbol(elementType As ITypeSymbol, rank As Integer) As IArrayTypeSymbol
             Return CreateArrayTypeSymbol(elementType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(elementType)), rank)
+        End Function
+
+        Protected Overrides Function CommonCreateTupleTypeSymbol(elementTypes As ImmutableArray(Of ITypeSymbol), elementNames As ImmutableArray(Of String)) As INamedTypeSymbol
+            Throw New NotSupportedException(VBResources.TuplesNotSupported)
         End Function
 
         Protected Overrides Function CommonCreatePointerTypeSymbol(elementType As ITypeSymbol) As IPointerTypeSymbol

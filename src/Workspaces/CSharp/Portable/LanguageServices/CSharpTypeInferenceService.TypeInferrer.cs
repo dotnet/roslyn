@@ -143,6 +143,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (ForStatementSyntax forStatement) => InferTypeInForStatement(forStatement, expression),
                     (IfStatementSyntax ifStatement) => InferTypeInIfStatement(ifStatement),
                     (InitializerExpressionSyntax initializerExpression) => InferTypeInInitializerExpression(initializerExpression, expression),
+                    (IsPatternExpressionSyntax isPatternExpression) => InferTypeInIsPatternExpression(isPatternExpression, expression),
                     (LockStatementSyntax lockStatement) => InferTypeInLockStatement(lockStatement),
                     (MemberAccessExpressionSyntax memberAccessExpression) => InferTypeInMemberAccessExpression(memberAccessExpression),
                     (NameEqualsSyntax nameEquals) => InferTypeInNameEquals(nameEquals),
@@ -1317,6 +1318,25 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
             }
 
+            private IEnumerable<ITypeSymbol> InferTypeInIsPatternExpression(
+                IsPatternExpressionSyntax isPatternExpression,
+                ExpressionSyntax expression)
+            {
+                if (expression == isPatternExpression.Expression)
+                {
+                    return GetPatternTypes(isPatternExpression.Pattern);
+                }
+
+                return null;
+            }
+
+            private IEnumerable<ITypeSymbol> GetPatternTypes(PatternSyntax pattern)
+            {
+                return pattern.TypeSwitch(
+                    (DeclarationPatternSyntax declarationPattern) => GetTypes(declarationPattern.Type),
+                    (ConstantPatternSyntax constantPattern) => GetTypes(constantPattern.Expression));
+            }
+
             private IEnumerable<ITypeSymbol> InferTypeInLockStatement(LockStatementSyntax lockStatement, SyntaxToken? previousToken = null)
             {
                 // If we're position based, then we have to be after the "lock("
@@ -1465,9 +1485,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.PreIncrementExpression:
                     case SyntaxKind.UnaryPlusExpression:
                     case SyntaxKind.UnaryMinusExpression:
-                    case SyntaxKind.BitwiseNotExpression:
-                        // ++, --, +Foo(), -Foo(), ~Foo();
+                        // ++, --, +Foo(), -Foo();
                         return SpecializedCollections.SingletonEnumerable(this.Compilation.GetSpecialType(SpecialType.System_Int32));
+
+                    case SyntaxKind.BitwiseNotExpression:
+                        // ~Foo()
+                        var types = InferTypes(prefixUnaryExpression).WhereNotNull();
+                        if (!types.Any())
+                        {
+                            return SpecializedCollections.SingletonEnumerable(this.Compilation.GetSpecialType(SpecialType.System_Int32));
+                        }
+                        else
+                        {
+                            return types;
+                        }
 
                     case SyntaxKind.LogicalNotExpression:
                         // !Foo()

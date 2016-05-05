@@ -47,6 +47,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return (oldFieldTypes == newFieldTypes) ? previous : AnonymousTypeManager.ConstructAnonymousTypeSymbol(previous, newFieldTypes);
             }
 
+            if (previous.IsTupleType)
+            {
+                TupleTypeSymbol previousTuple = (TupleTypeSymbol)previous;
+                NamedTypeSymbol oldUnderlyingType = previousTuple.UnderlyingTupleType;
+                NamedTypeSymbol newUnderlyingType = (NamedTypeSymbol)SubstituteType(oldUnderlyingType).Type;
+
+                return ((object)newUnderlyingType == (object)oldUnderlyingType) ? previous : previousTuple.WithUnderlyingType(newUnderlyingType);
+            }
+
             // TODO: we could construct the result's ConstructedFrom lazily by using a "deep"
             // construct operation here (as VB does), thereby avoiding alpha renaming in most cases.
             // Aleksey has shown that would reduce GC pressure if substitutions of deeply nested generics are common.

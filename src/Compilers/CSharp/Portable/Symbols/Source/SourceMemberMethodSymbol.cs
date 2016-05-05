@@ -114,15 +114,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 diagnostics.Add(info, location);
             }
-
-            if (this.IsPartial)
-            {
-                // Partial methods must be completed early because they are matched up
-                // by signature while producing the enclosing type's member list.
-                state.NotePartComplete(CompletionPart.StartMethodChecks);
-                MethodChecks(diagnostics);
-                state.NotePartComplete(CompletionPart.FinishMethodChecks);
-            }
         }
 
         public override bool ReturnsVoid
@@ -491,7 +482,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var syntaxTree = syntax.SyntaxTree;
             var compilation = this.DeclaringCompilation;
             var binderFactory = compilation.GetBinderFactory(syntaxTree);
-            var binder = binderFactory.GetBinder(constraintClauses[0], syntax, this);
+            var binder = binderFactory.GetBinder(constraintClauses[0]);
 
             // Wrap binder from factory in a generic constraints specific binder
             // to avoid checking constraints when binding type names.

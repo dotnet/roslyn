@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private sealed class BinderFactoryVisitor : CSharpSyntaxVisitor<Binder>
         {
             private int _position;
-            private MemberDeclarationSyntax _memberDeclarationOpt;
+            private CSharpSyntaxNode _memberDeclarationOpt;
             private Symbol _memberOpt;
             private readonly BinderFactory _factory;
 
@@ -25,8 +25,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory = factory;
             }
 
-            internal void Initialize(int position, MemberDeclarationSyntax memberDeclarationOpt, Symbol memberOpt)
+            internal void Initialize(int position, CSharpSyntaxNode memberDeclarationOpt, Symbol memberOpt)
             {
+                Debug.Assert((memberDeclarationOpt == null) == (memberOpt == null));
+
                 _position = position;
                 _memberDeclarationOpt = memberDeclarationOpt;
                 _memberOpt = memberOpt;
@@ -467,6 +469,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private SourcePropertySymbol GetPropertySymbol(BasePropertyDeclarationSyntax basePropertyDeclarationSyntax, Binder outerBinder)
             {
+                if (basePropertyDeclarationSyntax == _memberDeclarationOpt)
+                {
+                    return (SourcePropertySymbol)_memberOpt;
+                }
+
                 Debug.Assert(basePropertyDeclarationSyntax.Kind() == SyntaxKind.PropertyDeclaration || basePropertyDeclarationSyntax.Kind() == SyntaxKind.IndexerDeclaration);
 
                 if (basePropertyDeclarationSyntax == _memberDeclarationOpt)

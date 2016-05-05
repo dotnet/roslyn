@@ -598,7 +598,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.NullToPointer:
 
                 // Added for C# 7.
-                case ConversionKind.ImplicitThrow:
+                 case ConversionKind.ImplicitTuple:
                     return true;
 
                 default:
