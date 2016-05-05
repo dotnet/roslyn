@@ -355,6 +355,13 @@ namespace Microsoft.CodeAnalysis
                 0,                                                                                                          // Arity
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,                                    // Field Signature
 
+                // System_Type__Module
+                (byte)(MemberFlags.Property | MemberFlags.Virtual),                                                         // Flags
+                (byte)WellKnownType.System_Type,                                                                            // DeclaringTypeId
+                0,                                                                                                          // Arity
+                    0,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Reflection_Module - WellKnownType.ExtSentinel),
+
                 // System_Reflection_AssemblyKeyFileAttribute__ctor
                 (byte)MemberFlags.Constructor,                                                                              // Flags
                 (byte)WellKnownType.System_Reflection_AssemblyKeyFileAttribute,                                             // DeclaringTypeId
@@ -449,9 +456,9 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Reflection_TypeInfo - WellKnownType.ExtSentinel),
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_Type,
 
-                // System_Type__Module
+                // System_Reflection_MemberInfo__Module
                 (byte)(MemberFlags.Property | MemberFlags.Virtual),                                                         // Flags
-                (byte)WellKnownType.System_Type,                                                                            // DeclaringTypeId
+                (byte)WellKnownType.System_Reflection_MemberInfo,                                                           // DeclaringTypeId
                 0,                                                                                                          // Arity
                     0,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Reflection_Module - WellKnownType.ExtSentinel),
@@ -2916,6 +2923,7 @@ namespace Microsoft.CodeAnalysis
                 "GetTypeFromCLSID",                         // System_Type__GetTypeFromCLSID
                 "GetTypeFromHandle",                        // System_Type__GetTypeFromHandle
                 "Missing",                                  // System_Type__Missing
+                "Module",                                   // System_Type__Module
                 ".ctor",                                    // System_Reflection_AssemblyKeyFileAttribute__ctor
                 ".ctor",                                    // System_Reflection_AssemblyKeyNameAttribute__ctor
                 "GetMethodFromHandle",                      // System_Reflection_MethodBase__GetMethodFromHandle
@@ -2927,7 +2935,7 @@ namespace Microsoft.CodeAnalysis
                 "GetFieldFromHandle",                       // System_Reflection_FieldInfo__GetFieldFromHandle2
                 "Value",                                    // System_Reflection_Missing__Value
                 "GetTypeInfo",                              // System_Reflection_IntrospectionExtensions__GetTypeInfo
-                "Module",                                   // System_Reflection_TypeInfo__Module
+                "Module",                                   // System_Reflection_MemberInfo__Module
                 "ModuleVersionId",                          // System_Reflection_Module__ModuleVersionId
                 "Equals",                                   // System_IEquatable_T__Equals
                 "Equals",                                   // System_Collections_Generic_EqualityComparer_T__Equals

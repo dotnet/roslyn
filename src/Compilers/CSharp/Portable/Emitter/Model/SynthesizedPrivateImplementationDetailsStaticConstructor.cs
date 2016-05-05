@@ -52,22 +52,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 body.Add(payloadInitialization);
             }
 
-            // MVID = System.Reflection.IntrospectionExtensions.GetTypeInfo(TypeOf(PrivateImplementationDetails)).Module.ModuleVersionId;
+            CSharpCompilation compilation = compilationState.Compilation;
+            var system_Type__Module = compilation.GetWellKnownTypeMember(WellKnownMember.System_Type__Module);
+            BoundExpression moduleReference;
+
+            if (system_Type__Module != null)
+            {
+                // moduleReference = TypeOf(PrivateImplementationDetails).Module;
+
+                moduleReference =
+                    factory.Property(
+                        factory.TypeOfPrivateImplementationDetails(),
+                        WellKnownMember.System_Type__Module);
+            }
+
+            else
+            {
+                // moduleReference = ((System.Reflection.MemberInfo)System.Reflection.IntrospectionExtensions.GetTypeInfo(TypeOf(PrivateImplementationDetails))).Module;
+
+                moduleReference =
+                    factory.Property(
+                        factory.Convert(
+                            factory.WellKnownType(WellKnownType.System_Reflection_MemberInfo),
+                            factory.Call(
+                                null,
+                                (MethodSymbol)Binder.GetWellKnownTypeMember(compilation, WellKnownMember.System_Reflection_IntrospectionExtensions__GetTypeInfo, diagnostics, syntax: syntax),
+                                factory.TypeOfPrivateImplementationDetails()),
+                            ConversionKind.ImplicitReference),
+                        WellKnownMember.System_Reflection_MemberInfo__Module);
+            }
+
+            // MVID = moduleReference.ModuleVersionId;
 
             BoundStatement mvidInitialization =
-                factory.Assignment(
-                    factory.ModuleVersionId(),
-                    factory.Property(
-                        factory.Property(
-                            factory.Convert(
-                                factory.WellKnownType(WellKnownType.System_Type),
-                                factory.Call(
-                                    null,
-                                    (MethodSymbol)Binder.GetWellKnownTypeMember(compilationState.Compilation, WellKnownMember.System_Reflection_IntrospectionExtensions__GetTypeInfo, diagnostics, syntax: syntax),
-                                    factory.TypeOfPrivateImplementationDetails()),
-                                ConversionKind.ImplicitReference),
-                            WellKnownMember.System_Type__Module),
-                        WellKnownMember.System_Reflection_Module__ModuleVersionId));
+            factory.Assignment(
+                factory.ModuleVersionId(),
+                factory.Property(
+                    moduleReference,
+                    WellKnownMember.System_Reflection_Module__ModuleVersionId));
 
             body.Add(mvidInitialization);
 
