@@ -709,14 +709,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var tupleExpression = (BoundTupleLiteral)source;
             var arguments = tupleExpression.Arguments;
 
-            // unwrap tuple to its underlying
-            if (destination.IsTupleType)
-            {
-                destination = ((TupleTypeSymbol)destination).UnderlyingTupleType;
-            }
-
-            // check if underlying type is actually a possible underlying type for a tuple of given arity
-            if(!Compilation.IsWellKnownTupleType(destination, arguments.Length))
+            // check if the type is actually compatible type for a tuple of given cardinality
+            if (!destination.IsTupleOrCompatibleWithTupleOfCardinality(arguments.Length))
             {
                 return false;
             }

@@ -97,5 +97,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return this; // substitution had no effect on the type or modifiers
             }
         }
+
+        public TypeWithModifiers SubstituteTypeWithTupleUnification(AbstractTypeMap typeMap)
+        {
+            var newCustomModifiers = typeMap.SubstituteCustomModifiers(this.CustomModifiers);
+            var newTypeWithModifiers = typeMap.SubstituteTypeWithTupleUnification(this.Type);
+            if (!newTypeWithModifiers.Is(this.Type) || newCustomModifiers != this.CustomModifiers)
+            {
+                return new TypeWithModifiers(newTypeWithModifiers.Type, newCustomModifiers.Concat(newTypeWithModifiers.CustomModifiers));
+            }
+            else
+            {
+                return this; // substitution had no effect on the type or modifiers
+            }
+        }
     }
 }

@@ -4647,6 +4647,8 @@ class C
 
             public ImmutableArray<ITypeSymbol> TupleElementTypes { get; set; }
 
+            public INamedTypeSymbol TupleUnderlyingType { get; set; }
+
             public ImmutableArray<SymbolDisplayPart> ToDisplayParts(SymbolDisplayFormat format = null)
             {
                 return SymbolDisplay.ToDisplayParts(this, format);
@@ -5148,6 +5150,7 @@ class C
             var symbolWithNames = new FakeTupleTypeSymbol();
             symbolWithNames.TupleElementTypes = ImmutableArray.Create(intType, stringType);
             symbolWithNames.TupleElementNames = ImmutableArray.Create("Alice", "Bob");
+            symbolWithNames.TupleUnderlyingType = ((INamedTypeSymbol)comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2)).Construct(intType, stringType);
 
             var descriptionWithNames = symbolWithNames.ToDisplayParts();
 
@@ -5166,6 +5169,7 @@ class C
 
             var symbolWithoutNames = new FakeTupleTypeSymbol();
             symbolWithoutNames.TupleElementTypes = ImmutableArray.Create(intType, stringType);
+            symbolWithoutNames.TupleUnderlyingType = symbolWithNames.TupleUnderlyingType;
 
             var descriptionWithoutNames = symbolWithoutNames.ToDisplayParts();
 

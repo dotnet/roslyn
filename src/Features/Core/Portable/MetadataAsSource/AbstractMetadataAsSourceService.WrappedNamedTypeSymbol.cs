@@ -249,6 +249,8 @@ namespace Microsoft.CodeAnalysis.MetadataAsSource
 
             public ImmutableArray<string> TupleElementNames => _symbol.TupleElementNames;
 
+            public INamedTypeSymbol TupleUnderlyingType => _symbol.TupleUnderlyingType;
+
             ITypeSymbol ITypeSymbol.OriginalDefinition
             {
                 get

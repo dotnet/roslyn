@@ -426,6 +426,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 
             public NamedTypeSymbol Retarget(NamedTypeSymbol type, RetargetOptions options)
             {
+                if (type.IsTupleType)
+                {
+                    return ((TupleTypeSymbol)type).WithUnderlyingType(Retarget(type.TupleUnderlyingType, options));
+                }
+
                 NamedTypeSymbol originalDefinition = type.OriginalDefinition;
 
                 NamedTypeSymbol newDefinition = RetargetNamedTypeDefinition(originalDefinition, options);
