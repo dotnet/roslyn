@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents a parameter of a method or a property of a tuple type
     /// </summary>
-    internal sealed class TupleParameterSymbol : WrapperParameterSymbol
+    internal sealed class TupleParameterSymbol : WrappedParameterSymbol
     {
         private readonly Symbol _container;
 

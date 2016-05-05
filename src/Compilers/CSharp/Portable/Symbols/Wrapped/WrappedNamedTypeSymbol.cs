@@ -17,14 +17,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// That behavior should be carefully reviewed and derived type
     /// should override behavior as appropriate.
     /// </summary>
-    internal abstract class WrapperNamedTypeSymbol : NamedTypeSymbol
+    internal abstract class WrappedNamedTypeSymbol : NamedTypeSymbol
     {
         /// <summary>
         /// The underlying NamedTypeSymbol.
         /// </summary>
         protected readonly NamedTypeSymbol _underlyingType;
 
-        public WrapperNamedTypeSymbol(NamedTypeSymbol underlyingType)
+        public WrappedNamedTypeSymbol(NamedTypeSymbol underlyingType)
         {
             Debug.Assert((object)underlyingType != null);
             _underlyingType = underlyingType;

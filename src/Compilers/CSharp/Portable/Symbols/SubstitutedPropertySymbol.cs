@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SubstitutedPropertySymbol : WrapperPropertySymbol
+    internal sealed class SubstitutedPropertySymbol : WrappedPropertySymbol
     {
         private readonly SubstitutedNamedTypeSymbol _containingType;
 

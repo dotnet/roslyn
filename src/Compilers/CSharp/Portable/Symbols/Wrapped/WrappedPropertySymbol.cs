@@ -15,14 +15,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// That behavior should be carefully reviewed and derived type
     /// should override behavior as appropriate.
     /// </summary>
-    internal abstract class WrapperPropertySymbol : PropertySymbol
+    internal abstract class WrappedPropertySymbol : PropertySymbol
     {
         /// <summary>
         /// The underlying PropertySymbol.
         /// </summary>
         protected readonly PropertySymbol _underlyingProperty;
 
-        public WrapperPropertySymbol(PropertySymbol underlyingProperty)
+        public WrappedPropertySymbol(PropertySymbol underlyingProperty)
         {
             Debug.Assert((object)underlyingProperty != null);
             _underlyingProperty = underlyingProperty;

@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// Represents a method of a tuple type (such as (int, byte).ToString())
     /// that is backed by a method within the tuple underlying type.
     /// </summary>
-    internal sealed class TupleMethodSymbol : WrapperMethodSymbol
+    internal sealed class TupleMethodSymbol : WrappedMethodSymbol
     {
         private readonly TupleTypeSymbol _containingType;
         private readonly MethodSymbol _underlyingMethod;

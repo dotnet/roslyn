@@ -7,7 +7,7 @@ using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SubstitutedParameterSymbol : WrapperParameterSymbol
+    internal sealed class SubstitutedParameterSymbol : WrappedParameterSymbol
     {
         // initially set to map which is only used to get the type, which is once computed is stored here.
         private object _mapOrType;

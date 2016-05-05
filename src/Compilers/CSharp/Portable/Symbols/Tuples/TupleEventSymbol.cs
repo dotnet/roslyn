@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// Represents an event of a tuple type (such as (int, byte).SomeEvent)
     /// that is backed by an event within the tuple underlying type.
     /// </summary>
-    internal sealed class TupleEventSymbol : WrapperEventSymbol
+    internal sealed class TupleEventSymbol : WrappedEventSymbol
     {
         private readonly TupleTypeSymbol _containingType;
 

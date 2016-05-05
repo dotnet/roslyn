@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// A TupleTypeSymbol represents a tuple type, such as (int, byte) or (int a, long b).
     /// </summary>
-    internal sealed class TupleTypeSymbol : WrapperNamedTypeSymbol
+    internal sealed class TupleTypeSymbol : WrappedNamedTypeSymbol
     {
         /// <summary>
         /// Declaration location for this tuple type symbol

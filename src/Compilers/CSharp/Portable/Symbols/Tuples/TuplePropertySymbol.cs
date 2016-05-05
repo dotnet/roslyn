@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// Represents a property of a tuple type (such as (int, byte).SomeProperty)
     /// that is backed by a property within the tuple underlying type.
     /// </summary>
-    internal sealed class TuplePropertySymbol : WrapperPropertySymbol
+    internal sealed class TuplePropertySymbol : WrappedPropertySymbol
     {
         private readonly TupleTypeSymbol _containingType;
         private ImmutableArray<ParameterSymbol> _lazyParameters;

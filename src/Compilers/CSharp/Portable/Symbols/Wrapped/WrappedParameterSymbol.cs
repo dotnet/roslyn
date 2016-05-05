@@ -15,11 +15,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// That behavior should be carefully reviewed and derived type
     /// should override behavior as appropriate.
     /// </summary>
-    internal abstract class WrapperParameterSymbol : ParameterSymbol
+    internal abstract class WrappedParameterSymbol : ParameterSymbol
     {
         protected readonly ParameterSymbol _underlyingParameter;
 
-        protected WrapperParameterSymbol(ParameterSymbol underlyingParameter)
+        protected WrappedParameterSymbol(ParameterSymbol underlyingParameter)
         {
             Debug.Assert((object)underlyingParameter != null);
 

@@ -12,7 +12,7 @@ using System.Globalization;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SubstitutedFieldSymbol : WrapperFieldSymbol
+    internal sealed class SubstitutedFieldSymbol : WrappedFieldSymbol
     {
         private readonly SubstitutedNamedTypeSymbol _containingType;
         private TypeSymbol _lazyType;

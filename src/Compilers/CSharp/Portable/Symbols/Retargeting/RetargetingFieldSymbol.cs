@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
     /// another FieldSymbol that is responsible for retargeting symbols from one assembly to another. 
     /// It can retarget symbols for multiple assemblies at the same time.
     /// </summary>
-    internal sealed class RetargetingFieldSymbol : WrapperFieldSymbol
+    internal sealed class RetargetingFieldSymbol : WrappedFieldSymbol
     {
         /// <summary>
         /// Owning RetargetingModuleSymbol.

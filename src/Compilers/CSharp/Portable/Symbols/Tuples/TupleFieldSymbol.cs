@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// Represents a non-element field of a tuple type (such as (int, byte).Rest)
     /// that is backed by a real field within the tuple underlying type.
     /// </summary>
-    internal class TupleFieldSymbol : WrapperFieldSymbol
+    internal class TupleFieldSymbol : WrappedFieldSymbol
     {
         protected readonly TupleTypeSymbol _containingTuple;
 

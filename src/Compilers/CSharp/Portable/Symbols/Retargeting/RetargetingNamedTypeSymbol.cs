@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
     /// another NamedTypeSymbol that is responsible for retargeting referenced symbols from one assembly to another. 
     /// It can retarget symbols for multiple assemblies at the same time.
     /// </summary>
-    internal sealed class RetargetingNamedTypeSymbol : WrapperNamedTypeSymbol
+    internal sealed class RetargetingNamedTypeSymbol : WrappedNamedTypeSymbol
     {
         /// <summary>
         /// Owning RetargetingModuleSymbol.

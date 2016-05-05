@@ -14,7 +14,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 {
-    internal sealed class RetargetingPropertySymbol : WrapperPropertySymbol
+    internal sealed class RetargetingPropertySymbol : WrappedPropertySymbol
     {
         /// <summary>
         /// Owning RetargetingModuleSymbol.

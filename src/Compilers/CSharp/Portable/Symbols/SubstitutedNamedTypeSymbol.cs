@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// Either a SubstitutedNestedTypeSymbol or a ConstructedNamedTypeSymbol, which share in common that they
     /// have type parameters substituted.
     /// </summary>
-    internal abstract class SubstitutedNamedTypeSymbol : WrapperNamedTypeSymbol
+    internal abstract class SubstitutedNamedTypeSymbol : WrappedNamedTypeSymbol
     {
         private static readonly Func<Symbol, NamedTypeSymbol, Symbol> s_symbolAsMemberFunc = SymbolExtensions.SymbolAsMember;
 

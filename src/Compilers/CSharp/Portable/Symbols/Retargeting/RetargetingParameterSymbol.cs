@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
     /// another ParameterSymbol that is responsible for retargeting symbols from one assembly to another. 
     /// It can retarget symbols for multiple assemblies at the same time.
     /// </summary>
-    internal abstract class RetargetingParameterSymbol : WrapperParameterSymbol
+    internal abstract class RetargetingParameterSymbol : WrappedParameterSymbol
     {
         private ImmutableArray<CustomModifier> _lazyCustomModifiers;
 

@@ -15,14 +15,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// That behavior should be carefully reviewed and derived type
     /// should override behavior as appropriate.
     /// </summary>
-    internal abstract class WrapperFieldSymbol : FieldSymbol
+    internal abstract class WrappedFieldSymbol : FieldSymbol
     {
         /// <summary>
         /// The underlying FieldSymbol.
         /// </summary>
         protected readonly FieldSymbol _underlyingField;
 
-        public WrapperFieldSymbol(FieldSymbol underlyingField)
+        public WrappedFieldSymbol(FieldSymbol underlyingField)
         {
             Debug.Assert((object)underlyingField != null);
             _underlyingField = underlyingField;
