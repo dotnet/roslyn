@@ -3081,7 +3081,7 @@ class C
             var comp = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput:
 @"1
 8
-(1, , 1, 2, 3, 4, 5, (6, 7, 8))
+(1, , 1, 2, 3, 4, 5, 6, 7, 8)
 ");
         }
 
@@ -4441,7 +4441,7 @@ class C : I<(int, string, int, string, int, string, int, string), (int A, string
 ";
 
             var comp = CompileAndVerify(source, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature(),
-                                        expectedOutput: @"((1, Australia, 2, Brazil, 3, Columbia, 4, (Ecuador)), (5, France, 6, Germany, 7, Honduras, 8, (India)))");
+                                        expectedOutput: @"((1, Australia, 2, Brazil, 3, Columbia, 4, Ecuador), (5, France, 6, Germany, 7, Honduras, 8, India))");
         }
 
         [Fact]
