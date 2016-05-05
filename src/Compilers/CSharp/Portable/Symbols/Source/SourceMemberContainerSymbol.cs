@@ -2347,6 +2347,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     switch (member.Kind)
                     {
                         case SymbolKind.Method:
+                            if (((MethodSymbol)member).IsAsync)
+                            {
+                                // PROTOTYPE(generators): Allow replacing async methods.
+                                continue;
+                            }
+                            goto case SymbolKind.Property;
+
                         case SymbolKind.Property:
                         case SymbolKind.Event:
                             OneOrMany<Symbol> group;
@@ -2375,7 +2382,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var method = member as SourceMethodSymbol;
                         if ((object)method != null && method.IsPartial)
                         {
-                            continue; // PROTOTYPE(generators): Allow replacing partial methods.
+                            // PROTOTYPE(generators): Allow replacing partial methods.
+                            continue; 
                         }
                         if ((object)last == null)
                         {
