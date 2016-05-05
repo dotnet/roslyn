@@ -6,6 +6,7 @@
 #load "./util/runner_util.csx"
 // Log()
 // StdoutFrom()
+// IsVerbose()
 #load "./util/tools_util.csx"
 
 using System.Collections.Generic;
@@ -33,7 +34,7 @@ foreach (var script in GetAllCsxRecursive(testDirectory))
     testInstances.AddRange(tests);
 }
 
-var traceManager = TraceManagerFactory.GetTraceManager();
+var traceManager = TraceManagerFactory.GetTraceManager(IsVerbose());
 
 traceManager.Initialize();
 foreach (var test in testInstances)
