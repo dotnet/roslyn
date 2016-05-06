@@ -63,7 +63,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private BoundStatement InitializeMVID(SyntheticBoundNodeFactory factory, DiagnosticBag diagnostics)
         {
-
             CSharpCompilation compilation = factory.Compilation;
             CSharpSyntaxNode syntax = factory.Syntax;
 
@@ -102,12 +101,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // MVID = moduleReference.ModuleVersionId;
-             return
-                factory.Assignment(
-                    factory.ModuleVersionId(),
-                    factory.Property(
-                        moduleReference,
-                        WellKnownMember.System_Reflection_Module__ModuleVersionId));
+            return
+               factory.Assignment(
+                   factory.ModuleVersionId(),
+                   factory.Property(
+                       moduleReference,
+                       WellKnownMember.System_Reflection_Module__ModuleVersionId));
         }
     }
 }
