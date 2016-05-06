@@ -119,7 +119,7 @@ namespace Roslyn.Test.Performance.Utilities
 
             arguments = arguments.Replace("\r\n", " ").Replace("\n", "");
 
-            ShellOutVital(Path.Combine(GetCPCDirectoryPath(), "ViBenchToJson.exe"), arguments, verbose, logger);
+            ShellOutVital(Path.Combine(GetCPCDirectoryPath(), "ViBenchToJson.exe"), arguments, verbose, logger, workingDirectory: "");
 
             return outJson;
         }
@@ -168,7 +168,7 @@ namespace Roslyn.Test.Performance.Utilities
 
         public static void CopyDirectory(string source, ILogger logger, string destination, string argument = @"/mir")
         {
-            var result = ShellOut("Robocopy", $"{argument} {source} {destination}", verbose: true, logger: logger);
+            var result = ShellOut("Robocopy", $"{argument} {source} {destination}", verbose: true, logger: logger, workingDirectory: "");
 
             // Robocopy has a success exit code from 0 - 7
             if (result.Code > 7)
