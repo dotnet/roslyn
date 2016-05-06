@@ -2349,7 +2349,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         case SymbolKind.Method:
                             if (((MethodSymbol)member).IsAsync)
                             {
-                                // PROTOTYPE(generators): Allow replacing async methods.
                                 continue;
                             }
                             goto case SymbolKind.Property;
@@ -2382,7 +2381,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var method = member as SourceMethodSymbol;
                         if ((object)method != null && method.IsPartial)
                         {
-                            // PROTOTYPE(generators): Allow replacing partial methods.
                             continue; 
                         }
                         if ((object)last == null)
@@ -2406,10 +2404,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             if (next.IsReplace)
                             {
                                 diagnostics.Add(ErrorCode.ERR_DuplicateReplace, member.Locations[0], member);
-                                // PROTOTYPE(generators): May see multiple "replace" members before seeing the
-                                // original. Should call SetReplaced on all "replace" members when the original
-                                // is seen. (See EventHandler E in ReplaceOriginalTests.MultipleReplaces.)
-                                //Debug.Assert((object)last.Replaced != null);
                                 next.SetReplaced(last.Replaced);
                             }
                             else if ((object)last.Replaced == null)
@@ -2418,8 +2412,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 // That duplicate member will be reported elsewhere.
                                 last.SetReplaced(next);
                                 next.SetReplacedBy(last);
-                                // PROTOTYPE(generators): Remove all at once rather than one at a time so
-                                // this is O(n) where n is number of replaced members with same name.
                                 membersByName[name] = Remove(membersByName[name], next);
                             }
                         }

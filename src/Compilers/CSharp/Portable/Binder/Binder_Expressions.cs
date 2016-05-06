@@ -1816,7 +1816,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var replacedProperty = (PropertySymbol)replaced;
                         Debug.Assert((object)replacedProperty != null);
-                        if (replacedProperty.IsIndexer || replacedProperty.IsIndexedProperty) // PROTOTYPE(generators): Test indexed property.
+                        if (replacedProperty.IsIndexer || replacedProperty.IsIndexedProperty) 
                         {
                             return new BoundPropertyGroup(
                                 syntax,
