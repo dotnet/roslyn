@@ -346,6 +346,21 @@
     <Compile Include="RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsService.cs" />
     <Compile Include="RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsService.Rewriter.cs" />
     <Compile Include="ReplaceMethodWithProperty\CSharpReplaceMethodWithPropertyService.cs" />
+    <Compile Include="SignatureHelp\AbstractCSharpSignatureHelpProvider.cs" />
+    <Compile Include="SignatureHelp\AttributeSignatureHelpProvider.cs" />
+    <Compile Include="SignatureHelp\ConstructorInitializerSignatureHelpProvider.cs" />
+    <Compile Include="SignatureHelp\ElementAccessExpressionSignatureHelpProvider.cs" />
+    <Compile Include="SignatureHelp\GenericNamePartiallyWrittenSignatureHelpProvider.cs" />
+    <Compile Include="SignatureHelp\GenericNameSignatureHelpProvider.cs" />
+    <Compile Include="SignatureHelp\GenericNameSignatureHelpProvider_Method.cs" />
+    <Compile Include="SignatureHelp\GenericNameSignatureHelpProvider_NamedType.cs" />
+    <Compile Include="SignatureHelp\InvocationExpressionSignatureHelpProvider.cs" />
+    <Compile Include="SignatureHelp\InvocationExpressionSignatureHelpProvider_DelegateInvoke.cs" />
+    <Compile Include="SignatureHelp\InvocationExpressionSignatureHelpProvider_MethodGroup.cs" />
+    <Compile Include="SignatureHelp\ObjectCreationExpressionSignatureHelpProvider.cs" />
+    <Compile Include="SignatureHelp\ObjectCreationExpressionSignatureHelpProvider_DelegateType.cs" />
+    <Compile Include="SignatureHelp\ObjectCreationExpressionSignatureHelpProvider_NormalType.cs" />
+    <Compile Include="SignatureHelp\SignatureHelpUtilities.cs" />
     <Compile Include="SolutionCrawler\CSharpDocumentDifferenceService.cs" />
   </ItemGroup>
   <ItemGroup>
