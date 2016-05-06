@@ -63,6 +63,10 @@ namespace Microsoft.CodeAnalysis
             private static IEnumerable<ValueTuple<TSymbol, int>> EnumerateSymbols(Compilation compilation, ISymbol containingSymbol, string name, CancellationToken cancellationToken)
             {
                 int ordinal = 0;
+                if (compilation == null)
+                {
+                    yield break;
+                }
 
                 foreach (var declaringLocation in containingSymbol.DeclaringSyntaxReferences)
                 {
