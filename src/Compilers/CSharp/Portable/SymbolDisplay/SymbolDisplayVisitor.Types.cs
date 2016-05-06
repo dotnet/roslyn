@@ -240,8 +240,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else if (symbol.IsTupleType)
             {
-                AddTupleTypeName(symbol);
-                return;
+                // If top level tuple uses non-default names, there is no way to preserve them
+                // unless we use tuple syntax for the type. So, we give them priority.
+                if (HasNonDefaultTupleElementNames(symbol) || CanUseTupleTypeName(symbol))
+                {
+                    AddTupleTypeName(symbol);
+                    return;
+                }
+
+                // Fall back to displaying the underlying type.
+                symbol = symbol.TupleUnderlyingType;
             }
 
             string symbolName = null;
@@ -381,6 +389,49 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var name = $"<anonymous type: {members}>";
                 builder.Add(new SymbolDisplayPart(SymbolDisplayPartKind.ClassName, symbol, name));
             }
+        }
+
+        /// <summary>
+        /// Returns true if tuple type syntax can be used to refer to the tuple type without loss of information.
+        /// For example, it cannot be used when extension tuple is using non-default friendly names. 
+        /// </summary>
+        /// <param name="tupleSymbol"></param>
+        /// <returns></returns>
+        private bool CanUseTupleTypeName(INamedTypeSymbol tupleSymbol)
+        {
+            INamedTypeSymbol currentUnderlying = tupleSymbol.TupleUnderlyingType;
+
+            while (currentUnderlying.Arity == TupleTypeSymbol.RestPosition)
+            {
+                tupleSymbol = (INamedTypeSymbol)currentUnderlying.TypeArguments[TupleTypeSymbol.RestPosition - 1];
+                Debug.Assert(tupleSymbol.IsTupleType);
+
+                if (HasNonDefaultTupleElementNames(tupleSymbol))
+                {
+                    return false;
+                }
+
+                currentUnderlying = tupleSymbol.TupleUnderlyingType;
+            }
+
+            return true;
+        }
+
+        private bool HasNonDefaultTupleElementNames(INamedTypeSymbol tupleSymbol)
+        {
+            var elementNames = tupleSymbol.TupleElementNames;
+            if (!elementNames.IsDefault)
+            {
+                for (int i = 0; i < elementNames.Length; i++)
+                {
+                    if (elementNames[i] != TupleTypeSymbol.TupleMemberName(i + 1))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         private void AddTupleTypeName(INamedTypeSymbol symbol)
