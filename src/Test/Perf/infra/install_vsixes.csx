@@ -25,6 +25,10 @@ var vsixes = new[]
 
 var installer = Path.Combine(binariesDirectory, "VSIXExpInstaller.exe");
 
+// Uninstall all previously installed VSIXes
+TestUtilities.ShellOutVital(installer, $"/rootSuffix:RoslynPerf /uninstallAll", IsVerbose(), logger, binariesDirectory);
+
+// Install the new VSIXes
 foreach (var vsix in vsixes)
 {
     TestUtilities.ShellOutVital(installer, $"/rootSuffix:RoslynPerf {vsix}", IsVerbose(), logger, binariesDirectory);
