@@ -447,7 +447,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static ITypeSymbol SubstituteTypes<TType1, TType2>(
             this ITypeSymbol type,
-            IDictionary<TType1, TType2> mapping,
+            IEnumerable<KeyValuePair<TType1, TType2>> mapping,
             Compilation compilation)
             where TType1 : ITypeSymbol
             where TType2 : ITypeSymbol
@@ -457,7 +457,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         public static ITypeSymbol SubstituteTypes<TType1, TType2>(
             this ITypeSymbol type,
-            IDictionary<TType1, TType2> mapping,
+            IEnumerable<KeyValuePair<TType1, TType2>> mapping,
             ITypeGenerator typeGenerator)
             where TType1 : ITypeSymbol
             where TType2 : ITypeSymbol
