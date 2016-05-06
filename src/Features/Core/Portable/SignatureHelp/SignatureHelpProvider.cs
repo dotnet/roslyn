@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SignatureHelp
 {
-    internal abstract partial class AbstractSignatureHelpProvider : ISignatureHelpProvider
+    internal abstract partial class SignatureHelpProvider : ISignatureHelpProvider
     {
         protected static readonly SymbolDisplayFormat MinimallyQualifiedWithoutParametersFormat =
             SymbolDisplayFormat.MinimallyQualifiedFormat.WithMemberOptions(
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             SymbolDisplayFormat.MinimallyQualifiedFormat.WithGenericsOptions(
                 SymbolDisplayFormat.MinimallyQualifiedFormat.GenericsOptions & ~SymbolDisplayGenericsOptions.IncludeTypeParameters);
 
-        protected AbstractSignatureHelpProvider()
+        protected SignatureHelpProvider()
         {
         }
 

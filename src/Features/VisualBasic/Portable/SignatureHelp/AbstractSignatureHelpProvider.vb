@@ -7,7 +7,7 @@ Imports Microsoft.CodeAnalysis.SignatureHelp
 Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
 
     Friend MustInherit Class AbstractVisualBasicSignatureHelpProvider
-        Inherits AbstractSignatureHelpProvider
+        Inherits SignatureHelpProvider
 
         Protected Shared Function SynthesizedParameter(s As String) As SymbolDisplayPart
             Return New SymbolDisplayPart(SymbolDisplayPartKind.ParameterName, Nothing, s)

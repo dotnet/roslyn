@@ -9,7 +9,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp
 {
-    internal abstract class AbstractCSharpSignatureHelpProvider : AbstractSignatureHelpProvider
+    internal abstract class AbstractCSharpSignatureHelpProvider : SignatureHelpProvider
     {
         protected AbstractCSharpSignatureHelpProvider()
         {
