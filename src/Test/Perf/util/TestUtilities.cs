@@ -27,9 +27,9 @@ namespace Roslyn.Test.Performance.Utilities
         /// For Eg: If SomeLibarayFile.cs calls this method and if the library is built is some build machine where SomeLibarayFile.cs is saved at
         /// Y:/Project/SomeLibarayFile.cs then when the library is used in any machine where there is no Y: drive then we will see errors saying
         /// invalid directory path. Also note that <param name="sourceFilePath"/> will be set to "Y:/Project/SomeLibarayFile.cs" and not set to
-        /// the path of the file from where the call to SomeLibarayFile.cs which in turn called <see cref="InitUtilities(string)"/>
+        /// the path of the file from where the call to SomeLibarayFile.cs which in turn called <see cref="InitUtilitiesFromCsx(string)"/>
         /// </summary>
-        public static void InitUtilities([CallerFilePath] string sourceFilePath = "")
+        public static void InitUtilitiesFromCsx([CallerFilePath] string sourceFilePath = "")
         {
             _myWorkingFile = sourceFilePath;
         }
@@ -39,7 +39,7 @@ namespace Roslyn.Test.Performance.Utilities
         {
             if (_myWorkingFile == null)
             {
-                throw new Exception("Tests must call InitUtilities before doing any path-dependent operations.");
+                throw new Exception("Tests must call InitUtilitiesFromCsx before doing any path-dependent operations.");
             }
             return Directory.GetParent(_myWorkingFile).FullName;
         }
@@ -72,7 +72,7 @@ namespace Roslyn.Test.Performance.Utilities
 
         /// Shells out, and if the process fails, log the error
         /// and quit the script.
-        /// NOTE: <param name="workingDirectory"/> should be set when called inside the library and not from csx. see <see cref="InitUtilities(string)"/>
+        /// NOTE: <param name="workingDirectory"/> should be set when called inside the library and not from csx. see <see cref="InitUtilitiesFromCsx(string)"/>
         /// for more information
         public static void ShellOutVital(
                 string file,
@@ -90,7 +90,7 @@ namespace Roslyn.Test.Performance.Utilities
             }
         }
 
-        /// NOTE: <param name="workingDirectory"/> should be set when called inside the library and not from csx. see <see cref="InitUtilities(string)"/>
+        /// NOTE: <param name="workingDirectory"/> should be set when called inside the library and not from csx. see <see cref="InitUtilitiesFromCsx(string)"/>
         /// for more information
         public static ProcessResult ShellOut(
                 string file,
