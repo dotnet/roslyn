@@ -312,8 +312,10 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     edit.Apply();
                 }
 
-                if (HistoryBuffer != null) {
-                    using (var edit = HistoryBuffer.CreateEdit(EditOptions.None, null, s_suppressPromptInjectionTag)) {
+                if (HistoryBuffer != null) 
+                {
+                    using (var edit = HistoryBuffer.CreateEdit(EditOptions.None, null, s_suppressPromptInjectionTag)) 
+                    {
                         edit.Delete(0, HistoryBuffer.CurrentSnapshot.Length);
                         edit.Apply();
                     }
@@ -643,15 +645,19 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 FinishCurrentSubmissionInput();
             }
 
-            /// <summary>Implements <see cref="IInteractiveWindow.AddToHistory"/>.</summary>
-            public void AddToHistory(string command) {
-                if (string.IsNullOrEmpty(command)) {
+            /// <summary>Implements <see cref="IInteractiveWindow2.AddToHistory"/>.</summary>
+            public void AddToHistory(string command) 
+            {
+                if (string.IsNullOrEmpty(command)) 
+                {
                     return;
                 }
 
-                if (HistoryBuffer == null) {
+                if (HistoryBuffer == null) 
+                {
                     IContentType inputContentType;
-                    if (!((IPropertyOwner)_window).Properties.TryGetProperty(typeof(IContentType), out inputContentType)) {
+                    if (!((IPropertyOwner)_window).Properties.TryGetProperty(typeof(IContentType), out inputContentType)) 
+                    {
                         inputContentType = _textBufferFactory.TextContentType;
                     }
 
@@ -661,10 +667,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 _buffer.Flush();
 
                 var start = HistoryBuffer.CurrentSnapshot.Length;
-                using (var edit = HistoryBuffer.CreateEdit(EditOptions.None, null, s_suppressPromptInjectionTag)) {
-                    if (!command.EndsWith(_lineBreakString)) {
+                using (var edit = HistoryBuffer.CreateEdit(EditOptions.None, null, s_suppressPromptInjectionTag)) 
+                {
+                    if (!command.EndsWith(_lineBreakString)) 
+                    {
                         edit.Insert(start, command + _lineBreakString);
-                    } else {
+                    } 
+                    else 
+                    {
                         edit.Insert(start, command);
                     }
                     edit.Apply();
@@ -676,7 +686,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
                 var sourceSpans = _projectionBuffer.CurrentSnapshot.GetSourceSpans();
                 int insertionIndex;
-                switch (State) {
+                switch (State) 
+                {
                     case State.Starting:
                     case State.Initializing:
                         throw new InvalidOperationException(InteractiveWindowResources.NotInitialized);
@@ -695,14 +706,18 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                         throw new ArgumentOutOfRangeException();
                 }
 
-                if (insertionIndex == -1) {
+                if (insertionIndex == -1) 
+                {
                     insertionIndex = 0;
                 }
                 
                 // If current output buffer span is empty, it is safe to add history span before it instead of creating a new output buffer span
-                if (_currentOutputProjectionSpan + 1 == insertionIndex && sourceSpans[_currentOutputProjectionSpan].IsEmpty) {
+                if (_currentOutputProjectionSpan + 1 == insertionIndex && sourceSpans[_currentOutputProjectionSpan].IsEmpty) 
+                {
                     insertionIndex--;
-                } else {
+                }
+                else 
+                {
                     NewOutputBuffer(insertionIndex);
                 }
 
@@ -3409,9 +3424,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 return ReplSpanKind.Input;
             }
 
-            private int IndexOfLastSpan(ReadOnlyCollection<SnapshotSpan> sourceSpans, ReplSpanKind spanKind) {
-                for (var i = sourceSpans.Count - 1; i >= 0; i--) {
-                    if (GetSpanKind(sourceSpans[i]) == spanKind) {
+            private int IndexOfLastSpan(ReadOnlyCollection<SnapshotSpan> sourceSpans, ReplSpanKind spanKind) 
+            {
+                for (var i = sourceSpans.Count - 1; i >= 0; i--) 
+                {
+                    if (GetSpanKind(sourceSpans[i]) == spanKind) 
+                    {
                         return i;
                     }
                 }

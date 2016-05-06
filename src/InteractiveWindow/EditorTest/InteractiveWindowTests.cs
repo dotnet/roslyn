@@ -1121,7 +1121,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         }
 
         [WpfFact]
-        public void AddToHistory_EmptyLine() {
+        public void AddToHistory_EmptyLine() 
+        {
             var original = new InteractiveWindowTextSnapshot(_testHost);
             Window.AddToHistory("");
 
@@ -1130,7 +1131,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         }
 
         [WpfFact]
-        public void AddToHistory_NewLine() {
+        public void AddToHistory_NewLine() 
+        {
             var original = new InteractiveWindowTextSnapshot(_testHost);
             Window.AddToHistory(Environment.NewLine);
 
@@ -1143,7 +1145,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         }
 
         [WpfFact]
-        public async Task AddToHistory_BetweenWrites() {
+        public async Task AddToHistory_BetweenWrites() 
+        {
             var original = new InteractiveWindowTextSnapshot(_testHost);
 
             await Task.Run(() => Window.WriteLine("a"));
@@ -1167,7 +1170,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         }
 
         [WpfFact]
-        public void AddToHistory_HasInput() {
+        public void AddToHistory_HasInput()
+        {
             var original = new InteractiveWindowTextSnapshot(_testHost);
 
             Window.Operations.TypeChar('a');
@@ -1282,11 +1286,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             }
         }
 
-        private class InteractiveWindowTextSnapshot {
+        private class InteractiveWindowTextSnapshot 
+        {
             private readonly ImmutableArray<SpanWithKind> _spans;
             private readonly string _fullText;
 
-            public InteractiveWindowTextSnapshot(InteractiveWindowTestHost host) {
+            public InteractiveWindowTextSnapshot(InteractiveWindowTestHost host)
+            {
                 var bufferFactory = host.ExportProvider.GetExportedValue<ITextBufferFactoryService>();
                 var projectionSnapshot = ((IProjectionBuffer) host.Window.TextView.TextBuffer).CurrentSnapshot;
 
@@ -1297,12 +1303,14 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
                     .ToImmutableArray();
             }
 
-            private InteractiveWindowTextSnapshot(string fullText, ImmutableArray<SpanWithKind> spans) {
+            private InteractiveWindowTextSnapshot(string fullText, ImmutableArray<SpanWithKind> spans) 
+            {
                 _fullText = fullText;
                 _spans = spans;
             }
 
-            public InteractiveWindowTextSnapshot AddToTheEnd(string text, ReplSpanKind kind) {
+            public InteractiveWindowTextSnapshot AddToTheEnd(string text, ReplSpanKind kind) 
+            {
                 var startIndex = _fullText.Length;
                 var fullText = _fullText + text;
                 var spans = _spans.Add(new SpanWithKind(startIndex, text.Length, kind));
@@ -1310,23 +1318,31 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
                 return new InteractiveWindowTextSnapshot(fullText, spans);
             }
 
-            public InteractiveWindowTextSnapshot InsertBeforeLastPrompt(string text, ReplSpanKind kind) {
+            public InteractiveWindowTextSnapshot InsertBeforeLastPrompt(string text, ReplSpanKind kind) 
+            {
                 var startIndex = _spans.LastOrDefault(s => s.Kind == ReplSpanKind.Prompt).Start;
                 return Insert(text, startIndex, kind);
             }
 
-            private InteractiveWindowTextSnapshot Insert(string text, int startIndex, ReplSpanKind kind) {
+            private InteractiveWindowTextSnapshot Insert(string text, int startIndex, ReplSpanKind kind) 
+            {
                 var length = text.Length;
                 var spansBuilder = ImmutableArray.CreateBuilder<SpanWithKind>(_spans.Length + 1);
 
                 var fullText = _fullText.Insert(startIndex, text);
-                foreach (var span in _spans) {
-                    if (span.Start < startIndex) {
+                foreach (var span in _spans) 
+                {
+                    if (span.Start < startIndex) 
+                    {
                         spansBuilder.Add(span);
-                    } else if (span.Start == startIndex) {
+                    }
+                    else if (span.Start == startIndex) 
+                    {
                         spansBuilder.Add(new SpanWithKind(startIndex, length, kind));
                         spansBuilder.Add(new SpanWithKind(span.Start + length, span.Length, span.Kind));
-                    } else {
+                    }
+                    else 
+                    {
                         spansBuilder.Add(new SpanWithKind(span.Start + length, span.Length, span.Kind));
                     }
                 }
@@ -1334,25 +1350,30 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
                 return new InteractiveWindowTextSnapshot(fullText, spansBuilder.ToImmutable());
             }
 
-            public static void AssertEqual(InteractiveWindowTextSnapshot expected, InteractiveWindowTextSnapshot actual) {
+            public static void AssertEqual(InteractiveWindowTextSnapshot expected, InteractiveWindowTextSnapshot actual) 
+            {
                 Assert.Equal(expected._fullText, actual._fullText);
                 Assert.Equal<SpanWithKind>(expected._spans, actual._spans);
             }
 
-            private static IEnumerable<SpanWithKind> GetSpanWithKind(SnapshotSpan snapshotSpan, IProjectionSnapshot projectionSnapshot, IInteractiveWindow window, IContentType inertContentType) {
+            private static IEnumerable<SpanWithKind> GetSpanWithKind(SnapshotSpan snapshotSpan, IProjectionSnapshot projectionSnapshot, IInteractiveWindow window, IContentType inertContentType) 
+            {
                 var spans = projectionSnapshot.MapFromSourceSnapshot(snapshotSpan);
                 var spanKind = GetSpanKind(snapshotSpan, window, inertContentType);
                 return spans.Where(s => s.Length > 0).Select(span => new SpanWithKind(span.Start, span.Length, spanKind));
             }
 
-            private static ReplSpanKind GetSpanKind(SnapshotSpan span, IInteractiveWindow window, IContentType inertContentType) {
+            private static ReplSpanKind GetSpanKind(SnapshotSpan span, IInteractiveWindow window, IContentType inertContentType) 
+            {
                 var textBuffer = span.Snapshot.TextBuffer;
 
-                if (textBuffer == window.OutputBuffer) {
+                if (textBuffer == window.OutputBuffer) 
+                {
                     return ReplSpanKind.Output;
                 }
 
-                if (textBuffer.ContentType == inertContentType) {
+                if (textBuffer.ContentType == inertContentType) 
+                {
                     return ReplSpanKind.Prompt;
                 }
 
@@ -1360,27 +1381,33 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             }
 
             [DebuggerDisplay("{Start}, {Length}, {Kind}")]
-            private struct SpanWithKind : IEquatable<SpanWithKind> {
+            private struct SpanWithKind : IEquatable<SpanWithKind> 
+            {
                 public int Start { get; }
                 public int Length { get; }
                 public ReplSpanKind Kind { get; }
 
-                public SpanWithKind(int start, int length, ReplSpanKind kind) {
+                public SpanWithKind(int start, int length, ReplSpanKind kind) 
+                {
                     Start = start;
                     Length = length;
                     Kind = kind;
                 }
 
-                public bool Equals(SpanWithKind other) {
+                public bool Equals(SpanWithKind other) 
+                {
                     return Start == other.Start && Length == other.Length && Kind == other.Kind;
                 }
 
-                public override bool Equals(object obj) {
+                public override bool Equals(object obj) 
+                {
                     return obj is SpanWithKind && Equals((SpanWithKind)obj);
                 }
 
-                public override int GetHashCode() {
-                    unchecked {
+                public override int GetHashCode() 
+                {
+                    unchecked 
+                    {
                         var hashCode = Start;
                         hashCode = (hashCode*397) ^ Length;
                         hashCode = (hashCode*397) ^ (int) Kind;
