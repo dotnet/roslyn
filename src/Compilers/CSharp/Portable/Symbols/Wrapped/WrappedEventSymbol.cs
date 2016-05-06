@@ -14,14 +14,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// That behavior should be carefully reviewed and derived type
     /// should override behavior as appropriate.
     /// </summary>
-    internal abstract class WrapperEventSymbol : EventSymbol
+    internal abstract class WrappedEventSymbol : EventSymbol
     {
         /// <summary>
         /// The underlying EventSymbol.
         /// </summary>
         protected readonly EventSymbol _underlyingEvent;
 
-        public WrapperEventSymbol(EventSymbol underlyingEvent)
+        public WrappedEventSymbol(EventSymbol underlyingEvent)
         {
             Debug.Assert((object)underlyingEvent != null);
             _underlyingEvent = underlyingEvent;

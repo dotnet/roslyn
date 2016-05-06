@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// A TupleTypeSymbol represents a tuple type, such as (int, byte) or (int a, long b).
     /// </summary>
-    internal sealed class TupleTypeSymbol : WrapperNamedTypeSymbol
+    internal sealed class TupleTypeSymbol : WrappedNamedTypeSymbol
     {
         /// <summary>
         /// Declaration location for this tuple type symbol
@@ -568,6 +568,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// The ValueTuple type for this tuple.
+        /// The type argument corresponding to the type of the extension field (VT[8].Rest),
+        /// which is at the 8th (one based) position is always a symbol for another tuple, 
+        /// rather than its underlying type.
         /// </summary>
         public override NamedTypeSymbol TupleUnderlyingType
         {
@@ -766,8 +769,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             break;
 
                         case SymbolKind.Property:
+                            if (currentNestingLevel == 0)
+                            {
+                                members.Add(new TuplePropertySymbol(this, ((PropertySymbol)member).AsMember(currentUnderlying)));
+                            }
+                            break;
+
                         case SymbolKind.Event:
-                            // PROTOTYPE(tuples): TODO
+                            if (currentNestingLevel == 0)
+                            {
+                                members.Add(new TupleEventSymbol(this, ((EventSymbol)member).AsMember(currentUnderlying)));
+                            }
                             break;
 
                         default:
@@ -850,47 +862,52 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        private SmallDictionary<Symbol, Symbol> UnderlyingDefinitionToMemberMap
+        internal SmallDictionary<Symbol, Symbol> UnderlyingDefinitionToMemberMap
         {
             get
             {
                 if (_lazyUnderlyingDefinitionToMemberMap == null)
                 {
-                    var map = new SmallDictionary<Symbol, Symbol>();
+                    var map = new SmallDictionary<Symbol, Symbol>(ReferenceEqualityComparer.Instance);
 
                     var underlyingDefinition = _underlyingType.OriginalDefinition;
                     var members = GetMembers();
-                    Symbol underlyingMemberDefinition;
 
-                    foreach (var member in members)
+                    // Go in reverse becaus we want members with default name, which precede the ones with
+                    // friendly names, to be in the map.  
+                    for (int i = members.Length - 1; i >= 0; i--) 
                     {
+                        var member = members[i];
                         switch (member.Kind)
                         {
                             case SymbolKind.Method:
-                                underlyingMemberDefinition = ((MethodSymbol)member).TupleUnderlyingMethod.OriginalDefinition;
+                                map.Add(((MethodSymbol)member).TupleUnderlyingMethod.OriginalDefinition, member);
                                 break;
 
                             case SymbolKind.Field:
-                                underlyingMemberDefinition = ((FieldSymbol)member).TupleUnderlyingField?.OriginalDefinition;
-                                break;
-
-                            case SymbolKind.NamedType:
-                                underlyingMemberDefinition = null;
+                                map[((FieldSymbol)member).TupleUnderlyingField?.OriginalDefinition] = member;
                                 break;
 
                             case SymbolKind.Property:
+                                map.Add(((PropertySymbol)member).TupleUnderlyingProperty.OriginalDefinition, member);
+                                break;
+
                             case SymbolKind.Event:
-                                // PROTOTYPE(tuples): TODO
-                                underlyingMemberDefinition = null;
+                                var underlyingEvent = ((EventSymbol)member).TupleUnderlyingEvent;
+                                var underlyingAssociatedField = underlyingEvent.AssociatedField;
+                                // The field is not part of the members list
+                                if ((object)underlyingAssociatedField != null)
+                                {
+                                    Debug.Assert((object)underlyingAssociatedField.ContainingSymbol == _underlyingType);
+                                    Debug.Assert(_underlyingType.GetMembers(underlyingAssociatedField.Name).IndexOf(underlyingAssociatedField) < 0);
+                                    map.Add(underlyingAssociatedField.OriginalDefinition, new TupleFieldSymbol(this, underlyingAssociatedField, -i - 1));
+                                }
+
+                                map.Add(underlyingEvent.OriginalDefinition, member);
                                 break;
 
                             default:
                                 throw ExceptionUtilities.UnexpectedValue(member.Kind);
-                        }
-
-                        if ((object)underlyingMemberDefinition != null && underlyingMemberDefinition.ContainingType == underlyingDefinition)
-                        {
-                            map.Add(underlyingMemberDefinition, member);
                         }
                     }
 
@@ -901,15 +918,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public Symbol GetTupleMemberSymbolForUnderlyingMember(Symbol underlyingMember)
+        public TMember GetTupleMemberSymbolForUnderlyingMember<TMember>(TMember underlyingMemberOpt) where TMember : Symbol
         {
-            underlyingMember = underlyingMember.OriginalDefinition;
-            if (underlyingMember.ContainingType == _underlyingType.OriginalDefinition)
+            if ((object)underlyingMemberOpt == null)
+            {
+                return null;
+            }
+
+            Symbol underlyingMemberDefinition = underlyingMemberOpt.OriginalDefinition;
+            if (underlyingMemberDefinition.ContainingType == _underlyingType.OriginalDefinition)
             {
                 Symbol result;
-                if (UnderlyingDefinitionToMemberMap.TryGetValue(underlyingMember, out result))
+                if (UnderlyingDefinitionToMemberMap.TryGetValue(underlyingMemberDefinition, out result))
                 {
-                    return result;
+                    return (TMember)result;
                 }
             }
 

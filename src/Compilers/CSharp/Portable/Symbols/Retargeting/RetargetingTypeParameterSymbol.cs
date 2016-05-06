@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
     /// It can retarget symbols for multiple assemblies at the same time.
     /// </summary>
     internal sealed class RetargetingTypeParameterSymbol
-        : WrapperTypeParameterSymbol
+        : WrappedTypeParameterSymbol
     {
         /// <summary>
         /// Owning RetargetingModuleSymbol.

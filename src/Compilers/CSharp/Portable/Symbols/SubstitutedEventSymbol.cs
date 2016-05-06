@@ -10,7 +10,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SubstitutedEventSymbol : WrapperEventSymbol
+    internal sealed class SubstitutedEventSymbol : WrappedEventSymbol
     {
         private readonly SubstitutedNamedTypeSymbol _containingType;
 

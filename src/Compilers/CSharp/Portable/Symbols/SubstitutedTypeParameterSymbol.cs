@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal class SubstitutedTypeParameterSymbol : WrapperTypeParameterSymbol
+    internal class SubstitutedTypeParameterSymbol : WrappedTypeParameterSymbol
     {
         private readonly Symbol _container;
         private readonly TypeMap _map;

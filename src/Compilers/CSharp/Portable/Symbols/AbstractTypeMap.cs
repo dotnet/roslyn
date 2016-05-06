@@ -139,10 +139,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             TypeWithModifiers result = SubstituteType(previous);
 
             // Make it a tuple if it became compatible with one.
-            if ((object)result.Type != null)
+            if ((object)result.Type != null && !previous.IsTupleCompatible())
             {
-                Debug.Assert(!previous.IsTupleCompatible());
-
                 var possiblyTuple = TupleTypeSymbol.TransformToTupleIfCompatible(result.Type);
                 if ((object)result.Type != possiblyTuple)
                 {

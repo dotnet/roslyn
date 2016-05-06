@@ -14,7 +14,7 @@ using Microsoft.CodeAnalysis.CSharp.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
 {
-    internal sealed class RetargetingEventSymbol : WrapperEventSymbol
+    internal sealed class RetargetingEventSymbol : WrappedEventSymbol
     {
         /// <summary>
         /// Owning RetargetingModuleSymbol.

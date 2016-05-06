@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     // C<X> is a ConstructedTypeSymbol.
     // C<X>.M<> is a SubstitutedMethodSymbol. It has parameters of types X and U.
     // C<X>.M<Y> is a ConstructedMethodSymbol.
-    internal class SubstitutedMethodSymbol : WrapperMethodSymbol
+    internal class SubstitutedMethodSymbol : WrappedMethodSymbol
     {
         private readonly NamedTypeSymbol _containingType;
         private readonly MethodSymbol _underlyingMethod;

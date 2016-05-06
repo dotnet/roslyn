@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var destTupleType = (TupleTypeSymbol)targetType;
                 // do not lose the original element names in the literal if different from names in the target
 
-                // PROTOTYPE(tuples): Come back to this, what about locations?
+                // Come back to this, what about locations? (https://github.com/dotnet/roslyn/issues/11013)
                 targetType = destTupleType.WithElementNames(sourceTuple.ArgumentNamesOpt);
             }
 

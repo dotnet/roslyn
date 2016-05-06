@@ -15,9 +15,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// That behavior should be carefully reviewed and derived type
     /// should override behavior as appropriate.
     /// </summary>
-    internal abstract class WrapperMethodSymbol : MethodSymbol
+    internal abstract class WrappedMethodSymbol : MethodSymbol
     {
-        public WrapperMethodSymbol()
+        public WrappedMethodSymbol()
         {
         }
 

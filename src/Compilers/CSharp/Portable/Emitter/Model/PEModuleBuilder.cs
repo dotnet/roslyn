@@ -766,10 +766,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             // Anonymous type being translated
             if (namedTypeSymbol.IsAnonymousType)
             {
+                Debug.Assert(!needDeclaration);
                 namedTypeSymbol = AnonymousTypeManager.TranslateAnonymousTypeSymbol(namedTypeSymbol);
             }
             else if (namedTypeSymbol.IsTupleType)
             {
+                Debug.Assert(!needDeclaration);
                 namedTypeSymbol = namedTypeSymbol.TupleUnderlyingType;
             }
 
@@ -1088,13 +1090,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             // Method of anonymous type being translated
             if (container.IsAnonymousType)
             {
+                Debug.Assert(!needDeclaration);
                 methodSymbol = AnonymousTypeManager.TranslateAnonymousTypeMethodSymbol(methodSymbol);
             }
             else if (methodSymbol.IsTupleMethod)
             {
+                Debug.Assert(!needDeclaration);
+                Debug.Assert(container.IsTupleType);
+                container = container.TupleUnderlyingType;
                 methodSymbol = methodSymbol.TupleUnderlyingMethod;
             }
 
+            Debug.Assert(!container.IsTupleType);
             Debug.Assert(methodSymbol.IsDefinitionOrDistinct());
 
             if (!methodSymbol.IsDefinition)

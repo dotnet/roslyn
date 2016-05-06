@@ -597,6 +597,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// If this is a tuple type symbol, returns the symbol for its underlying type.
         /// Otherwise, returns null.
+        /// The type argument corresponding to the type of the extension field (VT[8].Rest),
+        /// which is at the 8th (one based) position is always a symbol for another tuple, 
+        /// rather than its underlying type.
         /// </summary>
         public virtual NamedTypeSymbol TupleUnderlyingType
         {

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// That behavior should be carefully reviewed and derived type
     /// should override behavior as appropriate.
     /// </summary>
-    internal abstract class WrapperTypeParameterSymbol
+    internal abstract class WrappedTypeParameterSymbol
         : TypeParameterSymbol
     {
         /// <summary>
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         protected readonly TypeParameterSymbol _underlyingTypeParameter;
 
-        public WrapperTypeParameterSymbol(TypeParameterSymbol underlyingTypeParameter)
+        public WrappedTypeParameterSymbol(TypeParameterSymbol underlyingTypeParameter)
         {
             Debug.Assert((object)underlyingTypeParameter != null);
             _underlyingTypeParameter = underlyingTypeParameter;
