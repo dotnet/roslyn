@@ -2691,7 +2691,7 @@ public class Holder
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), Trait(Traits.Feature, Test.Utilities.Traits.Features.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
         public async Task Tuple()
         {
             await TestAsync(

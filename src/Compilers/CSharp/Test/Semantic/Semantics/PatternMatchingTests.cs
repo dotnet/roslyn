@@ -53,33 +53,18 @@ public class Vec
                 // (8,18): error CS8058: Feature 'digit separators' is experimental and unsupported; use '/features:digitSeparators' to enable.
                 //         int i2 = 23_554; // digit separators
                 Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "").WithArguments("digit separators", "digitSeparators").WithLocation(8, 18),
-                // (12,14): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
+                // (12,9): error CS8058: Feature 'local functions' is experimental and unsupported; use '/features:localFunctions' to enable.
                 //         int f() => 2;
-                Diagnostic(ErrorCode.ERR_BadVarDecl, "() => 2").WithLocation(12, 14),
-                // (12,14): error CS1003: Syntax error, '[' expected
-                //         int f() => 2;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(12, 14),
-                // (12,21): error CS1003: Syntax error, ']' expected
-                //         int f() => 2;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(12, 21),
-                // (12,22): error CS1513: } expected
-                //         int f() => 2;
-                Diagnostic(ErrorCode.ERR_RbraceExpected, "").WithLocation(12, 22),
-                // (13,22): error CS1525: Invalid expression term 'ref'
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "int f() => 2;").WithArguments("local functions", "localFunctions").WithLocation(12, 9),
+                // (13,9): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
                 //         ref int i3 = ref i1; // ref locals
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "ref").WithArguments("ref").WithLocation(13, 22),
-                // (13,22): error CS1003: Syntax error, ',' expected
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(13, 9),
+                // (13,22): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
                 //         ref int i3 = ref i1; // ref locals
-                Diagnostic(ErrorCode.ERR_SyntaxError, "ref").WithArguments(",", "ref").WithLocation(13, 22),
-                // (13,26): error CS1002: ; expected
-                //         ref int i3 = ref i1; // ref locals
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "i1").WithLocation(13, 26),
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(13, 22),
                 // (14,20): error CS8058: Feature 'pattern matching' is experimental and unsupported; use '/features:patterns' to enable.
                 //         string s = o is string k ? k : null; // pattern matching
                 Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "o is string k").WithArguments("pattern matching", "patterns").WithLocation(14, 20),
-                // (13,26): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
-                //         ref int i3 = ref i1; // ref locals
-                Diagnostic(ErrorCode.ERR_IllegalStatement, "i1").WithLocation(13, 26),
                 // (12,13): warning CS0168: The variable 'f' is declared but never used
                 //         int f() => 2;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(12, 13)

@@ -54,6 +54,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return options.WithFeature(MessageID.IDS_FeatureLocalFunctions.RequiredFeature(), "true");
         }
 
+        public static CSharpParseOptions WithRefsFeature(this CSharpParseOptions options)
+        {
+            return options.WithFeature(MessageID.IDS_FeatureRefLocalsReturns.RequiredFeature(), "true");
+        }
+
         public static CSharpParseOptions WithStrictFeature(this CSharpParseOptions options)
         {
             return options.WithFeature("strict", "true");

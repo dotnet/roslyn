@@ -2203,5 +2203,167 @@ class Foo : IFoo<Foo>
 }");
         }
 
+        [Fact]
+        public void RefReturn_CSharp6()
+        {
+            var text = @"
+class Program
+{
+    static ref int M()
+    {
+        return ref (new int[1])[0];
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+            comp.VerifyDiagnostics(
+                // (4,12): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+                //     static ref int M()
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(4, 12),
+                // (6,16): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+                //         return ref (new int[1])[0];
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(6, 16)
+                );
+        }
+
+        [Fact]
+        public void RefInLambda_CSharp6()
+        {
+            var text = @"
+class Program
+{
+    static ref int M()
+    {
+        var arr = new int[1]{40};
+
+        ref int N()
+        {
+            ref int NN(ref int arg) => ref arg;
+
+            ref var r = ref NN(ref arr[0]);
+            r += 2;
+
+            return ref r;
+        }
+
+        return ref N();
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+            comp.VerifyDiagnostics(
+                // (4,12): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+                //     static ref int M()
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(4, 12),
+                // (8,9): error CS8058: Feature 'local functions' is experimental and unsupported; use '/features:localFunctions' to enable.
+                //         ref int N()
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, @"ref int N()
+        {
+            ref int NN(ref int arg) => ref arg;
+
+            ref var r = ref NN(ref arr[0]);
+            r += 2;
+
+            return ref r;
+        }").WithArguments("local functions", "localFunctions").WithLocation(8, 9),
+                // (8,9): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+                //         ref int N()
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(8, 9),
+                // (10,13): error CS8058: Feature 'local functions' is experimental and unsupported; use '/features:localFunctions' to enable.
+                //             ref int NN(ref int arg) => ref arg;
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref int NN(ref int arg) => ref arg;").WithArguments("local functions", "localFunctions").WithLocation(10, 13),
+                // (10,13): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+                //             ref int NN(ref int arg) => ref arg;
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(10, 13),
+                // (10,40): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+                //             ref int NN(ref int arg) => ref arg;
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(10, 40),
+                // (12,13): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+                //             ref var r = ref NN(ref arr[0]);
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(12, 13),
+                // (12,25): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+                //             ref var r = ref NN(ref arr[0]);
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(12, 25),
+                // (15,20): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+                //             return ref r;
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(15, 20),
+                // (18,16): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+                //         return ref N();
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(18, 16)
+                );
+        }
+
+        [Fact]
+        public void RefDelegate_CSharp6()
+        {
+            var text = @"
+delegate ref int D();
+";
+
+            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+            comp.VerifyDiagnostics(
+                // (2,10): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+                // delegate ref int D();
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(2, 10)
+                );
+        }
+
+        [Fact]
+        public void RefInForStatement_CSharp6()
+        {
+            var text = @"
+class Program
+{
+    static int M(ref int d)
+    {
+        for (ref int a = ref d; ;) { }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+            comp.VerifyDiagnostics(
+                // (6,14): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+                //         for (ref int a = ref d; ;) { }
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(6, 14),
+                // (6,26): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+                //         for (ref int a = ref d; ;) { }
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(6, 26)
+                );
+        }
+
+        [Fact]
+        public void RefLambdaInferenceMethodArgument()
+        {
+            var text = @"
+delegate ref int D(int x);
+
+class C
+{
+    static void MD(D d) { }
+
+    static int i = 0;
+    static void M()
+    {
+        MD((x) => ref i);
+        MD(x => ref i);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+            comp.VerifyDiagnostics(
+                // (2,10): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+                // delegate ref int D(int x);
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(2, 10),
+                // (11,19): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+                //         MD((x) => ref i);
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(11, 19),
+                // (12,17): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+                //         MD(x => ref i);
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(12, 17)
+                );
+        }
     }
 }
