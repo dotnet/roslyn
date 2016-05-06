@@ -28,10 +28,6 @@ namespace Roslyn.Test.Performance.Utilities
             _scenarioGenerator = new ScenarioGenerator(scenarioPath);
             _verbose = verbose;
             _logger = logger;
-
-            // Since TraceManager.Setup() and few other functions use ShellOutVital,
-            // which requires the TestUtilities.InitUtilities() to be called
-            InitUtilities();
         }
 
         public bool HasWarmUpIteration
@@ -63,24 +59,24 @@ namespace Roslyn.Test.Performance.Utilities
 
         public void Setup()
         {
-            ShellOutVital(_cpcPath, "/Setup /DisableArchive", _verbose, _logger);
+            ShellOutVital(_cpcPath, "/Setup /DisableArchive", _verbose, _logger, workingDirectory: "");
         }
 
         public void Start()
         {
-            ShellOutVital(_cpcPath, "/Start /DisableArchive", _verbose, _logger);
+            ShellOutVital(_cpcPath, "/Start /DisableArchive", _verbose, _logger, workingDirectory: "");
         }
 
         public void Stop()
         {
             var scenariosXmlPath = Path.Combine(GetCPCDirectoryPath(), "scenarios.xml");
             var consumptionTempResultsPath = Path.Combine(GetCPCDirectoryPath(), "ConsumptionTempResults.xml");
-            ShellOutVital(_cpcPath, $"/Stop /DisableArchive /ScenarioPath=\"{scenariosXmlPath}\" /ConsumptionTempResultsPath=\"{consumptionTempResultsPath}\"", _verbose, _logger);
+            ShellOutVital(_cpcPath, $"/Stop /DisableArchive /ScenarioPath=\"{scenariosXmlPath}\" /ConsumptionTempResultsPath=\"{consumptionTempResultsPath}\"", _verbose, _logger, workingDirectory: "");
         }
 
         public void Cleanup()
         {
-            ShellOutVital(_cpcPath, "/Cleanup /DisableArchive", _verbose, _logger);
+            ShellOutVital(_cpcPath, "/Cleanup /DisableArchive", _verbose, _logger, workingDirectory: "");
         }
 
         public void StartScenarios()
