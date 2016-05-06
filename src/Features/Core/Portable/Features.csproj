@@ -558,6 +558,17 @@
     <Compile Include="Shared\Utilities\PatternMatch.cs" />
     <Compile Include="Shared\Utilities\PatternMatcher.cs" />
     <Compile Include="Shared\Utilities\PatternMatchKind.cs" />
+    <Compile Include="SignatureHelp\AbstractSignatureHelpProvider.cs" />
+    <Compile Include="SignatureHelp\AbstractSignatureHelpProvider.SymbolKeySignatureHelpItem.cs" />
+    <Compile Include="SignatureHelp\CommonSignatureHelpUtilities.cs" />
+    <Compile Include="SignatureHelp\ExportSignatureHelpProviderAttribute.cs" />
+    <Compile Include="SignatureHelp\ISignatureHelpProvider.cs" />
+    <Compile Include="SignatureHelp\SignatureHelpItem.cs" />
+    <Compile Include="SignatureHelp\SignatureHelpItems.cs" />
+    <Compile Include="SignatureHelp\SignatureHelpParameter.cs" />
+    <Compile Include="SignatureHelp\SignatureHelpState.cs" />
+    <Compile Include="SignatureHelp\SignatureHelpTriggerInfo.cs" />
+    <Compile Include="SignatureHelp\SignatureHelpTriggerReason.cs" />
     <Compile Include="Snippets\ISnippetInfoService.cs" />
     <Compile Include="Snippets\SnippetInfo.cs" />
     <Compile Include="SolutionCrawler\AbstractDocumentDifferenceService.cs" />

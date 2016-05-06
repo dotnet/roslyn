@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ExtractInterface
 
             if (_testDocument == null)
             {
-                throw new ArgumentException("markup does not contain a cursor position", "workspace");
+                throw new ArgumentException("markup does not contain a cursor position", nameof(workspace));
             }
 
             ExtractFromDocument = Workspace.CurrentSolution.GetDocument(_testDocument.Id);
