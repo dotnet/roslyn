@@ -873,7 +873,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var underlyingDefinition = _underlyingType.OriginalDefinition;
                     var members = GetMembers();
 
-                    // Go in reverse becaus we want members with default name, which precede the ones with
+                    // Go in reverse because we want members with default name, which precede the ones with
                     // friendly names, to be in the map.  
                     for (int i = members.Length - 1; i >= 0; i--) 
                     {
@@ -885,7 +885,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 break;
 
                             case SymbolKind.Field:
-                                map[((FieldSymbol)member).TupleUnderlyingField?.OriginalDefinition] = member;
+                                var tupleUnderlyingField = ((FieldSymbol)member).TupleUnderlyingField;
+                                if ((object)tupleUnderlyingField != null)
+                                {
+                                    map[tupleUnderlyingField.OriginalDefinition] = member;
+                                }
                                 break;
 
                             case SymbolKind.Property:

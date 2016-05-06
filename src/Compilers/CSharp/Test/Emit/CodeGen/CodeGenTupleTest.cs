@@ -2516,6 +2516,7 @@ class C
             Assert.False(mTuple.IsImplicitlyDeclared);
             Assert.Equal("Predefined type 'System.ValueTuple`2' is not defined or imported", mTuple.GetUseSiteDiagnostic().GetMessage(CultureInfo.InvariantCulture));
             Assert.Null(mTuple.BaseType);
+            Assert.False(((TupleTypeSymbol)mTuple).UnderlyingDefinitionToMemberMap.Any());
 
             var mFirst = (FieldSymbol)mTuple.GetMembers("first").Single();
 
@@ -8078,7 +8079,7 @@ class C
     }
 }
 
-class Test<T>
+class Test<T> where T : struct
 {
     public static ValueTuple<int, int, int, int, int, int, int, T> M1(ValueTuple<int, int, int, int, int, int, int, T> val)
     {
@@ -8110,7 +8111,7 @@ abstract class Test31<T>
     public abstract U M5<U>(U val) where U : T;
 }
 
-abstract class Test32<T> : Test31<ValueTuple<int, int, int, int, int, int, int, T>> { }
+abstract class Test32<T> : Test31<ValueTuple<int, int, int, int, int, int, int, T>>  where T : struct { }
 
 class Test33 : Test32<ValueTuple<int, int>>
 {
@@ -8122,7 +8123,7 @@ class Test33 : Test32<ValueTuple<int, int>>
 
 static class Test4
 {
-    public static ValueTuple<int, int, int, int, int, int, int, T> M6<T>(this T target, ValueTuple<int, int, int, int, int, int, int, T> val)
+    public static ValueTuple<int, int, int, int, int, int, int, T> M6<T>(this T target, ValueTuple<int, int, int, int, int, int, int, T> val) where T : struct
     {
         return val;
     }
@@ -8301,7 +8302,7 @@ unsafe class C
     }
 }
 
-unsafe class Test<T>
+unsafe class Test<T> where T : struct
 {
     public static event ValueTuple<int, int, int, int, int, int, int, T> E1;
 
@@ -8311,11 +8312,11 @@ unsafe class Test<T>
     }
 }
 
-class Test1<T> : ValueTuple<int, int, int, int, int, int, int, T>
+class Test1<T> : ValueTuple<int, int, int, int, int, int, int, T> where T : struct
 {
 }
 
-interface ITest2<T> : ValueTuple<int, int, int, int, int, int, int, T>
+interface ITest2<T> : ValueTuple<int, int, int, int, int, int, int, T> where T : struct
 {
 }
 ";
@@ -8472,8 +8473,8 @@ class C
                                         options: TestOptions.ReleaseExe,
                                         expectedOutput:
 @"(1, 2)
-(10, 20, 30, 40, 50, 60, 70, (80, 90))
-(100, 200, 300, 400, 500, 600, 700, (800, 900))
+(10, 20, 30, 40, 50, 60, 70, 80, 90)
+(100, 200, 300, 400, 500, 600, 700, 800, 900)
 ");
         }
 
