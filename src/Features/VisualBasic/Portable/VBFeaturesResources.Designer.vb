@@ -2304,6 +2304,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Properties.
+        '''</summary>
+        Friend ReadOnly Property Properties() As String
+            Get
+                Return ResourceManager.GetString("Properties", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to property accessor.
         '''</summary>
         Friend ReadOnly Property PropertyAccessor() As String

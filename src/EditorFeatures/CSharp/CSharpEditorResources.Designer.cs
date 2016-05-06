@@ -70,15 +70,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Properties.
-        /// </summary>
-        internal static string Properties {
-            get {
-                return ResourceManager.GetString("Properties", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Smart Indenting.
         /// </summary>
         internal static string SmartIndenting {
