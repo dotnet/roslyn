@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -1278,19 +1279,14 @@ public class Program
 }
 ";
 
-            try
+            ImmutableArray<Diagnostic> diagnostics = CreateCompilation(source + InstrumentationHelperSource).GetEmitDiagnostics(EmitOptions.Default.WithInstrument("Test.Flag"));
+            foreach (Diagnostic diagnostic in diagnostics)
             {
-                CompilationVerifier verifier = CompileWithNoFramework(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"));
-            }
-            catch (EmitException exception)
-            {
-                foreach (Diagnostic diagnostic in exception.Diagnostics)
+                if (diagnostic.Code == (int)ErrorCode.ERR_MissingPredefinedMember &&
+                    diagnostic.Arguments[0].Equals("System.Reflection.IntrospectionExtensions") && diagnostic.Arguments[1].Equals("GetTypeInfo"))
                 {
-                    if (diagnostic.ToString().Contains("Missing compiler required member 'System.Reflection.IntrospectionExtensions.GetTypeInfo'"))
-                    {
-                        return;
-                    }
-                }           
+                    return;
+                }
             }
 
             Assert.True(false);
@@ -1362,32 +1358,27 @@ public class Program
 }
 ";
 
-            try
+            ImmutableArray<Diagnostic> diagnostics = CreateCompilation(source + InstrumentationHelperSource).GetEmitDiagnostics(EmitOptions.Default.WithInstrument("Test.Flag"));
+            foreach (Diagnostic diagnostic in diagnostics)
             {
-                CompilationVerifier verifier = CompileWithNoFramework(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"));
-            }
-            catch (EmitException exception)
-            {
-                foreach (Diagnostic diagnostic in exception.Diagnostics)
+                if (diagnostic.Code == (int)ErrorCode.ERR_MissingPredefinedMember && 
+                    diagnostic.Arguments[0].Equals("System.Reflection.Module") && diagnostic.Arguments[1].Equals("ModuleVersionId"))
                 {
-                    if (diagnostic.ToString().Contains("Missing compiler required member 'System.Reflection.Module.ModuleVersionId'"))
-                    {
-                        return;
-                    }
+                    return;
                 }
             }
 
             Assert.True(false);
         }
+        
+        private CompilationVerifier CompileAndVerify(string source, EmitOptions emitOptions, string expectedOutput = null, CompilationOptions options = null)
+        {
+            return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: s_refs, options: options, emitOptions: emitOptions);
+        }
 
         private CompilationVerifier CompileWithNoFramework(string source, EmitOptions emitOptions, CompilationOptions options = null)
         {
             return base.CompileAndVerify(source, verify: false, options: options, emitOptions: emitOptions);
-        }
-
-        private CompilationVerifier CompileAndVerify(string source, EmitOptions emitOptions, string expectedOutput = null, CompilationOptions options = null)
-        {
-            return base.CompileAndVerify(source, expectedOutput: expectedOutput, additionalRefs: s_refs, options: options, emitOptions: emitOptions);
         }
 
         private static readonly MetadataReference[] s_refs = new[] { MscorlibRef_v4_0_30316_17626, SystemRef_v4_0_30319_17929, SystemCoreRef_v4_0_30319_17929 };
