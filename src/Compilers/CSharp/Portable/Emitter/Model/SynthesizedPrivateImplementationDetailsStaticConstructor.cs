@@ -77,19 +77,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // which is available via a GetTypeInfo extension method.
             //
             // The Portable mechanism also works on Desktop, but not on versions prior to 4.5, so there is no one single mechanism that work on all platforms.
+
             BoundExpression moduleReference;
             Symbol system_Type__Module = compilation.GetWellKnownTypeMember(WellKnownMember.System_Type__Module);
             if (system_Type__Module != null)
             {
                 // moduleReference = TypeOf(PrivateImplementationDetails).Module;
-
                 moduleReference = factory.Property(typeInstance, WellKnownMember.System_Type__Module);
             }
 
             else
             {
                 // moduleReference = ((System.Reflection.MemberInfo)System.Reflection.IntrospectionExtensions.GetTypeInfo(TypeOf(PrivateImplementationDetails))).Module;
-
                 moduleReference =
                     factory.Property(
                         factory.Convert(
@@ -103,7 +102,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             // MVID = moduleReference.ModuleVersionId;
-
              return
                 factory.Assignment(
                     factory.ModuleVersionId(),

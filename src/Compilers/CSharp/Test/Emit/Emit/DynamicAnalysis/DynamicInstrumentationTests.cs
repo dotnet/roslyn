@@ -395,8 +395,26 @@ True
   IL_0051:  ret
 }
 ";
+
+            string expectedPIDStaticConstructorIL = @"{
+  // Code size       43 (0x2b)
+  .maxstack  2
+  IL_0000:  ldtoken    Max Method Token Index
+  IL_0005:  ldc.i4.1
+  IL_0006:  add
+  IL_0007:  newarr     ""bool[]""
+  IL_000c:  stsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
+  IL_0011:  ldtoken    ""<PrivateImplementationDetails>""
+  IL_0016:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_001b:  callvirt   ""System.Reflection.Module System.Type.Module.get""
+  IL_0020:  callvirt   ""System.Guid System.Reflection.Module.ModuleVersionId.get""
+  IL_0025:  stsfld     ""System.Guid <PrivateImplementationDetails>.MVID""
+  IL_002a:  ret
+}";
+
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"), expectedOutput: expectedOutput);
             verifier.VerifyIL("Program.Barney", expectedBarneyIL);
+            verifier.VerifyIL(".cctor", expectedPIDStaticConstructorIL);
         }
 
         [Fact]
@@ -1078,7 +1096,7 @@ True
         }
 
         [Fact]
-        public void PortableCoverage()
+        public void PortableAnalysis()
         {
             string source = @"
 namespace System
@@ -1169,8 +1187,186 @@ public class Program
   IL_0033:  ldc.i4.3
   IL_0034:  ret
 }";
+
+            string expectedPIDStaticConstructorIL = @"{
+  // Code size       48 (0x30)
+  .maxstack  2
+  IL_0000:  ldtoken    Max Method Token Index
+  IL_0005:  ldc.i4.1
+  IL_0006:  add
+  IL_0007:  newarr     ""bool[]""
+  IL_000c:  stsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
+  IL_0011:  ldtoken    ""<PrivateImplementationDetails>""
+  IL_0016:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_001b:  call       ""System.Reflection.TypeInfo System.Reflection.IntrospectionExtensions.GetTypeInfo(System.Type)""
+  IL_0020:  callvirt   ""System.Reflection.Module System.Reflection.MemberInfo.Module.get""
+  IL_0025:  callvirt   ""System.Guid System.Reflection.Module.ModuleVersionId.get""
+  IL_002a:  stsfld     ""System.Guid <PrivateImplementationDetails>.MVID""
+  IL_002f:  ret
+}";
+
             CompilationVerifier verifier = CompileWithNoFramework(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"));
             verifier.VerifyIL("Program.TestMain", expectedTestMainIL);
+            verifier.VerifyIL(".cctor", expectedPIDStaticConstructorIL);
+        }
+
+        [Fact]
+        public void MissingMethodNeededForAnalysis()
+        {
+            string source = @"
+namespace System
+{
+    public class Object { }  
+    public struct Int32 { }  
+    public struct Boolean { }  
+    public class String { }  
+    public class Exception { }  
+    public class ValueType { }  
+    public class Enum { }  
+    public struct Void { }  
+    public class Guid { }
+    public struct RuntimeTypeHandle { }
+
+    public class Type
+    {
+        public static Type GetTypeFromHandle(RuntimeTypeHandle handle) { return new Type(); }
+    }
+}
+
+public class Console
+{
+    public static void WriteLine(string s) { }
+    public static void WriteLine(int i) { }
+    public static void WriteLine(bool b) { }
+}
+
+namespace System.Reflection
+{
+    public class MemberInfo
+    {
+        public virtual Module Module => new Module();
+    }
+
+    public class TypeInfo : MemberInfo
+    {
+    }
+
+    public class Module
+    {
+        public virtual Guid ModuleVersionId => new Guid();
+    }
+
+    public static class IntrospectionExtensions
+    {
+        // public static TypeInfo GetTypeInfo(System.Type t) { return new TypeInfo(); }
+    }
+}
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        TestMain();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+    }
+
+    static int TestMain()
+    {
+        return 3;
+    }
+}
+";
+
+            try
+            {
+                CompilationVerifier verifier = CompileWithNoFramework(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"));
+            }
+            catch (SyntheticBoundNodeFactory.MissingPredefinedMember missing)
+            {
+                Assert.True(missing.Diagnostic.ToString().Contains("IntrospectionExtensions.GetTypeInfo"));
+                return;                
+            }
+
+            Assert.True(false);
+        }
+
+        public void MissingPropertyNeededForAnalysis()
+        {
+            string source = @"
+namespace System
+{
+    public class Object { }  
+    public struct Int32 { }  
+    public struct Boolean { }  
+    public class String { }  
+    public class Exception { }  
+    public class ValueType { }  
+    public class Enum { }  
+    public struct Void { }  
+    public class Guid { }
+    public struct RuntimeTypeHandle { }
+
+    public class Type
+    {
+        public static Type GetTypeFromHandle(RuntimeTypeHandle handle) { return new Type(); }
+    }
+}
+
+public class Console
+{
+    public static void WriteLine(string s) { }
+    public static void WriteLine(int i) { }
+    public static void WriteLine(bool b) { }
+}
+
+namespace System.Reflection
+{
+    public class MemberInfo
+    {
+        public virtual Module Module => new Module();
+    }
+
+    public class TypeInfo : MemberInfo
+    {
+    }
+
+    public class Module
+    {
+        // public virtual Guid ModuleVersionId => new Guid();
+    }
+
+    public static class IntrospectionExtensions
+    {
+        public static TypeInfo GetTypeInfo(System.Type t) { return new TypeInfo(); }
+    }
+}
+
+public class Program
+{
+    public static void Main(string[] args)
+    {
+        TestMain();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+    }
+
+    static int TestMain()
+    {
+        return 3;
+    }
+}
+";
+
+            try
+            {
+                CompilationVerifier verifier = CompileWithNoFramework(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"));
+            }
+            catch (SyntheticBoundNodeFactory.MissingPredefinedMember missing)
+            {
+                Assert.True(missing.Diagnostic.ToString().Contains("Module.ModuleVersionId"));
+                return;
+            }
+
+            Assert.True(false);
         }
 
         private CompilationVerifier CompileWithNoFramework(string source, EmitOptions emitOptions, CompilationOptions options = null)
