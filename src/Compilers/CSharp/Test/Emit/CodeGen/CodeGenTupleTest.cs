@@ -13,7 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
 {
-    [Trait(Traits.Feature, Traits.Features.Tuples)]
+    [CompilerTrait(CompilerFeature.Tuples)]
     public class CodeGenTupleTests : CSharpTestBase
     {
         private static readonly string trivial2uple =
@@ -4246,7 +4246,6 @@ class C
 System.String
 w
 ");
-
         }
 
         [Fact]
@@ -4493,9 +4492,33 @@ class D : C, I<(int a, int b), (int c, int d)>
         }
 
         [Fact]
-        public void TupleTypeWithPatternIs()
+        public void TupleWithoutFeatureFlag()
         {
             var source = @"
+class C
+{
+    static void Main()
+    {
+        (int, int) x = (1, 1);
+    }
+}
+" + trivial2uple;
+
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8058: Feature 'tuples' is experimental and unsupported; use '/features:tuples' to enable.
+                //         (int, int) x = (1, 1);
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int, int)").WithArguments("tuples", "tuples").WithLocation(6, 9),
+                // (6,24): error CS8058: Feature 'tuples' is experimental and unsupported; use '/features:tuples' to enable.
+                //         (int, int) x = (1, 1);
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(1, 1)").WithArguments("tuples", "tuples").WithLocation(6, 24)
+                );
+        }
+
+        [Fact]
+    public void TupleTypeWithPatternIs()
+    {
+        var source = @"
 class C
 {
     void Match(object o)
@@ -4505,7 +4528,7 @@ class C
 }
 " + trivial2uple;
 
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature().WithPatternsFeature());
+        var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature().WithPatternsFeature());
             comp.VerifyDiagnostics(
                 // (6,19): error CS1525: Invalid expression term 'int'
                 //         if (o is (int, int) t)
@@ -4529,6 +4552,33 @@ class C
         }
 
         [Fact]
+        public void TupleAsStatement()
+        {
+            var source = @"
+class C
+{
+    void M(int x)
+    {
+        (x, x);
+    }
+}
+" + trivial2uple;
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // (6,15): error CS1001: Identifier expected
+                //         (x, x);
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(6, 15),
+                // (6,10): error CS0118: 'x' is a variable but is used like a type
+                //         (x, x);
+                Diagnostic(ErrorCode.ERR_BadSKknown, "x").WithArguments("x", "variable", "type").WithLocation(6, 10),
+                // (6,13): error CS0118: 'x' is a variable but is used like a type
+                //         (x, x);
+                Diagnostic(ErrorCode.ERR_BadSKknown, "x").WithArguments("x", "variable", "type").WithLocation(6, 13)
+                );
+        }
+
+        [Fact]
         public void TupleTypeWithPatternIs2()
         {
             var source = @"
@@ -4540,6 +4590,7 @@ class C
     }
 }
 " + trivial2uple;
+
 
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature().WithPatternsFeature());
             comp.VerifyDiagnostics(
@@ -4652,6 +4703,26 @@ class C
                 //             case (1, 1) t: return;
                 Diagnostic(ErrorCode.WRN_UnreferencedLabel, "t").WithLocation(7, 25)
                );
+        }
+
+        [Fact]
+        public void TupleAsStatement2()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        (1, 1);
+    }
+}
+" + trivial2uple;
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                //         (1, 1);
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "(1, 1)").WithLocation(6, 9)
+                );
         }
     }
 }
