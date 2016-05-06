@@ -582,12 +582,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Call(null, method, args);
         }
 
-        public BoundExpression StaticCall(TypeSymbol receiver, WellKnownMember method, params BoundExpression[] args)
+        public BoundExpression StaticCall(WellKnownMember method, params BoundExpression[] args)
         {
             MethodSymbol methodSymbol = WellKnownMethod(method);
-            Debug.Assert(methodSymbol.IsStatic);
-            Debug.Assert(receiver.GetMembers(methodSymbol.Name).OfType<MethodSymbol>().Contains(methodSymbol));
             Binder.ReportUseSiteDiagnostics(methodSymbol, Diagnostics, Syntax);
+            Debug.Assert(methodSymbol.IsStatic);
             return Call(null, methodSymbol, args);
         }
 

@@ -40,20 +40,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(payloadRootFields.Count > 0);
 
             ArrayBuilder<BoundStatement> body = ArrayBuilder<BoundStatement>.GetInstance(2 + payloadRootFields.Count);
-            foreach (KeyValuePair<int, InstrumentationPayloadRootField> payloadRoot in payloadRootFields.OrderBy(analysis => analysis.Key))
+            try
             {
-                int analysisKind = payloadRoot.Key;
-                ArrayTypeSymbol payloadArrayType = (ArrayTypeSymbol)payloadRoot.Value.Type;
+                foreach (KeyValuePair<int, InstrumentationPayloadRootField> payloadRoot in payloadRootFields.OrderBy(analysis => analysis.Key))
+                {
+                    int analysisKind = payloadRoot.Key;
+                    ArrayTypeSymbol payloadArrayType = (ArrayTypeSymbol)payloadRoot.Value.Type;
 
-                BoundStatement payloadInitialization =
-                    factory.Assignment(
-                        factory.InstrumentationPayloadRoot(analysisKind, payloadArrayType),
-                        factory.Array(payloadArrayType.ElementType, factory.Binary(BinaryOperatorKind.Addition, factory.SpecialType(SpecialType.System_Int32), factory.MaximumMethodDefIndex(), factory.Literal(1))));
-                body.Add(payloadInitialization);
+                    BoundStatement payloadInitialization =
+                        factory.Assignment(
+                            factory.InstrumentationPayloadRoot(analysisKind, payloadArrayType),
+                            factory.Array(payloadArrayType.ElementType, factory.Binary(BinaryOperatorKind.Addition, factory.SpecialType(SpecialType.System_Int32), factory.MaximumMethodDefIndex(), factory.Literal(1))));
+                    body.Add(payloadInitialization);
+                }
+
+                // Initialize the module version ID (MVID) field. Dynamic instrumentation requires the MVID of the executing module, and this field makes that accessible.
+                body.Add(InitializeMVID(factory));
             }
-
-            // Initialize the module version ID (MVID) field. Dynamic instrumentation requires the MVID of the executing module, and this field makes that accessible.
-            body.Add(InitializeMVID(factory, diagnostics));
+            catch (SyntheticBoundNodeFactory.MissingPredefinedMember missing)
+            {
+                diagnostics.Add(missing.Diagnostic);
+            }
 
             BoundStatement returnStatement = factory.Return();
             body.Add(returnStatement);
@@ -61,7 +68,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             factory.CloseMethod(factory.Block(body.ToImmutableAndFree()));
         }
 
-        private BoundStatement InitializeMVID(SyntheticBoundNodeFactory factory, DiagnosticBag diagnostics)
+        private static BoundStatement InitializeMVID(SyntheticBoundNodeFactory factory)
         {
             CSharpCompilation compilation = factory.Compilation;
             CSharpSyntaxNode syntax = factory.Syntax;
@@ -77,6 +84,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             //
             // The Portable mechanism also works on Desktop, but not on versions prior to 4.5, so there is no one single mechanism that work on all platforms.
 
+            // Diagnostics related to the site-specific uses of well-known members are reported by the bound node factory, so there
+            // are no diagnostic checks here.
+
             BoundExpression moduleReference;
             Symbol system_Type__Module = compilation.GetWellKnownTypeMember(WellKnownMember.System_Type__Module);
             if (system_Type__Module != null)
@@ -84,7 +94,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // moduleReference = TypeOf(PrivateImplementationDetails).Module;
                 moduleReference = factory.Property(typeInstance, WellKnownMember.System_Type__Module);
             }
-
             else
             {
                 // moduleReference = ((System.Reflection.MemberInfo)System.Reflection.IntrospectionExtensions.GetTypeInfo(TypeOf(PrivateImplementationDetails))).Module;
@@ -93,7 +102,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         factory.Convert(
                             factory.WellKnownType(WellKnownType.System_Reflection_MemberInfo),
                             factory.StaticCall(
-                                factory.WellKnownType(WellKnownType.System_Reflection_IntrospectionExtensions),
                                 WellKnownMember.System_Reflection_IntrospectionExtensions__GetTypeInfo,
                                 typeInstance),
                             ConversionKind.ImplicitReference),

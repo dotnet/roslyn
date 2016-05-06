@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.DynamicAnalysis.UnitTests
@@ -1281,10 +1282,15 @@ public class Program
             {
                 CompilationVerifier verifier = CompileWithNoFramework(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"));
             }
-            catch (SyntheticBoundNodeFactory.MissingPredefinedMember missing)
+            catch (EmitException exception)
             {
-                Assert.True(missing.Diagnostic.ToString().Contains("IntrospectionExtensions.GetTypeInfo"));
-                return;                
+                foreach (Diagnostic diagnostic in exception.Diagnostics)
+                {
+                    if (diagnostic.ToString().Contains("Missing compiler required member 'System.Reflection.IntrospectionExtensions.GetTypeInfo'"))
+                    {
+                        return;
+                    }
+                }           
             }
 
             Assert.True(false);
@@ -1360,10 +1366,15 @@ public class Program
             {
                 CompilationVerifier verifier = CompileWithNoFramework(source + InstrumentationHelperSource, emitOptions: EmitOptions.Default.WithInstrument("Test.Flag"));
             }
-            catch (SyntheticBoundNodeFactory.MissingPredefinedMember missing)
+            catch (EmitException exception)
             {
-                Assert.True(missing.Diagnostic.ToString().Contains("Module.ModuleVersionId"));
-                return;
+                foreach (Diagnostic diagnostic in exception.Diagnostics)
+                {
+                    if (diagnostic.ToString().Contains("Missing compiler required member 'System.Reflection.Module.ModuleVersionId'"))
+                    {
+                        return;
+                    }
+                }
             }
 
             Assert.True(false);
