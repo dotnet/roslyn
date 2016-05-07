@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
@@ -9,17 +10,17 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
-    internal sealed class SubstitutedEventSymbol : EventSymbol
+    internal sealed class SubstitutedEventSymbol : WrappedEventSymbol
     {
-        private readonly EventSymbol _originalDefinition;
         private readonly SubstitutedNamedTypeSymbol _containingType;
 
         private TypeSymbol _lazyType;
 
         internal SubstitutedEventSymbol(SubstitutedNamedTypeSymbol containingType, EventSymbol originalDefinition)
+            : base(originalDefinition)
         {
+            Debug.Assert(originalDefinition.IsDefinition);
             _containingType = containingType;
-            _originalDefinition = originalDefinition;
         }
 
         public override TypeSymbol Type
@@ -28,29 +29,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if ((object)_lazyType == null)
                 {
-                    Interlocked.CompareExchange(ref _lazyType, _containingType.TypeSubstitution.SubstituteType(_originalDefinition.Type).Type, null);
+                    Interlocked.CompareExchange(ref _lazyType, _containingType.TypeSubstitution.SubstituteTypeWithTupleUnification(OriginalDefinition.Type).Type, null);
                 }
 
                 return _lazyType;
             }
-        }
-
-        public override string Name
-        {
-            get
-            {
-                return _originalDefinition.Name;
-            }
-        }
-
-        public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            return _originalDefinition.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
-        }
-
-        internal override bool HasSpecialName
-        {
-            get { return _originalDefinition.HasSpecialName; }
         }
 
         public override Symbol ContainingSymbol
@@ -65,82 +48,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _originalDefinition;
-            }
-        }
-
-        public override ImmutableArray<Location> Locations
-        {
-            get
-            {
-                return _originalDefinition.Locations;
-            }
-        }
-
-        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
-        {
-            get
-            {
-                return _originalDefinition.DeclaringSyntaxReferences;
+                return _underlyingEvent;
             }
         }
 
         public override ImmutableArray<CSharpAttributeData> GetAttributes()
         {
-            return _originalDefinition.GetAttributes();
-        }
-
-        public override bool IsStatic
-        {
-            get
-            {
-                return _originalDefinition.IsStatic;
-            }
-        }
-
-        public override bool IsExtern
-        {
-            get { return _originalDefinition.IsExtern; }
-        }
-
-        public override bool IsSealed
-        {
-            get { return _originalDefinition.IsSealed; }
-        }
-
-        public override bool IsAbstract
-        {
-            get { return _originalDefinition.IsAbstract; }
-        }
-
-        public override bool IsVirtual
-        {
-            get { return _originalDefinition.IsVirtual; }
-        }
-
-        public override bool IsOverride
-        {
-            get { return _originalDefinition.IsOverride; }
-        }
-
-        internal override ObsoleteAttributeData ObsoleteAttributeData
-        {
-            get { return _originalDefinition.ObsoleteAttributeData; }
-        }
-
-        public override bool IsImplicitlyDeclared
-        {
-            get
-            {
-                return _originalDefinition.IsImplicitlyDeclared;
-            }
+            return OriginalDefinition.GetAttributes();
         }
 
         public override MethodSymbol AddMethod
         {
             get
             {
-                MethodSymbol originalAddMethod = _originalDefinition.AddMethod;
+                MethodSymbol originalAddMethod = OriginalDefinition.AddMethod;
                 return (object)originalAddMethod == null ? null : originalAddMethod.AsMember(_containingType);
             }
         }
@@ -149,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                MethodSymbol originalRemoveMethod = _originalDefinition.RemoveMethod;
+                MethodSymbol originalRemoveMethod = OriginalDefinition.RemoveMethod;
                 return (object)originalRemoveMethod == null ? null : originalRemoveMethod.AsMember(_containingType);
             }
         }
@@ -158,14 +79,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                FieldSymbol originalAssociatedField = _originalDefinition.AssociatedField;
+                FieldSymbol originalAssociatedField = OriginalDefinition.AssociatedField;
                 return (object)originalAssociatedField == null ? null : originalAssociatedField.AsMember(_containingType);
             }
         }
 
         internal override bool IsExplicitInterfaceImplementation
         {
-            get { return _originalDefinition.IsExplicitInterfaceImplementation; }
+            get { return OriginalDefinition.IsExplicitInterfaceImplementation; }
         }
 
         //we want to compute this lazily since it may be expensive for the underlying symbol
@@ -181,7 +102,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 {
                     ImmutableInterlocked.InterlockedCompareExchange(
                         ref _lazyExplicitInterfaceImplementations,
-                        ExplicitInterfaceHelpers.SubstituteExplicitInterfaceImplementations(_originalDefinition.ExplicitInterfaceImplementations, _containingType.TypeSubstitution),
+                        ExplicitInterfaceHelpers.SubstituteExplicitInterfaceImplementations(OriginalDefinition.ExplicitInterfaceImplementations, _containingType.TypeSubstitution),
                         default(ImmutableArray<EventSymbol>));
                 }
                 return _lazyExplicitInterfaceImplementations;
@@ -190,15 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal override bool MustCallMethodsDirectly
         {
-            get { return _originalDefinition.MustCallMethodsDirectly; }
-        }
-
-        public override Accessibility DeclaredAccessibility
-        {
-            get
-            {
-                return _originalDefinition.DeclaredAccessibility;
-            }
+            get { return OriginalDefinition.MustCallMethodsDirectly; }
         }
 
         internal override OverriddenOrHiddenMembersResult OverriddenOrHiddenMembers
@@ -221,7 +134,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // from the original definition, in case the type has changed.  However, is should
                 // never be the case that providing type arguments changes a WinRT event to a 
                 // non-WinRT event or vice versa, so we'll delegate to the original definition.
-                return _originalDefinition.IsWindowsRuntimeEvent;
+                return OriginalDefinition.IsWindowsRuntimeEvent;
             }
         }
     }

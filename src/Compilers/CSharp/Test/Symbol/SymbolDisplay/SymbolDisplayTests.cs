@@ -4479,7 +4479,7 @@ class C<T> { }";
             Assert.True(new FormattedSymbol(sA, f1).GetHashCode().Equals(new FormattedSymbol(sA, f1).GetHashCode()));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Tuples)]
+        [Fact, CompilerTrait(CompilerFeature.Tuples)]
         public void Tuple()
         {
             var text = @"
@@ -4511,7 +4511,7 @@ public class C
                 SymbolDisplayPartKind.FieldName);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Tuples)]
+        [Fact, CompilerTrait(CompilerFeature.Tuples)]
         public void TupleWithNames()
         {
             var text = @"
@@ -4547,7 +4547,7 @@ public class C
                 SymbolDisplayPartKind.FieldName);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Tuples)]
+        [Fact, CompilerTrait(CompilerFeature.Tuples)]
         public void LongTupleWithSpecialTypes()
         {
             var text = @"
@@ -4599,7 +4599,7 @@ public class C
                 SymbolDisplayPartKind.FieldName);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Tuples)]
+        [Fact, CompilerTrait(CompilerFeature.Tuples)]
         public void TupleProperty()
         {
             var text = @"
@@ -4646,6 +4646,8 @@ class C
             public ImmutableArray<string> TupleElementNames { get; set; }
 
             public ImmutableArray<ITypeSymbol> TupleElementTypes { get; set; }
+
+            public INamedTypeSymbol TupleUnderlyingType { get; set; }
 
             public ImmutableArray<SymbolDisplayPart> ToDisplayParts(SymbolDisplayFormat format = null)
             {
@@ -5138,7 +5140,7 @@ class C
             #endregion
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Tuples)]
+        [Fact, CompilerTrait(CompilerFeature.Tuples)]
         public void DisplayFakeTupleTypeSymbol()
         {
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef });
@@ -5148,6 +5150,7 @@ class C
             var symbolWithNames = new FakeTupleTypeSymbol();
             symbolWithNames.TupleElementTypes = ImmutableArray.Create(intType, stringType);
             symbolWithNames.TupleElementNames = ImmutableArray.Create("Alice", "Bob");
+            symbolWithNames.TupleUnderlyingType = ((INamedTypeSymbol)comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2)).Construct(intType, stringType);
 
             var descriptionWithNames = symbolWithNames.ToDisplayParts();
 
@@ -5166,6 +5169,7 @@ class C
 
             var symbolWithoutNames = new FakeTupleTypeSymbol();
             symbolWithoutNames.TupleElementTypes = ImmutableArray.Create(intType, stringType);
+            symbolWithoutNames.TupleUnderlyingType = symbolWithNames.TupleUnderlyingType;
 
             var descriptionWithoutNames = symbolWithoutNames.ToDisplayParts();
 

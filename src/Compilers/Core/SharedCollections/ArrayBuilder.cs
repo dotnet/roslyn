@@ -147,6 +147,11 @@ namespace Microsoft.CodeAnalysis
         {
             return _builder.IndexOf(item);
         }
+        
+        public int IndexOf(T item, IEqualityComparer<T> equalityComparer)
+        {
+            return _builder.IndexOf(item, 0, _builder.Count, equalityComparer);
+        }
 
         public int IndexOf(T item, int startIndex, int count)
         {

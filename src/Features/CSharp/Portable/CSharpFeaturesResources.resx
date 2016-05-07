@@ -440,6 +440,9 @@
   <data name="DelegateInvocationCanBeSimplified" xml:space="preserve">
     <value>Delegate invocation can be simplified.</value>
   </data>
+  <data name="Properties" xml:space="preserve">
+    <value>Properties</value>
+  </data>
   <data name="UseExplicitType" xml:space="preserve">
     <value>Use explicit type instead of 'var'</value>
   </data>

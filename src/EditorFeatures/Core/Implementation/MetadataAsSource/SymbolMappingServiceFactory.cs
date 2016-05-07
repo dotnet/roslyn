@@ -26,9 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.MetadataAsSource
                 var workspace = document.Project.Solution.Workspace as MetadataAsSourceWorkspace;
                 if (workspace == null)
                 {
-                    throw new ArgumentException(
-                        EditorFeaturesResources.DocumentMustBeContainedInWorkspace,
-                        "document");
+                    throw new ArgumentException(EditorFeaturesResources.DocumentMustBeContainedInWorkspace, nameof(document));
                 }
 
                 return workspace.FileService.MapSymbolAsync(document, symbolId, cancellationToken);

@@ -833,7 +833,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
             }
             else
             {
-                throw new ArgumentException(ServicesVSResources.InvalidAccess, "access");
+                throw new ArgumentException(ServicesVSResources.InvalidAccess, nameof(access));
             }
         }
 

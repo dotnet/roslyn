@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundNode RewriteTupleCreationExpression(BoundTupleExpression node, ImmutableArray<BoundExpression> rewrittenArguments)
         {
-            NamedTypeSymbol underlyingTupleType = ((TupleTypeSymbol)node.Type).UnderlyingTupleType;
+            NamedTypeSymbol underlyingTupleType = node.Type.TupleUnderlyingType;
 
             ArrayBuilder<NamedTypeSymbol> underlyingTupleTypeChain = ArrayBuilder<NamedTypeSymbol>.GetInstance();
             TupleTypeSymbol.GetUnderlyingTypeChain(underlyingTupleType, underlyingTupleTypeChain);
@@ -45,7 +45,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                                               smallestType.Arity);
                 var smallestCtor = (MethodSymbol)TupleTypeSymbol.GetWellKnownMemberInType(smallestType.OriginalDefinition,
                                                                                             TupleTypeSymbol.GetTupleCtor(smallestType.Arity),
-                                                                                            _compilation.Assembly,
                                                                                             _diagnostics,
                                                                                             node.Syntax);
                 if ((object)smallestCtor == null)
@@ -61,7 +60,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     NamedTypeSymbol tuple8Type = underlyingTupleTypeChain.Peek();
                     var tuple8Ctor = (MethodSymbol)TupleTypeSymbol.GetWellKnownMemberInType(tuple8Type.OriginalDefinition,
                                                                                             TupleTypeSymbol.GetTupleCtor(TupleTypeSymbol.RestPosition),
-                                                                                            _compilation.Assembly,
                                                                                             _diagnostics,
                                                                                             node.Syntax);
                     if ((object)tuple8Ctor == null)

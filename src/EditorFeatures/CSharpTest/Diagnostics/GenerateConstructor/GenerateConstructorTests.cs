@@ -1,13 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateConstructor;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -784,6 +783,94 @@ class C
         return [|M|](i, b);
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task Tuple()
+        {
+            await TestAsync(
+@"class C { void M() { new [|C|]((1, ""hello""), true); } }",
+@"class C { private (int, string) p; private bool v; public C((int, string) p, bool v) { this.p = p; this.v = v; } void M() { new C((1, ""hello""), true); } }",
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TupleWithNames()
+        {
+            await TestAsync(
+@"class C { void M() { new [|C|]((a: 1, b: ""hello"")); } }",
+@"class C { private (int a, string b) p; public C((int a, string b) p) { this.p = p; } void M() { new C((a: 1, b: ""hello"")); } }",
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TupleWithOneName()
+        {
+            await TestMissingAsync(@"class C { void M() { new [|C|]((a: 1, ""hello"")); } }",
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TupleAndExistingField()
+        {
+            await TestAsync(
+@"class C { void M() { new [|D(existing: (1, ""hello""))|]; } } class D { private (int, string) existing; }",
+@"class C { void M() { new D(existing: (1, ""hello"")); } } class D { private (int, string) existing; public D((int, string) existing) { this.existing = existing; } }",
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TupleWithNamesAndExistingField()
+        {
+            await TestAsync(
+@"class C { void M() { new [|D(existing: (a: 1, b: ""hello""))|]; } } class D { private (int a, string b) existing; }",
+@"class C { void M() { new D(existing: (a: 1, b: ""hello"")); } } class D { private (int a, string b) existing; public D((int a, string b) existing) { this.existing = existing; } }",
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TupleWithDifferentNamesAndExistingField()
+        {
+            await TestAsync(
+@"class C { void M() { new [|D(existing: (a: 1, b: ""hello""))|]; } } class D { private (int c, string d) existing; }",
+@"class C { void M() { new D(existing: (a: 1, b: ""hello"")); } } class D { private (int c, string d) existing; public D((int a, string b) existing) { this.existing = existing; } }",
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TupleAndDelegatingConstructor()
+        {
+            await TestAsync(
+@"class C { void M() { new [|D|]((1, ""hello"")); } } class B { protected B((int, string) x) { } } class D : B { }",
+@"class C { void M() { new D((1, ""hello"")); } } class B { protected B((int, string) x) { } } class D : B { public D((int, string) x) : base(x) { } }",
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TupleWithNamesAndDelegatingConstructor()
+        {
+            await TestAsync(
+@"class C { void M() { new [|D|]((a: 1, b: ""hello"")); } } class B { protected B((int a, string b) x) { } } class D : B { }",
+@"class C { void M() { new D((a: 1, b: ""hello"")); } } class B { protected B((int a, string b) x) { } } class D : B { public D((int a, string b) x) : base(x) { } }",
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task TupleWithDifferentNamesAndDelegatingConstructor()
+        {
+            await TestAsync(
+@"class C { void M() { new [|D|]((a: 1, b: ""hello"")); } } class B { protected B((int c, string d) x) { } } class D : B { }",
+@"class C { void M() { new D((a: 1, b: ""hello"")); } } class B { protected B((int c, string d) x) { } } class D : B { public D((int c, string d) x) : base(x) { } }",
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
         }
     }
 }

@@ -2691,14 +2691,40 @@ public class Holder
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), Trait(Traits.Feature, Test.Utilities.Traits.Features.Tuples)]
-        public async Task Tuple()
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        public async Task LongTuple()
         {
             await TestAsync(
-@"interface IInterface { void Method1 ( ) ; } class Class : [|IInterface|] { (int, string) x; } ",
-@"using System; interface IInterface { void Method1 ( ) ; } class Class : IInterface { (int, string) x; public void Method1 ( ) { throw new NotImplementedException ( ) ; } } ",
-parseOptions: TestOptions.Regular.WithTuplesFeature());
+@"interface IInterface { (int, string, int, string, int, string, int, string) Method1 ((int, string, int, string, int, string, int, string) y) ; } class Class : [|IInterface|] { (int, string) x; } ",
+@"using System; interface IInterface { (int, string, int, string, int, string, int, string) Method1 ((int, string, int, string, int, string, int, string) y) ; } class Class : IInterface { (int, string) x; public (int, string, int, string, int, string, int, string) Method1 ((int, string, int, string, int, string, int, string) y) { throw new NotImplementedException ( ) ; } } ",
+parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
         }
 
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task LongTupleWithNames()
+        {
+            await TestAsync(
+@"interface IInterface { (int a, string b, int c, string d, int e, string f, int g, string h) Method1 ((int a, string b, int c, string d, int e, string f, int g, string h) y) ; } class Class : [|IInterface|] { (int, string) x; } ",
+@"using System; interface IInterface { (int a, string b, int c, string d, int e, string f, int g, string h) Method1 ((int a, string b, int c, string d, int e, string f, int g, string h) y) ; } class Class : IInterface { (int, string) x; public (int a, string b, int c, string d, int e, string f, int g, string h) Method1 ((int a, string b, int c, string d, int e, string f, int g, string h) y) { throw new NotImplementedException ( ) ; } } ",
+parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task GenericWithTuple()
+        {
+            await TestAsync(
+@"interface IInterface<TA, TB> { (TA, TB) Method1 ((TA, TB) y) ; } class Class : [|IInterface<(int, string), int>|] { (int, string) x; } ",
+@"using System; interface IInterface<TA, TB> { (TA, TB) Method1 ((TA, TB) y) ; } class Class : IInterface<(int, string), int> { (int, string) x; public ((int, string), int) Method1 (((int, string), int) y) { throw new NotImplementedException ( ) ; } } ",
+parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task GenericWithTupleWithNamess()
+        {
+            await TestAsync(
+@"interface IInterface<TA, TB> { (TA a, TB b) Method1 ((TA a, TB b) y) ; } class Class : [|IInterface<(int, string), int>|] { (int, string) x; } ",
+@"using System; interface IInterface<TA, TB> { (TA a, TB b) Method1 ((TA a, TB b) y) ; } class Class : IInterface<(int, string), int> { (int, string) x; public ((int, string) a, int b) Method1 (((int, string) a, int b) y) { throw new NotImplementedException ( ) ; } } ",
+parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+        }
     }
 }

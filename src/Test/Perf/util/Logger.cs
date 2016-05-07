@@ -19,13 +19,13 @@ namespace Roslyn.Test.Performance.Utilities
 
         public void Flush()
         {
-            File.WriteAllText(_file, _buffer.ToString());
+            File.AppendAllText(_file, _buffer.ToString());
         }
 
         public void Log(string v)
         {
-            Console.WriteLine(v);
-            _buffer.AppendLine(v);
+            Console.WriteLine(DateTime.Now + " : " + v);
+            _buffer.AppendLine(DateTime.Now + " : " + v);
         }
     }
 }

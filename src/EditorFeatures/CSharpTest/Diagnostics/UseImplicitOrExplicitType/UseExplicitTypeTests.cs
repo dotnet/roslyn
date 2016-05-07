@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
@@ -1009,6 +1010,39 @@ class C
                 diagnosticCount: 1,
                 diagnosticId: IDEDiagnosticIds.UseExplicitTypeDiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Error);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        public async Task SuggestExplicitTypeOnLocalWithIntrinsicTypeTuple()
+        {
+            await TestAsync(
+@"class C { static void M() { [|var|] s = (1, ""hello""); } }",
+@"class C { static void M() { (int, string) s = (1, ""hello""); }}",
+options: ExplicitTypeEverywhere(),
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        public async Task SuggestExplicitTypeOnLocalWithIntrinsicTypeTupleWithNames()
+        {
+            await TestAsync(
+@"class C { static void M() { [|var|] s = (a: 1, b: ""hello""); } }",
+@"class C { static void M() { (int a, string b) s = (a: 1, b: ""hello""); }}",
+options: ExplicitTypeEverywhere(),
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        public async Task SuggestExplicitTypeOnLocalWithIntrinsicTypeTupleWithOneName()
+        {
+            await TestAsync(
+@"class C { static void M() { [|var|] s = (a: 1, ""hello""); } }",
+@"class C { static void M() { (int a, string Item2) s = (a: 1, ""hello""); }}",
+options: ExplicitTypeEverywhere(),
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
         }
     }
 }
