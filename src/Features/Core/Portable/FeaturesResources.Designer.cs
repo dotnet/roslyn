@@ -105,6 +105,14 @@ namespace Microsoft.CodeAnalysis {
                 return ResourceManager.GetString("Add_missing_switch_cases", resourceCulture);
             }
         }
+
+        ///   Looks up a localized string similar to Add braces.
+        /// </summary>
+        internal static string AddBraces {
+            get {
+                return ResourceManager.GetString("AddBraces", resourceCulture);
+            }
+        }
         
         /// <summary>
         ///   Looks up a localized string similar to Adding &apos;{0}&apos; around an active statement will prevent the debug session from continuing..

@@ -30,6 +30,7 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsAddConstructorParameters = "CodeActions.AddConstructorParameters";
             public const string CodeActionsAddAsync = "CodeActions.AddAsync";
             public const string CodeActionsAddAwait = "CodeActions.AddAwait";
+            public const string CodeActionsAddBraces = nameof(CodeActionsAddBraces);
             public const string CodeActionsAddImport = "CodeActions.AddImport";
             public const string CodeActionsAddMissingReference = "CodeActions.AddMissingReference";
             public const string CodeActionsAddUsing = "CodeActions.AddUsing";

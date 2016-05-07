@@ -79,6 +79,8 @@
     <Compile Include="..\..\..\Compilers\Shared\DesktopShim.cs">
       <Link>Shared\Utilities\DesktopShim.cs</Link>
     </Compile>
+    <Compile Include="AddBraces\AbstractAddBracesCodeFixProvider.cs" />
+    <Compile Include="AddBraces\AbstractAddBracesDiagnosticAnalyzer.cs" />
     <Compile Include="AddMissingReference\AbstractAddMissingReferenceCodeFixProvider.cs" />
     <Compile Include="AddMissingReference\CodeAction.cs" />
     <Compile Include="ChangeSignature\AbstractChangeSignatureCodeRefactoringProvider.cs" />

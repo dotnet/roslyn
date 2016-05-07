@@ -71,6 +71,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add braces to &apos;{0}&apos; statement..
+        /// </summary>
+        internal static string AddBraces {
+            get {
+                return ResourceManager.GetString("AddBraces", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Added:.
         /// </summary>
         internal static string AddedHeader {

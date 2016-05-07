@@ -1013,4 +1013,7 @@ This version used in: {2}</value>
   <data name="VariadicSignaturehelpitemMustHaveOneParam" xml:space="preserve">
     <value>Variadic SignatureHelpItem must have at least one parameter.</value>
   </data>
+  <data name="AddBraces" xml:space="preserve">
+    <value>Add braces</value>
+  </data>
 </root>
