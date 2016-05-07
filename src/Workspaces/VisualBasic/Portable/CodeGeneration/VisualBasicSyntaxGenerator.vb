@@ -2826,6 +2826,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
         End Function
 
+        Public Overrides Function GetSwitchSections(switchStatement As SyntaxNode) As IReadOnlyList(Of SyntaxNode)
+            Dim statement = TryCast(switchStatement, SelectBlockSyntax)
+            If statement Is Nothing Then
+                Return SpecializedCollections.EmptyReadOnlyList(Of SyntaxNode)
+            End If
+
+            Return statement.CaseBlocks
+        End Function
+
+        Public Overrides Function InsertSwitchSections(switchStatement As SyntaxNode, index As Integer, switchSections As IEnumerable(Of SyntaxNode)) As SyntaxNode
+            Dim statement = TryCast(switchStatement, SelectBlockSyntax)
+            If statement Is Nothing Then
+                Return switchStatement
+            End If
+
+            Return statement.WithCaseBlocks(
+                statement.CaseBlocks.InsertRange(index, switchSections.Cast(Of CaseBlockSyntax)))
+        End Function
+
         Private Function GetParameterList(declaration As SyntaxNode) As ParameterListSyntax
             Select Case declaration.Kind
                 Case SyntaxKind.SubBlock,
