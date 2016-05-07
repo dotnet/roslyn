@@ -67,6 +67,8 @@ namespace Microsoft.CodeAnalysis
 
         System_Reflection_Missing__Value,
 
+        System_Reflection_IntrospectionExtensions__GetTypeInfo,
+        System_Reflection_MemberInfo__Module,
         System_Reflection_Module__ModuleVersionId,
 
         System_IEquatable_T__Equals,
