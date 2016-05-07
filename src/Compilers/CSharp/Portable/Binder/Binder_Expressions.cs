@@ -667,6 +667,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var boundArguments = ArrayBuilder<BoundExpression>.GetInstance(arguments.Count);
             var elementTypes = ArrayBuilder<TypeSymbol>.GetInstance(arguments.Count);
+            var elementLocations = ArrayBuilder<Location>.GetInstance(arguments.Count);
             ArrayBuilder<string> elementNames = null;
             int countOfExplicitNames = 0;
 
@@ -674,16 +675,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0, l = numElements; i < l; i++)
             {
                 ArgumentSyntax argumentSyntax = arguments[i];
-                string name = argumentSyntax.NameColon?.Name?.Identifier.ValueText;
+                string name = null;
+                IdentifierNameSyntax nameSyntax = argumentSyntax.NameColon?.Name;
 
-                // validate name if we have one
-                if (name != null)
+                if (nameSyntax != null)
                 {
+                    name = nameSyntax.Identifier.ValueText;
+                    elementLocations.Add(nameSyntax.Location);
+
                     countOfExplicitNames++;
                     if (!CheckTupleMemberName(name, i, argumentSyntax.NameColon.Name, diagnostics, uniqueFieldNames))
                     {
                         hasErrors = true;
                     }
+                }
+                else
+                {
+                    elementLocations.Add(argumentSyntax.Location);
                 }
 
                 CollectTupleFieldMemberNames(name, i + 1, numElements, ref elementNames);
@@ -712,12 +720,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 default(ImmutableArray<string>) :
                                 elementNames.ToImmutableAndFree();
 
-            TupleTypeSymbol tupleTypeOpt = null;
+            NamedTypeSymbol tupleTypeOpt = null;
             var elements = elementTypes.ToImmutableAndFree();
+            var locations = elementLocations.ToImmutableAndFree();
 
             if (hasNaturalType)
             {
-                tupleTypeOpt = TupleTypeSymbol.Create(elements, elementNamesArray, this.Compilation, node, diagnostics);
+                tupleTypeOpt = TupleTypeSymbol.Create(node.Location, elements, locations, elementNamesArray, this.Compilation, node, diagnostics);
             }
 
             return new BoundTupleLiteral(node, elementNamesArray, boundArguments.ToImmutableAndFree(), tupleTypeOpt, hasErrors);
@@ -3943,15 +3952,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression boundInitializerOpt = null)
         {
 
-            var typeContainingConstructors = type;
-            if (type.IsTupleType)
-            {
-                // in the currentl model (which is subject to change)
-                // tuple "inherits" all the members of the underlying type for lookup purposes
-                // including constructors.
-                typeContainingConstructors = ((TupleTypeSymbol)type).UnderlyingTupleType;
-            }
-
             BoundExpression result = null;
             bool hasErrors = type.IsErrorType();
             if (type.IsAbstract)
@@ -3971,7 +3971,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (analyzedArguments.HasDynamicArgument)
             {
                 OverloadResolutionResult<MethodSymbol> overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
-                this.OverloadResolution.ObjectCreationOverloadResolution(GetAccessibleConstructorsForOverloadResolution(typeContainingConstructors, ref useSiteDiagnostics), analyzedArguments, overloadResolutionResult, ref useSiteDiagnostics);
+                this.OverloadResolution.ObjectCreationOverloadResolution(GetAccessibleConstructorsForOverloadResolution(type, ref useSiteDiagnostics), analyzedArguments, overloadResolutionResult, ref useSiteDiagnostics);
                 diagnostics.Add(node, useSiteDiagnostics);
                 useSiteDiagnostics = null;
 
@@ -4003,7 +4003,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<MethodSymbol> candidateConstructors;
 
             if (TryPerformConstructorOverloadResolution(
-                typeContainingConstructors,
+                type,
                 analyzedArguments,
                 typeName,
                 typeNode.Location,

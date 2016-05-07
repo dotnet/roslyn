@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Utilities
         {
             if (name == null)
             {
-                throw new ArgumentNullException(@"name");
+                throw new ArgumentNullException(nameof(name));
             }
 
             _name = name;

@@ -14,6 +14,8 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         Iterator,
         LocalFunctions,
         Params,
-        Var
+        Var,
+        Tuples,
+        RefLocalsReturns
     }
 }

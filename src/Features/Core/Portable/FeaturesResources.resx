@@ -1010,4 +1010,7 @@ This version used in: {2}</value>
   <data name="Add_default_switch_case" xml:space="preserve">
     <value>Add default switch case</value>
   </data>
+  <data name="VariadicSignaturehelpitemMustHaveOneParam" xml:space="preserve">
+    <value>Variadic SignatureHelpItem must have at least one parameter.</value>
+  </data>
 </root>

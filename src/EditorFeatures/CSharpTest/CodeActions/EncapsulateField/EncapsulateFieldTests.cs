@@ -1256,7 +1256,7 @@ class C
 ", options: Option(SimplificationOptions.QualifyFieldAccess, true));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField), Trait(Traits.Feature, Test.Utilities.Traits.Features.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
         public async Task Tuple()
         {
             var text = @"
@@ -1295,10 +1295,10 @@ class C
     }
 }
 ";
-            await TestAsync(text, expected, compareTokens: false, index: 1, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            await TestAsync(text, expected, compareTokens: false, index: 1, parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField), Trait(Traits.Feature, Test.Utilities.Traits.Features.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
         public async Task TupleWithNames()
         {
             var text = @"
@@ -1337,7 +1337,7 @@ class C
     }
 }
 ";
-            await TestAsync(text, expected, compareTokens: false, index: 1, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            await TestAsync(text, expected, compareTokens: false, index: 1, parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
         }
     }
 }

@@ -46,7 +46,7 @@ End Structure
         End Sub
 
         <Fact>
-        <Trait(Traits.Feature, Traits.Features.Tuples)>
+        <CompilerTrait(CompilerFeature.Tuples)>
         Public Sub TupleAPIs()
             Dim compilation = CompilationUtils.CreateCompilationWithMscorlib(
 <compilation name="AAA">
