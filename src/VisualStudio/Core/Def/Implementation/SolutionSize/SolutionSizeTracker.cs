@@ -16,7 +16,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionSize
     /// Track approximate solution size.
     /// </summary>
     [Export]
-    [ExportIncrementalAnalyzerProvider(WorkspaceKind.Host), Shared]
+    [ExportIncrementalAnalyzerProvider(nameof(SolutionSizeTracker), new[] { WorkspaceKind.Host }), Shared]
     internal class SolutionSizeTracker : IIncrementalAnalyzerProvider
     {
         private readonly IncrementalAnalyzer _tracker = new IncrementalAnalyzer();

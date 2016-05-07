@@ -18,14 +18,14 @@ Imports Roslyn.Test.Utilities
 Imports Roslyn.Utilities
 
 Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
-    Public Class MiscDiagnosticUpdateSourceTests
+    Public Class DefaultDiagnosticUpdateSourceTests
         <WpfFact>
         Public Async Function TestMiscSquiggles() As Task
             Dim code = <code>
 class 123 { }
                        </code>
             Using workspace = Await TestWorkspace.CreateCSharpAsync(code.ToString())
-                Dim miscService = New MiscellaneousDiagnosticAnalyzerService(
+                Dim miscService = New DefaultDiagnosticAnalyzerService(
                     New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()),
                     New MockDiagnosticUpdateSourceRegistrationService())
 
@@ -68,7 +68,7 @@ class 123 { }
 class 123 { }
                        </code>
             Using workspace = Await TestWorkspace.CreateCSharpAsync(code.ToString())
-                Dim miscService = New MiscellaneousDiagnosticAnalyzerService(
+                Dim miscService = New DefaultDiagnosticAnalyzerService(
                     New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()),
                     New MockDiagnosticUpdateSourceRegistrationService())
 
@@ -93,7 +93,7 @@ Class 123
 End Class
                        </code>
             Using workspace = Await TestWorkspace.CreateVisualBasicAsync(code.ToString())
-                Dim miscService = New MiscellaneousDiagnosticAnalyzerService(
+                Dim miscService = New DefaultDiagnosticAnalyzerService(
                     New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()),
                     New MockDiagnosticUpdateSourceRegistrationService())
 

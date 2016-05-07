@@ -1,1 +1,7 @@
+Microsoft.CodeAnalysis.DiagnosticProvider
+Microsoft.CodeAnalysis.DiagnosticProvider.Options
+Microsoft.CodeAnalysis.DiagnosticProvider.Options.Semantic = 2 -> Microsoft.CodeAnalysis.DiagnosticProvider.Options
+Microsoft.CodeAnalysis.DiagnosticProvider.Options.Syntax = 1 -> Microsoft.CodeAnalysis.DiagnosticProvider.Options
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.NameOfExpression(Microsoft.CodeAnalysis.SyntaxNode expression) -> Microsoft.CodeAnalysis.SyntaxNode
+static Microsoft.CodeAnalysis.DiagnosticProvider.Disable(Microsoft.CodeAnalysis.Workspace workspace) -> void
+static Microsoft.CodeAnalysis.DiagnosticProvider.Enable(Microsoft.CodeAnalysis.Workspace workspace, Microsoft.CodeAnalysis.DiagnosticProvider.Options options) -> void
