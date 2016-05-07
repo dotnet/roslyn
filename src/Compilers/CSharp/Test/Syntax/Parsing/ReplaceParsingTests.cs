@@ -4,15 +4,17 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Xunit;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
-    public class ReplaceParsingTests
+    public class ReplaceParsingTests:  CSharpTestBase
     {
         [Fact]
         public void ReplaceClass()
         {
-            var root = SyntaxFactory.ParseCompilationUnit("abstract replace override class C { }");
+            var root = SyntaxFactory.ParseCompilationUnit("abstract replace override class C { }", options: TestOptions.Regular.WithReplaceFeature());
             root.Errors().Verify();
             var type = (TypeDeclarationSyntax)root.Members[0];
             Assert.Equal(
@@ -23,7 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ReplaceMethod()
         {
-            var root = SyntaxFactory.ParseCompilationUnit("class C { virtual replace protected void M() { } }");
+            var root = SyntaxFactory.ParseCompilationUnit("class C { virtual replace protected void M() { } }", options: TestOptions.Regular.WithReplaceFeature());
             root.Errors().Verify();
             var type = (TypeDeclarationSyntax)root.Members[0];
             Assert.Equal(
@@ -33,6 +35,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(
                 method.Modifiers.ToDeclarationModifiers(),
                 DeclarationModifiers.Virtual | DeclarationModifiers.Protected | DeclarationModifiers.Replace);
+        }
+
+        [Fact]
+        public void ReplaceMethodNoFeature()
+        {
+            var source = "class C { virtual replace protected void M() { } }";
+            CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll).VerifyDiagnostics(
+                // (1,19): error CS8058: Feature 'replaced members' is experimental and unsupported; use '/features:replace' to enable.
+                // class C { virtual replace protected void M() { } }
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "replace").WithArguments("replaced members", "replace").WithLocation(1, 19)
+            );
         }
 
         [Fact]
@@ -72,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private void OriginalInMember(string text, bool inReplace)
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(text);
+            var tree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Regular.WithReplaceFeature());
             var root = tree.GetCompilationUnitRoot();
             root.Errors().Verify();
             var token = root.DescendantTokens().Where(t => t.Text == "original").Single();

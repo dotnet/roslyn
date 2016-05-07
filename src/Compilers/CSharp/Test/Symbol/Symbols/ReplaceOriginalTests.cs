@@ -14,6 +14,16 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
     public class ReplaceOriginalTests : CSharpTestBase
     {
+        private static CSharpCompilation CreateCompilationWithMscorlib(string text)
+        {
+            return CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular.WithReplaceFeature());
+        }
+
+        private static CSharpCompilation CreateCompilationWithMscorlib(string text, CSharpCompilationOptions options)
+        {
+            return CreateCompilationWithMscorlib(text, options: options, parseOptions: TestOptions.Regular.WithReplaceFeature());
+        }
+
         [WorkItem(11123, "https://github.com/dotnet/roslyn/issues/11123")]
         [Fact]
         public void Members()
