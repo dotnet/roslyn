@@ -2587,6 +2587,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Throw New NotSupportedException(VBResources.TuplesNotSupported)
         End Function
 
+        Protected Overrides Function CommonCreateTupleTypeSymbol(underlyingType As INamedTypeSymbol, elementNames As ImmutableArray(Of String)) As INamedTypeSymbol
+            Throw New NotSupportedException(VBResources.TuplesNotSupported)
+        End Function
+
         Protected Overrides Function CommonCreatePointerTypeSymbol(elementType As ITypeSymbol) As IPointerTypeSymbol
             Throw New NotSupportedException(VBResources.ThereAreNoPointerTypesInVB)
         End Function

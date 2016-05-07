@@ -1154,7 +1154,7 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to If names are used in a tuple type, then there must be a name for every element..
+        ///   Looks up a localized string similar to If names are used in a tuple type, then there must be the same number of names and elements..
         /// </summary>
         internal static string TupleNamesAllOrNone {
             get {
@@ -1168,6 +1168,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string TuplesNeedAtLeastTwoElements {
             get {
                 return ResourceManager.GetString("TuplesNeedAtLeastTwoElements", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The underlying type for a tuple must be tuple-compatible..
+        /// </summary>
+        internal static string TupleUnderlyingTypeMustBeTupleCompatible {
+            get {
+                return ResourceManager.GetString("TupleUnderlyingTypeMustBeTupleCompatible", resourceCulture);
             }
         }
         
