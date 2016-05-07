@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateVariable;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
@@ -2939,6 +2940,46 @@ class C
         [|_field|] = 42;
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TupleRead()
+        {
+            await TestAsync(
+@"class Class { void Method((int, string) i) { Method([|tuple|]); } }",
+@"class Class { private (int, string) tuple; void Method((int, string) i) { Method(tuple); } }",
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TupleWithOneNameRead()
+        {
+            await TestAsync(
+@"class Class { void Method((int a, string) i) { Method([|tuple|]); } }",
+@"class Class { private (int a, string Item2) tuple; void Method((int a, string) i) { Method(tuple); } }",
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TupleWrite()
+        {
+            await TestAsync(
+@"class Class { void Method() { [|tuple|] = (1, ""hello""); } }",
+@"class Class { private (int, string) tuple; void Method() { tuple = (1, ""hello""); } }",
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TupleWithOneNameWrite()
+        {
+            await TestAsync(
+@"class Class { void Method() { [|tuple|] = (a: 1, ""hello""); } }",
+@"class Class { private (int a, string Item2) tuple; void Method() { tuple = (a: 1, ""hello""); } }",
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
         }
     }
 }

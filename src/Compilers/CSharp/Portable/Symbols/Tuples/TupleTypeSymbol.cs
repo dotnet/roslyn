@@ -597,7 +597,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingType.IsReferenceType;
+                return _underlyingType.IsErrorType() ? false : _underlyingType.IsReferenceType;
             }
         }
 

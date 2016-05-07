@@ -1295,7 +1295,7 @@ class C
     }
 }
 ";
-            await TestAsync(text, expected, compareTokens: false, index: 1, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            await TestAsync(text, expected, compareTokens: false, index: 1, parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
@@ -1337,7 +1337,7 @@ class C
     }
 }
 ";
-            await TestAsync(text, expected, compareTokens: false, index: 1, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            await TestAsync(text, expected, compareTokens: false, index: 1, parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
         }
     }
 }
