@@ -1,17 +1,37 @@
-﻿using System.Composition;
+﻿using System;
+using System.Collections.Immutable;
+using System.Composition;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.AddBraces;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, Name = PredefinedCodeFixProviderNames.AddBraces), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.AddAwait)]
-    internal class CSharpAddBracesCodeFixProvider : AbstractAddBracesCodeFixProvider
+    internal class CSharpAddBracesCodeFixProvider : CodeFixProvider
     {
-        protected override async Task<Document> AddBracesAsync(CodeFixContext context)
+        public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IDEDiagnosticIds.AddBracesDiagnosticId);
+
+        public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
+
+        public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
+        {
+            context.RegisterCodeFix(
+                new MyCodeAction(
+                    FeaturesResources.AddBraces,
+                    async c => await AddBracesAsync(context).ConfigureAwait(false)),
+                context.Diagnostics);
+
+            return SpecializedTasks.EmptyTask;
+        }
+
+        protected async Task<Document> AddBracesAsync(CodeFixContext context)
         {
             var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
             var diagnostic = context.Diagnostics.First();
@@ -66,10 +86,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
             return context.Document.WithSyntaxRoot(newRoot);
         }
 
-        private SyntaxNode GetNewBlock(SyntaxNode statement, StatementSyntax statementBody)
+        private SyntaxNode GetNewBlock(SyntaxNode statement, StatementSyntax statementBody) =>
+            statement.ReplaceNode(statementBody, SyntaxFactory.Block(statementBody));
+
+        private class MyCodeAction : CodeAction.DocumentChangeAction
         {
-            var body = SyntaxFactory.Block(statementBody);
-            return statement.ReplaceNode(statementBody, body);
+            public MyCodeAction(string title, Func<CancellationToken, Task<Document>> createChangedDocument) :
+                base(title, createChangedDocument)
+            {
+            }
         }
     }
 }

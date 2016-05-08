@@ -1,14 +1,36 @@
 ﻿using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.AddBraces;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
-    internal sealed class CSharpAddBracesDiagnosticAnalyzer : AbstractAddBracesDiagnosticAnalyzer<SyntaxKind>
+    internal sealed class CSharpAddBracesDiagnosticAnalyzer : DiagnosticAnalyzer, IBuiltInAnalyzer
     {
-        protected override ImmutableArray<SyntaxKind> SyntaxKindsOfInterest { get; } =
+        private static readonly LocalizableString s_localizableTitle =
+            new LocalizableResourceString(nameof(FeaturesResources.AddBraces), FeaturesResources.ResourceManager,
+                typeof (FeaturesResources));
+
+        private static readonly LocalizableString s_localizableMessage =
+            new LocalizableResourceString(nameof(WorkspacesResources.AddBraces), WorkspacesResources.ResourceManager,
+                typeof (WorkspacesResources));
+
+        private static readonly DiagnosticDescriptor s_descriptor = new DiagnosticDescriptor(IDEDiagnosticIds.AddBracesDiagnosticId,
+                                                                    s_localizableTitle,
+                                                                    s_localizableMessage,
+                                                                    DiagnosticCategory.Style,
+                                                                    DiagnosticSeverity.Warning,
+                                                                    isEnabledByDefault: true);
+
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(s_descriptor);
+        public override void Initialize(AnalysisContext context)
+        {
+            context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKindsOfInterest);
+        }
+
+        public DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
+
+        private ImmutableArray<SyntaxKind> SyntaxKindsOfInterest { get; } =
             ImmutableArray.Create(SyntaxKind.IfStatement,
                 SyntaxKind.ElseClause,
                 SyntaxKind.ForStatement,
@@ -17,75 +39,77 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 SyntaxKind.DoStatement,
                 SyntaxKind.UsingStatement);
 
-        public override void AnalyzeNode(SyntaxNodeAnalysisContext context)
+        public void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
-            if (context.Node.IsKind(SyntaxKind.IfStatement))
+            var node = context.Node;
+
+            if (node.IsKind(SyntaxKind.IfStatement))
             {
-                var ifStatement = (IfStatementSyntax) context.Node;
+                var ifStatement = (IfStatementSyntax)node;
                 if (AnalyzeIfStatement(ifStatement))
                 {
                     context.ReportDiagnostic(Diagnostic.Create(SupportedDiagnostics[0],
-                        ifStatement.IfKeyword.GetLocation(), "if"));
+                        ifStatement.IfKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.IfKeyword)));
                 }
             }
 
-            if (context.Node.IsKind(SyntaxKind.ElseClause))
+            if (node.IsKind(SyntaxKind.ElseClause))
             {
-                var elseClause = (ElseClauseSyntax)context.Node;
+                var elseClause = (ElseClauseSyntax)node;
                 if (AnalyzeElseClause(elseClause))
                 {
                     context.ReportDiagnostic(Diagnostic.Create(SupportedDiagnostics[0],
-                        elseClause.ElseKeyword.GetLocation(), "else"));
+                        elseClause.ElseKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ElseKeyword)));
                 }
             }
 
-            if (context.Node.IsKind(SyntaxKind.ForStatement))
+            if (node.IsKind(SyntaxKind.ForStatement))
             {
-                var forStatement = (ForStatementSyntax)context.Node;
+                var forStatement = (ForStatementSyntax)node;
                 if (AnalyzeForStatement(forStatement))
                 {
                     context.ReportDiagnostic(Diagnostic.Create(SupportedDiagnostics[0],
-                        forStatement.ForKeyword.GetLocation(), "for"));
+                        forStatement.ForKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ForKeyword)));
                 }
             }
 
-            if (context.Node.IsKind(SyntaxKind.ForEachStatement))
+            if (node.IsKind(SyntaxKind.ForEachStatement))
             {
-                var forEachStatement = (ForEachStatementSyntax)context.Node;
+                var forEachStatement = (ForEachStatementSyntax)node;
                 if (AnalyzeForEachStatement(forEachStatement))
                 {
                     context.ReportDiagnostic(Diagnostic.Create(SupportedDiagnostics[0],
-                        forEachStatement.ForEachKeyword.GetLocation(), "foreach"));
+                        forEachStatement.ForEachKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.ForEachKeyword)));
                 }
             }
 
-            if (context.Node.IsKind(SyntaxKind.WhileStatement))
+            if (node.IsKind(SyntaxKind.WhileStatement))
             {
-                var whileStatement = (WhileStatementSyntax)context.Node;
+                var whileStatement = (WhileStatementSyntax)node;
                 if (AnalyzeWhileStatement(whileStatement))
                 {
                     context.ReportDiagnostic(Diagnostic.Create(SupportedDiagnostics[0],
-                        whileStatement.WhileKeyword.GetLocation(), "while"));
+                        whileStatement.WhileKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.WhileKeyword)));
                 }
             }
 
-            if (context.Node.IsKind(SyntaxKind.DoStatement))
+            if (node.IsKind(SyntaxKind.DoStatement))
             {
-                var doStatement = (DoStatementSyntax)context.Node;
+                var doStatement = (DoStatementSyntax)node;
                 if (AnalyzeDoStatement(doStatement))
                 {
                     context.ReportDiagnostic(Diagnostic.Create(SupportedDiagnostics[0],
-                        doStatement.DoKeyword.GetLocation(), "do"));
+                        doStatement.DoKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.DoKeyword)));
                 }
             }
 
-            if (context.Node.IsKind(SyntaxKind.UsingStatement))
+            if (node.IsKind(SyntaxKind.UsingStatement))
             {
                 var usingStatement = (UsingStatementSyntax)context.Node;
                 if (AnalyzeUsingStatement(usingStatement))
                 {
                     context.ReportDiagnostic(Diagnostic.Create(SupportedDiagnostics[0],
-                        usingStatement.UsingKeyword.GetLocation(), "using"));
+                        usingStatement.UsingKeyword.GetLocation(), SyntaxFacts.GetText(SyntaxKind.UsingKeyword)));
                 }
             }
         }
@@ -94,23 +118,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
             !ifStatement.Statement.IsKind(SyntaxKind.Block);
 
         private bool AnalyzeElseClause(ElseClauseSyntax elseClause) =>
-                !elseClause.Statement.IsKind(SyntaxKind.Block) &&
-                !elseClause.Statement.IsKind(SyntaxKind.IfStatement);
+            !elseClause.Statement.IsKind(SyntaxKind.Block) &&
+            !elseClause.Statement.IsKind(SyntaxKind.IfStatement);
 
         private bool AnalyzeForStatement(ForStatementSyntax forStatement) =>
-                !forStatement.Statement.IsKind(SyntaxKind.Block);
+            !forStatement.Statement.IsKind(SyntaxKind.Block);
 
         private bool AnalyzeForEachStatement(ForEachStatementSyntax forEachStatement) =>
-                !forEachStatement.Statement.IsKind(SyntaxKind.Block);
+            !forEachStatement.Statement.IsKind(SyntaxKind.Block);
             
         private bool AnalyzeWhileStatement(WhileStatementSyntax whileStatement) =>
-                !whileStatement.Statement.IsKind(SyntaxKind.Block);
+            !whileStatement.Statement.IsKind(SyntaxKind.Block);
             
         private bool AnalyzeDoStatement(DoStatementSyntax doStatement) =>
-                !doStatement.Statement.IsKind(SyntaxKind.Block);
+            !doStatement.Statement.IsKind(SyntaxKind.Block);
             
         private bool AnalyzeUsingStatement(UsingStatementSyntax usingStatement) =>
-                !usingStatement.Statement.IsKind(SyntaxKind.Block) &&
-                !usingStatement.Statement.IsKind(SyntaxKind.UsingStatement);
+            !usingStatement.Statement.IsKind(SyntaxKind.Block) &&
+            !usingStatement.Statement.IsKind(SyntaxKind.UsingStatement);
     }
 }
