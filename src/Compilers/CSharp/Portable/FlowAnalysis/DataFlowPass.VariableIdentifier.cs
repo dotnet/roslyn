@@ -2,6 +2,7 @@
 
 using System;
 using System.Diagnostics;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -14,7 +15,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public VariableIdentifier(Symbol symbol, int containingSlot = 0)
             {
-                Debug.Assert(symbol.Kind == SymbolKind.Local || symbol.Kind == SymbolKind.Field || symbol.Kind == SymbolKind.Parameter);
+                Debug.Assert(symbol.Kind == SymbolKind.Local || symbol.Kind == SymbolKind.Field || symbol.Kind == SymbolKind.Parameter ||
+                    (symbol as MethodSymbol)?.MethodKind == MethodKind.LocalFunction);
                 Symbol = symbol;
                 ContainingSlot = containingSlot;
             }

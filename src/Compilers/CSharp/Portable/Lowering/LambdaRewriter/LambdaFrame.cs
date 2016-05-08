@@ -15,18 +15,22 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class LambdaFrame : SynthesizedContainer, ISynthesizedMethodBodyImplementationSymbol
     {
+        private readonly TypeKind _typeKind;
         private readonly MethodSymbol _topLevelMethod;
+        private readonly MethodSymbol _containingMethod;
         private readonly MethodSymbol _constructor;
         private readonly MethodSymbol _staticConstructor;
         private readonly FieldSymbol _singletonCache;
         internal readonly CSharpSyntaxNode ScopeSyntaxOpt;
         internal readonly int ClosureOrdinal;
 
-        internal LambdaFrame(MethodSymbol topLevelMethod, CSharpSyntaxNode scopeSyntaxOpt, DebugId methodId, DebugId closureId)
-            : base(MakeName(scopeSyntaxOpt, methodId, closureId), topLevelMethod)
+        internal LambdaFrame(MethodSymbol topLevelMethod, MethodSymbol containingMethod, bool isStruct, CSharpSyntaxNode scopeSyntaxOpt, DebugId methodId, DebugId closureId)
+            : base(MakeName(scopeSyntaxOpt, methodId, closureId), containingMethod)
         {
+            _typeKind = isStruct ? TypeKind.Struct : TypeKind.Class;
             _topLevelMethod = topLevelMethod;
-            _constructor = new LambdaFrameConstructor(this);
+            _containingMethod = containingMethod;
+            _constructor = isStruct ? null : new LambdaFrameConstructor(this);
             this.ClosureOrdinal = closureId.Ordinal;
 
             // static lambdas technically have the class scope so the scope syntax is null 
@@ -75,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override TypeKind TypeKind
         {
-            get { return TypeKind.Class; }
+            get { return _typeKind; }
         }
 
         internal override MethodSymbol Constructor
@@ -86,6 +90,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal MethodSymbol StaticConstructor
         {
             get { return _staticConstructor; }
+        }
+
+        /// <summary>
+        /// The closest method/lambda that this frame is originally from. Null if nongeneric static closure.
+        /// Useful because this frame's type parameters are constructed from this method and all methods containing this method.
+        /// </summary>
+        internal MethodSymbol ContainingMethod
+        {
+            get { return _containingMethod; }
         }
 
         public override ImmutableArray<Symbol> GetMembers()

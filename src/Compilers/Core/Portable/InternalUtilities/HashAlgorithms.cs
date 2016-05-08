@@ -12,18 +12,6 @@ namespace Roslyn.Utilities
 
     internal abstract class HashAlgorithm : IDisposable
     {
-        private static readonly MethodInfo s_transformBlock = PortableShim.HashAlgorithm.Type
-            .GetTypeInfo()
-            .GetDeclaredMethod(nameof(TransformBlock), new[] { typeof(byte[]), typeof(int), typeof(int), typeof(byte[]), typeof(int) });
-
-        private static readonly MethodInfo s_transformFinalBlock = PortableShim.HashAlgorithm.Type
-            .GetTypeInfo()
-            .GetDeclaredMethod(nameof(TransformFinalBlock), new[] { typeof(byte[]), typeof(int), typeof(int) });
-
-        private static readonly PropertyInfo s_hash = PortableShim.HashAlgorithm.Type
-            .GetTypeInfo()
-            .GetDeclaredProperty(nameof(Hash));
-
         private readonly IDisposable _hashInstance;
 
         protected HashAlgorithm(IDisposable hashInstance)
@@ -45,32 +33,6 @@ namespace Roslyn.Utilities
         {
             return PortableShim.HashAlgorithm.ComputeHash(_hashInstance, inputStream);
         }
-
-        public bool SupportsTransform =>
-            s_transformBlock != null &&
-            s_transformFinalBlock != null &&
-            s_hash != null;
-
-        /// <summary>
-        /// Invoke the underlying HashAlgorithm's TransformBlock operation on the provided data.
-        /// </summary>
-        public void TransformBlock(byte[] inputBuffer, int inputOffset, int inputCount)
-        {
-            while (inputCount > 0)
-            {
-                int written = (int)s_transformBlock.Invoke(_hashInstance, new object[] { inputBuffer, inputOffset, inputCount, inputBuffer, inputOffset });
-                Debug.Assert(inputCount == written); // does the TransformBlock method always consume the complete data given to it?
-                inputCount -= written;
-                inputOffset += written;
-            }
-        }
-
-        public void TransformFinalBlock(byte[] inputBuffer, int inputOffset, int inputCount)
-        {
-            s_transformFinalBlock.Invoke(_hashInstance, new object[] { inputBuffer, inputOffset, inputCount });
-        }
-
-        public byte[] Hash => (byte[])s_hash.GetMethod.Invoke(_hashInstance, new object[] { });
 
         public void Dispose()
         {

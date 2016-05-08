@@ -130,7 +130,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ParameterListSyntax,
                 true,
                 out arglistToken,
-                diagnostics);
+                diagnostics,
+                false);
 
             if (arglistToken.Kind() == SyntaxKind.ArgListKeyword)
             {
@@ -609,6 +610,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
             get { return ImmutableArray<TypeParameterSymbol>.Empty; }
+        }
+
+        internal override RefKind RefKind
+        {
+            get { return RefKind.None; }
         }
 
         public sealed override TypeSymbol ReturnType

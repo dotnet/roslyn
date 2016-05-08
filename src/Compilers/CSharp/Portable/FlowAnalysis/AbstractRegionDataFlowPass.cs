@@ -42,6 +42,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitLambda(node);
         }
 
+        public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
+        {
+            MakeSlots(node.Symbol.Parameters);
+            return base.VisitLocalFunctionStatement(node);
+        }
+
         private void MakeSlots(ImmutableArray<ParameterSymbol> parameters)
         {
             // assign slots to the parameters

@@ -294,6 +294,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.PointerType:
                 case SyntaxKind.NullableType:
                 case SyntaxKind.PredefinedType:
+                case SyntaxKind.TupleType:
                     return true;
                 default:
                     return IsName(kind);

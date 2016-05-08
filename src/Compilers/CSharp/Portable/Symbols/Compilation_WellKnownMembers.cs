@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal NamedTypeSymbol GetWellKnownType(WellKnownType type)
         {
-            Debug.Assert(type >= WellKnownType.First && type <= WellKnownType.Last);
+            Debug.Assert(type >= WellKnownType.First && type <= WellKnownType.Last && type != WellKnownType.ExtSentinel);
 
             int index = (int)type - (int)WellKnownType.First;
             if (_lazyWellKnownTypes == null || (object)_lazyWellKnownTypes[index] == null)

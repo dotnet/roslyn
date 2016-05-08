@@ -13,7 +13,7 @@
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.Semantic.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Compilers.CSharp.Semantic.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Dependencies\xUnit.net\xUnit.net.csproj">
@@ -99,8 +99,10 @@
     <Compile Include="Semantics\InheritanceBindingTests.cs" />
     <Compile Include="Semantics\InteractiveSemanticModelTests.cs" />
     <Compile Include="Semantics\InterpolationTests.cs" />
+    <Compile Include="Semantics\RefLocalsAndReturns.cs" />
     <Compile Include="Semantics\IteratorTests.cs" />
     <Compile Include="Semantics\LambdaTests.cs" />
+    <Compile Include="Semantics\LocalFunctionTests.cs" />
     <Compile Include="Semantics\LockTests.cs" />
     <Compile Include="Semantics\LookupPositionTests.cs" />
     <Compile Include="Semantics\LookupTests.cs" />
@@ -118,6 +120,7 @@
     <Compile Include="Semantics\OperatorTests.cs" />
     <Compile Include="Semantics\OverloadResolutionTestBase.cs" />
     <Compile Include="Semantics\OverloadResolutionTests.cs" />
+    <Compile Include="Semantics\PatternMatchingTests.cs" />
     <Compile Include="Semantics\PropertyAccessTests.cs" />
     <Compile Include="Semantics\QueryTests.cs" />
     <Compile Include="Semantics\InteractiveUsingTests.cs" />
@@ -134,6 +137,7 @@
     <Compile Include="Semantics\UserDefinedConversionTests.cs" />
     <Compile Include="Semantics\UseSiteErrorTests.cs" />
     <Compile Include="Semantics\UsingStatementTests.cs" />
+    <Compile Include="Semantics\ValueTupleTests.cs" />
     <Compile Include="Semantics\VarianceTests.cs" />
   </ItemGroup>
   <ItemGroup>

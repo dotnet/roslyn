@@ -123,6 +123,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        internal override RefKind RefKind
+        {
+            get { return RefKind.None; }
+        }
+
         public override TypeSymbol ReturnType
         {
             get { return _returnType; }
@@ -372,6 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 return new BoundBlock(syntax,
                     ImmutableArray.Create<LocalSymbol>(scriptLocal.LocalSymbol),
+                    ImmutableArray<LocalFunctionSymbol>.Empty,
                     ImmutableArray.Create<BoundStatement>(
                         // var script = new Script();
                         new BoundExpressionStatement(
@@ -403,6 +409,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         // return;
                         new BoundReturnStatement(
                             syntax,
+                            RefKind.None,
                             null)
                         { WasCompilerGenerated = true }))
                 { WasCompilerGenerated = true };
@@ -484,11 +491,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 Debug.Assert(initializeResult.Type == _returnType);
                 var returnStatement = new BoundReturnStatement(
                     syntax,
+                    RefKind.None,
                     initializeResult)
                 { WasCompilerGenerated = true };
 
                 return new BoundBlock(syntax,
                     ImmutableArray.Create<LocalSymbol>(submissionLocal.LocalSymbol),
+                    ImmutableArray<LocalFunctionSymbol>.Empty,
                     ImmutableArray.Create<BoundStatement>(submissionAssignment, returnStatement))
                 { WasCompilerGenerated = true };
             }

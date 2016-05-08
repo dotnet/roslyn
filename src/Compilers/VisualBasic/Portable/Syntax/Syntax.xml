@@ -8915,7 +8915,7 @@ Unify Enum declarations with other block type declarations.
       </node-kind>
 
       <field name="Base" type="LiteralBase">
-        <description>Whether the token was specified in base 10, 16 or 8.</description>
+        <description>Whether the token was specified in base 10, 16, 8 or 2.</description>
       </field>
 
       <field name="TypeSuffix" type="TypeCharacter">
@@ -9042,7 +9042,7 @@ Unify Enum declarations with other block type declarations.
 
     <enumeration name="LiteralBase">
       <description>
-        The three possible number bases that a literal can be written in.
+        The four possible number bases that a literal can be written in.
       </description>
       <native-equiv name="LiteralBase"></native-equiv>
 
@@ -9050,6 +9050,7 @@ Unify Enum declarations with other block type declarations.
         <enumerator name="Decimal" />
         <enumerator name="Hexadecimal" />
         <enumerator name="Octal" />
+        <enumerator name="Binary" />
       </enumerators>
     </enumeration>
 

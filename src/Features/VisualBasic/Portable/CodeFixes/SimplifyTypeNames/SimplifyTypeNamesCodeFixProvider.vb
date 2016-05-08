@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             Get
                 Return ImmutableArray.Create(IDEDiagnosticIds.SimplifyNamesDiagnosticId,
                     IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId,
-                    IDEDiagnosticIds.SimplifyThisOrMeDiagnosticId)
+                    IDEDiagnosticIds.RemoveQualificationDiagnosticId)
             End Get
         End Property
 
@@ -76,8 +76,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
                 Case IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId
                     Return String.Format(VBFeaturesResources.SimplifyMemberAccess, nodeText)
 
-                Case IDEDiagnosticIds.SimplifyThisOrMeDiagnosticId
-                    Return VBFeaturesResources.SimplifyMeQualification
+                Case IDEDiagnosticIds.RemoveQualificationDiagnosticId
+                    Return VBFeaturesResources.RemoveMeQualification
 
                 Case Else
                     Throw ExceptionUtilities.Unreachable

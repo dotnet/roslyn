@@ -6,6 +6,7 @@
 
 using System.Collections.ObjectModel;
 using Microsoft.VisualStudio.Debugger.CallStack;
+using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 
 namespace Microsoft.VisualStudio.Debugger.Evaluation
 {
@@ -82,6 +83,11 @@ namespace Microsoft.VisualStudio.Debugger.Evaluation
                 CustomUIVisualizers,
                 ExternalModules,
                 DataItem);
+        }
+
+        public DkmClrValue GetClrValue()
+        {
+            return InspectionContext.InspectionSession.InvokeResultProvider(MethodId.GetClrValue, r => r.GetClrValue(this));
         }
     }
 }

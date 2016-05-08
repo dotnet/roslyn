@@ -2746,7 +2746,7 @@ class Attribute : System.Attribute
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task ThisQualificationOption()
+        public async Task ThisQualificationOnFieldOption()
         {
             await TestMissingAsync(
 @"
@@ -2758,7 +2758,7 @@ class C
         [|this|].x = 4;
     }
 }
-", new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.QualifyMemberAccessWithThisOrMe, "C#"), true } });
+", Option(SimplificationOptions.QualifyFieldAccess, true));
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3203,7 +3203,7 @@ class C
 }";
             using (var workspace = await CreateWorkspaceFromFileAsync(source, null, null))
             {
-                var diagnostics = (await GetDiagnosticsAsync(workspace)).Where(d => d.Id == IDEDiagnosticIds.SimplifyThisOrMeDiagnosticId);
+                var diagnostics = (await GetDiagnosticsAsync(workspace)).Where(d => d.Id == IDEDiagnosticIds.RemoveQualificationDiagnosticId);
                 Assert.Equal(1, diagnostics.Count());
             }
         }

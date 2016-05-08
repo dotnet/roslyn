@@ -23,7 +23,7 @@ echo "=           Clearing nuget caches"
 echo "==============================================="
 echo ""
 
-& $ScriptDir\..\..\..\nuget.exe locals all -clear
+# & $ScriptDir\..\..\..\nuget.exe locals all -clear
 
 echo ""
 echo "==============================================="

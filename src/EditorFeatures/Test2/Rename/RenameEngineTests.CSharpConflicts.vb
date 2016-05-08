@@ -3587,3 +3587,4 @@ partial class {|current:$$C|} { }
         End Sub
     End Class
 End Namespace
+

@@ -263,13 +263,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        uint Cci.IFieldDefinition.Offset
+        int Cci.IFieldDefinition.Offset
         {
             get
             {
                 CheckDefinitionInvariant();
-                var offset = this.TypeLayoutOffset;
-                return (uint)(offset ?? 0);
+                return TypeLayoutOffset ?? 0;
             }
         }
 

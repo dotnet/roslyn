@@ -213,13 +213,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(ErrorCode.ERR_ExpressionTreeContainsOptionalArgument, node);
                 }
-                else if (!argumentNamesOpt.IsDefault)
+                else if (!argumentNamesOpt.IsDefaultOrEmpty)
                 {
                     Error(ErrorCode.ERR_ExpressionTreeContainsNamedArgument, node);
                 }
                 else if (IsComCallWithRefOmitted(method, arguments, argumentRefKindsOpt))
                 {
                     Error(ErrorCode.ERR_ComRefCallInExpressionTree, node);
+                }
+                else if (method.MethodKind == MethodKind.LocalFunction)
+                {
+                    Error(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, node);
+                }
+                else if (method.RefKind != RefKind.None)
+                {
+                    Error(ErrorCode.ERR_RefReturningCallInExpressionTree, node);
                 }
             }
         }
@@ -320,6 +328,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitIndexerAccess(node);
         }
 
+        public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
+        {
+            var property = node.PropertySymbol;
+            var method = property.GetMethod; // This is only checking for ref returns, so we don't fall back to the set method.
+            if ((object)method != null && _inExpressionLambda && method.RefKind != RefKind.None)
+            {
+                Error(ErrorCode.ERR_RefReturningCallInExpressionTree, node);
+            }
+            CheckReceiverIfField(node.ReceiverOpt);
+            return base.VisitPropertyAccess(node);
+        }
+
         public override BoundNode VisitLambda(BoundLambda node)
         {
             if (_inExpressionLambda)
@@ -336,6 +356,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else if (lambdaSyntax.Body.Kind() == SyntaxKind.Block)
                             {
                                 Error(ErrorCode.ERR_StatementLambdaToExpressionTree, node);
+                            }
+                            else if (lambdaSyntax.RefKeyword.Kind() == SyntaxKind.RefKeyword)
+                            {
+                                Error(ErrorCode.ERR_BadRefReturnExpressionTree, node);
                             }
 
                             var lambda = node.ExpressionSymbol as MethodSymbol;
@@ -362,6 +386,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             else if (lambdaSyntax.Body.Kind() == SyntaxKind.Block)
                             {
                                 Error(ErrorCode.ERR_StatementLambdaToExpressionTree, node);
+                            }
+                            else if (lambdaSyntax.RefKeyword.Kind() == SyntaxKind.RefKeyword)
+                            {
+                                Error(ErrorCode.ERR_BadRefReturnExpressionTree, node);
                             }
                         }
                         break;
@@ -517,6 +545,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 this.Visit(node.Argument);
             }
+            else if (_inExpressionLambda && node.MethodOpt?.MethodKind == MethodKind.LocalFunction)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, node);
+            }
 
             return null;
         }
@@ -532,6 +564,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // ERR_LambdaInIsAs makes this impossible (since the node will always be wrapped in
             // a failed conversion).
             Debug.Assert(!(!parentIsConversion && _inExpressionLambda));
+
+            if (_inExpressionLambda && (node.LookupSymbolOpt as MethodSymbol)?.MethodKind == MethodKind.LocalFunction)
+            {
+                Error(ErrorCode.ERR_ExpressionTreeContainsLocalFunction, node);
+            }
 
             CheckReceiverIfField(node.ReceiverOpt);
             return base.VisitMethodGroup(node);

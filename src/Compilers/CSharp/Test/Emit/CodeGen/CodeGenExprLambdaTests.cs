@@ -3554,43 +3554,100 @@ Lambda:
             string source = @"
 namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
 ";
-            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature()).VerifyDiagnostics(
+    // (2,11): error CS7000: Unexpected use of an aliased name
+    // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+    Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "global::").WithLocation(2, 11),
+    // (2,19): error CS1001: Identifier expected
+    // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+    Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(2, 19),
+    // (2,20): error CS8096: Tuple type must have at least two elements.
+    // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+    Diagnostic(ErrorCode.ERR_TupleTooFewElements, "(System.Linq.Expressions.Expression<System.Func<B>>)").WithLocation(2, 20),
+    // (2,76): error CS1026: ) expected
+    // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+    Diagnostic(ErrorCode.ERR_CloseParenExpected, "=>").WithLocation(2, 76),
+    // (2,79): error CS0116: A namespace cannot directly contain members such as fields or methods
+    // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+    Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "B").WithLocation(2, 79),
+    // (2,19): error CS1514: { expected
+    // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+    Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(2, 19),
+    // (2,76): error CS1022: Type or namespace definition, or end-of-file expected
+    // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+    Diagnostic(ErrorCode.ERR_EOFExpected, "=>").WithLocation(2, 76),
+    // (2,81): error CS1022: Type or namespace definition, or end-of-file expected
+    // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+    Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(2, 81),
+    // (2,84): error CS1520: Method must have a return type
+    // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+    Diagnostic(ErrorCode.ERR_MemberNeedsType, "Compile").WithLocation(2, 84),
+    // (2,93): error CS1002: ; expected
+    // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(2, 93),
+    // (2,93): error CS8096: Tuple type must have at least two elements.
+    // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+    Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(2, 93),
+    // (2,95): error CS1022: Type or namespace definition, or end-of-file expected
+    // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+    Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(2, 95),
+    // (2,84): error CS0501: '<invalid-global-code>.Compile()' must declare a body because it is not marked abstract, extern, or partial
+    // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+    Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "Compile").WithArguments(".<invalid-global-code>.Compile()").WithLocation(2, 84)
+    );
+        }
+
+        [WorkItem(544546, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544546")]
+        [Fact]
+        public void BadExprTreeLambdaInNSDeclWithCSharp6()
+        {
+            string source = @"
+namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+";
+            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
                 // (2,11): error CS7000: Unexpected use of an aliased name
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "global::"),
+                Diagnostic(ErrorCode.ERR_UnexpectedAliasedName, "global::").WithLocation(2, 11),
                 // (2,19): error CS1001: Identifier expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, "("),
-                // (2,70): error CS0116: A namespace does not directly contain members such as fields or methods
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "(").WithLocation(2, 19),
+                // (2,20): error CS8200: Tuple must contain at least two elements.
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, ">"),
-                // (2,79): error CS0116: A namespace does not directly contain members such as fields or methods
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "(System.Linq.Expressions.Expression<System.Func<B>>)").WithLocation(2, 20),
+                // (2,76): error CS1026: ) expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "B"),
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "=>").WithLocation(2, 76),
+                // (2,79): error CS0116: A namespace cannot directly contain members such as fields or methods
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_NamespaceUnexpected, "B").WithLocation(2, 79),
                 // (2,19): error CS1514: { expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_LbraceExpected, "("),
-                // (2,20): error CS1022: Type or namespace definition, or end-of-file expected
+                Diagnostic(ErrorCode.ERR_LbraceExpected, "(").WithLocation(2, 19),
+                // (2,76): error CS1022: Type or namespace definition, or end-of-file expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_EOFExpected, "("),
-                // (2,71): error CS1022: Type or namespace definition, or end-of-file expected
-                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_EOFExpected, ")"),
+                Diagnostic(ErrorCode.ERR_EOFExpected, "=>").WithLocation(2, 76),
                 // (2,81): error CS1022: Type or namespace definition, or end-of-file expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_EOFExpected, ")"),
+                Diagnostic(ErrorCode.ERR_EOFExpected, ")").WithLocation(2, 81),
                 // (2,84): error CS1520: Method must have a return type
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_MemberNeedsType, "Compile"),
+                Diagnostic(ErrorCode.ERR_MemberNeedsType, "Compile").WithLocation(2, 84),
                 // (2,93): error CS1002: ; expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "("),
-                // (2,93): error CS1022: Type or namespace definition, or end-of-file expected
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(2, 93),
+                // (2,93): error CS8200: Tuple must contain at least two elements.
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_EOFExpected, "("),
-                // (2,84): error CS0501: '.<invalid-global-code>.Compile()' must declare a body because it is not marked abstract, extern, or partial
+                Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(2, 93),
+                // (2,93): error CS8058: Feature 'tuples' is experimental and unsupported; use '/features:tuples' to enable.
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "Compile").WithArguments(".<invalid-global-code>.Compile()"));
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "()").WithArguments("tuples", "tuples").WithLocation(2, 93),
+                // (2,95): error CS1022: Type or namespace definition, or end-of-file expected
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(2, 95),
+                // (2,84): error CS0501: '<invalid-global-code>.Compile()' must declare a body because it is not marked abstract, extern, or partial
+                // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
+                Diagnostic(ErrorCode.ERR_ConcreteMissingBody, "Compile").WithArguments(".<invalid-global-code>.Compile()").WithLocation(2, 84)
+                );
         }
 
         [WorkItem(544548, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544548")]

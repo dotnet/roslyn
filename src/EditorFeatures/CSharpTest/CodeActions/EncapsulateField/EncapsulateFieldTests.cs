@@ -1,8 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.EncapsulateField;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1163,6 +1166,178 @@ class C
 }
 ");
             }
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        public async Task TestEncapsulateEscapedIdentifier()
+        {
+            await TestAsync(@"
+class C
+{
+    int [|@class|];
+}
+", @"
+class C
+{
+    int @class;
+
+    public int Class
+    {
+        get
+        {
+            return @class;
+        }
+
+        set
+        {
+            @class = value;
+        }
+    }
+}
+", compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        public async Task TestEncapsulateEscapedIdentifierAndQualifiedAccess()
+        {
+            await TestAsync(@"
+class C
+{
+    int [|@class|];
+}
+", @"
+class C
+{
+    int @class;
+
+    public int Class
+    {
+        get
+        {
+            return this.@class;
+        }
+
+        set
+        {
+            this.@class = value;
+        }
+    }
+}
+", compareTokens: false, options: Option(SimplificationOptions.QualifyFieldAccess, true));
+        }
+
+        [WorkItem(7090, "https://github.com/dotnet/roslyn/issues/7090")]
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField)]
+        public async Task ApplyCurrentThisPrefixStyle()
+        {
+            await TestAsync(@"
+class C
+{
+    int [|i|];
+}
+", @"
+class C
+{
+    int i;
+
+    public int I
+    {
+        get
+        {
+            return this.i;
+        }
+        set
+        {
+            this.i = value;
+        }
+    }
+
+}
+", options: Option(SimplificationOptions.QualifyFieldAccess, true));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        public async Task Tuple()
+        {
+            var text = @"
+class C
+{
+    private (int, string) b[|o|]b;
+
+    void M()
+    {
+        var q = bob;
+    }
+}
+";
+
+            var expected = @"
+class C
+{
+    private (int, string) bob;
+
+    public (int, string) Bob
+    {
+        get
+        {
+            return bob;
+        }
+
+        set
+        {
+            bob = value;
+        }
+    }
+
+    void M()
+    {
+        var q = bob;
+    }
+}
+";
+            await TestAsync(text, expected, compareTokens: false, index: 1, parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.EncapsulateField), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        public async Task TupleWithNames()
+        {
+            var text = @"
+class C
+{
+    private (int a, string b) b[|o|]b;
+
+    void M()
+    {
+        var q = bob.b;
+    }
+}
+";
+
+            var expected = @"
+class C
+{
+    private (int a, string b) bob;
+
+    public (int a, string b) Bob
+    {
+        get
+        {
+            return bob;
+        }
+
+        set
+        {
+            bob = value;
+        }
+    }
+
+    void M()
+    {
+        var q = bob.b;
+    }
+}
+";
+            await TestAsync(text, expected, compareTokens: false, index: 1, parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
         }
     }
 }

@@ -107,7 +107,7 @@ namespace Microsoft.Cci
 
         protected override void RecordAssemblyReference(IAssemblyReference assemblyReference)
         {
-            this.metadataWriter.GetAssemblyRefIndex(assemblyReference);
+            this.metadataWriter.GetAssemblyReferenceHandle(assemblyReference);
         }
 
         protected override void ProcessMethodBody(IMethodDefinition method)
@@ -167,37 +167,37 @@ namespace Microsoft.Cci
 
         protected override void RecordTypeReference(ITypeReference typeReference)
         {
-            this.metadataWriter.RecordTypeReference(typeReference);
+            this.metadataWriter.GetTypeHandle(typeReference);
         }
 
         protected override void RecordTypeMemberReference(ITypeMemberReference typeMemberReference)
         {
-            this.metadataWriter.GetMemberRefIndex(typeMemberReference);
+            this.metadataWriter.GetMemberReferenceHandle(typeMemberReference);
         }
 
         protected override void RecordFileReference(IFileReference fileReference)
         {
-            this.metadataWriter.GetFileRefIndex(fileReference);
+            this.metadataWriter.GetAssemblyFileHandle(fileReference);
         }
 
         protected override void ReserveMethodToken(IMethodReference methodReference)
         {
-            this.metadataWriter.GetMethodToken(methodReference);
+            this.metadataWriter.GetMethodHandle(methodReference);
         }
 
         protected override void ReserveFieldToken(IFieldReference fieldReference)
         {
-            this.metadataWriter.GetFieldToken(fieldReference);
+            this.metadataWriter.GetFieldHandle(fieldReference);
         }
 
         protected override void RecordModuleReference(IModuleReference moduleReference)
         {
-            this.metadataWriter.GetModuleRefIndex(moduleReference.Name);
+            this.metadataWriter.GetModuleReferenceHandle(moduleReference.Name);
         }
 
         public override void Visit(IPlatformInvokeInformation platformInvokeInformation)
         {
-            this.metadataWriter.GetModuleRefIndex(platformInvokeInformation.ModuleName);
+            this.metadataWriter.GetModuleReferenceHandle(platformInvokeInformation.ModuleName);
         }
     }
 }

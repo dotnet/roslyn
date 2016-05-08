@@ -6,7 +6,7 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
 {
-    [GuidAttribute(Guids.CSharpOptionPageFormattingIdString)]
+    [GuidAttribute(Guids.CSharpOptionPageFormattingGeneralIdString)]
     internal class FormattingOptionPage : AbstractOptionPage
     {
         protected override AbstractOptionPageControl CreateOptionPage(IServiceProvider serviceProvider)

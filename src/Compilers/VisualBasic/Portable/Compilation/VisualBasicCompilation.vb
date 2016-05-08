@@ -2599,6 +2599,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return CreateArrayTypeSymbol(elementType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(elementType)), rank)
         End Function
 
+        Protected Overrides Function CommonCreateTupleTypeSymbol(elementTypes As ImmutableArray(Of ITypeSymbol), elementNames As ImmutableArray(Of String)) As INamedTypeSymbol
+            Throw New NotSupportedException(VBResources.TuplesNotSupported)
+        End Function
+
         Protected Overrides Function CommonCreatePointerTypeSymbol(elementType As ITypeSymbol) As IPointerTypeSymbol
             Throw New NotSupportedException(VBResources.ThereAreNoPointerTypesInVB)
         End Function
@@ -2647,15 +2651,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return New SymbolSearcher(Me).GetSymbolsWithName(predicate, filter, cancellationToken)
-        End Function
-
-        Friend Overrides Function IsIOperationFeatureEnabled() As Boolean
-            Dim options = DirectCast(Me.SyntaxTrees.First().Options, VisualBasicParseOptions)
-            Dim IOperationFeatureFlag = InternalSyntax.FeatureExtensions.GetFeatureFlag(InternalSyntax.Feature.IOperation)
-            If IOperationFeatureFlag IsNot Nothing Then
-                Return options.Features.ContainsKey(IOperationFeatureFlag)
-            End If
-            Return False
         End Function
 #End Region
 

@@ -3,6 +3,7 @@
 using System;
 using System.Reflection;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
@@ -68,6 +69,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             var typeInfo = analyzer.GetType().GetTypeInfo();
             return typeInfo.Assembly.GetName().Name;
+        }
+
+        public static OptionSet GetOptionSet(this AnalyzerOptions analyzerOptions)
+        {
+            return (analyzerOptions as WorkspaceAnalyzerOptions)?.Workspace.Options;
         }
 
         private static string GetAssemblyQualifiedName(Type type)

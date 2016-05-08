@@ -225,6 +225,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Retargeting
             End If
         End Function
 
+        Public Overrides ReadOnly Property ReturnsByRef As Boolean
+            Get
+                Return _underlyingProperty.ReturnsByRef
+            End Get
+        End Property
+
         Public Overrides ReadOnly Property Type As TypeSymbol
             Get
                 Return RetargetingTranslator.Retarget(_underlyingProperty.Type, RetargetOptions.RetargetPrimitiveTypesByTypeCode)

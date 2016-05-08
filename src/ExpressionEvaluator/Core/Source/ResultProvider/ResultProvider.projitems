@@ -19,6 +19,8 @@
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\TypeWalker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\DynamicFlagsMap.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Helpers\DynamicHelpers.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IDkmClrFormatter2.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)IDkmClrFullNameProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ResultProvider.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Expansion\AggregateExpansion.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Expansion\ArrayExpansion.cs" />

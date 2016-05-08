@@ -401,6 +401,7 @@
     <Compile Include="FindSymbols\FindReferences\MetadataUnifyingEquivalenceComparer.cs" />
     <Compile Include="SymbolId\SymbolId.cs" />
     <Compile Include="Shared\Utilities\IProgressTracker.cs" />
+    <Compile Include="SymbolId\SymbolKey.TupleTypeSymbolKey.cs" />
     <Compile Include="Utilities\ArraySlice.cs" />
     <Compile Include="Utilities\BKTree.cs" />
     <Compile Include="FindSymbols\SyntaxTree\AbstractSyntaxTreeInfo.cs" />
@@ -440,6 +441,7 @@
     <Compile Include="Utilities\BKTree.Serialization.cs" />
     <Compile Include="Utilities\ForegroundThreadDataKind.cs" />
     <Compile Include="Utilities\IReadOnlyDictionaryExtensions.cs" />
+    <Compile Include="Utilities\IReadOnlyListExtensions.cs" />
     <Compile Include="Utilities\SpellChecker.cs" />
     <Compile Include="Utilities\StringEscapeEncoder.cs" />
     <Compile Include="Utilities\ValuesSources\CachedWeakValueSource.cs" />
@@ -787,7 +789,7 @@
     <Compile Include="Simplification\AliasAnnotation.cs" />
     <Compile Include="Simplification\ISimplificationService.cs" />
     <Compile Include="Simplification\SimplificationHelpers.cs" />
-    <Compile Include="Simplification\SimplificationOption.cs" />
+    <Compile Include="Simplification\SimplificationOptions.cs" />
     <Compile Include="Simplification\Simplifier.cs" />
     <Compile Include="Simplification\SpecialTypeAnnotation.cs" />
     <Compile Include="Simplification\SymbolAnnotation.cs" />

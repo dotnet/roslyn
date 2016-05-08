@@ -10,7 +10,7 @@ namespace Roslyn.Test.PdbUtilities
 {
     public static class CustomDebugInfoUtilities
     {
-        public static byte[] GetCustomDebugInfoBytes(ISymUnmanagedReader reader, MethodDefinitionHandle handle, int methodVersion)
+        public static byte[] GetCustomDebugInfoBytes(ISymUnmanagedReader3 reader, MethodDefinitionHandle handle, int methodVersion)
         {
             return reader.GetCustomDebugInfoBytes(MetadataTokens.GetToken(handle), methodVersion);
         }

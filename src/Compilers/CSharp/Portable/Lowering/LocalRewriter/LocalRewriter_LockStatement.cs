@@ -120,6 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundBlock(
                     lockSyntax,
                     ImmutableArray.Create(boundLockTemp.LocalSymbol, boundLockTakenTemp.LocalSymbol),
+                    ImmutableArray<LocalFunctionSymbol>.Empty,
                     ImmutableArray.Create(
                         MakeInitialLockSequencePoint(boundLockTempInit, lockSyntax),
                         boundLockTakenTempInit,
@@ -170,6 +171,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new BoundBlock(
                     lockSyntax,
                     ImmutableArray.Create(boundLockTemp.LocalSymbol),
+                    ImmutableArray<LocalFunctionSymbol>.Empty,
                     ImmutableArray.Create(
                         MakeInitialLockSequencePoint(boundLockTempInit, lockSyntax),
                         enterCall,

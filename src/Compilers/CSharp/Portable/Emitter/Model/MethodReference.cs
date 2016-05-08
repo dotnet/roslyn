@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         {
             get
             {
-                return UnderlyingMethod.ReturnType is ByRefReturnErrorTypeSymbol;
+                return UnderlyingMethod.RefKind == RefKind.Ref;
             }
         }
 

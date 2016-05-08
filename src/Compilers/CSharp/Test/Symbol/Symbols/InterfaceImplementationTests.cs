@@ -2025,14 +2025,9 @@ public class D : B, I
 
             var derivedType = global.GetMember<SourceNamedTypeSymbol>("D");
 
-            var byRefType = (ByRefReturnErrorTypeSymbol)interfaceMethod.ReturnType;
-
-            // General characteristics of type:
-            Assert.NotEqual(byRefType, byRefType.ReferencedType);
-            Assert.NotEqual(byRefType.GetHashCode(), byRefType.ReferencedType.GetHashCode());
-
             // Interface implementation:
-            Assert.Equal(byRefType, interfaceMethod.ReturnType);
+            Assert.Equal(RefKind.Ref, interfaceMethod.RefKind);
+            Assert.Equal(RefKind.Ref, baseMethod.RefKind);
             Assert.Equal(baseMethod, derivedType.FindImplementationForInterfaceMember(interfaceMethod));
 
             var synthesized = derivedType.GetSynthesizedExplicitImplementations(CancellationToken.None).Single();
@@ -2052,10 +2047,7 @@ public class D : B, I
 }
 ";
 
-            CreateCompilationWithCustomILSource(source2, il).VerifyDiagnostics(
-                // (7,17): error CS7085: By-reference return type 'ref int' is not supported.
-                //         var x = i.M();
-                Diagnostic(ErrorCode.ERR_ByRefReturnUnsupported, "M").WithArguments("int"));
+            CreateCompilationWithCustomILSource(source2, il).VerifyDiagnostics();
         }
 
         [WorkItem(547149, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547149")]

@@ -53,6 +53,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             _variablesDeclared = null;
         }
 
+        public override BoundNode VisitDeclarationPattern(BoundDeclarationPattern node)
+        {
+            if (IsInside)
+            {
+                _variablesDeclared.Add(node.LocalSymbol);
+            }
+
+            return base.VisitDeclarationPattern(node);
+        }
+
         public override BoundNode VisitLocalDeclaration(BoundLocalDeclaration node)
         {
             if (IsInside)
@@ -76,6 +86,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitLambda(node);
         }
 
+        public override BoundNode VisitLocalFunctionStatement(BoundLocalFunctionStatement node)
+        {
+            if (IsInside && !node.WasCompilerGenerated)
+            {
+                foreach (var parameter in node.Symbol.Parameters)
+                {
+                    _variablesDeclared.Add(parameter);
+                }
+            }
+
+            return base.VisitLocalFunctionStatement(node);
+        }
+
         public override BoundNode VisitForEachStatement(BoundForEachStatement node)
         {
             if (IsInside)
@@ -91,11 +114,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (IsInside)
             {
-                var local = catchBlock.LocalOpt;
+                var local = catchBlock.Locals.FirstOrDefault();
 
-                if ((object)local != null)
+                if (local?.DeclarationKind == LocalDeclarationKind.CatchVariable)
                 {
-                    Debug.Assert(local.DeclarationKind == LocalDeclarationKind.CatchVariable);
                     _variablesDeclared.Add(local);
                 }
             }

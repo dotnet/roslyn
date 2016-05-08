@@ -143,7 +143,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Sub
 
         ''' <summary>
-        ''' Whether the token was specified in base 10, 16, or 8.
+        ''' Whether the token was specified in base 10, 16, 8, or 2.
         ''' </summary>
         Friend ReadOnly Property Base As LiteralBase
             Get

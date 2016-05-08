@@ -1,0 +1,91 @@
+﻿<vs:DialogWindow x:Uid="NamingStyle"
+             x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences.NamingStyleDialog"
+             x:ClassModifier="internal"
+             x:Name="dialog"
+             xmlns:local="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences"
+             xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.14.0"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:s="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.14.0"
+             mc:Ignorable="d" 
+             d:DesignHeight="280" d:DesignWidth="500"
+             Height="280" Width="500"
+             MinHeight="280" MinWidth="500"
+             Title="{Binding ElementName=dialog, Path=DialogTitle}"
+             HasHelpButton="False"
+             FocusManager.FocusedElement="{Binding ElementName=interfaceNameTextBox}"
+             ResizeMode="CanResizeWithGrip"
+             ShowInTaskbar="False"
+             HasDialogFrame="True"
+             WindowStartupLocation="CenterOwner">
+    <Window.Resources>
+        <Style TargetType="ListBoxItem">
+            <Setter Property="IsTabStop" 
+                    Value="False" />
+        </Style>
+        <Thickness x:Key="labelPadding">0, 5, 0, 2</Thickness>
+        <Thickness x:Key="okCancelButtonPadding">9,2,9,2</Thickness>
+        <Thickness x:Key="selectDeselectButtonPadding">9,2,9,2</Thickness>
+        <Thickness x:Key="textboxPadding">2</Thickness>
+    </Window.Resources>
+    <Grid Margin="5,6,11,11">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+
+        <Label Grid.Row="0" Grid.Column="0" Content="{Binding ElementName=dialog, Path=NamingStyleTitleLabelText}"/>
+        <TextBox Grid.Row="0" Grid.Column="1" MinWidth="300" Text="{Binding NamingConventionName, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalContentAlignment="Center"/>
+
+        <Label Grid.Row="1" Grid.Column="0" Margin="0 5 0 0" Content="{Binding ElementName=dialog, Path=RequiredPrefixLabelText}"/>
+        <TextBox Grid.Row="1" Grid.Column="1" Margin="0 5 0 0" Width="100" HorizontalAlignment="Left" VerticalContentAlignment="Center" Text="{Binding RequiredPrefix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+        <Label Grid.Row="2" Grid.Column="0" Margin="0 5 0 0" Content="{Binding ElementName=dialog, Path=RequiredSuffixLabelText}"/>
+        <TextBox Grid.Row="2" Grid.Column="1" Margin="0 5 0 0" Width="100" HorizontalAlignment="Left" VerticalContentAlignment="Center" Text="{Binding RequiredSuffix, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+        <Label Grid.Row="3" Grid.Column="0" Margin="0 5 0 0" Content="{Binding ElementName=dialog, Path=WordSeparatorLabelText}"/>
+        <TextBox Grid.Row="3" Grid.Column="1" Margin="0 5 0 0" Width="100" HorizontalAlignment="Left" VerticalContentAlignment="Center" Text="{Binding WordSeparator, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"/>
+
+        <Label Grid.Row="4" Grid.Column="0" Margin="0 5 0 0" Content="{Binding ElementName=dialog, Path=CapitalizationLabelText}"/>
+        <ComboBox Grid.Row="4" Grid.Column="1" Width="200" HorizontalAlignment="Left" Margin="0 5 0 0" VerticalContentAlignment="Center" ItemsSource="{Binding CapitalizationSchemes}" DisplayMemberPath="Name" SelectedIndex="{Binding CapitalizationSchemeIndex, Mode=TwoWay}"/>
+
+        <Label Grid.Row="6" Grid.Column="0" Margin="0 5 0 0" Content="{Binding ElementName=dialog, Path=SampleIdentifierLabelText}"/>
+        <Border Grid.Row="6" Grid.Column="1" Margin="0 5 0 0" BorderThickness="1" BorderBrush="Gray" Background="White">
+            <TextBlock FontFamily="Consolas" Margin="2 2 2 2" Text="{Binding CurrentConfiguration, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" VerticalAlignment="Center"></TextBlock>
+        </Border>
+
+        <StackPanel Grid.Row="7" Grid.Column="0" Grid.ColumnSpan="2"
+                    HorizontalAlignment="Right" 
+                    Margin="0, 11, 0, 0"
+                    Orientation="Horizontal">
+            <vs:DialogButton x:Uid="OkButton" 
+                    Click="OK_Click"
+                    Content="{Binding ElementName=dialog, Path=OK}" 
+                    Margin="0, 0, 0, 0" 
+                    Padding="{StaticResource ResourceKey=okCancelButtonPadding}"
+                    IsDefault="True"
+                    MinWidth="73"
+                    MinHeight="21"/>
+            <vs:DialogButton x:Uid="CancelButton" 
+                    Click="Cancel_Click"
+                    Content="{Binding ElementName=dialog, Path=Cancel}" 
+                    Margin="7, 0, 0, 0" 
+                    Padding="{StaticResource ResourceKey=okCancelButtonPadding}"
+                    IsCancel="True"
+                    MinWidth="73"
+                    MinHeight="21"/>
+        </StackPanel>
+    </Grid>
+</vs:DialogWindow>

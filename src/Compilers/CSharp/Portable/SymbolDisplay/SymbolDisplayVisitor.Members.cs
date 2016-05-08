@@ -60,6 +60,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (format.MemberOptions.IncludesOption(SymbolDisplayMemberOptions.IncludeType))
             {
+                var property = symbol as PropertySymbol;
+                if (property != null)
+                {
+                    AddRefKindIfRequired(property.RefKind);
+                }
+
                 symbol.Type.Accept(this.NotFirstVisitor);
                 AddSpace();
 
@@ -226,6 +232,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // to visualize a symbol *during its construction*, the parameters and return type might 
                             // still be null. 
 
+                            var method = symbol as MethodSymbol;
+                            if (method != null)
+                            {
+                                AddRefKindIfRequired(method.RefKind);
+                            }
+
                             if (symbol.ReturnsVoid)
                             {
                                 AddKeyword(SyntaxKind.VoidKeyword);
@@ -245,7 +257,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ITypeSymbol containingType;
                     bool includeType;
 
-                    if (symbol.MethodKind == MethodKind.ReducedExtension)
+                    if (symbol.MethodKind == MethodKind.LocalFunction)
+                    {
+                        includeType = false;
+                        containingType = null;
+                    }
+                    else if (symbol.MethodKind == MethodKind.ReducedExtension)
                     {
                         containingType = symbol.ReceiverType;
                         includeType = true;
@@ -280,6 +297,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MethodKind.Ordinary:
                 case MethodKind.DelegateInvoke:
                 case MethodKind.ReducedExtension:
+                case MethodKind.LocalFunction:
                     //containing type will be the delegate type, name will be Invoke
                     builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol, symbol.Name));
                     break;
@@ -443,25 +461,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (includeType)
             {
-                if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeParamsRefOut))
-                {
-                    switch (symbol.RefKind)
-                    {
-                        case RefKind.Out:
-                            AddKeyword(SyntaxKind.OutKeyword);
-                            AddSpace();
-                            break;
-                        case RefKind.Ref:
-                            AddKeyword(SyntaxKind.RefKeyword);
-                            AddSpace();
-                            break;
-                    }
+                AddRefKindIfRequired(symbol.RefKind);
 
-                    if (symbol.IsParams)
-                    {
-                        AddKeyword(SyntaxKind.ParamsKeyword);
-                        AddSpace();
-                    }
+                if (symbol.IsParams && format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeParamsRefOut))
+                {
+                    AddKeyword(SyntaxKind.ParamsKeyword);
+                    AddSpace();
                 }
 
                 ushort countOfCustomModifiersPrecedingByRef = 0;
@@ -709,6 +714,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (trailingSpace)
                 {
                     AddSpace();
+                }
+            }
+        }
+
+        private void AddRefKindIfRequired(RefKind refKind)
+        {
+            if (format.ParameterOptions.IncludesOption(SymbolDisplayParameterOptions.IncludeParamsRefOut))
+            {
+                switch (refKind)
+                {
+                    case RefKind.Out:
+                        AddKeyword(SyntaxKind.OutKeyword);
+                        AddSpace();
+                        break;
+                    case RefKind.Ref:
+                        AddKeyword(SyntaxKind.RefKeyword);
+                        AddSpace();
+                        break;
                 }
             }
         }

@@ -301,14 +301,6 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             }
         }
 
-        internal string GetIdentifierEscapingPotentialKeywords(string identifier, out bool sawInvalidIdentifier)
-        {
-            var pooled = PooledStringBuilder.GetInstance();
-            var builder = pooled.Builder;
-            AppendIdentifierEscapingPotentialKeywords(builder, identifier, out sawInvalidIdentifier);
-            return pooled.ToStringAndFree();
-        }
-
         #region Language-specific type name formatting behavior
 
         protected abstract void AppendIdentifierEscapingPotentialKeywords(StringBuilder builder, string identifier, out bool sawInvalidIdentifier);

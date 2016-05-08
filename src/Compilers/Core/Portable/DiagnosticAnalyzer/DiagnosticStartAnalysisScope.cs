@@ -17,14 +17,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         private readonly DiagnosticAnalyzer _analyzer;
         private readonly HostSessionStartAnalysisScope _scope;
-        
-        private readonly bool _isIOperationFeatureEnabled;
 
-        public AnalyzerAnalysisContext(DiagnosticAnalyzer analyzer, HostSessionStartAnalysisScope scope, bool isIOperationFeatureEnabled = false)
+        public AnalyzerAnalysisContext(DiagnosticAnalyzer analyzer, HostSessionStartAnalysisScope scope)
         {
             _analyzer = analyzer;
             _scope = scope;
-            _isIOperationFeatureEnabled = isIOperationFeatureEnabled;
         }
 
         public override void RegisterCompilationStartAction(Action<CompilationStartAnalysisContext> action)
@@ -77,21 +74,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public override void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
         {
-            DiagnosticAnalysisContextHelpers.VerifyIOperationFeatureFlag(_isIOperationFeatureEnabled);
             DiagnosticAnalysisContextHelpers.VerifyArguments(action, operationKinds);
             _scope.RegisterOperationAction(_analyzer, action, operationKinds);
         }
 
         public override void RegisterOperationBlockStartAction(Action<OperationBlockStartAnalysisContext> action)
         {
-            DiagnosticAnalysisContextHelpers.VerifyIOperationFeatureFlag(_isIOperationFeatureEnabled);
             DiagnosticAnalysisContextHelpers.VerifyArguments(action);
             _scope.RegisterOperationBlockStartAction(_analyzer, action);
         }
 
         public override void RegisterOperationBlockAction(Action<OperationBlockAnalysisContext> action)
         {
-            DiagnosticAnalysisContextHelpers.VerifyIOperationFeatureFlag(_isIOperationFeatureEnabled);
             DiagnosticAnalysisContextHelpers.VerifyArguments(action);
             _scope.RegisterOperationBlockAction(_analyzer, action);
         }
@@ -115,8 +109,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly DiagnosticAnalyzer _analyzer;
         private readonly HostCompilationStartAnalysisScope _scope;
         private readonly CompilationAnalysisValueProviderFactory _compilationAnalysisValueProviderFactory;
-        
-        private readonly bool _isIOperationFeatureEnabled;
 
         public AnalyzerCompilationStartAnalysisContext(
             DiagnosticAnalyzer analyzer,
@@ -130,7 +122,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _analyzer = analyzer;
             _scope = scope;
             _compilationAnalysisValueProviderFactory = compilationAnalysisValueProviderFactory;
-            _isIOperationFeatureEnabled = compilation.IsIOperationFeatureEnabled();
         }
 
         public override void RegisterCompilationEndAction(Action<CompilationAnalysisContext> action)
@@ -170,20 +161,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public override void RegisterOperationBlockStartAction(Action<OperationBlockStartAnalysisContext> action)
         {
-            DiagnosticAnalysisContextHelpers.VerifyIOperationFeatureFlag(_isIOperationFeatureEnabled);
             _scope.RegisterOperationBlockStartAction(_analyzer, action);
         }
 
         public override void RegisterOperationBlockAction(Action<OperationBlockAnalysisContext> action)
         {
-            DiagnosticAnalysisContextHelpers.VerifyIOperationFeatureFlag(_isIOperationFeatureEnabled);
             DiagnosticAnalysisContextHelpers.VerifyArguments(action);
             _scope.RegisterOperationBlockAction(_analyzer, action);
         }
 
         public override void RegisterOperationAction(Action<OperationAnalysisContext> action, ImmutableArray<OperationKind> operationKinds)
         {
-            DiagnosticAnalysisContextHelpers.VerifyIOperationFeatureFlag(_isIOperationFeatureEnabled);
             _scope.RegisterOperationAction(_analyzer, action, operationKinds);
         }
 

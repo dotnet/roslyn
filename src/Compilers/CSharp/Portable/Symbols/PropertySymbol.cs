@@ -51,6 +51,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// Indicates whether or not the method returns by reference
+        /// </summary>
+        public bool ReturnsByRef { get { return this.RefKind != RefKind.None; } }
+
+        /// <summary>
+        /// Gets the ref kind of the property.
+        /// </summary>
+        internal abstract RefKind RefKind { get; }
+
+        /// <summary>
         /// The type of the property. 
         /// </summary>
         public abstract TypeSymbol Type { get; }
@@ -366,6 +376,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         #endregion
+
+        /// <summary>
+        /// Is this a property of a tuple type?
+        /// </summary>
+        public virtual bool IsTupleProperty
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// If this is a property of a tuple type, return corresponding underlying property from the
+        /// tuple underlying type. Otherwise, null. 
+        /// </summary>
+        public virtual PropertySymbol TupleUnderlyingProperty
+        {
+            get
+            {
+                return null;
+            }
+        }
 
         #region IPropertySymbol Members
 

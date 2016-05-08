@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     F.CatchBlocks(
                         new BoundCatchBlock(
                             F.Syntax,
-                            exceptionLocal,
+                            ImmutableArray.Create(exceptionLocal),
                             F.Local(exceptionLocal),
                             exceptionLocal.Type,
                             exceptionFilterOpt: null,
@@ -200,7 +200,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 F.SequencePoint(
                     body.Syntax,
                     F.Block(
-                        locals.ToImmutableAndFree(),
+                        locals.ToImmutableAndFree(), 
                         newStatements));
 
             if (rootScopeHoistedLocals.Length > 0)
@@ -301,10 +301,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 LocalSymbol resultTemp = F.SynthesizedLocal(type);
                 return F.Block(
                     ImmutableArray.Create(awaiterTemp, resultTemp),
-                        awaitIfIncomplete,
-                        F.Assignment(F.Local(resultTemp), getResultCall),
-                        F.ExpressionStatement(nullAwaiter),
-                        F.Assignment(resultPlace, F.Local(resultTemp)));
+                    awaitIfIncomplete,
+                    F.Assignment(F.Local(resultTemp), getResultCall),
+                    F.ExpressionStatement(nullAwaiter),
+                    F.Assignment(resultPlace, F.Local(resultTemp)));
             }
             else
             {
@@ -312,9 +312,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // $awaiterTemp = null;
                 return F.Block(
                     ImmutableArray.Create(awaiterTemp),
-                        awaitIfIncomplete,
-                        F.ExpressionStatement(getResultCall),
-                        F.ExpressionStatement(nullAwaiter));
+                    awaitIfIncomplete,
+                    F.ExpressionStatement(getResultCall),
+                    F.ExpressionStatement(nullAwaiter));
             }
         }
 

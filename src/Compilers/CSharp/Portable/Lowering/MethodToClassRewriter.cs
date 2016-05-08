@@ -109,15 +109,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override BoundNode VisitCatchBlock(BoundCatchBlock node)
         {
-            if ((object)node.LocalOpt != null)
+            if (!node.Locals.IsDefaultOrEmpty)
             {
                 // Yield/await aren't supported in catch block atm, but we need to rewrite the type 
-                // of the variable owned by the catch block. Note that this variable might be a closure frame reference.
-                LocalSymbol newLocal;
-                TryRewriteLocal(node.LocalOpt, out newLocal);
+                // of the variables owned by the catch block. Note that one of these variables might be a closure frame reference.
+                var newLocals = RewriteLocals(node.Locals);
 
                 return node.Update(
-                    newLocal,
+                    newLocals,
                     (BoundExpression)this.Visit(node.ExceptionSourceOpt),
                     this.VisitType(node.ExceptionTypeOpt),
                     (BoundExpression)this.Visit(node.ExceptionFilterOpt),
@@ -131,8 +130,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override BoundNode VisitBlock(BoundBlock node)
         {
             var newLocals = RewriteLocals(node.Locals);
+            var newLocalFunctions = node.LocalFunctions;
             var newStatements = VisitList(node.Statements);
-            return node.Update(newLocals, newStatements);
+            return node.Update(newLocals, newLocalFunctions, newStatements);
         }
 
         public override BoundNode VisitSequence(BoundSequence node)
@@ -148,9 +148,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var preambleOpt = (BoundStatement)this.Visit(node.LoweredPreambleOpt);
             var newInnerLocals = RewriteLocals(node.InnerLocals);
-            BoundExpression boundExpression = (BoundExpression)this.Visit(node.BoundExpression);
+            BoundExpression boundExpression = (BoundExpression)this.Visit(node.Expression);
             ImmutableArray<BoundSwitchSection> switchSections = (ImmutableArray<BoundSwitchSection>)this.VisitList(node.SwitchSections);
-            return node.Update(preambleOpt, boundExpression, node.ConstantTargetOpt, newInnerLocals, switchSections, node.BreakLabel, node.StringEquality);
+            return node.Update(preambleOpt, boundExpression, node.ConstantTargetOpt, newInnerLocals, node.InnerLocalFunctions, switchSections, node.BreakLabel, node.StringEquality);
         }
 
         public override BoundNode VisitForStatement(BoundForStatement node)
@@ -497,32 +497,66 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 return null;
             }
 
-            if (!method.ContainingType.IsAnonymousType)
+            if (method.IsTupleMethod)
+            {
+                //  Method of a tuple type
+                var oldType = method.ContainingType;
+                var constructedFrom = method.ConstructedFrom;
+                Debug.Assert(oldType.IsTupleType);
+
+                var newType = (NamedTypeSymbol)TypeMap.SubstituteType(oldType).AsTypeSymbolOnly();
+                if ((object)newType == oldType)
+                {
+                    //  tuple type symbol was not rewritten
+                    return constructedFrom.ConstructIfGeneric(TypeMap.SubstituteTypesWithoutModifiers(method.TypeArguments));
+                }
+
+                Debug.Assert(newType.IsTupleType);
+                Debug.Assert(oldType.TupleElementTypes.Length == newType.TupleElementTypes.Length);
+
+                //  get a new method by position
+                var oldMembers = oldType.GetMembers();
+                var newMembers = newType.GetMembers();
+                Debug.Assert(oldMembers.Length == newMembers.Length);
+
+                for (int i = 0; i < oldMembers.Length; i++)
+                {
+                    if ((object)constructedFrom == oldMembers[i])
+                    {
+                        return ((MethodSymbol)newMembers[i]).ConstructIfGeneric(TypeMap.SubstituteTypesWithoutModifiers(method.TypeArguments));
+                    }
+                }
+
+                throw ExceptionUtilities.Unreachable;
+            }
+            else if (method.ContainingType.IsAnonymousType)
+            {
+                //  Method of an anonymous type
+                var newType = (NamedTypeSymbol)TypeMap.SubstituteType(method.ContainingType).AsTypeSymbolOnly();
+                if (ReferenceEquals(newType, method.ContainingType))
+                {
+                    //  Anonymous type symbol was not rewritten
+                    return method;
+                }
+
+                //  get a new method by name
+                foreach (var member in newType.GetMembers(method.Name))
+                {
+                    if (member.Kind == SymbolKind.Method)
+                    {
+                        return (MethodSymbol)member;
+                    }
+                }
+
+                throw ExceptionUtilities.Unreachable;
+            }
+            else
             {
                 //  Method of a regular type
                 return ((MethodSymbol)method.OriginalDefinition)
                     .AsMember((NamedTypeSymbol)TypeMap.SubstituteType(method.ContainingType).AsTypeSymbolOnly())
                     .ConstructIfGeneric(TypeMap.SubstituteTypesWithoutModifiers(method.TypeArguments));
             }
-
-            //  Method of an anonymous type
-            var newType = (NamedTypeSymbol)TypeMap.SubstituteType(method.ContainingType).AsTypeSymbolOnly();
-            if (ReferenceEquals(newType, method.ContainingType))
-            {
-                //  Anonymous type symbol was not rewritten
-                return method;
-            }
-
-            //  get a new method by name
-            foreach (var member in newType.GetMembers(method.Name))
-            {
-                if (member.Kind == SymbolKind.Method)
-                {
-                    return (MethodSymbol)member;
-                }
-            }
-
-            throw ExceptionUtilities.Unreachable;
         }
 
         private PropertySymbol VisitPropertySymbol(PropertySymbol property)

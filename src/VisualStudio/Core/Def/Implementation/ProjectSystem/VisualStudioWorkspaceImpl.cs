@@ -1075,6 +1075,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return this.ServiceProvider.GetService(typeof(TService)) as TInterface;
         }
 
+        public object GetVsService(Type serviceType)
+        {
+            return ServiceProvider.GetService(serviceType);
+        }
+
+        public DTE GetVsDte()
+        {
+            return GetVsService<SDTE, DTE>();
+        }
+
         internal override bool CanAddProjectReference(ProjectId referencingProject, ProjectId referencedProject)
         {
             _foregroundObject.AssertIsForeground();

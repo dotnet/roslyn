@@ -9,24 +9,33 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
     internal struct TypeAndCustomInfo
     {
-        public readonly Type Type;
+        public readonly DkmClrType ClrType;
         public readonly DkmClrCustomTypeInfo Info;
 
-        public TypeAndCustomInfo(Type type, DkmClrCustomTypeInfo info)
+        public TypeAndCustomInfo(DkmClrType type, DkmClrCustomTypeInfo info = null)
         {
             Debug.Assert(type != null); // Can only be null in the default instance.
-            Type = type;
+            ClrType = type;
             Info = info;
         }
 
-        public TypeAndCustomInfo(Type type)
-            : this(type, null)
+        public Type Type
         {
-        }
+            get
+            {
+                var t = ClrType?.GetLmrType();
 
-        public TypeAndCustomInfo(DkmClrType type)
-            : this(type.GetLmrType(), null)
-        {
+                //TODO: Sometimes we get byref types here when dealing with ref-returning members.
+                //      That probably should not happen.
+                //      For now we will just unwrap unexpected byrefs
+                if (t?.IsByRef == true)
+                {
+                    t = t.GetElementType();
+                    Debug.Assert(!t.IsByRef, "double byref type?");
+                }
+
+                return t;
+            }
         }
     }
 }

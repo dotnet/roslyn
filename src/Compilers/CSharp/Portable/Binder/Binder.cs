@@ -153,11 +153,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Get locals declared immediately in scope represented by the node.
+        /// Get locals declared immediately in scope designated by the node.
         /// </summary>
-        internal virtual ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode node)
+        internal virtual ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode scopeDesignator)
         {
-            return this.Next.GetDeclaredLocalsForScope(node);
+            return this.Next.GetDeclaredLocalsForScope(scopeDesignator);
+        }
+
+        /// <summary>
+        /// Get local functions declared immediately in scope designated by the node.
+        /// </summary>
+        internal virtual ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
+        {
+            return this.Next.GetDeclaredLocalFunctionsForScope(scopeDesignator);
+        }
+
+        internal virtual bool IsLocalFunctionsScopeBinder
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        internal virtual bool IsLabelsScopeBinder
+        {
+            get
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -691,9 +715,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             CompoundAssignment,
 
             /// <summary>
-            /// Expression is an out parameter.
+            /// Expression is passed as a ref or out parameter or assigned to a byref variable.
             /// </summary>
-            OutParameter,
+            RefOrOut,
 
             /// <summary>
             /// Expression is the operand of an address-of operation (&amp;).
@@ -704,6 +728,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// Expression is the receiver of a fixed buffer field access
             /// </summary>
             FixedReceiver,
+
+            /// <summary>
+            /// Expression is assigned by reference.
+            /// </summary>
+            RefAssign,
+            
+            /// <summary>
+            /// Expression is returned by reference.
+            /// </summary>
+            RefReturn,
         }
 
         /// <summary>
@@ -737,6 +771,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             return binders.ToArrayAndFree();
         }
 #endif
+        
+        internal BoundExpression WrapWithVariablesIfAny(CSharpSyntaxNode scopeDesignator, BoundExpression expression)
+        {
+            var locals = this.GetDeclaredLocalsForScope(scopeDesignator);
+            return (locals.IsEmpty)
+                ? expression
+                : new BoundSequence(scopeDesignator, locals, ImmutableArray<BoundExpression>.Empty, expression, expression.Type) { WasCompilerGenerated = true };
+        }
 
+        internal BoundStatement WrapWithVariablesIfAny(CSharpSyntaxNode scopeDesignator, BoundStatement statement)
+        {
+            var locals = this.GetDeclaredLocalsForScope(scopeDesignator);
+            if (locals.IsEmpty)
+            {
+                return statement;
+            }
+
+            return new BoundBlock(statement.Syntax, locals,
+                                  ImmutableArray<LocalFunctionSymbol>.Empty,
+                                  ImmutableArray.Create(statement))
+                        { WasCompilerGenerated = true };
+        }
     }
 }

@@ -9,6 +9,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Decoding;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Text;
@@ -23,8 +24,6 @@ using PooledStringBuilder = Microsoft.CodeAnalysis.Collections.PooledStringBuild
 
 namespace Roslyn.Test.PdbUtilities
 {
-    using Roslyn.Reflection.Metadata.Decoding;
-
     /// <summary>
     /// Class to write out XML for a PDB.
     /// </summary>
@@ -34,7 +33,7 @@ namespace Roslyn.Test.PdbUtilities
         private const string IntHexFormat = "0x{0:X}";
 
         private readonly MetadataReader _metadataReader;
-        private readonly ISymUnmanagedReader _symReader;
+        private readonly ISymUnmanagedReader3 _symReader;
         private readonly PdbToXmlOptions _options;
         private readonly XmlWriter _writer;
 
@@ -46,7 +45,7 @@ namespace Roslyn.Test.PdbUtilities
             NewLineChars = "\r\n",
         };
 
-        private PdbToXmlConverter(XmlWriter writer, ISymUnmanagedReader symReader, MetadataReader metadataReader, PdbToXmlOptions options)
+        private PdbToXmlConverter(XmlWriter writer, ISymUnmanagedReader3 symReader, MetadataReader metadataReader, PdbToXmlOptions options)
         {
             _symReader = symReader;
             _metadataReader = metadataReader;
@@ -196,7 +195,7 @@ namespace Roslyn.Test.PdbUtilities
             ISymUnmanagedMethod method = _symReader.GetMethod(token);
 
             byte[] cdi = null;
-            var sequencePoints = default(ImmutableArray<SymUnmanagedSequencePoint>);
+            var sequencePoints = ImmutableArray<SymUnmanagedSequencePoint>.Empty;
             ISymUnmanagedAsyncMethod asyncMethod = null;
             ISymUnmanagedScope rootScope = null;
 
@@ -209,12 +208,12 @@ namespace Roslyn.Test.PdbUtilities
             {
                 if ((_options & PdbToXmlOptions.ExcludeAsyncInfo) == 0)
                 {
-                    asyncMethod = method.AsAsync();
+                    asyncMethod = method.AsAsyncMethod();
                 }
 
                 if ((_options & PdbToXmlOptions.ExcludeSequencePoints) == 0)
                 {
-                    sequencePoints = method.GetSequencePoints();
+                    sequencePoints = method.GetSequencePoints().ToImmutableArray();
                 }
 
                 if ((_options & PdbToXmlOptions.ExcludeScopes) == 0)
@@ -223,7 +222,7 @@ namespace Roslyn.Test.PdbUtilities
                 }
             }
 
-            if (cdi == null && sequencePoints.IsDefaultOrEmpty && rootScope == null && asyncMethod == null)
+            if (cdi == null && sequencePoints.IsEmpty && rootScope == null && asyncMethod == null)
             {
                 // no debug info to write
                 return;
@@ -237,7 +236,7 @@ namespace Roslyn.Test.PdbUtilities
                 WriteCustomDebugInfo(cdi);
             }
 
-            if (!sequencePoints.IsDefaultOrEmpty)
+            if (!sequencePoints.IsEmpty)
             {
                 WriteSequencePoints(sequencePoints, documentIndex);
             }
@@ -663,9 +662,9 @@ namespace Roslyn.Test.PdbUtilities
         private void WriteScopes(ISymUnmanagedScope rootScope)
         {
             // The root scope is always empty. The first scope opened by SymWriter is the child of the root scope.
-            if (rootScope.GetNamespaces().IsEmpty && rootScope.GetLocals().IsEmpty && rootScope.GetConstants().IsEmpty)
+            if (rootScope.GetNamespaces().Length == 0 && rootScope.GetLocals().Length == 0 && rootScope.GetConstants().Length == 0)
             {
-                foreach (ISymUnmanagedScope child in rootScope.GetScopes())
+                foreach (ISymUnmanagedScope child in rootScope.GetChildren())
                 {
                     WriteScope(child, isRoot: false);
                 }
@@ -693,7 +692,7 @@ namespace Roslyn.Test.PdbUtilities
 
             WriteLocals(scope);
 
-            foreach (ISymUnmanagedScope child in scope.GetScopes())
+            foreach (ISymUnmanagedScope child in scope.GetChildren())
             {
                 WriteScope(child, isRoot: false);
             }
@@ -957,7 +956,7 @@ namespace Roslyn.Test.PdbUtilities
             foreach (ISymUnmanagedConstant constant in scope.GetConstants())
             {
                 string name = constant.GetName();
-                var signature = constant.GetSignature();
+                byte[] signature = constant.GetSignature();
                 object value = constant.GetValue();
 
                 _writer.WriteStartElement("constant");
@@ -1045,7 +1044,7 @@ namespace Roslyn.Test.PdbUtilities
             }
         }
 
-        private unsafe string FormatLocalConstantSignature(ImmutableArray<byte> signature)
+        private unsafe string FormatLocalConstantSignature(byte[] signature)
         {
             fixed (byte* sigPtr = signature.ToArray())
             {
@@ -1137,7 +1136,7 @@ namespace Roslyn.Test.PdbUtilities
             }
         }
 
-        private static Type GetConstantRuntimeType(ImmutableArray<byte> signature)
+        private static Type GetConstantRuntimeType(byte[] signature)
         {
             switch ((SignatureTypeCode)signature[0])
             {
@@ -1227,9 +1226,9 @@ namespace Roslyn.Test.PdbUtilities
             _writer.WriteEndElement(); // sequencepoints
         }
 
-        private IReadOnlyDictionary<string, int> BuildDocumentIndex(ImmutableArray<ISymUnmanagedDocument> documents)
+        private IReadOnlyDictionary<string, int> BuildDocumentIndex(IReadOnlyList<ISymUnmanagedDocument> documents)
         {
-            var index = new Dictionary<string, int>(documents.Length);
+            var index = new Dictionary<string, int>(documents.Count);
 
             int id = 1;
             foreach (var document in documents)
@@ -1257,7 +1256,7 @@ namespace Roslyn.Test.PdbUtilities
             return index;
         }
 
-        private void WriteDocuments(ImmutableArray<ISymUnmanagedDocument> documents, IReadOnlyDictionary<string, int> documentIndex)
+        private void WriteDocuments(IEnumerable<ISymUnmanagedDocument> documents, IReadOnlyDictionary<string, int> documentIndex)
         {
             bool hasDocument = false;
 
@@ -1325,7 +1324,7 @@ namespace Roslyn.Test.PdbUtilities
                         _writer.WriteStartElement("document");
 
                         int startLine, endLine;
-                        method.GetSourceExtentInDocument(methodDocument, out startLine, out endLine);
+                        ((ISymEncUnmanagedMethod)method).GetSourceExtentInDocument(methodDocument, out startLine, out endLine);
 
                         _writer.WriteAttributeString("startLine", startLine.ToString());
                         _writer.WriteAttributeString("endLine", endLine.ToString());

@@ -194,6 +194,8 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
             AwaitExpression,
 
+            LocalFunction,
+
             Lambda,
 
             FromClause,
@@ -230,6 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                 case Label.FinallyClause:
                 case Label.ForStatementPart:
                 case Label.YieldStatement:
+                case Label.LocalFunction:
                 case Label.FromClauseLambda:
                 case Label.LetClauseLambda:
                 case Label.WhereClauseLambda:
@@ -382,6 +385,9 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.FinallyClause:
                     return Label.FinallyClause;
+
+                case SyntaxKind.LocalFunctionStatement:
+                    return Label.LocalFunction;
 
                 case SyntaxKind.ParenthesizedLambdaExpression:
                 case SyntaxKind.SimpleLambdaExpression:
@@ -648,6 +654,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     distance = ComputeWeightedDistanceOfLambdas(leftNode, rightNode);
                     return true;
 
+                case SyntaxKind.LocalFunctionStatement:
+                    distance = ComputeWeightedDistanceOfLocalFunctions((LocalFunctionStatementSyntax)leftNode, (LocalFunctionStatementSyntax)rightNode);
+                    return true;
+
                 case SyntaxKind.YieldBreakStatement:
                 case SyntaxKind.YieldReturnStatement:
                     // Ignore the expression of yield return. The structure of the state machine is more important than the yielded values.
@@ -658,6 +668,24 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     distance = 0;
                     return false;
             }
+        }
+
+        private static double ComputeWeightedDistanceOfLocalFunctions(LocalFunctionStatementSyntax leftNode, LocalFunctionStatementSyntax rightNode)
+        {
+            double modifierDistance = ComputeDistance(leftNode.Modifiers, rightNode.Modifiers);
+            double returnTypeDistance = ComputeDistance(leftNode.ReturnType, rightNode.ReturnType);
+            double identifierDistance = ComputeDistance(leftNode.Identifier, rightNode.Identifier);
+            double typeParameterDistance = ComputeDistance(leftNode.TypeParameterList, rightNode.TypeParameterList);
+            double parameterDistance = ComputeDistance(leftNode.ParameterList.Parameters, rightNode.ParameterList.Parameters);
+            double bodyDistance = ComputeDistance((SyntaxNode)leftNode.Body ?? leftNode.ExpressionBody, (SyntaxNode)rightNode.Body ?? rightNode.ExpressionBody);
+
+            return
+                modifierDistance * 0.1 +
+                returnTypeDistance * 0.1 +
+                identifierDistance * 0.2 +
+                typeParameterDistance * 0.2 +
+                parameterDistance * 0.2 +
+                bodyDistance * 0.2;
         }
 
         private static double ComputeWeightedDistanceOfLambdas(SyntaxNode leftNode, SyntaxNode rightNode)

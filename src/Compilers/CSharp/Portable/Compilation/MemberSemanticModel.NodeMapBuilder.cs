@@ -2,11 +2,11 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Globalization;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
+using System.Diagnostics;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     if (map.ContainsKey(key))
                     {
-#if DEBUG
+#if DEBUG && PATTERNS_FIXED
                         // It's possible that AddToMap was previously called with a subtree of root.  If this is the case,
                         // then we'll see an entry in the map.  Since the incremental binder should also have seen the
                         // pre-existing map entry, the entry in addition map should be identical.
@@ -223,8 +223,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <param name="currentBoundNode">The bound node.</param>
             private bool ShouldAddNode(BoundNode currentBoundNode)
             {
+                BoundBlock block;
+
                 // Do not add compiler generated nodes.
-                if (currentBoundNode.WasCompilerGenerated)
+                if (currentBoundNode.WasCompilerGenerated &&
+                    (currentBoundNode.Kind != BoundKind.Block ||
+                     (block = (BoundBlock)currentBoundNode).Statements.Length != 1 ||
+                     block.Statements.Single().WasCompilerGenerated))
                 {
                     return false;
                 }

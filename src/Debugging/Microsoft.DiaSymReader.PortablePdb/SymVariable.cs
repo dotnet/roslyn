@@ -4,13 +4,12 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
+using System.Reflection.Metadata.Decoding;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 
 namespace Microsoft.DiaSymReader.PortablePdb
 {
-    using Roslyn.Reflection.Metadata.Decoding;
-
     [ComVisible(false)]
     public sealed class SymVariable : ISymUnmanagedVariable
     {

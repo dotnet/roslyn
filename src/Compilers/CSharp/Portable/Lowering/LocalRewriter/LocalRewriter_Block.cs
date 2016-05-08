@@ -14,16 +14,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (node.WasCompilerGenerated || !this.GenerateDebugInfo || node.Syntax.Kind() == SyntaxKind.ArrowExpressionClause)
             {
-                return node.Update(node.Locals, VisitList(node.Statements));
+                return node.Update(node.Locals, node.LocalFunctions, VisitList(node.Statements));
             }
 
             BlockSyntax syntax = node.Syntax as BlockSyntax;
-            Debug.Assert(syntax != null);
 
             var builder = ArrayBuilder<BoundStatement>.GetInstance();
 
-            var oBspan = syntax.OpenBraceToken.Span;
-            builder.Add(new BoundSequencePointWithSpan(syntax, null, oBspan));
+            if (syntax != null)
+            {
+                var oBspan = syntax.OpenBraceToken.Span;
+                builder.Add(new BoundSequencePointWithSpan(syntax, null, oBspan));
+            }
 
             for (int i = 0; i < node.Statements.Length; i++)
             {
@@ -33,19 +35,19 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // no need to mark "}" on the outermost block
             // as it cannot leave it normally. The block will have "return" at the end.
-            if (syntax.Parent == null || !(syntax.Parent.IsAnonymousFunction() || syntax.Parent is BaseMethodDeclarationSyntax))
+            if (syntax != null && (syntax.Parent == null || !(syntax.Parent.IsAnonymousFunction() || syntax.Parent is BaseMethodDeclarationSyntax)))
             {
                 var cBspan = syntax.CloseBraceToken.Span;
                 builder.Add(new BoundSequencePointWithSpan(syntax, null, cBspan));
             }
 
-            return new BoundBlock(syntax, node.Locals, builder.ToImmutableAndFree(), node.HasErrors);
+            return new BoundBlock(node.Syntax, node.Locals, node.LocalFunctions, builder.ToImmutableAndFree(), node.HasErrors);
         }
 
         public override BoundNode VisitNoOpStatement(BoundNoOpStatement node)
         {
             return (node.WasCompilerGenerated || !this.GenerateDebugInfo)
-                ? new BoundBlock(node.Syntax, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<BoundStatement>.Empty)
+                ? new BoundBlock(node.Syntax, ImmutableArray<LocalSymbol>.Empty, ImmutableArray<LocalFunctionSymbol>.Empty, ImmutableArray<BoundStatement>.Empty)
                 : AddSequencePoint(node);
         }
     }

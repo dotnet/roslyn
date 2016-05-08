@@ -1,20 +1,21 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests.Diagnostics;
+using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
-using System.Collections.Concurrent;
-using Roslyn.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 {
@@ -75,6 +76,36 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
                 var ids = new HashSet<string>(fixer.FixableDiagnosticIds);
                 var dxs = diagnostics.Where(d => ids.Contains(d.Id)).ToList();
                 return await GetDiagnosticAndFixesAsync(dxs, provider, fixer, testDriver, document, span, annotation, fixAllActionId);
+            }
+        }
+
+        protected async Task TestDiagnosticSeverityAndCountAsync(
+            string initialMarkup,
+            IDictionary<OptionKey, object> options,
+            int diagnosticCount,
+            string diagnosticId,
+            DiagnosticSeverity diagnosticSeverity)
+        {
+            await TestDiagnosticSeverityAndCountAsync(initialMarkup, null, null, options, diagnosticCount, diagnosticId, diagnosticSeverity);
+            await TestDiagnosticSeverityAndCountAsync(initialMarkup, GetScriptOptions(), null, options, diagnosticCount, diagnosticId, diagnosticSeverity);
+        }
+
+        protected async Task TestDiagnosticSeverityAndCountAsync(
+            string initialMarkup,
+            ParseOptions parseOptions,
+            CompilationOptions compilationOptions,
+            IDictionary<OptionKey, object> options,
+            int diagnosticCount,
+            string diagnosticId,
+            DiagnosticSeverity diagnosticSeverity)
+        {
+            using (var workspace = await CreateWorkspaceFromFileAsync(initialMarkup, parseOptions, compilationOptions))
+            {
+                workspace.ApplyOptions(options);
+
+                var diagnostics = (await GetDiagnosticsAsync(workspace)).Where(d => d.Id == diagnosticId);
+                Assert.Equal(diagnosticCount, diagnostics.Count());
+                Assert.Equal(diagnosticSeverity, diagnostics.Single().Severity);
             }
         }
 

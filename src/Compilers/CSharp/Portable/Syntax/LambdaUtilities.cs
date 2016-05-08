@@ -24,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DescendingOrdering:
                 case SyntaxKind.JoinClause:
                 case SyntaxKind.GroupClause:
+                case SyntaxKind.LocalFunctionStatement:
                     return true;
 
                 case SyntaxKind.SelectClause:
@@ -96,6 +97,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return (oldGroup.GroupExpression == oldBody) ?
                         (IsReducedSelectOrGroupByClause(newGroup, newGroup.GroupExpression) ? null : newGroup.GroupExpression) : newGroup.ByExpression;
 
+                case SyntaxKind.LocalFunctionStatement:
+                    var newLocalFunction = (LocalFunctionStatementSyntax)newLambda;
+                    return (SyntaxNode)newLocalFunction.Body ?? newLocalFunction.ExpressionBody;
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(oldLambda.Kind());
             }
@@ -124,6 +129,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.AnonymousMethodExpression:
                     var anonymousFunction = (AnonymousFunctionExpressionSyntax)parent;
                     return anonymousFunction.Body == node;
+
+                case SyntaxKind.LocalFunctionStatement:
+                    var localFunction = (LocalFunctionStatementSyntax)parent;
+                    return localFunction.Body == node || localFunction.ExpressionBody == node;
 
                 case SyntaxKind.FromClause:
                     var fromClause = (FromClauseSyntax)parent;
@@ -309,6 +318,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     return true;
+
+                case SyntaxKind.LocalFunctionStatement:
+                    var localFunction = (LocalFunctionStatementSyntax)node;
+                    lambdaBody1 = (SyntaxNode)localFunction.Body ?? localFunction.ExpressionBody;
+                    return true;
             }
 
             return false;
@@ -339,8 +353,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Returns true if the specified node can represent a closure scope -- that is a scope of a captured variable.
-        /// Doesn't validate whether or not the node actually declares any captured variable.
+        /// Returns true if the specified node is of a kind that could represent a closure scope -- that
+        /// is, a scope of a captured variable.
+        /// Doesn't check whether or not the node actually declares any captured variable.
         /// </summary>
         internal static bool IsClosureScope(SyntaxNode node)
         {
@@ -358,20 +373,42 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.ConstructorDeclaration:
                     return true;
 
+                // With the introduction of pattern-matching, many nodes now contain top-level
+                // expressions that may introduce pattern variables.
+                case SyntaxKind.EqualsValueClause:
+                    return true;
+
+                // Due to pattern-matching, any statement that contains an expression may introduce a scope.
+                case SyntaxKind.DoStatement:
+                case SyntaxKind.ExpressionStatement:
+                case SyntaxKind.FixedStatement:
+                case SyntaxKind.GotoCaseStatement:
+                case SyntaxKind.IfStatement:
+                case SyntaxKind.LockStatement:
+                case SyntaxKind.ReturnStatement:
+                case SyntaxKind.ThisConstructorInitializer:
+                case SyntaxKind.BaseConstructorInitializer:
+                case SyntaxKind.ThrowStatement:
+                case SyntaxKind.WhileStatement:
+                case SyntaxKind.YieldReturnStatement:
+                    return true;
+
                 default:
-                    if (IsLambdaBody(node))
-                    {
-                        return true;
-                    }
-
-                    // TODO: EE expression
-                    if (node is ExpressionSyntax && node.Parent != null && node.Parent.Parent == null)
-                    {
-                        return true;
-                    }
-
-                    return false;
+                    break;
             }
+
+            if (IsLambdaBody(node))
+            {
+                return true;
+            }
+
+            // TODO: EE expression
+            if (node is ExpressionSyntax && node.Parent != null && node.Parent.Parent == null)
+            {
+                return true;
+            }
+
+            return false;
         }
     }
 }

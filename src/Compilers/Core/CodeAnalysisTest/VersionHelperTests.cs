@@ -1,6 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
@@ -16,7 +20,6 @@ namespace Microsoft.CodeAnalysis.UnitTests
             Assert.True(VersionHelper.TryParseAssemblyVersion("3.2.*", allowWildcard: true, version: out version));
             Assert.Equal(3, version.Major);
             Assert.Equal(2, version.Minor);
-
             Assert.Equal(65535, version.Build);
             Assert.Equal(65535, version.Revision);
 

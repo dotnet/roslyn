@@ -44,10 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (!_bestResultState.HasValue())
-                {
-                    _bestResultState = TryGetBestResult(this.ResultsBuilder, out _bestResult);
-                }
+                EnsureBestResultLoaded();
 
                 return _bestResultState == ThreeState.True && _bestResult.Result.IsValid;
             }
@@ -61,8 +58,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
+                EnsureBestResultLoaded();
+
                 Debug.Assert(_bestResultState == ThreeState.True && _bestResult.Result.IsValid);
                 return _bestResult;
+            }
+        }
+
+        private void EnsureBestResultLoaded()
+        {
+            if (!_bestResultState.HasValue())
+            {
+                _bestResultState = TryGetBestResult(this.ResultsBuilder, out _bestResult);
             }
         }
 
@@ -76,6 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
+                EnsureBestResultLoaded();
+
                 Debug.Assert(_bestResultState == ThreeState.True);
                 return _bestResult;
             }
@@ -85,6 +94,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
+                EnsureBestResultLoaded();
+
                 return _bestResultState.Value();
             }
         }

@@ -19,7 +19,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 symbol.MethodKind == MethodKind.Ordinary ||
                 symbol.MethodKind == MethodKind.DelegateInvoke ||
                 symbol.MethodKind == MethodKind.DeclareMethod ||
-                symbol.MethodKind == MethodKind.ReducedExtension;
+                symbol.MethodKind == MethodKind.ReducedExtension ||
+                symbol.MethodKind == MethodKind.LocalFunction;
         }
 
         protected override async Task<IEnumerable<ISymbol>> DetermineCascadedSymbolsAsync(
