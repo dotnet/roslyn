@@ -25,15 +25,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
             context.RegisterCodeFix(
                 new MyCodeAction(
                     FeaturesResources.AddBraces,
-                    async c => await AddBracesAsync(context).ConfigureAwait(false)),
+                    c => AddBracesAsync(context, c)),
                 context.Diagnostics);
 
             return SpecializedTasks.EmptyTask;
         }
 
-        protected async Task<Document> AddBracesAsync(CodeFixContext context)
+        protected async Task<Document> AddBracesAsync(CodeFixContext context, CancellationToken cancellationToken)
         {
-            var root = await context.Document.GetSyntaxRootAsync(context.CancellationToken).ConfigureAwait(false);
+            var root = await context.Document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var diagnostic = context.Diagnostics.First();
             var diagnosticSpan = diagnostic.Location.SourceSpan;
             var statement = root.FindNode(diagnosticSpan);
