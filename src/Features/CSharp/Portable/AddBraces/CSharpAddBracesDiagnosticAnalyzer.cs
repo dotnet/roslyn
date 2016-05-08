@@ -19,19 +19,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                                                                     s_localizableTitle,
                                                                     s_localizableMessage,
                                                                     DiagnosticCategory.Style,
-                                                                    DiagnosticSeverity.Info,
+                                                                    DiagnosticSeverity.Hidden,
                                                                     isEnabledByDefault: true);
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics { get; } = ImmutableArray.Create(s_descriptor);
 
         public override void Initialize(AnalysisContext context)
         {
-            context.RegisterSyntaxNodeAction(AnalyzeNode, SyntaxKindsOfInterest);
-        }
-
-        public DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
-
-        private ImmutableArray<SyntaxKind> SyntaxKindsOfInterest { get; } =
+            var syntaxKindsOfInterest =
             ImmutableArray.Create(SyntaxKind.IfStatement,
                 SyntaxKind.ElseClause,
                 SyntaxKind.ForStatement,
@@ -39,6 +34,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 SyntaxKind.WhileStatement,
                 SyntaxKind.DoStatement,
                 SyntaxKind.UsingStatement);
+
+            context.RegisterSyntaxNodeAction(AnalyzeNode, syntaxKindsOfInterest);
+        }
+
+        public DiagnosticAnalyzerCategory GetAnalyzerCategory() => DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
 
         public void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {

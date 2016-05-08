@@ -38,48 +38,44 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
             var diagnosticSpan = diagnostic.Location.SourceSpan;
             var statement = root.FindNode(diagnosticSpan);
 
-            SyntaxNode newBlock = null;
+            var newRoot = root.ReplaceNode(statement, GetReplacementNode(statement));
+            return context.Document.WithSyntaxRoot(newRoot);
+        }
 
+        private SyntaxNode GetReplacementNode(SyntaxNode statement)
+        {
             switch (statement.Kind())
             {
                 case SyntaxKind.IfStatement:
-                    var ifSyntax = (IfStatementSyntax) statement;
-                    newBlock = GetNewBlock(statement, ifSyntax.Statement);
-                    break;
+                    var ifSyntax = (IfStatementSyntax)statement;
+                    return GetNewBlock(statement, ifSyntax.Statement);
 
                 case SyntaxKind.ElseClause:
                     var elseClause = (ElseClauseSyntax)statement;
-                    newBlock = GetNewBlock(statement, elseClause.Statement);
-                    break;
+                    return GetNewBlock(statement, elseClause.Statement);
 
                 case SyntaxKind.ForStatement:
                     var forSyntax = (ForStatementSyntax)statement;
-                    newBlock = GetNewBlock(statement, forSyntax.Statement);
-                    break;
+                    return GetNewBlock(statement, forSyntax.Statement);
 
                 case SyntaxKind.ForEachStatement:
                     var forEachSyntax = (ForEachStatementSyntax)statement;
-                    newBlock = GetNewBlock(statement, forEachSyntax.Statement);
-                    break;
+                    return GetNewBlock(statement, forEachSyntax.Statement);
 
                 case SyntaxKind.WhileStatement:
                     var whileSyntax = (WhileStatementSyntax)statement;
-                    newBlock = GetNewBlock(statement, whileSyntax.Statement);
-                    break;
+                    return GetNewBlock(statement, whileSyntax.Statement);
 
                 case SyntaxKind.DoStatement:
                     var doSyntax = (DoStatementSyntax)statement;
-                    newBlock = GetNewBlock(statement, doSyntax.Statement);
-                    break;
+                    return GetNewBlock(statement, doSyntax.Statement);
 
                 case SyntaxKind.UsingStatement:
                     var usingSyntax = (UsingStatementSyntax)statement;
-                    newBlock = GetNewBlock(statement, usingSyntax.Statement);
-                    break;
+                    return GetNewBlock(statement, usingSyntax.Statement);
             }
 
-            var newRoot = root.ReplaceNode(statement, newBlock);
-            return context.Document.WithSyntaxRoot(newRoot);
+            return default(SyntaxNode);
         }
 
         private SyntaxNode GetNewBlock(SyntaxNode statement, StatementSyntax statementBody) =>
