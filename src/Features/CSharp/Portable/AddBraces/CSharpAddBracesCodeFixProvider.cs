@@ -40,46 +40,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
 
             SyntaxNode newBlock = null;
 
-            var ifSyntax = statement as IfStatementSyntax;
-            if (ifSyntax != null)
+            switch (statement.Kind())
             {
-                newBlock = GetNewBlock(statement, ifSyntax.Statement);
-            }
+                case SyntaxKind.IfStatement:
+                    var ifSyntax = (IfStatementSyntax) statement;
+                    newBlock = GetNewBlock(statement, ifSyntax.Statement);
+                    break;
 
-            var elseSyntax = statement as ElseClauseSyntax;
-            if (elseSyntax != null)
-            {
-                newBlock = GetNewBlock(statement, elseSyntax.Statement);
-            }
+                case SyntaxKind.ElseClause:
+                    var elseClause = (ElseClauseSyntax)statement;
+                    newBlock = GetNewBlock(statement, elseClause.Statement);
+                    break;
 
-            var forSyntax = statement as ForStatementSyntax;
-            if (forSyntax != null)
-            {
-                newBlock = GetNewBlock(statement, forSyntax.Statement);
-            }
+                case SyntaxKind.ForStatement:
+                    var forSyntax = (ForStatementSyntax)statement;
+                    newBlock = GetNewBlock(statement, forSyntax.Statement);
+                    break;
 
-            var forEachSyntax = statement as ForEachStatementSyntax;
-            if (forEachSyntax != null)
-            {
-                newBlock = GetNewBlock(statement, forEachSyntax.Statement);
-            }
+                case SyntaxKind.ForEachStatement:
+                    var forEachSyntax = (ForEachStatementSyntax)statement;
+                    newBlock = GetNewBlock(statement, forEachSyntax.Statement);
+                    break;
 
-            var whileSyntax = statement as WhileStatementSyntax;
-            if (whileSyntax != null)
-            {
-                newBlock = GetNewBlock(statement, whileSyntax.Statement);
-            }
+                case SyntaxKind.WhileStatement:
+                    var whileSyntax = (WhileStatementSyntax)statement;
+                    newBlock = GetNewBlock(statement, whileSyntax.Statement);
+                    break;
 
-            var doSyntax = statement as DoStatementSyntax;
-            if (doSyntax != null)
-            {
-                newBlock = GetNewBlock(statement, doSyntax.Statement);
-            }
+                case SyntaxKind.DoStatement:
+                    var doSyntax = (DoStatementSyntax)statement;
+                    newBlock = GetNewBlock(statement, doSyntax.Statement);
+                    break;
 
-            var usingSyntax = statement as UsingStatementSyntax;
-            if (usingSyntax != null)
-            {
-                newBlock = GetNewBlock(statement, usingSyntax.Statement);
+                case SyntaxKind.UsingStatement:
+                    var usingSyntax = (UsingStatementSyntax)statement;
+                    newBlock = GetNewBlock(statement, usingSyntax.Statement);
+                    break;
             }
 
             var newRoot = root.ReplaceNode(statement, newBlock);
