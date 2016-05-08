@@ -133,7 +133,7 @@ class Program
 {
     static void Main()
     {
-        using (var f = new Fizz())
+        [|using|] (var f = new Fizz())
         {
             return;
         }
@@ -159,7 +159,7 @@ class Program
 {
     static void Main()
     {
-        using (var f = new Fizz())
+        [|using|] (var f = new Fizz())
         using (var b = new Buzz())
             return;
     }
@@ -376,7 +376,8 @@ class Program
         do
         {
             return;
-        } while (true);
+        }
+        while (true);
     }
 }",
             index: 0,
@@ -392,7 +393,7 @@ class Program
 {
     static void Main()
     {
-        using (var f = new Fizz())
+        [|using|] (var f = new Fizz())
             return;
     }
 }
@@ -439,7 +440,7 @@ class Program
     static void Main()
     {
         using (var f = new Fizz())
-        using (var b = new Buzz())
+        [|using|] (var b = new Buzz())
             return;
     }
 }

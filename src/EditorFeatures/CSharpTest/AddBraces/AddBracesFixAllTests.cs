@@ -59,6 +59,7 @@ class Program1
         {
             return;
         }
+
         if (true)
         {
             return;
@@ -105,7 +106,7 @@ class Program1
 {
     static void Main()
     {
-        if (true) return;
+        {|FixAllInProject:if|} (true) return;
     }
 }
         </Document>
@@ -189,7 +190,7 @@ class Program1
 {
     static void Main()
     {
-        if (true) return;
+        {|FixAllInSolution:if|} (true) return;
     }
 }
         </Document>
