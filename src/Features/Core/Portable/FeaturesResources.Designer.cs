@@ -106,6 +106,7 @@ namespace Microsoft.CodeAnalysis {
             }
         }
 
+        /// <summary>
         ///   Looks up a localized string similar to Add braces.
         /// </summary>
         internal static string AddBraces {
