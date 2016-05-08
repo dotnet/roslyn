@@ -9,7 +9,6 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
-using System.Reflection.Metadata.Decoding;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Text;
@@ -1115,21 +1114,21 @@ namespace Roslyn.Test.PdbUtilities
                 return elementType + "[]";
             }
 
-            public string GetTypeFromDefinition(MetadataReader reader, TypeDefinitionHandle handle, SignatureTypeHandleCode code)
+            public string GetTypeFromDefinition(MetadataReader reader, TypeDefinitionHandle handle, byte rawTypeKind)
             {
                 var typeDef = reader.GetTypeDefinition(handle);
                 var name = reader.GetString(typeDef.Name);
                 return typeDef.Namespace.IsNil ? name : reader.GetString(typeDef.Namespace) + "." + name;
             }
 
-            public string GetTypeFromReference(MetadataReader reader, TypeReferenceHandle handle, SignatureTypeHandleCode code)
+            public string GetTypeFromReference(MetadataReader reader, TypeReferenceHandle handle, byte rawTypeKind)
             {
                 var typeRef = reader.GetTypeReference(handle);
                 var name = reader.GetString(typeRef.Name);
                 return typeRef.Namespace.IsNil ? name : reader.GetString(typeRef.Namespace) + "." + name;
             }
 
-            public string GetTypeFromSpecification(MetadataReader reader, TypeSpecificationHandle handle, SignatureTypeHandleCode code)
+            public string GetTypeFromSpecification(MetadataReader reader, TypeSpecificationHandle handle, byte rawTypeKind)
             {
                 var sigReader = reader.GetBlobReader(reader.GetTypeSpecification(handle).Signature);
                 return new SignatureDecoder<string>(Instance, reader).DecodeType(ref sigReader);

@@ -103,10 +103,21 @@ namespace Roslyn.Utilities
                     {
                         return 0;
                     }
-                    else
+
+                    // The following code used to be written like so:
+                    //    
+                    //    return (_value as ImmutableHashSet<V>)?.Count ?? 1;
+                    // 
+                    // This code pattern triggered a code-gen bug on Mac:
+                    // https://github.com/dotnet/coreclr/issues/4801
+
+                    var set = _value as ImmutableHashSet<V>;
+                    if (set == null)
                     {
-                        return (_value as ImmutableHashSet<V>)?.Count ?? 1;
+                        return 1;
                     }
+
+                    return set.Count;
                 }
             }
 

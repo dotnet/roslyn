@@ -8,7 +8,6 @@ using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
-using System.Reflection.Metadata.Ecma335.Blobs;
 using Microsoft.CodeAnalysis;
 using Roslyn.Utilities;
 
