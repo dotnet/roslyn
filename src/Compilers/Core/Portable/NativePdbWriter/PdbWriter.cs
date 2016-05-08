@@ -21,9 +21,6 @@ using OP = Microsoft.Cci.PdbLogger.PdbWriterOperation;
 
 namespace Microsoft.Cci
 {
-    using Roslyn.Reflection;
-    using Roslyn.Reflection.PortableExecutable;
-
     /// <summary>
     /// Exception to enable callers to catch all of the exceptions originating
     /// from writing PDBs. We resurface such exceptions as this type, to eventually
