@@ -2946,7 +2946,7 @@ End Module]]>,
             </errors>)
     End Sub
 
-    <Fact(Skip:="EXPERIMETAL IMPLEMENTATION OF 10239")>
+    <Fact()>
     Public Sub BC30800ERR_ObsoleteArgumentsNeedParens()
         ParseAndVerify(<![CDATA[
                 class c1
