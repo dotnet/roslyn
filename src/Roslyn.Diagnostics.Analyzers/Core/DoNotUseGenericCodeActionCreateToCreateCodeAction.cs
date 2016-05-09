@@ -33,20 +33,23 @@ namespace Roslyn.Diagnostics.Analyzers
 
         public override void Initialize(AnalysisContext context)
         {
-            context.RegisterCompilationStartAction(CreateAnalyzerWithinCompilation);
+            context.EnableConcurrentExecution();
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+
+            context.RegisterCompilationStartAction(OnCompilationStart);
         }
 
-        private void CreateAnalyzerWithinCompilation(CompilationStartAnalysisContext context)
+        private void OnCompilationStart(CompilationStartAnalysisContext context)
         {
             context.CancellationToken.ThrowIfCancellationRequested();
 
-            INamedTypeSymbol codeActionSymbol = context.Compilation.GetTypeByMetadataName(CodeActionMetadataName);
+            var codeActionSymbol = context.Compilation.GetTypeByMetadataName(CodeActionMetadataName);
             if (codeActionSymbol == null)
             {
                 return;
             }
 
-            System.Collections.Generic.IEnumerable<ISymbol> createSymbols = codeActionSymbol.GetMembers(CreateMethodName).Where(m => m is IMethodSymbol);
+            var createSymbols = codeActionSymbol.GetMembers(CreateMethodName).Where(m => m is IMethodSymbol);
             if (createSymbols == null)
             {
                 return;

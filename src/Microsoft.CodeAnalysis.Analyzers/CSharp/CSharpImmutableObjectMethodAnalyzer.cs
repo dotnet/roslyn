@@ -43,6 +43,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
 
         public override void Initialize(AnalysisContext context)
         {
+            context.EnableConcurrentExecution();
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+
             context.RegisterCompilationStartAction(compilationContext =>
             {
                 INamedTypeSymbol solutionSymbol = compilationContext.Compilation.GetTypeByMetadataName(SolutionFullName);
@@ -57,6 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
                 {
                     return;
                 }
+
                 compilationContext.RegisterSyntaxNodeAction(sc => AnalyzeInvocationForIgnoredReturnValue(sc, immutableSymbols), SyntaxKind.InvocationExpression);
             });
         }
@@ -93,7 +97,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
                 return;
             }
 
-            System.Collections.Generic.List<INamedTypeSymbol> baseTypesAndSelf = methodSymbol.ReceiverType.GetBaseTypes().ToList();
+            var baseTypesAndSelf = methodSymbol.ReceiverType.GetBaseTypes().ToList();
             baseTypesAndSelf.Add(parentType);
 
             if (!baseTypesAndSelf.Any(n => immutableTypeSymbols.Contains(n)))
