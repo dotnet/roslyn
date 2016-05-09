@@ -493,17 +493,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "Item" + position;
         }
 
+        // This array needs to be sorted for binary searching
+        private static readonly string[] reservedMemberNames = new[]
+        {
+            "CombineHashCodes",
+            "CompareTo",
+            "Create",
+            "Deconstruct",
+            "Equals",
+            "GetHashCode",
+            "GetHashCodeCore",
+            "Rest",
+            "Size",
+            "ToString",
+            "ToStringEnd"
+        };
+
         /// <summary>
         /// Checks whether the field name is reserved and tells us which position it's reserved for.
         ///
         /// For example:
         /// Returns 3 for "Item3".
-        /// Returns 0 for "Rest".
+        /// Returns 0 for "Rest", "ToString" and other members of System.ValueTuple.
         /// Returns -1 for names that aren't reserved.
         /// </summary>
         internal static int IsMemberNameReserved(string name)
         {
-            if (String.Equals(name, "Rest", StringComparison.Ordinal))
+            if (Array.BinarySearch(reservedMemberNames, name, StringComparer.Ordinal) >= 0)
             {
                 return 0;
             }
