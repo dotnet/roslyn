@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 bool supportsCSharp = false;
                 bool supportsVB = false;
 
-                System.Collections.Generic.IEnumerable<AttributeData> namedTypeAttributes = namedType.GetApplicableAttributes();
+                var namedTypeAttributes = namedType.GetApplicableAttributes();
                 foreach (AttributeData attribute in namedTypeAttributes)
                 {
                     if (attribute.AttributeClass.DerivesFrom(DiagnosticAnalyzerAttribute))

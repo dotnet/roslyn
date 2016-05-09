@@ -11,7 +11,7 @@ namespace Roslyn.Diagnostics.Analyzers
         where TSyntaxKind : struct
         where TMemberAccessExpressionSyntax : SyntaxNode
     {
-        private static readonly string s_diagnosticTypeFullName = typeof(Diagnostic).FullName;
+        private const string DiagnosticTypeFullName = "Microsoft.CodeAnalysis.Diagnostic";
 
         private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.DoNotInvokeDiagnosticDescriptorTitle), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.DoNotInvokeDiagnosticDescriptorMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
@@ -31,6 +31,9 @@ namespace Roslyn.Diagnostics.Analyzers
 
         public sealed override void Initialize(AnalysisContext context)
         {
+            context.EnableConcurrentExecution();
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+
             context.RegisterSyntaxNodeAction(AnalyzeNode, SimpleMemberAccessExpressionKind);
         }
 
@@ -40,7 +43,7 @@ namespace Roslyn.Diagnostics.Analyzers
         protected abstract SyntaxNode GetRightOfMemberAccess(TMemberAccessExpressionSyntax memberAccess);
         protected abstract bool IsThisOrBaseOrMeOrMyBaseExpression(SyntaxNode node);
 
-        protected void AnalyzeNode(SyntaxNodeAnalysisContext context)
+        private void AnalyzeNode(SyntaxNodeAnalysisContext context)
         {
             var memberAccess = (TMemberAccessExpressionSyntax)context.Node;
             SyntaxNode right = GetRightOfMemberAccess(memberAccess);
@@ -51,7 +54,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
             SyntaxNode left = GetLeftOfMemberAccess(memberAccess);
             ITypeSymbol leftType = context.SemanticModel.GetTypeInfo(left).Type;
-            if (leftType != null && leftType.ToDisplayString() == s_diagnosticTypeFullName && !IsThisOrBaseOrMeOrMyBaseExpression(left))
+            if (leftType != null && leftType.ToDisplayString() == DiagnosticTypeFullName && !IsThisOrBaseOrMeOrMyBaseExpression(left))
             {
                 string nameOfMember = string.Empty;
                 var parentMemberAccess = memberAccess.Parent as TMemberAccessExpressionSyntax;

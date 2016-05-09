@@ -62,6 +62,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
 
         public override void Initialize(AnalysisContext context)
         {
+            // TODO: Make analyzer thread-safe.
+            //context.EnableConcurrentExecution();
+
+            // We need to analyze generated code, but don't intend to report diagnostics on generated code.
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze);
+
             context.RegisterCompilationStartAction(CreateAnalyzerWithinCompilation);
         }
 
