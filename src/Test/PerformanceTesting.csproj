@@ -98,6 +98,8 @@
     <Content Include="Perf\tests\helloworld\hello_world.csx">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include="Perf\infra\MonitorShareTask.bat" />
+    <None Include="Perf\infra\persist_successful_build.csx" />
     <None Include="Perf\infra\TriggerAutomation.bat">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>

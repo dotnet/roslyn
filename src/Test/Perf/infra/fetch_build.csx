@@ -4,39 +4,81 @@
 #load "../util/tools_util.csx"
 
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using System.Xml;
 
 // TODO: Use actual command line argument parser so we can have help text, etc...
-var branch = Args.Count() == 2 ? Args[0] : "master";
+var sourceFolder = Args[0];
 var destinationFolder = Args.Count() == 2 ? Args[1] : @"C:\Roslyn\Binaries\Release";
 
-var sourceFolder = $@"\\cpvsbuild\drops\Roslyn\Roslyn-{branch}-Signed-Release";
+// Get the last successful build that was tested
+string lastSuccessfulBuild = null;
+var lastSuccessfulDirectory = Environment.ExpandEnvironmentVariables($@"%SYSTEMDRIVE%\Last-Successful-{Path.GetFileName(sourceFolder)}");
+var buildInfoPath = Path.Combine((lastSuccessfulDirectory), "BuildNumber.txt");
 
-string latestBuild = null;
-foreach (var folder in Directory.GetDirectories(sourceFolder, "????????.?").Reverse())
+if (Directory.Exists(lastSuccessfulDirectory) && File.Exists(buildInfoPath))
 {
-    if (SanityTestPassesForBuild(folder))
+    lastSuccessfulBuild = File.ReadAllText(buildInfoPath);
+}
+
+// Start monitoring the share for new successful builds
+Task.Run(() => StartWatching(sourceFolder, destinationFolder, lastSuccessfulBuild, buildInfoPath));
+Console.WriteLine("Press any key to continue");
+Console.Read();
+
+void StartWatching(
+    string sourceFolder,
+    string destinationFolder,
+    string lastSuccessfulBuild,
+    string buildInfoPath)
+{
+    string latestBuild = null;
+    var lastSuccessfulBuildNumber = lastSuccessfulBuild == null ? 0 : Convert.ToInt32(Convert.ToDouble(lastSuccessfulBuild) * 100);
+    while (true)
     {
-        latestBuild = folder;
-        break;
+        foreach (var folder in Directory.GetDirectories(sourceFolder, "????????.?").Reverse())
+        {
+            var buildDirectoryName = Path.GetFileName(folder);
+            var buildDirectoryNumber = Convert.ToInt32(Convert.ToDouble(buildDirectoryName) * 100);
+
+            // if we are no longer looking at the newer builds, then quit searching
+            if (!(buildDirectoryNumber > lastSuccessfulBuildNumber))
+            {
+                break;
+            }
+
+            if (SanityTestPassesForBuild(folder))
+            {
+                // Copy the binaries from the drop to Release binaries
+                latestBuild = folder;
+                var latestBuildFolder = Path.Combine(sourceFolder, latestBuild);
+
+                if (Directory.Exists(destinationFolder))
+                {
+                    Directory.Delete(destinationFolder, recursive: true);
+                }
+
+                CopyDirectory(latestBuildFolder, destinationFolder);
+
+                // Start Automation
+                // Fire and forget
+                var processInfo = new ProcessStartInfo(@"TriggerAutomation.bat");
+                processInfo.Arguments = $"{buildInfoPath} {buildDirectoryName} {sourceFolder}";
+                var process = Process.Start(processInfo);
+
+                // We dont want the process to be running when running the tests
+                Process.GetCurrentProcess().Kill();
+            }
+        }
+
+        // Wait for 10 minutes before looking for new build again
+        Thread.Sleep(600000);
     }
 }
-
-if (latestBuild == null)
-{
-    throw new InvalidOperationException($"Could not locate build with passing tests at location \"{sourceFolder}\".");
-}
-
-var latestBuildFolder = Path.Combine(sourceFolder, latestBuild);
-
-if (Directory.Exists(destinationFolder))
-{
-    Directory.Delete(destinationFolder, recursive: true);
-}
-
-CopyDirectory(latestBuildFolder, destinationFolder);
 
 bool SanityTestPassesForBuild(string buildPath)
 {
