@@ -1400,6 +1400,7 @@ tryAgain:
                             if (ShouldCurrentContextualKeywordBeTreatedAsModifier())
                             {
                                 modTok = ConvertToKeyword(this.EatToken());
+                                modTok = CheckFeatureAvailability(modTok, MessageID.IDS_FeatureReplace);
                                 break;
                             }
                             return;
