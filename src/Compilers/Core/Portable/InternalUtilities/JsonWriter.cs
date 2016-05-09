@@ -17,23 +17,21 @@ namespace Roslyn.Utilities
     /// to balance array/object start/end, to only write key-value pairs to objects and
     /// elements to arrays, etc.
     /// 
-    /// Takes ownership of the given StreamWriter at construction and handles its disposal.
+    /// Takes ownership of the given <see cref="TextWriter" /> at construction and handles its disposal.
     /// </summary>
     internal sealed class JsonWriter : IDisposable
     {
-        private readonly StreamWriter _output;
+        private readonly TextWriter _output;
         private int _indent;
-        private string _pending;
+        private Pending _pending;
 
-        private static readonly string s_newLine = Environment.NewLine;
-        private static readonly string s_commaNewLine = "," + Environment.NewLine;
-
+        private enum Pending { None, NewLineAndIndent, CommaNewLineAndIndent };
         private const string Indentation = "  ";
 
-        public JsonWriter(StreamWriter output)
+        public JsonWriter(TextWriter output)
         {
             _output = output;
-            _pending = "";
+            _pending = Pending.None;
         }
 
         public void WriteObjectStart()
@@ -72,7 +70,7 @@ namespace Roslyn.Utilities
         {
             Write(key);
             _output.Write(": ");
-            _pending = "";
+            _pending = Pending.None;
         }
 
         public void Write(string key, string value)
@@ -99,33 +97,41 @@ namespace Roslyn.Utilities
             _output.Write('"');
             _output.Write(EscapeString(value));
             _output.Write('"');
-            _pending = s_commaNewLine;
+            _pending = Pending.CommaNewLineAndIndent;
         }
 
         public void Write(int value)
         {
             WritePending();
             _output.Write(value);
-            _pending = s_commaNewLine;
+            _pending = Pending.CommaNewLineAndIndent;
         }
 
         public void Write(bool value)
         {
             WritePending();
             _output.Write(value ? "true" : "false");
-            _pending = s_commaNewLine;
+            _pending = Pending.CommaNewLineAndIndent;
         }
 
         private void WritePending()
         {
-            if (_pending.Length > 0)
+            if (_pending == Pending.None)
             {
-                _output.Write(_pending);
+                return;
+            }
 
-                for (int i = 0; i < _indent; i++)
-                {
-                    _output.Write(Indentation);
-                }
+            Debug.Assert(_pending == Pending.NewLineAndIndent || _pending == Pending.CommaNewLineAndIndent);
+            if (_pending == Pending.CommaNewLineAndIndent)
+            {
+                _output.Write(',');
+            }
+
+            _output.WriteLine();
+
+            for (int i = 0; i < _indent; i++)
+            {
+                _output.Write(Indentation);
             }
         }
 
@@ -133,17 +139,17 @@ namespace Roslyn.Utilities
         {
             WritePending();
             _output.Write(c);
-            _pending = s_newLine;
+            _pending = Pending.NewLineAndIndent;
             _indent++;
         }
 
         private void WriteEnd(char c)
         {
-            _pending = s_newLine;
+            _pending = Pending.NewLineAndIndent;
             _indent--;
             WritePending();
             _output.Write(c);
-            _pending = s_commaNewLine;
+            _pending = Pending.CommaNewLineAndIndent;
         }
 
         public void Dispose()
