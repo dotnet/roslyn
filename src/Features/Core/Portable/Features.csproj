@@ -600,7 +600,6 @@
     <Compile Include="SignatureHelp\SignatureHelpProvider.cs" />
     <Compile Include="SignatureHelp\SignatureHelpProvider.SymbolKeySignatureHelpItem.cs" />
     <Compile Include="SignatureHelp\CommonSignatureHelpUtilities.cs" />
-    <Compile Include="SignatureHelp\ExportSignatureHelpProviderAttribute.cs" />
     <Compile Include="SignatureHelp\ISignatureHelpProvider.cs" />
     <Compile Include="SignatureHelp\SignatureHelpItem.cs" />
     <Compile Include="SignatureHelp\SignatureHelpItems.cs" />

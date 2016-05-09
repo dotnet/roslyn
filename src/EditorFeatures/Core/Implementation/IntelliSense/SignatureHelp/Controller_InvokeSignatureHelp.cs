@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             DismissSessionIfActive();
 
             var providers = GetProviders();
-            if (providers == null)
+            if (providers.IsEmpty)
             {
                 return;
             }

@@ -2,6 +2,8 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,15 +24,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         internal partial class Session
         {
             public void ComputeModel(
-                IList<ISignatureHelpProvider> providers,
+                ImmutableArray<ISignatureHelpProvider> providers,
                 SignatureHelpTriggerInfo triggerInfo)
             {
-                ComputeModel(providers, SpecializedCollections.EmptyList<ISignatureHelpProvider>(), triggerInfo);
+                ComputeModel(providers, ImmutableArray<ISignatureHelpProvider>.Empty, triggerInfo);
             }
 
             public void ComputeModel(
-                IList<ISignatureHelpProvider> matchedProviders,
-                IList<ISignatureHelpProvider> unmatchedProviders,
+                ImmutableArray<ISignatureHelpProvider> matchedProviders,
+                ImmutableArray<ISignatureHelpProvider> unmatchedProviders,
                 SignatureHelpTriggerInfo triggerInfo)
             {
                 AssertIsForeground();
@@ -68,6 +70,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
                         if (triggerInfo.TriggerReason == SignatureHelpTriggerReason.RetriggerCommand)
                         {
+                            Trace.WriteLine("Retrigger");
                             if (currentModel == null ||
                                 (triggerInfo.TriggerCharacter.HasValue && !currentModel.Provider.IsRetriggerCharacter(triggerInfo.TriggerCharacter.Value)))
                             {

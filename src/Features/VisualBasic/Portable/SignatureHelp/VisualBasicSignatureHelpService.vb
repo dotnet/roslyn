@@ -1,9 +1,11 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.SignatureHelp
+Imports Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
     <ExportLanguageServiceFactory(GetType(SignatureHelpService), LanguageNames.VisualBasic), [Shared]>
@@ -18,6 +20,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
     Friend Class VisualBasicSignatureHelpService
         Inherits CommonSignatureHelpService
 
+        Private ReadOnly _defaultProviders As ImmutableArray(Of ISignatureHelpProvider) = ImmutableArray.Create(Of ISignatureHelpProvider)(
+            New AddRemoveHandlerSignatureHelpProvider(),
+            New AttributeSignatureHelpProvider(),
+            New BinaryConditionalExpressionSignatureHelpProvider(),
+            New CastExpressionSignatureHelpProvider(),
+            New FunctionAggregationSignatureHelpProvider(),
+            New GenericNameSignatureHelpProvider(),
+            New GetTypeExpressionSignatureHelpProvider(),
+            New GetXmlNamespaceExpressionSignatureHelpProvider(),
+            New InvocationExpressionSignatureHelpProvider(),
+            New MidAssignmentSignatureHelpProvider(),
+            New NameOfExpressionSignatureHelpProvider(),
+            New ObjectCreationExpressionSignatureHelpProvider(),
+            New PredefinedCastExpressionSignatureHelpProvider(),
+            New RaiseEventStatementSignatureHelpProvider(),
+            New TernaryConditionalExpressionSignatureHelpProvider()
+        )
+
         Public Overrides ReadOnly Property Language As String = LanguageNames.VisualBasic
+
+        Protected Overrides Function GetBuiltInProviders() As ImmutableArray(Of ISignatureHelpProvider)
+            Return _defaultProviders
+        End Function
     End Class
 End Namespace

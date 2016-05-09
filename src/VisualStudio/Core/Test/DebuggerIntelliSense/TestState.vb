@@ -62,6 +62,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
                 completionService.SetTestProviders(extraCompletionProviders.Select(Function(lz) lz.Value).ToList())
             End If
 
+            If extraSignatureHelpProviders IsNot Nothing Then
+                Dim signatureHelpService = DirectCast(languageServices.GetService(Of SignatureHelpService), CommonSignatureHelpService)
+                signatureHelpService.SetTestProviders(extraSignatureHelpProviders.Select(Function(lz) lz.Value).ToList(), augmentBuiltInProviders:=True)
+            End If
+
             Me.AsyncCompletionService = New AsyncCompletionService(
                 GetService(Of IEditorOperationsFactoryService)(),
                 UndoHistoryRegistry,
@@ -76,7 +81,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.DebuggerIntelliSense
             Me.SignatureHelpCommandHandler = New SignatureHelpCommandHandler(
                 GetService(Of IInlineRenameService)(),
                 New TestSignatureHelpPresenter(Me),
-                GetExports(Of ISignatureHelpProvider, OrderableLanguageMetadata)().Concat(extraSignatureHelpProviders),
                 GetExports(Of IAsynchronousOperationListener, FeatureMetadata)())
 
             Me.IntelliSenseCommandHandler = New IntelliSenseCommandHandler(CompletionCommandHandler, SignatureHelpCommandHandler, Nothing)

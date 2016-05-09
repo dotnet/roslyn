@@ -249,9 +249,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                                  Optional provider As ISignatureHelpProvider = Nothing,
                                                  Optional waitForPresentation As Boolean = False,
                                                  Optional triggerSession As Boolean = True) As Controller
+
             Dim buffer = s_bufferFactory.CreateTextBuffer()
             Dim view = CreateMockTextView(buffer)
             Dim asyncListener = New Mock(Of IAsynchronousOperationListener)
+
             If documentProvider Is Nothing Then
                 documentProvider = New Mock(Of IDocumentProvider)
                 documentProvider.Setup(Function(p) p.GetDocumentAsync(It.IsAny(Of ITextSnapshot), It.IsAny(Of CancellationToken))).Returns(Task.FromResult(s_document))
@@ -263,20 +265,21 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 provider = New MockSignatureHelpProvider(items)
             End If
 
+            Dim signatureHelpService = DirectCast(s_document.GetLanguageService(Of SignatureHelpService), CommonSignatureHelpService)
+            signatureHelpService.SetTestProviders({provider})
+
             Dim presenter = New Mock(Of IIntelliSensePresenter(Of ISignatureHelpPresenterSession, ISignatureHelpSession)) With {.DefaultValue = DefaultValue.Mock}
             presenterSession = If(presenterSession, New Mock(Of ISignatureHelpPresenterSession) With {.DefaultValue = DefaultValue.Mock})
             presenter.Setup(Function(p) p.CreateSession(It.IsAny(Of ITextView), It.IsAny(Of ITextBuffer), It.IsAny(Of ISignatureHelpSession))).Returns(presenterSession.Object)
             presenterSession.Setup(Sub(p) p.PresentItems(It.IsAny(Of ITrackingSpan), It.IsAny(Of IList(Of SignatureHelpItem)), It.IsAny(Of SignatureHelpItem), It.IsAny(Of Integer?))) _
                 .Callback(Sub() presenterSession.SetupGet(Function(p) p.EditorSessionIsActive).Returns(True))
 
-
             Dim controller = New Controller(
                 view.Object,
                 buffer,
                 presenter.Object,
                 asyncListener.Object,
-                documentProvider.Object,
-                {provider})
+                documentProvider.Object)
 
             s_controllerMocksMap.Add(controller, New ControllerMocks(
                       view,

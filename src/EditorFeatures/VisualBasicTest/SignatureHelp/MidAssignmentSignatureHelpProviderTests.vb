@@ -3,7 +3,7 @@
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.SignatureHelp
-Imports Microsoft.CodeAnalysis.VisualBasic.SignatureHelp
+Imports Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SignatureHelp
     Public Class MidAssignmentSignatureHelpProviderTests
