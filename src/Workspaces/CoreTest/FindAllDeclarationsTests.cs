@@ -577,7 +577,7 @@ Inner i;
 
             // create symbol tree info from assembly
             var version = VersionStamp.Create();
-            var info = SymbolTreeInfo.CreateSymbolTreeInfo(
+            var info = SourceSymbolTreeInfo.CreateSymbolTreeInfo(
                 solution, version, assembly, "", includeInternal: true, cancellationToken: CancellationToken.None);
 
             using (var writerStream = new MemoryStream())
@@ -590,7 +590,7 @@ Inner i;
                 using (var readerStream = new MemoryStream(writerStream.ToArray()))
                 using (var reader = new ObjectReader(readerStream))
                 {
-                    var readInfo = SymbolTreeInfo.ReadSymbolTreeInfo_ForTestingPurposesOnly(reader);
+                    var readInfo = SourceSymbolTreeInfo.ReadSymbolTreeInfo_ForTestingPurposesOnly(reader);
 
                     Assert.True(info.IsEquivalent(readInfo));
                 }
