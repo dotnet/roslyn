@@ -10,7 +10,6 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Internal.Log;
-using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;

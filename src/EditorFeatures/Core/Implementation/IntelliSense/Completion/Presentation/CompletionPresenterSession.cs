@@ -3,7 +3,6 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;

@@ -8,17 +8,17 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 
 #if SRM
-using System.Reflection.PortableExecutable;
-#else
-using Roslyn.Reflection.PortableExecutable;
-#endif
-
-#if SRM
 namespace System.Reflection.Metadata.Ecma335
 #else
 namespace Roslyn.Reflection.Metadata.Ecma335
 #endif
 {
+#if SRM
+using System.Reflection.PortableExecutable;
+#else
+    using Roslyn.Reflection.PortableExecutable;
+#endif
+
 #if SRM
     public
 #endif

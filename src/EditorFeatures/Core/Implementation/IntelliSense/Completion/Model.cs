@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Snippets;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;

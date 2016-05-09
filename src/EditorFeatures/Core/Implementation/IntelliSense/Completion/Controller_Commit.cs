@@ -14,8 +14,6 @@ using Microsoft.VisualStudio.Text.Differencing;
 using Microsoft.VisualStudio.Text.Operations;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
-using System;
-using Microsoft.VisualStudio.Text.Projection;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {

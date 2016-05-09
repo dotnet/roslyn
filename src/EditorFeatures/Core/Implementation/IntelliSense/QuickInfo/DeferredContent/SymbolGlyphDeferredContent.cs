@@ -3,7 +3,6 @@
 using System.Windows;
 using System.Windows.Data;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.VisualStudio.Imaging;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.PlatformUI;
