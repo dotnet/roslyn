@@ -9,7 +9,9 @@
 using System.IO;
 using Roslyn.Test.Performance.Utilities;
 using static Roslyn.Test.Performance.Utilities.Tools;
+using static Roslyn.Test.Performance.Utilities.TestUtilities;
 
+InitUtilitiesFromCsx();
 var directoryUtil = new RelativeDirectory();
 var logger = new ConsoleAndFileLogger();
 

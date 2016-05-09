@@ -91,22 +91,6 @@ namespace Roslyn.Test.Performance.Utilities
 
         public string TaoPath => Path.Combine(MyBinaries(), "Tao");
 
-        public string PerfDirectory => Path.Combine(RoslynDirectory, "src", "Test", "Perf");
-
-        public string BinDirectory => Path.Combine(RoslynDirectory, "Binaries");
-
-        public string BinDebugDirectory => Path.Combine(BinDirectory, "Debug");
-
-        public string BinReleaseDirectory => Path.Combine(BinDirectory, "Release");
-
-        public string DebugCscPath => Path.Combine(BinDebugDirectory, "csc.exe");
-
-        public string ReleaseCscPath => Path.Combine(BinReleaseDirectory, "csc.exe");
-
-        public string DebugVbcPath => Path.Combine(BinDebugDirectory, "vbc.exe");
-
-        public string ReleaseVbcPath => Path.Combine(BinReleaseDirectory, "vbc.exe");
-
         public string CPCDirectoryPath
         {
             get
