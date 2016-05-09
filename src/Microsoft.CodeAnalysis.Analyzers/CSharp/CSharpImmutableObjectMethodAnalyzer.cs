@@ -1,11 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Linq;
+using System;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Analyzers;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Linq;
 using Analyzer.Utilities;
+using Microsoft.CodeAnalysis.Analyzers;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers
 {
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
-        public static DiagnosticDescriptor DoNotIgnoreReturnValueDiagnosticRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor DoNotIgnoreReturnValueDiagnosticRule = new DiagnosticDescriptor(
             DiagnosticIds.DoNotIgnoreReturnValueOnImmutableObjectMethodInvocation,
             s_localizableTitle,
             s_localizableMessage,
@@ -81,7 +82,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
 
             //If the method doesn't start with something like "With" or "Replace", quit
             string methodName = methodSymbol.Name;
-            if (!s_immutableMethodNames.Any(n => methodName.StartsWith(n)))
+            if (!s_immutableMethodNames.Any(n => methodName.StartsWith(n, StringComparison.Ordinal)))
             {
                 return;
             }
