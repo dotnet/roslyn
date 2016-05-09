@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
     {
         public const string OptionName = "RuntimeDiagnostic";
 
-        public static readonly Option<bool> Syntax = new Option<bool>(OptionName, "Syntax", defaultValue: true);
-        public static readonly Option<bool> Semantic = new Option<bool>(OptionName, "Semantic", defaultValue: true);
+        public static readonly Option<bool> Syntax = new Option<bool>(OptionName, "Syntax", defaultValue: false);
+        public static readonly Option<bool> Semantic = new Option<bool>(OptionName, "Semantic", defaultValue: false);
     }
 }

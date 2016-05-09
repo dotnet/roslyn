@@ -24,20 +24,18 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             Dim code = <code>
 class 123 { }
                        </code>
-            Using workspace = Await TestWorkspace.CreateCSharpAsync(code.ToString())
-                Dim miscService = New DefaultDiagnosticAnalyzerService(
-                    New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()),
-                    New MockDiagnosticUpdateSourceRegistrationService())
-
-                Assert.False(miscService.SupportGetDiagnostics)
-
+            Using workspace = Await TestWorkspace.CreateCSharpAsync(code.Value)
                 Dim listener = New AsynchronousOperationListener()
                 Dim listeners = AsynchronousOperationListener.CreateListeners(
                     ValueTuple.Create(FeatureAttribute.DiagnosticService, listener),
                     ValueTuple.Create(FeatureAttribute.ErrorSquiggles, listener))
 
                 Dim diagnosticService = New DiagnosticService(listeners)
-                diagnosticService.Register(miscService)
+
+                Dim miscService = New DefaultDiagnosticAnalyzerService(diagnosticService)
+                Assert.False(miscService.SupportGetDiagnostics)
+
+                DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)
 
                 Dim optionsService = workspace.Services.GetService(Of IOptionService)()
 
@@ -63,14 +61,163 @@ class 123 { }
         End Function
 
         <Fact>
+        Public Async Function TestDefaultDiagnosticProviderSyntax() As Task
+            Dim code = <code>
+class A
+{
+   void Method()
+   {
+        M m = null
+   }
+}
+                       </code>
+
+            Using workspace = Await TestWorkspace.CreateCSharpAsync(code.Value)
+                Dim listener = New AsynchronousOperationListener()
+                Dim listeners = AsynchronousOperationListener.CreateListeners(
+                    ValueTuple.Create(FeatureAttribute.DiagnosticService, listener),
+                    ValueTuple.Create(FeatureAttribute.ErrorSquiggles, listener))
+
+                Dim diagnosticService = New DiagnosticService(listeners)
+
+                Dim miscService = New DefaultDiagnosticAnalyzerService(diagnosticService)
+                Assert.False(miscService.SupportGetDiagnostics)
+
+                DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)
+
+                Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
+                Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
+                Await analyzer.AnalyzeSyntaxAsync(document, CancellationToken.None)
+                Await analyzer.AnalyzeDocumentAsync(document, Nothing, CancellationToken.None)
+
+                Await listener.CreateWaitTask()
+
+                Assert.True(
+                    diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None).Count() = 1)
+            End Using
+        End Function
+
+        <Fact>
+        Public Async Function TestDefaultDiagnosticProviderSemantic() As Task
+            Dim code = <code>
+class A
+{
+   void Method()
+   {
+        M m = null
+   }
+}
+                       </code>
+
+            Using workspace = Await TestWorkspace.CreateCSharpAsync(code.Value)
+                Dim listener = New AsynchronousOperationListener()
+                Dim listeners = AsynchronousOperationListener.CreateListeners(
+                    ValueTuple.Create(FeatureAttribute.DiagnosticService, listener),
+                    ValueTuple.Create(FeatureAttribute.ErrorSquiggles, listener))
+
+                Dim diagnosticService = New DiagnosticService(listeners)
+
+                Dim miscService = New DefaultDiagnosticAnalyzerService(diagnosticService)
+                Assert.False(miscService.SupportGetDiagnostics)
+
+                DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Semantic)
+
+                Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
+                Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
+                Await analyzer.AnalyzeSyntaxAsync(document, CancellationToken.None)
+                Await analyzer.AnalyzeDocumentAsync(document, Nothing, CancellationToken.None)
+
+                Await listener.CreateWaitTask()
+
+                Assert.True(
+                    diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None).Count() = 1)
+            End Using
+        End Function
+
+        <Fact>
+        Public Async Function TestDefaultDiagnosticProviderAll() As Task
+            Dim code = <code>
+class A
+{
+   void Method()
+   {
+        M m = null
+   }
+}
+                       </code>
+
+            Using workspace = Await TestWorkspace.CreateCSharpAsync(code.Value)
+                Dim listener = New AsynchronousOperationListener()
+                Dim listeners = AsynchronousOperationListener.CreateListeners(
+                    ValueTuple.Create(FeatureAttribute.DiagnosticService, listener),
+                    ValueTuple.Create(FeatureAttribute.ErrorSquiggles, listener))
+
+                Dim diagnosticService = New DiagnosticService(listeners)
+
+                Dim miscService = New DefaultDiagnosticAnalyzerService(diagnosticService)
+                Assert.False(miscService.SupportGetDiagnostics)
+
+                DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Semantic Or DiagnosticProvider.Options.Syntax)
+
+                Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
+                Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
+                Await analyzer.AnalyzeSyntaxAsync(document, CancellationToken.None)
+                Await analyzer.AnalyzeDocumentAsync(document, Nothing, CancellationToken.None)
+
+                Await listener.CreateWaitTask()
+
+                Assert.True(
+                    diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None).Count() = 2)
+            End Using
+        End Function
+
+        <Fact>
+        Public Async Function TestDefaultDiagnosticProviderRemove() As Task
+            Dim code = <code>
+class A
+{
+   void Method()
+   {
+        M m = null
+   }
+}
+                       </code>
+
+            Using workspace = Await TestWorkspace.CreateCSharpAsync(code.Value)
+                Dim listener = New AsynchronousOperationListener()
+                Dim listeners = AsynchronousOperationListener.CreateListeners(
+                    ValueTuple.Create(FeatureAttribute.DiagnosticService, listener),
+                    ValueTuple.Create(FeatureAttribute.ErrorSquiggles, listener))
+
+                Dim diagnosticService = New DiagnosticService(listeners)
+
+                Dim miscService = New DefaultDiagnosticAnalyzerService(diagnosticService)
+                Assert.False(miscService.SupportGetDiagnostics)
+
+                DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Semantic Or DiagnosticProvider.Options.Syntax)
+
+                Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
+                Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
+                Await analyzer.AnalyzeSyntaxAsync(document, CancellationToken.None)
+                Await analyzer.AnalyzeDocumentAsync(document, Nothing, CancellationToken.None)
+
+                analyzer.RemoveDocument(document.Id)
+                Await listener.CreateWaitTask()
+
+                Assert.True(
+                    diagnosticService.GetDiagnostics(workspace, document.Project.Id, document.Id, Nothing, False, CancellationToken.None).Count() = 0)
+            End Using
+        End Function
+
+        <Fact>
         Public Async Function TestMiscCSharpErrorSource() As Tasks.Task
             Dim code = <code>
 class 123 { }
                        </code>
-            Using workspace = Await TestWorkspace.CreateCSharpAsync(code.ToString())
-                Dim miscService = New DefaultDiagnosticAnalyzerService(
-                    New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()),
-                    New MockDiagnosticUpdateSourceRegistrationService())
+            Using workspace = Await TestWorkspace.CreateCSharpAsync(code.Value)
+                Dim miscService = New DefaultDiagnosticAnalyzerService(New MockDiagnosticUpdateSourceRegistrationService())
+
+                DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)
 
                 Dim buildTool = String.Empty
 
@@ -92,10 +239,10 @@ class 123 { }
 Class 123
 End Class
                        </code>
-            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(code.ToString())
-                Dim miscService = New DefaultDiagnosticAnalyzerService(
-                    New TestDiagnosticAnalyzerService(DiagnosticExtensions.GetCompilerDiagnosticAnalyzersMap()),
-                    New MockDiagnosticUpdateSourceRegistrationService())
+            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(code.Value)
+                Dim miscService = New DefaultDiagnosticAnalyzerService(New MockDiagnosticUpdateSourceRegistrationService())
+
+                DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)
 
                 Dim buildTool = String.Empty
 

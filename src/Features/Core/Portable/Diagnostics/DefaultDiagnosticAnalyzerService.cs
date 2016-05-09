@@ -22,13 +22,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
         private const int Syntax = 1;
         private const int Semantic = 2;
 
-        private readonly IDiagnosticAnalyzerService _analyzerService;
-
         [ImportingConstructor]
-        public DefaultDiagnosticAnalyzerService(
-            IDiagnosticAnalyzerService analyzerService, IDiagnosticUpdateSourceRegistrationService registrationService)
+        public DefaultDiagnosticAnalyzerService(IDiagnosticUpdateSourceRegistrationService registrationService)
         {
-            _analyzerService = analyzerService;
             registrationService.Register(this);
         }
 
