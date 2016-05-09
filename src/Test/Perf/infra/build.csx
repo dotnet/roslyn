@@ -1,10 +1,12 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// IsVerbose()
+#load "../util/tools_util.csx"
 
 using System.IO;
 
 // TODO: Use actual command line argument parser so we can have help text, etc...
-var branch = Args.Length == 1 ? Args[0] : "master";
-var repoFolder = Args.Lenth == 2 ? Args[1] : @"C:\Roslyn";
+var branch = Args.Count() == 2 ? Args[0] : "master";
+var repoFolder = Args.Count() == 2 ? Args[1] : @"C:\Roslyn";
 
 Directory.Delete(repoFolder, recursive: true);
 
@@ -17,13 +19,13 @@ Directory.Delete(repoFolder, recursive: true);
 // consume the OptProf data via nuget (https://github.com/dotnet/roslyn/issues/5283).
 var repo = "https://github.com/dotnet/roslyn";
 
-var result = ShellOut("git", $"clone {repo} master {repoFolder}");
+var result = ShellOut("git", $"clone {repo} master {repoFolder}", "");
 if (!result.Succeeded)
 {
     return result.Code;
 }
 
-result = ShellOut("msbuild", $"/m /t:rebuild /p:Configuration=Release /p:RealSignBuild=true /p:DelaySignBuild=false {Path.Combine(repoFolder, "Roslyn.sln")}");
+result = ShellOut("msbuild", $"/m /t:rebuild /p:Configuration=Release /p:RealSignBuild=true /p:DelaySignBuild=false {Path.Combine(repoFolder, "Roslyn.sln")}", "");
 if (!result.Succeeded)
 {
     return result.Code;

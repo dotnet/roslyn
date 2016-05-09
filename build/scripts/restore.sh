@@ -6,14 +6,6 @@ DOTNET_PATH=$ROSLYN_TOOLSET_PATH/dotnet-cli/dotnet
 # Workaround, see https://github.com/dotnet/roslyn/issues/10210
 export HOME=$(cd ~ && pwd)
 
-# NuGet often exceeds the limit of open files on Mac
-# https://github.com/NuGet/Home/issues/2163
-OS=$(uname -s)
-if [ "$OS" == "Darwin" || "$OS" == "Linux" ]
-then
-    ulimit -n 6500
-fi
-
 echo "Restoring toolset packages"
 
 $DOTNET_PATH restore -v Minimal --disable-parallel $(pwd)/build/ToolsetPackages/project.json

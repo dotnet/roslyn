@@ -196,12 +196,24 @@
     <value>Performance</value>
   </data>
   <data name="Option_RenameTrackingPreview" xml:space="preserve">
-    <value>Show preview for _rename tracking</value>
+    <value>Show preview for rename _tracking</value>
   </data>
   <data name="Option_NavigateToObjectBrowser" xml:space="preserve">
     <value>_Navigate to Object Browser for symbols defined in metadata</value>
   </data>
   <data name="Option_GoToDefinition" xml:space="preserve">
     <value>Go to Definition</value>
+  </data>
+  <data name="Option_Import_Directives" xml:space="preserve">
+    <value>Import Directives</value>
+  </data>
+  <data name="Option_Suggest_imports_for_types_in_NuGet_packages" xml:space="preserve">
+    <value>Suggest imports for types in _NuGet packages</value>
+  </data>
+  <data name="Option_Suggest_imports_for_types_in_reference_assemblies" xml:space="preserve">
+    <value>Suggest imports for types in _reference assemblies</value>
+  </data>
+  <data name="Option_PlaceSystemNamespaceFirst" xml:space="preserve">
+    <value>_Place 'System' directives first when sorting imports</value>
   </data>
 </root>

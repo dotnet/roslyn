@@ -14,6 +14,7 @@ using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 using VSCompletion = Microsoft.VisualStudio.Language.Intellisense.Completion;
+using Microsoft.CodeAnalysis.Snippets;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Presentation
 {
@@ -27,9 +28,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         private readonly ITextView _textView;
         private readonly ITextBuffer _subjectBuffer;
         private readonly CompletionPresenterSession _completionPresenterSession;
-        private Dictionary<CompletionItem, VSCompletion> _completionItemToVSCompletion;
+        private Dictionary<PresentationItem, VSCompletion> _presentationItemMap;
 
-        private CompletionRules _completionRules;
+        private CompletionHelper _completionHelper;
         private IReadOnlyList<IntellisenseFilter2> _filters;
         private IReadOnlyDictionary<CompletionItem, string> _completionItemToFilterText;
 
@@ -55,9 +56,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         }
 
         internal void SetCompletionItems(
-            IList<CompletionItem> completionItems,
-            CompletionItem selectedItem,
-            CompletionItem presetBuilder,
+            IList<PresentationItem> completionItems,
+            PresentationItem selectedItem,
+            PresentationItem suggestionModeItem,
             bool suggestionMode,
             bool isSoftSelected,
             ImmutableArray<CompletionItemFilter> completionItemFilters,
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             VSCompletion selectedCompletionItem = null;
 
             // Initialize the completion map to a reasonable default initial size (+1 for the builder)
-            _completionItemToVSCompletion = _completionItemToVSCompletion ?? new Dictionary<CompletionItem, VSCompletion>(completionItems.Count + 1);
+            _presentationItemMap = _presentationItemMap ?? new Dictionary<PresentationItem, VSCompletion>(completionItems.Count + 1);
             _completionItemToFilterText = completionItemToFilterText;
 
             try
@@ -79,25 +80,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 // If more than one filter was provided, then present it to the user.
                 if (_filters == null && completionItemFilters.Length > 1)
                 {
-                    _filters = completionItemFilters.Select(f => new IntellisenseFilter2(this, f))
+                    _filters = completionItemFilters.Select(f => new IntellisenseFilter2(this, f, GetLanguage()))
                                                     .ToArray();
                 }
 
                 var applicableToText = this.ApplicableTo.GetText(this.ApplicableTo.TextBuffer.CurrentSnapshot);
-                var filteredBuilder = new CompletionItem(null, applicableToText,
-                    this.ApplicableTo.GetSpan(this.ApplicableTo.TextBuffer.CurrentSnapshot).Span.ToTextSpan(), isBuilder: true);
 
-                var showBuilder = suggestionMode || presetBuilder != null;
-                var bestBuilder = applicableToText.Length > 0 ? filteredBuilder : presetBuilder ?? filteredBuilder;
+                var filteredSuggestionModeItem = new SimplePresentationItem(
+                        CompletionItem.Create(
+                            displayText: applicableToText,
+                            span: this.ApplicableTo.GetSpan(this.ApplicableTo.TextBuffer.CurrentSnapshot).Span.ToTextSpan()),
+                        selectedItem.CompletionService,
+                        isSuggestionModeItem: true);
 
-                if (showBuilder && bestBuilder != null)
+                var showBuilder = suggestionMode || suggestionModeItem != null;
+                var bestSuggestionModeItem = applicableToText.Length > 0 ? filteredSuggestionModeItem : suggestionModeItem ?? filteredSuggestionModeItem;
+
+                if (showBuilder && bestSuggestionModeItem != null)
                 {
-                    var builderCompletion = ConvertCompletionItem(bestBuilder);
-                    this.WritableCompletionBuilders.Add(builderCompletion);
+                    var suggestionModeCompletion = GetVSCompletion(bestSuggestionModeItem);
+                    this.WritableCompletionBuilders.Add(suggestionModeCompletion);
 
-                    if (selectedItem != null && selectedItem.IsBuilder)
+                    if (selectedItem != null && selectedItem.IsSuggestionModeItem)
                     {
-                        selectedCompletionItem = builderCompletion;
+                        selectedCompletionItem = suggestionModeCompletion;
                     }
                 }
             }
@@ -113,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
                 foreach (var item in completionItems)
                 {
-                    var completionItem = ConvertCompletionItem(item);
+                    var completionItem = GetVSCompletion(item);
                     this.WritableCompletions.Add(completionItem);
 
                     if (item == selectedItem)
@@ -131,26 +137,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 selectedCompletionItem, isSelected: !isSoftSelected, isUnique: selectedCompletionItem != null);
         }
 
-        private VSCompletion ConvertCompletionItem(CompletionItem item, string displayTextOpt = null)
+        private VSCompletion GetVSCompletion(PresentationItem item)
         {
             VSCompletion value;
-            if (!_completionItemToVSCompletion.TryGetValue(item, out value))
+            if (!_presentationItemMap.TryGetValue(item, out value))
             {
                 value = new CustomCommitCompletion(
                     _completionPresenterSession,
-                    item,
-                    displayTextOpt ?? item.DisplayText);
-                _completionItemToVSCompletion.Add(item, value);
+                    item);
+                _presentationItemMap.Add(item, value);
             }
 
             return value;
         }
 
-        internal CompletionItem GetCompletionItem(VSCompletion completion)
+        internal PresentationItem GetPresentationItem(VSCompletion completion)
         {
             // Linear search is ok since this is only called by the user manually selecting 
             // an item.  Creating a reverse mapping uses too much memory and affects GCs.
-            foreach (var kvp in _completionItemToVSCompletion)
+            foreach (var kvp in _presentationItemMap)
             {
                 if (kvp.Value == completion)
                 {
@@ -178,23 +183,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             // Do nothing.  Our controller will already recalculate if necessary.
         }
 
-        private CompletionRules GetCompletionRules()
+        private string GetLanguage()
+        {
+            var document = _subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document != null)
+            {
+                return document.Project.Language;
+            }
+
+            return "";
+        }
+
+        private CompletionHelper GetCompletionHelper()
         {
             _foregroundObject.AssertIsForeground();
-            if (_completionRules == null)
+            if (_completionHelper == null)
             {
                 var document = _subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document != null)
                 {
-                    var service = document.Project.LanguageServices.GetService<ICompletionService>();
-                    if (service != null)
-                    {
-                        _completionRules = service.GetCompletionRules();
-                    }
+                    _completionHelper = CompletionHelper.GetHelper(document);
                 }
             }
 
-            return _completionRules;
+            return _completionHelper;
         }
 
 #if NEWCOMPLETION
@@ -205,17 +217,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         {
             if (_completionItemToFilterText != null)
             {
-                var rules = this.GetCompletionRules();
-                if (rules != null)
+                var completionHelper = this.GetCompletionHelper();
+                if (completionHelper != null)
                 {
-                    var completionItem = this._completionItemToVSCompletion.Keys.FirstOrDefault(k => k.DisplayText == displayText);
+                    var presentationItem = this._presentationItemMap.Keys.FirstOrDefault(k => k.Item.DisplayText == displayText);
 
-                    if (completionItem != null && !completionItem.IsBuilder)
+                    if (presentationItem != null && !presentationItem.IsSuggestionModeItem)
                     {
                         string filterText;
-                        if (_completionItemToFilterText.TryGetValue(completionItem, out filterText))
+                        if (_completionItemToFilterText.TryGetValue(presentationItem.Item, out filterText))
                         {
-                            var highlightedSpans = rules.GetHighlightedSpans(completionItem, filterText);
+                            var highlightedSpans = completionHelper.GetHighlightedSpans(presentationItem.Item, filterText);
                             if (highlightedSpans != null)
                             {
                                 return highlightedSpans.Select(s => s.ToSpan()).ToArray();

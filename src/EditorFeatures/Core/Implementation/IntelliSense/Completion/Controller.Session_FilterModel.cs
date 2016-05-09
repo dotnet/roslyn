@@ -80,16 +80,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 }
             }
 
-            private CompletionItem GetCompletionItem(CompletionItem item)
-            {
-                if (item is DescriptionModifyingCompletionItem)
-                {
-                    return ((DescriptionModifyingCompletionItem)item).CompletionItem;
-                }
-
-                return item;
-            }
-
             private Model FilterModelInBackgroundWorker(
                 Model model,
                 int id,
@@ -128,14 +118,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 }
 
                 var textSnapshot = caretPosition.Snapshot;
-                var allFilteredItems = new List<CompletionItem>();
+                var allFilteredItems = new List<PresentationItem>();
                 var textSpanToText = new Dictionary<TextSpan, string>();
-                var completionRules = _completionRules;
+                var helper = this.Controller.GetCompletionHelper();
 
                 // isUnique tracks if there is a single 
                 bool? isUnique = null;
-                CompletionItem bestFilterMatch = null;
+                PresentationItem bestFilterMatch = null;
                 bool filterTextIsPotentialIdentifier = false;
+
+                var recentItems = this.Controller.GetRecentItems();
 
                 var itemToFilterText = new Dictionary<CompletionItem, string>();
                 model = model.WithCompletionItemToFilterText(itemToFilterText);
@@ -153,17 +145,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     // We may have wrapped some items in the list in DescriptionModifying items,
                     // but we should use the actual underlying items when filtering. That way
                     // our rules can access the underlying item's provider.
-                    var item = GetCompletionItem(currentItem);
 
-                    if (ItemIsFilteredOut(item, filterState))
+                    if (ItemIsFilteredOut(currentItem.Item, filterState))
                     {
                         continue;
                     }
 
-                    var filterText = model.GetCurrentTextInSnapshot(item.FilterSpan, textSnapshot, textSpanToText);
-                    var matchesFilterText = completionRules.MatchesFilterText(item, filterText, model.TriggerInfo, filterReason);
-                    itemToFilterText[item] = filterText;
-                    itemToFilterText[currentItem] = filterText;
+                    var filterText = model.GetCurrentTextInSnapshot(currentItem.Item.Span, textSnapshot, textSpanToText);
+                    var matchesFilterText = helper.MatchesFilterText(currentItem.Item, filterText, model.Trigger, filterReason, recentItems);
+                    itemToFilterText[currentItem.Item] = filterText;
 
                     if (matchesFilterText)
                     {
@@ -172,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         // If we have no best match, or this match is better than the last match,
                         // then the current item is the best filter match.
                         if (bestFilterMatch == null ||
-                            completionRules.IsBetterFilterMatch(item, GetCompletionItem(bestFilterMatch), filterText, model.TriggerInfo, filterReason))
+                            helper.IsBetterFilterMatch(currentItem.Item, bestFilterMatch.Item, filterText, model.Trigger, filterReason, recentItems))
                         {
                             bestFilterMatch = currentItem;
                         }
@@ -236,7 +226,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     {
                         // If the user has turned on some filtering states, and we filtered down to 
                         // nothing, then we do want the UI to show that to them.
-                        return model.WithFilteredItems(allFilteredItems)
+                        return model.WithFilteredItems(allFilteredItems.ToImmutableArray())
                                     .WithHardSelection(false)
                                     .WithIsUnique(false);
                     }
@@ -256,9 +246,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 // If we have a best item, then we want to hard select it.  Otherwise we want
                 // soft selection.  However, no hard selection if there's a builder.
-                var hardSelection = IsHardSelection(model, bestFilterMatch, textSnapshot, completionRules, model.TriggerInfo, filterReason);
+                var hardSelection = IsHardSelection(model, bestFilterMatch, textSnapshot, helper, model.Trigger, filterReason);
 
-                var result = model.WithFilteredItems(allFilteredItems)
+                var result = model.WithFilteredItems(allFilteredItems.ToImmutableArray())
                                   .WithSelectedItem(selectedItem)
                                   .WithHardSelection(hardSelection)
                                   .WithIsUnique(isUnique.HasValue && isUnique.Value);
@@ -276,13 +266,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     return false;
                 }
 
-                foreach (var filter in item.Filters)
+                foreach (var filter in CompletionItemFilter.AllFilters)
                 {
-                    // The item matches the current filters.  The item is not filtered out.
-                    bool enabled;
-                    if (filterState.TryGetValue(filter, out enabled) && enabled)
+                    // only consider filters that match the item
+                    var matches = filter.Matches(item);
+                    if (matches)
                     {
-                        return false;
+                        // if the specific filter is enabled then it is not filtered out
+                        bool enabled;
+                        if (filterState.TryGetValue(filter, out enabled) && enabled)
+                        {
+                            return false;
+                        }
                     }
                 }
 
@@ -292,18 +287,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             private bool IsHardSelection(
                 Model model,
-                CompletionItem bestFilterMatch,
+                PresentationItem bestFilterMatch,
                 ITextSnapshot textSnapshot,
-                CompletionRules completionRules,
-                CompletionTriggerInfo triggerInfo,
+                CompletionHelper completionRules,
+                CompletionTrigger trigger,
                 CompletionFilterReason reason)
             {
-                if (model.Builder != null)
+                if (model.SuggestionModeItem != null)
                 {
-                    return bestFilterMatch != null && bestFilterMatch.DisplayText == model.Builder.DisplayText;
+                    return bestFilterMatch != null && bestFilterMatch.Item.DisplayText == model.SuggestionModeItem.Item.DisplayText;
                 }
 
-                if (bestFilterMatch == null || model.UseSuggestionCompletionMode)
+                if (bestFilterMatch == null || model.UseSuggestionMode)
                 {
                     return false;
                 }
@@ -319,10 +314,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 //
                 // Completion will comes up after = with 'integer' selected (Because of MRU).  We do
                 // not want 'space' to commit this.
-                var viewSpan = model.GetSubjectBufferFilterSpanInViewBuffer(bestFilterMatch.FilterSpan);
+                var viewSpan = model.GetViewBufferSpan(bestFilterMatch.Item.Span);
                 var fullFilterText = model.GetCurrentTextInSnapshot(viewSpan, textSnapshot, endPoint: null);
 
-                var shouldSoftSelect = completionRules.ShouldSoftSelectItem(GetExternallyUsableCompletionItem(bestFilterMatch), fullFilterText, triggerInfo);
+                var shouldSoftSelect = completionRules.ShouldSoftSelectItem(bestFilterMatch.Item, fullFilterText, trigger);
                 if (shouldSoftSelect)
                 {
                     return false;
@@ -330,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 // If the user moved the caret left after they started typing, the 'best' match may not match at all
                 // against the full text span that this item would be replacing.
-                if (!completionRules.MatchesFilterText(bestFilterMatch, fullFilterText, triggerInfo, reason))
+                if (!completionRules.MatchesFilterText(bestFilterMatch.Item, fullFilterText, trigger, reason, this.Controller.GetRecentItems()))
                 {
                     return false;
                 }

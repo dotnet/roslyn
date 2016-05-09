@@ -89,7 +89,6 @@
   <ItemGroup>
     <Compile Include="Completion\CompletionProviders\CSharpReplCommandCompletionProvider.cs" />
     <Compile Include="Completion\FileSystem\LoadDirectiveCompletionProvider.cs" />
-    <Compile Include="Completion\FileSystem\LoadDirectiveCompletionProvider.ItemRules.cs" />
     <Compile Include="Completion\FileSystem\ReferenceDirectiveCompletionProvider.cs" />
     <Compile Include="CSharpInteractiveEditorResources.Designer.cs">
       <DependentUpon>CSharpInteractiveEditorResources.resx</DependentUpon>

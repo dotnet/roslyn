@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.ChangeSignature
 
             if (_testDocument == null)
             {
-                throw new ArgumentException("markup does not contain a cursor position", "workspace");
+                throw new ArgumentException("markup does not contain a cursor position", nameof(workspace));
             }
 
             InvocationDocument = Workspace.CurrentSolution.GetDocument(_testDocument.Id);

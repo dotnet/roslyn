@@ -19,6 +19,12 @@ popd
 echo Restoring packages: Toolsets
 call %NugetExe% restore "%~dp0build\ToolsetPackages\project.json" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
 
+echo Restoring packages: Toolsets (Dev14 VS SDK build tools)
+call %NugetExe% restore "%~dp0build\ToolsetPackages\dev14.project.json" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
+
+echo Restoring packages: Toolsets (Dev15 VS SDK build tools)
+call %NugetExe% restore "%~dp0build\ToolsetPackages\dev15.project.json" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
+
 echo Restoring packages: Samples
 call %NugetExe% restore "%~dp0src\Samples\Samples.sln" %NuGetAdditionalCommandLineArgs% || goto :RestoreFailed
 
