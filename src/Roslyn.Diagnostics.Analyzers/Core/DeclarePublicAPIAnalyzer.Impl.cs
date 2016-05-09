@@ -14,10 +14,10 @@ namespace Roslyn.Diagnostics.Analyzers
     {
         private sealed class ApiLine
         {
-            public readonly string Text;
-            public readonly TextSpan Span;
-            public readonly SourceText SourceText;
-            public readonly string Path;
+            public string Text { get; private set; }
+            public TextSpan Span { get; private set; }
+            public SourceText SourceText { get; private set; }
+            public string Path { get; private set; }
 
             internal ApiLine(string text, TextSpan span, SourceText sourceText, string path)
             {
@@ -30,8 +30,8 @@ namespace Roslyn.Diagnostics.Analyzers
 
         private struct RemovedApiLine
         {
-            public readonly string Text;
-            public readonly ApiLine ApiLine;
+            public string Text { get; private set; }
+            public ApiLine ApiLine { get; private set; }
 
             internal RemovedApiLine(string text, ApiLine apiLine)
             {
@@ -42,8 +42,8 @@ namespace Roslyn.Diagnostics.Analyzers
 
         private struct ApiData
         {
-            public readonly ImmutableArray<ApiLine> ApiList;
-            public readonly ImmutableArray<RemovedApiLine> RemovedApiList;
+            public ImmutableArray<ApiLine> ApiList { get; private set; }
+            public ImmutableArray<RemovedApiLine> RemovedApiList { get; private set; }
 
             internal ApiData(ImmutableArray<ApiLine> apiList, ImmutableArray<RemovedApiLine> removedApiList)
             {

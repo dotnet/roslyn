@@ -100,7 +100,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
             internal virtual void AnalyzeMethodInvocation(IMethodSymbol invocationSymbol, SyntaxNodeAnalysisContext context)
             {
-                if (invocationSymbol.Name.Equals(SymbolDeclaredEventName) &&
+                if (invocationSymbol.Name.Equals(SymbolDeclaredEventName, StringComparison.Ordinal) &&
                     _compilationType.Equals(invocationSymbol.ContainingType))
                 {
                     SyntaxNode argument = GetFirstArgumentOfInvocation(context.Node);
@@ -123,7 +123,7 @@ namespace Roslyn.Diagnostics.Analyzers
             {
                 if (type != null &&
                     type.Kind == SymbolKind.NamedType &&
-                    !type.Name.Equals("Symbol"))
+                    !type.Name.Equals("Symbol", StringComparison.Ordinal))
                 {
                     var namedType = (INamedTypeSymbol)type;
                     if (namedType.AllInterfaces.Contains(_symbolType))
