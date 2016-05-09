@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Loads the SymbolTreeInfo for a given assembly symbol (metadata or project).  If the
         /// info can't be loaded, it will be created (and persisted if possible).
         /// </summary>
-        private static Task<SymbolTreeInfo> LoadOrCreateSymbolTreeInfoAsync(
+        private static Task<SymbolTreeInfo> LoadOrCreateSourceSymbolTreeInfoAsync(
             Solution solution,
             IAssemblySymbol assembly,
             string filePath,
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 solution,
                 filePath,
                 loadOnly,
-                create: version => CreateSymbolTreeInfo(solution, version, assembly, filePath, includeInternal, cancellationToken),
+                create: version => CreateSourceSymbolTreeInfo(solution, version, assembly, filePath, includeInternal, cancellationToken),
                 keySuffix: "",
                 getVersion: info => info._version,
                 readObject: reader => ReadSymbolTreeInfo(reader, (version, nodes) => GetSpellCheckerTask(solution, version, filePath, nodes)),
