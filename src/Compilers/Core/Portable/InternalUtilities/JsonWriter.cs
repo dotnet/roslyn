@@ -160,9 +160,6 @@ namespace Roslyn.Utilities
         //
         //   - Avoid intermediate StringBuilder and send escaped output directly to the destination.
         //
-        //   - Stop escaping '/': it is is optional per JSON spec and several users have expressed
-        //     that they don't like the way '\/' looks.
-        //
         private static string EscapeString(string value)
         {
             PooledStringBuilder pooledBuilder = null;
@@ -179,7 +176,7 @@ namespace Roslyn.Utilities
             {
                 char c = value[i];
 
-                if (c == '\"' || c == '\'' || c == '/' || c == '\\' || ShouldAppendAsUnicode(c))
+                if (c == '\"' || c == '\'' || c == '\\' || ShouldAppendAsUnicode(c))
                 {
                     if (b == null)
                     {
@@ -204,9 +201,6 @@ namespace Roslyn.Utilities
                         break;
                     case '\\':
                         b.Append("\\\\");
-                        break;
-                    case '/':
-                        b.Append("\\/");
                         break;
                     case '\'':
                         b.Append("\'");

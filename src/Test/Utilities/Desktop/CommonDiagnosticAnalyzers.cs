@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis
                 var tree = compilation.SyntaxTrees.First();
                 var root = tree.GetRoot();
                 var expectedLineSpan = root.GetLocation().GetLineSpan();
-                var filePath = GetEscapedUriForPath(tree.FilePath);
+                var filePath = GetUriForPath(tree.FilePath);
 
                 return @"
       ""results"": [
@@ -149,9 +149,9 @@ namespace Microsoft.CodeAnalysis
 }";
             }
 
-            public static string GetEscapedUriForPath(string path)
+            public static string GetUriForPath(string path)
             {
-                return new Uri(path, UriKind.RelativeOrAbsolute).ToString().Replace("/", "\\/");
+                return new Uri(path, UriKind.RelativeOrAbsolute).ToString();
             }
         }
 

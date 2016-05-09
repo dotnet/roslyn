@@ -141,7 +141,7 @@ public class C
       ]
     }}
   ]
-}}", AnalyzerForErrorLogTest.GetEscapedUriForPath(sourceFile));
+}}", AnalyzerForErrorLogTest.GetUriForPath(sourceFile));
 
             var expectedText = expectedHeader + expectedIssues;
             Assert.Equal(expectedText, actualOutput);
@@ -236,7 +236,7 @@ public class C
       ]
     }}
   ]
-}}", AnalyzerForErrorLogTest.GetEscapedUriForPath(sourceFile));
+}}", AnalyzerForErrorLogTest.GetUriForPath(sourceFile));
 
             var expectedText = expectedHeader + expectedIssues;
             Assert.Equal(expectedText, actualOutput);
