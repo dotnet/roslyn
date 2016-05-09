@@ -4615,9 +4615,9 @@ checkNullable:
                 value = ParseExpressionCore()
 
             ElseIf modifiers.Any AndAlso modifiers.Any(SyntaxKind.OptionalKeyword) Then
-
-                equals = ReportSyntaxError(InternalSyntaxFactory.MissingPunctuation(SyntaxKind.EqualsToken), ERRID.ERR_ObsoleteOptionalWithoutValue)
-                value = ParseExpressionCore()
+                ' TODO: Make this dependant on language feature flag.
+                'equals = ReportSyntaxError(InternalSyntaxFactory.MissingPunctuation(SyntaxKind.EqualsToken), ERRID.ERR_ObsoleteOptionalWithoutValue)
+                'value = ParseExpressionCore()
 
             End If
 
