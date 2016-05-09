@@ -31,7 +31,10 @@ if (latestBuild == null)
 
 var latestBuildFolder = Path.Combine(sourceFolder, latestBuild);
 
-Directory.Delete(destinationFolder, recursive: true);
+if (Directory.Exists(destinationFolder))
+{
+    Directory.Delete(destinationFolder, recursive: true);
+}
 
 CopyDirectory(latestBuildFolder, destinationFolder);
 
