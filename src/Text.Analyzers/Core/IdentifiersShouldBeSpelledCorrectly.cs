@@ -182,8 +182,11 @@ namespace Text.Analyzers
 
         public override void Initialize(AnalysisContext analysisContext)
         {
-            analysisContext.EnableConcurrentExecution();
-            analysisContext.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+            // TODO: Enable concurrent execution of analyzer actions.
+            //analysisContext.EnableConcurrentExecution();
+
+            // TODO: Configure generated code analysis.
+            //analysisContext.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
         }
     }
 }
