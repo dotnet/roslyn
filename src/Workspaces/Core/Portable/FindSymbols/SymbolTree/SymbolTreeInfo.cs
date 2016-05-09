@@ -59,8 +59,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _spellCheckerTask = spellCheckerTask;
         }
 
-        public int Count => _nodes.Count;
-
         public Task<IEnumerable<ISymbol>> FindAsync(SearchQuery query, IAssemblySymbol assembly, CancellationToken cancellationToken)
         {
             return FindAsync(query, new AsyncLazy<IAssemblySymbol>(assembly), cancellationToken);
