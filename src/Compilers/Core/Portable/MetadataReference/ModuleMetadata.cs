@@ -306,5 +306,13 @@ namespace Microsoft.CodeAnalysis
         {
             return new MetadataImageReference(this, MetadataReferenceProperties.Module, documentation, filePath, display);
         }
+
+        public override IEnumerable<ModuleMetadata> Modules
+        {
+            get
+            {
+                yield return this;
+            }
+        }
     }
 }
