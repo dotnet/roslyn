@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
     /// once it is fully indexed, then total results will be returned.
     /// </summary>
     [Shared]
-    [ExportIncrementalAnalyzerProvider(WorkspaceKind.Host)]
+    [ExportIncrementalAnalyzerProvider(nameof(SymbolTreeInfoIncrementalAnalyzerProvider), new[] { WorkspaceKind.Host })]
     [ExportWorkspaceServiceFactory(typeof(ISymbolTreeInfoCacheService))]
     internal class SymbolTreeInfoIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider, IWorkspaceServiceFactory
     {

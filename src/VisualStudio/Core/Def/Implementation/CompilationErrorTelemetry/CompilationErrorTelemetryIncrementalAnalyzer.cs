@@ -8,7 +8,9 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.CompilationErrorTelemetry
 {
-    [ExportIncrementalAnalyzerProvider(WorkspaceKind.Host), Shared]
+    // Disabled compilation error telemetry per discussion with .net team.
+    // tracking bug - https://github.com/dotnet/roslyn/issues/11133
+    // [ExportIncrementalAnalyzerProvider(WorkspaceKind.Host), Shared]
     internal class CompilationErrorTelemetryIncrementalAnalyzer : IncrementalAnalyzerProviderBase
     {
         public const string Name = "CompilationErrorTelemetryIncrementalAnalyzer";

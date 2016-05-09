@@ -295,7 +295,7 @@
     <Compile Include="Debugging\VisualBasicBreakpointResolutionServiceTests.vb" />
     <Compile Include="Diagnostics\DiagnosticTableDataSourceTests.vb" />
     <Compile Include="Diagnostics\ExternalDiagnosticUpdateSourceTests.vb" />
-    <Compile Include="Diagnostics\MiscDiagnosticUpdateSourceTests.vb" />
+    <Compile Include="Diagnostics\DefaultDiagnosticUpdateSourceTests.vb" />
     <Compile Include="Diagnostics\MockExtensionManager.vb" />
     <Compile Include="Diagnostics\TestTableManagerProvider.vb" />
     <Compile Include="Diagnostics\TodoListTableDataSourceTests.vb" />

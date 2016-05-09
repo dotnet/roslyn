@@ -235,6 +235,7 @@
     <Compile Include="Diagnostics\HostDiagnosticAnalyzerPackage.cs" />
     <Compile Include="Diagnostics\IDiagnosticUpdateSourceRegistrationService.cs" />
     <Compile Include="Diagnostics\InternalDiagnosticsOptionsProvider.cs" />
+    <Compile Include="Diagnostics\DefaultDiagnosticAnalyzerService.cs" />
     <Compile Include="Diagnostics\PredefinedBuildTools.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerService_BuildSynchronization.cs" />
     <Compile Include="Diagnostics\BuildToolId.cs" />
@@ -555,17 +556,13 @@
     <Compile Include="Snippets\SnippetInfo.cs" />
     <Compile Include="SolutionCrawler\AbstractDocumentDifferenceService.cs" />
     <Compile Include="SolutionCrawler\AggregateIncrementalAnalyzer.cs" />
-    <Compile Include="SolutionCrawler\Extensibility\ExportIncrementalAnalyzerProviderAttribute.cs" />
     <Compile Include="SolutionCrawler\Extensibility\ExportPerLanguageIncrementalAnalyzerProviderAttribute.cs" />
-    <Compile Include="SolutionCrawler\Extensibility\IIncrementalAnalyzerProvider.cs" />
-    <Compile Include="SolutionCrawler\Extensibility\IncrementalAnalyzerProviderMetadata.cs" />
     <Compile Include="SolutionCrawler\Extensibility\IPerLanguageIncrementalAnalyzerProvider.cs" />
     <Compile Include="SolutionCrawler\Extensibility\PerLanguageIncrementalAnalyzerProviderMetadata.cs" />
     <Compile Include="SolutionCrawler\Extensions.cs" />
     <Compile Include="SolutionCrawler\IdleProcessor.cs" />
     <Compile Include="SolutionCrawler\IDocumentDifferenceService.cs" />
     <Compile Include="SolutionCrawler\IDocumentTrackingService.cs" />
-    <Compile Include="SolutionCrawler\IIncrementalAnalyzer.cs" />
     <Compile Include="SolutionCrawler\IncrementalAnalyzerBase.cs" />
     <Compile Include="SolutionCrawler\IncrementalAnalyzerProviderBase.cs" />
     <Compile Include="SolutionCrawler\InternalSolutionCrawlerOptionsProvider.cs" />
@@ -574,7 +571,6 @@
     <Compile Include="SolutionCrawler\ISolutionCrawlerProgressReporter.cs" />
     <Compile Include="SolutionCrawler\ISolutionCrawlerService.cs" />
     <Compile Include="SolutionCrawler\IWorkCoordinatorPriorityService.cs" />
-    <Compile Include="SolutionCrawler\ISolutionCrawlerRegistrationService.cs" />
     <Compile Include="SolutionCrawler\PredefinedInvocationReasons.cs" />
     <Compile Include="SolutionCrawler\SolutionCrawlerLogger.cs" />
     <Compile Include="SolutionCrawler\InternalSolutionCrawlerOptions.cs" />

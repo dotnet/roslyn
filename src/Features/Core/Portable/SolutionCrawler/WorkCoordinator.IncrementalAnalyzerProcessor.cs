@@ -75,9 +75,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 private static ImmutableArray<IIncrementalAnalyzer> GetActiveFileIncrementalAnalyzers(
                     Registration registration, IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> providers)
                 {
-                    var matchingProviders = providers.Where(p => p.Metadata.HighPriorityForActiveFile && p.Metadata.WorkspaceKinds.Contains(registration.Workspace.Kind));
-
-                    var orderedAnalyzers = GetOrderedAnalyzers(registration, matchingProviders);
+                    var orderedAnalyzers = GetOrderedAnalyzers(registration, providers.Where(p => p.Metadata.HighPriorityForActiveFile));
 
                     SolutionCrawlerLogger.LogActiveFileAnalyzers(registration.CorrelationId, registration.Workspace, orderedAnalyzers);
                     return orderedAnalyzers;
@@ -86,9 +84,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 private static ImmutableArray<IIncrementalAnalyzer> GetIncrementalAnalyzers(
                     Registration registration, IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> providers)
                 {
-                    var matchingProviders = providers.Where(p => p.Metadata.WorkspaceKinds.Contains(registration.Workspace.Kind));
-
-                    var orderedAnalyzers = GetOrderedAnalyzers(registration, matchingProviders);
+                    var orderedAnalyzers = GetOrderedAnalyzers(registration, providers);
 
                     SolutionCrawlerLogger.LogAnalyzers(registration.CorrelationId, registration.Workspace, orderedAnalyzers);
                     return orderedAnalyzers;
