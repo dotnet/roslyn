@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Provide a way for users to turn on and off analyzing workspace for compiler diagnostics
     /// </summary>
-    internal static class DiagnosticProvider
+    public static class DiagnosticProvider
     {
         public static void Enable(Workspace workspace, Options options)
         {
