@@ -158,6 +158,15 @@ namespace Microsoft.CodeAnalysis
             return GetMetadataImpl();
         }
 
+        /// <summary>
+        /// Returns a copy of the <see cref="Metadata"/> object this <see cref="PortableExecutableReference"/>
+        /// contains.  This copy does not need to be <see cref="IDisposable.Dispose"/>d.
+        /// </summary>
+        public Metadata GetMetadata()
+        {
+            return GetMetadataNoCopy().Copy();
+        }
+
         internal static Diagnostic ExceptionToDiagnostic(Exception e, CommonMessageProvider messageProvider, Location location, string display, MetadataImageKind kind)
         {
             if (e is BadImageFormatException)
