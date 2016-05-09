@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Get all symbols that have a name matching the specified name.
         /// </summary>
-        public async Task<IEnumerable<ISymbol>> FindAsync(
+        private async Task<IEnumerable<ISymbol>> FindAsync(
             AsyncLazy<IAssemblySymbol> lazyAssembly,
             string name,
             bool ignoreCase,
