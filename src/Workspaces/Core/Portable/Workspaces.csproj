@@ -509,9 +509,9 @@
     <Compile Include="FindSymbols\SymbolFinder_Declarations.cs" />
     <Compile Include="FindSymbols\SymbolFinder_Hierarchy.cs" />
     <Compile Include="FindSymbols\SymbolFinder_References.cs" />
-    <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo.cs" />
-    <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo.Node.cs" />
-    <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo_Serialization.cs" />
+    <Compile Include="FindSymbols\SymbolTree\SourceSymbolTreeInfo.cs" />
+    <Compile Include="FindSymbols\SymbolTree\SourceSymbolTreeInfo.Node.cs" />
+    <Compile Include="FindSymbols\SymbolTree\SourceSymbolTreeInfo_Serialization.cs" />
     <Compile Include="FindSymbols\SyntaxTree\AbstractPersistableState.cs" />
     <Compile Include="FindSymbols\SyntaxTree\ISyntaxTreeInfoPersistentStorage.cs" />
     <Compile Include="FindSymbols\SyntaxTree\SyntaxTreeContextInfo.cs" />

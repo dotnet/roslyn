@@ -40,9 +40,9 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
         private struct ProjectInfo
         {
             public readonly VersionStamp VersionStamp;
-            public readonly SymbolTreeInfo SymbolTreeInfo;
+            public readonly SourceSymbolTreeInfo SymbolTreeInfo;
 
-            public ProjectInfo(VersionStamp versionStamp, SymbolTreeInfo info)
+            public ProjectInfo(VersionStamp versionStamp, SourceSymbolTreeInfo info)
             {
                 VersionStamp = versionStamp;
                 SymbolTreeInfo = info;
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
         private struct MetadataInfo
         {
             public readonly DateTime TimeStamp;
-            public readonly SymbolTreeInfo SymbolTreeInfo;
+            public readonly SourceSymbolTreeInfo SymbolTreeInfo;
 
             /// <summary>
             /// Note: the Incremental-Analyzer infrastructure guarantees that it will call all the methods
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
             /// </summary>
             public readonly HashSet<ProjectId> ReferencingProjects;
 
-            public MetadataInfo(DateTime timeStamp, SymbolTreeInfo info, HashSet<ProjectId> referencingProjects)
+            public MetadataInfo(DateTime timeStamp, SourceSymbolTreeInfo info, HashSet<ProjectId> referencingProjects)
             {
                 TimeStamp = timeStamp;
                 SymbolTreeInfo = info;
@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 _metadataPathToInfo = metadataPathToInfo;
             }
 
-            public async Task<SymbolTreeInfo> TryGetSymbolTreeInfoAsync(
+            public async Task<SourceSymbolTreeInfo> TryGetSymbolTreeInfoAsync(
                 Solution solution,
                 IAssemblySymbol assembly,
                 PortableExecutableReference reference,
@@ -156,12 +156,12 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 // If we didn't have it in our cache, see if we can load it from disk.
                 // Note: pass 'loadOnly' so we only attempt to load from disk, not to actually
                 // try to create the metadata.
-                var info = await SymbolTreeInfo.TryGetInfoForMetadataAssemblyAsync(
+                var info = await SourceSymbolTreeInfo.TryGetInfoForMetadataAssemblyAsync(
                     solution, assembly, reference, loadOnly: true, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return info;
             }
 
-            public async Task<SymbolTreeInfo> TryGetSymbolTreeInfoAsync(
+            public async Task<SourceSymbolTreeInfo> TryGetSymbolTreeInfoAsync(
                 Project project, CancellationToken cancellationToken)
             {
                 ProjectInfo projectInfo;
@@ -234,7 +234,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
 
                     // Update the symbol tree infos for metadata and source in parallel.
                     var referencesTask = UpdateReferencesAync(project, compilation, cancellationToken);
-                    var projectTask = SymbolTreeInfo.GetInfoForSourceAssemblyAsync(project, cancellationToken);
+                    var projectTask = SourceSymbolTreeInfo.GetInfoForSourceAssemblyAsync(project, cancellationToken);
 
                     await Task.WhenAll(referencesTask, projectTask).ConfigureAwait(false);
 
@@ -277,7 +277,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                     var assembly = compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
                     var info = assembly == null
                         ? null
-                        : await SymbolTreeInfo.TryGetInfoForMetadataAssemblyAsync(project.Solution, assembly, reference, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        : await SourceSymbolTreeInfo.TryGetInfoForMetadataAssemblyAsync(project.Solution, assembly, reference, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                     metadataInfo = new MetadataInfo(lastWriteTime, info, metadataInfo.ReferencingProjects ?? new HashSet<ProjectId>());
                     _metadataPathToInfo.AddOrUpdate(key, metadataInfo, (_1, _2) => metadataInfo);
