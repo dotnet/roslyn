@@ -31,11 +31,11 @@ class HelloWorldTest : PerfTest
     
     public override void Test() 
     {
-        ShellOutVital(ReleaseCscPath, _pathToHelloWorld + " /out:" + _pathToOutput, IsVerbose(), _logger);
+        ShellOutVital(Path.Combine(MyBinaries(), "csc.exe"), _pathToHelloWorld + " /out:" + _pathToOutput, IsVerbose(), _logger, workingDirectory: MyWorkingDirectory);
         _logger.Flush();
     }
     
-    public override int Iterations => 2;
+    public override int Iterations => 1;
     public override string Name => "hello world";
     public override string MeasuredProc => "csc";
     public override bool ProvidesScenarios => false;
