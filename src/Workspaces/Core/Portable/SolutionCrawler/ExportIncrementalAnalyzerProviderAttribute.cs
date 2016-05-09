@@ -13,6 +13,20 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         public string Name { get; }
         public string[] WorkspaceKinds { get; }
 
+        public ExportIncrementalAnalyzerProviderAttribute(params string[] workspaceKinds)
+            : base(typeof(IIncrementalAnalyzerProvider))
+        {
+            if (workspaceKinds == null)
+            {
+                throw new ArgumentNullException(nameof(workspaceKinds));
+            }
+
+            // TODO: this will be removed once closed side changes are in.
+            this.WorkspaceKinds = workspaceKinds;
+            this.Name = "Unknown";
+            this.HighPriorityForActiveFile = false;
+        }
+
         public ExportIncrementalAnalyzerProviderAttribute(string name, string[] workspaceKinds)
             : base(typeof(IIncrementalAnalyzerProvider))
         {
