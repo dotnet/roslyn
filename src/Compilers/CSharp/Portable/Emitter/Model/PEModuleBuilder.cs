@@ -759,11 +759,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             // Anonymous type being translated
             if (namedTypeSymbol.IsAnonymousType)
             {
+                Debug.Assert(!needDeclaration);
                 namedTypeSymbol = AnonymousTypeManager.TranslateAnonymousTypeSymbol(namedTypeSymbol);
             }
             else if (namedTypeSymbol.IsTupleType)
             {
-                namedTypeSymbol = ((TupleTypeSymbol)namedTypeSymbol).UnderlyingTupleType;
+                Debug.Assert(!needDeclaration);
+                namedTypeSymbol = namedTypeSymbol.TupleUnderlyingType;
             }
 
             // Substitute error types with a special singleton object.
@@ -923,7 +925,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             bool needDeclaration = false)
         {
             Debug.Assert(fieldSymbol.IsDefinitionOrDistinct());
-            Debug.Assert(!fieldSymbol.ContainingType.IsTupleType, "tuple fields should be rewritten to underlying by now");
+            Debug.Assert(!fieldSymbol.IsTupleField, "tuple fields should be rewritten to underlying by now");
 
             if (!fieldSymbol.IsDefinition)
             {
@@ -1078,13 +1080,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             Cci.IMethodReference methodRef;
             NamedTypeSymbol container = methodSymbol.ContainingType;
 
-            Debug.Assert(methodSymbol.IsDefinitionOrDistinct());
-
             // Method of anonymous type being translated
             if (container.IsAnonymousType)
             {
+                Debug.Assert(!needDeclaration);
                 methodSymbol = AnonymousTypeManager.TranslateAnonymousTypeMethodSymbol(methodSymbol);
             }
+            else if (methodSymbol.IsTupleMethod)
+            {
+                Debug.Assert(!needDeclaration);
+                Debug.Assert(container.IsTupleType);
+                container = container.TupleUnderlyingType;
+                methodSymbol = methodSymbol.TupleUnderlyingMethod;
+            }
+
+            Debug.Assert(!container.IsTupleType);
+            Debug.Assert(methodSymbol.IsDefinitionOrDistinct());
 
             if (!methodSymbol.IsDefinition)
             {

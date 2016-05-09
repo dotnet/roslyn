@@ -61,8 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         public static CSharpParseOptions WithRefsFeature(this CSharpParseOptions options)
         {
-            return options.WithFeature(MessageID.IDS_FeatureRefLocalsReturns.RequiredFeature()
-, "true");
+            return options.WithFeature(MessageID.IDS_FeatureRefLocalsReturns.RequiredFeature(), "true");
         }
 
         public static CSharpParseOptions WithTuplesFeature(this CSharpParseOptions options)

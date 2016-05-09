@@ -1,5 +1,4 @@
 ﻿using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.VisualStudio.Language.Intellisense;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Presentation
@@ -10,9 +9,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         public readonly CompletionItemFilter CompletionItemFilter;
 
         public IntellisenseFilter2(
-            CompletionSet3 completionSet, CompletionItemFilter filter)
-            : base(filter.Glyph.GetImageMoniker(), GetToolTip(filter),
-                   filter.AccessKey.ToString(), automationText: filter.Glyph.ToString())
+            CompletionSet3 completionSet, CompletionItemFilter filter, string language)
+            : base(ImageMonikers.GetImageMoniker(filter.Tags, language), GetToolTip(filter),
+                   filter.AccessKey.ToString(), automationText: filter.Tags[0])
         {
             _completionSet = completionSet;
             CompletionItemFilter = filter;

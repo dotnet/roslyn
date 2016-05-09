@@ -81,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                                 return Glyph.Error;
 
                             default:
-                                throw new ArgumentException(FeaturesResources.TheSymbolDoesNotHaveAnIcon, "symbol");
+                                throw new ArgumentException(FeaturesResources.TheSymbolDoesNotHaveAnIcon, nameof(symbol));
                         }
 
                         break;
@@ -144,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     return Glyph.TypeParameter;
 
                 default:
-                    throw new ArgumentException(FeaturesResources.TheSymbolDoesNotHaveAnIcon, "symbol");
+                    throw new ArgumentException(FeaturesResources.TheSymbolDoesNotHaveAnIcon, nameof(symbol));
             }
 
             switch (symbol.DeclaredAccessibility)

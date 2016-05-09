@@ -10,7 +10,7 @@ using Microsoft.VisualStudio.Text.Editor;
 namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.FileSystem
 {
     // TODO(cyrusn): Use a predefined name here.
-    [ExportCompletionProvider("ReferenceDirectiveCompletionProvider", LanguageNames.CSharp)]
+    [ExportCompletionProviderMef1("ReferenceDirectiveCompletionProvider", LanguageNames.CSharp)]
     // Using TextViewRole here is a temporary work-around to prevent this component from being loaded in
     // regular C# contexts.  We will need to remove this and implement a new "CSharp Script" Content type
     // in order to fix #r completion in .csx files (https://github.com/dotnet/roslyn/issues/5325).

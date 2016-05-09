@@ -200,24 +200,26 @@ index: 0);
 index: 2);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors), Trait(Traits.Feature, Test.Utilities.Traits.Features.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
         public async Task Tuple()
         {
             await TestAsync(
 @"class C : [||]B { } class B { public B((int, string) x) { } }",
 @"class C : B { public C((int, string) x) : base(x) { } } class B { public B((int, string) x) { } }",
 index: 0,
-parseOptions: TestOptions.Regular.WithTuplesFeature());
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors), Trait(Traits.Feature, Test.Utilities.Traits.Features.Tuples)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateDefaultConstructors), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
         public async Task TupleWithNames()
         {
             await TestAsync(
 @"class C : [||]B { } class B { public B((int a, string b) x) { } }",
 @"class C : B { public C((int a, string b) x) : base(x) { } } class B { public B((int a, string b) x) { } }",
 index: 0,
-parseOptions: TestOptions.Regular.WithTuplesFeature());
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
         }
     }
 }

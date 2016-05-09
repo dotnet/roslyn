@@ -1889,15 +1889,6 @@ namespace Microsoft.CodeAnalysis.Editor {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Variadic SignatureHelpItem must have at least one parameter..
-        /// </summary>
-        internal static string VariadicSignaturehelpitemMustHaveOneParam {
-            get {
-                return ResourceManager.GetString("VariadicSignaturehelpitemMustHaveOneParam", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Preview Warning.
         /// </summary>
         internal static string Warning {

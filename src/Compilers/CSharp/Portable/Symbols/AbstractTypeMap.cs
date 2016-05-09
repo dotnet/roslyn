@@ -49,8 +49,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (previous.IsTupleType)
             {
-                TupleTypeSymbol previousTuple = (TupleTypeSymbol)previous;
-                NamedTypeSymbol oldUnderlyingType = previousTuple.UnderlyingTupleType;
+                var previousTuple = (TupleTypeSymbol)previous;
+                NamedTypeSymbol oldUnderlyingType = previousTuple.TupleUnderlyingType;
                 NamedTypeSymbol newUnderlyingType = (NamedTypeSymbol)SubstituteType(oldUnderlyingType).Type;
 
                 return ((object)newUnderlyingType == (object)oldUnderlyingType) ? previous : previousTuple.WithUnderlyingType(newUnderlyingType);
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             for (int i = 0; i < oldTypeArguments.Length; i++)
             {
                 var oldArgument = modifiers.IsDefault ? new TypeWithModifiers(oldTypeArguments[i]) : new TypeWithModifiers(oldTypeArguments[i], modifiers[i]);
-                var newArgument = oldArgument.SubstituteType(this);
+                var newArgument = oldArgument.SubstituteTypeWithTupleUnification(this);
 
                 if (!changed && oldArgument != newArgument)
                 {
@@ -128,6 +128,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return new TypeWithModifiers(result);
+        }
+
+        /// <summary>
+        /// Same as <see cref="SubstituteType"/>, but with special behavior around tuples.
+        /// In particular, if substitution makes type tuple compatible, transform it into a tuple type.
+        /// </summary>
+        internal TypeWithModifiers SubstituteTypeWithTupleUnification(TypeSymbol previous)
+        {
+            TypeWithModifiers result = SubstituteType(previous);
+
+            // Make it a tuple if it became compatible with one.
+            if ((object)result.Type != null && !previous.IsTupleCompatible())
+            {
+                var possiblyTuple = TupleTypeSymbol.TransformToTupleIfCompatible(result.Type);
+                if ((object)result.Type != possiblyTuple)
+                {
+                    result = new TypeWithModifiers(possiblyTuple, result.CustomModifiers);
+                }
+            }
+
+            return result;
         }
 
         private static bool IsPossiblyByRefTypeParameter(TypeSymbol type)
@@ -211,7 +232,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private ArrayTypeSymbol SubstituteArrayType(ArrayTypeSymbol t)
         {
             var oldElement = new TypeWithModifiers(t.ElementType, t.CustomModifiers);
-            TypeWithModifiers element = oldElement.SubstituteType(this);
+            TypeWithModifiers element = oldElement.SubstituteTypeWithTupleUnification(this);
             if (element == oldElement)
             {
                 return t;
@@ -256,7 +277,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private PointerTypeSymbol SubstitutePointerType(PointerTypeSymbol t)
         {
             var oldPointedAtType = new TypeWithModifiers(t.PointedAtType, t.CustomModifiers);
-            TypeWithModifiers pointedAtType = oldPointedAtType.SubstituteType(this);
+            TypeWithModifiers pointedAtType = oldPointedAtType.SubstituteTypeWithTupleUnification(this);
             if (pointedAtType == oldPointedAtType)
             {
                 return t;

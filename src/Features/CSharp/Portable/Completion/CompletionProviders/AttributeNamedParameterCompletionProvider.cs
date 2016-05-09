@@ -7,27 +7,29 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal partial class AttributeNamedParameterCompletionProvider : CompletionListProvider
+    internal class AttributeNamedParameterCompletionProvider : CommonCompletionProvider
     {
         private const string EqualsString = "=";
         private const string SpaceEqualsString = " =";
         private const string ColonString = ":";
 
-        public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
+        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
 
-        public override async Task ProduceCompletionListAsync(CompletionListContext context)
+        public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
             var document = context.Document;
             var position = context.Position;
@@ -56,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             if (IsAfterNameColonArgument(token) || IsAfterNameEqualsArgument(token))
             {
-                context.MakeExclusive(true);
+                context.IsExclusive = true;
             }
 
             // We actually want to collect two sets of named parameters to present the user.  The
@@ -68,8 +70,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             var workspace = document.Project.Solution.Workspace;
             var semanticModel = await document.GetSemanticModelForNodeAsync(attributeSyntax, cancellationToken).ConfigureAwait(false);
-            var nameColonItems = await GetNameColonItemsAsync(workspace, semanticModel, position, token, attributeSyntax, existingNamedParameters, cancellationToken).ConfigureAwait(false);
-            var nameEqualsItems = await GetNameEqualsItemsAsync(workspace, semanticModel, position, token, attributeSyntax, existingNamedParameters, cancellationToken).ConfigureAwait(false);
+            var nameColonItems = await GetNameColonItemsAsync(context, semanticModel, token, attributeSyntax, existingNamedParameters).ConfigureAwait(false);
+            var nameEqualsItems = await GetNameEqualsItemsAsync(context, semanticModel, token, attributeSyntax, existingNamedParameters).ConfigureAwait(false);
 
             context.AddItems(nameEqualsItems);
 
@@ -133,45 +135,48 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return false;
         }
 
-        private async Task<IEnumerable<CompletionItem>> GetNameEqualsItemsAsync(Workspace workspace, SemanticModel semanticModel,
-            int position, SyntaxToken token, AttributeSyntax attributeSyntax, ISet<string> existingNamedParameters,
-            CancellationToken cancellationToken)
+        private async Task<IEnumerable<CompletionItem>> GetNameEqualsItemsAsync(CompletionContext context, SemanticModel semanticModel,
+            SyntaxToken token, AttributeSyntax attributeSyntax, ISet<string> existingNamedParameters)
         {
-            var attributeNamedParameters = GetAttributeNamedParameters(semanticModel, position, attributeSyntax, cancellationToken);
+            var attributeNamedParameters = GetAttributeNamedParameters(semanticModel, context.Position, attributeSyntax, context.CancellationToken);
             var unspecifiedNamedParameters = attributeNamedParameters.Where(p => !existingNamedParameters.Contains(p.Name));
 
-            var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await semanticModel.SyntaxTree.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
             return from p in attributeNamedParameters
                    where !existingNamedParameters.Contains(p.Name)
-                   select new CompletionItem(
-                       this,
-                       p.Name.ToIdentifierToken().ToString() + SpaceEqualsString,
-                       CompletionUtilities.GetTextChangeSpan(text, position),
-                       CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, token.SpanStart, p),
-                       p.GetGlyph(),
+                   select SymbolCompletionItem.Create(
+                       displayText: p.Name.ToIdentifierToken().ToString() + SpaceEqualsString,
+                       insertionText: null,
+                       span: context.DefaultItemSpan,
+                       symbol: p,
+                       descriptionPosition: token.SpanStart,
                        sortText: p.Name,
-                       rules: ItemRules.Instance);
+                       rules: CompletionItemRules.Default);
         }
 
         private async Task<IEnumerable<CompletionItem>> GetNameColonItemsAsync(
-            Workspace workspace, SemanticModel semanticModel, int position, SyntaxToken token, AttributeSyntax attributeSyntax, ISet<string> existingNamedParameters,
-            CancellationToken cancellationToken)
+            CompletionContext context, SemanticModel semanticModel, SyntaxToken token, AttributeSyntax attributeSyntax, ISet<string> existingNamedParameters)
         {
-            var parameterLists = GetParameterLists(semanticModel, position, attributeSyntax, cancellationToken);
+            var parameterLists = GetParameterLists(semanticModel, context.Position, attributeSyntax, context.CancellationToken);
             parameterLists = parameterLists.Where(pl => IsValid(pl, existingNamedParameters));
 
-            var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var text = await semanticModel.SyntaxTree.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
             return from pl in parameterLists
                    from p in pl
                    where !existingNamedParameters.Contains(p.Name)
-                   select new CompletionItem(
-                       this,
-                       p.Name.ToIdentifierToken().ToString() + ColonString,
-                       CompletionUtilities.GetTextChangeSpan(text, position),
-                       CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, token.SpanStart, p),
-                       p.GetGlyph(),
+                   select SymbolCompletionItem.Create(
+                       displayText: p.Name.ToIdentifierToken().ToString() + ColonString,
+                       insertionText: null,
+                       span: context.DefaultItemSpan,
+                       symbol: p,
+                       descriptionPosition: token.SpanStart,
                        sortText: p.Name,
-                       rules: ItemRules.Instance);
+                       rules: CompletionItemRules.Default);
+        }
+
+        public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        {
+            return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
         }
 
         private bool IsValid(ImmutableArray<IParameterSymbol> parameterList, ISet<string> existingNamedParameters)
@@ -219,6 +224,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             var within = semanticModel.GetEnclosingNamedTypeOrAssembly(position, cancellationToken);
             var attributeType = semanticModel.GetTypeInfo(attribute, cancellationToken).Type as INamedTypeSymbol;
             return attributeType.GetAttributeNamedParameters(semanticModel.Compilation, within);
+        }
+
+        public override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(GetTextChange(selectedItem, ch));
+        }
+
+        private TextChange? GetTextChange(CompletionItem selectedItem, char? ch)
+        { 
+            var displayText = selectedItem.DisplayText;
+
+            if (ch != null)
+            {
+                // If user types a space, do not complete the " =" (space and equals) at the end of a named parameter. The
+                // typed space character will be passed through to the editor, and they can then type the '='.
+                if (ch == ' ' && displayText.EndsWith(SpaceEqualsString, StringComparison.Ordinal))
+                {
+                    return new TextChange(selectedItem.Span, displayText.Remove(displayText.Length - SpaceEqualsString.Length));
+                }
+
+                // If the user types '=', do not complete the '=' at the end of the named parameter because the typed '=' 
+                // will be passed through to the editor.
+                if (ch == '=' && displayText.EndsWith(EqualsString, StringComparison.Ordinal))
+                {
+                    return new TextChange(selectedItem.Span, displayText.Remove(displayText.Length - EqualsString.Length));
+                }
+
+                // If the user types ':', do not complete the ':' at the end of the named parameter because the typed ':' 
+                // will be passed through to the editor.
+                if (ch == ':' && displayText.EndsWith(ColonString, StringComparison.Ordinal))
+                {
+                    return new TextChange(selectedItem.Span, displayText.Remove(displayText.Length - ColonString.Length));
+                }
+            }
+
+            return new TextChange(selectedItem.Span, displayText);
         }
     }
 }

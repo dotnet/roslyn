@@ -2510,6 +2510,66 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return this.WithParameterList(declaration, newList);
         }
 
+        public override IReadOnlyList<SyntaxNode> GetSwitchSections(SyntaxNode switchStatement)
+        {
+            var statement = switchStatement as SwitchStatementSyntax;
+            return statement == null
+                ? SpecializedCollections.EmptyReadOnlyList<SyntaxNode>()
+                : statement.Sections;
+        }
+
+        public override SyntaxNode InsertSwitchSections(SyntaxNode switchStatement, int index, IEnumerable<SyntaxNode> switchSections)
+        {
+            var statement = switchStatement as SwitchStatementSyntax;
+            if (statement == null)
+            {
+                return switchStatement;
+            }
+
+            var newSections = statement.Sections.InsertRange(index, switchSections.Cast<SwitchSectionSyntax>());
+            return AddMissingTokens(statement, recurse: false).WithSections(newSections);
+        }
+
+        private static TNode AddMissingTokens<TNode>(TNode node, bool recurse)
+            where TNode : CSharpSyntaxNode
+        {
+            var rewriter = new AddMissingTokensRewriter(recurse);
+            return (TNode)rewriter.Visit(node);
+        }
+
+        private class AddMissingTokensRewriter : CSharpSyntaxRewriter
+        {
+            private readonly bool _recurse;
+            private bool firstVisit = true;
+
+            public AddMissingTokensRewriter(bool recurse)
+            {
+                _recurse = recurse;
+            }
+
+            public override SyntaxNode Visit(SyntaxNode node)
+            {
+                if (!_recurse && !firstVisit)
+                {
+                    return node;
+                }
+
+                firstVisit = false;
+                return base.Visit(node);
+            }
+
+            public override SyntaxToken VisitToken(SyntaxToken token)
+            {
+                var rewrittenToken = base.VisitToken(token);
+                if (!rewrittenToken.IsMissing || !SyntaxFacts.IsPunctuationOrKeyword(token.Kind()))
+                {
+                    return rewrittenToken;
+                }
+
+                return SyntaxFactory.Token(token.Kind()).WithTriviaFrom(rewrittenToken);
+            }
+        }
+
         private BaseParameterListSyntax GetParameterList(SyntaxNode declaration)
         {
             switch (declaration.Kind())

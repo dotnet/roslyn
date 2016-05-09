@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +8,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Options;
+using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
@@ -232,32 +233,41 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             {
                 var workspaceServices = _document.Project.Solution.Workspace.Services;
 
-                var packageSearchService = _owner._packageSearchService ?? workspaceServices.GetService<IPackageSearchService>();
-                var referenceAssemblySearchService = _owner._referenceAssemblySearchService ?? workspaceServices.GetService<IReferenceAssemblySearchService>();
+                var symbolSearchService = _owner._symbolSearchService ?? workspaceServices.GetService<ISymbolSearchService>();
                 var installerService = _owner._packageInstallerService ?? workspaceServices.GetService<IPackageInstallerService>();
 
-                if (referenceAssemblySearchService != null)
+                var language = _document.Project.Language;
+
+                var options = workspaceServices.Workspace.Options;
+                var searchReferenceAssemblies = options.GetOption(
+                    AddImportOptions.SuggestForTypesInReferenceAssemblies, language);
+                var searchNugetPackages = options.GetOption(
+                    AddImportOptions.SuggestForTypesInNuGetPackages, language);
+
+                if (symbolSearchService != null &&
+                    searchReferenceAssemblies)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     await FindReferenceAssemblyTypeReferencesAsync(
-                        referenceAssemblySearchService, allReferences, nameNode, name, arity, isAttributeSearch, cancellationToken).ConfigureAwait(false);
+                        symbolSearchService, allReferences, nameNode, name, arity, isAttributeSearch, cancellationToken).ConfigureAwait(false);
                 }
 
-                if (packageSearchService != null && 
+                if (symbolSearchService != null &&
+                    searchNugetPackages && 
                     installerService.IsEnabled)
                 {
                     foreach (var packageSource in installerService.PackageSources)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
                         await FindNugetTypeReferencesAsync(
-                            packageSource, packageSearchService, installerService, allReferences,
+                            packageSource, symbolSearchService, installerService, allReferences,
                             nameNode, name, arity, isAttributeSearch, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
 
             private async Task FindReferenceAssemblyTypeReferencesAsync(
-                IReferenceAssemblySearchService searchService,
+                ISymbolSearchService searchService,
                 List<Reference> allReferences,
                 TSimpleNameSyntax nameNode,
                 string name,
@@ -283,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             private async Task FindNugetTypeReferencesAsync(
                 PackageSource source,
-                IPackageSearchService searchService,
+                ISymbolSearchService searchService,
                 IPackageInstallerService installerService,
                 List<Reference> allReferences,
                 TSimpleNameSyntax nameNode,

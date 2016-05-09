@@ -4,7 +4,6 @@ using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection.Metadata;
-using System.Reflection.Metadata.Decoding;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 
@@ -120,7 +119,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
                 return HResult.E_FAIL;
             }
 
-            var typeProvider = new DummyTypeProvider(_symMethod.MetadataReader);
+            var typeProvider = DummyTypeProvider.Instance;
 
             var decoder = new SignatureDecoder<object>(typeProvider);
             for (int i = 0; i < slotIndex - 1; i++)
@@ -143,13 +142,7 @@ namespace Microsoft.DiaSymReader.PortablePdb
 
         private sealed class DummyTypeProvider : ISignatureTypeProvider<object>
         {
-            public DummyTypeProvider(MetadataReader reader)
-            {
-                Reader = reader;
-            }
-
-            // TODO: this property shouldn't be needed
-            public MetadataReader Reader { get; }
+            public static readonly DummyTypeProvider Instance = new DummyTypeProvider();
 
             public object GetArrayType(object elementType, ArrayShape shape) => null;
             public object GetByReferenceType(object elementType) => null;
@@ -162,9 +155,9 @@ namespace Microsoft.DiaSymReader.PortablePdb
             public object GetPointerType(object elementType) => null;
             public object GetPrimitiveType(PrimitiveTypeCode typeCode) => null;
             public object GetSZArrayType(object elementType) => null;
-            public object GetTypeFromDefinition(MetadataReader reader, TypeDefinitionHandle handle, SignatureTypeHandleCode code) => null;
-            public object GetTypeFromReference(MetadataReader reader, TypeReferenceHandle handle, SignatureTypeHandleCode code) => null;
-            public object GetTypeFromSpecification(MetadataReader reader, TypeSpecificationHandle handle, SignatureTypeHandleCode code) => null;
+            public object GetTypeFromDefinition(MetadataReader reader, TypeDefinitionHandle handle, byte rawTypeKind) => null;
+            public object GetTypeFromReference(MetadataReader reader, TypeReferenceHandle handle, byte rawTypeKind) => null;
+            public object GetTypeFromSpecification(MetadataReader reader, TypeSpecificationHandle handle, byte rawTypeKind) => null;
         }
     }
 }

@@ -4869,4 +4869,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_PredefinedTypeMemberNotFoundInAssembly" xml:space="preserve">
     <value>Member '{0}' was not found on type '{1}' from assembly '{2}'.</value>
   </data>
+  <data name="IDS_FeatureTuples" xml:space="preserve">
+    <value>tuples</value>
+  </data>
 </root>
