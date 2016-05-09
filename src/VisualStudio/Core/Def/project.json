@@ -1,16 +1,7 @@
 ﻿{
   "dependencies": {
     "ManagedEsent": "1.9.2.0",
-    "Microsoft.Composition": "1.0.27",
     "Microsoft.CodeAnalysis.Elfie": "0.10.6-rc2",
-    "Microsoft.VisualStudio.Designer.Interfaces": "1.1.4322",
-    "Microsoft.VisualStudio.Editor": "14.1.24720",
-    "Microsoft.VisualStudio.Shell.14.0": "14.1.24720",
-    "Microsoft.VisualStudio.Shell.Interop.12.1.DesignTime": "12.1.30328",
-    "Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime": "14.1.24720",
-    "Microsoft.VisualStudio.TextManager.Interop.12.1.DesignTime": "12.1.30328",
-    "Microsoft.VisualStudio.TextManager.Interop.12.0": "12.0.30110",
-    "Microsoft.VisualStudio.SDK.EmbedInteropTypes": "14.1.2",
     "NuGet.VisualStudio": {
       "version": "3.3.0",
       "suppressParent": "all"

@@ -1,6 +1,5 @@
 ﻿{
-  "dependencies": {
-    "Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime": "14.1.24720"
+  "dependencies": {    
   },
   "frameworks": {
     "net46": { }

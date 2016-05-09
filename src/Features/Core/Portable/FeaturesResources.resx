@@ -961,4 +961,7 @@ This version used in: {2}</value>
   <data name="AddMissingSwitchCases" xml:space="preserve">
     <value>Add missing switch cases</value>
   </data>
+  <data name="VariadicSignaturehelpitemMustHaveOneParam" xml:space="preserve">
+    <value>Variadic SignatureHelpItem must have at least one parameter.</value>
+  </data>
 </root>

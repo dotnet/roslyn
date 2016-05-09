@@ -34,6 +34,7 @@ UnitTestResults.html
 *.nuget.props
 *.nuget.targets
 project.lock.json
+*.project.lock.json
 
 *_i.c
 *_p.c

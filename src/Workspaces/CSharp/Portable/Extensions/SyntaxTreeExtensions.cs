@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         {
             if (!token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.CharacterLiteralToken))
             {
-                throw new ArgumentException(CSharpWorkspaceResources.ExpectedStringOrCharLiteral, "token");
+                throw new ArgumentException(CSharpWorkspaceResources.ExpectedStringOrCharLiteral, nameof(token));
             }
 
             int startLength = 1;

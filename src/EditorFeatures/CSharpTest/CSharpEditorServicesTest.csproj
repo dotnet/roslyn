@@ -332,8 +332,6 @@
     <Compile Include="Outlining\RegionDirectiveOutlinerTests.cs" />
     <Compile Include="Outlining\SimpleLambdaExpressionOutlinerTests.cs" />
     <Compile Include="Outlining\TypeDeclarationOutlinerTests.cs" />
-    <Compile Include="PopulateSwitch\PopulateSwitchTests.cs" />
-    <Compile Include="PopulateSwitch\PopulateSwitchTests_FixAllTests.cs" />
     <Compile Include="QuickInfo\SemanticQuickInfoSourceTests.cs" />
     <Compile Include="QuickInfo\SyntacticQuickInfoSourceTests.cs" />
     <Compile Include="Semantics\SpeculationAnalyzerTests.cs" />
@@ -368,10 +366,10 @@
     <None Include="PerfTests\CSharpPerfGoldilocksTyping.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="PerfTests\CSharpPerfGoldilocksTypingDiagnostics.xml">
+    <None Include="PerfTests\CSharpPerfGoldilocksTypingFullSolutionDiagnostics.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <None Include="PerfTests\CSharpPerfGoldilocksTypingDiagnosticsMultipliedDelay.xml">
+    <None Include="PerfTests\CSharpPerfGoldilocksTypingFullSolutionDiagnosticsMultipliedDelay.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="PerfTests\CSharpPerfNavigateTo.xml" />
@@ -478,28 +476,24 @@
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="PerfTests\CSharpPerfGoldilocksTypingAnalyzers.xml">
+    <None Include="PerfTests\CSharpPerfGoldilocksTypingFullSolutionDiagnosticsThirdPartyAnalyzers.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <SubType>Designer</SubType>
     </None>
-    <None Include="PerfTests\CSharpPerfDiagnosticInsideMethodBody.xml">
-      <SubType>Designer</SubType>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\CSharpPerfDiagnosticTopLevel.xml">
-      <SubType>Designer</SubType>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\CSharpPerfGoldilocksTypingAnalyzersWithErrorHub.xml">
-      <SubType>Designer</SubType>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-    </None>
-    <None Include="PerfTests\CSharpPerfDiagnosticTopLevelWithErrorHub.xml">
+    <None Include="PerfTests\CSharpPerfFullSolutionDiagnostics.xml">
       <SubType>Designer</SubType>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Include="PerfTests\CSharpPerfLightBulb.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="PerfTests\CSharpPerfFullSolutionDiagnosticsThirdPartyAnalyzers.xml">
+      <SubType>Designer</SubType>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Include="PerfTests\CSharpPerfBuildWithThirdPartyAnalyzers.xml">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <SubType>Designer</SubType>
     </None>
     <Content Include="PerfTests\Sources\CSharpPgoTypingInput.txt">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

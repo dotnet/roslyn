@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <remarks></remarks>
     Friend NotInheritable Class SourceAssemblySymbol
         Inherits MetadataOrSourceAssemblySymbol
-        Implements IAttributeTargetSymbol
+        Implements ISourceAssemblySymbol, IAttributeTargetSymbol
 
         ''' <summary>
         ''' A Compilation the assembly is created for.
@@ -1021,6 +1021,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblyFileVersionAttributeSetting = verString
+            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.AssemblyInformationalVersionAttribute) Then
+                Dim dummy As Version = Nothing
+                Dim verString = DirectCast(attrData.CommonConstructorArguments(0).Value, String)
+                If Not VersionHelper.TryParse(verString, version:=dummy) Then
+                    arguments.Diagnostics.Add(ERRID.WRN_InvalidVersionFormat, GetAssemblyAttributeFirstArgumentLocation(arguments.AttributeSyntaxOpt))
+                End If
+
+                arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblyInformationalVersionAttributeSetting = verString
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.AssemblyTitleAttribute) Then
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblyTitleAttributeSetting = DirectCast(attrData.CommonConstructorArguments(0).Value, String)
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.AssemblyDescriptionAttribute) Then
@@ -1708,5 +1716,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides Function GetMetadata() As AssemblyMetadata
             Return Nothing
         End Function
+
+        Private ReadOnly Property ISourceAssemblySymbol_Compilation As Compilation Implements ISourceAssemblySymbol.Compilation
+            Get
+                Return _compilation
+            End Get
+        End Property
     End Class
 End Namespace

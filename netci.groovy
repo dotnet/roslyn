@@ -9,12 +9,25 @@ def project = GithubProject
 static void addEmailPublisher(def myJob) {
   myJob.with {
     publishers {
-      extendedEmail('$DEFAULT_RECIPIENTS, cc:mlinfraswat@microsoft.com', '$DEFAULT_SUBJECT', '$DEFAULT_CONTENT') {
-        trigger('Aborted', '$PROJECT_DEFAULT_SUBJECT', '$PROJECT_DEFAULT_CONTENT', null, true, true, true, true)
-        trigger('Failure', '$PROJECT_DEFAULT_SUBJECT', '$PROJECT_DEFAULT_CONTENT', null, true, true, true, true)
+      extendedEmail('mlinfraswat@microsoft.com', '$DEFAULT_SUBJECT', '$DEFAULT_CONTENT') {
+	// trigger(trigger name, subject, body, recipient list, send to developers, send to requester, include culprits, send to recipient list)
+        trigger('Aborted', '$PROJECT_DEFAULT_SUBJECT', '$PROJECT_DEFAULT_CONTENT', null, false, false, false, true)
+        trigger('Failure', '$PROJECT_DEFAULT_SUBJECT', '$PROJECT_DEFAULT_CONTENT', null, false, false, false, true)
       }
     }
   }
+}
+
+// Calls a web hook on Jenkins build events.  Allows our build monitoring jobs to be push notified
+// vs. polling
+static void addBuildEventWebHook(def myJob) {
+  myJob.with {
+    notifications {
+      endpoint('https://jaredpar.azurewebsites.net/api/BuildEvent?code=tts2pvyelahoiliwu7lo6flxr8ps9kaip4hyr4m0ofa3o3l3di77tzcdpk22kf9gex5m6cbrcnmi') {
+        event('all')
+      }
+    }
+  }   
 }
 
 // Generates the standard trigger phrases.  This is the regex which ends up matching lines like:
@@ -42,10 +55,12 @@ static void addRoslynJob(def myJob, String jobName, String branchName, String tr
     Utilities.addGithubPushTrigger(myJob)
     addEmailPublisher(myJob)
   }
+
+  addBuildEventWebHook(myJob)
 }
 
 def branchNames = []
-['master', 'future', 'stabilization', 'future-stabilization', 'hotfixes', 'prtest'].each { branchName ->
+['master', 'future', 'stabilization', 'future-stabilization', 'hotfixes', 'prtest', 'microupdate'].each { branchName ->
   def shortBranchName = branchName.substring(0, 6)
   def jobBranchName = shortBranchName in branchNames ? branchName : shortBranchName
   branchNames << jobBranchName

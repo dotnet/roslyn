@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Packaging;
+using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
@@ -16,16 +17,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
     {
         private class AssemblyReference : Reference
         {
-            private readonly PackageWithTypeResult _packageWithType;
+            private readonly ReferenceAssemblyWithTypeResult _referenceAssemblyWithType;
 
             public AssemblyReference(
                 AbstractAddImportCodeFixProvider<TSimpleNameSyntax> provider,
-                IPackageInstallerService installerService,
                 SearchResult searchResult,
-                PackageWithTypeResult packageWithType)
+                ReferenceAssemblyWithTypeResult referenceAssemblyWithType)
                 : base(provider, searchResult)
             {
-                _packageWithType = packageWithType;
+                _referenceAssemblyWithType = referenceAssemblyWithType;
             }
 
             public override Task<CodeAction> CreateCodeActionAsync(
@@ -39,12 +39,12 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             {
                 var reference = obj as AssemblyReference;
                 return base.Equals(obj) &&
-                    _packageWithType.AssemblyName == reference._packageWithType.AssemblyName;
+                    _referenceAssemblyWithType.AssemblyName == reference._referenceAssemblyWithType.AssemblyName;
             }
 
             public override int GetHashCode()
             {
-                return Hash.Combine(_packageWithType.AssemblyName, base.GetHashCode());
+                return Hash.Combine(_referenceAssemblyWithType.AssemblyName, base.GetHashCode());
             }
 
             private class AssemblyReferenceCodeAction : CodeAction
@@ -72,7 +72,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     _node = node;
                     _placeSystemNamespaceFirst = placeSystemNamespaceFirst;
 
-                    _title = $"{reference.provider.GetDescription(reference.SearchResult.NameParts)} ({string.Format(FeaturesResources.from_0, reference._packageWithType.AssemblyName)})";
+                    _title = $"{reference.provider.GetDescription(reference.SearchResult.NameParts)} ({string.Format(FeaturesResources.from_0, reference._referenceAssemblyWithType.AssemblyName)})";
                     _lazyResolvedPath = new Lazy<string>(ResolvePath);
                 }
 
@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 {
                     var assemblyResolverService = _document.Project.Solution.Workspace.Services.GetService<IFrameworkAssemblyPathResolver>();
 
-                    var packageWithType = _reference._packageWithType;
+                    var packageWithType = _reference._referenceAssemblyWithType;
                     var fullyQualifiedName = string.Join(".", packageWithType.ContainingNamespaceNames.Concat(packageWithType.TypeName));
                     var assemblyPath = assemblyResolverService?.ResolveAssemblyPath(
                         _document.Project.Id, packageWithType.AssemblyName, fullyQualifiedName);

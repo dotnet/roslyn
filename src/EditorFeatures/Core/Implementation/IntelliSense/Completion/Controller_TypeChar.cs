@@ -6,13 +6,13 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Commands;
-using Microsoft.CodeAnalysis.Editor.Extensibility.Completion;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
@@ -126,7 +126,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             var isTextuallyTriggered = IsTextualTriggerCharacter(completionService, args.TypedChar, options);
             var isPotentialFilterCharacter = IsPotentialFilterCharacter(args);
-            var triggerInfo = CompletionTriggerInfo.CreateTypeCharTriggerInfo(args.TypedChar);
+            var trigger = CompletionTrigger.CreateInsertionTrigger(args.TypedChar);
 
             if (sessionOpt == null)
             {
@@ -139,7 +139,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                     // First create the session that represents that we now have a potential
                     // completion list.  Then tell it to start computing.
-                    StartNewModelComputation(completionService, triggerInfo, filterItems: true);
+                    StartNewModelComputation(completionService, trigger, filterItems: true);
                     return;
                 }
                 else
@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         // we have computed one, or it can trigger a new list.  Ask the computation
                         // to compute again. If nothing has been computed, then it will try to
                         // compute again, otherwise it will just ignore this request.
-                        sessionOpt.ComputeModel(completionService, triggerInfo, options, GetCompletionProviders());
+                        sessionOpt.ComputeModel(completionService, trigger, _roles, options);
                     }
 
                     // Now filter whatever result we have.
@@ -236,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                         // First create the session that represents that we now have a potential
                         // completion list.
-                        StartNewModelComputation(completionService, triggerInfo, filterItems: true);
+                        StartNewModelComputation(completionService, trigger, filterItems: true);
                         return;
                     }
                 }
@@ -268,67 +268,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 || args.TypedChar == '_';
         }
 
-        private CompletionRules GetCompletionRules()
+        private CompletionHelper GetCompletionHelper()
         {
             var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document != null)
             {
-                var service = document.Project.LanguageServices.GetService<ICompletionService>();
-                if (service != null)
-                {
-                    return service.GetCompletionRules();
-                }
+                return CompletionHelper.GetHelper(document);
             }
 
             return null;
         }
 
-        private IEnumerable<CompletionListProvider> GetCompletionProviders()
-        {
-            var defaultProviders = GetDefaultCompletionProviders();
-
-            Workspace workspace;
-            if (Workspace.TryGetWorkspace(this.SubjectBuffer.AsTextContainer(), out workspace))
-            {
-                var extensionProviders = workspace.Services.SelectMatchingExtensionValues(
-                    _allCompletionProviders, this.SubjectBuffer.ContentType, this.TextView.Roles);
-
-                return defaultProviders.Concat(extensionProviders.Where(p => !(p is SnippetCompletionProvider)));
-            }
-
-            return defaultProviders;
-        }
-
-        private IEnumerable<CompletionListProvider> GetSnippetCompletionProviders()
-        {
-            Workspace workspace;
-            if (Workspace.TryGetWorkspace(this.SubjectBuffer.AsTextContainer(), out workspace))
-            {
-                var extensionProviders = workspace.Services.SelectMatchingExtensionValues(
-                    _allCompletionProviders, this.SubjectBuffer.ContentType);
-
-                return extensionProviders.OfType<SnippetCompletionProvider>();
-            }
-
-            return SpecializedCollections.EmptyEnumerable<CompletionListProvider>();
-        }
-
-        private IEnumerable<CompletionListProvider> GetDefaultCompletionProviders()
-        {
-            var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document != null)
-            {
-                var service = document.Project.LanguageServices.GetService<ICompletionService>();
-                if (service != null)
-                {
-                    return service.GetDefaultCompletionProviders();
-                }
-            }
-
-            return SpecializedCollections.EmptyEnumerable<CompletionListProvider>();
-        }
-
-        private bool IsTextualTriggerCharacter(ICompletionService completionService, char ch, OptionSet options)
+        private bool IsTextualTriggerCharacter(CompletionService completionService, char ch, OptionSet options)
         {
             AssertIsForeground();
 
@@ -336,10 +287,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // TypeCharWasHandledStrangely returned false.  That means we know that the caret is in
             // our buffer, and is after the character just typed.
 
-            var previousPosition = this.TextView.GetCaretPoint(this.SubjectBuffer).Value - 1;
+            var caretPosition = this.TextView.GetCaretPoint(this.SubjectBuffer).Value;
+            var previousPosition = caretPosition - 1;
             Contract.ThrowIfFalse(this.SubjectBuffer.CurrentSnapshot[previousPosition] == ch);
 
-            return completionService.IsTriggerCharacter(previousPosition.Snapshot.AsText(), previousPosition, GetCompletionProviders(), options);
+            var trigger = CompletionTrigger.CreateInsertionTrigger(ch);
+            return completionService.ShouldTriggerCompletion(previousPosition.Snapshot.AsText(), caretPosition, trigger, _roles, options);
         }
 
         private bool IsCommitCharacter(char ch)
@@ -353,15 +306,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return false;
             }
 
-            var selectedItem = GetExternallyUsableCompletionItem(model.SelectedItem);
-            if (selectedItem.IsBuilder)
+            if (model.SelectedItem.IsSuggestionModeItem)
             {
                 return char.IsLetterOrDigit(ch);
             }
 
-            var filterText = GetCurrentFilterText(model, selectedItem);
+            var helper = GetCompletionHelper();
+            if (helper != null)
+            {
+                var filterText = GetCurrentFilterText(model, model.SelectedItem.Item);
+                return helper.IsCommitCharacter(model.SelectedItem.Item, ch, filterText);
+            }
 
-            return GetCompletionRules().IsCommitCharacter(selectedItem, ch, filterText);
+            return false;
         }
 
         private bool IsFilterCharacter(char ch)
@@ -375,21 +332,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return false;
             }
 
-            var selectedItem = Controller.GetExternallyUsableCompletionItem(model.SelectedItem);
-            if (selectedItem.IsBuilder)
+            if (model.SelectedItem.IsSuggestionModeItem)
             {
                 return char.IsLetterOrDigit(ch);
             }
 
-            var filterText = GetCurrentFilterText(model, selectedItem);
+            var helper = GetCompletionHelper();
+            if (helper != null)
+            {
+                var filterText = GetCurrentFilterText(model, model.SelectedItem.Item);
+                return helper.IsFilterCharacter(model.SelectedItem.Item, ch, filterText);
+            }
 
-            return GetCompletionRules().IsFilterCharacter(selectedItem, ch, filterText);
+            return false;
         }
 
         private string GetCurrentFilterText(Model model, CompletionItem selectedItem)
         {
             var textSnapshot = this.TextView.TextSnapshot;
-            var viewSpan = model.GetSubjectBufferFilterSpanInViewBuffer(selectedItem.FilterSpan);
+            var viewSpan = model.GetViewBufferSpan(selectedItem.Span);
             var filterText = model.GetCurrentTextInSnapshot(
                 viewSpan, textSnapshot, GetCaretPointInViewBuffer());
             return filterText;
@@ -401,27 +362,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             // Note: this function is called after the character has already been inserted into the
             // buffer.
-
             var model = sessionOpt.WaitForModel();
 
             // We only call CommitOnTypeChar if ch was a commit character.  And we only know if ch
             // was commit character if we had a selected item.
             Contract.ThrowIfNull(model);
 
-            // Replace the selected text span with the desired insertion text.  Note: The provided
-            // text span will end up including the last typed char (because we track it in an edge
-            // inclusive manner).  Because the span includes the last typed character, it will get
-            // lost unless we add it back in.  So we actually insert the desired item text *and* the
-            // character.  By doing this we also get proper undo behavior.  i.e. if the user types:
-            //
-            // WriteL(
-            //
-            // Then we will first input "WriteL(" into the buffer.  We will then replace "WriteL("
-            // with "WriteLine(".  That way if they undo, they will end up with "WriteL" again.
-
-            var selectedItem = Controller.GetExternallyUsableCompletionItem(model.SelectedItem);
-            var textChange = GetCompletionRules().GetTextChange(selectedItem, ch, GetCurrentFilterText(model, selectedItem));
-            this.Commit(selectedItem, new TextChange(textChange.Span, textChange.NewText + ch), model, ch);
+            this.Commit(model.SelectedItem, model, ch);
         }
     }
 }

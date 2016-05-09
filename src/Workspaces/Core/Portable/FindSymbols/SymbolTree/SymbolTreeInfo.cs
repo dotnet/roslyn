@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             var spellChecker = _spellCheckerTask.Result;
-            var similarNames = spellChecker.FindSimilarWords(name);
+            var similarNames = spellChecker.FindSimilarWords(name, substringsAreSimilar: false);
             var result = new List<ISymbol>();
 
             foreach (var similarName in similarNames)
@@ -278,7 +278,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     return info;
                 }
 
-                info = await LoadOrCreateSymbolTreeInfoAsync(solution, assembly, reference.FilePath, loadOnly, cancellationToken).ConfigureAwait(false);
+                // We don't include internals from metadata assemblies.  It's less likely that
+                // a project would have IVT to it and so it helps us save on memory.  It also
+                // means we can avoid loading lots and lots of obfuscated code in the case hte
+                // dll was obfuscated.
+                info = await LoadOrCreateSymbolTreeInfoAsync(solution, assembly, reference.FilePath, 
+                    loadOnly, includeInternal: false, cancellationToken: cancellationToken).ConfigureAwait(false);
                 if (info == null && loadOnly)
                 {
                     return null;
@@ -293,12 +298,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
+            // We want to know about internal symbols from source assemblies.  Thre's a reasonable
+            // chance a project might have IVT access to it.
             return await LoadOrCreateSymbolTreeInfoAsync(
-                project.Solution, compilation.Assembly, project.FilePath, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                project.Solution, compilation.Assembly, project.FilePath, 
+                loadOnly: false, includeInternal: true, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
         internal static SymbolTreeInfo CreateSymbolTreeInfo(
-            Solution solution, VersionStamp version, IAssemblySymbol assembly, string filePath, CancellationToken cancellationToken)
+            Solution solution, VersionStamp version, IAssemblySymbol assembly, string filePath, bool includeInternal, CancellationToken cancellationToken)
         {
             if (assembly == null)
             {
@@ -306,7 +314,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             var list = new List<Node>();
-            GenerateNodes(assembly.GlobalNamespace, list);
+            var lookup = includeInternal ? s_getMembersNoPrivate : s_getMembersNoPrivateOrInternal;
+            GenerateNodes(assembly.GlobalNamespace, list, lookup);
 
             var sortedNodes = SortNodes(list);
             var createSpellCheckerTask = GetSpellCheckerTask(solution, version, assembly, filePath, sortedNodes);
@@ -387,44 +396,65 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         // generate nodes for the global namespace an all descendants
-        private static void GenerateNodes(INamespaceSymbol globalNamespace, List<Node> list)
+        private static void GenerateNodes(
+            INamespaceSymbol globalNamespace, 
+            List<Node> list, 
+            Func<ISymbol, IEnumerable<ISymbol>> lookup)
         {
             var node = new Node(globalNamespace.Name, Node.RootNodeParentIndex);
             list.Add(node);
 
             // Add all child members
-            var memberLookup = s_getMembers(globalNamespace).ToLookup(c => c.Name);
+            var memberLookup = lookup(globalNamespace).ToLookup(c => c.Name);
 
             foreach (var grouping in memberLookup)
             {
-                GenerateNodes(grouping.Key, 0 /*index of root node*/, grouping, list);
+                GenerateNodes(grouping.Key, 0 /*index of root node*/, grouping, list, lookup);
             }
         }
 
-        private static readonly Func<ISymbol, bool> s_useSymbol =
+        private static readonly Func<ISymbol, bool> s_useSymbolNoPrivate =
             s => s.CanBeReferencedByName && s.DeclaredAccessibility != Accessibility.Private;
 
+        private static readonly Func<ISymbol, bool> s_useSymbolNoPrivateOrInternal =
+            s => s.CanBeReferencedByName && 
+            s.DeclaredAccessibility != Accessibility.Private &&
+            s.DeclaredAccessibility != Accessibility.Internal;
+
         // generate nodes for symbols that share the same name, and all their descendants
-        private static void GenerateNodes(string name, int parentIndex, IEnumerable<ISymbol> symbolsWithSameName, List<Node> list)
+        private static void GenerateNodes(
+            string name,
+            int parentIndex,
+            IEnumerable<ISymbol> symbolsWithSameName,
+            List<Node> list,
+            Func<ISymbol, IEnumerable<ISymbol>> lookup)
         {
             var node = new Node(name, parentIndex);
             var nodeIndex = list.Count;
             list.Add(node);
 
             // Add all child members
-            var membersByName = symbolsWithSameName.SelectMany(s_getMembers).ToLookup(s => s.Name);
+            var membersByName = symbolsWithSameName.SelectMany(lookup).ToLookup(s => s.Name);
 
             foreach (var grouping in membersByName)
             {
-                GenerateNodes(grouping.Key, nodeIndex, grouping, list);
+                GenerateNodes(grouping.Key, nodeIndex, grouping, list, lookup);
             }
         }
 
-        private static Func<ISymbol, IEnumerable<ISymbol>> s_getMembers = symbol =>
+        private static Func<ISymbol, IEnumerable<ISymbol>> s_getMembersNoPrivate = symbol =>
         {
             var nt = symbol as INamespaceOrTypeSymbol;
             return nt != null
-                ? nt.GetMembers().Where(s_useSymbol)
+                ? nt.GetMembers().Where(s_useSymbolNoPrivate)
+                : SpecializedCollections.EmptyEnumerable<ISymbol>();
+        };
+
+        private static Func<ISymbol, IEnumerable<ISymbol>> s_getMembersNoPrivateOrInternal = symbol =>
+        {
+            var nt = symbol as INamespaceOrTypeSymbol;
+            return nt != null
+                ? nt.GetMembers().Where(s_useSymbolNoPrivateOrInternal)
                 : SpecializedCollections.EmptyEnumerable<ISymbol>();
         };
 

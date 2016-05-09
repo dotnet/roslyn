@@ -227,6 +227,7 @@
       <ReferencePath Condition="
               '%(FileName)' == 'Microsoft.VisualStudio.Shell.Embeddable'
            or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.12.0'
+           or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.12.1.DesignTime'
            or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime'
            or '%(Filename)' == 'Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime'
            or '%(FileName)' == 'Microsoft.VisualStudio.TextManager.Interop.12.1.DesignTime'
@@ -270,7 +271,8 @@
 
        ==================================================================================== -->
 
-  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != '' AND '$(ImportVSSDKTargets)' == 'true'" />
+  <Import Project="$(VisualStudioBuildToolsNuGetPackagePath)\build\Microsoft.VsSDK.BuildTools.targets" Condition="'$(ImportVSSDKTargets)' == 'true'" />
+  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(ImportVSSDKTargets)' == 'true'" />
 
   <!-- ====================================================================================
 
@@ -355,7 +357,9 @@
     <MSBuild Projects="@(ProjectReferenceWithConfiguration)"
              Targets="GetTargetPathWithAuthenticodeCertificateName"
              BuildInParallel="$(BuildInParallel)"
-             Properties="%(ProjectReferenceWithConfiguration.SetConfiguration); %(ProjectReferenceWithConfiguration.SetPlatform)">
+             Properties="%(ProjectReferenceWithConfiguration.SetConfiguration); %(ProjectReferenceWithConfiguration.SetPlatform)"
+             Condition="'%(ProjectReferenceWithConfiguration.Private)' != 'false'"
+             >
 
       <Output TaskParameter="TargetOutputs" ItemName="VsixInputAssembliesToSign" />
     </MSBuild>

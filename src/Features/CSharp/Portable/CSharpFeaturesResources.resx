@@ -437,4 +437,7 @@
   <data name="DelegateInvocationCanBeSimplified" xml:space="preserve">
     <value>Delegate invocation can be simplified.</value>
   </data>
+  <data name="Properties" xml:space="preserve">
+    <value>Properties</value>
+  </data>
 </root>
