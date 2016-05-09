@@ -4437,7 +4437,7 @@ End Class
             Dim compilation0 = CreateCompilationWithMscorlib(source, options:=TestOptions.DebugDll)
             Dim compilation1 = compilation0.Clone()
 
-            Dim moduleMetadata0 = DirectCast(metadata0.GetMetadata(), AssemblyMetadata).GetModules(0)
+            Dim moduleMetadata0 = DirectCast(metadata0.GetMetadataNoCopy(), AssemblyMetadata).GetModules(0)
             Dim method0 = compilation0.GetMember(Of MethodSymbol)("C.F")
 
             Dim generation0 = EmitBaseline.CreateInitialBaseline(

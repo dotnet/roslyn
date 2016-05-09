@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         ' should be equivalent.
                         If Not refProps.EmbedInteropTypes AndAlso refProps.Kind = MetadataImageKind.Assembly Then
                             Try
-                                Dim assemblyMetadata = TryCast(DirectCast(reference, PortableExecutableReference).GetMetadata(), AssemblyMetadata)
+                                Dim assemblyMetadata = TryCast(DirectCast(reference, PortableExecutableReference).GetMetadataNoCopy(), AssemblyMetadata)
 
                                 If assemblyMetadata Is Nothing OrElse Not assemblyMetadata.IsValidAssembly() Then
                                     ' There will be some errors reported later.

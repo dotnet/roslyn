@@ -1413,7 +1413,7 @@ public class A
             var c = CreateCompilationWithMscorlib("class C : A {}", new[] { refA2, refB }, assemblyName: "C");
             var symbolA2 = c.GetReferencedAssemblySymbol(refA2);
             Assert.True(symbolA2 is Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE.PEAssemblySymbol, "PE symbol expected");
-            Assert.Equal(1, ((AssemblyMetadata)refA2.GetMetadata()).CachedSymbols.WeakCount);
+            Assert.Equal(1, ((AssemblyMetadata)refA2.GetMetadataNoCopy()).CachedSymbols.WeakCount);
 
             GC.KeepAlive(symbolA2);
 
