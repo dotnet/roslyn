@@ -422,6 +422,7 @@
     <Compile Include="SignatureHelp\PredefinedCastExpressionSignatureHelpProvider.vb" />
     <Compile Include="SignatureHelp\RaiseEventStatementSignatureHelpProvider.vb" />
     <Compile Include="SignatureHelp\SignatureHelpUtilities.vb" />
+    <Compile Include="SignatureHelp\VisualBasicSignatureHelpService.vb" />
     <Compile Include="SolutionCrawler\VisualBasicDocumentDifferenceService.vb" />
     <Compile Include="VBFeaturesResources.Designer.vb">
       <AutoGen>True</AutoGen>

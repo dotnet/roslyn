@@ -402,6 +402,7 @@
     <Compile Include="SignatureHelp\AbstractCSharpSignatureHelpProvider.cs" />
     <Compile Include="SignatureHelp\AttributeSignatureHelpProvider.cs" />
     <Compile Include="SignatureHelp\ConstructorInitializerSignatureHelpProvider.cs" />
+    <Compile Include="SignatureHelp\CSharpSignatureHelpService.cs" />
     <Compile Include="SignatureHelp\ElementAccessExpressionSignatureHelpProvider.cs" />
     <Compile Include="SignatureHelp\GenericNamePartiallyWrittenSignatureHelpProvider.cs" />
     <Compile Include="SignatureHelp\GenericNameSignatureHelpProvider.cs" />
