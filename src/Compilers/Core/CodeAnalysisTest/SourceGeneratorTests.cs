@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class SourceGeneratorTests : TestBase
     {
+        [CompilerTrait(CompilerFeature.SourceGenerators)]
         [Fact]
         public void NoGenerators()
         {
@@ -37,6 +38,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         /// <summary>
         /// Generate source without persisting.
         /// </summary>
+        [CompilerTrait(CompilerFeature.SourceGenerators)]
         [Fact]
         public void DoNotPersist()
         {
@@ -61,6 +63,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             }
         }
 
+        [CompilerTrait(CompilerFeature.SourceGenerators)]
         [Fact]
         public void Paths()
         {
@@ -87,6 +90,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         /// <summary>
         /// Persist SourceText with no explicit encoding.
         /// </summary>
+        [CompilerTrait(CompilerFeature.SourceGenerators)]
         [Fact]
         public void Encoding()
         {
@@ -96,6 +100,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         /// <summary>
         /// Persist SourceText with explicit encoding.
         /// </summary>
+        [CompilerTrait(CompilerFeature.SourceGenerators)]
         [Fact]
         public void ExplicitEncoding()
         {
