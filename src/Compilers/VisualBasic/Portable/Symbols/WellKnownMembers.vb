@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Function GetExtensionAttributeConstructor(<Out> ByRef useSiteError As DiagnosticInfo) As MethodSymbol
             If _lazyExtensionAttributeConstructor Is ErrorTypeSymbol.UnknownResultType Then
 
-                Dim system_Runtime_CompilerServices = Me.GlobalNamespace.LookupNestedNamespace(ImmutableArray.Create("System", "Runtime", "CompilerServices"))
+                Dim system_Runtime_CompilerServices = Me.GlobalNamespace.LookupNestedNamespace(ImmutableArray.Create(MetadataHelpers.SystemString, "Runtime", "CompilerServices"))
                 Dim attributeType As NamedTypeSymbol = Nothing
 
                 Dim sourceModuleSymbol = DirectCast(Me.SourceModule, SourceModuleSymbol)

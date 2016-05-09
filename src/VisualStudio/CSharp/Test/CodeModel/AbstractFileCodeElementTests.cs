@@ -60,7 +60,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.UnitTests.CodeModel
 
             if (path.Length == 0)
             {
-                throw new ArgumentException("path must be non-empty.", "path");
+                throw new ArgumentException("path must be non-empty.", nameof(path));
             }
 
             CodeElement codeElement = (await GetCodeModelAsync()).CodeElements.Item(path[0]);

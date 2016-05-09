@@ -80,6 +80,8 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
 
         public ImmutableArray<string> TupleElementNames => default(ImmutableArray<string>);
 
+        public INamedTypeSymbol TupleUnderlyingType => null;
+
         public new ITypeSymbol OriginalDefinition
         {
             get

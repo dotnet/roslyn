@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Packaging
 Imports Microsoft.CodeAnalysis.Simplification
+Imports Microsoft.CodeAnalysis.SymbolSearch
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
@@ -24,7 +25,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
         ''' <summary>
         ''' For testing purposes so that tests can pass in mocks for these values.
         ''' </summary>
-        Friend Sub New(installerService As IPackageInstallerService, searchService As IPackageSearchService)
+        Friend Sub New(installerService As IPackageInstallerService,
+                       searchService As ISymbolSearchService)
             MyBase.New(installerService, searchService)
         End Sub
 

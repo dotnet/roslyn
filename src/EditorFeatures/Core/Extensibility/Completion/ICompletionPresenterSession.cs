@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.Editor
     internal interface ICompletionPresenterSession : IIntelliSensePresenterSession
     {
         void PresentItems(
-            ITrackingSpan triggerSpan, IList<CompletionItem> items, CompletionItem selectedItem,
-            CompletionItem presetBuilder, bool suggestionMode, bool isSoftSelected,
+            ITrackingSpan triggerSpan, IList<PresentationItem> items, PresentationItem selectedItem,
+            PresentationItem suggestionModeItem, bool suggestionMode, bool isSoftSelected,
             ImmutableArray<CompletionItemFilter> completionItemFilters,
             IReadOnlyDictionary<CompletionItem, string> completionItemToFilterText);
 
@@ -21,8 +21,8 @@ namespace Microsoft.CodeAnalysis.Editor
         void SelectPreviousPageItem();
         void SelectNextPageItem();
 
-        event EventHandler<CompletionItemEventArgs> ItemSelected;
-        event EventHandler<CompletionItemEventArgs> ItemCommitted;
+        event EventHandler<PresentationItemEventArgs> ItemSelected;
+        event EventHandler<PresentationItemEventArgs> ItemCommitted;
         event EventHandler<CompletionItemFilterStateChangedEventArgs> FilterStateChanged;
     }
 }

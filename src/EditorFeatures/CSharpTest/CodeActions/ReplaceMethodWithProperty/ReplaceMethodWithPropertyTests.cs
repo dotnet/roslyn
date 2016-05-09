@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.ReplaceMethodWithProperty;
 using Roslyn.Test.Utilities;
@@ -420,6 +421,51 @@ index: 1);
 @"using System; class C { int [||]getFoo() { } void setFoo(int i) { } }",
 @"using System; class C { int Foo { get { } set { } } }",
 index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task Tuple()
+        {
+            await TestAsync(
+@"class C { (int, string) [||]GetFoo() { } }",
+@"class C { (int, string) Foo { get { } } }",
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task Tuple_GetAndSet()
+        {
+            await TestAsync(
+@"using System; class C { (int, string) [||]getFoo() { } void setFoo((int, string) i) { } }",
+@"using System; class C { (int, string) Foo { get { } set { } } }",
+index: 1,
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TupleWithNames_GetAndSet()
+        {
+            await TestAsync(
+@"using System; class C { (int a, string b) [||]getFoo() { } void setFoo((int a, string b) i) { } }",
+@"using System; class C { (int a, string b) Foo { get { } set { } } }",
+index: 1,
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplaceMethodWithProperty)]
+        public async Task TupleWithDifferentNames_GetAndSet()
+        {
+            // Cannot refactor tuples with different names together
+            await Assert.ThrowsAsync<Xunit.Sdk.InRangeException>(() =>
+                TestAsync(
+@"using System; class C { (int a, string b) [||]getFoo() { } void setFoo((int c, string d) i) { } }",
+@"",
+index: 1,
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true));
         }
     }
 }

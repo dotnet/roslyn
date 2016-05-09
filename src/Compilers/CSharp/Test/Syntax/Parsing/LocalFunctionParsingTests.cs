@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class LocalFunctionParsingTests : ParsingTests
     {
         [Fact]
-        public void NoNodesWithoutExperimental()
+        public void DiagnosticsWithoutExperimental()
         {
             // Experimental nodes should only appear when experimental are
             // turned on in parse options
@@ -24,64 +24,31 @@ class c
     }
     void m2()
     {
-        int local()
-        {
-            return 0;
-        }
+        int local() { return 0; }
     }
 }");
             Assert.NotNull(file);
-            Assert.True(file.DescendantNodes().All(n => n.Kind() != SyntaxKind.LocalFunctionStatement));
+            Assert.False(file.DescendantNodes().Any(n => n.Kind() == SyntaxKind.LocalFunctionStatement && !n.ContainsDiagnostics));
             Assert.True(file.HasErrors);
             file.SyntaxTree.GetDiagnostics().Verify(
-                // (6,18): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
+                // (6,9): error CS8058: Feature 'local functions' is experimental and unsupported; use '/features:localFunctions' to enable.
                 //         int local() => 0;
-                Diagnostic(ErrorCode.ERR_BadVarDecl, "() => 0").WithLocation(6, 18),
-                // (6,18): error CS1003: Syntax error, '[' expected
-                //         int local() => 0;
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(6, 18),
-                // (6,25): error CS1003: Syntax error, ']' expected
-                //         int local() => 0;
-                Diagnostic(ErrorCode.ERR_SyntaxError, ";").WithArguments("]", ";").WithLocation(6, 25),
-                // (10,18): error CS1528: Expected ; or = (cannot specify constructor arguments in declaration)
-                //         int local()
-                Diagnostic(ErrorCode.ERR_BadVarDecl, @"()
-").WithLocation(10, 18),
-                // (10,18): error CS1003: Syntax error, '[' expected
-                //         int local()
-                Diagnostic(ErrorCode.ERR_SyntaxError, "(").WithArguments("[", "(").WithLocation(10, 18),
-                // (10,19): error CS1525: Invalid expression term ')'
-                //         int local()
-                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(10, 19),
-                // (10,20): error CS1003: Syntax error, ']' expected
-                //         int local()
-                Diagnostic(ErrorCode.ERR_SyntaxError, "").WithArguments("]", "{").WithLocation(10, 20),
-                // (10,20): error CS1002: ; expected
-                //         int local()
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(10, 20));
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "int local() => 0;").WithArguments("local functions", "localFunctions").WithLocation(6, 9),
+                // (10,9): error CS8058: Feature 'local functions' is experimental and unsupported; use '/features:localFunctions' to enable.
+                //         int local() { return 0; }
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "int local() { return 0; }").WithArguments("local functions", "localFunctions").WithLocation(10, 9)
+                );
 
             Assert.Equal(0, file.SyntaxTree.Options.Features.Count);
             var c = Assert.IsType<ClassDeclarationSyntax>(file.Members.Single());
             Assert.Equal(2, c.Members.Count);
             var m = Assert.IsType<MethodDeclarationSyntax>(c.Members[0]);
-            var s1 = Assert.IsType<LocalDeclarationStatementSyntax>(m.Body.Statements[0]);
-            Assert.Equal(SyntaxKind.PredefinedType, s1.Declaration.Type.Kind());
-            Assert.Equal("int", s1.Declaration.Type.ToString());
-            var local = s1.Declaration.Variables.Single();
-            Assert.Equal("local", local.Identifier.ToString());
-            Assert.NotNull(local.ArgumentList);
-            Assert.Null(local.Initializer);
-            Assert.Equal(SyntaxKind.ParenthesizedLambdaExpression, local.ArgumentList.Arguments.Single().Expression.Kind());
+            var s1 = Assert.IsType<LocalFunctionStatementSyntax>(m.Body.Statements[0]);
+            Assert.True(s1.ContainsDiagnostics);
 
             var m2 = Assert.IsType<MethodDeclarationSyntax>(c.Members[1]);
-            s1 = Assert.IsType<LocalDeclarationStatementSyntax>(m.Body.Statements[0]);
-            Assert.Equal(SyntaxKind.PredefinedType, s1.Declaration.Type.Kind());
-            Assert.Equal("int", s1.Declaration.Type.ToString());
-            local = s1.Declaration.Variables.Single();
-            Assert.Equal("local", local.Identifier.ToString());
-            Assert.NotNull(local.ArgumentList);
-            Assert.Null(local.Initializer);
-            Assert.Equal(SyntaxKind.ParenthesizedLambdaExpression, local.ArgumentList.Arguments.Single().Expression.Kind());
+            s1 = Assert.IsType<LocalFunctionStatementSyntax>(m.Body.Statements[0]);
+            Assert.True(s1.ContainsDiagnostics);
         }
 
         [Fact]

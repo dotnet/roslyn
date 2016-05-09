@@ -1014,6 +1014,24 @@ namespace Microsoft.CodeAnalysis.Editing
         }
 
         /// <summary>
+        /// Gets the list of switch sections for the statement.
+        /// </summary>
+        public abstract IReadOnlyList<SyntaxNode> GetSwitchSections(SyntaxNode switchStatement);
+
+        /// <summary>
+        /// Inserts the switch sections at the specified index into the statement.
+        /// </summary>
+        public abstract SyntaxNode InsertSwitchSections(SyntaxNode switchStatement, int index, IEnumerable<SyntaxNode> switchSections);
+
+        /// <summary>
+        /// Adds the switch sections to the statement.
+        /// </summary>
+        public SyntaxNode AddSwitchSections(SyntaxNode switchStatement, IEnumerable<SyntaxNode> switchSections)
+        {
+            return this.InsertSwitchSections(switchStatement, this.GetSwitchSections(switchStatement).Count, switchSections);
+        }
+
+        /// <summary>
         /// Gets the expression associated with the declaration.
         /// </summary>
         public abstract SyntaxNode GetExpression(SyntaxNode declaration);
