@@ -224,7 +224,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
-                case ConversionKind.ImplicitTuple:
+                case ConversionKind.ImplicitTupleLiteral:
                     {
                         // we keep ImplicitTuple conversions in the tree
                         // for the purpose of semantic model (for example when they are casts in the source)

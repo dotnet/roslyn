@@ -4863,4 +4863,13 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureTuples" xml:space="preserve">
     <value>tuples</value>
   </data>
+  <data name="ERR_CannotInferTupleElementType" xml:space="preserve">
+    <value>Type of the tuple element cannot be infered from '{0}'.</value>
+  </data>
+  <data name="ERR_NoImplicitConvFromTupleLiteral" xml:space="preserve">
+    <value>Cannot implicitly convert tuple expression to '{0}'</value>
+  </data>
+  <data name="ERR_NoExplicitConvFromTupleLiteral" xml:space="preserve">
+    <value>Cannot convert tuple expression to '{0}'</value>
+  </data>
 </root>

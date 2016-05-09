@@ -242,6 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (kind)
             {
+                case BindValueKind.Value:
                 case BindValueKind.RValue:
                 case BindValueKind.RValueOrMethodGroup:
                 case BindValueKind.CompoundAssignment:
@@ -263,6 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (kind)
             {
+                case BindValueKind.Value:
                 case BindValueKind.RValue:
                 case BindValueKind.RValueOrMethodGroup:
                     return false;
@@ -284,6 +286,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (kind)
             {
+                case BindValueKind.Value:
                 case BindValueKind.RValue:
                 case BindValueKind.RValueOrMethodGroup:
                 case BindValueKind.CompoundAssignment:
@@ -306,6 +309,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// rvalue requirements given by valueKind. If the expression was bound successfully, but
         /// did not meet the requirements, the return value will be a <see cref="BoundBadExpression"/> that
         /// (typically) wraps the subexpression.
+        /// 
+        /// Unless <see cref="BindValueKind.Value"/> is used, this function is going to substitute
+        /// typeless expressions with reclassification to their natural type. 
+        /// <see cref="ReclassifyExpression(BoundExpression, DiagnosticBag)"/> is responsible for performing
+        /// the reclassification, which could result in errors for certain expressions, when natural type
+        /// cannot be inferred. 
+        /// When <see cref="BindValueKind.Value"/> is used, the caller is expected to either call 
+        /// <see cref="ReclassifyExpression(BoundExpression, DiagnosticBag)"/> later, or to 
+        /// convert resulting expression to a target type.
         /// </summary>
         internal BoundExpression BindValue(ExpressionSyntax node, DiagnosticBag diagnostics, BindValueKind valueKind)
         {
@@ -660,14 +672,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             bool hasErrors = false;
-            bool hasNaturalType = true;
 
             // set of names already used
             var uniqueFieldNames = PooledHashSet<string>.GetInstance();
 
             var boundArguments = ArrayBuilder<BoundExpression>.GetInstance(arguments.Count);
-            var elementTypes = ArrayBuilder<TypeSymbol>.GetInstance(arguments.Count);
-            var elementLocations = ArrayBuilder<Location>.GetInstance(arguments.Count);
             ArrayBuilder<string> elementNames = null;
             int countOfExplicitNames = 0;
 
@@ -681,17 +690,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (nameSyntax != null)
                 {
                     name = nameSyntax.Identifier.ValueText;
-                    elementLocations.Add(nameSyntax.Location);
-
                     countOfExplicitNames++;
                     if (!CheckTupleMemberName(name, i, argumentSyntax.NameColon.Name, diagnostics, uniqueFieldNames))
                     {
                         hasErrors = true;
                     }
-                }
-                else
-                {
-                    elementLocations.Add(argumentSyntax.Location);
                 }
 
                 CollectTupleFieldMemberNames(name, i + 1, numElements, ref elementNames);
@@ -699,18 +702,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression boundArgument = BindValue(argumentSyntax.Expression, diagnostics, BindValueKind.RValue);
                 boundArguments.Add(boundArgument);
 
-                var elementType = GetTupleFieldType(boundArgument, argumentSyntax, diagnostics, ref hasErrors);
-                elementTypes.Add(elementType);
-
-                if ((object)elementType == null)
-                {
-                    hasNaturalType = false;
-                }
+                GetTupleFieldType(boundArgument, argumentSyntax, diagnostics, ref hasErrors);
             }
 
             uniqueFieldNames.Free();
 
-            if (countOfExplicitNames != 0 && countOfExplicitNames != elementTypes.Count)
+            if (countOfExplicitNames != 0 && countOfExplicitNames != numElements)
             {
                 hasErrors = true;
                 Error(diagnostics, ErrorCode.ERR_TupleExplicitNamesOnAllMembersOrNone, node);
@@ -720,16 +717,207 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 default(ImmutableArray<string>) :
                                 elementNames.ToImmutableAndFree();
 
-            NamedTypeSymbol tupleTypeOpt = null;
-            var elements = elementTypes.ToImmutableAndFree();
-            var locations = elementLocations.ToImmutableAndFree();
+            return new BoundTupleLiteral(node, boundArguments.ToImmutableAndFree(), elementNamesArray, 
+                                         declaredOrTargetTupleTypeOpt: null, hasErrors: hasErrors);
+        }
 
-            if (hasNaturalType)
+        /// <summary>
+        /// Reclassify tuple literal to its natural type.
+        /// 
+        /// A literal that has a natural type should not add any errors to <paramref name="diagnostics"/>
+        /// during reclassification.
+        /// </summary>
+        private BoundExpression ReclassifyTupleLiteral(BoundTupleLiteral tupleLiteral, DiagnosticBag diagnostics, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            // Let's try to infer natural type of this literal
+            int countOfElements = tupleLiteral.Arguments.Length;
+            var elements = ArrayBuilder<BoundExpression>.GetInstance(countOfElements);
+            var inferredElementTypes = ArrayBuilder<TypeSymbol>.GetInstance(countOfElements);
+            var elementLocations = ArrayBuilder<Location>.GetInstance(countOfElements);
+
+            for (int i = 0; i < countOfElements; i++)
             {
-                tupleTypeOpt = TupleTypeSymbol.Create(node.Location, elements, locations, elementNamesArray, this.Compilation, node, diagnostics);
+                var element = tupleLiteral.Arguments[i];
+
+                if ((object)element.Type == null)
+                {
+                    element = ReclassifyExpression(element, diagnostics);
+                }
+                else if (element.Type.SpecialType == SpecialType.System_Void)
+                {
+                    // An error must have been reported when the literal was initialy bound.
+                    element = BadExpression(element.Syntax, element);
+                }
+
+                // Not all type-less expressions can be reclassified 
+                if ((object)element.Type == null)
+                {
+                    if (!element.HasAnyErrors)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_CannotInferTupleElementType, element.Syntax, element.Display);
+                    }
+
+                    element = BadExpression(element.Syntax, element);
+                }
+
+                inferredElementTypes.Add(element.Type);
+                elements.Add(element);
             }
 
-            return new BoundTupleLiteral(node, elementNamesArray, boundArguments.ToImmutableAndFree(), tupleTypeOpt, hasErrors);
+            Location typeLocation = null;
+            var elementlocations = default(ImmutableArray<Location>);
+
+            if (tupleLiteral.Syntax.Kind() == SyntaxKind.TupleExpression)
+            {
+                var tupleExpression = (TupleExpressionSyntax)tupleLiteral.Syntax;
+                typeLocation = tupleExpression.Location;
+
+                SeparatedSyntaxList<ArgumentSyntax> arguments = tupleExpression.Arguments;
+
+                Debug.Assert(countOfElements == arguments.Count);
+                var elementLocationsBuilder = ArrayBuilder<Location>.GetInstance(arguments.Count);
+
+                for (int i = 0, l = arguments.Count; i < l; i++)
+                {
+                    ArgumentSyntax argumentSyntax = arguments[i];
+                    IdentifierNameSyntax nameSyntax = argumentSyntax.NameColon?.Name;
+
+                    if (nameSyntax != null)
+                    {
+                        elementLocationsBuilder.Add(nameSyntax.Location);
+                    }
+                    else
+                    {
+                        elementLocationsBuilder.Add(argumentSyntax.Location);
+                    }
+                }
+
+                elementlocations = elementLocationsBuilder.ToImmutableAndFree();
+            }
+
+            var declaredTupleType = TupleTypeSymbol.Create(typeLocation, inferredElementTypes.ToImmutableAndFree(),
+                                                           elementlocations, tupleLiteral.ArgumentNamesOpt,
+                                                           this.Compilation, ref useSiteDiagnostics);
+
+            tupleLiteral = tupleLiteral.Update(elements.ToImmutableAndFree(), tupleLiteral.ArgumentNamesOpt, declaredTupleType);
+
+            return new BoundConversion(tupleLiteral.Syntax, tupleLiteral, Conversion.ImplicitTupleLiteral,
+                                       @checked: false, explicitCastInCode: false, constantValueOpt: null,
+                                       type: declaredTupleType);
+        }
+
+        /// <summary>
+        /// Does tuple literal have natural type?
+        /// </summary>
+        private static bool TupleLiteralHasNaturalType(BoundTupleLiteral tupleLiteral)
+        {
+            foreach (var element in tupleLiteral.Arguments)
+            {
+                if (element.Type?.SpecialType == SpecialType.System_Void || !ExpressionHasNaturalType(element))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        /// <summary>
+        /// Return a natural type of a tuple literal when one exists.
+        /// Shouldn't be called on a literal that doesn't have natural type,
+        /// see <see cref="TupleLiteralHasNaturalType(BoundTupleLiteral)"/>.
+        /// </summary>
+        private TypeSymbol GetNaturalTypeOfTupleLiteral(BoundTupleLiteral tupleLiteral, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            Debug.Assert(TupleLiteralHasNaturalType(tupleLiteral));
+            var diagnostics = DiagnosticBag.GetInstance();
+            var result = ReclassifyTupleLiteral(tupleLiteral, diagnostics, ref useSiteDiagnostics).Type;
+            // A literal that has natural type should not produce any errors during reclassification,
+            // except perhaps use site errors.
+            Debug.Assert(!diagnostics.HasAnyResolvedErrors());  
+            diagnostics.Free();
+            return result;
+        }
+
+        /// <summary>
+        /// Substitute typeless expressions with result of reclassification to their natural type.
+        /// This could result in errors for certain expressions, when natural type cannot be inferred,
+        /// or in presence of other error conditions. 
+        /// </summary>
+        internal BoundExpression ReclassifyExpression(BoundExpression expr, DiagnosticBag diagnostics)
+        {
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            var result = ReclassifyExpression(expr, diagnostics, ref useSiteDiagnostics);
+            diagnostics.Add(expr.Syntax, useSiteDiagnostics);
+            return result;
+        }
+
+        /// <summary>
+        /// Substitute typeless expressions with result of reclassification to their natural type.
+        /// This could result in errors for certain expressions, when natural type cannot be inferred,
+        /// or in presence of other error conditions. 
+        /// 
+        /// An expression that has a natural type should not add any errors to <paramref name="diagnostics"/>
+        /// during reclassification.
+        /// </summary>
+        internal BoundExpression ReclassifyExpression(BoundExpression expr, DiagnosticBag diagnostics, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            if ((object)expr.Type != null)
+            {
+                return expr;
+            }
+
+            switch (expr.Kind)
+            {
+                case BoundKind.TupleLiteral:
+                    return ReclassifyTupleLiteral((BoundTupleLiteral)expr, diagnostics, ref useSiteDiagnostics);
+            }
+
+            return expr;
+        }
+
+        /// <summary>
+        /// Does expression have natural type?
+        /// </summary>
+        internal static bool ExpressionHasNaturalType(BoundExpression expr)
+        {
+            if ((object)expr.Type != null)
+            {
+                return true;
+            }
+
+            switch (expr.Kind)
+            {
+                case BoundKind.TupleLiteral:
+                    return TupleLiteralHasNaturalType((BoundTupleLiteral)expr);
+            }
+
+            return false;
+        }
+
+        /// <summary>
+        /// Return a natural type of an expression when one exists.
+        /// </summary>
+        internal TypeSymbol GetNaturalTypeOfExpression(BoundExpression expr, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            if ((object)expr.Type != null)
+            {
+                return expr.Type;
+            }
+
+            if (ExpressionHasNaturalType(expr))
+            {
+                switch (expr.Kind)
+                {
+                    case BoundKind.TupleLiteral:
+                        return GetNaturalTypeOfTupleLiteral((BoundTupleLiteral)expr, ref useSiteDiagnostics);
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(expr.Kind);
+                }
+            }
+
+            return null;
         }
 
         /// <summary>
@@ -1698,7 +1886,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindCast(CastExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            BoundExpression operand = this.BindValue(node.Expression, diagnostics, BindValueKind.RValue);
+            BoundExpression operand = this.BindValue(node.Expression, diagnostics, BindValueKind.Value);
             TypeSymbol targetType = this.BindType(node.Type, diagnostics);
 
             if (targetType.IsNullableType() &&
@@ -1725,6 +1913,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (operand.Kind == BoundKind.UnboundLambda)
                 {
                     GenerateAnonymousFunctionConversionError(diagnostics, operand.Syntax, (UnboundLambda)operand, targetType);
+                }
+                else if (operand.Kind == BoundKind.TupleLiteral)
+                {
+                    // PROTOTYPE(tuples): Should provide more detailed information when possible.
+                    //                    For example, complain about individual elements rather than the entire tuple.
+                    //                    Or tuple cardinality doesn't match, etc.
+                    diagnostics.Add(ErrorCode.ERR_NoExplicitConvFromTupleLiteral, operand.Syntax.Location, targetType);
                 }
                 else if (operand.HasAnyErrors || targetType.IsErrorType())
                 {
@@ -2024,7 +2219,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(argumentSyntax is ArgumentSyntax || argumentSyntax is AttributeArgumentSyntax);
 
-            BindValueKind valueKind = refKind == RefKind.None ? BindValueKind.RValue : BindValueKind.RefOrOut;
+            BindValueKind valueKind = refKind == RefKind.None ? BindValueKind.Value : BindValueKind.RefOrOut;
 
             // Bind argument and verify argument matches rvalue or out param requirements.
             BoundExpression argument;
@@ -3594,7 +3789,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return ToBadExpression(boundMember, (valueKind == BindValueKind.RValue) ? LookupResultKind.NotAValue : LookupResultKind.NotAVariable);
+            return ToBadExpression(boundMember, (valueKind == BindValueKind.RValue || valueKind == BindValueKind.Value) ? LookupResultKind.NotAValue : LookupResultKind.NotAVariable);
         }
 
         private static void ReportDuplicateObjectMemberInitializers(BoundExpression boundMemberInitializer, HashSet<string> memberNameMap, DiagnosticBag diagnostics)
@@ -4556,6 +4751,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     };
                 }
             }
+
+            boundLeft = ReclassifyExpression(boundLeft, diagnostics);
 
             return BindMemberAccessWithBoundLeft(node, boundLeft, node.Name, node.OperatorToken, invoked, indexed, diagnostics);
         }

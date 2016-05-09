@@ -682,6 +682,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal enum BindValueKind : byte
         {
             /// <summary>
+            /// Same as <see cref="RValue"/>, but in context where there is a target type for it.
+            /// Unless this BindValueKind is used, <see cref="BindValue(ExpressionSyntax, DiagnosticBag, BindValueKind)"/>
+            /// and <see cref="CheckValue(BoundExpression, BindValueKind, DiagnosticBag)"/> are going to attempt
+            /// reclassification for typeless expressions to their natural type. 
+            /// <see cref="ReclassifyExpression(BoundExpression, DiagnosticBag)"/> is responsible for performing
+            /// the reclassification, which could result in errors for certain expressions, when natural type
+            /// cannot be inferred.
+            /// </summary>
+            Value,
+
+            /// <summary>
             /// Expression is the RHS of an assignment operation.
             /// </summary>
             /// <remarks>

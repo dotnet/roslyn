@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static readonly Conversion ImplicitNullable = new Conversion(ConversionKind.ImplicitNullable);
         internal static readonly Conversion ImplicitReference = new Conversion(ConversionKind.ImplicitReference);
         internal static readonly Conversion ImplicitEnumeration = new Conversion(ConversionKind.ImplicitEnumeration);
-        internal static readonly Conversion ImplicitTuple = new Conversion(ConversionKind.ImplicitTuple);
+        internal static readonly Conversion ImplicitTupleLiteral = new Conversion(ConversionKind.ImplicitTupleLiteral);
         internal static readonly Conversion AnonymousFunction = new Conversion(ConversionKind.AnonymousFunction);
         internal static readonly Conversion Boxing = new Conversion(ConversionKind.Boxing);
         internal static readonly Conversion NullLiteral = new Conversion(ConversionKind.NullLiteral);
@@ -369,7 +369,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return Kind == ConversionKind.ImplicitTuple;
+                return Kind == ConversionKind.ImplicitTupleLiteral;
             }
         }
 

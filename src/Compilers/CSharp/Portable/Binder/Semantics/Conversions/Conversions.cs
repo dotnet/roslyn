@@ -221,6 +221,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return conversion;
             }
 
+            if ((object)source == null)
+            {
+                sourceExpression = ReclassifyExpressionToNaturalTypeIfAny(sourceExpression, ref useSiteDiagnostics);
+                source = sourceExpression.Type; 
+            }
+
             if ((object)source != null)
             {
                 // Try using the short-circuit "fast-conversion" path.
@@ -307,9 +313,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ConversionKind ClassifyImplicitTupleConversion(BoundExpression source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            if (HasImplicitTupleConversion(source, destination, ref useSiteDiagnostics))
+            Conversion tupleConversion;
+            if ((tupleConversion = GetImplicitTupleConversion(source, destination, ref useSiteDiagnostics)).Exists)
             {
-                return ConversionKind.ImplicitTuple;
+                return tupleConversion.Kind;
             }
 
             // strip nullable from the destination
@@ -320,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var nt = (NamedTypeSymbol)destination;
                 if (nt.OriginalDefinition.GetSpecialTypeSafe() == SpecialType.System_Nullable_T &&
-                    HasImplicitTupleConversion(source, nt.TypeArgumentsNoUseSiteDiagnostics[0], ref useSiteDiagnostics))
+                    (tupleConversion = GetImplicitTupleConversion(source, nt.TypeArgumentsNoUseSiteDiagnostics[0], ref useSiteDiagnostics)).Exists)
                 {
                     return ConversionKind.ImplicitNullable;
                 }
@@ -698,12 +705,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             return conversion;
         }
 
-        protected override bool HasImplicitTupleConversion(BoundExpression source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        protected override BoundExpression ReclassifyExpressionToNaturalTypeIfAny(BoundExpression source, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            if ((object)source.Type != null || !Binder.ExpressionHasNaturalType(source))
+            {
+                return source;
+            }
+
+            var diagnostics = DiagnosticBag.GetInstance();
+            var result = _binder.ReclassifyExpression(source, diagnostics, ref useSiteDiagnostics);
+            // An expression that has natural type should not produce any errors during reclassification,
+            // except perhaps use site errors.
+            Debug.Assert(!diagnostics.HasAnyResolvedErrors());
+            diagnostics.Free();
+
+            return result;
+        }
+
+        protected override Conversion GetImplicitTupleConversion(BoundExpression source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             if (source.Kind != BoundKind.TupleLiteral)
             {
                 // source must be a tuple literal with no conversions
-                return false;
+                return Conversion.NoConversion;
             }
 
             var tupleExpression = (BoundTupleLiteral)source;
@@ -712,7 +736,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // check if the type is actually compatible type for a tuple of given cardinality
             if (!destination.IsTupleOrCompatibleWithTupleOfCardinality(arguments.Length))
             {
-                return false;
+                return Conversion.NoConversion;
             }
 
             var targetElementTypes = ArrayBuilder<TypeSymbol>.GetInstance(arguments.Length);
@@ -728,11 +752,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var result = ClassifyImplicitConversionFromExpression(argument, targetElementTypes[i], ref useSiteDiagnostics);
                     if (!result.Exists)
                     {
-                        return false;
+                        return Conversion.NoConversion;
                     }
                 }
 
-                return true;
+                return Conversion.ImplicitTupleLiteral;
             }
             finally
             {

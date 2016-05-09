@@ -690,7 +690,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics, ErrorCode.ERR_ImplicitlyTypedVariableAssignedArrayInitializer, errorSyntax);
             }
 
-            BoundExpression expression = BindValue(initializer.Value, diagnostics, valueKind);
+            BoundExpression expression = BindValue(initializer.Value, diagnostics, valueKind == BindValueKind.Value ?  BindValueKind.RValue : valueKind);
 
             // Certain expressions (null literals, method groups and anonymous functions) have no type of 
             // their own and therefore cannot be the initializer of an implicitly typed local.
@@ -712,7 +712,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (variableRefKind == RefKind.None)
             {
-                valueKind = BindValueKind.RValue;
+                valueKind = BindValueKind.Value;
                 if (initializer != null && initializer.RefKeyword.Kind() != SyntaxKind.None)
                 {
                     Error(diagnostics, ErrorCode.ERR_InitializeByValueVariableWithReference, node);
@@ -1394,6 +1394,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     switch (kind)
                     {
+                        case BindValueKind.Value:
                         case BindValueKind.RValue:
                         case BindValueKind.RValueOrMethodGroup:
                             Debug.Assert(false, "Why call CheckIsVariable if you want an RValue?");
@@ -1862,10 +1863,17 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Check the expression is of the required lvalue and rvalue specified by valueKind.
-        /// The method returns the original expression if the expression is of the required
-        /// type. Otherwise, an appropriate error is added to the diagnostics bag and the
-        /// method returns a BoundBadExpression node. The method returns the original
-        /// expression without generating any error if the expression has errors.
+        /// if the expression is not of the required type, an appropriate error is added to the 
+        /// diagnostics bag and the method returns a BoundBadExpression node. 
+        /// 
+        /// Unless <see cref="BindValueKind.Value"/> is used, this function is going to substitute
+        /// typeless expressions with reclassification to their natural type. 
+        /// <see cref="ReclassifyExpression(BoundExpression, DiagnosticBag)"/> is responsible for performing
+        /// the reclassification, which could result in errors for certain expressions, when natural type
+        /// cannot be inferred. 
+        /// When <see cref="BindValueKind.Value"/> is used, the caller is expected to either call 
+        /// <see cref="ReclassifyExpression(BoundExpression, DiagnosticBag)"/> later, or to 
+        /// convert resulting expression to a target type.
         /// </summary>
         private BoundExpression CheckValue(BoundExpression expr, BindValueKind valueKind, DiagnosticBag diagnostics)
         {
@@ -1873,6 +1881,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case BoundKind.PropertyGroup:
                     expr = BindIndexedPropertyAccess((BoundPropertyGroup)expr, mustHaveAllOptionalParameters: false, diagnostics: diagnostics);
+                    break;
+
+                default:
+                    if (valueKind != BindValueKind.Value && (object)expr.Type == null)
+                    {
+                        expr = ReclassifyExpression(expr, diagnostics);
+                    }
                     break;
             }
 
@@ -1935,7 +1950,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return expr;
             }
 
-            var resultKind = (valueKind == BindValueKind.RValue || valueKind == BindValueKind.RValueOrMethodGroup) ?
+            var resultKind = (valueKind == BindValueKind.RValue ||
+                              valueKind == BindValueKind.Value ||
+                              valueKind == BindValueKind.RValueOrMethodGroup) ?
                 LookupResultKind.NotAValue :
                 LookupResultKind.NotAVariable;
 
@@ -2017,6 +2034,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return true;
                     }
                 case BindValueKind.Assignment:
+                case BindValueKind.Value:
                 case BindValueKind.RValue:
                 case BindValueKind.RValueOrMethodGroup:
                 case BindValueKind.RefOrOut:
@@ -2711,6 +2729,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            if (expression.Kind == BoundKind.TupleLiteral)
+            {
+                // PROTOTYPE(tuples): Should provide more detailed information when possible.
+                //                    For example, complain about individual elements rather than the entire tuple.
+                //                    Or tuple cardinality doesn't match, etc.
+                Error(diagnostics, ErrorCode.ERR_NoImplicitConvFromTupleLiteral, syntax, targetType);
+                return;
+            }
+
             var sourceType = expression.Type;
             if ((object)sourceType != null)
             {
@@ -3137,7 +3164,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression arg = null;
             if (expressionSyntax != null)
             {
-                arg = BindValue(expressionSyntax, diagnostics, refKind != RefKind.None ? BindValueKind.RefReturn : BindValueKind.RValue);
+                arg = BindValue(expressionSyntax, diagnostics, refKind != RefKind.None ? BindValueKind.RefReturn : BindValueKind.Value);
             }
             else
             {
@@ -3542,7 +3569,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ? ErrorCode.ERR_MustNotHaveRefReturn
                         : ErrorCode.ERR_MustHaveRefReturn;
                     Error(diagnostics, errorCode, syntax);
-                    statement = new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
+                    statement = new BoundReturnStatement(syntax, RefKind.None, ReclassifyExpression(expression, diagnostics)) { WasCompilerGenerated = true };
                 }
                 else if (returnType.SpecialType == SpecialType.System_Void || IsTaskReturningAsyncMethod())
                 {
@@ -3559,7 +3586,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     // Don't mark compiler generated so that the rewriter generates sequence points
-                    var expressionStatement = new BoundExpressionStatement(syntax, expression, errors);
+                    var expressionStatement = new BoundExpressionStatement(syntax, ReclassifyExpression(expression, diagnostics), errors);
 
                     CheckForUnobservedAwaitable(expression, diagnostics);
                     statement = expressionStatement;
@@ -3605,7 +3632,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder bodyBinder = this.GetBinder(body);
             Debug.Assert(bodyBinder != null);
 
-            BoundExpression expression = bodyBinder.BindValue(body, diagnostics, refKind != RefKind.None ? BindValueKind.RefReturn : BindValueKind.RValue);
+            BoundExpression expression = bodyBinder.BindValue(body, diagnostics, refKind != RefKind.None ? BindValueKind.RefReturn : BindValueKind.Value);
             return bodyBinder.CreateBlockFromExpression(body, bodyBinder.GetDeclaredLocalsForScope(body), refKind, expression, body, diagnostics);
         }
 

@@ -1388,5 +1388,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TupleExplicitNamesOnAllMembersOrNone = 8204,
 
         ERR_PredefinedTypeMemberNotFoundInAssembly = 8205,
+        ERR_CannotInferTupleElementType = 8206,
+        ERR_NoImplicitConvFromTupleLiteral = 8207,
+        ERR_NoExplicitConvFromTupleLiteral = 8208,
     }
 }

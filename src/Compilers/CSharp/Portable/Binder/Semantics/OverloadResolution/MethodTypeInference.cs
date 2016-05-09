@@ -613,28 +613,32 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Example:
             //      if   "(a: 1, b: 2)" is passed as   T arg
             //      then T becomes (int a, int b)
-            var source = argument.Type;
-            if (IsReallyAType(source))
+            if (IsUnfixedTypeParameter(target))
             {
-                if (isExactInference)
+                var source = binder.GetNaturalTypeOfExpression(argument, ref useSiteDiagnostics);
+
+                if (IsReallyAType(source))
                 {
-                    // SPEC: * If V is one of the unfixed Xi then U is added to the set of
-                    // SPEC:   exact bounds for Xi.
-                    if (ExactTypeParameterInference(source, target))
+                    if (isExactInference)
                     {
-                        return;
+                        // SPEC: * If V is one of the unfixed Xi then U is added to the set of
+                        // SPEC:   exact bounds for Xi.
+                        if (ExactTypeParameterInference(source, target))
+                        {
+                            return;
+                        }
                     }
-                }
-                else
-                {
-                    // SPEC: A lower-bound inference from a type U to a type V is made as follows:
-
-                    // SPEC: * If V is one of the unfixed Xi then U is added to the set of 
-                    // SPEC:   lower bounds for Xi.
-
-                    if (LowerBoundTypeParameterInference(source, target))
+                    else
                     {
-                        return;
+                        // SPEC: A lower-bound inference from a type U to a type V is made as follows:
+
+                        // SPEC: * If V is one of the unfixed Xi then U is added to the set of 
+                        // SPEC:   lower bounds for Xi.
+
+                        if (LowerBoundTypeParameterInference(source, target))
+                        {
+                            return;
+                        }
                     }
                 }
             }

@@ -2831,8 +2831,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 typesBuilder.Add(elementTypes[i].EnsureCSharpSymbolOrNull<ITypeSymbol, TypeSymbol>($"{nameof(elementTypes)}[{i}]"));
             }
 
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             return TupleTypeSymbol.Create(null, // no location for the type declaration
-                                          typesBuilder.ToImmutableAndFree(), default(ImmutableArray<Location>), elementNames, this);
+                                          typesBuilder.ToImmutableAndFree(), default(ImmutableArray<Location>), elementNames, this, ref useSiteDiagnostics);
         }
 
         protected override ITypeSymbol CommonDynamicType

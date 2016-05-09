@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -9,18 +10,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitTupleLiteral(BoundTupleLiteral node)
         {
-            return VisitTupleExpression(node);
-        }
-
-        public override BoundNode VisitConvertedTupleLiteral(BoundConvertedTupleLiteral node)
-        {
-            return VisitTupleExpression(node);
-        }
-
-        private BoundNode VisitTupleExpression(BoundTupleExpression node)
-        {
             ImmutableArray<BoundExpression> rewrittenArguments = VisitList(node.Arguments);
-            return RewriteTupleCreationExpression(node, rewrittenArguments);
+            return RewriteTupleCreationExpression(node, node.DeclaredOrTargetTupleTypeOpt, rewrittenArguments);
         }
 
         /// <summary>
@@ -29,9 +20,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// For instance, for a long tuple we'll generate:
         /// creationExpression(ctor=largestCtor, args=firstArgs+(nested creationExpression for remainder, with smaller ctor and next few args))
         /// </summary>
-        private BoundNode RewriteTupleCreationExpression(BoundTupleExpression node, ImmutableArray<BoundExpression> rewrittenArguments)
+        private BoundNode RewriteTupleCreationExpression(BoundTupleLiteral node, TypeSymbol tupleType, ImmutableArray<BoundExpression> rewrittenArguments)
         {
-            NamedTypeSymbol underlyingTupleType = node.Type.TupleUnderlyingType;
+            Debug.Assert((object)tupleType != null);
+            Debug.Assert(tupleType.IsTupleType);
+            NamedTypeSymbol underlyingTupleType = tupleType.TupleUnderlyingType;
 
             ArrayBuilder<NamedTypeSymbol> underlyingTupleTypeChain = ArrayBuilder<NamedTypeSymbol>.GetInstance();
             TupleTypeSymbol.GetUnderlyingTypeChain(underlyingTupleType, underlyingTupleTypeChain);
@@ -49,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                                             node.Syntax);
                 if ((object)smallestCtor == null)
                 {
-                    return node;
+                    return new BoundBadExpression(node.Syntax, LookupResultKind.NotCreatable, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(node), underlyingTupleType);
                 }
 
                 MethodSymbol smallestConstructor = smallestCtor.AsMember(smallestType);
@@ -64,7 +57,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                                             node.Syntax);
                     if ((object)tuple8Ctor == null)
                     {
-                        return node;
+                        return new BoundBadExpression(node.Syntax, LookupResultKind.NotCreatable, ImmutableArray<Symbol>.Empty, ImmutableArray.Create<BoundNode>(node), underlyingTupleType);
                     }
 
                     // make successively larger creation expressions containing the previous one

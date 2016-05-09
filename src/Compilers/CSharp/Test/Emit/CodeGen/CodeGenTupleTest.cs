@@ -214,18 +214,18 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       28 (0x1c)
-  .maxstack  3
+  // Code size       27 (0x1b)
+  .maxstack  2
   .locals init (System.ValueTuple<int, int> V_0) //x
-  IL_0000:  ldloca.s   V_0
-  IL_0002:  ldc.i4.1
-  IL_0003:  ldc.i4.2
-  IL_0004:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
-  IL_0009:  ldloca.s   V_0
-  IL_000b:  constrained. ""System.ValueTuple<int, int>""
-  IL_0011:  callvirt   ""string object.ToString()""
-  IL_0016:  call       ""void System.Console.WriteLine(string)""
-  IL_001b:  ret
+  IL_0000:  ldc.i4.1
+  IL_0001:  ldc.i4.2
+  IL_0002:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_0007:  stloc.0
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  constrained. ""System.ValueTuple<int, int>""
+  IL_0010:  callvirt   ""string object.ToString()""
+  IL_0015:  call       ""void System.Console.WriteLine(string)""
+  IL_001a:  ret
 }");
         }
 
@@ -554,18 +554,18 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       28 (0x1c)
-  .maxstack  3
+  // Code size       27 (0x1b)
+  .maxstack  2
   .locals init (System.ValueTuple<object, object> V_0) //x
-  IL_0000:  ldloca.s   V_0
-  IL_0002:  ldnull
-  IL_0003:  ldnull
-  IL_0004:  call       ""System.ValueTuple<object, object>..ctor(object, object)""
-  IL_0009:  ldloca.s   V_0
-  IL_000b:  constrained. ""System.ValueTuple<object, object>""
-  IL_0011:  callvirt   ""string object.ToString()""
-  IL_0016:  call       ""void System.Console.WriteLine(string)""
-  IL_001b:  ret
+  IL_0000:  ldnull
+  IL_0001:  ldnull
+  IL_0002:  newobj     ""System.ValueTuple<object, object>..ctor(object, object)""
+  IL_0007:  stloc.0
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  constrained. ""System.ValueTuple<object, object>""
+  IL_0010:  callvirt   ""string object.ToString()""
+  IL_0015:  call       ""void System.Console.WriteLine(string)""
+  IL_001a:  ret
 }");
         }
 
@@ -587,27 +587,27 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       54 (0x36)
-  .maxstack  5
+  // Code size       53 (0x35)
+  .maxstack  4
   .locals init (System.ValueTuple<int, string> V_0, //x
                 System.ValueTuple<int, (int, int)> V_1)
-  IL_0000:  ldloca.s   V_0
-  IL_0002:  ldc.i4.1
-  IL_0003:  ldc.i4.2
-  IL_0004:  ldc.i4.3
-  IL_0005:  ldc.i4.4
-  IL_0006:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
-  IL_000b:  newobj     ""System.ValueTuple<int, (int, int)>..ctor(int, (int, int))""
-  IL_0010:  stloc.1
-  IL_0011:  ldloca.s   V_1
-  IL_0013:  constrained. ""System.ValueTuple<int, (int, int)>""
-  IL_0019:  callvirt   ""string object.ToString()""
-  IL_001e:  call       ""System.ValueTuple<int, string>..ctor(int, string)""
-  IL_0023:  ldloca.s   V_0
-  IL_0025:  constrained. ""System.ValueTuple<int, string>""
-  IL_002b:  callvirt   ""string object.ToString()""
-  IL_0030:  call       ""void System.Console.WriteLine(string)""
-  IL_0035:  ret
+  IL_0000:  ldc.i4.1
+  IL_0001:  ldc.i4.2
+  IL_0002:  ldc.i4.3
+  IL_0003:  ldc.i4.4
+  IL_0004:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_0009:  newobj     ""System.ValueTuple<int, (int, int)>..ctor(int, (int, int))""
+  IL_000e:  stloc.1
+  IL_000f:  ldloca.s   V_1
+  IL_0011:  constrained. ""System.ValueTuple<int, (int, int)>""
+  IL_0017:  callvirt   ""string object.ToString()""
+  IL_001c:  newobj     ""System.ValueTuple<int, string>..ctor(int, string)""
+  IL_0021:  stloc.0
+  IL_0022:  ldloca.s   V_0
+  IL_0024:  constrained. ""System.ValueTuple<int, string>""
+  IL_002a:  callvirt   ""string object.ToString()""
+  IL_002f:  call       ""void System.Console.WriteLine(string)""
+  IL_0034:  ret
 }");
         }
 
@@ -632,27 +632,27 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       54 (0x36)
-  .maxstack  3
+  // Code size       53 (0x35)
+  .maxstack  2
   .locals init (System.ValueTuple<int, int> V_0) //x
-  IL_0000:  ldloca.s   V_0
-  IL_0002:  ldc.i4.1
-  IL_0003:  ldc.i4.2
-  IL_0004:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
-  IL_0009:  ldloca.s   V_0
-  IL_000b:  ldflda     ""int System.ValueTuple<int, int>.Item2""
-  IL_0010:  call       ""string int.ToString()""
-  IL_0015:  call       ""void System.Console.WriteLine(string)""
-  IL_001a:  ldloca.s   V_0
-  IL_001c:  ldc.i4.s   40
-  IL_001e:  stfld      ""int System.ValueTuple<int, int>.Item1""
-  IL_0023:  ldloc.0
-  IL_0024:  ldfld      ""int System.ValueTuple<int, int>.Item1""
-  IL_0029:  ldloc.0
-  IL_002a:  ldfld      ""int System.ValueTuple<int, int>.Item2""
-  IL_002f:  add
-  IL_0030:  call       ""void System.Console.WriteLine(int)""
-  IL_0035:  ret
+  IL_0000:  ldc.i4.1
+  IL_0001:  ldc.i4.2
+  IL_0002:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_0007:  stloc.0
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldflda     ""int System.ValueTuple<int, int>.Item2""
+  IL_000f:  call       ""string int.ToString()""
+  IL_0014:  call       ""void System.Console.WriteLine(string)""
+  IL_0019:  ldloca.s   V_0
+  IL_001b:  ldc.i4.s   40
+  IL_001d:  stfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0022:  ldloc.0
+  IL_0023:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0028:  ldloc.0
+  IL_0029:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_002e:  add
+  IL_002f:  call       ""void System.Console.WriteLine(int)""
+  IL_0034:  ret
 }
 ");
         }
@@ -678,27 +678,27 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       54 (0x36)
-  .maxstack  3
+  // Code size       53 (0x35)
+  .maxstack  2
   .locals init (System.ValueTuple<int, int> V_0) //x
-  IL_0000:  ldloca.s   V_0
-  IL_0002:  ldc.i4.1
-  IL_0003:  ldc.i4.2
-  IL_0004:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
-  IL_0009:  ldloca.s   V_0
-  IL_000b:  ldflda     ""int System.ValueTuple<int, int>.Item2""
-  IL_0010:  call       ""string int.ToString()""
-  IL_0015:  call       ""void System.Console.WriteLine(string)""
-  IL_001a:  ldloca.s   V_0
-  IL_001c:  ldc.i4.s   40
-  IL_001e:  stfld      ""int System.ValueTuple<int, int>.Item1""
-  IL_0023:  ldloc.0
-  IL_0024:  ldfld      ""int System.ValueTuple<int, int>.Item1""
-  IL_0029:  ldloc.0
-  IL_002a:  ldfld      ""int System.ValueTuple<int, int>.Item2""
-  IL_002f:  add
-  IL_0030:  call       ""void System.Console.WriteLine(int)""
-  IL_0035:  ret
+  IL_0000:  ldc.i4.1
+  IL_0001:  ldc.i4.2
+  IL_0002:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_0007:  stloc.0
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldflda     ""int System.ValueTuple<int, int>.Item2""
+  IL_000f:  call       ""string int.ToString()""
+  IL_0014:  call       ""void System.Console.WriteLine(string)""
+  IL_0019:  ldloca.s   V_0
+  IL_001b:  ldc.i4.s   40
+  IL_001d:  stfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0022:  ldloc.0
+  IL_0023:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0028:  ldloc.0
+  IL_0029:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_002e:  add
+  IL_002f:  call       ""void System.Console.WriteLine(int)""
+  IL_0034:  ret
 }
 ");
         }
@@ -724,27 +724,27 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       54 (0x36)
-  .maxstack  3
+  // Code size       53 (0x35)
+  .maxstack  2
   .locals init (System.ValueTuple<int, int> V_0) //x
-  IL_0000:  ldloca.s   V_0
-  IL_0002:  ldc.i4.1
-  IL_0003:  ldc.i4.2
-  IL_0004:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
-  IL_0009:  ldloca.s   V_0
-  IL_000b:  ldflda     ""int System.ValueTuple<int, int>.Item2""
-  IL_0010:  call       ""string int.ToString()""
-  IL_0015:  call       ""void System.Console.WriteLine(string)""
-  IL_001a:  ldloca.s   V_0
-  IL_001c:  ldc.i4.s   40
-  IL_001e:  stfld      ""int System.ValueTuple<int, int>.Item1""
-  IL_0023:  ldloc.0
-  IL_0024:  ldfld      ""int System.ValueTuple<int, int>.Item1""
-  IL_0029:  ldloc.0
-  IL_002a:  ldfld      ""int System.ValueTuple<int, int>.Item2""
-  IL_002f:  add
-  IL_0030:  call       ""void System.Console.WriteLine(int)""
-  IL_0035:  ret
+  IL_0000:  ldc.i4.1
+  IL_0001:  ldc.i4.2
+  IL_0002:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_0007:  stloc.0
+  IL_0008:  ldloca.s   V_0
+  IL_000a:  ldflda     ""int System.ValueTuple<int, int>.Item2""
+  IL_000f:  call       ""string int.ToString()""
+  IL_0014:  call       ""void System.Console.WriteLine(string)""
+  IL_0019:  ldloca.s   V_0
+  IL_001b:  ldc.i4.s   40
+  IL_001d:  stfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0022:  ldloc.0
+  IL_0023:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0028:  ldloc.0
+  IL_0029:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_002e:  add
+  IL_002f:  call       ""void System.Console.WriteLine(int)""
+  IL_0034:  ret
 }
 ");
         }
@@ -770,36 +770,36 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       87 (0x57)
-  .maxstack  4
+  // Code size       86 (0x56)
+  .maxstack  3
   .locals init (System.ValueTuple<int, (int c, int d)> V_0) //x
-  IL_0000:  ldloca.s   V_0
-  IL_0002:  ldc.i4.1
-  IL_0003:  ldc.i4.2
-  IL_0004:  ldc.i4.3
-  IL_0005:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
-  IL_000a:  call       ""System.ValueTuple<int, (int c, int d)>..ctor(int, (int c, int d))""
-  IL_000f:  ldloca.s   V_0
-  IL_0011:  ldflda     ""(int c, int d) System.ValueTuple<int, (int c, int d)>.Item2""
-  IL_0016:  ldflda     ""int System.ValueTuple<int, int>.Item1""
-  IL_001b:  call       ""string int.ToString()""
-  IL_0020:  call       ""void System.Console.WriteLine(string)""
-  IL_0025:  ldloca.s   V_0
-  IL_0027:  ldflda     ""(int c, int d) System.ValueTuple<int, (int c, int d)>.Item2""
-  IL_002c:  ldc.i4.s   39
-  IL_002e:  stfld      ""int System.ValueTuple<int, int>.Item2""
-  IL_0033:  ldloc.0
-  IL_0034:  ldfld      ""int System.ValueTuple<int, (int c, int d)>.Item1""
-  IL_0039:  ldloc.0
-  IL_003a:  ldfld      ""(int c, int d) System.ValueTuple<int, (int c, int d)>.Item2""
-  IL_003f:  ldfld      ""int System.ValueTuple<int, int>.Item1""
-  IL_0044:  add
-  IL_0045:  ldloc.0
-  IL_0046:  ldfld      ""(int c, int d) System.ValueTuple<int, (int c, int d)>.Item2""
-  IL_004b:  ldfld      ""int System.ValueTuple<int, int>.Item2""
-  IL_0050:  add
-  IL_0051:  call       ""void System.Console.WriteLine(int)""
-  IL_0056:  ret
+  IL_0000:  ldc.i4.1
+  IL_0001:  ldc.i4.2
+  IL_0002:  ldc.i4.3
+  IL_0003:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_0008:  newobj     ""System.ValueTuple<int, (int c, int d)>..ctor(int, (int c, int d))""
+  IL_000d:  stloc.0
+  IL_000e:  ldloca.s   V_0
+  IL_0010:  ldflda     ""(int c, int d) System.ValueTuple<int, (int c, int d)>.Item2""
+  IL_0015:  ldflda     ""int System.ValueTuple<int, int>.Item1""
+  IL_001a:  call       ""string int.ToString()""
+  IL_001f:  call       ""void System.Console.WriteLine(string)""
+  IL_0024:  ldloca.s   V_0
+  IL_0026:  ldflda     ""(int c, int d) System.ValueTuple<int, (int c, int d)>.Item2""
+  IL_002b:  ldc.i4.s   39
+  IL_002d:  stfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_0032:  ldloc.0
+  IL_0033:  ldfld      ""int System.ValueTuple<int, (int c, int d)>.Item1""
+  IL_0038:  ldloc.0
+  IL_0039:  ldfld      ""(int c, int d) System.ValueTuple<int, (int c, int d)>.Item2""
+  IL_003e:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0043:  add
+  IL_0044:  ldloc.0
+  IL_0045:  ldfld      ""(int c, int d) System.ValueTuple<int, (int c, int d)>.Item2""
+  IL_004a:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_004f:  add
+  IL_0050:  call       ""void System.Console.WriteLine(int)""
+  IL_0055:  ret
 }
 ");
         }
@@ -823,7 +823,7 @@ class C
         }
 
         [Fact]
-        public void TupleTypeMismatch()
+        public void TupleTypeMismatch_01()
         {
             var source = @"
 class C
@@ -836,9 +836,30 @@ class C
 " + trivial2uple + trivial3uple;
 
             CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature()).VerifyDiagnostics(
-                // (6,27): error CS0029: Cannot implicitly convert type '(int, string, int)' to '(int, string)'
+                // (6,27): error CS8207: Cannot implicitly convert tuple expression to '(int, string)'
                 //         (int, string) x = (1, "hello", 2);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"(1, ""hello"", 2)").WithArguments("(int, string, int)", "(int, string)").WithLocation(6, 27));
+                Diagnostic(ErrorCode.ERR_NoImplicitConvFromTupleLiteral, @"(1, ""hello"", 2)").WithArguments("(int, string)").WithLocation(6, 27)
+                );
+        }
+
+        [Fact]
+        public void TupleTypeMismatch_02()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        (int, string) x = (1, null, 2);
+    }
+}
+" + trivial2uple + trivial3uple;
+
+            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature()).VerifyDiagnostics(
+                // (6,27): error CS8207: Cannot implicitly convert tuple expression to '(int, string)'
+                //         (int, string) x = (1, null, 2);
+                Diagnostic(ErrorCode.ERR_NoImplicitConvFromTupleLiteral, "(1, null, 2)").WithArguments("(int, string)").WithLocation(6, 27)
+                );
         }
 
         [Fact]
@@ -856,12 +877,12 @@ class C
 ";
 
             CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature()).VerifyDiagnostics(
-                // (6,54): error CS0029: Cannot implicitly convert type '(string, int, int, int, int, int, int, int)' to '(int, int, int, int, int, int, int, int)'
+                // (6,54): error CS8207: Cannot implicitly convert tuple expression to '(int, int, int, int, int, int, int, int)'
                 //         (int, int, int, int, int, int, int, int) x = ("Alice", 2, 3, 4, 5, 6, 7, 8);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"(""Alice"", 2, 3, 4, 5, 6, 7, 8)").WithArguments("(string, int, int, int, int, int, int, int)", "(int, int, int, int, int, int, int, int)").WithLocation(6, 54),
-                // (7,54): error CS0029: Cannot implicitly convert type '(int, int, int, int, int, int, int, int, int)' to '(int, int, int, int, int, int, int, int)'
+                Diagnostic(ErrorCode.ERR_NoImplicitConvFromTupleLiteral, @"(""Alice"", 2, 3, 4, 5, 6, 7, 8)").WithArguments("(int, int, int, int, int, int, int, int)").WithLocation(6, 54),
+                // (7,54): error CS8207: Cannot implicitly convert tuple expression to '(int, int, int, int, int, int, int, int)'
                 //         (int, int, int, int, int, int, int, int) y = (1, 2, 3, 4, 5, 6, 7, 8, 9);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(1, 2, 3, 4, 5, 6, 7, 8, 9)").WithArguments("(int, int, int, int, int, int, int, int, int)", "(int, int, int, int, int, int, int, int)").WithLocation(7, 54)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvFromTupleLiteral, "(1, 2, 3, 4, 5, 6, 7, 8, 9)").WithArguments("(int, int, int, int, int, int, int, int)").WithLocation(7, 54)
                 );
         }
 
@@ -894,7 +915,10 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(1, ""hello"", c: 2)", node.ToString());
-            Assert.Equal("(System.Int32 Item1, System.String Item2, System.Int32 c)", model.GetTypeInfo(node).Type.ToTestDisplayString());
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("(System.Int32 Item1, System.String a)", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.NoConversion, model.GetConversion(node));
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
             var xSymbol = ((SourceLocalSymbol)model.GetDeclaredSymbol(x)).Type;
@@ -979,31 +1003,31 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       67 (0x43)
-  .maxstack  6
+  // Code size       66 (0x42)
+  .maxstack  5
   .locals init (System.ValueTuple<int, (int c, (int e, int f) d)> V_0) //v
   IL_0000:  ldc.i4.1
   IL_0001:  ldc.i4.2
   IL_0002:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
-  IL_0007:  ldloca.s   V_0
-  IL_0009:  ldc.i4.1
-  IL_000a:  ldc.i4.2
-  IL_000b:  ldc.i4.3
-  IL_000c:  ldc.i4.4
-  IL_000d:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
-  IL_0012:  newobj     ""System.ValueTuple<int, (int e, int f)>..ctor(int, (int e, int f))""
-  IL_0017:  call       ""System.ValueTuple<int, (int c, (int e, int f) d)>..ctor(int, (int c, (int e, int f) d))""
-  IL_001c:  ldloc.0
-  IL_001d:  call       ""System.Collections.Generic.Dictionary<(int, int), (int a, (int c, (int e, int f) d) b)> C.Test<(int, int), (int a, (int c, (int e, int f) d) b)>((int, int), (int a, (int c, (int e, int f) d) b))""
-  IL_0022:  ldc.i4.1
-  IL_0023:  ldc.i4.2
-  IL_0024:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
-  IL_0029:  callvirt   ""(int a, (int c, (int e, int f) d) b) System.Collections.Generic.Dictionary<(int, int), (int a, (int c, (int e, int f) d) b)>.this[(int, int)].get""
-  IL_002e:  ldfld      ""(int c, (int e, int f) d) System.ValueTuple<int, (int c, (int e, int f) d)>.Item2""
-  IL_0033:  ldfld      ""(int e, int f) System.ValueTuple<int, (int e, int f)>.Item2""
-  IL_0038:  ldfld      ""int System.ValueTuple<int, int>.Item2""
-  IL_003d:  call       ""void System.Console.WriteLine(int)""
-  IL_0042:  ret
+  IL_0007:  ldc.i4.1
+  IL_0008:  ldc.i4.2
+  IL_0009:  ldc.i4.3
+  IL_000a:  ldc.i4.4
+  IL_000b:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_0010:  newobj     ""System.ValueTuple<int, (int e, int f)>..ctor(int, (int e, int f))""
+  IL_0015:  newobj     ""System.ValueTuple<int, (int c, (int e, int f) d)>..ctor(int, (int c, (int e, int f) d))""
+  IL_001a:  stloc.0
+  IL_001b:  ldloc.0
+  IL_001c:  call       ""System.Collections.Generic.Dictionary<(int, int), (int a, (int c, (int e, int f) d) b)> C.Test<(int, int), (int a, (int c, (int e, int f) d) b)>((int, int), (int a, (int c, (int e, int f) d) b))""
+  IL_0021:  ldc.i4.1
+  IL_0022:  ldc.i4.2
+  IL_0023:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_0028:  callvirt   ""(int a, (int c, (int e, int f) d) b) System.Collections.Generic.Dictionary<(int, int), (int a, (int c, (int e, int f) d) b)>.this[(int, int)].get""
+  IL_002d:  ldfld      ""(int c, (int e, int f) d) System.ValueTuple<int, (int c, (int e, int f) d)>.Item2""
+  IL_0032:  ldfld      ""(int e, int f) System.ValueTuple<int, (int e, int f)>.Item2""
+  IL_0037:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_003c:  call       ""void System.Console.WriteLine(int)""
+  IL_0041:  ret
 }
 ");
         }
@@ -2166,10 +2190,7 @@ class C
             comp.VerifyDiagnostics(
                 // (6,9): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (int, string) x = (1, "hello");
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int, string)").WithArguments("System.ValueTuple`2").WithLocation(6, 9),
-                // (6,27): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
-                //         (int, string) x = (1, "hello");
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"(1, ""hello"")").WithArguments("System.ValueTuple`2").WithLocation(6, 27)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int, string)").WithArguments("System.ValueTuple`2").WithLocation(6, 9)
                 );
         }
 
@@ -2476,7 +2497,7 @@ class C
         }
 
         [Fact]
-        public void GenericTupleWithoutTupleLibrary()
+        public void GenericTupleWithoutTupleLibrary_01()
         {
             var source = @"
 class C
@@ -2497,10 +2518,7 @@ class C
             comp.VerifyDiagnostics(
                 // (10,12): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //     static (T1 first, T2 second) M<T1, T2>()
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(T1 first, T2 second)").WithArguments("System.ValueTuple`2").WithLocation(10, 12),
-                // (12,16): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
-                //         return (default(T1), default(T2));
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(default(T1), default(T2))").WithArguments("System.ValueTuple`2").WithLocation(12, 16)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(T1 first, T2 second)").WithArguments("System.ValueTuple`2").WithLocation(10, 12)
                 );
 
             var c = comp.GetTypeByMetadataName("C");
@@ -2557,6 +2575,31 @@ class C
         }
 
         [Fact]
+        public void GenericTupleWithoutTupleLibrary_02()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+    }
+
+    static (T1, T2, T3, T4, T5, T6, T7, T8, T9) M<T1, T2, T3, T4, T5, T6, T7, T8, T9>()
+    {
+        throw new System.NotSupportedException();
+    }
+}
+" + trivial2uple;
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // (8,12): error CS0518: Predefined type 'System.ValueTuple`8' is not defined or imported
+                //     static (T1, T2, T3, T4, T5, T6, T7, T8, T9) M<T1, T2, T3, T4, T5, T6, T7, T8, T9>()
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(T1, T2, T3, T4, T5, T6, T7, T8, T9)").WithArguments("System.ValueTuple`8").WithLocation(8, 12)
+                );
+        }
+
+        [Fact]
         public void GenericTuple()
         {
             var source = @"
@@ -2604,7 +2647,7 @@ class C
                 Assert.Equal("(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, "
                      + "System.String, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, "
                      + "System.String, System.Int32, System.Int32)",
-                     model.GetTypeInfo(node).Type.ToTestDisplayString());
+                     model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
             };
 
             var verifier = CompileAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5 6 7 Bob 2 3", additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator, parseOptions: TestOptions.Regular.WithTuplesFeature());
@@ -2768,7 +2811,7 @@ class C
                 Assert.Equal("(System.Int32 a, System.Int32 b, System.Int32 c, System.Int32 d, System.Int32 e, System.Int32 f, System.Int32 g, "
                      + "System.String h, System.Int32 i, System.Int32 j, System.Int32 k, System.Int32 l, System.Int32 m, System.Int32 n, "
                      + "System.String o, System.Int32 p, System.Int32 q)",
-                     model.GetTypeInfo(node).Type.ToTestDisplayString());
+                     model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
             };
 
             var verifier = CompileAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5 6 7 Bob 2 3", additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator, parseOptions: TestOptions.Regular.WithTuplesFeature());
@@ -3458,9 +3501,9 @@ class C2 : I<CB, CA>
                 // (15,25): error CS0425: The constraints for type parameter 'TC' of method 'C1.M<TC>((CB, (CA, TC)))' must match the constraints for type parameter 'TC' of interface method 'I<CB, CA>.M<TC>((CB, (CA, TC)))'. Consider using an explicit interface implementation instead.
                 //     public (CB, CA, TC) M<TC>((CB, (CA, TC)) arg)
                 Diagnostic(ErrorCode.ERR_ImplBadConstraints, "M").WithArguments("TC", "C1.M<TC>((CB, (CA, TC)))", "TC", "I<CB, CA>.M<TC>((CB, (CA, TC)))").WithLocation(15, 25),
-                // (25,16): error CS0029: Cannot implicitly convert type '(CA, CB, TC)' to '(CB, CA, TC)'
+                // (25,16): error CS8207: Cannot implicitly convert tuple expression to '(CB, CA, TC)'
                 //         return (arg.Item2.Item1, arg.Item1, arg.Item2.Item2);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(arg.Item2.Item1, arg.Item1, arg.Item2.Item2)").WithArguments("(CA, CB, TC)", "(CB, CA, TC)").WithLocation(25, 16)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvFromTupleLiteral, "(arg.Item2.Item1, arg.Item1, arg.Item2.Item2)").WithArguments("(CB, CA, TC)").WithLocation(25, 16)
                 );
         }
 
@@ -4325,11 +4368,12 @@ class C
         // error must mention   (int c, long d)
         (short a, short b) x2 = ((int c, int d))(e: 1, f:2);
 
-        // error must mention   (int e, string f)
+
         (int a, int b) x3 = ((long c, long d))(e: 1, f:""qq"");
+        (int a, int b) x4 = ((long c, long d))(1, null, 2);
     }
 }
-" + trivial2uple;
+" + trivial2uple + trivial3uple;
 
             CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature()).VerifyDiagnostics(
                 // (7,29): error CS0029: Cannot implicitly convert type '(long c, long d)' to '(int a, int b)'
@@ -4338,9 +4382,12 @@ class C
                 // (9,33): error CS0029: Cannot implicitly convert type '(int c, int d)' to '(short a, short b)'
                 //         (short a, short b) x2 = ((int c, int d))(e: 1, f:2);
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "((int c, int d))(e: 1, f:2)").WithArguments("(int c, int d)", "(short a, short b)").WithLocation(9, 33),
-                // (12,29): error CS0030: Cannot convert type '(int e, string f)' to '(long c, long d)'
+                // (12,47): error CS8208: Cannot convert tuple expression to '(long c, long d)'
                 //         (int a, int b) x3 = ((long c, long d))(e: 1, f:"qq");
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, @"((long c, long d))(e: 1, f:""qq"")").WithArguments("(int e, string f)", "(long c, long d)").WithLocation(12, 29)
+                Diagnostic(ErrorCode.ERR_NoExplicitConvFromTupleLiteral, @"(e: 1, f:""qq"")").WithArguments("(long c, long d)").WithLocation(12, 47),
+                // (13,47): error CS8208: Cannot convert tuple expression to '(long c, long d)'
+                //         (int a, int b) x4 = ((long c, long d))(1, null, 2);
+                Diagnostic(ErrorCode.ERR_NoExplicitConvFromTupleLiteral, "(1, null, 2)").WithArguments("(long c, long d)").WithLocation(13, 47)
             );
         }
 
@@ -4365,8 +4412,9 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
-            Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
-            Assert.Equal("(System.Int16 a, System.String b)?", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("(System.Int16 a, System.String b)?", typeInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(Conversion.ImplicitNullable, model.GetConversion(node));
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
@@ -4394,18 +4442,47 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
-            Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
-            Assert.Equal("(System.Int16 e, System.String f)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitTuple, model.GetConversion(node));
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("(System.Int16 c, System.String d)", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitTupleLiteral, model.GetConversion(node));
 
             // semantic model returns topmost conversion from the sequence of conversions for
             // ((short c, string d)?)(e: 1, f: ""hello"")
-            Assert.Equal("(System.Int16 c, System.String d)", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString());
-            Assert.Equal("(System.Int16 a, System.String b)?", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitNullable, model.GetConversion(node.Parent));
+            var typeInfoParent = model.GetTypeInfo(node.Parent);
+            Assert.Equal("(System.Int16 c, System.String d)?", typeInfoParent.Type.ToTestDisplayString());
+            Assert.Equal("(System.Int16 a, System.String b)?", typeInfoParent.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, model.GetConversion(node.Parent));
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
             Assert.Equal("(System.Int16 a, System.String b)? x", model.GetDeclaredSymbol(x).ToTestDisplayString());
+        }
+
+        [Fact]
+        public void TupleConvertedType01insourceImplicit()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        (short a, string b)? x =(1, ""hello"");
+    }
+}
+" + trivial2uple + trivial3uple;
+
+            var tree = Parse(source, options: TestOptions.Regular.WithTuplesFeature());
+            var comp = CreateCompilationWithMscorlib(tree);
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            var node = nodes.OfType<TupleExpressionSyntax>().Single();
+
+            Assert.Equal(@"(1, ""hello"")", node.ToString());
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("(System.Int16 a, System.String b)?", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitNullable, model.GetConversion(node));
         }
 
         [Fact]
@@ -4429,8 +4506,9 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
-            Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
-            Assert.Equal("(System.Int16 a, System.String b)?", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("(System.Int16 a, System.String b)?", typeInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(Conversion.ImplicitNullable, model.GetConversion(node));
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
@@ -4458,9 +4536,10 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
-            Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
-            Assert.Equal("(System.Int16 e, System.String f)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitTuple, model.GetConversion(node));
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("(System.Int16 c, System.String d)", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitTupleLiteral, model.GetConversion(node));
 
             // semantic model returns topmost conversion from the sequence of conversions for
             // ((short c, string d))(e: 1, f: ""hello"")
@@ -4495,8 +4574,9 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
-            Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
-            Assert.Equal("(System.Int32 a, System.String b)?", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("(System.Int32 a, System.String b)?", typeInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(Conversion.ImplicitNullable, model.GetConversion(node));
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
@@ -4524,15 +4604,17 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
-            Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
-            Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.Identity, model.GetConversion(node));
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("(System.Int32 c, System.String d)", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitTupleLiteral, model.GetConversion(node));
 
             // semantic model returns topmost conversion from the sequence of conversions for
             // ((int c, string d)?)(e: 1, f: ""hello"")
-            Assert.Equal("(System.Int32 c, System.String d)", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString());
-            Assert.Equal("(System.Int32 a, System.String b)?", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitNullable, model.GetConversion(node.Parent));
+            var typeInfoParent = model.GetTypeInfo(node.Parent);
+            Assert.Equal("(System.Int32 c, System.String d)?", typeInfoParent.Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32 a, System.String b)?", typeInfoParent.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, model.GetConversion(node.Parent));
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
             Assert.Equal("(System.Int32 a, System.String b)? x", model.GetDeclaredSymbol(x).ToTestDisplayString());
@@ -4559,9 +4641,10 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
-            Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
-            Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.Identity, model.GetConversion(node));
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("(System.Int32 c, System.String d)", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitTupleLiteral, model.GetConversion(node));
 
             // semantic model returns topmost conversion from the sequence of conversions for
             // ((int c, string d))(e: 1, f: ""hello"")
@@ -4594,9 +4677,10 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
-            Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
-            Assert.Equal("(System.Int32 a, System.String b)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.Identity, model.GetConversion(node));
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("(System.Int32 a, System.String b)", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitTupleLiteral, model.GetConversion(node));
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
             Assert.Equal("(System.Int32 a, System.String b) x", model.GetDeclaredSymbol(x).ToTestDisplayString());
@@ -4623,9 +4707,10 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
-            Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
-            Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.Identity, model.GetConversion(node));
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("(System.Int32 c, System.String d)", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitTupleLiteral, model.GetConversion(node));
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
             Assert.Equal("(System.Int32 a, System.String b) x", model.GetDeclaredSymbol(x).ToTestDisplayString());
@@ -4652,9 +4737,10 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
-            Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
-            Assert.Equal("(System.Int16 a, System.String b)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitTuple, model.GetConversion(node));
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("(System.Int16 a, System.String b)", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitTupleLiteral, model.GetConversion(node));
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
             Assert.Equal("(System.Int16 a, System.String b) x", model.GetDeclaredSymbol(x).ToTestDisplayString());
@@ -4681,9 +4767,10 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
-            Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
-            Assert.Equal("(System.Int16 e, System.String f)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitTuple, model.GetConversion(node));
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("(System.Int16 c, System.String d)", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitTupleLiteral, model.GetConversion(node));
 
             // semantic model returns topmost conversion from the sequence of conversions for
             // ((short c, string d))(e: 1, f: ""hello"")
@@ -4718,7 +4805,7 @@ class C
             Assert.Equal(@"(e: 1, f: null)", node.ToString());
             Assert.Null(model.GetTypeInfo(node).Type);
             Assert.Equal("(System.Int16 a, System.String b)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitTuple, model.GetConversion(node));
+            Assert.Equal(Conversion.ImplicitTupleLiteral, model.GetConversion(node));
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
             Assert.Equal("(System.Int16 a, System.String b) x", model.GetDeclaredSymbol(x).ToTestDisplayString());
@@ -4746,8 +4833,8 @@ class C
 
             Assert.Equal(@"(e: 1, f: null)", node.ToString());
             Assert.Null(model.GetTypeInfo(node).Type);
-            Assert.Equal("(System.Int16 e, System.String f)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitTuple, model.GetConversion(node));
+            Assert.Equal("(System.Int16 c, System.String d)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitTupleLiteral, model.GetConversion(node));
 
             // semantic model returns topmost conversion from the sequence of conversions for
             // ((short c, string d))(e: 1, f: null)
@@ -4796,9 +4883,10 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(e: 1, f: new C1(""qq""))", node.ToString());
-            Assert.Equal("(System.Int32 e, C.C1 f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
-            Assert.Equal("(System.Int16 a, System.String b)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitTuple, model.GetConversion(node));
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("(System.Int16 a, System.String b)", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitTupleLiteral, model.GetConversion(node));
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
             Assert.Equal("(System.Int16 a, System.String b) x", model.GetDeclaredSymbol(x).ToTestDisplayString());
@@ -4843,9 +4931,10 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(e: 1, f: new C1(""qq""))", node.ToString());
-            Assert.Equal("(System.Int32 e, C.C1 f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
-            Assert.Equal("(System.Int16 e, System.String f)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitTuple, model.GetConversion(node));
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("(System.Int16 c, System.String d)", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitTupleLiteral, model.GetConversion(node));
 
             // semantic model returns topmost conversion from the sequence of conversions for
             // ((short c, string d))(e: 1, f: null)
@@ -9188,7 +9277,64 @@ class C
                 );
         }
 
+        [Fact]
+        public void Rvalue_01()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var x0 = new {tuple = (null, null)};
+        System.Console.WriteLine(x0.ToString());
+        System.ValueType x1 = (null, ""1"");
+    }
+}
+" + trivial2uple;
 
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // (6,32): error CS8206: Type of the tuple element cannot be infered from '<null>'.
+                //         var x0 = new {tuple = (null, null)};
+                Diagnostic(ErrorCode.ERR_CannotInferTupleElementType, "null").WithArguments("<null>").WithLocation(6, 32),
+                // (6,38): error CS8206: Type of the tuple element cannot be infered from '<null>'.
+                //         var x0 = new {tuple = (null, null)};
+                Diagnostic(ErrorCode.ERR_CannotInferTupleElementType, "null").WithArguments("<null>").WithLocation(6, 38),
+                // PROTOTYPE(tuples): Should try to complain about the null in the literal.
+                // (8,31): error CS8207: Cannot implicitly convert tuple expression to 'ValueType'
+                //         System.ValueType x1 = (null, "1");
+                Diagnostic(ErrorCode.ERR_NoImplicitConvFromTupleLiteral, @"(null, ""1"")").WithArguments("System.ValueType").WithLocation(8, 31)
+                );
+        }
+
+        [Fact]
+        public void Rvalue_02()
+        {
+            var source = @"
+class C
+{
+    static void Print<T>(T val)
+    {
+        System.Console.WriteLine($""{typeof(T)} - {val.ToString()}"");
+    }
+
+    static void Main()
+    {
+        var x0 = new {tuple = (1, ""s"")};
+        Print(x0.tuple);
+        System.ValueType x1 = (2, ""s"");
+        Print(x1);
+    }
+}
+" + trivial2uple;
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), options:TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput:
+@"System.ValueTuple`2[System.Int32,System.String] - {1, s}
+System.ValueType - {2, s}
+");
+        }
+        
         [Fact]
         public void MissingUnderlyingType()
         {

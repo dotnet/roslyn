@@ -2312,6 +2312,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Type of the tuple element cannot be infered from &apos;{0}&apos;..
+        /// </summary>
+        internal static string ERR_CannotInferTupleElementType {
+            get {
+                return ResourceManager.GetString("ERR_CannotInferTupleElementType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot pass null for friend assembly name.
         /// </summary>
         internal static string ERR_CannotPassNullForFriendAssembly {
@@ -6407,6 +6416,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot convert tuple expression to &apos;{0}&apos;.
+        /// </summary>
+        internal static string ERR_NoExplicitConvFromTupleLiteral {
+            get {
+                return ResourceManager.GetString("ERR_NoExplicitConvFromTupleLiteral", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Missing file specification for &apos;{0}&apos; option.
         /// </summary>
         internal static string ERR_NoFileSpec {
@@ -6439,6 +6457,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_NoImplicitConvCast {
             get {
                 return ResourceManager.GetString("ERR_NoImplicitConvCast", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Cannot implicitly convert tuple expression to &apos;{0}&apos;.
+        /// </summary>
+        internal static string ERR_NoImplicitConvFromTupleLiteral {
+            get {
+                return ResourceManager.GetString("ERR_NoImplicitConvFromTupleLiteral", resourceCulture);
             }
         }
         
