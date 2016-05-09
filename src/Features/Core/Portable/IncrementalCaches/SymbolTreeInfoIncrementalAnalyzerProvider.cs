@@ -161,7 +161,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 return info;
             }
 
-            public async Task<SourceSymbolTreeInfo> TryGetSymbolTreeInfoAsync(
+            public async Task<ISymbolTreeInfo> TryGetSourceSymbolTreeInfoAsync(
                 Project project, CancellationToken cancellationToken)
             {
                 ProjectInfo projectInfo;

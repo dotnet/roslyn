@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
         /// <summary>
         /// Returns null if the info cannot be retrieved from the cache.
         /// </summary>
-        Task<SourceSymbolTreeInfo> TryGetSymbolTreeInfoAsync(Project project, CancellationToken cancellationToken);
+        Task<ISymbolTreeInfo> TryGetSourceSymbolTreeInfoAsync(Project project, CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns null if the info cannot be retrieved from the cache.
