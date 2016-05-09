@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Finds symbols in this assembly that match the provided name in a fuzzy manner.
         /// </summary>
-        public async Task<IEnumerable<ISymbol>> FuzzyFindAsync(
+        private async Task<IEnumerable<ISymbol>> FuzzyFindAsync(
             AsyncLazy<IAssemblySymbol> lazyAssembly, string name, CancellationToken cancellationToken)
         {
             if (_spellCheckerTask.Status != TaskStatus.RanToCompletion)
