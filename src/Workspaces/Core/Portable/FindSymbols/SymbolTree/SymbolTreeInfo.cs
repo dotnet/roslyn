@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal partial class SourceSymbolTreeInfo : ISymbolTreeInfo
+    internal partial class SymbolTreeInfo : ISymbolTreeInfo
     {
         private readonly VersionStamp _version;
 
@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         /// <summary>
         /// The task that produces the spell checker we use for fuzzy match queries.
-        /// We use a task so that we can generate the <see cref="SourceSymbolTreeInfo"/> 
+        /// We use a task so that we can generate the <see cref="SymbolTreeInfo"/> 
         /// without having to wait for the spell checker construction to finish.
         /// 
         /// Features that don't need fuzzy matching don't want to incur the cost of 
@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 : StringComparer.Ordinal.Compare(s1, s2);
         };
 
-        private SourceSymbolTreeInfo(VersionStamp version, IReadOnlyList<Node> orderedNodes, Task<SpellChecker> spellCheckerTask)
+        private SymbolTreeInfo(VersionStamp version, IReadOnlyList<Node> orderedNodes, Task<SpellChecker> spellCheckerTask)
         {
             _version = version;
             _nodes = orderedNodes;
@@ -237,7 +237,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         // of immutable state (like a Solution) that we don't want kept around indefinitely.  So we
         // only cache results (the symbol tree infos) if they successfully compute to completion.
         private static readonly ConditionalWeakTable<MetadataId, SemaphoreSlim> s_metadataIdToGate = new ConditionalWeakTable<MetadataId, SemaphoreSlim>();
-        private static readonly ConditionalWeakTable<MetadataId, SourceSymbolTreeInfo> s_metadataIdToInfo = new ConditionalWeakTable<MetadataId, SourceSymbolTreeInfo>();
+        private static readonly ConditionalWeakTable<MetadataId, SymbolTreeInfo> s_metadataIdToInfo = new ConditionalWeakTable<MetadataId, SymbolTreeInfo>();
 
         private static readonly ConditionalWeakTable<MetadataId, SemaphoreSlim>.CreateValueCallback s_metadataIdToGateCallback =
             _ => new SemaphoreSlim(1);
@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// this gives you SymbolTreeInfo for a metadata
         /// </summary>
-        public static async Task<SourceSymbolTreeInfo> TryGetInfoForMetadataAssemblyAsync(
+        public static async Task<SymbolTreeInfo> TryGetInfoForMetadataAssemblyAsync(
             Solution solution,
             IAssemblySymbol assembly,
             PortableExecutableReference reference,
@@ -265,7 +265,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                SourceSymbolTreeInfo info;
+                SymbolTreeInfo info;
                 if (s_metadataIdToInfo.TryGetValue(metadata.Id, out info))
                 {
                     return info;
@@ -286,7 +286,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        public static async Task<SourceSymbolTreeInfo> GetInfoForSourceAssemblyAsync(
+        public static async Task<SymbolTreeInfo> GetInfoForSourceAssemblyAsync(
             Project project, CancellationToken cancellationToken)
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
@@ -298,7 +298,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 loadOnly: false, includeInternal: true, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
-        internal static SourceSymbolTreeInfo CreateSymbolTreeInfo(
+        internal static SymbolTreeInfo CreateSymbolTreeInfo(
             Solution solution, VersionStamp version, IAssemblySymbol assembly, string filePath, bool includeInternal, CancellationToken cancellationToken)
         {
             if (assembly == null)
@@ -312,7 +312,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             var sortedNodes = SortNodes(list);
             var createSpellCheckerTask = GetSpellCheckerTask(solution, version, assembly, filePath, sortedNodes);
-            return new SourceSymbolTreeInfo(version, sortedNodes, createSpellCheckerTask);
+            return new SymbolTreeInfo(version, sortedNodes, createSpellCheckerTask);
         }
 
         private static Task<SpellChecker> GetSpellCheckerTask(
@@ -504,7 +504,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 #endregion
 
-        internal bool IsEquivalent(SourceSymbolTreeInfo other)
+        internal bool IsEquivalent(SymbolTreeInfo other)
         {
             if (!_version.Equals(other._version) || _nodes.Count != other._nodes.Count)
             {

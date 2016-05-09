@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal partial class SourceSymbolTreeInfo
+    internal partial class SymbolTreeInfo
     {
         /// <summary>
         /// A node represents a single unique name in a dotted-name tree.

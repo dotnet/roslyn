@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal partial class SourceSymbolTreeInfo : IObjectWritable
+    internal partial class SymbolTreeInfo : IObjectWritable
     {
         private const string PrefixMetadataSymbolTreeInfo = "<MetadataSymbolTreeInfoPersistence>_";
         private const string SerializationFormat = "10";
@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Loads the SymbolTreeInfo for a given assembly symbol (metadata or project).  If the
         /// info can't be loaded, it will be created (and persisted if possible).
         /// </summary>
-        private static Task<SourceSymbolTreeInfo> LoadOrCreateSymbolTreeInfoAsync(
+        private static Task<SymbolTreeInfo> LoadOrCreateSymbolTreeInfoAsync(
             Solution solution,
             IAssemblySymbol assembly,
             string filePath,
@@ -188,13 +188,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
         }
 
-        internal static SourceSymbolTreeInfo ReadSymbolTreeInfo_ForTestingPurposesOnly(ObjectReader reader)
+        internal static SymbolTreeInfo ReadSymbolTreeInfo_ForTestingPurposesOnly(ObjectReader reader)
         {
             return ReadSymbolTreeInfo(reader, 
                 (version, nodes) => Task.FromResult(new SpellChecker(version, nodes.Select(n => n.Name))));
         }
 
-        private static SourceSymbolTreeInfo ReadSymbolTreeInfo(
+        private static SymbolTreeInfo ReadSymbolTreeInfo(
             ObjectReader reader, Func<VersionStamp, Node[], Task<SpellChecker>> createSpellCheckerTask)
         {
             try
@@ -207,7 +207,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     var count = reader.ReadInt32();
                     if (count == 0)
                     {
-                        return new SourceSymbolTreeInfo(version, ImmutableArray<Node>.Empty,
+                        return new SymbolTreeInfo(version, ImmutableArray<Node>.Empty,
                             Task.FromResult(new SpellChecker(version, BKTree.Empty)));
                     }
 
@@ -221,7 +221,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     }
 
                     var spellCheckerTask = createSpellCheckerTask(version, nodes);
-                    return new SourceSymbolTreeInfo(version, nodes, spellCheckerTask);
+                    return new SymbolTreeInfo(version, nodes, spellCheckerTask);
                 }
             }
             catch
