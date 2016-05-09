@@ -51,7 +51,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Analyzers.FixAnalyzers
                     If argument.IsNamed Then
                         seenNamedArgument = True
                         Dim simpleArgument = TryCast(argument, SimpleArgumentSyntax)
-                        If simpleArgument IsNot Nothing AndAlso parameter.Name.Equals(simpleArgument.NameColonEquals.Name.Identifier.ValueText) Then
+                        If simpleArgument IsNot Nothing AndAlso parameter.Name.Equals(simpleArgument.NameColonEquals.Name.Identifier.ValueText, StringComparison.Ordinal) Then
                             Return Not HasNullConstantValue(simpleArgument.Expression, model, cancellationToken)
                         End If
                     ElseIf Not seenNamedArgument Then
