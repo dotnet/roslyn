@@ -137,7 +137,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Slow, linear scan of all the symbols in this assembly to look for matches.
         /// </summary>
-        public async Task<IEnumerable<ISymbol>> FindAsync(AsyncLazy<IAssemblySymbol> lazyAssembly, Func<string, bool> predicate, CancellationToken cancellationToken)
+        private async Task<IEnumerable<ISymbol>> FindAsync(AsyncLazy<IAssemblySymbol> lazyAssembly, Func<string, bool> predicate, CancellationToken cancellationToken)
         {
             var result = new List<ISymbol>();
             IAssemblySymbol assembly = null;
