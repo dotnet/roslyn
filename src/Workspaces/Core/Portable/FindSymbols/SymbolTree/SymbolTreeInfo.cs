@@ -311,18 +311,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             GenerateNodes(assembly.GlobalNamespace, list, lookup);
 
             var sortedNodes = SortNodes(list);
-            var createSpellCheckerTask = GetSpellCheckerTask(solution, version, assembly, filePath, sortedNodes);
+            var createSpellCheckerTask = GetSpellCheckerTask(solution, version, filePath, sortedNodes);
             return new SymbolTreeInfo(version, sortedNodes, createSpellCheckerTask);
         }
 
         private static Task<SpellChecker> GetSpellCheckerTask(
-            Solution solution, VersionStamp version, IAssemblySymbol assembly, string filePath, Node[] nodes)
+            Solution solution, VersionStamp version, string filePath, Node[] nodes)
         {
             // Create a new task to attempt to load or create the spell checker for this 
             // SymbolTreeInfo.  This way the SymbolTreeInfo will be ready immediately
             // for non-fuzzy searches, and soon afterwards it will be able to perform
             // fuzzy searches as well.
-            return Task.Run(() => LoadOrCreateSpellCheckerAsync(solution, assembly, filePath,
+            return Task.Run(() => LoadOrCreateSpellCheckerAsync(solution, filePath,
                 v => new SpellChecker(v, nodes.Select(n => n.Name))));
         }
 
