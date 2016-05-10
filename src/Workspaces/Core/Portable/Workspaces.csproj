@@ -286,6 +286,9 @@
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\Compilers\Core\Portable\UnicodeCharacterUtilities.cs">
+      <Link>Shared\UnicodeCharacterUtilities.cs</Link>
+    </Compile>
     <Compile Include="CaseCorrection\AbstractCaseCorrectionService.cs" />
     <Compile Include="CaseCorrection\CaseCorrector.cs" />
     <Compile Include="CaseCorrection\ICaseCorrectionService.cs" />
@@ -395,6 +398,8 @@
     <Compile Include="FindSymbols\DeclaredSymbolInfo.cs" />
     <Compile Include="FindSymbols\FindReferences\Finders\ILanguageServiceReferenceFinder.cs" />
     <Compile Include="FindSymbols\SymbolTree\ISymbolTreeInfo.cs" />
+    <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo_Metadata.cs" />
+    <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo_Source.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingLogger.cs" />
     <Compile Include="Packaging\IPackageInstallerService.cs" />
     <Compile Include="SymbolSearch\ISymbolSearchService.cs" />

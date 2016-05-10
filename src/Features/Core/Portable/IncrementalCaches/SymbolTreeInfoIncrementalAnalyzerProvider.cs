@@ -133,9 +133,8 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 _metadataPathToInfo = metadataPathToInfo;
             }
 
-            public async Task<SymbolTreeInfo> TryGetSymbolTreeInfoAsync(
+            public async Task<SymbolTreeInfo> TryGetMetadataSymbolTreeInfoAsync(
                 Solution solution,
-                IAssemblySymbol assembly,
                 PortableExecutableReference reference,
                 CancellationToken cancellationToken)
             {
@@ -156,8 +155,8 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 // If we didn't have it in our cache, see if we can load it from disk.
                 // Note: pass 'loadOnly' so we only attempt to load from disk, not to actually
                 // try to create the metadata.
-                var info = await SymbolTreeInfo.TryGetInfoForMetadataAssemblyAsync(
-                    solution, assembly, reference, loadOnly: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
+                    solution, reference, loadOnly: true, cancellationToken: cancellationToken).ConfigureAwait(false);
                 return info;
             }
 
@@ -274,10 +273,8 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 MetadataInfo metadataInfo;
                 if (!_metadataPathToInfo.TryGetValue(key, out metadataInfo) || metadataInfo.TimeStamp == lastWriteTime)
                 {
-                    var assembly = compilation.GetAssemblyOrModuleSymbol(reference) as IAssemblySymbol;
-                    var info = assembly == null
-                        ? null
-                        : await SymbolTreeInfo.TryGetInfoForMetadataAssemblyAsync(project.Solution, assembly, reference, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    var info = await SymbolTreeInfo.GetInfoForMetadataReferenceAsync(
+                        project.Solution, reference, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                     metadataInfo = new MetadataInfo(lastWriteTime, info, metadataInfo.ReferencingProjects ?? new HashSet<ProjectId>());
                     _metadataPathToInfo.AddOrUpdate(key, metadataInfo, (_1, _2) => metadataInfo);

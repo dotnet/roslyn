@@ -242,79 +242,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly ConditionalWeakTable<MetadataId, SemaphoreSlim>.CreateValueCallback s_metadataIdToGateCallback =
             _ => new SemaphoreSlim(1);
 
-        /// <summary>
-        /// this gives you SymbolTreeInfo for a metadata
-        /// </summary>
-        public static async Task<SymbolTreeInfo> TryGetInfoForMetadataAssemblyAsync(
-            Solution solution,
-            IAssemblySymbol assembly,
-            PortableExecutableReference reference,
-            bool loadOnly,
-            CancellationToken cancellationToken)
-        {
-            var metadata = assembly.GetMetadata();
-            if (metadata == null)
-            {
-                return null;
-            }
-
-            // Find the lock associated with this piece of metadata.  This way only one thread is
-            // computing a symbol tree info for a particular piece of metadata at a time.
-            var gate = s_metadataIdToGate.GetValue(metadata.Id, s_metadataIdToGateCallback);
-            using (await gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                SymbolTreeInfo info;
-                if (s_metadataIdToInfo.TryGetValue(metadata.Id, out info))
-                {
-                    return info;
-                }
-
-                // We don't include internals from metadata assemblies.  It's less likely that
-                // a project would have IVT to it and so it helps us save on memory.  It also
-                // means we can avoid loading lots and lots of obfuscated code in the case hte
-                // dll was obfuscated.
-                info = await LoadOrCreateSymbolTreeInfoAsync(solution, assembly, reference.FilePath, 
-                    loadOnly, includeInternal: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-                if (info == null && loadOnly)
-                {
-                    return null;
-                }
-
-                return s_metadataIdToInfo.GetValue(metadata.Id, _ => info);
-            }
-        }
-
-        public static async Task<SymbolTreeInfo> GetInfoForSourceAssemblyAsync(
-            Project project, CancellationToken cancellationToken)
-        {
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-            // We want to know about internal symbols from source assemblies.  Thre's a reasonable
-            // chance a project might have IVT access to it.
-            return await LoadOrCreateSymbolTreeInfoAsync(
-                project.Solution, compilation.Assembly, project.FilePath, 
-                loadOnly: false, includeInternal: true, cancellationToken: cancellationToken).ConfigureAwait(false);
-        }
-
-        internal static SymbolTreeInfo CreateSymbolTreeInfo(
-            Solution solution, VersionStamp version, IAssemblySymbol assembly, string filePath, bool includeInternal, CancellationToken cancellationToken)
-        {
-            if (assembly == null)
-            {
-                return null;
-            }
-
-            var list = new List<Node>();
-            var lookup = includeInternal ? s_getMembersNoPrivate : s_getMembersNoPrivateOrInternal;
-            GenerateNodes(assembly.GlobalNamespace, list, lookup);
-
-            var sortedNodes = SortNodes(list);
-            var createSpellCheckerTask = GetSpellCheckerTask(solution, version, filePath, sortedNodes);
-            return new SymbolTreeInfo(version, sortedNodes, createSpellCheckerTask);
-        }
-
         private static Task<SpellChecker> GetSpellCheckerTask(
             Solution solution, VersionStamp version, string filePath, Node[] nodes)
         {
@@ -388,69 +315,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return comp;
         }
 
-        // generate nodes for the global namespace an all descendants
-        private static void GenerateNodes(
-            INamespaceSymbol globalNamespace, 
-            List<Node> list, 
-            Func<ISymbol, IEnumerable<ISymbol>> lookup)
-        {
-            var node = new Node(globalNamespace.Name, Node.RootNodeParentIndex);
-            list.Add(node);
-
-            // Add all child members
-            var memberLookup = lookup(globalNamespace).ToLookup(c => c.Name);
-
-            foreach (var grouping in memberLookup)
-            {
-                GenerateNodes(grouping.Key, 0 /*index of root node*/, grouping, list, lookup);
-            }
-        }
-
-        private static readonly Func<ISymbol, bool> s_useSymbolNoPrivate =
-            s => s.CanBeReferencedByName && s.DeclaredAccessibility != Accessibility.Private;
-
-        private static readonly Func<ISymbol, bool> s_useSymbolNoPrivateOrInternal =
-            s => s.CanBeReferencedByName && 
-            s.DeclaredAccessibility != Accessibility.Private &&
-            s.DeclaredAccessibility != Accessibility.Internal;
-
-        // generate nodes for symbols that share the same name, and all their descendants
-        private static void GenerateNodes(
-            string name,
-            int parentIndex,
-            IEnumerable<ISymbol> symbolsWithSameName,
-            List<Node> list,
-            Func<ISymbol, IEnumerable<ISymbol>> lookup)
-        {
-            var node = new Node(name, parentIndex);
-            var nodeIndex = list.Count;
-            list.Add(node);
-
-            // Add all child members
-            var membersByName = symbolsWithSameName.SelectMany(lookup).ToLookup(s => s.Name);
-
-            foreach (var grouping in membersByName)
-            {
-                GenerateNodes(grouping.Key, nodeIndex, grouping, list, lookup);
-            }
-        }
-
-        private static Func<ISymbol, IEnumerable<ISymbol>> s_getMembersNoPrivate = symbol =>
-        {
-            var nt = symbol as INamespaceOrTypeSymbol;
-            return nt != null
-                ? nt.GetMembers().Where(s_useSymbolNoPrivate)
-                : SpecializedCollections.EmptyEnumerable<ISymbol>();
-        };
-
-        private static Func<ISymbol, IEnumerable<ISymbol>> s_getMembersNoPrivateOrInternal = symbol =>
-        {
-            var nt = symbol as INamespaceOrTypeSymbol;
-            return nt != null
-                ? nt.GetMembers().Where(s_useSymbolNoPrivateOrInternal)
-                : SpecializedCollections.EmptyEnumerable<ISymbol>();
-        };
-
 #endregion
 
 #region Binding 
@@ -520,6 +384,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return true;
+        }
+
+        private static SymbolTreeInfo CreateSymbolTreeInfo(
+            Solution solution, VersionStamp version, string filePath, List<Node> unsortedNodes)
+        {
+            var sortedNodes = SortNodes(unsortedNodes);
+            var createSpellCheckerTask = GetSpellCheckerTask(solution, version, filePath, sortedNodes);
+            return new SymbolTreeInfo(version, sortedNodes, createSpellCheckerTask);
         }
     }
 }

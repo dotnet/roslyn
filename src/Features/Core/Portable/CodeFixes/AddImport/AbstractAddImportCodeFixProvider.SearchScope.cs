@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 string name, SymbolFilter filter, SearchQuery searchQuery)
             {
                 var service = _solution.Workspace.Services.GetService<ISymbolTreeInfoCacheService>();
-                var info = await service.TryGetSymbolTreeInfoAsync(_solution, _assembly, _metadataReference, CancellationToken).ConfigureAwait(false);
+                var info = await service.TryGetMetadataSymbolTreeInfoAsync(_solution, _metadataReference, CancellationToken).ConfigureAwait(false);
                 if (info == null)
                 {
                     return SpecializedCollections.EmptyEnumerable<ISymbol>();
