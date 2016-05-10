@@ -288,5 +288,5 @@ tuple_literal_element
     ;
 ```
 
-- Static semantics (conversion from expression, from type, all-or-none, scrambled names, underlying types, underlying names, )
+- Static semantics (new kind of conversion from expression, new kind of conversion from type, all-or-none, scrambled names, underlying types, underlying names, listing the members of this type, what it means to access, )
 - Dynamic semantics (what happens when you do this conversion, )
