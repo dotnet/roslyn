@@ -12,6 +12,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
+    [CompilerTrait(CompilerFeature.SourceGenerators)]
     public class SourceGeneratorTests : TestBase
     {
         [Fact]

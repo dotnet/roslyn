@@ -1,16 +1,18 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Xunit;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
-using System;
+using Microsoft.CodeAnalysis.Test.Utilities;
+using System.Linq;
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
+    [CompilerTrait(CompilerFeature.SourceGenerators)]
     public class ReplaceParsingTests:  CSharpTestBase
     {
+        
         [Fact]
         public void ReplaceClass()
         {
@@ -22,6 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 DeclarationModifiers.Abstract | DeclarationModifiers.Override | DeclarationModifiers.Replace);
         }
 
+        
         [Fact]
         public void ReplaceMethod()
         {
@@ -37,6 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 DeclarationModifiers.Virtual | DeclarationModifiers.Protected | DeclarationModifiers.Replace);
         }
 
+        
         [Fact]
         public void ReplaceMethodNoFeature()
         {
@@ -48,6 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             );
         }
 
+        
         [Fact]
         public void OriginalExpression()
         {
@@ -59,6 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, opKind);
         }
 
+        
         [Fact]
         public void OriginalNoReplace()
         {
@@ -71,6 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             OriginalInMember("class C { object this[int index] => original[index]; }", inReplace: false);
         }
 
+        
         [Fact]
         public void OriginalInReplace()
         {
