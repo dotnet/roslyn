@@ -146,24 +146,29 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static IEnumerable<MetadataDefinition> LookupMetadataDefinitions(
             MetadataReader reader, TypeDefinition typeDefinition)
         {
-            foreach (var child in typeDefinition.GetMethods())
+            // Only bother looking for extension methods in static types.
+            if ((typeDefinition.Attributes & TypeAttributes.Abstract) != 0 &&
+                (typeDefinition.Attributes & TypeAttributes.Sealed) != 0)
             {
-                var method = reader.GetMethodDefinition(child);
-                if ((method.Attributes & MethodAttributes.SpecialName) != 0 ||
-                    (method.Attributes & MethodAttributes.RTSpecialName) != 0)
+                foreach (var child in typeDefinition.GetMethods())
                 {
-                    continue;
-                }
+                    var method = reader.GetMethodDefinition(child);
+                    if ((method.Attributes & MethodAttributes.SpecialName) != 0 ||
+                        (method.Attributes & MethodAttributes.RTSpecialName) != 0)
+                    {
+                        continue;
+                    }
 
-                // SymbolTreeInfo is only searched for types and extension methods.
-                // So we don't want to pull in all methods here.  As a simple approximation
-                // we just pull in methods that have attributes on them.
-                if ((method.Attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Public &&
-                    (method.Attributes & MethodAttributes.Static) != 0 &&
-                    method.GetCustomAttributes().Count > 0)
-                {
-                    yield return new MetadataDefinition(
-                        MetadataDefinitionKind.Member, reader.GetString(method.Name));
+                    // SymbolTreeInfo is only searched for types and extension methods.
+                    // So we don't want to pull in all methods here.  As a simple approximation
+                    // we just pull in methods that have attributes on them.
+                    if ((method.Attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Public &&
+                        (method.Attributes & MethodAttributes.Static) != 0 &&
+                        method.GetCustomAttributes().Count > 0)
+                    {
+                        yield return new MetadataDefinition(
+                            MetadataDefinitionKind.Member, reader.GetString(method.Name));
+                    }
                 }
             }
 
