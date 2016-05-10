@@ -54,10 +54,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     return info;
                 }
 
-                // We don't include internals from metadata assemblies.  It's less likely that
-                // a project would have IVT to it and so it helps us save on memory.  It also
-                // means we can avoid loading lots and lots of obfuscated code in the case the
-                // dll was obfuscated.
                 info = await LoadOrCreateMetadataSymbolTreeInfoAsync(
                     solution, reference, loadOnly, cancellationToken: cancellationToken).ConfigureAwait(false);
                 if (info == null && loadOnly)
@@ -214,6 +210,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             foreach (var child in typeDefinition.GetNestedTypes())
             {
                 var type = reader.GetTypeDefinition(child);
+
+                // We don't include internals from metadata assemblies.  It's less likely that
+                // a project would have IVT to it and so it helps us save on memory.  It also
+                // means we can avoid loading lots and lots of obfuscated code in the case the
+                // dll was obfuscated.
                 if (IsPublic(type.Attributes))
                 {
                     var definition = MetadataDefinition.Create(reader, type);
