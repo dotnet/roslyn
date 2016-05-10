@@ -9,9 +9,10 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
+    [CompilerTrait(CompilerFeature.SourceGenerators)]
     public class ReplaceParsingTests:  CSharpTestBase
     {
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [Fact]
         public void ReplaceClass()
         {
@@ -23,7 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 DeclarationModifiers.Abstract | DeclarationModifiers.Override | DeclarationModifiers.Replace);
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [Fact]
         public void ReplaceMethod()
         {
@@ -39,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 DeclarationModifiers.Virtual | DeclarationModifiers.Protected | DeclarationModifiers.Replace);
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [Fact]
         public void ReplaceMethodNoFeature()
         {
@@ -51,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             );
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [Fact]
         public void OriginalExpression()
         {
@@ -63,7 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.None, opKind);
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [Fact]
         public void OriginalNoReplace()
         {
@@ -76,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             OriginalInMember("class C { object this[int index] => original[index]; }", inReplace: false);
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [Fact]
         public void OriginalInReplace()
         {

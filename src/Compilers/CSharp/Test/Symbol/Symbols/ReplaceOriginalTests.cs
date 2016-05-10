@@ -13,6 +13,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
 {
+    [CompilerTrait(CompilerFeature.SourceGenerators)]
     public class ReplaceOriginalTests : CSharpTestBase
     {
         private static CSharpCompilation CreateCompilationWithMscorlib(string text, CSharpCompilationOptions options = null)
@@ -20,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
             return CreateCompilationWithMscorlib(text, options: options, parseOptions: TestOptions.Regular.WithReplaceFeature());
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [WorkItem(11123, "https://github.com/dotnet/roslyn/issues/11123")]
         [Fact]
         public void Members()
@@ -56,7 +57,7 @@ partial struct S
             compilation.VerifyDiagnostics();
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [Fact]
         public void ExpressionBodiedMembers()
         {
@@ -83,7 +84,7 @@ partial struct S
 }");
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [Fact]
         public void Fields()
         {
@@ -123,7 +124,7 @@ partial struct S
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "F").WithArguments("C.F").WithLocation(3, 19));
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [Fact]
         public void Types()
         {
@@ -149,7 +150,7 @@ class B
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "C").WithArguments("B", "C").WithLocation(7, 19));
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [Fact]
         public void Interface()
         {
@@ -177,7 +178,7 @@ class B
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("I", "P").WithLocation(6, 20));
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [Fact]
         public void Accessors()
         {
@@ -202,7 +203,7 @@ class C
                 Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "replace").WithLocation(6, 28));
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [Fact]
         public void Constructors()
         {
@@ -241,7 +242,7 @@ struct S
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "S").WithArguments(".ctor", "S").WithLocation(11, 22));
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [Fact]
         public void DefaultConstructors()
         {
@@ -267,7 +268,7 @@ struct S
                 Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "S").WithLocation(7, 20));
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [Fact]
         public void ImplicitConstructors()
         {
@@ -290,7 +291,7 @@ struct S
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("replace").WithLocation(7, 20));
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [Fact]
         public void Destructors()
         {
@@ -310,7 +311,7 @@ struct S
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("~C", "C").WithLocation(4, 14));
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [Fact]
         public void FinalizeMethod()
         {
@@ -330,7 +331,7 @@ struct S
                 Diagnostic(ErrorCode.ERR_OverrideFinalizeDeprecated, "Finalize").WithLocation(4, 37));
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [WorkItem(11122, "https://github.com/dotnet/roslyn/issues/11122")]
         [Fact]
         public void ExplicitImplementation()
@@ -382,7 +383,7 @@ class C : I
                 Diagnostic(ErrorCode.ERR_NoOriginalMember, "original").WithArguments("C.this[int]").WithLocation(22, 15));
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [Fact]
         public void MultipleReplaces()
         {
@@ -448,7 +449,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(20, 24));
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [WorkItem(11124, "https://github.com/dotnet/roslyn/issues/11124")]
         [Fact]
         public void NoOriginal()
@@ -510,7 +511,7 @@ class C
             }
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [WorkItem(11125, "https://github.com/dotnet/roslyn/issues/11125")]
         [Fact]
         public void DifferentSignatures()
@@ -544,7 +545,7 @@ class C
             compilation.VerifyDiagnostics(); 
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [WorkItem(11126, "https://github.com/dotnet/roslyn/issues/11126")]
         [Fact]
         public void DifferentTypeParameters()
@@ -561,7 +562,7 @@ class C
             compilation.VerifyDiagnostics();
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [WorkItem(11127, "https://github.com/dotnet/roslyn/issues/11127")]
         [Fact]
         public void Abstract()
@@ -578,7 +579,7 @@ class C
             compilation.VerifyDiagnostics(); 
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [Fact]
         public void Virtual()
         {
@@ -654,7 +655,7 @@ class C
             }
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [Fact]
         public void Overridden()
         {
@@ -684,7 +685,7 @@ class B : A
 }");
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [Fact]
         public void Attributes()
         {
@@ -702,7 +703,7 @@ class C
             compilation.VerifyDiagnostics();
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [WorkItem(11129, "https://github.com/dotnet/roslyn/issues/11129")]
         [Fact]
         public void DifferentAttributes()
@@ -725,7 +726,7 @@ class C
             compilation.VerifyDiagnostics(); 
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [WorkItem(11130, "https://github.com/dotnet/roslyn/issues/11130")]
         [Fact]
         public void Modifiers()
@@ -733,7 +734,7 @@ class C
             // Test extern, partial, unsafe, async
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [Fact]
         public void MissingSet()
         {
@@ -750,7 +751,7 @@ class C
                 Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "original").WithArguments("C.P").WithLocation(4, 30));
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [Fact]
         public void MissingGet()
         {
@@ -767,7 +768,7 @@ class C
                 Diagnostic(ErrorCode.ERR_PropertyLacksGet, "original").WithArguments("C.P").WithLocation(4, 27));
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [Fact]
         public void OriginalAsDelegate()
         {
@@ -789,7 +790,7 @@ class C
             compilation.VerifyDiagnostics();
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [Fact]
         public void OriginalInLambda()
         {
@@ -820,7 +821,7 @@ class C
             CompileAndVerify(compilation, expectedOutput: @"21");
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [WorkItem(11131, "https://github.com/dotnet/roslyn/issues/11131")]
         [Fact]
         public void MissingAccessors()
@@ -837,7 +838,7 @@ class C
             compilation.VerifyDiagnostics();
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [WorkItem(11131, "https://github.com/dotnet/roslyn/issues/11131")]
         [Fact]
         public void AdditionalAccessors()
@@ -854,7 +855,7 @@ class C
             compilation.VerifyDiagnostics(); 
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [WorkItem(11131, "https://github.com/dotnet/roslyn/issues/11131")]
         [Fact]
         public void DifferentAccessors()
@@ -871,7 +872,7 @@ class C
             compilation.VerifyDiagnostics(); 
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [Fact]
         public void ReplaceWithAutoProperty()
         {
@@ -891,7 +892,7 @@ class C
             compilation.VerifyDiagnostics();
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [Fact]
         public void ReplaceWithFieldLikeEvent()
         {
@@ -917,7 +918,7 @@ class C
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(6, 32));
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [Fact]
         public void ParamsArray()
         {
@@ -941,7 +942,7 @@ class C
         /// Replaced generic method. Original reference
         /// must use type arguments from replace method.
         /// </summary>
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [Fact]
         public void GenericMethod()
         {
@@ -955,7 +956,7 @@ class C
             compilation.VerifyDiagnostics();
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [Fact]
         public void OriginalMethodDifferentTypeArguments()
         {
@@ -978,7 +979,7 @@ class C
                 Diagnostic(ErrorCode.ERR_BadArgType, "2").WithArguments("2", "int", "U").WithLocation(9, 21));
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [WorkItem(11132, "https://github.com/dotnet/roslyn/issues/11132")]
         [Fact]
         public void OriginalMethodExplicitTypeArguments()
@@ -1011,7 +1012,7 @@ class C
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "original<T>(default(T))").WithLocation(8, 9));
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [Fact]
         public void PartialReplace()
         {
@@ -1062,7 +1063,7 @@ class C
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M4").WithArguments("M4", "C").WithLocation(18, 26));
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [WorkItem(11117, "https://github.com/dotnet/roslyn/issues/11117")]
         [Fact]
         public void ReplacePartial()
@@ -1102,7 +1103,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NoOriginalMember, "original").WithArguments("C.M2()").WithLocation(13, 9));
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [Fact]
         public void MethodNamedOriginal()
         {
@@ -1153,7 +1154,7 @@ class C
 }");
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [Fact]
         public void EntryPoint()
         {
@@ -1199,7 +1200,7 @@ class C
 }");
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [WorkItem(11134, "https://github.com/dotnet/roslyn/issues/11134")]
         [Fact]
         public void UseSiteDiagnostics()
@@ -1207,7 +1208,7 @@ class C
             // Can we test useSiteDiagnostics in BindInvocationExpression?
         }
 
-        [CompilerTrait(CompilerFeature.SourceGenerators)]
+        
         [Fact]
         public void LookupReplace()
         {
