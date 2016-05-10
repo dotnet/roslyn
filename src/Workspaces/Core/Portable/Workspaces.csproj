@@ -335,7 +335,8 @@
     <Compile Include="CodeGeneration\CodeGenerationSymbolFactory.cs" />
     <Compile Include="CodeGeneration\CodeGenerator.cs" />
     <Compile Include="Diagnostics\DiagnosticData.cs" />
-    <Compile Include="Diagnostics\DiagnosticProvider.cs" />
+    <Compile Include="Diagnostics\DiagnosticServices.cs" />
+    <Compile Include="Diagnostics\DiagnosticServiceOptions.cs" />
     <Compile Include="Diagnostics\Extensions.cs" />
     <Compile Include="Diagnostics\InternalDiagnosticsOptions.cs" />
     <Compile Include="Diagnostics\InternalRuntimeDiagnosticOptions.cs" />

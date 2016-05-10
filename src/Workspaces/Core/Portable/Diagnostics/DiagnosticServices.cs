@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis
@@ -9,9 +9,9 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Provide a way for users to turn on and off analyzing workspace for compiler diagnostics
     /// </summary>
-    public static class DiagnosticProvider
+    public static class DiagnosticServices
     {
-        public static void Enable(Workspace workspace, Options options)
+        public static void Enable(Workspace workspace, DiagnosticServiceOptions options)
         {
             var service = workspace.Services.GetService<ISolutionCrawlerRegistrationService>();
 
@@ -25,25 +25,11 @@ namespace Microsoft.CodeAnalysis
             service.Unregister(workspace);
         }
 
-        private static CodeAnalysis.Options.OptionSet GetOptions(Workspace workspace, Options options)
+        private static OptionSet GetOptions(Workspace workspace, DiagnosticServiceOptions options)
         {
             return workspace.Options
-                            .WithChangedOption(InternalRuntimeDiagnosticOptions.Syntax, (options & Options.Syntax) == Options.Syntax)
-                            .WithChangedOption(InternalRuntimeDiagnosticOptions.Semantic, (options & Options.Semantic) == Options.Semantic);
-        }
-
-        [Flags]
-        public enum Options
-        {
-            /// <summary>
-            /// Include syntax errors
-            /// </summary>
-            Syntax = 0x01,
-
-            /// <summary>
-            /// Include semantic errors
-            /// </summary>
-            Semantic = 0x02,
+                            .WithChangedOption(InternalRuntimeDiagnosticOptions.Syntax, (options & DiagnosticServiceOptions.Syntax) == DiagnosticServiceOptions.Syntax)
+                            .WithChangedOption(InternalRuntimeDiagnosticOptions.Semantic, (options & DiagnosticServiceOptions.Semantic) == DiagnosticServiceOptions.Semantic);
         }
     }
 }
