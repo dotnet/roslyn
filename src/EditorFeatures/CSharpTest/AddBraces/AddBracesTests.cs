@@ -184,6 +184,45 @@ class Buzz : IDisposable
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        public async Task DoNotFireForLockWithBraces()
+        {
+            await TestMissingAsync(
+            @"
+class Program
+{
+    static void Main()
+    {
+        var str = ""test"";
+        [|lock|] (str)
+        {
+            return;
+        }
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        public async Task DoNotFireForLockWithChildLock()
+        {
+            await TestMissingAsync(
+            @"
+class Program
+{
+    static void Main()
+    {
+        var str1 = ""test"";
+        var str2 = ""test"";
+
+        [|lock|] (str1)
+        lock (str2)
+            return;
+    }
+}
+");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
         public async Task FireForIfWithoutBraces()
         {
             await TestAsync(
@@ -487,6 +526,76 @@ class Buzz : IDisposable
     public void Dispose()
     {
         throw new NotImplementedException();
+    }
+}",
+
+            index: 0,
+            compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        public async Task FireForLockWithoutBraces()
+        {
+            await TestAsync(
+            @"
+class Program
+{
+    static void Main()
+    {
+        var str = ""test"";
+        [|lock|] (str)
+            return;
+    }
+}",
+
+   @"
+class Program
+{
+    static void Main()
+    {
+        var str = ""test"";
+        lock (str)
+        {
+            return;
+        }
+    }
+}",
+
+   index: 0,
+   compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddBraces)]
+        public async Task FireForLockWithoutBracesNestedInLock()
+        {
+            await TestAsync(
+            @"
+class Program
+{
+    static void Main()
+    {
+        var str1 = ""test"";
+        var str2 = ""test"";
+
+        lock (str1)
+        [|lock|] (str2) // VS thinks this should be indented one more level
+            return;
+    }
+}",
+
+   @"
+class Program
+{
+    static void Main()
+    {
+        var str1 = ""test"";
+        var str2 = ""test"";
+
+        lock (str1)
+        lock (str2) // VS thinks this should be indented one more level
+            {
+                return;
+            }
     }
 }",
 

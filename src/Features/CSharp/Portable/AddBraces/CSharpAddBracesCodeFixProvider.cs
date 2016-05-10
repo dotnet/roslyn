@@ -73,6 +73,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.AddBraces
                 case SyntaxKind.UsingStatement:
                     var usingSyntax = (UsingStatementSyntax)statement;
                     return GetNewBlock(statement, usingSyntax.Statement);
+
+                case SyntaxKind.LockStatement:
+                    var lockSyntax = (LockStatementSyntax)statement;
+                    return GetNewBlock(statement, lockSyntax.Statement);
             }
 
             return default(SyntaxNode);
