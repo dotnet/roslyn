@@ -236,7 +236,6 @@ Language grammar changes
 For tuple type declarations:
 
 ```ANTLR
-
 struct_type
     : type_name
     | simple_type
@@ -248,16 +247,38 @@ tuple_type
     : '(' tuple_type_elements ')'
     ;
     
-tuple_type_elements
-    : type_parameter identifier?
-    | tuple_type_elements ',' type_parameter identifier?
+tuple_type_element_list
+    : tuple_type_element
+    | tuple_type_element_list ',' tuple_type_element
     ;
-
+tuple_type_element
+    : type_parameter identifier?
+    ;
 ```
 
 For tuple literals:
 
 ```ANTLR
+literal
+    : boolean_literal
+    | integer_literal
+    | real_literal
+    | character_literal
+    | string_literal
+    | null_literal
+    | tuple_literal
+    ;
 
+tuple_literal
+    : '(' tuple_literal_element_list ')'
+    ;
 
+tuple_literal_element_list
+    : tuple_literal_element
+    | tuple_literal_element_list ',' tuple_literal_element
+    ;
+
+tuple_literal_element
+    : ( identifier ':' )? literal
+    ;
 ```
