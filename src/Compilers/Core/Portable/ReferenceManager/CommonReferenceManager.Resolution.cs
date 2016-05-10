@@ -465,7 +465,7 @@ namespace Microsoft.CodeAnalysis
             Diagnostic newDiagnostic = null;
             try
             {
-                newMetadata = peReference.GetMetadata();
+                newMetadata = peReference.GetMetadataNoCopy();
 
                 // make sure basic structure of the PE image is valid:
                 var assemblyMetadata = newMetadata as AssemblyMetadata;
