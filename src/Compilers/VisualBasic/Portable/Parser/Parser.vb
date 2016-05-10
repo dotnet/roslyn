@@ -4441,8 +4441,13 @@ checkNullable:
                     ' being reported. For now keep backwards compatibility.
                     If param.ContainsDiagnostics Then
                         param = param.AddTrailingSyntax(ResyncAt({SyntaxKind.CommaToken, SyntaxKind.CloseParenToken}))
-                    End If
+                    Else
+                        ' TODO: MAKE THIS CONDITIONAL ON A LANGUAGE FEATURE FLAG
+                        If param.Default Is Nothing Then
+                            param = param.AddTrailingSyntax(ResyncAt({SyntaxKind.CommaToken, SyntaxKind.CloseParenToken}))
 
+                        End If
+                    End If
                     Dim comma As PunctuationSyntax = Nothing
                     If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
 
@@ -4615,14 +4620,13 @@ checkNullable:
                 value = ParseExpressionCore()
 
             ElseIf modifiers.Any AndAlso modifiers.Any(SyntaxKind.OptionalKeyword) Then
-                ' TODO: Make this dependant on language feature flag.
+                'TODO:           Make this dependant on language feature flag
                 'equals = ReportSyntaxError(InternalSyntaxFactory.MissingPunctuation(SyntaxKind.EqualsToken), ERRID.ERR_ObsoleteOptionalWithoutValue)
                 'value = ParseExpressionCore()
 
             End If
 
             Dim initializer As EqualsValueSyntax = Nothing
-
             If value IsNot Nothing Then
 
                 If value.ContainsDiagnostics Then
