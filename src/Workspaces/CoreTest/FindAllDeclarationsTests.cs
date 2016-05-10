@@ -578,7 +578,7 @@ Inner i;
             // create symbol tree info from assembly
             var version = VersionStamp.Create();
             var info = SymbolTreeInfo.CreateSourceSymbolTreeInfo(
-                solution, version, assembly, "", includeInternal: true, cancellationToken: CancellationToken.None);
+                solution, version, assembly, "", cancellationToken: CancellationToken.None);
 
             using (var writerStream = new MemoryStream())
             {
