@@ -159,6 +159,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             foreach (var child in typeDefinition.GetMethods())
             {
                 var method = reader.GetMethodDefinition(child);
+                if ((method.Attributes & MethodAttributes.SpecialName) != 0 ||
+                    (method.Attributes & MethodAttributes.RTSpecialName) != 0)
+                {
+                    continue;
+                }
+
                 if (IsPublic(method))
                 {
                     yield return new MetadataDefinition(
@@ -210,6 +216,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static bool IsPublic(MetadataReader reader, MethodDefinitionHandle handle)
         {
+            if (handle.IsNil)
+            {
+                return false;
+            }
+
             var method = reader.GetMethodDefinition(handle);
             return IsPublic(method);
         }
@@ -297,7 +308,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 MetadataReader reader, TypeDefinition definition)
             {
                 return new MetadataDefinition(
-                    MetadataDefinitionKind.Namespace,
+                    MetadataDefinitionKind.Type,
                     reader.GetString(definition.Name))
                 {
                     Type = definition
