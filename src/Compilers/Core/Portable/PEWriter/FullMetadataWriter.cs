@@ -61,7 +61,10 @@ namespace Microsoft.Cci
                     break;
             }
 
-            var dynamicAnalysisDataWriterOpt = context.ModuleBuilder.EmitOptions.EmitDynamicAnalysisData ? new DynamicAnalysisDataWriter() : null;
+            var dynamicAnalysisDataWriterOpt = context.ModuleBuilder.EmitOptions.EmitDynamicAnalysisData ? 
+                new DynamicAnalysisDataWriter(context.Module.DebugDocumentCount, context.Module.HintNumberOfMethodDefinitions) : 
+                null;
+
             return new FullMetadataWriter(context, builder, debugBuilderOpt, dynamicAnalysisDataWriterOpt, messageProvider, allowMissingMethodBodies, deterministic, cancellationToken);
         }
 

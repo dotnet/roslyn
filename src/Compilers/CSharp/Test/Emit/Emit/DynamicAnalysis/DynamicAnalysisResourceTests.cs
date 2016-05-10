@@ -51,7 +51,7 @@ public class C
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"));
        
             var peReader = new PEReader(peImage);
-            var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader);
+            var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader, "<DynamicAnalysisData>");
 
             VerifyDocuments(reader, reader.Documents,
                 @"'C:\myproject\doc1.cs' B8-F7-5B-45-79-BC-51-18-00-2B-11-40-B6-E8-E2-85-28-D9-11-0C (SHA1)");
@@ -165,7 +165,7 @@ public class C
             var peImage = c.EmitToArray(EmitOptions.Default.WithInstrument("Test.Flag"));
 
             var peReader = new PEReader(peImage);
-            var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader);
+            var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader, "<DynamicAnalysisData>");
 
             VerifyDocuments(reader, reader.Documents,
                 @"'C:\myproject\doc1.cs' EE-A5-42-12-BD-ED-90-96-8D-12-54-DE-D0-F0-4F-EC-79-C6-2A-89 (SHA1)");
@@ -217,14 +217,14 @@ public class C
             var peImage = c.EmitToArray(EmitOptions.Default);
 
             var peReader = new PEReader(peImage);
-            var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader);
+            var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader, "<DynamicAnalysisData>");
 
             Assert.Null(reader);
         }
 
         private static void VerifySpans(DynamicAnalysisDataReader reader, DynamicAnalysisMethod methodData, params string[] expected)
         {
-            AssertEx.Equal(expected, reader.GetSpans(methodData.Blob).Select(s => s.ToString()));
+            AssertEx.Equal(expected, reader.GetSpans(methodData.Blob).Select(s => $"({s.StartLine},{s.StartColumn})-({s.EndLine},{s.EndColumn})"));
         }
 
         private void VerifyDocuments(DynamicAnalysisDataReader reader, ImmutableArray<DynamicAnalysisDocument> documents, params string[] expected)

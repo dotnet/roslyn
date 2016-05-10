@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-// Review all exception messages, range checks, public API, TODOs: https://github.com/dotnet/testimpact/issues/47
+// TODO (https://github.com/dotnet/testimpact/issues/84): delete this
 
 using System;
 using System.Collections.Immutable;
@@ -10,7 +10,6 @@ using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using Microsoft.CodeAnalysis.Collections;
-using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -38,6 +37,24 @@ namespace Microsoft.CodeAnalysis
         }
     }
 
+    internal struct DynamicAnalysisSpan
+    {
+        public readonly int DocumentRowId;
+        public readonly int StartLine;
+        public readonly int StartColumn;
+        public readonly int EndLine;
+        public readonly int EndColumn;
+
+        public DynamicAnalysisSpan(int documentRowId, int startLine, int startColumn, int endLine, int endColumn)
+        {
+            DocumentRowId = documentRowId;
+            StartLine = startLine;
+            StartColumn = startColumn;
+            EndLine = endLine;
+            EndColumn = endColumn;
+        }
+    }
+
     internal unsafe sealed class DynamicAnalysisDataReader
     {
         public ImmutableArray<DynamicAnalysisDocument> Documents { get; }
@@ -61,7 +78,7 @@ namespace Microsoft.CodeAnalysis
             // version
             byte major = reader.ReadByte();
             byte minor = reader.ReadByte();
-            if (major != 0 && minor != 1)
+            if (major != 0 || minor < 1 || minor > 2)
             {
                 throw new NotSupportedException();
             }
@@ -71,8 +88,8 @@ namespace Microsoft.CodeAnalysis
             int methodSpanRowCount = reader.ReadInt32();
 
             // blob heap sizes:
-            int stringHeapSize = reader.ReadInt32();
-            int userStringHeapSize = reader.ReadInt32();
+            int stringHeapSize = (minor == 1) ? reader.ReadInt32() : 0;
+            int userStringHeapSize = (minor == 1) ? reader.ReadInt32() : 0;
             int guidHeapSize = reader.ReadInt32();
             int blobHeapSize = reader.ReadInt32();
 
@@ -117,7 +134,7 @@ namespace Microsoft.CodeAnalysis
             _blobHeapBlob = new Blob(buffer + blobHeapOffset, blobHeapSize);
         }
 
-        public static DynamicAnalysisDataReader TryCreateFromPE(PEReader peReader)
+        public static DynamicAnalysisDataReader TryCreateFromPE(PEReader peReader, string resourceName)
         {
             // TODO: review all range checks, better error messages
 
@@ -128,7 +145,7 @@ namespace Microsoft.CodeAnalysis
                 var resource = mdReader.GetManifestResource(resourceHandle);
                 if (resource.Implementation.IsNil &&
                     resource.Attributes == ManifestResourceAttributes.Private &&
-                    mdReader.StringComparer.Equals(resource.Name, "<DynamicAnalysisData>"))
+                    mdReader.StringComparer.Equals(resource.Name, resourceName))
                 {
                     offset = resource.Offset;
                 }
@@ -172,14 +189,14 @@ namespace Microsoft.CodeAnalysis
             return smallRefSize ? reader.ReadUInt16() : reader.ReadInt32();
         }
 
-        public ImmutableArray<LinePositionSpan> GetSpans(BlobHandle handle)
+        public ImmutableArray<DynamicAnalysisSpan> GetSpans(BlobHandle handle)
         {
             if (handle.IsNil)
             {
-                return ImmutableArray<LinePositionSpan>.Empty;
+                return ImmutableArray<DynamicAnalysisSpan>.Empty;
             }
 
-            var builder = ArrayBuilder<LinePositionSpan>.GetInstance();
+            var builder = ArrayBuilder<DynamicAnalysisSpan>.GetInstance();
 
             var reader = GetBlobReader(handle);
 
@@ -223,7 +240,8 @@ namespace Microsoft.CodeAnalysis
 
                 int endLine = AddLines(startLine, deltaLines);
                 int endColumn = AddColumns(startColumn, deltaColumns);
-                builder.Add(new LinePositionSpan(new LinePosition(startLine, startColumn), new LinePosition(endLine, endColumn)));
+                var linePositionSpan = new DynamicAnalysisSpan(documentRowId, startLine, startColumn, endLine, endColumn);
+                builder.Add(linePositionSpan);
             }
 
             return builder.ToImmutableAndFree();

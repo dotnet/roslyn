@@ -860,6 +860,8 @@ namespace Microsoft.CodeAnalysis.Emit
             }
         }
 
+        int Cci.IModule.DebugDocumentCount => _debugDocuments.Count;
+
         #endregion
 
         #region INamedEntity
