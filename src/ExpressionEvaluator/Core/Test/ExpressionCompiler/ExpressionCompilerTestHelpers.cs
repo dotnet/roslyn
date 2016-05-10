@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         private static ModuleMetadata GetManifestModuleMetadata(MetadataReference reference)
         {
             // make a copy to avoid disposing shared reference metadata:
-            var metadata = ((MetadataImageReference)reference).GetMetadataNoCopy().Copy();
+            var metadata = ((MetadataImageReference)reference).GetMetadata();
             return (metadata as AssemblyMetadata)?.GetModules()[0] ?? (ModuleMetadata)metadata;
         }
 
