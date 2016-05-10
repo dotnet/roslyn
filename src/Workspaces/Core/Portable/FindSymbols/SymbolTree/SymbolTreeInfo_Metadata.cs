@@ -12,10 +12,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal partial class SymbolTreeInfo
     {
-        public SymbolTreeInfo() : base()
-        {
-        }
-
         /// <summary>
         /// this gives you SymbolTreeInfo for a metadata
         /// </summary>

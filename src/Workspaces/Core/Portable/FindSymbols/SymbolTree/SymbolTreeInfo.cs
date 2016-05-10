@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal partial class SymbolTreeInfo : ISymbolTreeInfo
+    internal partial class SymbolTreeInfo
     {
         private readonly VersionStamp _version;
 
@@ -57,6 +57,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             _version = version;
             _nodes = orderedNodes;
             _spellCheckerTask = spellCheckerTask;
+        }
+
+        public Task<IEnumerable<ISymbol>> FindAsync(
+            SearchQuery query, IAssemblySymbol assembly, CancellationToken cancellationToken)
+        {
+            return this.FindAsync(query, new AsyncLazy<IAssemblySymbol>(assembly), cancellationToken);
         }
 
         public Task<IEnumerable<ISymbol>> FindAsync(
