@@ -114,6 +114,11 @@ namespace Roslyn.VisualStudio.Test.Utilities
             }
         }
 
+        public static void SetFocus(IntPtr windowHandle)
+        {
+            User32.SetForegroundWindow(windowHandle);
+        }
+
         /// <summary>Locates the DTE object for the specified process.</summary>
         public static DTE TryLocateDteForProcess(Process process)
         {

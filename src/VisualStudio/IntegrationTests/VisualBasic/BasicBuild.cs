@@ -1,9 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.Test.Utilities;
 using Xunit;
 
-namespace Roslyn.VisualStudio.Integration.UnitTests
+namespace Roslyn.VisualStudio.Basic.IntegrationTests
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class BasicBuild

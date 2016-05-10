@@ -18,29 +18,27 @@ namespace Roslyn.VisualStudio.Test.Utilities
         }
 
         /// <summary>Gets the solution currently loaded in the host process or <c>null</c> if no solution is currently loaded.</summary>
-        public Solution Solution
-            => _solution;
+        public Solution Solution => _solution;
 
-        /// <summary>Creates and loads a new solution in the host process, closing the existing solution without saving if one exists.</summary>
-        public Solution CreateSolution(string solutionName)
+        /// <summary>Creates and loads a new solution in the host process, optionally saving the existing solution if one exists.</summary>
+        public Solution CreateSolution(string solutionName, bool saveExistingSolutionIfExists = false)
         {
             var dteSolution = _visualStudio.Dte.Solution;
 
             if (dteSolution.IsOpen)
             {
-                CloseSolution(saveFirst: false);
+                CloseSolution(saveExistingSolutionIfExists);
             }
 
             var solutionPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            dteSolution.Create(solutionPath, solutionName);
+            IntegrationHelper.DeleteDirectoryRecursively(solutionPath);
 
+            dteSolution.Create(solutionPath, solutionName);
             _solution = new Solution((Solution2)(dteSolution), Path.Combine(solutionPath, $"{solutionName}.sln"));
+
             return _solution;
         }
 
-        public void CloseSolution(bool saveFirst = false)
-        {
-            _visualStudio.Dte.Solution.Close(saveFirst);
-        }
+        public void CloseSolution(bool saveFirst = false) => _visualStudio.Dte.Solution.Close(saveFirst);
     }
 }
