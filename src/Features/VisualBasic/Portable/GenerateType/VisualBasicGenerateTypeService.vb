@@ -628,7 +628,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateType
                 Return updatedSolution
             End If
 
-            Dim placeSystemNamespaceFirst = document.Project.Solution.Workspace.Options.GetOption(OrganizerOptions.PlaceSystemNamespaceFirst, document.Project.Language)
+            Dim placeSystemNamespaceFirst = document.Options.GetOption(OrganizerOptions.PlaceSystemNamespaceFirst)
             Dim root As SyntaxNode = Nothing
             If (modifiedRoot Is Nothing) Then
                 root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)

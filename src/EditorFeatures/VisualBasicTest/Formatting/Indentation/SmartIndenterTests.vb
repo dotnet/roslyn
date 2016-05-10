@@ -2924,9 +2924,8 @@ End Class
         End Function
 
         Friend Shared Sub SetIndentStyle(buffer As ITextBuffer, indentStyle As FormattingOptions.IndentStyle)
-            Dim optionService = buffer.GetWorkspace().Services.GetService(Of IOptionService)()
-            Dim optionSet = optionService.GetOptions()
-            optionService.SetOptions(optionSet.WithChangedOption(FormattingOptions.SmartIndent, LanguageNames.VisualBasic, indentStyle))
+            Dim workspace = buffer.GetWorkspace()
+            workspace.Options = workspace.Options.WithChangedOption(FormattingOptions.SmartIndent, LanguageNames.VisualBasic, indentStyle)
         End Sub
     End Class
 End Namespace

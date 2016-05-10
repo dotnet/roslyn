@@ -101,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Utilities.CommandHandlers
                 Return False
             End If
 
-            If Not document.Project.Solution.Workspace.Options.GetOption(FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers, LanguageNames.VisualBasic) Then
+            If Not document.Options.GetOption(FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers) Then
                 Return False
             End If
 

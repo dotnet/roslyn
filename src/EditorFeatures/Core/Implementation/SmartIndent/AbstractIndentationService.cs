@@ -42,15 +42,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
             var lineToBeIndented = textSnapshot.GetLineFromLineNumber(lineNumber);
 
             var formattingRules = GetFormattingRules(document, lineToBeIndented.Start);
-            var optionSet = document.Project.Solution.Workspace.Options;
 
             // enter on a token case.
-            if (ShouldUseSmartTokenFormatterInsteadOfIndenter(formattingRules, root, lineToBeIndented, optionSet, cancellationToken))
+            if (ShouldUseSmartTokenFormatterInsteadOfIndenter(formattingRules, root, lineToBeIndented, document.Options, cancellationToken))
             {
                 return null;
             }
 
-            var indenter = await GetIndenterAsync(document, lineToBeIndented, formattingRules, optionSet, cancellationToken).ConfigureAwait(false);
+            var indenter = await GetIndenterAsync(document, lineToBeIndented, formattingRules, document.Options, cancellationToken).ConfigureAwait(false);
             return indenter.GetDesiredIndentation();
         }
 

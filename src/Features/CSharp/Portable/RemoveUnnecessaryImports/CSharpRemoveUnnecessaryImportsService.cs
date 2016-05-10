@@ -84,7 +84,7 @@ namespace Microsoft.CodeAnalysis.CSharp.RemoveUnnecessaryImports
         {
             var spans = new List<TextSpan>();
             AddFormattingSpans(newRoot, spans, cancellationToken);
-            return Formatter.FormatAsync(newRoot, spans, document.Project.Solution.Workspace, document.Project.Solution.Workspace.Options, cancellationToken: cancellationToken);
+            return Formatter.FormatAsync(newRoot, spans, document.Project.Solution.Workspace, document.Options, cancellationToken: cancellationToken);
         }
 
         private void AddFormattingSpans(

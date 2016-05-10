@@ -277,11 +277,10 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
 
                 ' turn off diagnostic
                 If Not enabled Then
-                    Dim optionService = workspace.Services.GetService(Of IOptionService)()
-                    optionService.SetOptions(
-                        optionService.GetOptions().WithChangedOption(ServiceComponentOnOffOptions.DiagnosticProvider, False) _
+                    workspace.Options = workspace.Options _
+                                                  .WithChangedOption(ServiceComponentOnOffOptions.DiagnosticProvider, False) _
                                                   .WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.CSharp, False) _
-                                                  .WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.VisualBasic, False))
+                                                  .WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.VisualBasic, False)
                 End If
 
                 Dim registrationService = workspace.Services.GetService(Of ISolutionCrawlerRegistrationService)()

@@ -15,7 +15,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.RemoveUnnecessaryCast
 
             Friend Shared Shadows ReadOnly Instance As RemoveUnnecessaryCastFixAllProvider = New RemoveUnnecessaryCastFixAllProvider()
 
-            Protected Overrides Function GetNodeToSimplify(root As SyntaxNode, model As SemanticModel, diagnostic As Diagnostic, workspace As Workspace, ByRef codeActionId As String, cancellationToken As CancellationToken) As SyntaxNode
+            Protected Overrides Function GetNodeToSimplify(root As SyntaxNode, model As SemanticModel, diagnostic As Diagnostic, document As Document, ByRef codeActionId As String, cancellationToken As CancellationToken) As SyntaxNode
                 codeActionId = Nothing
                 Return GetCastNode(root, model, diagnostic.Location.SourceSpan, cancellationToken)
             End Function

@@ -12,43 +12,13 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 {
     internal static partial class ITextBufferExtensions
     {
-        public static IEnumerable<DocumentId> GetOpenDocumentIds(this ITextBuffer buffer)
-        {
-            var container = buffer.AsTextContainer();
-
-            Workspace workspace;
-            if (Workspace.TryGetWorkspace(container, out workspace))
-            {
-                return workspace.GetRelatedDocumentIds(container);
-            }
-
-            return SpecializedCollections.EmptyEnumerable<DocumentId>();
-        }
-
-        internal static OptionSet TryGetOptions(this ITextBuffer textBuffer)
-        {
-            Workspace workspace;
-
-            if (Workspace.TryGetWorkspace(textBuffer.AsTextContainer(), out workspace))
-            {
-                var service = workspace.Services.GetService<IOptionService>();
-
-                if (service != null)
-                {
-                    return service.GetOptions();
-                }
-            }
-
-            return null;
-        }
-
         internal static T GetOption<T>(this ITextBuffer buffer, Option<T> option)
         {
-            var options = TryGetOptions(buffer);
+            var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
 
-            if (options != null)
+            if (document != null)
             {
-                return options.GetOption(option);
+                return document.Options.GetOption(option);
             }
 
             return option.DefaultValue;
@@ -59,20 +29,14 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
             // Add a FailFast to help diagnose 984249.  Hopefully this will let us know what the issue is.
             try
             {
-                Workspace workspace;
-                if (!Workspace.TryGetWorkspace(buffer.AsTextContainer(), out workspace))
+                var document = buffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+
+                if (document != null)
                 {
-                    return option.DefaultValue;
+                    return document.Options.GetOption(option);
                 }
 
-                var service = workspace.Services.GetService<IOptionService>();
-                if (service == null)
-                {
-                    return option.DefaultValue;
-                }
-
-                var language = workspace.Services.GetLanguageServices(buffer).Language;
-                return service.GetOption(option, language);
+                return option.DefaultValue;
             }
             catch (Exception e) when (FatalError.Report(e))
             {

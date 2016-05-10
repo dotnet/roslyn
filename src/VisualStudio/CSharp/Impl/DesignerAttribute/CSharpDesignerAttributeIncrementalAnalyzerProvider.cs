@@ -37,18 +37,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.DesignerAttribute
 
         public IIncrementalAnalyzer CreatePerLanguageIncrementalAnalyzer(Workspace workspace, IIncrementalAnalyzerProvider provider)
         {
-            var optionService = workspace.Services.GetService<IOptionService>();
-            return new DesignerAttributeIncrementalAnalyzer(_serviceProvider, optionService, _notificationService, _asyncListeners);
+            return new DesignerAttributeIncrementalAnalyzer(_serviceProvider, _notificationService, _asyncListeners);
         }
 
         private class DesignerAttributeIncrementalAnalyzer : AbstractDesignerAttributeIncrementalAnalyzer
         {
             public DesignerAttributeIncrementalAnalyzer(
                 IServiceProvider serviceProvider,
-                IOptionService optionService,
                 IForegroundNotificationService notificationService,
                 IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners) :
-                base(serviceProvider, optionService, notificationService, asyncListeners)
+                base(serviceProvider, notificationService, asyncListeners)
             {
             }
 

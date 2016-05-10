@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
                 symbol = ((IMethodSymbol)symbol).PartialImplementationPart ?? symbol;
             }
 
-            var options = project.Solution.Workspace.Options;
+            var options = project.Solution.Options;
 
             var preferredSourceLocations = NavigableItemFactory.GetPreferredSourceLocations(solution, symbol).ToArray();
             var title = NavigableItemFactory.GetSymbolDisplayString(project, symbol);
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
                     var externalSourceDefinitions = FindExternalDefinitionsAsync(symbol, project, externalDefinitionProviders, cancellationToken).WaitAndGetResult(cancellationToken).ToImmutableArray();
                     if (externalSourceDefinitions.Length > 0)
                     {
-                        return TryGoToDefinition(externalSourceDefinitions, title, project.Solution.Workspace.Options, presenters, throwOnHiddenDefinition);
+                        return TryGoToDefinition(externalSourceDefinitions, title, options, presenters, throwOnHiddenDefinition);
                     }
                 }
 
@@ -93,7 +93,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition
             }
 
             var navigableItems = preferredSourceLocations.Select(location => NavigableItemFactory.GetItemFromSymbolLocation(solution, symbol, location)).ToImmutableArray();
-            return TryGoToDefinition(navigableItems, title, project.Solution.Workspace.Options, presenters, throwOnHiddenDefinition);
+            return TryGoToDefinition(navigableItems, title, options, presenters, throwOnHiddenDefinition);
         }
 
         private static bool TryGoToDefinition(

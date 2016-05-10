@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editing
     {
         public async Task<Document> AddImportsAsync(Document document, IEnumerable<TextSpan> spans, OptionSet options, CancellationToken cancellationToken)
         {
-            options = options ?? document.Project.Solution.Workspace.Options;
+            options = options ?? document.Options;
 
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var root = await model.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);

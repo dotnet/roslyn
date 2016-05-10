@@ -11,14 +11,13 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Extensions
         {
             if (options != null)
             {
-                var optionService = workspace.Services.GetService<IOptionService>();
-                var optionSet = optionService.GetOptions();
+                var optionSet = workspace.Options;
                 foreach (var option in options)
                 {
                     optionSet = optionSet.WithChangedOption(option.Key, option.Value);
                 }
 
-                optionService.SetOptions(optionSet);
+                workspace.Options = optionSet;
             }
         }
     }

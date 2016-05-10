@@ -152,8 +152,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 
             private bool CheckOptions(Document document)
             {
-                if (ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(_workspace, document.Project.Language) &&
-                    _workspace.Options.GetOption(RuntimeOptions.FullSolutionAnalysis))
+                if (ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(document.Project) &&
+                    document.Options.GetOption(RuntimeOptions.FullSolutionAnalysis))
                 {
                     return true;
                 }

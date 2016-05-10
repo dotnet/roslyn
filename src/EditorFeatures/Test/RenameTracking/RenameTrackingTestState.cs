@@ -79,8 +79,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.RenameTracking
                 OnAfterSymbolRenamedReturnValue = onAfterGlobalSymbolRenamedReturnValue
             };
 
-            var optionService = this.Workspace.Services.GetService<IOptionService>();
-
             // Mock the action taken by the workspace INotificationService
             var notificationService = Workspace.Services.GetService<INotificationService>() as INotificationServiceCallback;
             var callback = new Action<string, string, NotificationSeverity>((message, title, severity) => _notificationMessage = message);

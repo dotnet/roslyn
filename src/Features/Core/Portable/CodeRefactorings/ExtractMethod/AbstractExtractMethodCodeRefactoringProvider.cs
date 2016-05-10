@@ -59,17 +59,15 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings.ExtractMethod
             TextSpan textSpan,
             CancellationToken cancellationToken)
         {
-            var options = document.Project.Solution.Workspace.Options;
             var result = await ExtractMethodService.ExtractMethodAsync(
                 document,
                 textSpan,
-                options,
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken: cancellationToken).ConfigureAwait(false);
             Contract.ThrowIfNull(result);
 
             if (result.Succeeded || result.SucceededWithSuggestion)
             {
-                var description = options.GetOption(ExtractMethodOptions.AllowMovingDeclaration, document.Project.Language) ?
+                var description = document.Options.GetOption(ExtractMethodOptions.AllowMovingDeclaration) ?
                                       FeaturesResources.ExtractMethodLocal : FeaturesResources.ExtractMethod;
 
                 var codeAction = new MyCodeAction(description, (c) => AddRenameAnnotationAsync(result.Document, result.InvocationNameToken, c));

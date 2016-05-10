@@ -29,9 +29,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
         {
-            var optionService = workspace.Services.GetService<IOptionService>();
-
-            if (!optionService.GetOption(ServiceComponentOnOffOptions.DiagnosticProvider))
+            if (!workspace.Options.GetOption(ServiceComponentOnOffOptions.DiagnosticProvider))
             {
                 return null;
             }

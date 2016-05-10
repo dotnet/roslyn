@@ -225,10 +225,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Formatting
                 // get original buffer
                 var buffer = workspace.Documents.First().GetTextBuffer();
 
-                var optionService = workspace.Services.GetService<IOptionService>();
                 if (isPaste)
                 {
-                    optionService.SetOptions(optionService.GetOptions().WithChangedOption(FeatureOnOffOptions.FormatOnPaste, LanguageNames.CSharp, true));
                     var commandHandler = new FormatCommandHandler(TestWaitIndicator.Default, null, null);
                     var commandArgs = new PasteCommandArgs(view, view.TextBuffer);
                     commandHandler.ExecuteCommand(commandArgs, () => { });

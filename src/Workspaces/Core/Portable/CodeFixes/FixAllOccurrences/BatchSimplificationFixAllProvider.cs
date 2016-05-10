@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
         /// <summary>
         /// Get node on which to add simplifier and formatter annotation for fixing the given diagnostic.
         /// </summary>
-        protected virtual SyntaxNode GetNodeToSimplify(SyntaxNode root, SemanticModel model, Diagnostic diagnostic, Workspace workspace, out string codeActionEquivalenceKey, CancellationToken cancellationToken)
+        protected virtual SyntaxNode GetNodeToSimplify(SyntaxNode root, SemanticModel model, Diagnostic diagnostic, Document document, out string codeActionEquivalenceKey, CancellationToken cancellationToken)
         {
             codeActionEquivalenceKey = null;
             var span = diagnostic.Location.SourceSpan;
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
 
         /// <summary>
         /// By default, this property returns false and <see cref="AddSimplifierAnnotationsAsync(Document, ImmutableArray{Diagnostic}, FixAllState, CancellationToken)"/> will just add <see cref="Simplifier.Annotation"/> to each node to simplify
-        /// returned by <see cref="GetNodeToSimplify(SyntaxNode, SemanticModel, Diagnostic, Workspace, out string, CancellationToken)"/>.
+        /// returned by <see cref="GetNodeToSimplify(SyntaxNode, SemanticModel, Diagnostic, Document, out string, CancellationToken)"/>.
         /// 
         /// Override this property to return true if the fix all provider needs to add simplify annotations/fixup any of the parent nodes of the nodes to simplify.
         /// This could be the case if simplifying certain nodes can enable cascaded simplifications, such as parentheses removal on parenting node.
@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             foreach (var diagnostic in diagnostics)
             {
                 string codeActionEquivalenceKey;
-                var node = GetNodeToSimplify(root, model, diagnostic, fixAllState.Solution.Workspace, out codeActionEquivalenceKey, cancellationToken);
+                var node = GetNodeToSimplify(root, model, diagnostic, document, out codeActionEquivalenceKey, cancellationToken);
                 if (node != null && fixAllState.CodeActionEquivalenceKey == codeActionEquivalenceKey)
                 {
                     nodesToSimplify.Add(node);

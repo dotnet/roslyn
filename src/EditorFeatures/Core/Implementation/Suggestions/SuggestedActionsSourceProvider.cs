@@ -485,9 +485,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 this.AssertIsForeground();
 
-                var optionService = workspace.Services.GetService<IOptionService>();
 
-                if (optionService.GetOption(EditorComponentOnOffOptions.CodeRefactorings) &&
+                if (document.Options.GetOption(EditorComponentOnOffOptions.CodeRefactorings) &&
                     _owner._codeRefactoringService != null &&
                     supportsFeatureService.SupportsRefactorings(document) &&
                     requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring))
@@ -623,9 +622,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 SnapshotSpan range,
                 CancellationToken cancellationToken)
             {
-                var optionService = document.Project.Solution.Workspace.Services.GetService<IOptionService>();
-
-                if (optionService.GetOption(EditorComponentOnOffOptions.CodeRefactorings) &&
+                if (document.Options.GetOption(EditorComponentOnOffOptions.CodeRefactorings) &&
                     provider._codeRefactoringService != null &&
                     supportsFeatureService.SupportsRefactorings(document) &&
                     requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring))

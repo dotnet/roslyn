@@ -800,6 +800,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The options being set didn&apos;t originate from a workspace..
+        /// </summary>
+        internal static string OptionsDidNotComeFromWorkspace {
+            get {
+                return ResourceManager.GetString("OptionsDidNotComeFromWorkspace", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Specified path must be absolute..
         /// </summary>
         internal static string PathMustBeAbsolute {

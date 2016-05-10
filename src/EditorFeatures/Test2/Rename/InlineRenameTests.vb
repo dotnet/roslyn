@@ -102,9 +102,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
             optionSet = optionSet.WithChangedOption(RenameOptions.RenameOverloads, renameOverloads)
             optionSet = optionSet.WithChangedOption(RenameOptions.RenameInStrings, renameInStrings)
             optionSet = optionSet.WithChangedOption(RenameOptions.RenameInComments, renameInComments)
-
-            Dim optionService = workspace.Services.GetService(Of IOptionService)()
-            optionService.SetOptions(optionSet)
+            workspace.Options = optionSet
 
             Dim session = StartSession(workspace)
 
