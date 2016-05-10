@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 // We don't include internals from metadata assemblies.  It's less likely that
                 // a project would have IVT to it and so it helps us save on memory.  It also
-                // means we can avoid loading lots and lots of obfuscated code in the case hte
+                // means we can avoid loading lots and lots of obfuscated code in the case the
                 // dll was obfuscated.
                 info = await LoadOrCreateMetadataSymbolTreeInfoAsync(
                     solution, reference, loadOnly, cancellationToken: cancellationToken).ConfigureAwait(false);
