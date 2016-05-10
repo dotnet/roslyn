@@ -40,6 +40,7 @@
     <Compile Include="Emit\CustomDebugInfoTests.cs" />
     <Compile Include="FileSystem\PathUtilitiesTests.cs" />
     <Compile Include="InternalUtilities\StreamExtensionsTests.cs" />
+    <Compile Include="InternalUtilities\JsonWriterTests.cs" />
     <Compile Include="InternalUtilities\StringExtensionsTests.cs" />
     <Compile Include="MetadataReferences\AssemblyIdentityExtensions.cs" />
     <Compile Include="MetadataReferences\AssemblyIdentityMapTests.cs" />
