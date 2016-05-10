@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         private readonly Action<Diagnostic, DiagnosticAnalyzer, bool> _addCategorizedLocalDiagnosticOpt;
         private readonly Action<Diagnostic, DiagnosticAnalyzer> _addCategorizedNonLocalDiagnosticOpt;
         private readonly Action<Exception, DiagnosticAnalyzer, Diagnostic> _onAnalyzerException;
-        private readonly Func<Exception, bool> _analyzerExcetpionFilter;
+        private readonly Func<Exception, bool> _analyzerExceptionFilter;
         private readonly AnalyzerManager _analyzerManager;
         private readonly Func<DiagnosticAnalyzer, bool> _isCompilerAnalyzer;
         private readonly Func<DiagnosticAnalyzer, object> _getAnalyzerGateOpt;
@@ -154,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             _analyzerOptions = analyzerOptions;
             _addNonCategorizedDiagnosticOpt = addNonCategorizedDiagnosticOpt;
             _onAnalyzerException = onAnalyzerException;
-            _analyzerExcetpionFilter = analyzerExceptionFilter;
+            _analyzerExceptionFilter = analyzerExceptionFilter;
             _isCompilerAnalyzer = isCompilerAnalyzer;
             _analyzerManager = analyzerManager;
             _shouldSkipAnalysisOnGeneratedCode = shouldSkipAnalysisOnGeneratedCode;
@@ -175,7 +175,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return this;
             }
 
-            return new AnalyzerExecutor(_compilation, _analyzerOptions, _addNonCategorizedDiagnosticOpt, _onAnalyzerException, _analyzerExcetpionFilter,
+            return new AnalyzerExecutor(_compilation, _analyzerOptions, _addNonCategorizedDiagnosticOpt, _onAnalyzerException, _analyzerExceptionFilter,
                 _isCompilerAnalyzer, _analyzerManager, _shouldSkipAnalysisOnGeneratedCode, _shouldSuppressGeneratedCodeDiagnostic,
                 _getAnalyzerGateOpt, _analyzerExecutionTimeMapOpt, _addCategorizedLocalDiagnosticOpt, _addCategorizedNonLocalDiagnosticOpt, cancellationToken);
         }
@@ -1104,9 +1104,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return false;
             }
 
-            if (_analyzerExcetpionFilter != null)
+            if (_analyzerExceptionFilter != null)
             {
-                return _analyzerExcetpionFilter(ex);
+                return _analyzerExceptionFilter(ex);
             }
 
             return true;
