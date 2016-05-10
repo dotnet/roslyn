@@ -550,7 +550,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     ReportNonCompliantTypeArguments((DirectCast(type, ArrayTypeSymbol)).ElementType, context, diagnosticSymbol)
                 Case TypeKind.Error, TypeKind.TypeParameter
                     Return
-                Case TypeKind.Class, TypeKind.Structure, TypeKind.Interface, TypeKind.Delegate, TypeKind.Enum, TypeKind.Submission
+                Case TypeKind.Class, TypeKind.Structure, TypeKind.Interface, TypeKind.Delegate, TypeKind.Enum, TypeKind.Submission, TypeKind.Module
                     ReportNonCompliantTypeArguments(DirectCast(type, NamedTypeSymbol), context, diagnosticSymbol)
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(type.TypeKind)
@@ -572,7 +572,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return IsCompliantType((DirectCast(type, ArrayTypeSymbol)).ElementType, context)
                 Case TypeKind.Error, TypeKind.TypeParameter
                     Return True
-                Case TypeKind.Class, TypeKind.Structure, TypeKind.Interface, TypeKind.Delegate, TypeKind.Enum, TypeKind.Submission
+                Case TypeKind.Class, TypeKind.Structure, TypeKind.Interface, TypeKind.Delegate, TypeKind.Enum, TypeKind.Submission, TypeKind.Module
                     Return IsCompliantType(DirectCast(type, NamedTypeSymbol))
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(type.TypeKind)
