@@ -12,6 +12,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal partial class SymbolTreeInfo
     {
+        private static SimplePool<MultiDictionary<string, MetadataDefinition>> s_definitionMapPool =
+            new SimplePool<MultiDictionary<string, MetadataDefinition>>(() => new MultiDictionary<string, MetadataDefinition>());
+
+        private static MultiDictionary<string, MetadataDefinition> AllocateDefinitionMap()
+        {
+            return s_definitionMapPool.Allocate();
+        }
+
+        private static void FreeDefinitionMap(MultiDictionary<string, MetadataDefinition> definitionMap)
+        {
+            definitionMap.Clear();
+            s_definitionMapPool.Free(definitionMap);
+        }
+
         /// <summary>
         /// this gives you SymbolTreeInfo for a metadata
         /// </summary>
@@ -97,14 +111,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             NamespaceDefinition globalNamespace, 
             List<Node> unsortedNodes)
         {
-            var memberLookup = LookupMetadataDefinitions(reader, globalNamespace).ToLookup(c => c.Name);
-
-            foreach (var grouping in memberLookup)
+            var definitionMap = AllocateDefinitionMap();
+            try
             {
-                if (UnicodeCharacterUtilities.IsValidIdentifier(grouping.Key))
+                LookupMetadataDefinitions(reader, globalNamespace, definitionMap);
+
+                foreach (var kvp in definitionMap)
                 {
-                    GenerateMetadataNodes(reader, grouping.Key, 0 /*index of root node*/, grouping, unsortedNodes);
+                    if (UnicodeCharacterUtilities.IsValidIdentifier(kvp.Key))
+                    {
+                        GenerateMetadataNodes(reader, kvp.Key, 0 /*index of root node*/, kvp.Value, unsortedNodes);
+                    }
                 }
+            }
+            finally
+            {
+                FreeDefinitionMap(definitionMap);
             }
         }
 
@@ -112,7 +134,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             MetadataReader reader,
             string name,
             int parentIndex,
-            IEnumerable<MetadataDefinition> symbolsWithSameName,
+            MultiDictionary<string, MetadataDefinition>.ValueSet definitionsWithSameName,
             List<Node> unsortedNodes)
         {
             var node = new Node(name, parentIndex);
@@ -120,31 +142,46 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             unsortedNodes.Add(node);
 
             // Add all child members
-            var membersByName = symbolsWithSameName.SelectMany(
-                d => LookupMetadataDefinitions(reader, d)).ToLookup(s => s.Name);
-
-            foreach (var grouping in membersByName)
+            var definitionMap = AllocateDefinitionMap();
+            try
             {
-                if (UnicodeCharacterUtilities.IsValidIdentifier(grouping.Key))
+                foreach (var definition in definitionsWithSameName)
                 {
-                    GenerateMetadataNodes(reader, grouping.Key, nodeIndex, grouping, unsortedNodes);
+                    LookupMetadataDefinitions(reader, definition, definitionMap);
                 }
+
+                foreach (var kvp in definitionMap)
+                {
+                    if (UnicodeCharacterUtilities.IsValidIdentifier(kvp.Key))
+                    {
+                        GenerateMetadataNodes(reader, kvp.Key, nodeIndex, kvp.Value, unsortedNodes);
+                    }
+                }
+            }
+            finally
+            {
+                FreeDefinitionMap(definitionMap);
             }
         }
 
-        private static IEnumerable<MetadataDefinition> LookupMetadataDefinitions(
-            MetadataReader reader, MetadataDefinition definition)
+        private static void LookupMetadataDefinitions(
+            MetadataReader reader, MetadataDefinition definition,
+            MultiDictionary<string, MetadataDefinition> definitionMap)
         {
             switch (definition.Kind)
             {
-                case MetadataDefinitionKind.Namespace: return LookupMetadataDefinitions(reader, definition.Namespace);
-                case MetadataDefinitionKind.Type: return LookupMetadataDefinitions(reader, definition.Type);
-                default: return SpecializedCollections.EmptyEnumerable<MetadataDefinition>();
+                case MetadataDefinitionKind.Namespace:
+                    LookupMetadataDefinitions(reader, definition.Namespace, definitionMap);
+                    break;
+                case MetadataDefinitionKind.Type:
+                    LookupMetadataDefinitions(reader, definition.Type, definitionMap);
+                    break;
             }
         }
 
-        private static IEnumerable<MetadataDefinition> LookupMetadataDefinitions(
-            MetadataReader reader, TypeDefinition typeDefinition)
+        private static void LookupMetadataDefinitions(
+            MetadataReader reader, TypeDefinition typeDefinition,
+            MultiDictionary<string, MetadataDefinition> definitionMap)
         {
             // Only bother looking for extension methods in static types.
             if ((typeDefinition.Attributes & TypeAttributes.Abstract) != 0 &&
@@ -166,8 +203,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         (method.Attributes & MethodAttributes.Static) != 0 &&
                         method.GetCustomAttributes().Count > 0)
                     {
-                        yield return new MetadataDefinition(
+                        var definition = new MetadataDefinition(
                             MetadataDefinitionKind.Member, reader.GetString(method.Name));
+
+                        definitionMap.Add(definition.Name, definition);
                     }
                 }
             }
@@ -177,17 +216,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var type = reader.GetTypeDefinition(child);
                 if (IsPublic(type.Attributes))
                 {
-                    yield return MetadataDefinition.Create(reader, type);
+                    var definition = MetadataDefinition.Create(reader, type);
+                    definitionMap.Add(definition.Name, definition);
                 }
             }
         }
 
-        private static IEnumerable<MetadataDefinition> LookupMetadataDefinitions(
-            MetadataReader reader, NamespaceDefinition namespaceDefinition)
+        private static void LookupMetadataDefinitions(
+            MetadataReader reader, NamespaceDefinition namespaceDefinition,
+            MultiDictionary<string, MetadataDefinition> definitionMap)
         {
             foreach (var child in namespaceDefinition.NamespaceDefinitions)
             {
-                yield return MetadataDefinition.Create(reader, child);
+                var definition = MetadataDefinition.Create(reader, child);
+                definitionMap.Add(definition.Name, definition);
             }
 
             foreach (var child in namespaceDefinition.TypeDefinitions)
@@ -195,7 +237,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var typeDefinition = reader.GetTypeDefinition(child);
                 if (IsPublic(typeDefinition.Attributes))
                 {
-                    yield return MetadataDefinition.Create(reader, typeDefinition);
+                    var definition = MetadataDefinition.Create(reader, typeDefinition);
+                    definitionMap.Add(definition.Name, definition);
                 }
             }
         }
