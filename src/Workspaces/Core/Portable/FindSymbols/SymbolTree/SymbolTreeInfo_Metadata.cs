@@ -158,7 +158,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // SymbolTreeInfo is only searched for types and extension methods.
                 // So we don't want to pull in all methods here.  As a simple approximation
                 // we just pull in methods that have attributes on them.
-                if (IsPublic(method) && method.GetCustomAttributes().Count > 0)
+                if ((method.Attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Public &&
+                    (method.Attributes & MethodAttributes.Static) != 0 &&
+                    method.GetCustomAttributes().Count > 0)
                 {
                     yield return new MetadataDefinition(
                         MetadataDefinitionKind.Member, reader.GetString(method.Name));
@@ -173,11 +175,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     yield return MetadataDefinition.Create(reader, type);
                 }
             }
-        }
-
-        private static bool IsPublic(MethodDefinition method)
-        {
-            return (method.Attributes & MethodAttributes.MemberAccessMask) == MethodAttributes.Public;
         }
 
         private static IEnumerable<MetadataDefinition> LookupMetadataDefinitions(
