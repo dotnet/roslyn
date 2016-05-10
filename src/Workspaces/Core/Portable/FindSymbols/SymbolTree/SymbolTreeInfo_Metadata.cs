@@ -146,16 +146,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static IEnumerable<MetadataDefinition> LookupMetadataDefinitions(
             MetadataReader reader, TypeDefinition typeDefinition)
         {
-            foreach (var child in typeDefinition.GetProperties())
-            {
-                var property = reader.GetPropertyDefinition(child);
-                if (AnyAccessorIsPublic(reader, property.GetAccessors()))
-                {
-                    yield return new MetadataDefinition(
-                        MetadataDefinitionKind.Member, reader.GetString(property.Name));
-                }
-            }
-
             foreach (var child in typeDefinition.GetMethods())
             {
                 var method = reader.GetMethodDefinition(child);
@@ -165,30 +155,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     continue;
                 }
 
-                if (IsPublic(method))
+                // SymbolTreeInfo is only searched for types and extension methods.
+                // So we don't want to pull in all methods here.  As a simple approximation
+                // we just pull in methods that have attributes on them.
+                if (IsPublic(method) && method.GetCustomAttributes().Count > 0)
                 {
                     yield return new MetadataDefinition(
                         MetadataDefinitionKind.Member, reader.GetString(method.Name));
-                }
-            }
-
-            foreach (var child in typeDefinition.GetFields())
-            {
-                var field = reader.GetFieldDefinition(child);
-                if ((field.Attributes & FieldAttributes.FieldAccessMask) == FieldAttributes.Public)
-                {
-                    yield return new MetadataDefinition(
-                        MetadataDefinitionKind.Member, reader.GetString(field.Name));
-                }
-            }
-
-            foreach (var child in typeDefinition.GetEvents())
-            {
-                var ev = reader.GetEventDefinition(child);
-                if (AnyAccessorIsPublic(reader, ev.GetAccessors()))
-                {
-                    yield return new MetadataDefinition(
-                        MetadataDefinitionKind.Member, reader.GetString(ev.Name));
                 }
             }
 
@@ -200,29 +173,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     yield return MetadataDefinition.Create(reader, type);
                 }
             }
-        }
-
-        private static bool AnyAccessorIsPublic(MetadataReader reader, EventAccessors eventAccessors)
-        {
-            return IsPublic(reader, eventAccessors.Adder) ||
-                IsPublic(reader, eventAccessors.Remover);
-        }
-
-        private static bool AnyAccessorIsPublic(MetadataReader reader, PropertyAccessors propertyAccessors)
-        {
-            return IsPublic(reader, propertyAccessors.Getter) ||
-                IsPublic(reader, propertyAccessors.Setter);
-        }
-
-        private static bool IsPublic(MetadataReader reader, MethodDefinitionHandle handle)
-        {
-            if (handle.IsNil)
-            {
-                return false;
-            }
-
-            var method = reader.GetMethodDefinition(handle);
-            return IsPublic(method);
         }
 
         private static bool IsPublic(MethodDefinition method)
