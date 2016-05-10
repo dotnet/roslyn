@@ -26,14 +26,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IAssemblySymbol assembly,
             string filePath,
             bool loadOnly,
-            bool includeInternal,
             CancellationToken cancellationToken)
         {
             return LoadOrCreateAsync(
                 solution,
                 filePath,
                 loadOnly,
-                create: version => CreateSourceSymbolTreeInfo(solution, version, assembly, filePath, includeInternal, cancellationToken),
+                create: version => CreateSourceSymbolTreeInfo(solution, version, assembly, filePath, cancellationToken),
                 keySuffix: "",
                 getVersion: info => info._version,
                 readObject: reader => ReadSymbolTreeInfo(reader, (version, nodes) => GetSpellCheckerTask(solution, version, filePath, nodes)),

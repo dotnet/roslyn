@@ -29,16 +29,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
 
-            // We want to know about internal symbols from source assemblies.  Thre's a reasonable
-            // chance a project might have IVT access to it.
             return await LoadOrCreateSourceSymbolTreeInfoAsync(
                 project.Solution, compilation.Assembly, project.FilePath,
-                loadOnly: false, includeInternal: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
         internal static SymbolTreeInfo CreateSourceSymbolTreeInfo(
             Solution solution, VersionStamp version, IAssemblySymbol assembly,
-            string filePath, bool includeInternal, CancellationToken cancellationToken)
+            string filePath, CancellationToken cancellationToken)
         {
             if (assembly == null)
             {
@@ -47,8 +45,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             var unsortedNodes = new List<Node> { new Node(assembly.GlobalNamespace.Name, Node.RootNodeParentIndex) };
 
-            var lookup = includeInternal ? s_getMembersNoPrivate : s_getMembersNoPrivateOrInternal;
-            GenerateSourceNodes(assembly.GlobalNamespace, unsortedNodes, lookup);
+            GenerateSourceNodes(assembly.GlobalNamespace, unsortedNodes, s_getMembersNoPrivate);
 
             return CreateSymbolTreeInfo(solution, version, filePath, unsortedNodes);
         }
@@ -118,9 +115,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static Action<ISymbol, MultiDictionary<string, ISymbol>> s_getMembersNoPrivate =
             (symbol, symbolMap) => AddSymbol(symbol, symbolMap, s_useSymbolNoPrivate);
-
-        private static Action<ISymbol, MultiDictionary<string, ISymbol>> s_getMembersNoPrivateOrInternal =
-            (symbol, symbolMap) => AddSymbol(symbol, symbolMap, s_useSymbolNoPrivateOrInternal);
 
         private static void AddSymbol(ISymbol symbol, MultiDictionary<string, ISymbol> symbolMap, Func<ISymbol, bool> useSymbol)
         {
