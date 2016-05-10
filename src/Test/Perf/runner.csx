@@ -58,7 +58,7 @@ foreach (var test in testInstances)
         }
         else
         {
-            traceManager.StartScenario(test.Name + i, test.MeasuredProc);
+            traceManager.StartScenario(test.Name, test.MeasuredProc);
             traceManager.StartEvent();
             test.Test();
             traceManager.EndEvent();
