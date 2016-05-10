@@ -10,6 +10,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal partial class SymbolTreeInfo
     {
+        private static SimplePool<MultiDictionary<string, ISymbol>> s_symbolMapPool =
+            new SimplePool<MultiDictionary<string, ISymbol>>(() => new MultiDictionary<string, ISymbol>());
+
+        private static MultiDictionary<string, ISymbol> AllocateSymbolMap()
+        {
+            return s_symbolMapPool.Allocate();
+        }
+
+        private static void FreeSymbolMap(MultiDictionary<string, ISymbol> symbolMap)
+        {
+            symbolMap.Clear();
+            s_symbolMapPool.Free(symbolMap);
+        }
+
         public static async Task<SymbolTreeInfo> GetInfoForSourceAssemblyAsync(
             Project project, CancellationToken cancellationToken)
         {
@@ -43,14 +57,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static void GenerateSourceNodes(
             INamespaceSymbol globalNamespace,
             List<Node> list,
-            Func<ISymbol, IEnumerable<ISymbol>> lookup)
+            Action<ISymbol, MultiDictionary<string, ISymbol>> lookup)
         {
             // Add all child members
-            var memberLookup = lookup(globalNamespace).ToLookup(c => c.Name);
-
-            foreach (var grouping in memberLookup)
+            var symbolMap = AllocateSymbolMap();
+            try
             {
-                GenerateSourceNodes(grouping.Key, 0 /*index of root node*/, grouping, list, lookup);
+                lookup(globalNamespace, symbolMap);
+
+                foreach (var kvp in symbolMap)
+                {
+                    GenerateSourceNodes(kvp.Key, 0 /*index of root node*/, kvp.Value, list, lookup);
+                }
+            }
+            finally
+            {
+                FreeSymbolMap(symbolMap);
             }
         }
 
@@ -66,37 +88,53 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static void GenerateSourceNodes(
             string name,
             int parentIndex,
-            IEnumerable<ISymbol> symbolsWithSameName,
+            MultiDictionary<string, ISymbol>.ValueSet symbolsWithSameName,
             List<Node> list,
-            Func<ISymbol, IEnumerable<ISymbol>> lookup)
+            Action<ISymbol, MultiDictionary<string, ISymbol>> lookup)
         {
             var node = new Node(name, parentIndex);
             var nodeIndex = list.Count;
             list.Add(node);
 
-            // Add all child members
-            var membersByName = symbolsWithSameName.SelectMany(lookup).ToLookup(s => s.Name);
-
-            foreach (var grouping in membersByName)
+            var symbolMap = AllocateSymbolMap();
+            try
             {
-                GenerateSourceNodes(grouping.Key, nodeIndex, grouping, list, lookup);
+                // Add all child members
+                foreach (var symbol in symbolsWithSameName)
+                {
+                    lookup(symbol, symbolMap);
+                }
+
+                foreach (var kvp in symbolMap)
+                {
+                    GenerateSourceNodes(kvp.Key, nodeIndex, kvp.Value, list, lookup);
+                }
+            }
+            finally
+            {
+                FreeSymbolMap(symbolMap);
             }
         }
 
-        private static Func<ISymbol, IEnumerable<ISymbol>> s_getMembersNoPrivate = symbol =>
-        {
-            var nt = symbol as INamespaceOrTypeSymbol;
-            return nt != null
-                ? nt.GetMembers().Where(s_useSymbolNoPrivate)
-                : SpecializedCollections.EmptyEnumerable<ISymbol>();
-        };
+        private static Action<ISymbol, MultiDictionary<string, ISymbol>> s_getMembersNoPrivate =
+            (symbol, symbolMap) => AddSymbol(symbol, symbolMap, s_useSymbolNoPrivate);
 
-        private static Func<ISymbol, IEnumerable<ISymbol>> s_getMembersNoPrivateOrInternal = symbol =>
+        private static Action<ISymbol, MultiDictionary<string, ISymbol>> s_getMembersNoPrivateOrInternal =
+            (symbol, symbolMap) => AddSymbol(symbol, symbolMap, s_useSymbolNoPrivateOrInternal);
+
+        private static void AddSymbol(ISymbol symbol, MultiDictionary<string, ISymbol> symbolMap, Func<ISymbol, bool> useSymbol)
         {
             var nt = symbol as INamespaceOrTypeSymbol;
-            return nt != null
-                ? nt.GetMembers().Where(s_useSymbolNoPrivateOrInternal)
-                : SpecializedCollections.EmptyEnumerable<ISymbol>();
-        };
+            if (nt != null)
+            {
+                foreach (var member in nt.GetMembers())
+                {
+                    if (useSymbol(member))
+                    {
+                        symbolMap.Add(member.Name, member);
+                    }
+                }
+            }
+        }
     }
 }
