@@ -27,7 +27,7 @@ namespace Roslyn.Test.Performance.Utilities
         {
             get
             {
-                var tempDirectory = Path.Combine(Environment.ExpandEnvironmentVariables("%SYSTEMDRIVE%")+@"\", "PerfTemp");
+                var tempDirectory = Environment.ExpandEnvironmentVariables(@"%SYSTEMDRIVE%\PerfTemp");
                 Directory.CreateDirectory(tempDirectory);
                 return tempDirectory;
             }
