@@ -245,17 +245,21 @@ struct_type
     ; 
     
 tuple_type
-    : '(' tuple_type_elements ')'
+    : '(' tuple_type_element_list ')'
     ;
     
 tuple_type_element_list
-    : tuple_type_element
+    : tuple_type_element ',' tuple_type_element
     | tuple_type_element_list ',' tuple_type_element
     ;
+    
 tuple_type_element
     : type_parameter identifier?
     ;
 ```
+
+- Static semantics (Type rules, constraints, all-or-none names, can't be used on right-hand-side of a 'is', ...)
+- Dynamic semantics (what does it do at runtime?)
 
 For tuple literals:
 
@@ -275,7 +279,7 @@ tuple_literal
     ;
 
 tuple_literal_element_list
-    : tuple_literal_element
+    : tuple_literal_element ',' tuple_literal_element
     | tuple_literal_element_list ',' tuple_literal_element
     ;
 
