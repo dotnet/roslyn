@@ -230,3 +230,34 @@ M1((1, ()=>(2, 3)));         // the first overload is used due to "exact match" 
 
 ``` 
 
+Language grammar changes
+---------------------
+
+For tuple type declarations:
+
+```ANTLR
+
+struct_type
+    : type_name
+    | simple_type
+    | nullable_type
+    | tuple_type
+    ; 
+    
+tuple_type
+    : '(' tuple_type_elements ')'
+    ;
+    
+tuple_type_elements
+    : type_parameter identifier?
+    | tuple_type_elements ',' type_parameter identifier?
+    ;
+
+```
+
+For tuple literals:
+
+```ANTLR
+
+
+```
