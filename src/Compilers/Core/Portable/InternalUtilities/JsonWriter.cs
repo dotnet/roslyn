@@ -162,10 +162,6 @@ namespace Roslyn.Utilities
         //
         // https://github.com/dotnet/corefx/blob/master/src/System.Private.DataContractSerialization/src/System/Runtime/Serialization/Json/JavaScriptString.cs
         //
-        // Possible future improvements: https://github.com/dotnet/roslyn/issues/9769
-        //
-        //   - Avoid intermediate StringBuilder and send escaped output directly to the destination.
-        //
         private static string EscapeString(string value)
         {
             PooledStringBuilder pooledBuilder = null;
@@ -182,7 +178,7 @@ namespace Roslyn.Utilities
             {
                 char c = value[i];
 
-                if (c == '\"' || c == '\'' || c == '\\' || ShouldAppendAsUnicode(c))
+                if (c == '\"' || c == '\\' || ShouldAppendAsUnicode(c))
                 {
                     if (b == null)
                     {
@@ -207,9 +203,6 @@ namespace Roslyn.Utilities
                         break;
                     case '\\':
                         b.Append("\\\\");
-                        break;
-                    case '\'':
-                        b.Append("\'");
                         break;
                     default:
                         if (ShouldAppendAsUnicode(c))
