@@ -258,7 +258,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             if (metadata is AssemblyMetadata)
             {
-                return ((AssemblyMetadata)metadata).Modules;
+                return ((AssemblyMetadata)metadata).GetModules();
             }
             else if (metadata is ModuleMetadata)
             {
