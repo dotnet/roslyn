@@ -719,32 +719,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
             return IsViableExtensionMethod(method, leftExpressionType);
         }
 
-        internal override bool IsViableField(IFieldSymbol field, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
-        {
-            return IsViablePropertyOrField(field, expression, semanticModel, syntaxFacts, cancellationToken);
-        }
-
-        internal override bool IsViableProperty(IPropertySymbol property, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
-        {
-            return IsViablePropertyOrField(property, expression, semanticModel, syntaxFacts, cancellationToken);
-        }
-
-        private bool IsViablePropertyOrField(ISymbol propertyOrField, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
-        {
-            if (!propertyOrField.IsStatic)
-            {
-                return false;
-            }
-
-            var leftName = (expression as MemberAccessExpressionSyntax)?.Expression as SimpleNameSyntax;
-            if (leftName == null)
-            {
-                return false;
-            }
-
-            return StringComparer.Ordinal.Compare(propertyOrField.ContainingType.Name, leftName.Identifier.Text) == 0;
-        }
-
         internal override bool IsAddMethodContext(SyntaxNode node, SemanticModel semanticModel)
         {
             if (node.Parent.IsKind(SyntaxKind.CollectionInitializerExpression))
