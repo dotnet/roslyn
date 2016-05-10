@@ -290,7 +290,9 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <exception cref="ObjectDisposedException">Module has been disposed.</exception>
         /// <exception cref="BadImageFormatException">When an invalid module name is encountered.</exception>
-        public MetadataReader MetadataReader => Module.MetadataReader;
+        public MetadataReader GetMetadataReader() => MetadataReader;
+
+        internal MetadataReader MetadataReader => Module.MetadataReader;
 
         /// <summary>
         /// Creates a reference to the module metadata.

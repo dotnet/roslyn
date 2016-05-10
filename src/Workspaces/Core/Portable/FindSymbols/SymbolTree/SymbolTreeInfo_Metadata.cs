@@ -91,7 +91,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             foreach (var moduleMetadata in GetModuleMetadata(reference.GetMetadata()))
             {
-                GenerateMetadataNodes(moduleMetadata.MetadataReader, unsortedNodes);
+                MetadataReader reader;
+                try
+                {
+                    reader = moduleMetadata.GetMetadataReader();
+                }
+                catch (BadImageFormatException)
+                {
+                    continue;
+                }
+
+                GenerateMetadataNodes(reader, unsortedNodes);
             }
 
             return CreateSymbolTreeInfo(solution, version, reference.FilePath, unsortedNodes);
