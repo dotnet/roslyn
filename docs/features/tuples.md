@@ -287,3 +287,6 @@ tuple_literal_element
     : ( identifier ':' )? literal
     ;
 ```
+
+- Static semantics (conversion from expression, from type, all-or-none, scrambled names, underlying types, underlying names, )
+- Dynamic semantics (what happens when you do this conversion, )
