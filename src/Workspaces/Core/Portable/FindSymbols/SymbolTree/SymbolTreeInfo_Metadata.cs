@@ -259,9 +259,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public static MetadataDefinition Create(
                 MetadataReader reader, TypeDefinition definition)
             {
+                var typeName = reader.GetString(definition.Name);
+                var index = typeName.IndexOf('`');
+                typeName = index > 0 ? typeName.Substring(0, index) : typeName;
+
                 return new MetadataDefinition(
                     MetadataDefinitionKind.Type,
-                    reader.GetString(definition.Name))
+                    typeName)
                 {
                     Type = definition
                 };
