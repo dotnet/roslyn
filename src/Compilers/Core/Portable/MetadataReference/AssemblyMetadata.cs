@@ -446,13 +446,5 @@ namespace Microsoft.CodeAnalysis
         {
             return new MetadataImageReference(this, new MetadataReferenceProperties(MetadataImageKind.Assembly, aliases, embedInteropTypes), documentation, filePath, display);
         }
-
-        public override IEnumerable<ModuleMetadata> Modules
-        {
-            get
-            {
-                return GetModules();
-            }
-        }
     }
 }

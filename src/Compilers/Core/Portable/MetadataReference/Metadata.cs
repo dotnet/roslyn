@@ -62,7 +62,5 @@ namespace Microsoft.CodeAnalysis
         {
             return CommonCopy();
         }
-
-        public abstract IEnumerable<ModuleMetadata> Modules { get; }
     }
 }
