@@ -310,9 +310,9 @@ namespace Microsoft.CodeAnalysis
 
             return string.Format(@"{{
   ""version"": ""{0}"",
-  ""runLogs"": [
+  ""runs"": [
     {{
-      ""toolInfo"": {{
+      ""tool"": {{
         ""name"": ""{1}"",
         ""version"": ""{2}"",
         ""fileVersion"": ""{3}""

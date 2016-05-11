@@ -88,24 +88,21 @@ public class C
       ""results"": [
         {{
           ""ruleId"": ""CS0169"",
-          ""kind"": ""warning"",
+          ""level"": ""warning"",
           ""locations"": [
             {{
-              ""analysisTarget"": [
-                {{
-                  ""uri"": ""{0}"",
-                  ""region"": {{
-                    ""startLine"": 4,
-                    ""startColumn"": 17,
-                    ""endLine"": 4,
-                    ""endColumn"": 18
-                  }}
+              ""analysisTarget"": {{
+                ""uri"": ""{0}"",
+                ""region"": {{
+                  ""startLine"": 4,
+                  ""startColumn"": 17,
+                  ""endLine"": 4,
+                  ""endColumn"": 18
                 }}
-              ]
+              }}
             }}
           ],
-          ""fullMessage"": ""The field 'C.x' is never used"",
-          ""isSuppressedInSource"": false,
+          ""message"": ""The field 'C.x' is never used"",
           ""tags"": [
             ""Compiler"",
             ""Telemetry""
@@ -121,11 +118,8 @@ public class C
         }},
         {{
           ""ruleId"": ""CS5001"",
-          ""kind"": ""error"",
-          ""locations"": [
-          ],
-          ""fullMessage"": ""Program does not contain a static 'Main' method suitable for an entry point"",
-          ""isSuppressedInSource"": false,
+          ""level"": ""error"",
+          ""message"": ""Program does not contain a static 'Main' method suitable for an entry point"",
           ""tags"": [
             ""Compiler"",
             ""Telemetry"",
@@ -183,24 +177,24 @@ public class C
       ""results"": [
         {{
           ""ruleId"": ""CS0169"",
-          ""kind"": ""warning"",
+          ""level"": ""warning"",
           ""locations"": [
             {{
-              ""analysisTarget"": [
-                {{
-                  ""uri"": ""{0}"",
-                  ""region"": {{
-                    ""startLine"": 5,
-                    ""startColumn"": 17,
-                    ""endLine"": 5,
-                    ""endColumn"": 18
-                  }}
+              ""analysisTarget"": {{
+                ""uri"": ""{0}"",
+                ""region"": {{
+                  ""startLine"": 5,
+                  ""startColumn"": 17,
+                  ""endLine"": 5,
+                  ""endColumn"": 18
                 }}
-              ]
+              }}
             }}
           ],
-          ""fullMessage"": ""The field 'C.x' is never used"",
-          ""isSuppressedInSource"": true,
+          ""message"": ""The field 'C.x' is never used"",
+          ""suppressionStates"": [
+            ""suppressedInSource""
+          ],
           ""tags"": [
             ""Compiler"",
             ""Telemetry""
@@ -216,11 +210,8 @@ public class C
         }},
         {{
           ""ruleId"": ""CS5001"",
-          ""kind"": ""error"",
-          ""locations"": [
-          ],
-          ""fullMessage"": ""Program does not contain a static 'Main' method suitable for an entry point"",
-          ""isSuppressedInSource"": false,
+          ""level"": ""error"",
+          ""message"": ""Program does not contain a static 'Main' method suitable for an entry point"",
           ""tags"": [
             ""Compiler"",
             ""Telemetry"",

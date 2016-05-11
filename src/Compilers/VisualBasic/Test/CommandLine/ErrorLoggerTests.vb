@@ -94,24 +94,21 @@ End Class
       ""results"": [
         {{
           ""ruleId"": ""BC42024"",
-          ""kind"": ""warning"",
+          ""level"": ""warning"",
           ""locations"": [
             {{
-              ""analysisTarget"": [
-                {{
-                  ""uri"": ""{0}"",
-                  ""region"": {{
-                    ""startLine"": 4,
-                    ""startColumn"": 13,
-                    ""endLine"": 4,
-                    ""endColumn"": 14
-                  }}
+              ""analysisTarget"": {{
+                ""uri"": ""{0}"",
+                ""region"": {{
+                  ""startLine"": 4,
+                  ""startColumn"": 13,
+                  ""endLine"": 4,
+                  ""endColumn"": 14
                 }}
-              ]
+              }}
             }}
           ],
-          ""fullMessage"": ""Unused local variable: 'x'."",
-          ""isSuppressedInSource"": false,
+          ""message"": ""Unused local variable: 'x'."",
           ""tags"": [
             ""Compiler"",
             ""Telemetry""
@@ -127,11 +124,8 @@ End Class
         }},
         {{
           ""ruleId"": ""BC30420"",
-          ""kind"": ""error"",
-          ""locations"": [
-          ],
-          ""fullMessage"": ""'Sub Main' was not found in '{1}'."",
-          ""isSuppressedInSource"": false,
+          ""level"": ""error"",
+          ""message"": ""'Sub Main' was not found in '{1}'."",
           ""tags"": [
             ""Compiler"",
             ""Telemetry"",
@@ -194,24 +188,24 @@ End Class
       ""results"": [
         {{
           ""ruleId"": ""BC42024"",
-          ""kind"": ""warning"",
+          ""level"": ""warning"",
           ""locations"": [
             {{
-              ""analysisTarget"": [
-                {{
-                  ""uri"": ""{0}"",
-                  ""region"": {{
-                    ""startLine"": 5,
-                    ""startColumn"": 13,
-                    ""endLine"": 5,
-                    ""endColumn"": 14
-                  }}
+              ""analysisTarget"": {{
+                ""uri"": ""{0}"",
+                ""region"": {{
+                  ""startLine"": 5,
+                  ""startColumn"": 13,
+                  ""endLine"": 5,
+                  ""endColumn"": 14
                 }}
-              ]
+              }}
             }}
           ],
-          ""fullMessage"": ""Unused local variable: 'x'."",
-          ""isSuppressedInSource"": true,
+          ""message"": ""Unused local variable: 'x'."",
+          ""suppressionStates"": [
+            ""suppressedInSource""
+          ],
           ""tags"": [
             ""Compiler"",
             ""Telemetry""
@@ -227,11 +221,8 @@ End Class
         }},
         {{
           ""ruleId"": ""BC30420"",
-          ""kind"": ""error"",
-          ""locations"": [
-          ],
-          ""fullMessage"": ""'Sub Main' was not found in '{1}'."",
-          ""isSuppressedInSource"": false,
+          ""level"": ""error"",
+          ""message"": ""'Sub Main' was not found in '{1}'."",
           ""tags"": [
             ""Compiler"",
             ""Telemetry"",

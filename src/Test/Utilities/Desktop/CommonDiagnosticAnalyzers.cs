@@ -89,25 +89,21 @@ namespace Microsoft.CodeAnalysis
       ""results"": [
         {
           ""ruleId"": """ + Descriptor1.Id + @""",
-          ""kind"": """ + (Descriptor1.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning") + @""",
+          ""level"": """ + (Descriptor1.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning") + @""",
           ""locations"": [
             {
-              ""analysisTarget"": [
-                {
-                  ""uri"": """ + filePath + @""",
-                  ""region"": {
-                    ""startLine"": " + (expectedLineSpan.StartLinePosition.Line + 1) + @",
-                    ""startColumn"": " + (expectedLineSpan.StartLinePosition.Character + 1) + @",
-                    ""endLine"": " + (expectedLineSpan.EndLinePosition.Line + 1) + @",
-                    ""endColumn"": " + (expectedLineSpan.EndLinePosition.Character + 1) + @"
-                  }
+              ""analysisTarget"": {
+                ""uri"": """ + filePath + @""",
+                ""region"": {
+                  ""startLine"": " + (expectedLineSpan.StartLinePosition.Line + 1) + @",
+                  ""startColumn"": " + (expectedLineSpan.StartLinePosition.Character + 1) + @",
+                  ""endLine"": " + (expectedLineSpan.EndLinePosition.Line + 1) + @",
+                  ""endColumn"": " + (expectedLineSpan.EndLinePosition.Character + 1) + @"
                 }
-              ]
+              }
             }
           ],
-          ""shortMessage"": """ + Descriptor1.MessageFormat + @""",
-          ""fullMessage"": """ + Descriptor1.Description + @""",
-          ""isSuppressedInSource"": false,
+          ""message"": """ + Descriptor1.MessageFormat + @""",
           ""tags"": [
             " + String.Join("," + Environment.NewLine + "            ", Descriptor1.CustomTags.Select(s => $"\"{s}\"")) + @"
           ],
@@ -124,12 +120,8 @@ namespace Microsoft.CodeAnalysis
         },
         {
           ""ruleId"": """ + Descriptor2.Id + @""",
-          ""kind"": """ + (Descriptor2.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning") + @""",
-          ""locations"": [
-          ],
-          ""shortMessage"": """ + Descriptor2.MessageFormat + @""",
-          ""fullMessage"": """ + Descriptor2.Description + @""",
-          ""isSuppressedInSource"": false,
+          ""level"": """ + (Descriptor2.DefaultSeverity == DiagnosticSeverity.Error ? "error" : "warning") + @""",
+          ""message"": """ + Descriptor2.MessageFormat + @""",
           ""tags"": [
             " + String.Join("," + Environment.NewLine + "            ", Descriptor2.CustomTags.Select(s => $"\"{s}\"")) + @"
           ],

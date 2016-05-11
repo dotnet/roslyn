@@ -16,12 +16,14 @@ namespace Microsoft.CodeAnalysis
     /// Used for logging all compiler diagnostics into a given <see cref="Stream"/>.
     /// This logger is responsible for closing the given stream on <see cref="Dispose"/>.
     /// The log format is SARIF (Static Analysis Results Interchange Format)
+    ///
+    /// https://sarifweb.azurewebsites.net
     /// https://github.com/sarif-standard/sarif-spec
     /// </summary>
     internal partial class ErrorLogger : IDisposable
     {
         // Internal for testing purposes.
-        internal const string OutputFormatVersion = "0.4";
+        internal const string OutputFormatVersion = "1.0.0-beta.4";
 
         private readonly JsonWriter _writer;
 
@@ -35,8 +37,8 @@ namespace Microsoft.CodeAnalysis
             _writer.WriteObjectStart(); // root
             _writer.Write("version", OutputFormatVersion);
 
-            _writer.WriteArrayStart("runLogs");
-            _writer.WriteObjectStart(); // runLog
+            _writer.WriteArrayStart("runs");
+            _writer.WriteObjectStart(); // run
 
             WriteToolInfo(toolName, toolFileVersion, toolAssemblyVersion);
 
@@ -45,7 +47,7 @@ namespace Microsoft.CodeAnalysis
 
         private void WriteToolInfo(string name, string fileVersion, Version assemblyVersion)
         {
-            _writer.WriteObjectStart("toolInfo");
+            _writer.WriteObjectStart("tool");
             _writer.Write("name", name);
             _writer.Write("version", assemblyVersion.ToString(fieldCount: 3));
             _writer.Write("fileVersion", fileVersion);
@@ -56,7 +58,7 @@ namespace Microsoft.CodeAnalysis
         {
             _writer.WriteObjectStart(); // result
             _writer.Write("ruleId", diagnostic.Id);
-            _writer.Write("kind", GetKind(diagnostic.Severity));
+            _writer.Write("level", GetLevel(diagnostic.Severity));
 
             WriteLocations(diagnostic.Location, diagnostic.AdditionalLocations);
 
@@ -66,18 +68,14 @@ namespace Microsoft.CodeAnalysis
                 message = "<None>";
             }
 
-            string description = diagnostic.Descriptor.Description.ToString(culture);
-            if (string.IsNullOrEmpty(description))
-            {
-                _writer.Write("fullMessage", message);
-            }
-            else
-            {
-                _writer.Write("shortMessage", message);
-                _writer.Write("fullMessage", description);
-            }
+            _writer.Write("message", message);
 
-            _writer.Write("isSuppressedInSource", diagnostic.IsSuppressed);
+            if (diagnostic.IsSuppressed)
+            {
+                _writer.WriteArrayStart("suppressionStates");
+                _writer.Write("suppressedInSource");
+                _writer.WriteArrayEnd();
+            }
 
             WriteTags(diagnostic);
 
@@ -88,48 +86,62 @@ namespace Microsoft.CodeAnalysis
 
         private void WriteLocations(Location location, IReadOnlyList<Location> additionalLocations)
         {
-            _writer.WriteArrayStart("locations");
-
-            WriteLocation(location);
-
-            if (additionalLocations != null)
+            if (location.SourceTree != null)
             {
+                _writer.WriteArrayStart("locations");
+                _writer.WriteObjectStart(); // location
+                _writer.WriteKey("analysisTarget");
+
+                WritePhysicalLocation(location);
+
+                _writer.WriteObjectEnd(); // location
+                _writer.WriteArrayEnd(); // locations
+            }
+
+            // See https://github.com/dotnet/roslyn/issues/11228 for discussion around
+            // whether this is the correct treatment of Diagnostic.AdditionalLocations
+            // as SARIF relatedLocations.
+            if (additionalLocations != null &&
+                additionalLocations.Count > 0 &&
+                additionalLocations.Any(l => l.SourceTree != null))
+            {
+                _writer.WriteArrayStart("relatedLocations");
+
                 foreach (var additionalLocation in additionalLocations)
                 {
-                    WriteLocation(additionalLocation);
-                }
-            }
+                    if (additionalLocation.SourceTree != null)
+                    {
+                        _writer.WriteObjectStart(); // annotatedCodeLocation
+                        _writer.WriteKey("physicalLocation");
 
-            _writer.WriteArrayEnd();
+                        WritePhysicalLocation(additionalLocation);
+
+                        _writer.WriteObjectEnd(); // annotatedCodeLocation
+                    }
+                }
+
+                _writer.WriteArrayEnd(); // relatedLocations
+            }
         }
 
-        private void WriteLocation(Location location)
+        private void WritePhysicalLocation(Location location)
         {
-            if (location.SourceTree == null)
-            {
-                return;
-            }
+            Debug.Assert(location.SourceTree != null);
 
-            _writer.WriteObjectStart(); // location
-
-            _writer.WriteArrayStart("analysisTarget");
-            _writer.WriteObjectStart(); // physical location component
-
+            
+            _writer.WriteObjectStart();
             _writer.Write("uri", GetUri(location.SourceTree));
 
             // Note that SARIF lines and columns are 1-based, but FileLinePositionSpan is 0-based
             FileLinePositionSpan span = location.GetLineSpan();
-            _writer.WriteKey("region");
-            _writer.WriteObjectStart();
+            _writer.WriteObjectStart("region");
             _writer.Write("startLine", span.StartLinePosition.Line + 1);
             _writer.Write("startColumn", span.StartLinePosition.Character + 1);
             _writer.Write("endLine", span.EndLinePosition.Line + 1);
             _writer.Write("endColumn", span.EndLinePosition.Character + 1);
             _writer.WriteObjectEnd(); // region
 
-            _writer.WriteObjectEnd(); // physical location component
-            _writer.WriteArrayEnd();  // analysisTarget
-            _writer.WriteObjectEnd(); // location
+            _writer.WriteObjectEnd();
         }
 
         private static string GetUri(SyntaxTree syntaxTree)
@@ -200,7 +212,7 @@ namespace Microsoft.CodeAnalysis
             _writer.WriteObjectEnd(); // properties
         }
 
-        private static string GetKind(DiagnosticSeverity severity)
+        private static string GetLevel(DiagnosticSeverity severity)
         {
             switch (severity)
             {
@@ -223,8 +235,8 @@ namespace Microsoft.CodeAnalysis
         public void Dispose()
         {
             _writer.WriteArrayEnd();  // results
-            _writer.WriteObjectEnd(); // runLog
-            _writer.WriteArrayEnd();  // runLogs
+            _writer.WriteObjectEnd(); // run
+            _writer.WriteArrayEnd();  // runs
             _writer.WriteObjectEnd(); // root
             _writer.Dispose();
         }
