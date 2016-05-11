@@ -15,6 +15,62 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.BlockCommentEditing
 {
     public class BlockCommentEditingTests : AbstractBlockCommentEditingTests
     {
+        [WorkItem(11057, "https://github.com/dotnet/roslyn/issues/11057")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        public async Task EdgeCase0()
+        {
+            var code = @"
+$$/**/
+";
+            var expected = @"
+
+$$/**/
+";
+            await VerifyAsync(code, expected);
+        }
+
+        [WorkItem(11057, "https://github.com/dotnet/roslyn/issues/11057")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        public async Task EdgeCase1()
+        {
+            var code = @"
+/**/$$
+";
+            var expected = @"
+/**/
+$$
+";
+            await VerifyAsync(code, expected);
+        }
+
+        [WorkItem(11056, "https://github.com/dotnet/roslyn/issues/11056")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        public async Task EdgeCase2()
+        {
+            var code = @"
+$$/* */
+";
+            var expected = @"
+
+$$/* */
+";
+            await VerifyAsync(code, expected);
+        }
+
+        [WorkItem(11056, "https://github.com/dotnet/roslyn/issues/11056")]
+        [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
+        public async Task EdgeCase3()
+        {
+            var code = @"
+/* */$$
+";
+            var expected = @"
+/* */
+$$
+";
+            await VerifyAsync(code, expected);
+        }
+
         [WpfFact, Trait(Traits.Feature, Traits.Features.BlockCommentEditing)]
         public async Task InsertOnStartLine0()
         {

@@ -8,11 +8,13 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
     internal class IncrementalAnalyzerProviderMetadata
     {
         public bool HighPriorityForActiveFile { get; }
+        public string Name { get; }
         public string[] WorkspaceKinds { get; }
 
         public IncrementalAnalyzerProviderMetadata(IDictionary<string, object> data)
         {
             this.HighPriorityForActiveFile = (bool)data.GetValueOrDefault("HighPriorityForActiveFile");
+            this.Name = (string)data.GetValueOrDefault("Name");
             this.WorkspaceKinds = (string[])data.GetValueOrDefault("WorkspaceKinds");
         }
     }
