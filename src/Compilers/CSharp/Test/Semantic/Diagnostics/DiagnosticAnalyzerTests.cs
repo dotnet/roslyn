@@ -1356,6 +1356,25 @@ partial class PartialType
             VerifyGeneratedCodeAnalyzerDiagnostics(compilation, expected, GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
         }
 
+        [Fact, WorkItem(11217, "https://github.com/dotnet/roslyn/issues/11217")]
+        public void TestGeneratedCodeAnalyzerNoReportDiagnostics()
+        {
+            string source1 = @"
+class TypeInUserFile { }
+";
+            string source2 = @"
+class TypeInGeneratedFile { }
+";
+            var tree1 = CSharpSyntaxTree.ParseText(source1, path: "SourceFileRegular.cs");
+            var tree2 = CSharpSyntaxTree.ParseText(source2, path: "SourceFileRegular.Designer.cs");
+            var compilation = CreateCompilationWithMscorlib45(new[] { tree1, tree2 }, new MetadataReference[] { SystemRef });
+            compilation.VerifyDiagnostics();
+
+            var analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeAnalyzer2() };
+            compilation.VerifyAnalyzerDiagnostics(analyzers,
+                expected: Diagnostic("GeneratedCodeAnalyzer2Warning", "TypeInUserFile").WithArguments("TypeInUserFile", "2").WithLocation(2, 7));
+        }
+
         internal class OwningSymbolTestAnalyzer : DiagnosticAnalyzer
         {
             public static readonly DiagnosticDescriptor ExpressionDescriptor = new DiagnosticDescriptor(
