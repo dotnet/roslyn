@@ -43,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
 
             Return Formatter.FormatAsync(newDocument,
                                          Formatter.Annotation,
-                                         options:=newDocument.Project.Solution.Workspace.Options,
+                                         options:=newDocument.Options,
                                          cancellationToken:=cancellationToken,
                                          rules:=formatterRules).WaitAndGetResult(cancellationToken)
         End Function

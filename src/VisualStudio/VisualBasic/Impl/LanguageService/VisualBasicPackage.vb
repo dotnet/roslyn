@@ -133,8 +133,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Protected Overrides Function GetAutomationObject(name As String) As Object
             If name = "Basic-Specific" Then
                 Dim workspace = Me.ComponentModel.GetService(Of VisualStudioWorkspace)()
-                Dim optionService = workspace.Services.GetService(Of IOptionService)()
-                Return New AutomationObject(optionService)
+                Return New AutomationObject(workspace)
             End If
 
             Return MyBase.GetAutomationObject(name)

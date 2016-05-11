@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Collections.Immutable;
@@ -2281,6 +2282,19 @@ namespace Microsoft.CodeAnalysis
             if (!this.ContainsAdditionalDocument(documentId))
             {
                 throw new InvalidOperationException(WorkspacesResources.DocumentNotInSolution);
+            }
+        }
+
+        /// <summary>
+        /// Returns the options that should be applied to this solution. This consists of global options from <see cref="Workspace.Options"/>,
+        /// merged with any settings the user has specified at the solution level.
+        /// </summary>
+        public OptionSet Options
+        {
+            get
+            {
+                // TODO: merge with solution-specific options
+                return this.Workspace.Options;
             }
         }
     }

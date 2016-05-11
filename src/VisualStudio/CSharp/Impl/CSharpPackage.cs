@@ -139,8 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
             if (name == "CSharp-Specific")
             {
                 var workspace = this.ComponentModel.GetService<VisualStudioWorkspace>();
-                var optionService = workspace.Services.GetService<IOptionService>();
-                return new Options.AutomationObject(optionService);
+                return new Options.AutomationObject(workspace);
             }
 
             return base.GetAutomationObject(name);

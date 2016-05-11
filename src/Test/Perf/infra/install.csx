@@ -13,7 +13,7 @@ using System.IO;
 using Roslyn.Test.Performance.Utilities;
 using static Roslyn.Test.Performance.Utilities.TestUtilities;
 
-TestUtilities.InitUtilities();
+TestUtilities.InitUtilitiesFromCsx();
 
 // If we're being #load'ed by uninstall.csx, set the "uninstall" flag.
 var uninstall = Environment.GetCommandLineArgs()[1] == "uninstall.csx";

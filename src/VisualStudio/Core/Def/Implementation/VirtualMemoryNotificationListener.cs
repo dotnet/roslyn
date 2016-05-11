@@ -85,7 +85,7 @@ namespace Microsoft.VisualStudio.LanguageServices
                             _workspace.Options.GetOption(InternalFeatureOnOffOptions.FullSolutionAnalysisMemoryMonitor) &&
                             _workspace.Options.GetOption(RuntimeOptions.FullSolutionAnalysis))
                         {
-                            _workspace.Services.GetService<IOptionService>().SetOptions(_workspace.Options.WithChangedOption(RuntimeOptions.FullSolutionAnalysis, false));
+                            _workspace.Options = _workspace.Options.WithChangedOption(RuntimeOptions.FullSolutionAnalysis, false);
 
                             // let user know full analysis is turned off due to memory concern
                             // no close info bar action
