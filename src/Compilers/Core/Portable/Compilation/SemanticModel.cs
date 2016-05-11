@@ -104,6 +104,25 @@ namespace Microsoft.CodeAnalysis
         protected abstract SymbolInfo GetSymbolInfoCore(SyntaxNode node, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
+        /// Gets natural type of expression.
+        /// </summary>
+        /// <param name="expression">The syntax node to get the information for.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used to cancel the
+        /// process of obtaining the semantic info.</param>
+        internal ITypeSymbol GetNaturalType(SyntaxNode expression, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return GetNaturalTypeCore(expression, cancellationToken);
+        }
+
+        /// <summary>
+        /// Gets natural type of expression.
+        /// </summary>
+        /// <param name="expression">The syntax node to get the information for.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used to cancel the
+        /// process of obtaining the semantic info.</param>
+        protected abstract ITypeSymbol GetNaturalTypeCore(SyntaxNode expression, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
         /// Binds the node in the context of the specified location and get semantic information
         /// such as type, symbols and diagnostics. This method is used to get semantic information
         /// about an expression that did not actually appear in the source code.

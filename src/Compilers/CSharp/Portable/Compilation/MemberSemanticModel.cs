@@ -922,6 +922,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             return GetTypeInfoForNode(lowestBoundNode, highestBoundNode, boundParent);
         }
 
+        internal override TypeSymbol GetNaturalTypeWorker(ExpressionSyntax node, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            CSharpSyntaxNode bindableNode = this.GetBindableSyntaxNode(node);
+            var lowestBoundNode = this.GetLowerBoundNode(bindableNode) as BoundExpression;
+
+            if (lowestBoundNode == null)
+            {
+                return null;
+            }
+
+            switch (lowestBoundNode.Kind)
+            {
+                case BoundKind.Lambda:
+                case BoundKind.UnboundLambda:
+                    return null;
+            }
+
+            var binder = this.GetEnclosingBinder(node.Span.Start);
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            return binder.GetNaturalTypeOfExpression(lowestBoundNode, ref useSiteDiagnostics);
+        }
+
         internal override ImmutableArray<Symbol> GetMemberGroupWorker(CSharpSyntaxNode node, SymbolInfoOptions options, CancellationToken cancellationToken = default(CancellationToken))
         {
             CSharpSyntaxNode bindableNode;

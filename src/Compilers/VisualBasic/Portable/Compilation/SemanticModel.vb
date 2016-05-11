@@ -3141,6 +3141,16 @@ _Default:
             Return GetSymbolInfoForNode(node, cancellationToken)
         End Function
 
+        Protected NotOverridable Overrides Function GetNaturalTypeCore(expression As SyntaxNode, Optional cancellationToken As CancellationToken = Nothing) As ITypeSymbol
+            Dim expressionSyntax = TryCast(expression, ExpressionSyntax)
+
+            If expressionSyntax Is Nothing Then
+                Return Nothing
+            End If
+
+            Return GetTypeInfo(expressionSyntax, cancellationToken).Type
+        End Function
+
         Protected NotOverridable Overrides Function GetTypeInfoCore(node As SyntaxNode, Optional cancellationToken As CancellationToken = Nothing) As TypeInfo
             Return GetTypeInfoForNode(node, cancellationToken)
         End Function

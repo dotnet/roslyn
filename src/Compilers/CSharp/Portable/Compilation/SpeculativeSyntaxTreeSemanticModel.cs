@@ -128,5 +128,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var expression = (ExpressionSyntax)node;
             return _parentSemanticModel.GetSpeculativeTypeInfoWorker(_position, expression, this.GetSpeculativeBindingOption(expression));
         }
+
+        internal override TypeSymbol GetNaturalTypeWorker(ExpressionSyntax node, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return _parentSemanticModel.GetSpeculativeNaturalTypeWorker(_position, node, this.GetSpeculativeBindingOption(node));
+        }
     }
 }

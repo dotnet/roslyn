@@ -375,6 +375,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        internal override TypeSymbol GetNaturalTypeWorker(ExpressionSyntax node, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            // in case this is right side of a qualified name or member access (or part of a cref)
+            node = SyntaxFactory.GetStandaloneNode(node) as ExpressionSyntax;
+
+            if (node == null)
+            {
+                return null;
+            }
+
+            var model = this.GetMemberModel(node);
+
+            if (model != null)
+            {
+                // Expression occurs in an executable code (method body or initializer) context. Use that
+                // model to get the information.
+                return model.GetNaturalTypeWorker(node, cancellationToken);
+            }
+            else
+            {
+                // if expression is not part of a member context then caller may really just have a
+                // reference to a type or namespace name
+                var symbol = GetSemanticInfoSymbolInNonMemberContext(node, bindVarAsAliasFirst: false); // Don't care about aliases here.
+                return symbol as TypeSymbol;
+            }
+        }
+
         internal override ImmutableArray<Symbol> GetMemberGroupWorker(CSharpSyntaxNode node, SymbolInfoOptions options, CancellationToken cancellationToken = default(CancellationToken))
         {
             // in case this is right side of a qualified name or member access (or part of a cref)

@@ -2431,7 +2431,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 return new BoundConversion(
                     expression.Syntax,
-                    expression,
+                    // Reclassify to natural type for error recovery, but do not report any diagnostics. 
+                    ReclassifyExpressionInErrorRecoveryMode(expression),
                     conversion,
                     @checked: CheckOverflowAtRuntime,
                     explicitCastInCode: false,

@@ -359,7 +359,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((conversion.Kind == ConversionKind.ImplicitNullable) == destination.IsNullableType());
 
+            if (conversion.IsUserDefined)
+            {
+                // Let the caller to deal with user-defined conversion.
+                return false;
+            }
+
             var tupleLiteral = (BoundTupleLiteral)source;
+
+            if (!conversion.Exists)
+            {
+                source = ReclassifyTupleLiteralInErrorRecoveryMode(tupleLiteral);
+                return source != tupleLiteral;
+            }
 
             // Dig through nullable target type, the caller will take care of putting the nullability back.
             if (conversion.Kind == ConversionKind.ImplicitNullable)

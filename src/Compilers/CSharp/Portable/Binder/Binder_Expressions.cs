@@ -385,7 +385,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder defaultValueBinder = this.GetBinder(defaultValueSyntax);
             Debug.Assert(defaultValueBinder != null);
 
-            valueBeforeConversion = defaultValueBinder.BindValue(defaultValueSyntax.Value, diagnostics, BindValueKind.RValue);
+            valueBeforeConversion = defaultValueBinder.BindValue(defaultValueSyntax.Value, diagnostics, BindValueKind.Value);
 
             // Always generate the conversion, even if the expression is not convertible to the given type.
             // We want the erroneous conversion in the tree.
@@ -400,7 +400,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Binder initializerBinder = this.GetBinder(equalsValueSyntax);
             Debug.Assert(initializerBinder != null);
 
-            var initializer = initializerBinder.BindValue(equalsValueSyntax.Value, diagnostics, BindValueKind.RValue);
+            var initializer = initializerBinder.BindValue(equalsValueSyntax.Value, diagnostics, BindValueKind.Value);
             initializer = initializerBinder.GenerateConversionForAssignment(symbol.ContainingType.EnumUnderlyingType, initializer, diagnostics);
             return initializerBinder.WrapWithVariablesIfAny(equalsValueSyntax, initializer);
         }
@@ -699,7 +699,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 CollectTupleFieldMemberNames(name, i + 1, numElements, ref elementNames);
 
-                BoundExpression boundArgument = BindValue(argumentSyntax.Expression, diagnostics, BindValueKind.RValue);
+                BoundExpression boundArgument = BindValue(argumentSyntax.Expression, diagnostics, BindValueKind.Value);
                 boundArguments.Add(boundArgument);
 
                 GetTupleFieldType(boundArgument, argumentSyntax, diagnostics, ref hasErrors);
@@ -722,12 +722,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Reclassify tuple literal to its natural type.
+        /// Infer natural type for a tuple literal and store relevant information in the node.
         /// 
         /// A literal that has a natural type should not add any errors to <paramref name="diagnostics"/>
-        /// during reclassification.
+        /// during the process.
         /// </summary>
-        private BoundExpression ReclassifyTupleLiteral(BoundTupleLiteral tupleLiteral, DiagnosticBag diagnostics, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private BoundTupleLiteral AdjustTupleLiteralBasedOnNaturalTypeInference(BoundTupleLiteral tupleLiteral, DiagnosticBag diagnostics, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // Let's try to infer natural type of this literal
             int countOfElements = tupleLiteral.Arguments.Length;
@@ -799,11 +799,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                            elementlocations, tupleLiteral.ArgumentNamesOpt,
                                                            this.Compilation, ref useSiteDiagnostics);
 
-            tupleLiteral = tupleLiteral.Update(elements.ToImmutableAndFree(), tupleLiteral.ArgumentNamesOpt, declaredTupleType);
+            return tupleLiteral.Update(elements.ToImmutableAndFree(), tupleLiteral.ArgumentNamesOpt, declaredTupleType);
+        }
+
+        /// <summary>
+        /// Reclassify tuple literal to its natural type.
+        /// 
+        /// A literal that has a natural type should not add any errors to <paramref name="diagnostics"/>
+        /// during reclassification.
+        /// </summary>
+        private BoundConversion ReclassifyTupleLiteral(BoundTupleLiteral tupleLiteral, DiagnosticBag diagnostics, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            tupleLiteral = AdjustTupleLiteralBasedOnNaturalTypeInference(tupleLiteral, diagnostics, ref useSiteDiagnostics);
+            Debug.Assert((object)tupleLiteral.DeclaredOrTargetTupleTypeOpt != null);
 
             return new BoundConversion(tupleLiteral.Syntax, tupleLiteral, Conversion.ImplicitTupleLiteral,
                                        @checked: false, explicitCastInCode: false, constantValueOpt: null,
-                                       type: declaredTupleType);
+                                       type: tupleLiteral.DeclaredOrTargetTupleTypeOpt);
+        }
+
+        private BoundTupleLiteral ReclassifyTupleLiteralInErrorRecoveryMode(BoundTupleLiteral tupleLiteral)
+        {
+            var diagnostics = DiagnosticBag.GetInstance();
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            var result = AdjustTupleLiteralBasedOnNaturalTypeInference(tupleLiteral, diagnostics, ref useSiteDiagnostics);
+            diagnostics.Free();
+            return result;
         }
 
         /// <summary>
@@ -871,6 +892,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 case BoundKind.TupleLiteral:
                     return ReclassifyTupleLiteral((BoundTupleLiteral)expr, diagnostics, ref useSiteDiagnostics);
+            }
+
+            return expr;
+        }
+
+        internal BoundExpression ReclassifyExpressionInErrorRecoveryMode(BoundExpression expr)
+        {
+            if ((object)expr.Type != null)
+            {
+                return expr;
+            }
+
+            switch (expr.Kind)
+            {
+                case BoundKind.TupleLiteral:
+                    return ReclassifyTupleLiteralInErrorRecoveryMode((BoundTupleLiteral)expr);
             }
 
             return expr;
@@ -955,7 +992,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // __refvalue(tr, T) requires that tr be a TypedReference and T be a type.
             // The result is a *variable* of type T.
 
-            BoundExpression argument = BindValue(node.Expression, diagnostics, BindValueKind.RValue);
+            BoundExpression argument = BindValue(node.Expression, diagnostics, BindValueKind.Value);
             bool hasErrors = argument.HasAnyErrors;
 
             TypeSymbol typedReferenceType = this.Compilation.GetSpecialType(SpecialType.System_TypedReference);

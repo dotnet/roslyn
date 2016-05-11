@@ -87,12 +87,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (expression != null)
                 {
-                    var typeInfo = SemanticModel.GetTypeInfo(expression, CancellationToken);
                     var symbolInfo = SemanticModel.GetSymbolInfo(expression, CancellationToken);
 
                     if (symbolInfo.CandidateReason != CandidateReason.WrongArity)
                     {
-                        ITypeSymbol type = typeInfo.Type;
+                        ITypeSymbol type = SemanticModel.GetNaturalType(expression, CancellationToken);
 
                         // If it bound to a method, try to get the Action/Func form of that method.
                         if (type == null &&

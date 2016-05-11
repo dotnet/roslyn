@@ -112,7 +112,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         private Conversion ClassifyImplicitBuiltInConversionFromExpression(BoundExpression sourceExpression, TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(sourceExpression != null || (object)source != null);
-            Debug.Assert(sourceExpression == null || (object)sourceExpression.Type == (object)source);
+            Debug.Assert(sourceExpression == null || (object)sourceExpression.Type == (object)source ||
+                         ((object)sourceExpression.Type == null && 
+                         ReclassifyExpressionToNaturalTypeIfAny(sourceExpression, ref useSiteDiagnostics).Type == source));
             Debug.Assert((object)destination != null);
 
             if (HasImplicitDynamicConversionFromExpression(source, destination))
@@ -223,8 +225,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)source == null)
             {
-                sourceExpression = ReclassifyExpressionToNaturalTypeIfAny(sourceExpression, ref useSiteDiagnostics);
-                source = sourceExpression.Type; 
+                source = ReclassifyExpressionToNaturalTypeIfAny(sourceExpression, ref useSiteDiagnostics).Type; 
             }
 
             if ((object)source != null)

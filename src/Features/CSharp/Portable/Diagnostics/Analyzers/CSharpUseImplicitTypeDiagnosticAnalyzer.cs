@@ -147,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
             }
 
             // final check to compare type information on both sides of assignment.
-            var initializerType = semanticModel.GetTypeInfo(expression, cancellationToken).Type;
+            var initializerType = semanticModel.GetNaturalType(expression, cancellationToken);
             return declaredType.Equals(initializerType);
         }
     }

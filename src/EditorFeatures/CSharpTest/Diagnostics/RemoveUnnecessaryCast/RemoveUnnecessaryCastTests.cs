@@ -3847,7 +3847,8 @@ class Program
             withScriptOption: true);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/11028"), Trait(Traits.Feature, Traits.Features.CodeActionsRemoveUnnecessaryCast)]
+        [WorkItem(11028, "https://github.com/dotnet/roslyn/issues/11028")]
         public async Task TupleWithDifferentNames()
         {
             await TestAsync(
