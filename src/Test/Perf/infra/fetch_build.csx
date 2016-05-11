@@ -9,10 +9,8 @@ using System.Linq;
 using System.Xml;
 
 // TODO: Use actual command line argument parser so we can have help text, etc...
-var branch = Args.Count() == 2 ? Args[0] : "master";
+var sourceFolder = Args[0];
 var destinationFolder = Args.Count() == 2 ? Args[1] : @"C:\Roslyn\Binaries\Release";
-
-var sourceFolder = $@"\\cpvsbuild\drops\Roslyn\Roslyn-{branch}-Signed-Release";
 
 string latestBuild = null;
 foreach (var folder in Directory.GetDirectories(sourceFolder, "????????.?").Reverse())
