@@ -20,8 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
 
         protected override bool IsValidContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
-            return !context.TargetToken.IsKindOrHasMatchingText(SyntaxKind.PartialKeyword)
-                && InMemberDeclarationContext(position, context, cancellationToken);
+            return InMemberDeclarationContext(position, context, cancellationToken);
         }
 
         private static bool InMemberDeclarationContext(int position, CSharpSyntaxContext context, CancellationToken cancellationToken)
@@ -31,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
                 || context.IsMemberDeclarationContext(
                     validModifiers: SyntaxKindSet.AllMemberModifiers,
                     validTypeDeclarations: SyntaxKindSet.ClassStructTypeDeclarations,
-                    canBePartial: true,
+                    canBePartial: false,
                     cancellationToken: cancellationToken);
         }
     }
