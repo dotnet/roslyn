@@ -2371,47 +2371,50 @@ class C
 {
     static void Main()
     {
-        var x = (CombineHashCodes: 1, CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, GetHashCodeCore: 7, Rest: 8, Size: 9, ToString: 10, ToStringEnd: 11);
+        var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
     }
 }
 ";
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics(
-                // (6,18): error CS8202: Tuple membername 'CombineHashCodes' is disallowed at any position.
-                //         var x = (CombineHashCodes: 1, CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, GetHashCodeCore: 7, Rest: 8, Size: 9, ToString: 10, ToStringEnd: 11);
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "CombineHashCodes").WithArguments("CombineHashCodes").WithLocation(6, 18),
-                // (6,39): error CS8202: Tuple membername 'CompareTo' is disallowed at any position.
-                //         var x = (CombineHashCodes: 1, CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, GetHashCodeCore: 7, Rest: 8, Size: 9, ToString: 10, ToStringEnd: 11);
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "CompareTo").WithArguments("CompareTo").WithLocation(6, 39),
-                // (6,53): error CS8202: Tuple membername 'Create' is disallowed at any position.
-                //         var x = (CombineHashCodes: 1, CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, GetHashCodeCore: 7, Rest: 8, Size: 9, ToString: 10, ToStringEnd: 11);
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Create").WithArguments("Create").WithLocation(6, 53),
-                // (6,64): error CS8202: Tuple membername 'Deconstruct' is disallowed at any position.
-                //         var x = (CombineHashCodes: 1, CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, GetHashCodeCore: 7, Rest: 8, Size: 9, ToString: 10, ToStringEnd: 11);
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Deconstruct").WithArguments("Deconstruct").WithLocation(6, 64),
-                // (6,80): error CS8202: Tuple membername 'Equals' is disallowed at any position.
-                //         var x = (CombineHashCodes: 1, CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, GetHashCodeCore: 7, Rest: 8, Size: 9, ToString: 10, ToStringEnd: 11);
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Equals").WithArguments("Equals").WithLocation(6, 80),
-                // (6,91): error CS8202: Tuple membername 'GetHashCode' is disallowed at any position.
-                //         var x = (CombineHashCodes: 1, CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, GetHashCodeCore: 7, Rest: 8, Size: 9, ToString: 10, ToStringEnd: 11);
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "GetHashCode").WithArguments("GetHashCode").WithLocation(6, 91),
-                // (6,107): error CS8202: Tuple membername 'GetHashCodeCore' is disallowed at any position.
-                //         var x = (CombineHashCodes: 1, CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, GetHashCodeCore: 7, Rest: 8, Size: 9, ToString: 10, ToStringEnd: 11);
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "GetHashCodeCore").WithArguments("GetHashCodeCore").WithLocation(6, 107),
-                // (6,127): error CS8202: Tuple membername 'Rest' is disallowed at any position.
-                //         var x = (CombineHashCodes: 1, CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, GetHashCodeCore: 7, Rest: 8, Size: 9, ToString: 10, ToStringEnd: 11);
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Rest").WithArguments("Rest").WithLocation(6, 127),
-                // (6,136): error CS8202: Tuple membername 'Size' is disallowed at any position.
-                //         var x = (CombineHashCodes: 1, CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, GetHashCodeCore: 7, Rest: 8, Size: 9, ToString: 10, ToStringEnd: 11);
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Size").WithArguments("Size").WithLocation(6, 136),
-                // (6,145): error CS8202: Tuple membername 'ToString' is disallowed at any position.
-                //         var x = (CombineHashCodes: 1, CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, GetHashCodeCore: 7, Rest: 8, Size: 9, ToString: 10, ToStringEnd: 11);
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "ToString").WithArguments("ToString").WithLocation(6, 145),
-                // (6,159): error CS8202: Tuple membername 'ToStringEnd' is disallowed at any position.
-                //         var x = (CombineHashCodes: 1, CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, GetHashCodeCore: 7, Rest: 8, Size: 9, ToString: 10, ToStringEnd: 11);
-                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "ToStringEnd").WithArguments("ToStringEnd").WithLocation(6, 159)
+                // (6,18): error CS8202: Tuple membername 'CompareTo' is disallowed at any position.
+                //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
+                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "CompareTo").WithArguments("CompareTo").WithLocation(6, 18),
+                // (6,43): error CS8202: Tuple membername 'Deconstruct' is disallowed at any position.
+                //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
+                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Deconstruct").WithArguments("Deconstruct").WithLocation(6, 43),
+                // (6,59): error CS8202: Tuple membername 'Equals' is disallowed at any position.
+                //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
+                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Equals").WithArguments("Equals").WithLocation(6, 59),
+                // (6,70): error CS8202: Tuple membername 'GetHashCode' is disallowed at any position.
+                //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
+                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "GetHashCode").WithArguments("GetHashCode").WithLocation(6, 70),
+                // (6,86): error CS8202: Tuple membername 'Rest' is disallowed at any position.
+                //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
+                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Rest").WithArguments("Rest").WithLocation(6, 86),
+                // (6,95): error CS8202: Tuple membername 'ToString' is disallowed at any position.
+                //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
+                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "ToString").WithArguments("ToString").WithLocation(6, 95)
                 );
+        }
+
+        [Fact]
+        public void TupleWithExistingInaccessibleUnderlyingMemberNames()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var x = (CombineHashCodes: 1, Create: 2, GetHashCodeCore: 3, Size: 4, ToStringEnd: 5);
+        System.Console.WriteLine(x.CombineHashCodes + "" "" + x.Create + "" "" + x.GetHashCodeCore + "" "" + x.Size + "" "" + x.ToStringEnd);
+    }
+}
+";
+
+            var verifier = CompileAndVerify(source, expectedOutput: @"1 2 3 4 5", additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            verifier.VerifyDiagnostics();
         }
 
         [Fact]

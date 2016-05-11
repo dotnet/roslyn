@@ -497,17 +497,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             switch (name)
             {
-                case "CombineHashCodes":
                 case "CompareTo":
-                case "Create":
                 case "Deconstruct":
                 case "Equals":
                 case "GetHashCode":
-                case "GetHashCodeCore":
                 case "Rest":
-                case "Size":
                 case "ToString":
-                case "ToStringEnd":
                     return true;
 
                 default:
