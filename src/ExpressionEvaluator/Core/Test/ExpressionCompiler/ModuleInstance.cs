@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         public unsafe static ModuleInstance Create(PortableExecutableReference reference)
         {
             // make a copy of the metadata, so that we don't dispose the metadata of a reference that are shared accross tests:
-            return Create(reference.GetMetadata().Copy(), symReader: null, includeLocalSignatures: false);
+            return Create(reference.GetMetadata(), symReader: null, includeLocalSignatures: false);
         }
 
         public unsafe static ModuleInstance Create(ImmutableArray<byte> assemblyImage, ISymUnmanagedReader symReader, bool includeLocalSignatures = true)
