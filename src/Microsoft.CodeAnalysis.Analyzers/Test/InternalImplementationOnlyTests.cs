@@ -194,8 +194,8 @@ End Class
         {
             Debug.Assert(language == LanguageNames.CSharp || language == LanguageNames.VisualBasic);
 
-            Project project1 = CreateProject(new string[] { source1 }, language: language, addLanguageSpecificCodeAnalysisReference: false);
-            Project project2 = CreateProject(new string[] { source2 }, language: language, addLanguageSpecificCodeAnalysisReference: false, addToSolution: project1.Solution)
+            Project project1 = CreateProject(new[] { source1 }, language: language, addLanguageSpecificCodeAnalysisReference: false);
+            Project project2 = CreateProject(new[] { source2 }, language: language, addLanguageSpecificCodeAnalysisReference: false, addToSolution: project1.Solution)
                            .AddProjectReference(new ProjectReference(project1.Id));
 
             DiagnosticAnalyzer analyzer = language == LanguageNames.CSharp ? GetCSharpDiagnosticAnalyzer() : GetBasicDiagnosticAnalyzer();
