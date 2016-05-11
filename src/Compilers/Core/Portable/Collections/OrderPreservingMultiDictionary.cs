@@ -153,13 +153,6 @@ namespace Microsoft.CodeAnalysis.Collections
             /// </summary>
             private readonly object _value;
 
-            // By default we allocate array builders with a size of two.  That's two store
-            // the single item already in _value, and to store the item we're adding.  
-            // In general, we presume that the amount of values per key will be low, so this
-            // means we have very little overhead when there are multiple keys per value.
-            private static ObjectPool<ArrayBuilder<V>> s_builderPool = new ObjectPool<ArrayBuilder<V>>(
-                () => new ArrayBuilder<V>(size: 2));
-            
             internal ValueSet(V value)
             {
                 _value = value;
@@ -175,8 +168,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 var arrayBuilder = _value as ArrayBuilder<V>;
                 if (arrayBuilder != null)
                 {
-                    arrayBuilder.Clear();
-                    s_builderPool.Free(arrayBuilder);
+                    arrayBuilder.Free();
                 }
             }
 
@@ -251,7 +243,12 @@ namespace Microsoft.CodeAnalysis.Collections
                 {
                     // Promote from singleton V to ArrayBuilder<V>.
                     Debug.Assert(_value is V, "_value must be a V");
-                    arrayBuilder = s_builderPool.Allocate();
+
+                    // By default we allocate array builders with a size of two.  That's to store
+                    // the single item already in _value, and to store the item we're adding.  
+                    // In general, we presume that the amount of values per key will be low, so this
+                    // means we have very little overhead when there are multiple keys per value.
+                    arrayBuilder = ArrayBuilder<V>.GetInstance(capacity: 2);
                     arrayBuilder.Add((V)_value);
                     arrayBuilder.Add(item);
                 }
