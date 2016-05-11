@@ -12,11 +12,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.SymbolTree
         /// <summary>
         /// Returns null if the info cannot be retrieved from the cache.
         /// </summary>
-        Task<SymbolTreeInfo> TryGetSymbolTreeInfoAsync(Project project, CancellationToken cancellationToken);
+        Task<SymbolTreeInfo> TryGetSourceSymbolTreeInfoAsync(Project project, CancellationToken cancellationToken);
 
         /// <summary>
         /// Returns null if the info cannot be retrieved from the cache.
         /// </summary>
-        Task<SymbolTreeInfo> TryGetSymbolTreeInfoAsync(Solution solution, IAssemblySymbol assembly, PortableExecutableReference reference, CancellationToken cancellationToken);
+        Task<SymbolTreeInfo> TryGetMetadataSymbolTreeInfoAsync(Solution solution, PortableExecutableReference reference, CancellationToken cancellationToken);
     }
 }

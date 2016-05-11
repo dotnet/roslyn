@@ -15,7 +15,9 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
-    [ExportIncrementalAnalyzerProvider(highPriorityForActiveFile: true, workspaceKinds: new string[] { WorkspaceKind.Host, WorkspaceKind.Interactive, WorkspaceKind.AnyCodeRoslynWorkspace })]
+    [ExportIncrementalAnalyzerProvider(
+        highPriorityForActiveFile: true, name: WellKnownSolutionCrawlerAnalyzers.Diagnostic, 
+        workspaceKinds: new string[] { WorkspaceKind.Host, WorkspaceKind.Interactive, WorkspaceKind.AnyCodeRoslynWorkspace })]
     internal partial class DiagnosticAnalyzerService : IIncrementalAnalyzerProvider
     {
         private readonly ConditionalWeakTable<Workspace, BaseDiagnosticIncrementalAnalyzer> _map;

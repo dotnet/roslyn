@@ -28,11 +28,11 @@ class CSharpCompilerTest: PerfTest
     
     public override void Test() 
     {
-        string responseFile = "@" + Path.Combine(MyTempDirectory, "csharp", _rspFile);
-        string keyfileLocation = Path.Combine(MyTempDirectory, "csharp", "keyfile", "35MSSharedLib1024.snk");
+        string responseFile = "@" + Path.Combine(TempDirectory, "csharp", _rspFile);
+        string keyfileLocation = Path.Combine(TempDirectory, "csharp", "keyfile", "35MSSharedLib1024.snk");
         string args = $"{responseFile} /keyfile:{keyfileLocation}";
 
-        string workingDirectory = Path.Combine(MyTempDirectory, "csharp");
+        string workingDirectory = Path.Combine(TempDirectory, "csharp");
 
         ShellOutVital(Path.Combine(MyBinaries(), "csc.exe"), args, IsVerbose(), _logger, workingDirectory);
         _logger.Flush();
