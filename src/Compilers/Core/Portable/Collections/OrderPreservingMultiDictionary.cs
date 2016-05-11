@@ -10,9 +10,8 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Collections
 {
     /// <summary>
-    /// A MultiDictionary that allows only adding, and 
-    /// preserves the order of values added to the dictionary.
-    /// Thread-safe for reading, but not for adding.
+    /// A MultiDictionary that allows only adding, and preserves the order of values added to the 
+    /// dictionary. Thread-safe for reading, but not for adding.
     /// </summary>
     /// <remarks>
     /// Always uses the default comparer.
@@ -33,6 +32,7 @@ namespace Microsoft.CodeAnalysis.Collections
         {
             if (_dictionary != null)
             {
+                // Allow our ValueSets to return their underlying ArrayBuilders to the pool.
                 foreach (var kvp in _dictionary)
                 {
                     kvp.Value.Free();
@@ -65,8 +65,11 @@ namespace Microsoft.CodeAnalysis.Collections
 
         #endregion Pooling
 
+        // An empty dictionary we keep around to simplify certain operations (like "Keys")
+        // when we don't have an underlying dictionary of our own.
         private static readonly Dictionary<K, ValueSet> s_emptyDictionary = new Dictionary<K, ValueSet>();
 
+        // The underlying dictionary we store our data in.  null if we are empty.
         private PooledDictionary<K, ValueSet> _dictionary;
 
         public OrderPreservingMultiDictionary()
@@ -78,17 +81,20 @@ namespace Microsoft.CodeAnalysis.Collections
             _dictionary = _dictionary ?? PooledDictionary<K, ValueSet>.GetInstance();
         }
 
-        public bool IsEmpty =>  _dictionary == null;
+        public bool IsEmpty => _dictionary == null;
 
         /// <summary>
         /// Add a value to the dictionary.
         /// </summary>
         public void Add(K k, V v)
         {
-            ValueSet item;
-            if (!this.IsEmpty && _dictionary.TryGetValue(k, out item))
+            ValueSet valueSet;
+            if (!this.IsEmpty && _dictionary.TryGetValue(k, out valueSet))
             {
-                _dictionary[k] = item.Add(v);
+                Debug.Assert(valueSet.Count >= 1);
+                // Have to re-store the ValueSet in case we upgraded the existing ValueSet from 
+                // holding a single item to holding multiple items.
+                _dictionary[k] = valueSet.WithAddedItem(v);
             }
             else
             {
@@ -123,6 +129,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 ValueSet valueSet;
                 if (!this.IsEmpty && _dictionary.TryGetValue(k, out valueSet))
                 {
+                    Debug.Assert(valueSet.Count >= 1);
                     return valueSet.Items;
                 }
 
@@ -140,16 +147,19 @@ namespace Microsoft.CodeAnalysis.Collections
 
         public struct ValueSet : IEnumerable<V>
         {
-            // store either a single V or an ArrayBuilder<V>
             /// <summary>
             /// Each value is either a single V or an <see cref="ArrayBuilder{V}"/>.
-            /// Null when the dictionary is empty.
-            /// Don't access the field directly.
+            /// Never null.
             /// </summary>
             private readonly object _value;
+
+            // By default we allocate array builders with a size of two.  That's two store
+            // the single item already in _value, and to store the item we're adding.  
+            // In general, we presume that the amount of values per key will be low, so this
+            // means we have very little overhead when there are multiple keys per value.
             private static ObjectPool<ArrayBuilder<V>> s_builderPool = new ObjectPool<ArrayBuilder<V>>(
                 () => new ArrayBuilder<V>(size: 2));
-
+            
             internal ValueSet(V value)
             {
                 _value = value;
@@ -174,6 +184,8 @@ namespace Microsoft.CodeAnalysis.Collections
             {
                 get
                 {
+                    Debug.Assert(this.Count >= 1);
+
                     var arrayBuilder = _value as ArrayBuilder<V>;
                     if (arrayBuilder == null)
                     {
@@ -197,6 +209,8 @@ namespace Microsoft.CodeAnalysis.Collections
             {
                 get
                 {
+                    Debug.Assert(this.Count >= 1);
+
                     var arrayBuilder = _value as ArrayBuilder<V>;
                     if (arrayBuilder == null)
                     {
@@ -228,8 +242,10 @@ namespace Microsoft.CodeAnalysis.Collections
                 return new Enumerator(this);
             }
 
-            internal ValueSet Add(V item)
+            internal ValueSet WithAddedItem(V item)
             {
+                Debug.Assert(this.Count >= 1);
+
                 var arrayBuilder = _value as ArrayBuilder<V>;
                 if (arrayBuilder == null)
                 {
@@ -257,6 +273,7 @@ namespace Microsoft.CodeAnalysis.Collections
                 {
                     _valueSet = valueSet;
                     _count = _valueSet.Count;
+                    Debug.Assert(_count >= 1);
                     _index = -1;
                 }
 
