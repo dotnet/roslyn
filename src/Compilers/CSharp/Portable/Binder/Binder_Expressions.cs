@@ -4510,6 +4510,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)leftType != null && leftType.IsDynamic())
             {
+                // There are some sources of a `dynamic` typed value that can be known before runtime
+                // to be invalid. For example, accessing a set-only property whose type is dynamic:
+                //   dynamic Foo { set; }
+                // If Foo itself is a dynamic thing (e.g. in `x.Foo.Bar`, `x` is dynamic, and we're
+                // currently checking Bar), then CheckValue will do nothing.
+                boundLeft = CheckValue(boundLeft, BindValueKind.RValue, diagnostics);
                 return BindDynamicMemberAccess(node, boundLeft, right, invoked, indexed, diagnostics);
             }
 
