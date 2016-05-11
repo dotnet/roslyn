@@ -208,7 +208,9 @@
     <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer_GetDiagnostics.cs" />
     <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer_GetLatestDiagnosticsForSpan.cs" />
     <Compile Include="Diagnostics\EngineV1\MemberRangeMap.cs" />
+    <Compile Include="Diagnostics\EngineV2\CompilerResultBuilder.cs" />
     <Compile Include="Diagnostics\EngineV2\DiagnosticDataSerializer.cs" />
+    <Compile Include="Diagnostics\EngineV2\DiagnosticInProcHostSpecificService.cs" />
     <Compile Include="Diagnostics\EngineV2\DiagnosticIncrementalAnalyzer.AnalysisData.cs" />
     <Compile Include="Diagnostics\EngineV2\DiagnosticIncrementalAnalyzer.AnalysisKind.cs" />
     <Compile Include="Diagnostics\EngineV2\AnalysisResult.cs" />
@@ -220,12 +222,12 @@
     <Compile Include="Diagnostics\EngineV2\DiagnosticIncrementalAnalyzer.StateManager.HostStates.cs" />
     <Compile Include="Diagnostics\EngineV2\DiagnosticIncrementalAnalyzer.StateManager.ProjectStates.cs" />
     <Compile Include="Diagnostics\EngineV2\DiagnosticIncrementalAnalyzer.StateSet.cs" />
+    <Compile Include="Diagnostics\EngineV2\ICompilerDiagnosticExecutor.cs" />
     <Compile Include="Diagnostics\LiveDiagnosticUpdateArgsId.cs" />
     <Compile Include="Diagnostics\DiagnosticEventTaskScheduler.cs" />
     <Compile Include="Diagnostics\DiagnosticService_UpdateSourceRegistrationService.cs" />
     <Compile Include="Common\UpdatedEventArgs.cs" />
     <Compile Include="Diagnostics\DiagnosticAnalyzerCategory.cs" />
-    <Compile Include="Diagnostics\EngineV2\CompilerDiagnosticExecutor.cs" />
     <Compile Include="Diagnostics\EngineV2\DiagnosticIncrementalAnalyzer.ActiveFileState.cs" />
     <Compile Include="Diagnostics\EngineV2\DiagnosticIncrementalAnalyzer.ProjectState.cs" />
     <Compile Include="Diagnostics\EngineV2\DiagnosticIncrementalAnalyzer_BuildSynchronization.cs" />

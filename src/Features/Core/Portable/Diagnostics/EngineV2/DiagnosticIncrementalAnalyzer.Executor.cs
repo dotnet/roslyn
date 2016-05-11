@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Execution;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Text;
@@ -152,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (analyzerDriverOpt != null)
                 {
                     // calculate regular diagnostic analyzers diagnostics
-                    result = await analyzerDriverOpt.AnalyzeAsync(project, cancellationToken).ConfigureAwait(false);
+                    result = await AnalyzeAsync(analyzerDriverOpt, project, cancellationToken).ConfigureAwait(false);
 
                     // record telemetry data
                     await UpdateAnalyzerTelemetryDataAsync(analyzerDriverOpt, project, cancellationToken).ConfigureAwait(false);
@@ -261,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // create result map
                 var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-                var builder = new CompilerDiagnosticExecutor.Builder(project, version);
+                var builder = new CompilerResultBuilder(project, version);
 
                 foreach (var analyzer in ideAnalyzers)
                 {
@@ -462,6 +463,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                     yield return DiagnosticData.Create(targetDocument, diagnostic);
                 }
+            }
+
+            private Task<ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult>> AnalyzeAsync(CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
+            {
+                var executor = project.Solution.Workspace.Services.GetHostSpecificServiceAvailable<ICompilerDiagnosticExecutor>();
+                return executor.AnalyzeAsync(analyzerDriver, project, cancellationToken);
             }
 
             private IEnumerable<DiagnosticData> ConvertToLocalDiagnosticsWithCompilation(Document targetDocument, IEnumerable<Diagnostic> diagnostics, TextSpan? span = null)
