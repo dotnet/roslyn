@@ -1439,5 +1439,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return string.Empty;
         }
+
+        public bool IsLeftSideOfDot(SyntaxNode node)
+        {
+            return (node as ExpressionSyntax).IsLeftSideOfDot();
+        }
+
+        public SyntaxNode GetRightSideOfDot(SyntaxNode node)
+        {
+            return (node as QualifiedNameSyntax)?.Right ??
+                (node as MemberAccessExpressionSyntax)?.Name;
+        }
     }
 }
