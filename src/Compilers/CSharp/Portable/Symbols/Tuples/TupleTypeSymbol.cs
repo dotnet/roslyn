@@ -94,8 +94,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static TupleTypeSymbol Create(NamedTypeSymbol tupleCompatibleType)
         {
             return Create(ImmutableArray<Location>.Empty,
-                          tupleCompatibleType, 
-                          default(ImmutableArray<Location>), 
+                          tupleCompatibleType,
+                          default(ImmutableArray<Location>),
                           default(ImmutableArray<string>));
         }
 
@@ -493,21 +493,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "Item" + position;
         }
 
-        // This array needs to be sorted for binary searching
-        private static readonly string[] reservedMemberNames = new[]
+        private static bool IsElementNameForbidden(string name)
         {
-            "CombineHashCodes",
-            "CompareTo",
-            "Create",
-            "Deconstruct",
-            "Equals",
-            "GetHashCode",
-            "GetHashCodeCore",
-            "Rest",
-            "Size",
-            "ToString",
-            "ToStringEnd"
-        };
+            switch (name)
+            {
+                case "CombineHashCodes":
+                case "CompareTo":
+                case "Create":
+                case "Deconstruct":
+                case "Equals":
+                case "GetHashCode":
+                case "GetHashCodeCore":
+                case "Rest":
+                case "Size":
+                case "ToString":
+                case "ToStringEnd":
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
 
         /// <summary>
         /// Checks whether the field name is reserved and tells us which position it's reserved for.
@@ -517,9 +523,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// Returns 0 for "Rest", "ToString" and other members of System.ValueTuple.
         /// Returns -1 for names that aren't reserved.
         /// </summary>
-        internal static int IsMemberNameReserved(string name)
+        internal static int IsElementNameReserved(string name)
         {
-            if (Array.BinarySearch(reservedMemberNames, name, StringComparer.Ordinal) >= 0)
+            if (IsElementNameForbidden(name))
             {
                 return 0;
             }
@@ -554,7 +560,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(type.IsDefinition);
 
             MemberDescriptor relativeDescriptor = WellKnownMembers.GetDescriptor(relativeMember);
-            return CSharpCompilation.GetRuntimeMember(type, ref relativeDescriptor, CSharpCompilation.SpecialMembersSignatureComparer.Instance, 
+            return CSharpCompilation.GetRuntimeMember(type, ref relativeDescriptor, CSharpCompilation.SpecialMembersSignatureComparer.Instance,
                                                       accessWithinOpt: null); // force lookup of public members only
         }
 
@@ -857,7 +863,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     members.Add(new TupleErrorFieldSymbol(this, name, i,
-                                                      _elementLocations.IsDefault ? null : _elementLocations[i], 
+                                                      _elementLocations.IsDefault ? null : _elementLocations[i],
                                                       _elementTypes[i],
                                                       diagnosticInfo));
                 }
@@ -891,7 +897,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                     // Go in reverse because we want members with default name, which precede the ones with
                     // friendly names, to be in the map.  
-                    for (int i = members.Length - 1; i >= 0; i--) 
+                    for (int i = members.Length - 1; i >= 0; i--)
                     {
                         var member = members[i];
                         switch (member.Kind)

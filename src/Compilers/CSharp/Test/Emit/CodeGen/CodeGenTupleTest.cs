@@ -9267,7 +9267,7 @@ class C
             Assert.False(xSymbol.IsReferenceType); // if no underlying type, then defaults to struct
         }
 
-        [Fact]
+        [Fact, CompilerTrait(CompilerFeature.LocalFunctions)]
         public void LocalFunction()
         {
             var source = @"
@@ -9303,7 +9303,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [Fact]
+        [Fact, CompilerTrait(CompilerFeature.LocalFunctions)]
         public void LocalFunctionWithLongTuple()
         {
             var source = @"
@@ -9352,7 +9352,7 @@ class C
     void M()
     {
         var x = new (int, int, int, int, int, int, int, int)(1, 2, 3, 4, 5, 6, 7, 8);
-        System.Console.WriteLine(x);
+        var y = new (int, int, int, int, int, int, int, int, int)(1, 2, 3, 4, 5, 6, 7, 8, 9);
     }
 }
 ";
@@ -9361,7 +9361,10 @@ class C
             comp.VerifyDiagnostics(
                 // (6,83): error CS1503: Argument 8: cannot convert from 'int' to '(int)'
                 //         var x = new (int, int, int, int, int, int, int, int)(1, 2, 3, 4, 5, 6, 7, 8);
-                Diagnostic(ErrorCode.ERR_BadArgType, "8").WithArguments("8", "int", "(int)").WithLocation(6, 83)
+                Diagnostic(ErrorCode.ERR_BadArgType, "8").WithArguments("8", "int", "(int)").WithLocation(6, 83),
+                // (7,21): error CS1729: '(int, int, int, int, int, int, int, int, int)' does not contain a constructor that takes 9 arguments
+                //         var y = new (int, int, int, int, int, int, int, int, int)(1, 2, 3, 4, 5, 6, 7, 8, 9);
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "(int, int, int, int, int, int, int, int, int)").WithArguments("(int, int, int, int, int, int, int, int, int)", "9").WithLocation(7, 21)
                 );
         }
     }
