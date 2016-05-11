@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestExpressionContext()
         {
-            await VerifyKeywordAsync(@"class C
+            await VerifyAbsenceAsync(@"class C
 {
     void foo()
     {
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
         public async Task TestBeforeLambda()
         {
-            await VerifyKeywordAsync(@"
+            await VerifyAbsenceAsync(@"
 class Program
 {
     static void Main(string[] args)
