@@ -80,10 +80,17 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 bool supportsVB = false;
 
                 var namedTypeAttributes = namedType.GetApplicableAttributes();
+
                 foreach (AttributeData attribute in namedTypeAttributes)
                 {
                     if (attribute.AttributeClass.DerivesFrom(DiagnosticAnalyzerAttribute))
                     {
+                        // Bail out for the case where analyzer type derives from a sub-type in different assembly, and the sub-type has the diagnostic analyzer attribute.
+                        if (attribute.ApplicationSyntaxReference == null)
+                        {
+                            return;
+                        }
+
                         hasAttribute = true;
 
                         // The attribute constructor's signature is "(string, params string[])",
