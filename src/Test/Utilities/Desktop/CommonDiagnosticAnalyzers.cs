@@ -849,7 +849,7 @@ namespace Microsoft.CodeAnalysis
             public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
                 "GeneratedCodeAnalyzer2Warning",
                 "Title",
-                "GeneratedCodeAnalyzer2Message for '{0}'",
+                "GeneratedCodeAnalyzer2Message for '{0}'; Total types analyzed: '{1}'",
                 "Category",
                 DiagnosticSeverity.Warning,
                 true);
@@ -869,7 +869,7 @@ namespace Microsoft.CodeAnalysis
                     {
                         foreach (var namedType in namedTypes)
                         {
-                            var diagnostic = Diagnostic.Create(Rule, namedType.Locations[0], namedType.Name);
+                            var diagnostic = Diagnostic.Create(Rule, namedType.Locations[0], namedType.Name, namedTypes.Count);
                             compilationEndContext.ReportDiagnostic(diagnostic);
                         }
                     });

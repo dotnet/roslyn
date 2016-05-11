@@ -1372,7 +1372,7 @@ class TypeInGeneratedFile { }
 
             var analyzers = new DiagnosticAnalyzer[] { new GeneratedCodeAnalyzer2() };
             compilation.VerifyAnalyzerDiagnostics(analyzers,
-                expected: Diagnostic("GeneratedCodeAnalyzer2Warning", "TypeInUserFile").WithArguments("TypeInUserFile").WithLocation(2, 7));
+                expected: Diagnostic("GeneratedCodeAnalyzer2Warning", "TypeInUserFile").WithArguments("TypeInUserFile", "2").WithLocation(2, 7));
         }
 
         internal class OwningSymbolTestAnalyzer : DiagnosticAnalyzer
