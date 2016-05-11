@@ -7,20 +7,18 @@ using System.Diagnostics;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using Microsoft.CodeAnalysis.CodeGen;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.Cci
 {
     using Roslyn.Reflection;
-    using Roslyn.Reflection.Metadata;
-    using Roslyn.Reflection.Metadata.Ecma335;
 
     internal class DynamicAnalysisDataWriter
     {
         private struct DocumentRow
         {
             public BlobHandle Name;
-            public GuidHandle HashAlgorithm; 
+            public GuidHandle HashAlgorithm;
             public BlobHandle Hash;
         }
 
@@ -29,11 +27,38 @@ namespace Microsoft.Cci
             public BlobHandle Spans;
         }
 
-        private readonly List<DocumentRow> _documentTable = new List<DocumentRow>();
-        private readonly List<MethodRow> _methodTable = new List<MethodRow>();
+        // #Blob heap
+        private readonly Dictionary<ImmutableArray<byte>, BlobHandle> _blobs;
+        private int _blobHeapSize;
 
-        private readonly Dictionary<DebugSourceDocument, int> _documentIndex = new Dictionary<DebugSourceDocument, int>();
-        private readonly MetadataBuilder _dynamicAnalysisDataHeaps = new MetadataBuilder();
+        // #GUID heap
+        private readonly Dictionary<Guid, GuidHandle> _guids;
+        private readonly BlobBuilder _guidWriter;
+
+        // tables:
+        private readonly List<DocumentRow> _documentTable;
+        private readonly List<MethodRow> _methodTable;
+
+        private readonly Dictionary<DebugSourceDocument, int> _documentIndex;
+
+        public DynamicAnalysisDataWriter(int documentCountEstimate, int methodCountEstimate)
+        {
+            // Most methods will have a span blob, each document has a hash blob and at least two blobs encoding the name 
+            // (adding one more blob per document to account for all directory names):
+            _blobs = new Dictionary<ImmutableArray<byte>, BlobHandle>(1 + methodCountEstimate + 4 * documentCountEstimate, ByteSequenceComparer.Instance);
+
+            // Each document has a unique guid:
+            const int guidSize = 16;
+            _guids = new Dictionary<Guid, GuidHandle>(documentCountEstimate);
+            _guidWriter = new BlobBuilder(guidSize * documentCountEstimate);
+
+            _documentTable = new List<DocumentRow>(documentCountEstimate);
+            _documentIndex = new Dictionary<DebugSourceDocument, int>(documentCountEstimate);
+            _methodTable = new List<MethodRow>(methodCountEstimate);
+
+            _blobs.Add(ImmutableArray<byte>.Empty, default(BlobHandle));
+            _blobHeapSize = 1;
+        }
 
         internal void SerializeMethodDynamicAnalysisData(IMethodBody bodyOpt)
         {
@@ -49,6 +74,49 @@ namespace Microsoft.Cci
             _methodTable.Add(new MethodRow { Spans = spanBlob });
         }
 
+        #region Heaps
+
+        private BlobHandle GetOrAddBlob(BlobBuilder builder)
+        {
+            // TODO: avoid making a copy if the blob exists in the index
+            return GetOrAddBlob(builder.ToImmutableArray());
+        }
+
+        private BlobHandle GetOrAddBlob(ImmutableArray<byte> blob)
+        {
+            BlobHandle index;
+            if (!_blobs.TryGetValue(blob, out index))
+            {
+                index = MetadataTokens.BlobHandle(_blobHeapSize);
+                _blobs.Add(blob, index);
+
+                _blobHeapSize += BlobWriterImpl.GetCompressedIntegerSize(blob.Length) + blob.Length;
+            }
+
+            return index;
+        }
+
+        private GuidHandle GetOrAddGuid(Guid guid)
+        {
+            if (guid == Guid.Empty)
+            {
+                return default(GuidHandle);
+            }
+
+            GuidHandle result;
+            if (_guids.TryGetValue(guid, out result))
+            {
+                return result;
+            }
+
+            result = MetadataTokens.GuidHandle((_guidWriter.Count >> 4) + 1);
+            _guids.Add(guid, result);
+            _guidWriter.WriteBytes(guid.ToByteArray());
+            return result;
+        }
+        
+        #endregion
+
         #region Spans
 
         private BlobHandle SerializeSpans(
@@ -60,7 +128,8 @@ namespace Microsoft.Cci
                 return default(BlobHandle);
             }
 
-            var writer = new BlobBuilder();
+            // 4 bytes per span plus a header, the builder expands by the same amount.
+            var writer = new BlobBuilder(4 + spans.Length * 4);
 
             int previousStartLine = -1;
             int previousStartColumn = -1;
@@ -99,7 +168,7 @@ namespace Microsoft.Cci
                 previousStartColumn = spans[i].StartColumn;
             }
 
-            return _dynamicAnalysisDataHeaps.GetOrAddBlob(writer);
+            return GetOrAddBlob(writer);
         }
 
         private void SerializeDeltaLinesAndColumns(BlobBuilder writer, SourceSpan span)
@@ -138,8 +207,8 @@ namespace Microsoft.Cci
                 _documentTable.Add(new DocumentRow
                 {
                     Name = SerializeDocumentName(document.Location),
-                    HashAlgorithm = (checksumAndAlgorithm.Item1.IsDefault ? default(GuidHandle) : _dynamicAnalysisDataHeaps.GetOrAddGuid(checksumAndAlgorithm.Item2)),
-                    Hash = (checksumAndAlgorithm.Item1.IsDefault) ? default(BlobHandle) : _dynamicAnalysisDataHeaps.GetOrAddBlob(checksumAndAlgorithm.Item1)
+                    HashAlgorithm = (checksumAndAlgorithm.Item1.IsDefault ? default(GuidHandle) : GetOrAddGuid(checksumAndAlgorithm.Item2)),
+                    Hash = (checksumAndAlgorithm.Item1.IsDefault) ? default(BlobHandle) : GetOrAddBlob(checksumAndAlgorithm.Item1)
                 });
             }
 
@@ -153,22 +222,23 @@ namespace Microsoft.Cci
         {
             Debug.Assert(name != null);
 
-            var writer = new BlobBuilder();
-
             int c1 = Count(name, s_separator1[0]);
             int c2 = Count(name, s_separator2[0]);
             char[] separator = (c1 >= c2) ? s_separator1 : s_separator2;
+
+            // Estimate 2 bytes per part, if the blob heap gets big we expand the builder once.
+            var writer = new BlobBuilder(1 + Math.Max(c1, c2) * 2);
 
             writer.WriteByte((byte)separator[0]);
 
             // TODO: avoid allocations
             foreach (var part in name.Split(separator))
             {
-                BlobHandle partIndex = _dynamicAnalysisDataHeaps.GetOrAddBlob(ImmutableArray.Create(MetadataWriter.s_utf8Encoding.GetBytes(part)));
-                writer.WriteCompressedInteger(_dynamicAnalysisDataHeaps.GetHeapOffset(partIndex));
+                BlobHandle partIndex = GetOrAddBlob(ImmutableArray.Create(MetadataWriter.s_utf8Encoding.GetBytes(part)));
+                writer.WriteCompressedInteger(MetadataTokens.GetHeapOffset(partIndex));
             }
 
-            return _dynamicAnalysisDataHeaps.GetOrAddBlob(writer);
+            return GetOrAddBlob(writer);
         }
 
         private static int Count(string str, char c)
@@ -189,25 +259,26 @@ namespace Microsoft.Cci
 
         #region Table Serialization
 
-        private sealed class Sizes
+        private struct Sizes
         {
-            public readonly ImmutableArray<int> HeapSizes;
+            public readonly int BlobHeapSize;
+            public readonly int GuidHeapSize;
+
             public readonly int BlobIndexSize;
             public readonly int GuidIndexSize;
 
-            public Sizes(ImmutableArray<int> heapSizes)
+            public Sizes(int blobHeapSize, int guidHeapSize)
             {
-                HeapSizes = heapSizes;
-                BlobIndexSize = (heapSizes[(int)HeapIndex.Blob] <= ushort.MaxValue) ? 2 : 4;
-                GuidIndexSize = (heapSizes[(int)HeapIndex.Guid] <= ushort.MaxValue) ? 2 : 4;
+                BlobHeapSize = blobHeapSize;
+                GuidHeapSize = guidHeapSize;
+                BlobIndexSize = (blobHeapSize <= ushort.MaxValue) ? 2 : 4;
+                GuidIndexSize = (guidHeapSize <= ushort.MaxValue) ? 2 : 4;
             }
         }
 
         internal void SerializeMetadataTables(BlobBuilder writer)
         {
-            _dynamicAnalysisDataHeaps.CompleteHeaps();
-
-            var sizes = new Sizes(_dynamicAnalysisDataHeaps.GetHeapSizes());
+            var sizes = new Sizes(_blobHeapSize, _guidWriter.Count);
 
             SerializeHeader(writer, sizes);
 
@@ -216,7 +287,27 @@ namespace Microsoft.Cci
             SerializeMethodTable(writer, sizes);
 
             // heaps:
-            _dynamicAnalysisDataHeaps.WriteHeapsTo(writer);
+            writer.LinkSuffix(_guidWriter);
+            WriteBlobHeap(writer);
+        }
+
+        private void WriteBlobHeap(BlobBuilder builder)
+        {
+            var writer = new BlobWriter(builder.ReserveBytes(_blobHeapSize));
+
+            // Perf consideration: With large heap the following loop may cause a lot of cache misses 
+            // since the order of entries in _blobs dictionary depends on the hash of the array values, 
+            // which is not correlated to the heap index. If we observe such issue we should order 
+            // the entries by heap position before running this loop.
+            foreach (var entry in _blobs)
+            {
+                int heapOffset = MetadataTokens.GetHeapOffset(entry.Value);
+                var blob = entry.Key;
+
+                writer.Offset = heapOffset;
+                writer.WriteCompressedInteger(blob.Length);
+                writer.WriteBytes(blob);
+            }
         }
 
         private void SerializeHeader(BlobBuilder writer, Sizes sizes)
@@ -227,33 +318,26 @@ namespace Microsoft.Cci
             writer.WriteByte((byte)'M');
             writer.WriteByte((byte)'D');
 
-            // version: 0.1
+            // version: 0.2
             writer.WriteByte(0);
-            writer.WriteByte(1);
+            writer.WriteByte(2);
 
             // table sizes:
             writer.WriteInt32(_documentTable.Count);
             writer.WriteInt32(_methodTable.Count);
 
             // blob heap sizes:
-            writer.WriteInt32(GetAlignedHeapSize(sizes.HeapSizes[(int)HeapIndex.String]));
-            writer.WriteInt32(GetAlignedHeapSize(sizes.HeapSizes[(int)HeapIndex.UserString]));
-            writer.WriteInt32(GetAlignedHeapSize(sizes.HeapSizes[(int)HeapIndex.Guid]));
-            writer.WriteInt32(GetAlignedHeapSize(sizes.HeapSizes[(int)HeapIndex.Blob]));
-        }
-
-        private static int GetAlignedHeapSize(int unalignedSize)
-        {
-            return BitArithmeticUtilities.Align(unalignedSize, 4);
+            writer.WriteInt32(sizes.GuidHeapSize);
+            writer.WriteInt32(sizes.BlobHeapSize);
         }
 
         private void SerializeDocumentTable(BlobBuilder writer, Sizes sizes)
         {
             foreach (var row in _documentTable)
             {
-                writer.WriteReference((uint)_dynamicAnalysisDataHeaps.GetHeapOffset(row.Name), sizes.BlobIndexSize);
-                writer.WriteReference((uint)_dynamicAnalysisDataHeaps.GetHeapOffset(row.HashAlgorithm), sizes.GuidIndexSize);
-                writer.WriteReference((uint)_dynamicAnalysisDataHeaps.GetHeapOffset(row.Hash), sizes.BlobIndexSize);
+                writer.WriteReference((uint)MetadataTokens.GetHeapOffset(row.Name), sizes.BlobIndexSize);
+                writer.WriteReference((uint)MetadataTokens.GetHeapOffset(row.HashAlgorithm), sizes.GuidIndexSize);
+                writer.WriteReference((uint)MetadataTokens.GetHeapOffset(row.Hash), sizes.BlobIndexSize);
             }
         }
 
@@ -261,7 +345,7 @@ namespace Microsoft.Cci
         {
             foreach (var row in _methodTable)
             {
-                writer.WriteReference((uint)_dynamicAnalysisDataHeaps.GetHeapOffset(row.Spans), sizes.BlobIndexSize);
+                writer.WriteReference((uint)MetadataTokens.GetHeapOffset(row.Spans), sizes.BlobIndexSize);
             }
         }
 
