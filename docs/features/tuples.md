@@ -241,7 +241,7 @@ struct_type
     : type_name
     | simple_type
     | nullable_type
-    | tuple_type
+    | tuple_type // new
     ; 
     
 tuple_type
@@ -271,7 +271,7 @@ literal
     | character_literal
     | string_literal
     | null_literal
-    | tuple_literal
+    | tuple_literal // new
     ;
 
 tuple_literal
