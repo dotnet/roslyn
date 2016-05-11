@@ -3297,5 +3297,16 @@ class Program
 @"class Program { dynamic x = 7 ; static void Main ( string [ ] args ) { [|this|] . x = default(dynamic) ; } } ",
 @"class Program { dynamic x = 7 ; static void Main ( string [ ] args ) { x = default(dynamic) ; } } ");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestAppropriateDiagnosticOnMissingQualifier()
+        {
+            await TestDiagnosticSeverityAndCountAsync(
+                @"class C { int SomeProperty { get; set; } void M() { [|this|].SomeProperty = 1; } }",
+                options: OptionsSet(Tuple.Create(CodeStyleOptions.QualifyPropertyAccess, false, NotificationOption.Warning)),
+                diagnosticCount: 1,
+                diagnosticId: IDEDiagnosticIds.RemoveQualificationDiagnosticId,
+                diagnosticSeverity: DiagnosticSeverity.Warning);
+        }
     }
 }

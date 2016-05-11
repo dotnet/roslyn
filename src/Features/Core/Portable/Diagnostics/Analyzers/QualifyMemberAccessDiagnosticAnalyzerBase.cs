@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.QualifyMemberAccess
             }
 
             var language = context.Operation.Syntax.Language;
-            var applicableOption = GetApplicableOption(memberReference.Member);
+            var applicableOption = GetApplicableOptionFromSymbolKind(memberReference.Member.Kind);
             var optionValue = optionSet.GetOption(applicableOption, language);
 
             var shouldOptionBePresent = optionValue.Value;
@@ -116,9 +116,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.QualifyMemberAccess
             return DiagnosticAnalyzerCategory.SemanticSpanAnalysis;
         }
 
-        private PerLanguageOption<CodeStyleOption<bool>> GetApplicableOption(ISymbol symbol)
+        internal static PerLanguageOption<CodeStyleOption<bool>> GetApplicableOptionFromSymbolKind(SymbolKind symbolKind)
         {
-            switch (symbol.Kind)
+            switch (symbolKind)
             {
                 case SymbolKind.Field:
                     return CodeStyleOptions.QualifyFieldAccess;
