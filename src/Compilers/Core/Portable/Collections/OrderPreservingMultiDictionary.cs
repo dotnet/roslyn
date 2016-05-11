@@ -166,10 +166,7 @@ namespace Microsoft.CodeAnalysis.Collections
             internal void Free()
             {
                 var arrayBuilder = _value as ArrayBuilder<V>;
-                if (arrayBuilder != null)
-                {
-                    arrayBuilder.Free();
-                }
+                arrayBuilder?.Free();
             }
 
             internal V this[int index]
