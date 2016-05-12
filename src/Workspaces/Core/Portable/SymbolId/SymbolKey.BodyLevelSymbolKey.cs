@@ -30,6 +30,9 @@ namespace Microsoft.CodeAnalysis
                 _containingKey = GetOrCreate(containingSymbol, visitor);
                 _localName = symbol.Name;
 
+                Contract.ThrowIfNull(
+                    visitor.Compilation,
+                    message: $"visitor cannot be created with a null compilation and visit a {nameof(NonDeclarationSymbolKey<TSymbol>)}.");
                 foreach (var possibleSymbol in EnumerateSymbols(visitor.Compilation, containingSymbol, _localName, visitor.CancellationToken))
                 {
                     if (possibleSymbol.Item1.Equals(symbol))
