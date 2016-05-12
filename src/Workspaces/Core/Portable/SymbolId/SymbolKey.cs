@@ -103,9 +103,9 @@ namespace Microsoft.CodeAnalysis
         /// through GetOrCreate and not Create.
         /// </para>
         /// </summary>
-        internal static SymbolKey Create(ISymbol symbol, Compilation compilation = null, CancellationToken cancellationToken = default(CancellationToken))
+        internal static SymbolKey Create(ISymbol symbol, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return GetOrCreate(symbol, new Visitor(compilation, cancellationToken));
+            return GetOrCreate(symbol, new Visitor((symbol.ContainingAssembly as ISourceAssemblySymbol)?.Compilation, cancellationToken));
         }
 
         private static SymbolKey GetOrCreate(ISymbol symbol, Visitor visitor)
@@ -213,7 +213,6 @@ namespace Microsoft.CodeAnalysis
 
         private static bool ParametersMatch(
             ComparisonOptions options,
-            Compilation compilation,
             ImmutableArray<IParameterSymbol> parameters,
             RefKind[] refKinds,
             SymbolKey[] typeKeys,
@@ -243,7 +242,7 @@ namespace Microsoft.CodeAnalysis
                     options.IgnoreAssemblyKey,
                     compareMethodTypeParametersByName: true);
 
-                if (!typeKeys[i].Equals(SymbolKey.Create(parameter.Type, compilation, cancellationToken), newOptions))
+                if (!typeKeys[i].Equals(SymbolKey.Create(parameter.Type, cancellationToken), newOptions))
                 {
                     return false;
                 }
