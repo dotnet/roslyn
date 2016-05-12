@@ -7,7 +7,6 @@ namespace Roslyn.VisualStudio.Test.Utilities.Interop
     internal static class Kernel32
     {
         [DllImport("Kernel32.dll", CallingConvention = CallingConvention.Winapi, EntryPoint = "GetCurrentThreadId", PreserveSig = true, SetLastError = false)]
-        public static extern uint GetCurrentThreadId(
-        );
+        public static extern uint GetCurrentThreadId();
     }
 }

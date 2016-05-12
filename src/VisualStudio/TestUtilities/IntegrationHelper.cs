@@ -44,7 +44,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
             {
                 var hresult = Marshal.GetHRForLastWin32Error();
 
-                if (hresult == -2147024891) // E_ACCESS_DENIED
+                if (hresult == VSConstants.E_ACCESSDENIED)
                 {
                     Debug.WriteLine("Input cannot be blocked because the system requires Administrative privileges.");
                 }
@@ -140,7 +140,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
             {
                 if (registryKey == null)
                 {
-                    throw new Exception($"The specified registry key could not be found. Registry Key: '{registryKey}'");
+                    throw new Exception($@"The specified registry key could not be found. Registry Key: '{baseKey}\{subKeyName}'");
                 }
 
                 return registryKey.GetValue(valueName);

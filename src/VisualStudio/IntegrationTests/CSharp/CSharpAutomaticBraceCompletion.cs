@@ -52,7 +52,7 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
             Assert.Equal("        if (true) { ", _editorWindow.CurrentLineTextBeforeCursor);
             Assert.Equal("}", _editorWindow.CurrentLineTextAfterCursor);
 
-            await _editorWindow.TypeTextAsync("\t");
+            await _editorWindow.TypeTextAsync($"{EditorWindow.TAB}");
 
             Assert.Equal("        if (true) { }", _editorWindow.CurrentLineTextBeforeCursor);
             Assert.Equal(string.Empty, _editorWindow.CurrentLineTextAfterCursor);
@@ -88,7 +88,8 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
             _editorWindow.PlaceCursor("// Marker");
 
             await _editorWindow.TypeTextAsync("if (true) {");
-            await _editorWindow.TypeTextAsync("\nvar a = 1;");
+            await _editorWindow.TypeTextAsync($"{EditorWindow.ENTER}");
+            await _editorWindow.TypeTextAsync("var a = 1;");
 
             Assert.Equal("            var a = 1;", _editorWindow.CurrentLineTextBeforeCursor);
             Assert.Equal(string.Empty, _editorWindow.CurrentLineTextAfterCursor);
@@ -106,7 +107,8 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
             _editorWindow.PlaceCursor("// Marker");
 
             await _editorWindow.TypeTextAsync("if (true) {");
-            await _editorWindow.TypeTextAsync("\nvar a = 1;}");
+            await _editorWindow.TypeTextAsync($"{EditorWindow.ENTER}");
+            await _editorWindow.TypeTextAsync("var a = 1;}");
 
             Assert.Equal("        }", _editorWindow.CurrentLineTextBeforeCursor);
             Assert.Equal(string.Empty, _editorWindow.CurrentLineTextAfterCursor);
@@ -123,7 +125,9 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
         public async Task BracesOnReturnWithNonWhitespaceSpanInside()
         {
             _editorWindow.Text = string.Empty;
-            await _editorWindow.TypeTextAsync("class A { int i;\n");
+
+            await _editorWindow.TypeTextAsync("class A { int i;");
+            await _editorWindow.TypeTextAsync($"{EditorWindow.ENTER}");
 
             Assert.Equal(string.Empty, _editorWindow.CurrentLineTextBeforeCursor);
             Assert.Equal("}", _editorWindow.CurrentLineTextAfterCursor);
@@ -146,7 +150,8 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
             Assert.Equal("    void Foo(", _editorWindow.CurrentLineTextBeforeCursor);
             Assert.Equal(")", _editorWindow.CurrentLineTextAfterCursor);
 
-            await _editorWindow.TypeTextAsync("int x\t");
+            await _editorWindow.TypeTextAsync("int x");
+            await _editorWindow.TypeTextAsync($"{EditorWindow.TAB}");
 
             Assert.Equal("    void Foo(int x)", _editorWindow.CurrentLineTextBeforeCursor);
             Assert.Equal(string.Empty, _editorWindow.CurrentLineTextAfterCursor);
@@ -162,7 +167,7 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
             _editorWindow.PlaceCursor("// Marker");
 
             await _editorWindow.TypeTextAsync("void Foo(");
-            await _editorWindow.TypeTextAsync("\u001B"); // ESC
+            await _editorWindow.TypeTextAsync($"{EditorWindow.ESC}");
             await _editorWindow.TypeTextAsync(")");
 
             Assert.Equal("    void Foo()", _editorWindow.CurrentLineTextBeforeCursor);
