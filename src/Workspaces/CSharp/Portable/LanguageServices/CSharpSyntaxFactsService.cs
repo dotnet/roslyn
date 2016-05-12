@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
@@ -747,7 +748,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     declaredSymbolInfo = new DeclaredSymbolInfo(classDecl.Identifier.ValueText,
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
-                        DeclaredSymbolInfoKind.Class, classDecl.Identifier.Span);
+                        DeclaredSymbolInfoKind.Class, classDecl.Identifier.Span,
+                        GetInheritanceNames(classDecl.BaseList));
                     return true;
                 case SyntaxKind.ConstructorDeclaration:
                     var ctorDecl = (ConstructorDeclarationSyntax)node;
@@ -757,6 +759,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Constructor,
                         ctorDecl.Identifier.Span,
+                        ImmutableArray<string>.Empty,
                         parameterCount: (ushort)(ctorDecl.ParameterList?.Parameters.Count ?? 0));
                     return true;
                 case SyntaxKind.DelegateDeclaration:
@@ -764,42 +767,48 @@ namespace Microsoft.CodeAnalysis.CSharp
                     declaredSymbolInfo = new DeclaredSymbolInfo(delegateDecl.Identifier.ValueText,
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
-                        DeclaredSymbolInfoKind.Delegate, delegateDecl.Identifier.Span);
+                        DeclaredSymbolInfoKind.Delegate, delegateDecl.Identifier.Span,
+                        ImmutableArray<string>.Empty);
                     return true;
                 case SyntaxKind.EnumDeclaration:
                     var enumDecl = (EnumDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(enumDecl.Identifier.ValueText,
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
-                        DeclaredSymbolInfoKind.Enum, enumDecl.Identifier.Span);
+                        DeclaredSymbolInfoKind.Enum, enumDecl.Identifier.Span,
+                        ImmutableArray<string>.Empty);
                     return true;
                 case SyntaxKind.EnumMemberDeclaration:
                     var enumMember = (EnumMemberDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(enumMember.Identifier.ValueText,
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
-                        DeclaredSymbolInfoKind.EnumMember, enumMember.Identifier.Span);
+                        DeclaredSymbolInfoKind.EnumMember, enumMember.Identifier.Span,
+                        ImmutableArray<string>.Empty);
                     return true;
                 case SyntaxKind.EventDeclaration:
                     var eventDecl = (EventDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(ExpandExplicitInterfaceName(eventDecl.Identifier.ValueText, eventDecl.ExplicitInterfaceSpecifier),
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
-                        DeclaredSymbolInfoKind.Event, eventDecl.Identifier.Span);
+                        DeclaredSymbolInfoKind.Event, eventDecl.Identifier.Span,
+                        ImmutableArray<string>.Empty);
                     return true;
                 case SyntaxKind.IndexerDeclaration:
                     var indexerDecl = (IndexerDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(WellKnownMemberNames.Indexer,
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
-                        DeclaredSymbolInfoKind.Indexer, indexerDecl.ThisKeyword.Span);
+                        DeclaredSymbolInfoKind.Indexer, indexerDecl.ThisKeyword.Span,
+                        ImmutableArray<string>.Empty);
                     return true;
                 case SyntaxKind.InterfaceDeclaration:
                     var interfaceDecl = (InterfaceDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(interfaceDecl.Identifier.ValueText,
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
-                        DeclaredSymbolInfoKind.Interface, interfaceDecl.Identifier.Span);
+                        DeclaredSymbolInfoKind.Interface, interfaceDecl.Identifier.Span,
+                        GetInheritanceNames(interfaceDecl.BaseList));
                     return true;
                 case SyntaxKind.MethodDeclaration:
                     var method = (MethodDeclarationSyntax)node;
@@ -809,6 +818,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Method,
                         method.Identifier.Span,
+                        ImmutableArray<string>.Empty,
                         parameterCount: (ushort)(method.ParameterList?.Parameters.Count ?? 0),
                         typeParameterCount: (ushort)(method.TypeParameterList?.Parameters.Count ?? 0));
                     return true;
@@ -817,14 +827,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     declaredSymbolInfo = new DeclaredSymbolInfo(ExpandExplicitInterfaceName(property.Identifier.ValueText, property.ExplicitInterfaceSpecifier),
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
-                        DeclaredSymbolInfoKind.Property, property.Identifier.Span);
+                        DeclaredSymbolInfoKind.Property, property.Identifier.Span,
+                        ImmutableArray<string>.Empty);
                     return true;
                 case SyntaxKind.StructDeclaration:
                     var structDecl = (StructDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(structDecl.Identifier.ValueText,
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
-                        DeclaredSymbolInfoKind.Struct, structDecl.Identifier.Span);
+                        DeclaredSymbolInfoKind.Struct, structDecl.Identifier.Span,
+                        GetInheritanceNames(structDecl.BaseList));
                     return true;
                 case SyntaxKind.VariableDeclarator:
                     // could either be part of a field declaration or an event field declaration
@@ -839,10 +851,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 ? DeclaredSymbolInfoKind.Constant
                                 : DeclaredSymbolInfoKind.Field;
 
-                        declaredSymbolInfo = new DeclaredSymbolInfo(variableDeclarator.Identifier.ValueText,
-                        GetContainerDisplayName(fieldDeclaration.Parent),
-                        GetFullyQualifiedContainerName(fieldDeclaration.Parent),
-                        kind, variableDeclarator.Identifier.Span);
+                        declaredSymbolInfo = new DeclaredSymbolInfo(
+                            variableDeclarator.Identifier.ValueText,
+                            GetContainerDisplayName(fieldDeclaration.Parent),
+                            GetFullyQualifiedContainerName(fieldDeclaration.Parent),
+                            kind, variableDeclarator.Identifier.Span,
+                            ImmutableArray<string>.Empty);
                         return true;
                     }
 
@@ -851,6 +865,40 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             declaredSymbolInfo = default(DeclaredSymbolInfo);
             return false;
+        }
+
+        private ImmutableArray<string> GetInheritanceNames(BaseListSyntax baseList)
+        {
+            var builder = ImmutableArray.CreateBuilder<string>(baseList.Types.Count);
+
+            foreach (var baseType in baseList.Types)
+            {
+                AddInheritanceName(builder, baseType.Type);
+            }
+
+            return builder.MoveToImmutable();
+        }
+
+        private void AddInheritanceName(ImmutableArray<string>.Builder builder, TypeSyntax type)
+        {
+            if (type is SimpleNameSyntax)
+            {
+                AddSimpleInheritanceName(builder, (SimpleNameSyntax)type);
+            }
+            else if (type is QualifiedNameSyntax)
+            {
+                AddSimpleInheritanceName(builder, ((QualifiedNameSyntax)type).Right);
+            }
+            else if (type is AliasQualifiedNameSyntax)
+            {
+                AddSimpleInheritanceName(builder, ((AliasQualifiedNameSyntax)type).Name);
+            }
+        }
+
+        private static void AddSimpleInheritanceName(
+            ImmutableArray<string>.Builder builder, SimpleNameSyntax name)
+        {
+            builder.Add(name.Identifier.ValueText);
         }
 
         private static string ExpandExplicitInterfaceName(string identifier, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier)

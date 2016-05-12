@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Text
 Imports System.Threading
@@ -761,10 +762,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Select Case node.Kind()
                 Case SyntaxKind.ClassBlock
                     Dim classDecl = CType(node, ClassBlockSyntax)
-                    declaredSymbolInfo = New DeclaredSymbolInfo(classDecl.ClassStatement.Identifier.ValueText,
-                                                                GetContainerDisplayName(node.Parent),
-                                                                GetFullyQualifiedContainerName(node.Parent),
-                                                                DeclaredSymbolInfoKind.Class, classDecl.ClassStatement.Identifier.Span)
+                    declaredSymbolInfo = New DeclaredSymbolInfo(
+                        classDecl.ClassStatement.Identifier.ValueText,
+                        GetContainerDisplayName(node.Parent),
+                        GetFullyQualifiedContainerName(node.Parent),
+                        DeclaredSymbolInfoKind.Class, classDecl.ClassStatement.Identifier.Span,
+                        GetInheritanceNames(classDecl.Inherits, classDecl.Implements))
                     Return True
                 Case SyntaxKind.ConstructorBlock
                     Dim constructor = CType(node, ConstructorBlockSyntax)
@@ -776,38 +779,47 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             GetFullyQualifiedContainerName(node.Parent),
                             DeclaredSymbolInfoKind.Constructor,
                             constructor.SubNewStatement.NewKeyword.Span,
+                            ImmutableArray(Of String).Empty,
                             parameterCount:=CType(If(constructor.SubNewStatement.ParameterList?.Parameters.Count, 0), UShort))
 
                         Return True
                     End If
                 Case SyntaxKind.DelegateFunctionStatement, SyntaxKind.DelegateSubStatement
                     Dim delegateDecl = CType(node, DelegateStatementSyntax)
-                    declaredSymbolInfo = New DeclaredSymbolInfo(delegateDecl.Identifier.ValueText,
-                                                                GetContainerDisplayName(node.Parent),
-                                                                GetFullyQualifiedContainerName(node.Parent),
-                                                                DeclaredSymbolInfoKind.Delegate, delegateDecl.Identifier.Span)
+                    declaredSymbolInfo = New DeclaredSymbolInfo(
+                        delegateDecl.Identifier.ValueText,
+                        GetContainerDisplayName(node.Parent),
+                        GetFullyQualifiedContainerName(node.Parent),
+                        DeclaredSymbolInfoKind.Delegate, delegateDecl.Identifier.Span,
+                        ImmutableArray(Of String).Empty)
                     Return True
                 Case SyntaxKind.EnumBlock
                     Dim enumDecl = CType(node, EnumBlockSyntax)
-                    declaredSymbolInfo = New DeclaredSymbolInfo(enumDecl.EnumStatement.Identifier.ValueText,
-                                                                GetContainerDisplayName(node.Parent),
-                                                                GetFullyQualifiedContainerName(node.Parent),
-                                                                DeclaredSymbolInfoKind.Enum, enumDecl.EnumStatement.Identifier.Span)
+                    declaredSymbolInfo = New DeclaredSymbolInfo(
+                        enumDecl.EnumStatement.Identifier.ValueText,
+                        GetContainerDisplayName(node.Parent),
+                        GetFullyQualifiedContainerName(node.Parent),
+                        DeclaredSymbolInfoKind.Enum, enumDecl.EnumStatement.Identifier.Span,
+                        ImmutableArray(Of String).Empty)
                     Return True
                 Case SyntaxKind.EnumMemberDeclaration
                     Dim enumMember = CType(node, EnumMemberDeclarationSyntax)
-                    declaredSymbolInfo = New DeclaredSymbolInfo(enumMember.Identifier.ValueText,
-                                                                GetContainerDisplayName(node.Parent),
-                                                                GetFullyQualifiedContainerName(node.Parent),
-                                                                DeclaredSymbolInfoKind.EnumMember, enumMember.Identifier.Span)
+                    declaredSymbolInfo = New DeclaredSymbolInfo(
+                        enumMember.Identifier.ValueText,
+                        GetContainerDisplayName(node.Parent),
+                        GetFullyQualifiedContainerName(node.Parent),
+                        DeclaredSymbolInfoKind.EnumMember, enumMember.Identifier.Span,
+                        ImmutableArray(Of String).Empty)
                     Return True
                 Case SyntaxKind.EventStatement
                     Dim eventDecl = CType(node, EventStatementSyntax)
                     Dim eventParent = If(TypeOf node.Parent Is EventBlockSyntax, node.Parent.Parent, node.Parent)
-                    declaredSymbolInfo = New DeclaredSymbolInfo(eventDecl.Identifier.ValueText,
-                                                                GetContainerDisplayName(eventParent),
-                                                                GetFullyQualifiedContainerName(eventParent),
-                                                                DeclaredSymbolInfoKind.Event, eventDecl.Identifier.Span)
+                    declaredSymbolInfo = New DeclaredSymbolInfo(
+                        eventDecl.Identifier.ValueText,
+                        GetContainerDisplayName(eventParent),
+                        GetFullyQualifiedContainerName(eventParent),
+                        DeclaredSymbolInfoKind.Event, eventDecl.Identifier.Span,
+                        ImmutableArray(Of String).Empty)
                     Return True
                 Case SyntaxKind.FunctionBlock, SyntaxKind.SubBlock
                     Dim funcDecl = CType(node, MethodBlockSyntax)
@@ -817,15 +829,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Method,
                         funcDecl.SubOrFunctionStatement.Identifier.Span,
+                        ImmutableArray(Of String).Empty,
                         parameterCount:=CType(If(funcDecl.SubOrFunctionStatement.ParameterList?.Parameters.Count, 0), UShort),
                         typeParameterCount:=CType(If(funcDecl.SubOrFunctionStatement.TypeParameterList?.Parameters.Count, 0), UShort))
                     Return True
                 Case SyntaxKind.InterfaceBlock
                     Dim interfaceDecl = CType(node, InterfaceBlockSyntax)
-                    declaredSymbolInfo = New DeclaredSymbolInfo(interfaceDecl.InterfaceStatement.Identifier.ValueText,
-                                                                GetContainerDisplayName(node.Parent),
-                                                                GetFullyQualifiedContainerName(node.Parent),
-                                                                DeclaredSymbolInfoKind.Interface, interfaceDecl.InterfaceStatement.Identifier.Span)
+                    declaredSymbolInfo = New DeclaredSymbolInfo(
+                        interfaceDecl.InterfaceStatement.Identifier.ValueText,
+                        GetContainerDisplayName(node.Parent),
+                        GetFullyQualifiedContainerName(node.Parent),
+                        DeclaredSymbolInfoKind.Interface, interfaceDecl.InterfaceStatement.Identifier.Span,
+                        GetInheritanceNames(interfaceDecl.Inherits, interfaceDecl.Implements))
                     Return True
                 Case SyntaxKind.ModifiedIdentifier
                     Dim modifiedIdentifier = CType(node, ModifiedIdentifierSyntax)
@@ -835,39 +850,88 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim kind = If(fieldDecl.Modifiers.Any(Function(m) m.Kind() = SyntaxKind.ConstKeyword),
                             DeclaredSymbolInfoKind.Constant,
                             DeclaredSymbolInfoKind.Field)
-                        declaredSymbolInfo = New DeclaredSymbolInfo(modifiedIdentifier.Identifier.ValueText,
-                                                                    GetContainerDisplayName(fieldDecl.Parent),
-                                                                    GetFullyQualifiedContainerName(fieldDecl.Parent),
-                                                                    kind, modifiedIdentifier.Identifier.Span)
+                        declaredSymbolInfo = New DeclaredSymbolInfo(
+                            modifiedIdentifier.Identifier.ValueText,
+                            GetContainerDisplayName(fieldDecl.Parent),
+                            GetFullyQualifiedContainerName(fieldDecl.Parent),
+                            kind, modifiedIdentifier.Identifier.Span,
+                            ImmutableArray(Of String).Empty)
                         Return True
                     End If
                 Case SyntaxKind.ModuleBlock
                     Dim moduleDecl = CType(node, ModuleBlockSyntax)
-                    declaredSymbolInfo = New DeclaredSymbolInfo(moduleDecl.ModuleStatement.Identifier.ValueText,
-                                                                GetContainerDisplayName(node.Parent),
-                                                                GetFullyQualifiedContainerName(node.Parent),
-                                                                DeclaredSymbolInfoKind.Module, moduleDecl.ModuleStatement.Identifier.Span)
+                    declaredSymbolInfo = New DeclaredSymbolInfo(
+                        moduleDecl.ModuleStatement.Identifier.ValueText,
+                        GetContainerDisplayName(node.Parent),
+                        GetFullyQualifiedContainerName(node.Parent),
+                        DeclaredSymbolInfoKind.Module, moduleDecl.ModuleStatement.Identifier.Span,
+                        GetInheritanceNames(moduleDecl.Inherits, moduleDecl.Implements))
                     Return True
                 Case SyntaxKind.PropertyStatement
                     Dim propertyDecl = CType(node, PropertyStatementSyntax)
                     Dim propertyParent = If(TypeOf node.Parent Is PropertyBlockSyntax, node.Parent.Parent, node.Parent)
-                    declaredSymbolInfo = New DeclaredSymbolInfo(propertyDecl.Identifier.ValueText,
-                                                                GetContainerDisplayName(propertyParent),
-                                                                GetFullyQualifiedContainerName(propertyParent),
-                                                                DeclaredSymbolInfoKind.Property, propertyDecl.Identifier.Span)
+                    declaredSymbolInfo = New DeclaredSymbolInfo(
+                        propertyDecl.Identifier.ValueText,
+                        GetContainerDisplayName(propertyParent),
+                        GetFullyQualifiedContainerName(propertyParent),
+                        DeclaredSymbolInfoKind.Property, propertyDecl.Identifier.Span,
+                        ImmutableArray(Of String).Empty)
                     Return True
                 Case SyntaxKind.StructureBlock
                     Dim structDecl = CType(node, StructureBlockSyntax)
-                    declaredSymbolInfo = New DeclaredSymbolInfo(structDecl.StructureStatement.Identifier.ValueText,
-                                                                GetContainerDisplayName(node.Parent),
-                                                                GetFullyQualifiedContainerName(node.Parent),
-                                                                DeclaredSymbolInfoKind.Struct, structDecl.StructureStatement.Identifier.Span)
+                    declaredSymbolInfo = New DeclaredSymbolInfo(
+                        structDecl.StructureStatement.Identifier.ValueText,
+                        GetContainerDisplayName(node.Parent),
+                        GetFullyQualifiedContainerName(node.Parent),
+                        DeclaredSymbolInfoKind.Struct, structDecl.StructureStatement.Identifier.Span,
+                        GetInheritanceNames(structDecl.Inherits, structDecl.Implements))
                     Return True
             End Select
 
             declaredSymbolInfo = Nothing
             Return False
         End Function
+
+        Private Function GetInheritanceNames(
+                inheritsList As SyntaxList(Of InheritsStatementSyntax),
+                implementsList As SyntaxList(Of ImplementsStatementSyntax)) As ImmutableArray(Of String)
+            Dim builder = ImmutableArray.CreateBuilder(Of String)
+
+            For Each inheritsStatement In inheritsList
+                AddInheritanceNames(builder, inheritsStatement.Types)
+            Next
+
+            For Each implementsStatement In implementsList
+                AddInheritanceNames(builder, implementsStatement.Types)
+            Next
+
+            Return builder.MoveToImmutable()
+        End Function
+
+        Private Sub AddInheritanceNames(
+                builder As ImmutableArray(Of String).Builder,
+                types As SeparatedSyntaxList(Of TypeSyntax))
+
+            For Each typeSyntax In types
+                AddInheritanceName(builder, typeSyntax)
+            Next
+        End Sub
+
+        Private Sub AddInheritanceName(
+                builder As ImmutableArray(Of String).Builder,
+                typeSyntax As TypeSyntax)
+            If TypeOf typeSyntax Is SimpleNameSyntax Then
+                AddSimpleName(builder, DirectCast(typeSyntax, SimpleNameSyntax))
+            ElseIf TypeOf typeSyntax Is QualifiedNameSyntax Then
+                AddSimpleName(builder, DirectCast(typeSyntax, QualifiedNameSyntax).Right)
+            End If
+        End Sub
+
+        Private Sub AddSimpleName(
+                builder As ImmutableArray(Of String).Builder,
+                simpleName As SimpleNameSyntax)
+            builder.Add(simpleName.Identifier.ValueText)
+        End Sub
 
         Private Function GetContainerDisplayName(node As SyntaxNode) As String
             Return GetDisplayName(node, DisplayNameOptions.IncludeTypeParameters)

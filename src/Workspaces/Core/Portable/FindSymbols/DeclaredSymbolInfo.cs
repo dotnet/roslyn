@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
@@ -35,7 +36,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         public ushort ParameterCount { get; }
         public ushort TypeParameterCount { get; }
 
-        public DeclaredSymbolInfo(string name, string containerDisplayName, string fullyQualifiedContainerName, DeclaredSymbolInfoKind kind, TextSpan span, ushort parameterCount = 0, ushort typeParameterCount = 0)
+        /// <summary>
+        /// The names directly referenced in source that this type inherits from.
+        /// </summary>
+        public ImmutableArray<string> InheritanceNames { get; } 
+
+        public DeclaredSymbolInfo(
+            string name,
+            string containerDisplayName,
+            string fullyQualifiedContainerName,
+            DeclaredSymbolInfoKind kind,
+            TextSpan span,
+            ImmutableArray<string> inheritanceNames,
+            ushort parameterCount = 0, ushort typeParameterCount = 0)
             : this()
         {
             Name = name;
@@ -45,6 +58,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Span = span;
             ParameterCount = parameterCount;
             TypeParameterCount = typeParameterCount;
+            InheritanceNames = inheritanceNames;
         }
 
         internal void WriteTo(ObjectWriter writer)
@@ -57,6 +71,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             writer.WriteInt32(Span.Length);
             writer.WriteUInt16(ParameterCount);
             writer.WriteUInt16(TypeParameterCount);
+            writer.WriteInt32(InheritanceNames.Length);
+
+            foreach (var name in InheritanceNames)
+            {
+                writer.WriteString(name);
+            }
         }
 
         internal static DeclaredSymbolInfo ReadFrom(ObjectReader reader)
@@ -72,7 +92,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var parameterCount = reader.ReadUInt16();
                 var typeParameterCount = reader.ReadUInt16();
 
-                return new DeclaredSymbolInfo(name, immediateContainer, entireContainer, kind, new TextSpan(spanStart, spanLength), parameterCount, typeParameterCount);
+                var inheritanceNamesLength = reader.ReadInt32();
+                var builder = ImmutableArray.CreateBuilder<string>(inheritanceNamesLength);
+                for (var i = 0; i < inheritanceNamesLength; i++)
+                {
+                    builder.Add(reader.ReadString());
+                }
+
+                return new DeclaredSymbolInfo(
+                    name, immediateContainer, entireContainer, kind, new TextSpan(spanStart, spanLength),
+                    builder.MoveToImmutable(),
+                    parameterCount, typeParameterCount);
             }
             catch
             {
