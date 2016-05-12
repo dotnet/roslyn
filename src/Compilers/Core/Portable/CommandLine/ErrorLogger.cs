@@ -37,7 +37,8 @@ namespace Microsoft.CodeAnalysis
             _culture = culture;
 
             _writer.WriteObjectStart(); // root
-            _writer.Write("version", "1.0.0-beta.4");
+            _writer.Write("$schema", "http://json.schemastore.org/sarif-1.0.0-beta.5");
+            _writer.Write("version", "1.0.0-beta.5");
             _writer.WriteArrayStart("runs");
             _writer.WriteObjectStart(); // run
 
@@ -50,8 +51,9 @@ namespace Microsoft.CodeAnalysis
         {
             _writer.WriteObjectStart("tool");
             _writer.Write("name", name);
-            _writer.Write("version", assemblyVersion.ToString(fieldCount: 3));
+            _writer.Write("version", assemblyVersion.ToString());
             _writer.Write("fileVersion", fileVersion);
+            _writer.Write("semanticVersion", assemblyVersion.ToString(fieldCount: 3));
             _writer.WriteObjectEnd();
         }
 
@@ -60,10 +62,10 @@ namespace Microsoft.CodeAnalysis
             _writer.WriteObjectStart(); // result
             _writer.Write("ruleId", diagnostic.Id);
 
-            string ruleIdKey = _descriptors.Add(diagnostic.Descriptor);
-            if (ruleIdKey != diagnostic.Id)
+            string ruleKey = _descriptors.Add(diagnostic.Descriptor);
+            if (ruleKey != diagnostic.Id)
             {
-                _writer.Write("ruleIdKey", ruleIdKey);
+                _writer.Write("ruleKey", ruleKey);
             }
 
             _writer.Write("level", GetLevel(diagnostic.Severity));
@@ -237,7 +239,6 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     _writer.Write("isEnabledByDefault", descriptor.IsEnabledByDefault);
-                    _writer.WriteObjectEnd(); // properties
 
                     if (descriptor.CustomTags.Any())
                     {
@@ -251,6 +252,7 @@ namespace Microsoft.CodeAnalysis
                         _writer.WriteArrayEnd(); // tags
                     }
 
+                    _writer.WriteObjectEnd(); // properties
                     _writer.WriteObjectEnd(); // rule
                 }
 

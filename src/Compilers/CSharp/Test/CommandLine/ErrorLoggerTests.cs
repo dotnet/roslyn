@@ -120,25 +120,25 @@ public class C
           ""defaultLevel"": ""warning"",
           ""properties"": {{
             ""category"": ""Compiler"",
-            ""isEnabledByDefault"": true
-          }},
-          ""tags"": [
-            ""Compiler"",
-            ""Telemetry""
-          ]
+            ""isEnabledByDefault"": true,
+            ""tags"": [
+              ""Compiler"",
+              ""Telemetry""
+            ]
+          }}
         }},
         ""CS5001"": {{
           ""id"": ""CS5001"",
           ""defaultLevel"": ""error"",
           ""properties"": {{
             ""category"": ""Compiler"",
-            ""isEnabledByDefault"": true
-          }},
-          ""tags"": [
-            ""Compiler"",
-            ""Telemetry"",
-            ""NotConfigurable""
-          ]
+            ""isEnabledByDefault"": true,
+            ""tags"": [
+              ""Compiler"",
+              ""Telemetry"",
+              ""NotConfigurable""
+            ]
+          }}
         }}
       }}
     }}
@@ -220,25 +220,25 @@ public class C
           ""defaultLevel"": ""warning"",
           ""properties"": {{
             ""category"": ""Compiler"",
-            ""isEnabledByDefault"": true
-          }},
-          ""tags"": [
-            ""Compiler"",
-            ""Telemetry""
-          ]
+            ""isEnabledByDefault"": true,
+            ""tags"": [
+              ""Compiler"",
+              ""Telemetry""
+            ]
+          }}
         }},
         ""CS5001"": {{
           ""id"": ""CS5001"",
           ""defaultLevel"": ""error"",
           ""properties"": {{
             ""category"": ""Compiler"",
-            ""isEnabledByDefault"": true
-          }},
-          ""tags"": [
-            ""Compiler"",
-            ""Telemetry"",
-            ""NotConfigurable""
-          ]
+            ""isEnabledByDefault"": true,
+            ""tags"": [
+              ""Compiler"",
+              ""Telemetry"",
+              ""NotConfigurable""
+            ]
+          }}
         }}
       }}
     }}

@@ -125,13 +125,13 @@ End Class
           ""defaultLevel"": ""error"",
           ""properties"": {{
             ""category"": ""Compiler"",
-            ""isEnabledByDefault"": true
-          }},
-          ""tags"": [
-            ""Compiler"",
-            ""Telemetry"",
-            ""NotConfigurable""
-          ]
+            ""isEnabledByDefault"": true,
+            ""tags"": [
+              ""Compiler"",
+              ""Telemetry"",
+              ""NotConfigurable""
+            ]
+          }}
         }},
         ""BC42024"": {{
           ""id"": ""BC42024"",
@@ -139,12 +139,12 @@ End Class
           ""defaultLevel"": ""warning"",
           ""properties"": {{
             ""category"": ""Compiler"",
-            ""isEnabledByDefault"": true
-          }},
-          ""tags"": [
-            ""Compiler"",
-            ""Telemetry""
-          ]
+            ""isEnabledByDefault"": true,
+            ""tags"": [
+              ""Compiler"",
+              ""Telemetry""
+            ]
+          }}
         }}
       }}
     }}
@@ -230,13 +230,13 @@ End Class
           ""defaultLevel"": ""error"",
           ""properties"": {{
             ""category"": ""Compiler"",
-            ""isEnabledByDefault"": true
-          }},
-          ""tags"": [
-            ""Compiler"",
-            ""Telemetry"",
-            ""NotConfigurable""
-          ]
+            ""isEnabledByDefault"": true,
+            ""tags"": [
+              ""Compiler"",
+              ""Telemetry"",
+              ""NotConfigurable""
+            ]
+          }}
         }},
         ""BC42024"": {{
           ""id"": ""BC42024"",
@@ -244,12 +244,12 @@ End Class
           ""defaultLevel"": ""warning"",
           ""properties"": {{
             ""category"": ""Compiler"",
-            ""isEnabledByDefault"": true
-          }},
-          ""tags"": [
-            ""Compiler"",
-            ""Telemetry""
-          ]
+            ""isEnabledByDefault"": true,
+            ""tags"": [
+              ""Compiler"",
+              ""Telemetry""
+            ]
+          }}
         }}
       }}
     }}

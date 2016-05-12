@@ -134,11 +134,11 @@ namespace Microsoft.CodeAnalysis
           ""helpUri"": """ + Descriptor1.HelpLinkUri + @""",
           ""properties"": {
             ""category"": """ + Descriptor1.Category + @""",
-            ""isEnabledByDefault"": " + (Descriptor2.IsEnabledByDefault ? "true" : "false") + @"
-          },
-          ""tags"": [
-            " + String.Join("," + Environment.NewLine + "            ", Descriptor1.CustomTags.Select(s => $"\"{s}\"")) + @"
-          ]
+            ""isEnabledByDefault"": " + (Descriptor2.IsEnabledByDefault ? "true" : "false") + @",
+            ""tags"": [
+              " + String.Join("," + Environment.NewLine + "              ", Descriptor1.CustomTags.Select(s => $"\"{s}\"")) + @"
+            ]
+          }
         },
         """ + Descriptor2.Id + @""": {
           ""id"": """ + Descriptor2.Id + @""",
@@ -148,11 +148,11 @@ namespace Microsoft.CodeAnalysis
           ""helpUri"": """ + Descriptor2.HelpLinkUri + @""",
           ""properties"": {
             ""category"": """ + Descriptor2.Category + @""",
-            ""isEnabledByDefault"": " + (Descriptor2.IsEnabledByDefault ? "true" : "false") + @"
-          },
-          ""tags"": [
-            " + String.Join("," + Environment.NewLine + "            ", Descriptor2.CustomTags.Select(s => $"\"{s}\"")) + @"
-          ]
+            ""isEnabledByDefault"": " + (Descriptor2.IsEnabledByDefault ? "true" : "false") + @",
+            ""tags"": [
+              " + String.Join("," + Environment.NewLine + "              ", Descriptor2.CustomTags.Select(s => $"\"{s}\"")) + @"
+            ]
+          }
         }
       }
     }
