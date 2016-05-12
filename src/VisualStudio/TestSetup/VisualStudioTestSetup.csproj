@@ -20,6 +20,7 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <TargetFrameworkProfile />
     <UseCodebase>true</UseCodebase>
+    <CopyNuGetImplementations>true</CopyNuGetImplementations>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
@@ -34,6 +35,7 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="BindingAttributes.cs" />
     <Compile Include="IntegrationTestServiceCommands.cs" />
     <Compile Include="IntegrationTestServicePackage.cs" />
     <Compile Include="TestExtensionErrorHandler.cs" />
@@ -58,15 +60,21 @@
     <ProjectReference Include="..\..\Workspaces\Core\Portable\Workspaces.csproj">
       <Project>{5f8d2414-064a-4b3a-9b42-8e2a04246be5}</Project>
       <Name>Workspaces</Name>
+      <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\Setup\VisualStudioSetup.csproj">
       <Project>{201ec5b7-f91e-45e5-b9f2-67a266cce6fc}</Project>
       <Name>VisualStudioSetup</Name>
+      <Private>False</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
     <ProjectReference Include="..\TestUtilities\VisualStudioTestUtilities.csproj">
       <Project>{3bed15fd-d608-4573-b432-1569c1026f6d}</Project>
       <Name>VisualStudioTestUtilities</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <NuGetPackageToIncludeInVsix Include="Microsoft.Diagnostics.Runtime" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="System" />

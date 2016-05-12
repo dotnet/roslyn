@@ -7,7 +7,7 @@
 using Roslyn.Test.Performance.Utilities;
 
 var directoryUtil = new RelativeDirectory();
-TestUtilities.InitUtilities();
+TestUtilities.InitUtilitiesFromCsx();
 
 // Install the Vsixes to RoslynPerf hive
 await RunFile(Path.Combine(directoryUtil.MyWorkingDirectory, "install_vsixes.csx"));

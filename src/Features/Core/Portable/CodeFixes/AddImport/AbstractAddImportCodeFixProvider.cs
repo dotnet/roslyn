@@ -50,8 +50,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, INamespaceOrTypeSymbol symbol, Document document, bool specialCaseSystem, CancellationToken cancellationToken);
         protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, IReadOnlyList<string> nameSpaceParts, Document document, bool specialCaseSystem, CancellationToken cancellationToken);
 
-        internal abstract bool IsViableField(IFieldSymbol field, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken);
-        internal abstract bool IsViableProperty(IPropertySymbol property, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken);
         internal abstract bool IsAddMethodContext(SyntaxNode node, SemanticModel semanticModel);
 
         protected abstract string GetDescription(IReadOnlyList<string> nameParts);
@@ -79,9 +77,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return;
             }
 
-            var options = document.Project.Solution.Workspace.Options;
-            var placeSystemNamespaceFirst = options.GetOption(
-                OrganizerOptions.PlaceSystemNamespaceFirst, document.Project.Language);
+            var placeSystemNamespaceFirst = document.Options.GetOption(
+                OrganizerOptions.PlaceSystemNamespaceFirst);
 
             using (Logger.LogBlock(FunctionId.Refactoring_AddImport, cancellationToken))
             {

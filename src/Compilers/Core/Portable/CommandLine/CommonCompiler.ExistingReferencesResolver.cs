@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis
 
                 try
                 {
-                    return ((AssemblyMetadata)peReference.GetMetadata()).GetAssembly().Identity;
+                    return ((AssemblyMetadata)peReference.GetMetadataNoCopy()).GetAssembly().Identity;
                 }
                 catch (Exception e) when (e is BadImageFormatException || e is IOException)
                 {

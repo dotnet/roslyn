@@ -20,7 +20,16 @@ namespace Roslyn.Test.Performance.Utilities
         //
         public static string _myWorkingFile = null;
 
-        public static void InitUtilities([CallerFilePath] string sourceFilePath = "")
+        /// <summary>
+        /// This method should be called *ONLY* by the csx scripts.
+        /// This method *MUST NOT* be called from within the library itself. If this method is called within the library instead of csx scripts
+        /// then <param name="sourceFilePath"/> will be set to the path of the file when the library is actual built.
+        /// For Eg: If SomeLibarayFile.cs calls this method and if the library is built is some build machine where SomeLibarayFile.cs is saved at
+        /// Y:/Project/SomeLibarayFile.cs then when the library is used in any machine where there is no Y: drive then we will see errors saying
+        /// invalid directory path. Also note that <param name="sourceFilePath"/> will be set to "Y:/Project/SomeLibarayFile.cs" and not set to
+        /// the path of the file from where the call to SomeLibarayFile.cs which in turn called <see cref="InitUtilitiesFromCsx(string)"/>
+        /// </summary>
+        public static void InitUtilitiesFromCsx([CallerFilePath] string sourceFilePath = "")
         {
             _myWorkingFile = sourceFilePath;
         }
@@ -30,100 +39,9 @@ namespace Roslyn.Test.Performance.Utilities
         {
             if (_myWorkingFile == null)
             {
-                throw new Exception("Tests must call InitUtilities before doing any path-dependent operations.");
+                throw new Exception("Tests must call InitUtilitiesFromCsx before doing any path-dependent operations.");
             }
             return Directory.GetParent(_myWorkingFile).FullName;
-        }
-
-        /// Returns the directory that you can put artifacts like
-        /// etl traces or compiled binaries
-        public static string MyArtifactsDirectory()
-        {
-            var path = Path.Combine(MyWorkingDirectory(), "artifacts");
-            Directory.CreateDirectory(path);
-            return path;
-        }
-
-        public static string MyTempDirectory()
-        {
-            var workingDir = MyWorkingDirectory();
-            var path = Path.Combine(workingDir, "temp");
-            Directory.CreateDirectory(path);
-            return path;
-        }
-
-        public static string RoslynDirectory()
-        {
-            var workingDir = MyWorkingDirectory();
-            var binaryDebug = Path.Combine("Binaries", "Debug").ToString();
-            int binaryDebugIndex = workingDir.IndexOf(binaryDebug, StringComparison.OrdinalIgnoreCase);
-            if (binaryDebugIndex != -1)
-            {
-                return workingDir.Substring(0, binaryDebugIndex);
-            }
-
-            var binaryRelease= Path.Combine("Binaries", "Release").ToString();
-            return workingDir.Substring(0, workingDir.IndexOf(binaryRelease, StringComparison.OrdinalIgnoreCase));
-        }
-
-        public static string CscPath()
-        {
-            return Path.Combine(MyBinaries(), "csc.exe");
-        }
-
-        public static string MyBinaries()
-        {
-            var workingDir = MyWorkingDirectory();
-            // We may be a release or debug build
-            var debug = workingDir.IndexOf("debug", StringComparison.CurrentCultureIgnoreCase);
-            if (debug != -1)
-                return workingDir.Substring(0, debug + "debug".Length);
-
-            var release = workingDir.IndexOf("release", StringComparison.CurrentCultureIgnoreCase);
-            if (release != -1)
-                return workingDir.Substring(0, release + "release".Length);
-
-            throw new Exception("You are attempting to run performance test from the src directory. Run it from binaries");
-        }
-
-        public static string PerfDirectory()
-        {
-            return Path.Combine(RoslynDirectory(), "src", "Test", "Perf");
-        }
-
-        public static string BinDirectory()
-        {
-            return Path.Combine(RoslynDirectory(), "Binaries");
-        }
-
-        public static string BinDebugDirectory()
-        {
-            return Path.Combine(BinDirectory(), "Debug");
-        }
-
-        public static string BinReleaseDirectory()
-        {
-            return Path.Combine(BinDirectory(), "Release");
-        }
-
-        public static string DebugCscPath()
-        {
-            return Path.Combine(BinDebugDirectory(), "csc.exe");
-        }
-
-        public static string ReleaseCscPath()
-        {
-            return Path.Combine(BinReleaseDirectory(), "csc.exe");
-        }
-
-        public static string DebugVbcPath()
-        {
-            return Path.Combine(BinDebugDirectory(), "vbc.exe");
-        }
-
-        public static string ReleaseVbcPath()
-        {
-            return Path.Combine(BinReleaseDirectory(), "vbc.exe");
         }
 
         public static string GetCPCDirectoryPath()
@@ -154,6 +72,8 @@ namespace Roslyn.Test.Performance.Utilities
 
         /// Shells out, and if the process fails, log the error
         /// and quit the script.
+        /// NOTE: <param name="workingDirectory"/> should be set when called inside the library and not from csx. see <see cref="InitUtilitiesFromCsx(string)"/>
+        /// for more information
         public static void ShellOutVital(
                 string file,
                 string args,
@@ -170,6 +90,8 @@ namespace Roslyn.Test.Performance.Utilities
             }
         }
 
+        /// NOTE: <param name="workingDirectory"/> should be set when called inside the library and not from csx. see <see cref="InitUtilitiesFromCsx(string)"/>
+        /// for more information
         public static ProcessResult ShellOut(
                 string file,
                 string args,
@@ -240,9 +162,9 @@ namespace Roslyn.Test.Performance.Utilities
             };
         }
 
-        public static string StdoutFrom(string program, bool verbose, ILogger logger, string args = "")
+        public static string StdoutFrom(string program, bool verbose, ILogger logger, string args = "", string workingDirectory = null)
         {
-            var result = ShellOut(program, args, verbose, logger);
+            var result = ShellOut(program, args, verbose, logger, workingDirectory);
             if (result.Failed)
             {
                 LogProcessResult(result, logger);

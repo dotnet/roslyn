@@ -18,15 +18,14 @@ namespace Microsoft.CodeAnalysis.Shared.Options
         /// </summary>
         public static readonly PerLanguageOption<bool?> ClosedFileDiagnostic = new PerLanguageOption<bool?>(OptionName, "Closed File Diagnostic", defaultValue: null);
 
-        public static bool IsClosedFileDiagnosticsEnabled(Workspace workspace, string language)
+        public static bool IsClosedFileDiagnosticsEnabled(Project project)
         {
-            var optionsService = workspace.Services.GetService<IOptionService>();
-            return optionsService != null && IsClosedFileDiagnosticsEnabled(optionsService, language);
+            return IsClosedFileDiagnosticsEnabled(project.Solution.Options, project.Language);
         }
 
-        public static bool IsClosedFileDiagnosticsEnabled(IOptionService optionService, string language)
+        public static bool IsClosedFileDiagnosticsEnabled(OptionSet options, string language)
         {
-            var option = optionService.GetOption(ClosedFileDiagnostic, language);
+            var option = options.GetOption(ClosedFileDiagnostic, language);
             if (!option.HasValue)
             {
                 return language == LanguageNames.CSharp ?
