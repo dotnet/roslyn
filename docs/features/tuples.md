@@ -254,7 +254,7 @@ tuple_type_element_list
     ;
     
 tuple_type_element
-    : type_parameter identifier?
+    : type identifier?
     ;
 ```
 
@@ -281,14 +281,15 @@ tuple_literal_element_list
     ;
 
 tuple_literal_element
-    : ( identifier ':' )? literal
+    : ( identifier ':' )? expression
     ;
 ```
 
-A tuple literal cannot be used as default value for an optional parameter.
+Note that because it is not a constant expression, a tuple literal cannot be used as default value for an optional parameter.
 
 Open issues:
 -----------
 
-- Provide more details on semantics of tuple type declarations, both static (Type rules, constraints, all-or-none names, can't be used on right-hand-side of a 'is', ...) and dynamic (what does it do at runtime?).
-- Provide more details on semantics of tuple literals, both static (new kind of conversion from expression, new kind of conversion from type, all-or-none, scrambled names, underlying types, underlying names, listing the members of this type, what it means to access, ) and dynamic (what happens when you do this conversion?).
+- [ ] Provide more details on semantics of tuple type declarations, both static (Type rules, constraints, all-or-none names, can't be used on right-hand-side of a 'is', ...) and dynamic (what does it do at runtime?).
+- [ ] Provide more details on semantics of tuple literals, both static (new kind of conversion from expression, new kind of conversion from type, all-or-none, scrambled names, underlying types, underlying names, listing the members of this type, what it means to access, ) and dynamic (what happens when you do this conversion?).
+- [ ] Exactly matching expression
