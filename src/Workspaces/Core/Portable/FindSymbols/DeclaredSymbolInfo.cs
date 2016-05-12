@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
@@ -108,6 +110,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 return default(DeclaredSymbolInfo);
             }
+        }
+
+        public async Task<ISymbol> ResolveAsync(Document document, CancellationToken cancellationToken)
+        {
+            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            return Resolve(semanticModel, cancellationToken);
+        }
+
+        public ISymbol Resolve(SemanticModel semanticModel, CancellationToken cancellationToken)
+        {
+            var root = semanticModel.SyntaxTree.GetRoot(cancellationToken);
+            var node = root.FindNode(this.Span);
+            return semanticModel.GetDeclaredSymbol(node, cancellationToken);
         }
     }
 }
