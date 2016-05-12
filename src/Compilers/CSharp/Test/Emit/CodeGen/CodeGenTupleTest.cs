@@ -2364,6 +2364,60 @@ class C
         }
 
         [Fact]
+        public void TupleWithExistingUnderlyingMemberNames()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // (6,18): error CS8202: Tuple membername 'CompareTo' is disallowed at any position.
+                //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
+                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "CompareTo").WithArguments("CompareTo").WithLocation(6, 18),
+                // (6,43): error CS8202: Tuple membername 'Deconstruct' is disallowed at any position.
+                //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
+                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Deconstruct").WithArguments("Deconstruct").WithLocation(6, 43),
+                // (6,59): error CS8202: Tuple membername 'Equals' is disallowed at any position.
+                //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
+                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Equals").WithArguments("Equals").WithLocation(6, 59),
+                // (6,70): error CS8202: Tuple membername 'GetHashCode' is disallowed at any position.
+                //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
+                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "GetHashCode").WithArguments("GetHashCode").WithLocation(6, 70),
+                // (6,86): error CS8202: Tuple membername 'Rest' is disallowed at any position.
+                //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
+                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "Rest").WithArguments("Rest").WithLocation(6, 86),
+                // (6,95): error CS8202: Tuple membername 'ToString' is disallowed at any position.
+                //         var x = (CompareTo: 2, Create: 3, Deconstruct: 4, Equals: 5, GetHashCode: 6, Rest: 8, ToString: 10);
+                Diagnostic(ErrorCode.ERR_TupleReservedMemberNameAnyPosition, "ToString").WithArguments("ToString").WithLocation(6, 95)
+                );
+        }
+
+        [Fact]
+        public void TupleWithExistingInaccessibleUnderlyingMemberNames()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var x = (CombineHashCodes: 1, Create: 2, GetHashCodeCore: 3, Size: 4, ToStringEnd: 5);
+        System.Console.WriteLine(x.CombineHashCodes + "" "" + x.Create + "" "" + x.GetHashCodeCore + "" "" + x.Size + "" "" + x.ToStringEnd);
+    }
+}
+";
+
+            var verifier = CompileAndVerify(source, expectedOutput: @"1 2 3 4 5", additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            verifier.VerifyDiagnostics();
+        }
+
+        [Fact]
         public void LongTupleDeclaration()
         {
             var source = @"
@@ -5842,7 +5896,7 @@ class C
             Assert.Equal("(int, int)", m1Tuple.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
             Assert.Equal("(int a2, int b2)", m2Tuple.DeclaringSyntaxReferences.Single().GetSyntax().ToString());
             Assert.Equal("public struct ValueTuple<T1, T2>", m1Tuple.TupleUnderlyingType.DeclaringSyntaxReferences.Single().GetSyntax().ToString().Substring(0, 32));
-                         
+
             AssertTupleTypeEquality(m2Tuple);
             AssertTupleTypeEquality(m6Tuple);
 
@@ -5923,7 +5977,7 @@ class C
 
             var members = tuple.GetMembers();
 
-            for(int i = 0; i < members.Length; i++)
+            for (int i = 0; i < members.Length; i++)
             {
                 for (int j = 0; j < members.Length; j++)
                 {
@@ -5937,7 +5991,7 @@ class C
             }
 
             var underlyingMembers = tuple.TupleUnderlyingType.GetMembers();
-            foreach(var m in members)
+            foreach (var m in members)
             {
                 Assert.False(underlyingMembers.Any(u => u.Equals(m)));
                 Assert.False(underlyingMembers.Any(u => m.Equals(u)));
@@ -6794,7 +6848,7 @@ class C
                     ".Item8"
                 );
         }
-        
+
         [Fact]
         public void DefaultAndFriendlyElementNames_08()
         {
@@ -7758,7 +7812,7 @@ namespace System
                              t13.ToTestDisplayString());
             }
 
-            var m3Tuple = (NamedTypeSymbol)c.GetMember<MethodSymbol>("M3").ReturnType;       
+            var m3Tuple = (NamedTypeSymbol)c.GetMember<MethodSymbol>("M3").ReturnType;
             {
                 var t1 = TupleTypeSymbol.Create(null, m3Tuple.TupleUnderlyingType, default(ImmutableArray<Location>), default(ImmutableArray<string>));
                 var t2 = TupleTypeSymbol.Create(null, m3Tuple.TupleUnderlyingType, default(ImmutableArray<Location>), default(ImmutableArray<string>));
@@ -9214,6 +9268,107 @@ class C
 
             Assert.True(xSymbol.TupleUnderlyingType.IsErrorType());
             Assert.False(xSymbol.IsReferenceType); // if no underlying type, then defaults to struct
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.LocalFunctions)]
+        public void LocalFunction()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        (int, int) Local((int, int) x) { return x; }
+        System.Console.WriteLine(Local((1, 2)));
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: "{1, 2}", parseOptions: TestOptions.Regular.WithTuplesFeature().WithLocalFunctionsFeature());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LocalFunctionWithNamedTuple()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        (int a, int b) Local((int c, int d) x) { return x; }
+        System.Console.WriteLine(Local((d: 1, c: 2)).b);
+    }
+}
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, expectedOutput: "2", parseOptions: TestOptions.Regular.WithTuplesFeature().WithLocalFunctionsFeature());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.LocalFunctions)]
+        public void LocalFunctionWithLongTuple()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        (int, string, int, string, int, string, int, string) Local((int, string, int, string, int, string, int, string) x) { return x; }
+        System.Console.WriteLine(Local((1, ""Alice"", 2, ""Brenda"", 3, ""Chloe"", 4, ""Dylan"")));
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "(1, Alice, 2, Brenda, 3, Chloe, 4, Dylan)", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature().WithLocalFunctionsFeature());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TupleMembersInLambda()
+        {
+            var source = @"
+using System;
+class C
+{
+    static Action action;
+
+    static void Main()
+    {
+        var tuple = (a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8);
+        action += () => { Console.Write(tuple.Item1 + "" "" + tuple.a + "" "" + tuple.Rest + "" "" + tuple.Item8 + "" "" + tuple.h); };
+        action();
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 1 (8) 8 8", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature().WithLocalFunctionsFeature());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void LongTupleConstructor()
+        {
+            var source = @"
+class C
+{
+    void M()
+    {
+        var x = new (int, int, int, int, int, int, int, int)(1, 2, 3, 4, 5, 6, 7, 8);
+        var y = new (int, int, int, int, int, int, int, int, int)(1, 2, 3, 4, 5, 6, 7, 8, 9);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // (6,83): error CS1503: Argument 8: cannot convert from 'int' to '(int)'
+                //         var x = new (int, int, int, int, int, int, int, int)(1, 2, 3, 4, 5, 6, 7, 8);
+                Diagnostic(ErrorCode.ERR_BadArgType, "8").WithArguments("8", "int", "(int)").WithLocation(6, 83),
+                // (7,21): error CS1729: '(int, int, int, int, int, int, int, int, int)' does not contain a constructor that takes 9 arguments
+                //         var y = new (int, int, int, int, int, int, int, int, int)(1, 2, 3, 4, 5, 6, 7, 8, 9);
+                Diagnostic(ErrorCode.ERR_BadCtorArgCount, "(int, int, int, int, int, int, int, int, int)").WithArguments("(int, int, int, int, int, int, int, int, int)", "9").WithLocation(7, 21)
+                );
         }
     }
 }
