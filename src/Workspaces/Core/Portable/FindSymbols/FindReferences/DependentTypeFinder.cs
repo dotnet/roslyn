@@ -159,6 +159,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return SpecializedTasks.EmptyEnumerable<INamedTypeSymbol>();
         }
 
+        public static Task<IEnumerable<INamedTypeSymbol>> GetTypesImmediatelyDerivedFromInterfacesAsync(
+            INamedTypeSymbol type,
+            Solution solution,
+            CancellationToken cancellationToken)
+        {
+            if (type?.TypeKind == TypeKind.Interface)
+            {
+                type = type.OriginalDefinition;
+                return GetDependentTypesAsync(
+                    type,
+                    solution,
+                    null,
+                    (candidate, baseInterface) => candidate.Interfaces.Any(i => OriginalSymbolsMatch(i, baseInterface, solution, cancellationToken)),
+                    s_derivedInterfacesCache,
+                    cancellationToken);
+            }
+
+            return SpecializedTasks.EmptyEnumerable<INamedTypeSymbol>();
+        }
+
         public static async Task<IEnumerable<INamedTypeSymbol>> GetTypesImmediatelyDerivedFromClassesAsync(
             INamedTypeSymbol type,
             Solution solution,
@@ -409,26 +429,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 return null;
             };
-        }
-
-        public static Task<IEnumerable<INamedTypeSymbol>> GetTypesImmediatelyDerivedFromInterfacesAsync(
-            INamedTypeSymbol type,
-            Solution solution,
-            CancellationToken cancellationToken)
-        {
-            if (type != null && type.TypeKind == TypeKind.Interface)
-            {
-                type = type.OriginalDefinition;
-                return GetDependentTypesAsync(
-                    type,
-                    solution,
-                    null,
-                    (candidate, baseInterface) => candidate.Interfaces.Any(i => OriginalSymbolsMatch(i, baseInterface, solution, cancellationToken)),
-                    s_derivedInterfacesCache,
-                    cancellationToken);
-            }
-
-            return SpecializedTasks.EmptyEnumerable<INamedTypeSymbol>();
         }
 
         private static async Task<IEnumerable<INamedTypeSymbol>> GetDependentTypesAsync(
