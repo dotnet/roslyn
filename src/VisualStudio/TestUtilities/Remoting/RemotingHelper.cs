@@ -119,6 +119,18 @@ namespace Roslyn.VisualStudio.Test.Utilities.Remoting
 
         private static TestingOnly_WaitingService WaitingService => DefaultComponentModelExportProvider.GetExport<TestingOnly_WaitingService>().Value;
 
+        public static void ActivateMainWindow() => InvokeOnUIThread(() =>
+        {
+            var activeVisualStudioWindow = (IntPtr)(IntegrationHelper.RetryRpcCall(() => DTE.ActiveWindow.HWnd));
+
+            if (activeVisualStudioWindow == IntPtr.Zero)
+            {
+                activeVisualStudioWindow = (IntPtr)(IntegrationHelper.RetryRpcCall(() => DTE.MainWindow.HWnd));
+            }
+
+            IntegrationHelper.SetForegroundWindow(activeVisualStudioWindow);
+        });
+
         public static void CleanupWaitingService()
         {
             var asynchronousOperationWaiterExports = DefaultComponentModelExportProvider.GetExports<IAsynchronousOperationWaiter>();

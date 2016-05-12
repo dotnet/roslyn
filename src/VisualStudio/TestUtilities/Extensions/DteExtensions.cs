@@ -13,22 +13,26 @@ namespace Roslyn.VisualStudio.Test.Utilities
             // to something more logical, like null, would change the expected behavior of Dte.ExecuteCommand
 
             await dte.WaitForCommandAvailabilityAsync(command).ConfigureAwait(continueOnCapturedContext: false);
-            IntegrationHelper.RetryDteCall(() => dte.ExecuteCommand(command, args));
+            IntegrationHelper.RetryRpcCall(() => dte.ExecuteCommand(command, args));
         }
 
-        public static Task<Window> LocateWindowAsync(this DTE dte, string windowTitle) => IntegrationHelper.WaitForNotNullAsync(() => IntegrationHelper.RetryDteCall(() =>
+        public static Window LocateWindow(this DTE dte, string windowTitle)
         {
-            foreach (Window window in dte.Windows)
+            var dteWindows = IntegrationHelper.RetryRpcCall(() => dte.Windows);
+
+            foreach (Window window in dteWindows)
             {
-                if (window.Caption.Equals(windowTitle))
+                var windowCaption = IntegrationHelper.RetryRpcCall(() => window.Caption);
+
+                if (windowCaption.Equals(windowTitle))
                 {
                     return window;
                 }
             }
             return null;
-        }));
+        }
 
         public static Task WaitForCommandAvailabilityAsync(this DTE dte, string command)
-            => IntegrationHelper.WaitForResultAsync(() => IntegrationHelper.RetryDteCall(() => dte.Commands.Item(command).IsAvailable), expectedResult: true);
+            => IntegrationHelper.WaitForResultAsync(() => IntegrationHelper.RetryRpcCall(() => dte.Commands.Item(command).IsAvailable), expectedResult: true);
     }
 }

@@ -22,14 +22,36 @@ namespace Roslyn.VisualStudio.Test.Utilities.Interop
         public const uint GW_CHILD = 5;
         public const uint GW_ENABLEDPOPUP = 6;
 
+        public const int HWND_NOTOPMOST = -2;
+        public const int HWND_TOPMOST = -1;
+        public const int HWND_TOP = 0;
+        public const int HWND_BOTTOM = 1;
+
         public const uint INPUT_MOUSE = 0;
         public const uint INPUT_KEYBOARD = 1;
         public const uint INPUT_HARDWARE = 2;
 
+        public const uint KEYEVENTF_NONE = 0x0000;
         public const uint KEYEVENTF_EXTENDEDKEY = 0x0001;
         public const uint KEYEVENTF_KEYUP = 0x0002;
         public const uint KEYEVENTF_UNICODE = 0x0004;
         public const uint KEYEVENTF_SCANCODE = 0x0008;
+
+        public const uint SWP_NOSIZE = 0x0001;
+        public const uint SWP_NOMOVE = 0x0002;
+        public const uint SWP_NOZORDER = 0x0004;
+        public const uint SWP_NOREDRAW = 0x008;
+        public const uint SWP_NOACTIVATE = 0x0010;
+        public const uint SWP_DRAWFRAME = 0x0020;
+        public const uint SWP_FRAMECHANGED = 0x0020;
+        public const uint SWP_SHOWWINDOW = 0x0040;
+        public const uint SWP_HIDEWINDOW = 0x0080;
+        public const uint SWP_NOCOPYBITS = 0x0100;
+        public const uint SWP_NOOWNERZORDER = 0x0200;
+        public const uint SWP_NOREPOSITION = 0x0200;
+        public const uint SWP_NOSENDCHANGING = 0x0400;
+        public const uint SWP_DEFERERASE = 0x2000;
+        public const uint SWP_ASYNCWINDOWPOS = 0x4000;
 
         public const ushort VK_SHIFT = 0x0010;
         public const ushort VK_CONTROL = 0x0011;
@@ -102,6 +124,14 @@ namespace Roslyn.VisualStudio.Test.Utilities.Interop
             [In] IntPtr lParam
         );
 
+        [DllImport("User32.dll", CallingConvention = CallingConvention.Winapi, EntryPoint = "AttachThreadInput", PreserveSig = true, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool AttachThreadInput(
+            [In] uint idAttach,
+            [In] uint idAttachTo,
+            [In, MarshalAs(UnmanagedType.Bool)] bool fAttach
+        );
+
         [DllImport("User32.dll", CallingConvention = CallingConvention.Winapi, EntryPoint = "BlockInput", PreserveSig = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool BlockInput(
@@ -111,7 +141,7 @@ namespace Roslyn.VisualStudio.Test.Utilities.Interop
         [DllImport("User32.dll", CallingConvention = CallingConvention.Winapi, EntryPoint = "EnumWindows", PreserveSig = true, SetLastError = true)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool EnumWindows(
-            [In] WNDENUMPROC lpEnumFunc,
+            [In, MarshalAs(UnmanagedType.FunctionPtr)] WNDENUMPROC lpEnumFunc,
             [In] IntPtr lParam
         );
 
@@ -134,6 +164,18 @@ namespace Roslyn.VisualStudio.Test.Utilities.Interop
         public static extern IntPtr GetWindow(
             [In] IntPtr hWnd,
             [In] uint uCmd
+        );
+
+        [DllImport("User32.dll", CallingConvention = CallingConvention.Winapi, EntryPoint = "GetWindowThreadProcessId", PreserveSig = true, SetLastError = false)]
+        public static extern uint GetWindowThreadProcessId(
+            [In] IntPtr hWnd,
+            [Out, Optional] IntPtr lpdwProcessId
+        );
+
+        [DllImport("User32.dll", CallingConvention = CallingConvention.Winapi, EntryPoint = "GetWindowThreadProcessId", PreserveSig = true, SetLastError = false)]
+        public static extern uint GetWindowThreadProcessId(
+            [In] IntPtr hWnd,
+            [Out, Optional] out uint lpdwProcessId
         );
 
         [DllImport("User32.dll", CallingConvention = CallingConvention.Winapi, EntryPoint = "SendInput", PreserveSig = true, SetLastError = true)]
@@ -159,10 +201,32 @@ namespace Roslyn.VisualStudio.Test.Utilities.Interop
             [Out, MarshalAs(UnmanagedType.LPWStr)] StringBuilder lParam
         );
 
+        [DllImport("User32.dll", CallingConvention = CallingConvention.Winapi, EntryPoint = "SetActiveWindow", PreserveSig = true, SetLastError = true)]
+        public static extern IntPtr SetActiveWindow(
+            [In] IntPtr hWnd
+        );
+
+        [DllImport("User32.dll", CallingConvention = CallingConvention.Winapi, EntryPoint = "SetFocus", PreserveSig = true, SetLastError = true)]
+        public static extern IntPtr SetFocus(
+            [In] IntPtr hWnd
+        );
+
         [DllImport("User32.dll", CallingConvention = CallingConvention.Winapi, EntryPoint = "SetForegroundWindow", PreserveSig = true, SetLastError = false)]
         [return: MarshalAs(UnmanagedType.Bool)]
         public static extern bool SetForegroundWindow(
             [In] IntPtr hWnd
+        );
+
+        [DllImport("User32.dll", CallingConvention = CallingConvention.Winapi, EntryPoint = "SetWindowPos", PreserveSig = true, SetLastError = true)]
+        [return: MarshalAs(UnmanagedType.Bool)]
+        public static extern bool SetWindowPos(
+            [In] IntPtr hWnd,
+            [In, Optional] IntPtr hWndInsertAfter,
+            [In] int X,
+            [In] int Y,
+            [In] int cx,
+            [In] int cy,
+            [In] uint uFlags
         );
 
         [DllImport("User32.dll", CallingConvention = CallingConvention.Winapi, EntryPoint = "VkKeyScanW", PreserveSig = true, SetLastError = false)]

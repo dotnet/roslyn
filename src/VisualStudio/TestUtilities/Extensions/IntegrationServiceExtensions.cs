@@ -15,9 +15,9 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
         public static void Execute(this IntegrationService integrationService, string assemblyFilePath, string typeFullName, string methodName, BindingFlags bindingFlags = (BindingFlags.Public | BindingFlags.Static), params object[] parameters)
         {
-            var objectUri = integrationService.Execute(assemblyFilePath, typeFullName, methodName, bindingFlags, parameters);
+            var result = integrationService.Execute(assemblyFilePath, typeFullName, methodName, bindingFlags, parameters);
 
-            if (!string.IsNullOrWhiteSpace(objectUri))
+            if (result != null)
             {
                 throw new InvalidOperationException("The specified call was not expected to return a value.");
             }
@@ -27,7 +27,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
         {
             var objectUri = integrationService.Execute(assemblyFilePath, typeFullName, methodName, bindingFlags, parameters);
 
-            if (string.IsNullOrWhiteSpace(objectUri))
+            if (objectUri == null)
             {
                 throw new InvalidOperationException("The specified call was expected to return a value.");
             }

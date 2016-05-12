@@ -54,7 +54,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
         {
             get
             {
-                var solutionFullName = _dteSolution.FullName;
+                var solutionFullName = IntegrationHelper.RetryRpcCall(() => _dteSolution.FullName);
                 return string.IsNullOrEmpty(solutionFullName) ? _fileName : solutionFullName;
             }
         }
@@ -64,13 +64,17 @@ namespace Roslyn.VisualStudio.Test.Utilities
             var projectPath = Path.Combine(DirectoryName, projectName);
             var projectTemplatePath = GetProjectTemplatePath(projectTemplate, projectLanguage);
 
-            var dteProject = _dteSolution.AddFromTemplate(projectTemplatePath, projectPath, projectName, Exclusive: false);
+            var dteProject = IntegrationHelper.RetryRpcCall(() => _dteSolution.AddFromTemplate(projectTemplatePath, projectPath, projectName, Exclusive: false));
 
             if (dteProject == null)
             {
-                foreach (DteProject project in DteSolution.Projects)
+                var dteSolutionProjects = IntegrationHelper.RetryRpcCall(() => _dteSolution.Projects);
+
+                foreach (DteProject project in dteSolutionProjects)
                 {
-                    if (project.Name == projectName)
+                    var dteProjectName = IntegrationHelper.RetryRpcCall(() => project.Name);
+
+                    if (dteProjectName == projectName)
                     {
                         dteProject = project;
                     }
@@ -83,11 +87,11 @@ namespace Roslyn.VisualStudio.Test.Utilities
         public void Save()
         {
             Directory.CreateDirectory(DirectoryName);
-            _dteSolution.SaveAs(FileName);
+            IntegrationHelper.RetryRpcCall(() => _dteSolution.SaveAs(FileName));
         }
 
         // TODO: Adjust language name based on whether we are using a web template
         private string GetProjectTemplatePath(ProjectTemplate projectTemplate, ProjectLanguage projectLanguage)
-            => _dteSolution.GetProjectTemplate(_projectTemplates[projectTemplate], ProjectLanguages[projectLanguage]);
+            => IntegrationHelper.RetryRpcCall(() => _dteSolution.GetProjectTemplate(_projectTemplates[projectTemplate], ProjectLanguages[projectLanguage]));
     }
 }

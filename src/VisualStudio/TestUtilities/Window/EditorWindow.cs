@@ -86,9 +86,9 @@ namespace Roslyn.VisualStudio.Test.Utilities
             }
         }
 
-        private TextSelection TextSelection => (TextSelection)(_visualStudioInstance.Dte.ActiveDocument.Selection);
+        private TextSelection TextSelection => (TextSelection)(IntegrationHelper.RetryRpcCall(() => _visualStudioInstance.Dte.ActiveDocument.Selection));
 
-        public void Activate() => _visualStudioInstance.Dte.ActiveDocument.Activate();
+        public void Activate() => IntegrationHelper.RetryRpcCall(() => _visualStudioInstance.Dte.ActiveDocument.Activate());
 
         public void ClearTextSelection() => TextSelection?.Cancel();
 
@@ -97,7 +97,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
             Activate();
             ClearTextSelection();
 
-            var dteFind = _visualStudioInstance.Dte.Find;
+            var dteFind = IntegrationHelper.RetryRpcCall(() => _visualStudioInstance.Dte.Find);
 
             dteFind.Action = vsFindAction.vsFindActionFind;
             dteFind.FindWhat = expectedText;
@@ -107,7 +107,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
             dteFind.PatternSyntax = vsFindPatternSyntax.vsFindPatternSyntaxLiteral;
             dteFind.Target = vsFindTarget.vsFindTargetCurrentDocument;
 
-            var findResult = dteFind.Execute();
+            var findResult = IntegrationHelper.RetryRpcCall(() => dteFind.Execute());
 
             if (findResult != vsFindResult.vsFindResultFound)
             {
@@ -130,22 +130,15 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
             foreach (var character in text)
             {
-                var foregroundWindowHandle = IntPtr.Zero;
+                var foregroundWindow = IntPtr.Zero;
                 var inputBlocked = false;
 
                 try
                 {
-                    inputBlocked = User32.BlockInput(true);
-                    foregroundWindowHandle = User32.GetForegroundWindow();
+                    inputBlocked = IntegrationHelper.BlockInput();
+                    foregroundWindow = IntegrationHelper.GetForegroundWindow();
 
-                    var activeWindowHandle = (IntPtr)(_visualStudioInstance.Dte.ActiveWindow.HWnd);
-
-                    if (activeWindowHandle == IntPtr.Zero)
-                    {
-                        activeWindowHandle = (IntPtr)(_visualStudioInstance.Dte.MainWindow.HWnd);
-                    }
-
-                    IntegrationHelper.SetFocus(activeWindowHandle);
+                    _visualStudioInstance.IntegrationService.Execute(typeof(RemotingHelper), nameof(RemotingHelper.ActivateMainWindow));
 
                     var vk = User32.VkKeyScan(character);
 
@@ -157,17 +150,17 @@ namespace Roslyn.VisualStudio.Test.Utilities
                     {
                         if ((vk & 0x0100) != 0)  // SHIFT
                         {
-                            SendKey(User32.VK_SHIFT);
+                            SendKey(User32.VK_SHIFT, User32.KEYEVENTF_NONE);
                         }
 
                         if ((vk & 0x0200) != 0)  // CTRL
                         {
-                            SendKey(User32.VK_CONTROL);
+                            SendKey(User32.VK_CONTROL, User32.KEYEVENTF_NONE);
                         }
 
                         if ((vk & 0x0400) != 0)  // ALT
                         {
-                            SendKey(User32.VK_MENU);
+                            SendKey(User32.VK_MENU, User32.KEYEVENTF_NONE);
                         }
 
                         SendKey((ushort)(vk & 0xFF));
@@ -190,14 +183,14 @@ namespace Roslyn.VisualStudio.Test.Utilities
                 }
                 finally
                 {
-                    if (foregroundWindowHandle != IntPtr.Zero)
+                    if (foregroundWindow != IntPtr.Zero)
                     {
-                        IntegrationHelper.SetFocus(foregroundWindowHandle);
+                        IntegrationHelper.SetForegroundWindow(foregroundWindow);
                     }
 
                     if (inputBlocked)
                     {
-                        User32.BlockInput(false);
+                        IntegrationHelper.UnblockInput();
                     }
                 }
 
@@ -209,13 +202,13 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
         private void SendKey(ushort vk)
         {
-            SendKey(vk);
+            SendKey(vk, User32.KEYEVENTF_NONE);
             SendKey(vk, User32.KEYEVENTF_KEYUP);
         }
 
-        private void SendKey(ushort vk, uint dwFlags = 0)
+        private void SendKey(ushort vk, uint dwFlags)
         {
-            var inputs = new User32.INPUT[] {
+            var input = new User32.INPUT[] {
                 new User32.INPUT() {
                     Type = User32.INPUT_KEYBOARD,
                     ki = new User32.KEYBDINPUT() {
@@ -230,15 +223,15 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
             if (IsExtendedKey(vk))
             {
-                inputs[0].ki.dwFlags |= User32.KEYEVENTF_EXTENDEDKEY;
+                input[0].ki.dwFlags |= User32.KEYEVENTF_EXTENDEDKEY;
             }
 
-            User32.SendInput(1, inputs, User32.SizeOf_INPUT);
+            IntegrationHelper.SendInput(input);
         }
 
         private void SendCharacter(char character)
         {
-            var inputs = new User32.INPUT[] {
+            var input = new User32.INPUT[] {
                 new User32.INPUT() {
                     Type = User32.INPUT_KEYBOARD,
                     ki = new User32.KEYBDINPUT() {
@@ -261,7 +254,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
                 }
             };
 
-            User32.SendInput(2, inputs, User32.SizeOf_INPUT);
+            IntegrationHelper.SendInput(input);
         }
     }
 }

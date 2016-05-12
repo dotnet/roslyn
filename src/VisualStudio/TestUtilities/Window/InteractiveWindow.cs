@@ -25,9 +25,8 @@ namespace Roslyn.VisualStudio.Test.Utilities
             // We have to show the window at least once to ensure the interactive service is loaded.
             ShowAsync(waitForPrompt: false).GetAwaiter().GetResult();
 
-            var dte = _visualStudioInstance.Dte;
-            var dteWindow = dte.LocateWindowAsync(dteWindowTitle).GetAwaiter().GetResult();
-            dteWindow.Close();
+            var dteWindow = IntegrationHelper.WaitForNotNullAsync(() => _visualStudioInstance.Dte.LocateWindow(dteWindowTitle)).GetAwaiter().GetResult();
+            IntegrationHelper.RetryRpcCall(() => dteWindow.Close());
 
             // Return a wrapper to the actual interactive window service that exists in the host process
             var integrationService = _visualStudioInstance.IntegrationService;

@@ -108,44 +108,45 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
         private void CleanupInteractiveWindow()
         {
-            foreach (Window window in Dte.Windows)
-            {
-                if (window.Caption == CSharpInteractiveWindow.DteWindowTitle)
-                {
-                    window.Close();
-                    break;
-                }
-            }
+            var csharpInteractiveWindow = _dte.LocateWindow(CSharpInteractiveWindow.DteWindowTitle);
+            IntegrationHelper.RetryRpcCall(() => csharpInteractiveWindow?.Close());
         }
 
         private void CleanupOpenSolution()
         {
-            IntegrationHelper.RetryDteCall(() => _dte.Documents.CloseAll(vsSaveChanges.vsSaveChangesNo));
+            IntegrationHelper.RetryRpcCall(() => _dte.Documents.CloseAll(vsSaveChanges.vsSaveChangesNo));
 
-            if (IntegrationHelper.RetryDteCall(() => _dte.Solution) != null)
+            var dteSolution = IntegrationHelper.RetryRpcCall(() => _dte.Solution);
+
+            if (dteSolution != null)
             {
-                var directoriesToDelete = IntegrationHelper.RetryDteCall(() =>
+                var directoriesToDelete = IntegrationHelper.RetryRpcCall(() =>
                 {
                     var directoryList = new List<string>();
 
+                    var dteSolutionProjects = IntegrationHelper.RetryRpcCall(() => dteSolution.Projects);
+
                     // Save the full path to each project in the solution. This is so we can cleanup any folders after the solution is closed.
-                    foreach (EnvDTE.Project project in _dte.Solution.Projects)
+                    foreach (EnvDTE.Project project in dteSolutionProjects)
                     {
-                        directoryList.Add(Path.GetDirectoryName(project.FullName));
+                        var projectFullName = IntegrationHelper.RetryRpcCall(() => project.FullName);
+                        directoryList.Add(Path.GetDirectoryName(projectFullName));
                     }
 
                     // Save the full path to the solution. This is so we can cleanup any folders after the solution is closed.
                     // The solution might be zero-impact and thus has no name, so deal with that
-                    if (!string.IsNullOrEmpty(_dte.Solution.FullName))
+                    var dteSolutionFullName = IntegrationHelper.RetryRpcCall(() => dteSolution.FullName);
+
+                    if (!string.IsNullOrEmpty(dteSolutionFullName))
                     {
-                        directoryList.Add(Path.GetDirectoryName(_dte.Solution.FullName));
+                        directoryList.Add(Path.GetDirectoryName(dteSolutionFullName));
 
                     }
 
                     return directoryList;
                 });
 
-                IntegrationHelper.RetryDteCall(() => _dte.Solution.Close(SaveFirst: false));
+                IntegrationHelper.RetryRpcCall(() => dteSolution.Close(SaveFirst: false));
 
                 foreach (var directoryToDelete in directoriesToDelete)
                 {
@@ -174,7 +175,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
         private void CloseHostProcess()
         {
-            IntegrationHelper.RetryDteCall(() => _dte.Quit());
+            IntegrationHelper.RetryRpcCall(() => _dte.Quit());
 
             IntegrationHelper.KillProcess(_hostProcess);
         }
@@ -183,7 +184,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
         {
             try
             {
-                if ((IntegrationHelper.RetryDteCall(() => _dte?.Commands.Item(VisualStudioCommandNames.VsStopServiceCommand).IsAvailable).GetValueOrDefault()))
+                if ((IntegrationHelper.RetryRpcCall(() => _dte?.Commands.Item(VisualStudioCommandNames.VsStopServiceCommand).IsAvailable).GetValueOrDefault()))
                 {
                     _dte.ExecuteCommandAsync(VisualStudioCommandNames.VsStopServiceCommand).GetAwaiter().GetResult();
                 }
