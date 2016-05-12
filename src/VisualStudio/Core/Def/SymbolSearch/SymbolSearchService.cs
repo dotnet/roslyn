@@ -36,7 +36,8 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         ISymbolSearchService,
         IDisposable
     {
-        private ConcurrentDictionary<string, AddReferenceDatabase> _sourceToDatabase = new ConcurrentDictionary<string, AddReferenceDatabase>();
+        // Value is typed as 'object' so we don't load the elfie dll until actually necessary.
+        private ConcurrentDictionary<string, object> _sourceToDatabase = new ConcurrentDictionary<string, object>();
 
         public SymbolSearchService(
             VSShell.SVsServiceProvider serviceProvider,
@@ -104,11 +105,8 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             _remoteControlService = remoteControlService;
             _patchService = patchService;
             _databaseFactoryService = databaseFactoryService;
+            _localSettingsDirectory = localSettingsDirectory;
             _reportAndSwallowException = reportAndSwallowException;
-
-            _cacheDirectoryInfo = new DirectoryInfo(Path.Combine(
-                localSettingsDirectory, "PackageCache", string.Format(Invariant($"Format{_dataFormatVersion}"))));
-            // _databaseFileInfo = new FileInfo(Path.Combine(_cacheDirectoryInfo.FullName, "NuGetCache.txt"));
 
             _cancellationTokenSource = cancellationTokenSource;
             _cancellationToken = _cancellationTokenSource.Token;
@@ -117,13 +115,14 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         public IEnumerable<PackageWithTypeResult> FindPackagesWithType(
             string source, string name, int arity, CancellationToken cancellationToken)
         {
-            AddReferenceDatabase database;
-            if (!_sourceToDatabase.TryGetValue(source, out database))
+            object databaseObj;
+            if (!_sourceToDatabase.TryGetValue(source, out databaseObj))
             {
                 // Don't have a database to search.  
                 yield break;
             }
 
+            var database = databaseObj as AddReferenceDatabase;
             if (name == "var")
             {
                 // never find anything named 'var'.
@@ -190,13 +189,14 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             string name, int arity, CancellationToken cancellationToken)
         {
             // Our reference assembly data is stored in the nuget.org DB.
-            AddReferenceDatabase database;
-            if (!_sourceToDatabase.TryGetValue(NugetOrgSource, out database))
+            object databaseObj;
+            if (!_sourceToDatabase.TryGetValue(NugetOrgSource, out databaseObj))
             {
                 // Don't have a database to search.  
                 yield break;
             }
 
+            var database = (AddReferenceDatabase)databaseObj;
             if (name == "var")
             {
                 // never find anything named 'var'.

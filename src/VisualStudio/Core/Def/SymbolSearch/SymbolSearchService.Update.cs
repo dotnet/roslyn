@@ -44,8 +44,6 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         private const string MicrosoftAssemblyReferencesName = "MicrosoftAssemblyReferences";
         private static readonly LinkedList<string> s_log = new LinkedList<string>();
 
-        private readonly int _dataFormatVersion = AddReferenceDatabase.TextFileFormatVersion;
-
         /// <summary>
         /// Cancellation support for the task we use to keep the local database up to date.
         /// When VS shuts down it will dispose us.  We'll cancel the task at that point.
@@ -58,9 +56,6 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         private readonly ConcurrentDictionary<string, object> _sourceToUpdateSentinel =
             new ConcurrentDictionary<string, object>();
 
-        private readonly DirectoryInfo _cacheDirectoryInfo;
-        //private readonly FileInfo _databaseFileInfo;
-
         // Interfaces that abstract out the external functionality we need.  Used so we can easily
         // mock behavior during tests.
         private readonly IPackageInstallerService _installerService;
@@ -70,6 +65,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         private readonly IRemoteControlService _remoteControlService;
         private readonly IPatchService _patchService;
         private readonly IDatabaseFactoryService _databaseFactoryService;
+        private readonly string _localSettingsDirectory;
         private readonly Func<Exception, bool> _reportAndSwallowException;
 
         public void Dispose()
@@ -125,23 +121,26 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
             // We were the first ones to try to update this source.  Spawn off a task to do
             // the updating.
-            return new Updater(this, source).UpdateInBackgroundAsync();
+            return new Updater(this, source, _localSettingsDirectory).UpdateInBackgroundAsync();
         }
 
         private class Updater
         {
             private readonly SymbolSearchService _service;
             private readonly string _source;
+            private readonly DirectoryInfo _cacheDirectoryInfo;
             private readonly FileInfo _databaseFileInfo;
 
-            public Updater(SymbolSearchService service, string source)
+            public Updater(SymbolSearchService service, string source, string localSettingsDirectory)
             {
                 _service = service;
                 _source = source;
 
-                var fileName = ConvertToFileName(source);
+                _cacheDirectoryInfo = new DirectoryInfo(Path.Combine(
+                    localSettingsDirectory, "PackageCache", string.Format(Invariant($"Format{AddReferenceDatabase.TextFileFormatVersion}"))));
+
                 _databaseFileInfo = new FileInfo(
-                    Path.Combine(_service._cacheDirectoryInfo.FullName, fileName + ".txt"));
+                    Path.Combine(_cacheDirectoryInfo.FullName, ConvertToFileName(source) + ".txt"));
             }
 
             /// <summary>
@@ -254,12 +253,12 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 _service.LogInfo("Cleaning cache directory");
 
                 // (intentionally not wrapped in IOUtilities.  If this throws we want to restart).
-                if (!_service._ioService.Exists(_service._cacheDirectoryInfo))
+                if (!_service._ioService.Exists(_cacheDirectoryInfo))
                 {
                     _service.LogInfo("Creating cache directory");
 
                     // (intentionally not wrapped in IOUtilities.  If this throws we want to restart).
-                    _service._ioService.Create(_service._cacheDirectoryInfo);
+                    _service._ioService.Create(_cacheDirectoryInfo);
                     _service.LogInfo("Cache directory created");
                 }
 
@@ -268,7 +267,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
             private async Task<TimeSpan> DownloadFullDatabaseAsync()
             {
-                var serverPath = Invariant($"Elfie_V{_service._dataFormatVersion}/Latest.xml");
+                var serverPath = Invariant($"Elfie_V{AddReferenceDatabase.TextFileFormatVersion}/Latest.xml");
 
                 _service.LogInfo($"Downloading and processing full database: {serverPath}");
 
@@ -332,7 +331,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                     () =>
                     {
                         var guidString = Guid.NewGuid().ToString();
-                        var tempFilePath = Path.Combine(_service._cacheDirectoryInfo.FullName, guidString + ".tmp");
+                        var tempFilePath = Path.Combine(_cacheDirectoryInfo.FullName, guidString + ".tmp");
 
                         _service.LogInfo($"Temp file path: {tempFilePath}");
 
@@ -402,7 +401,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 var databaseVersion = database.DatabaseVersion;
 
                 // Now attempt to download and apply patch file.
-                var serverPath = Invariant($"Elfie_V{_service._dataFormatVersion}/{database.DatabaseVersion}_Patch.xml");
+                var serverPath = Invariant($"Elfie_V{AddReferenceDatabase.TextFileFormatVersion}/{database.DatabaseVersion}_Patch.xml");
 
                 _service.LogInfo("Downloading and processing patch file: " + serverPath);
 
