@@ -869,6 +869,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ImmutableArray<string> GetInheritanceNames(BaseListSyntax baseList)
         {
+            if (baseList == null)
+            {
+                return ImmutableArray<string>.Empty;
+            }
+
             var builder = ImmutableArray.CreateBuilder<string>(baseList.Types.Count);
 
             var aliasMaps = AllocateAliasMapList();
