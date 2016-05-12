@@ -35,7 +35,7 @@ class 123 { }
                 Dim miscService = New DefaultDiagnosticAnalyzerService(diagnosticService)
                 Assert.False(miscService.SupportGetDiagnostics)
 
-                DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)
+                DiagnosticServices.Enable(workspace, DiagnosticServiceOptions.Syntax)
 
                 Dim optionsService = workspace.Services.GetService(Of IOptionService)()
 
@@ -83,7 +83,7 @@ class A
                 Dim miscService = New DefaultDiagnosticAnalyzerService(diagnosticService)
                 Assert.False(miscService.SupportGetDiagnostics)
 
-                DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)
+                DiagnosticServices.Enable(workspace, DiagnosticServiceOptions.Syntax)
 
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
@@ -120,7 +120,7 @@ class A
                 Dim miscService = New DefaultDiagnosticAnalyzerService(diagnosticService)
                 Assert.False(miscService.SupportGetDiagnostics)
 
-                DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Semantic)
+                DiagnosticServices.Enable(workspace, DiagnosticServiceOptions.Semantic)
 
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
@@ -157,7 +157,7 @@ class A
                 Dim miscService = New DefaultDiagnosticAnalyzerService(diagnosticService)
                 Assert.False(miscService.SupportGetDiagnostics)
 
-                DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Semantic Or DiagnosticProvider.Options.Syntax)
+                DiagnosticServices.Enable(workspace, DiagnosticServiceOptions.Semantic Or DiagnosticServiceOptions.Syntax)
 
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
@@ -194,7 +194,7 @@ class A
                 Dim miscService = New DefaultDiagnosticAnalyzerService(diagnosticService)
                 Assert.False(miscService.SupportGetDiagnostics)
 
-                DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Semantic Or DiagnosticProvider.Options.Syntax)
+                DiagnosticServices.Enable(workspace, DiagnosticServiceOptions.Semantic Or DiagnosticServiceOptions.Syntax)
 
                 Dim document = workspace.CurrentSolution.Projects.First().Documents.First()
                 Dim analyzer = miscService.CreateIncrementalAnalyzer(workspace)
@@ -217,7 +217,7 @@ class 123 { }
             Using workspace = Await TestWorkspace.CreateCSharpAsync(code.Value)
                 Dim miscService = New DefaultDiagnosticAnalyzerService(New MockDiagnosticUpdateSourceRegistrationService())
 
-                DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)
+                DiagnosticServices.Enable(workspace, DiagnosticServiceOptions.Syntax)
 
                 Dim buildTool = String.Empty
 
@@ -242,7 +242,7 @@ End Class
             Using workspace = Await TestWorkspace.CreateVisualBasicAsync(code.Value)
                 Dim miscService = New DefaultDiagnosticAnalyzerService(New MockDiagnosticUpdateSourceRegistrationService())
 
-                DiagnosticProvider.Enable(workspace, DiagnosticProvider.Options.Syntax)
+                DiagnosticServices.Enable(workspace, DiagnosticServiceOptions.Syntax)
 
                 Dim buildTool = String.Empty
 

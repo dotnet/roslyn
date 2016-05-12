@@ -71,12 +71,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal void StartSolutionCrawler()
         {
-            DiagnosticProvider.Enable(this, DiagnosticProvider.Options.Syntax);
+            DiagnosticServices.Enable(this, DiagnosticServiceOptions.Syntax);
         }
 
         internal void StopSolutionCrawler()
         {
-            DiagnosticProvider.Disable(this);
+            DiagnosticServices.Disable(this);
         }
 
         private LanguageInformation TryGetLanguageInformation(string filename)
