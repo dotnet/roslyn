@@ -65,21 +65,26 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
                 token != node.TypeArgumentList.GreaterThanToken;
         }
 
-        protected override async Task<SignatureHelpItems> GetItemsWorkerAsync(Document document, int position, SignatureHelpTrigger trigger, CancellationToken cancellationToken)
+        protected override async Task ProvideSignaturesWorkerAsync(SignatureContext context)
         {
+            var document = context.Document;
+            var position = context.Position;
+            var trigger = context.Trigger;
+            var cancellationToken = context.CancellationToken;
+
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             SyntaxToken genericIdentifier, lessThanToken;
             if (!TryGetGenericIdentifier(root, position, document.GetLanguageService<ISyntaxFactsService>(), trigger.Kind, cancellationToken,
                     out genericIdentifier, out lessThanToken))
             {
-                return null;
+                return;
             }
 
             var simpleName = genericIdentifier.Parent as SimpleNameSyntax;
             if (simpleName == null)
             {
-                return null;
+                return;
             }
 
             var beforeDotExpression = simpleName.IsRightSideOfDot() ? simpleName.GetLeftSideOfDot() : null;
@@ -108,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
             var within = semanticModel.GetEnclosingNamedTypeOrAssembly(position, cancellationToken);
             if (within == null)
             {
-                return null;
+                return;
             }
 
             var symbolDisplayService = document.Project.LanguageServices.GetService<ISymbolDisplayService>();
@@ -120,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
 
             if (!accessibleSymbols.Any())
             {
-                return null;
+                return;
             }
 
             var anonymousTypeDisplayService = document.Project.LanguageServices.GetService<IAnonymousTypeDisplayService>();
@@ -128,9 +133,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
             var textSpan = GetTextSpan(genericIdentifier, lessThanToken);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
-            return CreateSignatureHelpItems(accessibleSymbols.Select(s =>
-                Convert(s, lessThanToken, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList(),
-                textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken));
+            context.AddItems(accessibleSymbols.Select(s =>
+                Convert(s, lessThanToken, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)));
+
+            context.SetApplicableSpan(textSpan);
+            context.SetState(GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken));
         }
 
         public override SignatureHelpState GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)

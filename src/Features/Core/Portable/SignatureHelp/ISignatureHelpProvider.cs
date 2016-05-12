@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Microsoft.CodeAnalysis.SignatureHelp
@@ -20,8 +19,8 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         bool IsRetriggerCharacter(char ch);
 
         /// <summary>
-        /// Returns valid signature help items at the specified position in the document.
+        /// Implement to contribute <see cref="SignatureHelpItem"/>'s and other details to a <see cref="SignatureList"/>
         /// </summary>
-        Task<SignatureHelpItems> GetItemsAsync(Document document, int position, SignatureHelpTrigger trigger, CancellationToken cancellationToken);
+        Task ProvideSignaturesAsync(SignatureContext context);
     }
 }

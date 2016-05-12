@@ -50,18 +50,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
                 statement.ArgumentList.CloseParenToken <> token
         End Function
 
-        Protected Overrides Async Function GetItemsWorkerAsync(
-            document As Document,
-            position As Integer,
-            trigger As SignatureHelpTrigger,
-            cancellationToken As CancellationToken
-        ) As Task(Of SignatureHelpItems)
+        Protected Overrides Async Function ProvideSignaturesWorkerAsync(context As SignatureContext) As Task
+            Dim document = context.Document
+            Dim position = context.Position
+            Dim trigger = context.Trigger
+            Dim cancellationToken = context.CancellationToken
 
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
             Dim raiseEventStatement As RaiseEventStatementSyntax = Nothing
             If Not TryGetRaiseEventStatement(root, position, document.GetLanguageService(Of ISyntaxFactsService), trigger.Kind, cancellationToken, raiseEventStatement) Then
-                Return Nothing
+                Return
             End If
 
             Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
@@ -84,9 +83,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
             Dim textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(raiseEventStatement.ArgumentList, raiseEventStatement.Name.SpanStart)
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
-            Return CreateSignatureHelpItems(
-                allowedEvents.Select(Function(e) Convert(e, raiseEventStatement, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList(),
-                textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken))
+            context.AddItems(allowedEvents.Select(Function(e) Convert(e, raiseEventStatement, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)))
+            context.SetApplicableSpan(textSpan)
+            context.SetState(GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken))
         End Function
 
         Private Overloads Function Convert(

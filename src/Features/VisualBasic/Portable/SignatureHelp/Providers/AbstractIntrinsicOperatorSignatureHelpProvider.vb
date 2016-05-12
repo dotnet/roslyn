@@ -26,28 +26,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
                 node)
         End Function
 
-        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, trigger As SignatureHelpTrigger, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems)
+        Protected Overrides Async Function ProvideSignaturesWorkerAsync(context As SignatureContext) As Task
+            Dim document = context.Document
+            Dim position = context.Position
+            Dim trigger = context.Trigger
+            Dim cancellationToken = context.CancellationToken
+
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
             Dim node As TSyntaxNode = Nothing
-            If Not TryGetSyntaxNode(root, position, document.GetLanguageService(Of ISyntaxFactsService), trigger.Kind, cancellationToken, node) Then
-                Return Nothing
+            If Not TryGetSyntaxNode(root, position, Document.GetLanguageService(Of ISyntaxFactsService), trigger.Kind, CancellationToken, node) Then
+                Return
             End If
 
             Dim items As New List(Of SignatureHelpItem)
 
-            Dim semanticModel = Await document.GetSemanticModelForNodeAsync(node, cancellationToken).ConfigureAwait(False)
-            For Each documentation In GetIntrinsicOperatorDocumentation(node, document, cancellationToken)
-                Dim signatureHelpItem = GetSignatureHelpItemForIntrinsicOperator(document, semanticModel, node.SpanStart, documentation, cancellationToken)
-                items.Add(signatureHelpItem)
+            Dim semanticModel = Await Document.GetSemanticModelForNodeAsync(node, CancellationToken).ConfigureAwait(False)
+            For Each documentation In GetIntrinsicOperatorDocumentation(node, Document, CancellationToken)
+                Dim signatureHelpItem = GetSignatureHelpItemForIntrinsicOperator(Document, semanticModel, node.SpanStart, documentation, CancellationToken)
+                context.AddItem(signatureHelpItem)
             Next
 
             Dim textSpan = CommonSignatureHelpUtilities.GetSignatureHelpSpan(node, node.SpanStart, Function(n) n.ChildTokens.FirstOrDefault(Function(c) c.Kind = SyntaxKind.CloseParenToken))
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
-            Return CreateSignatureHelpItems(
-                items, textSpan,
-                GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken))
+            context.SetApplicableSpan(textSpan)
+            context.SetState(GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken))
         End Function
 
         Friend Function GetSignatureHelpItemForIntrinsicOperator(document As Document, semanticModel As SemanticModel, position As Integer, documentation As AbstractIntrinsicOperatorDocumentation, cancellationToken As CancellationToken) As SignatureHelpItem

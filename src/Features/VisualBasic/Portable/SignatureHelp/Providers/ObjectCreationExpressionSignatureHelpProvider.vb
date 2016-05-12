@@ -50,23 +50,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
                 token <> node.ArgumentList.CloseParenToken
         End Function
 
-        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, trigger As SignatureHelpTrigger, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems)
+        Protected Overrides Async Function ProvideSignaturesWorkerAsync(context As SignatureContext) As Task
+            Dim document = context.Document
+            Dim position = context.Position
+            Dim trigger = context.Trigger
+            Dim cancellationToken = context.CancellationToken
+
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
             Dim objectCreationExpression As ObjectCreationExpressionSyntax = Nothing
             If Not TryGetObjectCreationExpression(root, position, document.GetLanguageService(Of ISyntaxFactsService), trigger.Kind, cancellationToken, objectCreationExpression) Then
-                Return Nothing
+                Return
             End If
 
             Dim semanticModel = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
             Dim type = TryCast(semanticModel.GetTypeInfo(objectCreationExpression, cancellationToken).Type, INamedTypeSymbol)
             If type Is Nothing Then
-                Return Nothing
+                Return
             End If
 
             Dim within = semanticModel.GetEnclosingNamedTypeOrAssembly(position, cancellationToken)
             If within Is Nothing Then
-                Return Nothing
+                Return
             End If
 
             Dim symbolDisplayService = document.Project.LanguageServices.GetService(Of ISymbolDisplayService)()
@@ -75,11 +80,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
             Dim textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(objectCreationExpression.ArgumentList)
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
-            Return CreateSignatureHelpItems(
-                If(type.TypeKind = TypeKind.Delegate,
-                      GetDelegateTypeConstructors(objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, type, within, cancellationToken),
-                      GetNormalTypeConstructors(document, objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, type, within, cancellationToken)),
-                textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken))
+            Dim items = If(type.TypeKind = TypeKind.Delegate,
+                GetDelegateTypeConstructors(objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, type, within, cancellationToken),
+                GetNormalTypeConstructors(document, objectCreationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, type, within, cancellationToken))
+
+            If items Is Nothing Then
+                Return
+            End If
+
+            context.AddItems(items)
+            context.SetApplicableSpan(textSpan)
+            context.SetState(GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken))
         End Function
     End Class
 End Namespace

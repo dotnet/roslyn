@@ -50,12 +50,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
                 token <> node.TypeArgumentList.CloseParenToken
         End Function
 
-        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, trigger As SignatureHelpTrigger, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems)
+        Protected Overrides Async Function ProvideSignaturesWorkerAsync(context As SignatureContext) As Task
+            Dim document = context.Document
+            Dim position = context.Position
+            Dim trigger = context.Trigger
+            Dim cancellationToken = context.CancellationToken
+
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
             Dim genericName As GenericNameSyntax = Nothing
             If Not TryGetGenericName(root, position, document.GetLanguageService(Of ISyntaxFactsService), trigger.Kind, cancellationToken, genericName) Then
-                Return Nothing
+                Return
             End If
 
             Dim beforeDotExpression = If(genericName.IsRightSideOfDotOrBang(), genericName.GetLeftSideOfDot(), Nothing)
@@ -68,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
             Dim leftContainer = If(leftSymbol, leftType)
 
             Dim isBaseAccess = TypeOf beforeDotExpression Is MyBaseExpressionSyntax
-            Dim namespacesOrTypesOnly = SyntaxFacts.IsInNamespaceOrTypeContext(genericName)
+            Dim namespacesOrTypesOnly = VisualBasic.SyntaxFacts.IsInNamespaceOrTypeContext(genericName)
             Dim includeExtensions = leftSymbol Is Nothing AndAlso leftType IsNot Nothing
 
             Dim name As String = genericName.Identifier.ValueText
@@ -82,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
 
             Dim within = semanticModel.GetEnclosingNamedTypeOrAssembly(position, cancellationToken)
             If within Is Nothing Then
-                Return Nothing
+                Return
             End If
 
             Dim symbolDisplayService = document.Project.LanguageServices.GetService(Of ISymbolDisplayService)()
@@ -92,17 +97,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
                                             Sort(symbolDisplayService, semanticModel, genericName.SpanStart)
 
             If accessibleSymbols.Count = 0 Then
-                Return Nothing
+                Return
             End If
 
             Dim anonymousTypeDisplayService = document.Project.LanguageServices.GetService(Of IAnonymousTypeDisplayService)()
             Dim documentationCommentFormattingService = document.Project.LanguageServices.GetService(Of IDocumentationCommentFormattingService)()
             Dim textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(genericName.TypeArgumentList)
-            Dim _syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
+            Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
-            Return CreateSignatureHelpItems(
-                accessibleSymbols.Select(Function(s) Convert(s, genericName, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList(),
-                textSpan, GetCurrentArgumentState(root, position, _syntaxFacts, textSpan, cancellationToken))
+            context.AddItems(accessibleSymbols.Select(Function(s) Convert(s, genericName, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)))
+            context.SetApplicableSpan(textSpan)
+            context.SetState(GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken))
         End Function
 
         Private Overloads Function Convert(symbol As ISymbol, genericName As GenericNameSyntax, semanticModel As SemanticModel, symbolDisplayService As ISymbolDisplayService, anonymousTypeDisplayService As IAnonymousTypeDisplayService, documentationCommentFormattingService As IDocumentationCommentFormattingService, cancellationToken As CancellationToken) As SignatureHelpItem

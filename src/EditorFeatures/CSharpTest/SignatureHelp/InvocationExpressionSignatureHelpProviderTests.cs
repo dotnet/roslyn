@@ -1915,7 +1915,7 @@ class Foo
             await TestAsync(markup);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        [Fact, Trait(Traits.Feature, Traits.Features.SignatureHelp)]
         public async Task MethodOverloadDifferencesIgnored()
         {
             var markup = @"<Workspace>

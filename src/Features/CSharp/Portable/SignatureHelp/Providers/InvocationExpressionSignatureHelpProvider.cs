@@ -52,21 +52,26 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
                 token != expression.ArgumentList.CloseParenToken;
         }
 
-        protected override async Task<SignatureHelpItems> GetItemsWorkerAsync(Document document, int position, SignatureHelpTrigger trigger, CancellationToken cancellationToken)
+        protected override async Task ProvideSignaturesWorkerAsync(SignatureContext context)
         {
+            var document = context.Document;
+            var position = context.Position;
+            var trigger = context.Trigger;
+            var cancellationToken = context.CancellationToken;
+
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             InvocationExpressionSyntax invocationExpression;
             if (!TryGetInvocationExpression(root, position, document.GetLanguageService<ISyntaxFactsService>(), trigger.Kind, cancellationToken, out invocationExpression))
             {
-                return null;
+                return;
             }
 
             var semanticModel = await document.GetSemanticModelForNodeAsync(invocationExpression, cancellationToken).ConfigureAwait(false);
             var within = semanticModel.GetEnclosingNamedTypeOrAssembly(position, cancellationToken);
             if (within == null)
             {
-                return null;
+                return;
             }
 
             // get the regular signature help items
@@ -97,19 +102,23 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
 
             if (methodGroup.Any())
             {
-                return CreateSignatureHelpItems(
-                    GetMethodGroupItems(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, within, methodGroup, cancellationToken),
-                    textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken));
+                var items = GetMethodGroupItems(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, within, methodGroup, cancellationToken);
+                if (items != null)
+                {
+                    context.AddItems(items);
+                    context.SetApplicableSpan(textSpan);
+                    context.SetState(GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken));
+                }
             }
-            else if (expressionType != null && expressionType.TypeKind == TypeKind.Delegate)
+            else if (expressionType?.TypeKind == TypeKind.Delegate)
             {
-                return CreateSignatureHelpItems(
-                    GetDelegateInvokeItems(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, within, expressionType, cancellationToken),
-                    textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken));
-            }
-            else
-            {
-                return null;
+                var items = GetDelegateInvokeItems(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, within, expressionType, cancellationToken);
+                if (items != null)
+                {
+                    context.AddItems(items);
+                    context.SetApplicableSpan(textSpan);
+                    context.SetState(GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken));
+                }
             }
         }
 

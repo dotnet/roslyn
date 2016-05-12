@@ -14,6 +14,7 @@ Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 Imports Moq
+Imports Roslyn.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Public Class SignatureHelpControllerTests
@@ -82,22 +83,25 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Sub UpKeyShouldNotCrashWhenSessionIsDismissed()
             Dim slowProvider = New Mock(Of ISignatureHelpProvider)
 
-            Dim items = New SignatureHelpItems(slowProvider.Object, CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing)
-
             ' Create a provider that will return an empty state when queried the second time
             slowProvider _
-                .Setup(Function(p) p.GetItemsAsync(
-                    document:=It.IsAny(Of Document),
-                    position:=It.IsAny(Of Integer),
-                    trigger:=It.IsAny(Of SignatureHelpTrigger),
-                    cancellationToken:=It.IsAny(Of CancellationToken))) _
-                .Returns(Task.FromResult(items))
+                .Setup(Function(p) p.ProvideSignaturesAsync(
+                    context:=It.IsAny(Of SignatureContext))) _
+                .Returns(Function(c As SignatureContext)
+                             c.AddItems(CreateItems(2))
+                             c.SetApplicableSpan(TextSpan.FromBounds(0, 0))
+                             c.SetState(New SignatureHelpState(argumentIndex:=0, argumentCount:=0, argumentName:=Nothing, argumentNames:=Nothing))
+                             Return SpecializedTasks.EmptyTask
+                         End Function)
 
             Dim testData = CreateTestData(provider:=slowProvider.Object, waitForPresentation:=True)
 
             ' Now force an update to the model that will result in stopping the session
-            slowProvider.Setup(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTrigger), It.IsAny(Of CancellationToken))) _
-                .Returns(Task.FromResult(Of SignatureHelpItems)(Nothing))
+            slowProvider.Setup(Function(p) p.ProvideSignaturesAsync(
+                    context:=It.IsAny(Of SignatureContext))) _
+                .Returns(Function(c As SignatureContext)
+                             Return SpecializedTasks.EmptyTask
+                         End Function)
 
             testData.TypeChar(" "c)
 
@@ -112,17 +116,17 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Public Sub DownKeyShouldNotBlockOnModelComputation()
             Dim manualResetEvent = New ManualResetEvent(False)
             Dim testData = CreateTestData(items:=CreateItems(2), waitForPresentation:=False)
+
             Dim slowProvider = New Mock(Of ISignatureHelpProvider)
             slowProvider _
-                .Setup(Function(p) p.GetItemsAsync(
-                    document:=It.IsAny(Of Document),
-                    position:=It.IsAny(Of Integer),
-                    trigger:=It.IsAny(Of SignatureHelpTrigger),
-                    cancellationToken:=It.IsAny(Of CancellationToken))) _
-                .Returns(Function()
+                .Setup(Function(p) p.ProvideSignaturesAsync(
+                    context:=It.IsAny(Of SignatureContext))) _
+                .Returns(Function(c As SignatureContext)
                              manualResetEvent.WaitOne()
-                             Dim items = New SignatureHelpItems(slowProvider.Object, CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing)
-                             Return Task.FromResult(items)
+                             c.AddItems(CreateItems(2))
+                             c.SetApplicableSpan(TextSpan.FromBounds(0, 0))
+                             c.SetState(New SignatureHelpState(argumentIndex:=0, argumentCount:=0, argumentName:=Nothing, argumentNames:=Nothing))
+                             Return SpecializedTasks.EmptyTask
                          End Function)
 
             Dim handled = testData.Controller.TryHandleDownKey()
@@ -137,15 +141,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim testData = CreateTestData(items:=CreateItems(2), waitForPresentation:=False)
             Dim slowProvider = New Mock(Of ISignatureHelpProvider)
             slowProvider _
-                .Setup(Function(p) p.GetItemsAsync(
-                    document:=It.IsAny(Of Document),
-                    position:=It.IsAny(Of Integer),
-                    trigger:=It.IsAny(Of SignatureHelpTrigger),
-                    cancellationToken:=It.IsAny(Of CancellationToken))) _
-                .Returns(Function()
+                .Setup(Function(p) p.ProvideSignaturesAsync(
+                    context:=It.IsAny(Of SignatureContext))) _
+                .Returns(Function(c As SignatureContext)
                              manualResetEvent.WaitOne()
-                             Dim items = New SignatureHelpItems(slowProvider.Object, CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing)
-                             Return Task.FromResult(items)
+                             c.AddItems(CreateItems(2))
+                             c.SetApplicableSpan(TextSpan.FromBounds(0, 0))
+                             c.SetState(New SignatureHelpState(argumentIndex:=0, argumentCount:=0, argumentName:=Nothing, argumentNames:=Nothing))
+                             Return SpecializedTasks.EmptyTask
                          End Function)
 
             Dim handled = testData.Controller.TryHandleUpKey()
@@ -160,12 +163,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim worker = Async Function()
                              Dim slowProvider = New Mock(Of ISignatureHelpProvider)
                              slowProvider _
-                                 .Setup(Function(p) p.GetItemsAsync(
-                                    document:=It.IsAny(Of Document),
-                                    position:=It.IsAny(Of Integer),
-                                    trigger:=It.IsAny(Of SignatureHelpTrigger),
-                                    cancellationToken:=It.IsAny(Of CancellationToken))) _
-                                 .Returns(Task.FromResult(New SignatureHelpItems(slowProvider.Object, CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing)))
+                                 .Setup(Function(p) p.ProvideSignaturesAsync(
+                                    context:=It.IsAny(Of SignatureContext))) _
+                                 .Returns(Function(c As SignatureContext)
+                                              c.AddItems(CreateItems(2))
+                                              c.SetApplicableSpan(TextSpan.FromBounds(0, 0))
+                                              c.SetState(New SignatureHelpState(argumentIndex:=0, argumentCount:=0, argumentName:=Nothing, argumentNames:=Nothing))
+                                              Return SpecializedTasks.EmptyTask
+                                          End Function)
 
                              Dim testData = dispatcher.Invoke(Function() CreateTestData(provider:=slowProvider.Object, waitForPresentation:=True))
 
@@ -173,15 +178,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                              ' SlowProvider now blocks on the checkpoint's task.
                              Dim checkpoint = New Checkpoint()
                              slowProvider _
-                                 .Setup(Function(p) p.GetItemsAsync(
-                                    document:=It.IsAny(Of Document),
-                                    position:=It.IsAny(Of Integer),
-                                    trigger:=It.IsAny(Of SignatureHelpTrigger),
-                                    cancellationToken:=It.IsAny(Of CancellationToken))) _
-                                 .Returns(Function()
+                                 .Setup(Function(p) p.ProvideSignaturesAsync(
+                                    context:=It.IsAny(Of SignatureContext))) _
+                                 .Returns(Function(c As SignatureContext)
                                               checkpoint.Task.Wait()
-                                              Dim items = New SignatureHelpItems(slowProvider.Object, CreateItems(2), TextSpan.FromBounds(0, 2), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing)
-                                              Return Task.FromResult(items)
+                                              c.AddItems(CreateItems(2))
+                                              c.SetApplicableSpan(TextSpan.FromBounds(0, 2))
+                                              c.SetState(New SignatureHelpState(argumentIndex:=0, argumentCount:=0, argumentName:=Nothing, argumentNames:=Nothing))
+                                              Return SpecializedTasks.EmptyTask
                                           End Function)
 
                              dispatcher.Invoke(Sub() testData.TypeChar(" "c))
@@ -379,13 +383,16 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             Public Property GetItemsCount As Integer
 
-            Public Function GetItemsAsync(document As Document, position As Integer, trigger As SignatureHelpTrigger, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems) Implements ISignatureHelpProvider.GetItemsAsync
+            Public Function ProvideSignaturesAsync(context As SignatureContext) As Task Implements ISignatureHelpProvider.ProvideSignaturesAsync
                 Trace.WriteLine("MockSignatureHelpProvider.GetItemsAsync")
 
                 GetItemsCount += 1
-                Return Task.FromResult(If(_items.Any(),
-                                       New SignatureHelpItems(Me, _items, TextSpan.FromBounds(position, position), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing),
-                                       Nothing))
+
+                context.AddItems(_items)
+                context.SetApplicableSpan(New TextSpan(context.Position, 0))
+                context.SetState(New SignatureHelpState(argumentIndex:=0, argumentCount:=0, argumentName:=Nothing, argumentNames:=Nothing))
+
+                Return SpecializedTasks.EmptyTask
             End Function
 
             Public Function IsTriggerCharacter(ch As Char) As Boolean Implements ISignatureHelpProvider.IsTriggerCharacter

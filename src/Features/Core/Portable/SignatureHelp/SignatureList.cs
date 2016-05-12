@@ -9,10 +9,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.SignatureHelp
 {
-    internal class SignatureHelpItems
+    internal sealed class SignatureList
     {
         /// <summary>
-        /// The <see cref="ISignatureHelpProvider"/> that produced this <see cref="SignatureHelpItems"/>.
+        /// The <see cref="ISignatureHelpProvider"/> that produced this <see cref="SignatureList"/>.
         /// </summary>
         public ISignatureHelpProvider Provider { get; }
 
@@ -57,7 +57,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         /// </summary>
         public int? SelectedItemIndex { get; }
 
-        public SignatureHelpItems(
+        public SignatureList(
             ISignatureHelpProvider provider,
             IList<SignatureHelpItem> items,
             TextSpan applicableSpan,

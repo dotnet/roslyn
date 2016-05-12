@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         /// <param name="trigger">The triggering action.</param>
         /// <param name="options">Optional options that override the default options.</param>
         /// <param name="cancellationToken"></param>
-        public abstract Task<SignatureHelpItems> GetSignaturesAsync(
+        public abstract Task<SignatureList> GetSignaturesAsync(
             ImmutableArray<ISignatureHelpProvider> providers,
             Document document,
             int caretPosition,

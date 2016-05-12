@@ -597,12 +597,13 @@
     <Compile Include="Shared\Utilities\PatternMatcher.cs" />
     <Compile Include="Shared\Utilities\PatternMatchKind.cs" />
     <Compile Include="SignatureHelp\CommonSignatureHelpService.cs" />
+    <Compile Include="SignatureHelp\SignatureContext.cs" />
     <Compile Include="SignatureHelp\SignatureHelpProvider.cs" />
     <Compile Include="SignatureHelp\SignatureHelpProvider.SymbolKeySignatureHelpItem.cs" />
     <Compile Include="SignatureHelp\CommonSignatureHelpUtilities.cs" />
     <Compile Include="SignatureHelp\ISignatureHelpProvider.cs" />
     <Compile Include="SignatureHelp\SignatureHelpItem.cs" />
-    <Compile Include="SignatureHelp\SignatureHelpItems.cs" />
+    <Compile Include="SignatureHelp\SignatureList.cs" />
     <Compile Include="SignatureHelp\SignatureHelpParameter.cs" />
     <Compile Include="SignatureHelp\SignatureHelpService.cs" />
     <Compile Include="SignatureHelp\SignatureHelpServiceWithProviders.cs" />

@@ -51,18 +51,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
                 token <> node.ArgumentList.CloseParenToken
         End Function
 
-        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, trigger As SignatureHelpTrigger, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems)
+        Protected Overrides Async Function ProvideSignaturesWorkerAsync(context As SignatureContext) As Task
+            Dim document = context.Document
+            Dim position = context.Position
+            Dim trigger = context.Trigger
+            Dim cancellationToken = context.CancellationToken
+
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
             Dim invocationExpression As InvocationExpressionSyntax = Nothing
             If Not TryGetInvocationExpression(root, position, document.GetLanguageService(Of ISyntaxFactsService), trigger.Kind, cancellationToken, invocationExpression) Then
-                Return Nothing
+                Return
             End If
 
             Dim semanticModel = Await document.GetSemanticModelForNodeAsync(invocationExpression, cancellationToken).ConfigureAwait(False)
             Dim within = semanticModel.GetEnclosingNamedTypeOrAssembly(position, cancellationToken)
             If within Is Nothing Then
-                Return Nothing
+                Return
             End If
 
             Dim targetExpression = If(invocationExpression.Expression Is Nothing AndAlso invocationExpression.Parent.IsKind(SyntaxKind.ConditionalAccessExpression),
@@ -99,23 +104,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
             Dim anonymousTypeDisplayService = document.Project.LanguageServices.GetService(Of IAnonymousTypeDisplayService)()
             Dim documentationCommentFormattingService = document.Project.LanguageServices.GetService(Of IDocumentationCommentFormattingService)()
 
-            Dim items = New List(Of SignatureHelpItem)
             If memberGroup.Count > 0 Then
-                items.AddRange(GetMemberGroupItems(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, within, memberGroup, cancellationToken))
+                context.AddItems(GetMemberGroupItems(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, within, memberGroup, cancellationToken))
             End If
 
             If expressionType.IsDelegateType() Then
-                items.AddRange(GetDelegateInvokeItems(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, within, DirectCast(expressionType, INamedTypeSymbol), cancellationToken))
+                context.AddItems(GetDelegateInvokeItems(invocationExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, within, DirectCast(expressionType, INamedTypeSymbol), cancellationToken))
             End If
 
             If defaultProperties.Count > 0 Then
-                items.AddRange(GetElementAccessItems(targetExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, within, defaultProperties, cancellationToken))
+                context.AddItems(GetElementAccessItems(targetExpression, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, within, defaultProperties, cancellationToken))
             End If
 
             Dim textSpan = SignatureHelpUtilities.GetSignatureHelpSpan(invocationExpression.ArgumentList)
             Dim syntaxFacts = document.GetLanguageService(Of ISyntaxFactsService)
 
-            Return CreateSignatureHelpItems(items, textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken))
+            context.SetApplicableSpan(textSpan)
+            context.SetState(GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken))
         End Function
     End Class
 End Namespace

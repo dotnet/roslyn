@@ -41,15 +41,20 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
                    ConditionalAccessExpression.TryGetSyntax(root, position, syntaxFacts, triggerReason, cancellationToken, out identifier, out openBrace);
         }
 
-        protected override async Task<SignatureHelpItems> GetItemsWorkerAsync(Document document, int position, SignatureHelpTrigger trigger, CancellationToken cancellationToken)
+        protected override async Task ProvideSignaturesWorkerAsync(SignatureContext context)
         {
+            var document = context.Document;
+            var position = context.Position;
+            var trigger = context.Trigger;
+            var cancellationToken = context.CancellationToken;
+
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             ExpressionSyntax expression;
             SyntaxToken openBrace;
             if (!TryGetElementAccessExpression(root, position, document.GetLanguageService<ISyntaxFactsService>(), trigger.Kind, cancellationToken, out expression, out openBrace))
             {
-                return null;
+                return;
             }
 
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
@@ -72,7 +77,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
 
             if (expressionSymbol != null && expressionSymbol is INamedTypeSymbol)
             {
-                return null;
+                return;
             }
 
             IEnumerable<IPropertySymbol> indexers;
@@ -81,19 +86,19 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
             if (!TryGetIndexers(position, semanticModel, expression, cancellationToken, out indexers, out expressionType) &&
                 !TryGetComIndexers(semanticModel, expression, cancellationToken, out indexers, out expressionType))
             {
-                return null;
+                return;
             }
 
             var within = semanticModel.GetEnclosingNamedTypeOrAssembly(position, cancellationToken);
             if (within == null)
             {
-                return null;
+                return;
             }
 
             var accessibleIndexers = indexers.Where(m => m.IsAccessibleWithin(within, throughTypeOpt: expressionType));
             if (!accessibleIndexers.Any())
             {
-                return null;
+                return;
             }
 
             var symbolDisplayService = document.Project.LanguageServices.GetService<ISymbolDisplayService>();
@@ -105,9 +110,11 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
             var textSpan = GetTextSpan(expression, openBrace);
             var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
 
-            return CreateSignatureHelpItems(accessibleIndexers.Select(p =>
-                Convert(p, openBrace, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)).ToList(),
-                textSpan, GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken));
+            context.AddItems(accessibleIndexers.Select(p =>
+                Convert(p, openBrace, semanticModel, symbolDisplayService, anonymousTypeDisplayService, documentationCommentFormattingService, cancellationToken)));
+
+            context.SetApplicableSpan(textSpan);
+            context.SetState(GetCurrentArgumentState(root, position, syntaxFacts, textSpan, cancellationToken));
         }
 
         private TextSpan GetTextSpan(ExpressionSyntax expression, SyntaxToken openBracket)

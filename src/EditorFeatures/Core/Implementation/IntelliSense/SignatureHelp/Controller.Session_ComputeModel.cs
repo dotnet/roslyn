@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 return s1 != null && s2 != null && s1.SequenceEqual(s2);
             }
 
-            private static SignatureHelpItem GetSelectedItem(Model currentModel, SignatureHelpItems items)
+            private static SignatureHelpItem GetSelectedItem(Model currentModel, SignatureList items)
             {
                 // Try to find the most appropriate item in the list to select by default.
 

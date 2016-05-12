@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             }
         }
 
-        public override async Task<SignatureHelpItems> GetSignaturesAsync(
+        public override async Task<SignatureList> GetSignaturesAsync(
             ImmutableArray<ISignatureHelpProvider> providers,
             Document document,
             int caretPosition,
@@ -58,7 +58,9 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         {
             try
             {
-                SignatureHelpItems bestItems = null;
+                options = options ?? document.Project.Solution.Workspace.Options;
+
+                SignatureList bestSignatureList = null;
 
                 // TODO(cyrusn): We're calling into extensions, we need to make ourselves resilient
                 // to the extension crashing.
@@ -66,9 +68,13 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    var currentItems = await provider.GetItemsAsync(document, caretPosition, trigger, cancellationToken).ConfigureAwait(false);
-                    if (currentItems != null && currentItems.ApplicableSpan.IntersectsWith(caretPosition))
+                    var context = new SignatureContext(document, caretPosition, trigger, options, cancellationToken);
+
+                    await provider.ProvideSignaturesAsync(context).ConfigureAwait(false);
+                    if (context.Items.Count >= 0 && context.ApplicableSpan.IntersectsWith(caretPosition))
                     {
+                        var currentSignatureList = context.ToSignatureList(provider);
+
                         // If another provider provides sig help items, then only take them if they
                         // start after the last batch of items.  i.e. we want the set of items that
                         // conceptually are closer to where the caret position is.  This way if you have:
@@ -77,14 +83,14 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                         //
                         // Then invoking sig help will only show the items for "new Bar(" and not also
                         // the items for "Foo(..."
-                        if (IsBetter(bestItems, currentItems.ApplicableSpan))
+                        if (IsBetter(bestSignatureList, context.ApplicableSpan))
                         {
-                            bestItems = currentItems;
+                            bestSignatureList = currentSignatureList;
                         }
                     }
                 }
 
-                return bestItems;
+                return bestSignatureList;
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
@@ -92,7 +98,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             }
         }
 
-        private bool IsBetter(SignatureHelpItems bestItems, TextSpan? currentTextSpan)
+        private bool IsBetter(SignatureList bestItems, TextSpan? currentTextSpan)
         {
             // If we have no best text span, then this span is definitely better.
             if (bestItems == null)
