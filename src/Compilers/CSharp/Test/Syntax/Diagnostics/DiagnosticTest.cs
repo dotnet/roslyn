@@ -184,6 +184,7 @@ class X
                             Assert.Equal(2, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_DelaySignButNoKey:
+                        case ErrorCode.WRN_AttributeIgnoredWhenPublicSigning:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:

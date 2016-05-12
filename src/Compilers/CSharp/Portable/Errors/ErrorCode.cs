@@ -1232,8 +1232,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidAssemblyCulture = 7100,
         ERR_EncReferenceToAddedMember = 7101,
         ERR_MutuallyExclusiveOptions = 7102,
+        WRN_AttributeIgnoredWhenPublicSigning = 7103,
 
-        // available 7102-8000
+        // available 7104-8000
 
         WRN_UnimplementedCommandLineSwitch = 8001,
         WRN_ReferencedAssemblyDoesNotHaveStrongName = 8002,

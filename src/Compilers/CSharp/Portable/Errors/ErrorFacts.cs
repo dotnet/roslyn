@@ -306,6 +306,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ErrorCode.WRN_CallerLineNumberPreferredOverCallerMemberName:
                 case ErrorCode.WRN_CallerLineNumberPreferredOverCallerFilePath:
                 case ErrorCode.WRN_DelaySignButNoKey:
+                case ErrorCode.WRN_AttributeIgnoredWhenPublicSigning:
                 case ErrorCode.WRN_UnimplementedCommandLineSwitch:
                 case ErrorCode.WRN_AsyncLacksAwaits:
                 case ErrorCode.WRN_BadUILang:
