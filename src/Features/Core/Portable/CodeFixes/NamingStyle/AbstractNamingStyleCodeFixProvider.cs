@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.NamingStyles
                             solution,
                             symbol,
                             fixedName,
-                            solution.Workspace.Options,
+                            document.Options,
                             c).ConfigureAwait(false), 
                         nameof(AbstractNamingStyleCodeFixProvider)), 
                     diagnostic);

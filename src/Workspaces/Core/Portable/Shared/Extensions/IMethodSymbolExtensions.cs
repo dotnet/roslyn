@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             var mapping = new Dictionary<ITypeSymbol, ITypeSymbol>();
             for (int i = 0; i < method.TypeParameters.Length; i++)
             {
-                mapping.Add(method.TypeParameters[i], updatedTypeParameters[i]);
+                mapping[method.TypeParameters[i]] = updatedTypeParameters[i];
             }
 
             return CodeGenerationSymbolFactory.CreateMethodSymbol(
@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     typeParameter.Ordinal);
 
                 newTypeParameters.Add(newTypeParameter);
-                mapping.Add(typeParameter, newTypeParameter);
+                mapping[typeParameter] = newTypeParameter;
             }
 
             // Now we update the constraints.

@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Composition;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Options;
@@ -13,7 +14,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Notification
 {
     [Export(typeof(ISemanticChangeNotificationService)), Shared]
-    [ExportIncrementalAnalyzerProvider(WorkspaceKind.Host, WorkspaceKind.Interactive, WorkspaceKind.MiscellaneousFiles)]
+    [ExportIncrementalAnalyzerProvider(nameof(SemanticChangeNotificationService), workspaceKinds: null)]
     internal class SemanticChangeNotificationService : ISemanticChangeNotificationService, IIncrementalAnalyzerProvider
     {
         public event EventHandler<Document> OpenedDocumentSemanticChanged;
@@ -38,17 +39,36 @@ namespace Microsoft.CodeAnalysis.Notification
                 _owner = owner;
             }
 
+            public void RemoveDocument(DocumentId documentId)
+            {
+                // now it runs for all workspace, make sure we get rid of entry from the map
+                // as soon as it is not needed.
+                // this whole thing will go away when workspace disable itself from solution crawler.
+                VersionStamp unused;
+                _map.TryRemove(documentId, out unused);
+            }
+
+            public void RemoveProject(ProjectId projectId)
+            {
+                foreach (var documentId in _map.Keys.Where(id => id.ProjectId == projectId).ToArray())
+                {
+                    RemoveDocument(documentId);
+                }
+            }
+
+            public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
+            {
+                return DocumentResetAsync(document, cancellationToken);
+            }
+
             public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
             {
-                VersionStamp unused;
-                _map.TryRemove(document.Id, out unused);
-
+                RemoveDocument(document.Id);
                 return SpecializedTasks.EmptyTask;
             }
 
             public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
             {
-                // TODO: Is this correct?
                 return false;
             }
 
@@ -81,11 +101,6 @@ namespace Microsoft.CodeAnalysis.Notification
                 return SpecializedTasks.EmptyTask;
             }
 
-            public Task DocumentCloseAsync(Document document, CancellationToken cancellationToken)
-            {
-                return SpecializedTasks.EmptyTask;
-            }
-
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
             {
                 return SpecializedTasks.EmptyTask;
@@ -101,13 +116,6 @@ namespace Microsoft.CodeAnalysis.Notification
                 return SpecializedTasks.EmptyTask;
             }
 
-            public void RemoveDocument(DocumentId documentId)
-            {
-            }
-
-            public void RemoveProject(ProjectId projectId)
-            {
-            }
             #endregion
         }
     }

@@ -45,8 +45,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     Return
                 End If
 
-                Dim optionService = document.Project.Solution.Workspace.Services.GetService(Of IOptionService)()
-                If Not (isExplicitFormat OrElse optionService.GetOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic)) Then
+                If Not (isExplicitFormat OrElse document.Options.GetOption(FeatureOnOffOptions.PrettyListing)) Then
                     Return
                 End If
 
@@ -229,13 +228,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Dim token = vbTree.GetRoot(cancellationToken).FindToken(Math.Min(endPosition, syntaxTree.GetRoot(cancellationToken).FullSpan.End))
 
             Dim node = token.Parent
-            Dim optionSet = document.Project.Solution.Workspace.Options
 
             ' collect all indent operation
             Dim operations = New List(Of IndentBlockOperation)()
             While node IsNot Nothing
                 operations.AddRange(FormattingOperations.GetIndentBlockOperations(
-                                    Formatter.GetDefaultFormattingRules(document), node, lastToken:=Nothing, optionSet:=optionSet))
+                                    Formatter.GetDefaultFormattingRules(document), node, lastToken:=Nothing, optionSet:=document.Options))
                 node = node.Parent
             End While
 

@@ -141,9 +141,7 @@ text;
                 var completionList = await GetCompletionListAsync(document, position, CompletionTrigger.Default);
                 var item = completionList.Items.First(i => i.DisplayText.StartsWith(textTypedSoFar));
 
-                var optionService = workspace.Services.GetService<IOptionService>();
-                var options = optionService.GetOptions().WithChangedOption(CSharpCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord, sendThroughEnterEnabled);
-                optionService.SetOptions(options);
+                workspace.Options = workspace.Options.WithChangedOption(CSharpCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord, sendThroughEnterEnabled);
 
                 var completionRules = CompletionHelper.GetHelper(document);
                 Assert.Equal(expected, completionRules.SendEnterThroughToEditor(item, textTypedSoFar, workspace.Options));

@@ -12,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         }
 
         public CheckBoxOptionViewModel(IOption option, string description, string truePreview, string falsePreview, AbstractOptionPreviewViewModel info, OptionSet options)
-            : base(option, description, truePreview, falsePreview, info, options)
+            : base(option, description, truePreview, falsePreview, info)
         {
             SetProperty(ref _isChecked, (bool)options.GetOption(new OptionKey(option, option.IsPerLanguage ? info.Language : null)));
         }
