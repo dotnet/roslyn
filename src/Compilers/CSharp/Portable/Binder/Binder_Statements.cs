@@ -1944,8 +1944,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (!hasResolutionErrors && CheckValueKind(expr, valueKind, diagnostics) ||
-                expr.HasAnyErrors && valueKind == BindValueKind.RValueOrMethodGroup)
+            if (expr.HasAnyErrors)
+            {
+                switch (valueKind)
+                {
+                    case BindValueKind.RValueOrMethodGroup:
+                    case BindValueKind.Value:
+                        return expr;
+                }
+            }
+
+            if (!hasResolutionErrors && CheckValueKind(expr, valueKind, diagnostics))
             {
                 return expr;
             }

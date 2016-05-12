@@ -136,16 +136,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 return false;
             }
 
-            // Get the conversion that occurred between the expression's type and type implied by the expression's context
-            // and filter out implicit conversions. If an implicit conversion (other than identity) exists
-            // and if we're replacing the declaration with 'var' we'd be changing the semantics by inferring type of
-            // initializer expression and thereby losing the conversion.
-            var conversion = semanticModel.GetConversion(expression, cancellationToken);
-            if (conversion.Exists && conversion.IsImplicit && !conversion.IsIdentity)
-            {
-                return false;
-            }
-
             // final check to compare type information on both sides of assignment.
             var initializerType = semanticModel.GetNaturalType(expression, cancellationToken);
             return declaredType.Equals(initializerType);
