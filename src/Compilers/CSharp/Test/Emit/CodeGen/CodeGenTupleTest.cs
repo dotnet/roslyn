@@ -214,18 +214,18 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       27 (0x1b)
-  .maxstack  2
+  // Code size       28 (0x1c)
+  .maxstack  3
   .locals init (System.ValueTuple<int, int> V_0) //x
-  IL_0000:  ldc.i4.1
-  IL_0001:  ldc.i4.2
-  IL_0002:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
-  IL_0007:  stloc.0
-  IL_0008:  ldloca.s   V_0
-  IL_000a:  constrained. ""System.ValueTuple<int, int>""
-  IL_0010:  callvirt   ""string object.ToString()""
-  IL_0015:  call       ""void System.Console.WriteLine(string)""
-  IL_001a:  ret
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  ldc.i4.2
+  IL_0004:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  constrained. ""System.ValueTuple<int, int>""
+  IL_0011:  callvirt   ""string object.ToString()""
+  IL_0016:  call       ""void System.Console.WriteLine(string)""
+  IL_001b:  ret
 }");
         }
 
@@ -554,18 +554,18 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       27 (0x1b)
-  .maxstack  2
+  // Code size       28 (0x1c)
+  .maxstack  3
   .locals init (System.ValueTuple<object, object> V_0) //x
-  IL_0000:  ldnull
-  IL_0001:  ldnull
-  IL_0002:  newobj     ""System.ValueTuple<object, object>..ctor(object, object)""
-  IL_0007:  stloc.0
-  IL_0008:  ldloca.s   V_0
-  IL_000a:  constrained. ""System.ValueTuple<object, object>""
-  IL_0010:  callvirt   ""string object.ToString()""
-  IL_0015:  call       ""void System.Console.WriteLine(string)""
-  IL_001a:  ret
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldnull
+  IL_0003:  ldnull
+  IL_0004:  call       ""System.ValueTuple<object, object>..ctor(object, object)""
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  constrained. ""System.ValueTuple<object, object>""
+  IL_0011:  callvirt   ""string object.ToString()""
+  IL_0016:  call       ""void System.Console.WriteLine(string)""
+  IL_001b:  ret
 }");
         }
 
@@ -587,27 +587,27 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       53 (0x35)
-  .maxstack  4
+  // Code size       54 (0x36)
+  .maxstack  5
   .locals init (System.ValueTuple<int, string> V_0, //x
                 System.ValueTuple<int, (int, int)> V_1)
-  IL_0000:  ldc.i4.1
-  IL_0001:  ldc.i4.2
-  IL_0002:  ldc.i4.3
-  IL_0003:  ldc.i4.4
-  IL_0004:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
-  IL_0009:  newobj     ""System.ValueTuple<int, (int, int)>..ctor(int, (int, int))""
-  IL_000e:  stloc.1
-  IL_000f:  ldloca.s   V_1
-  IL_0011:  constrained. ""System.ValueTuple<int, (int, int)>""
-  IL_0017:  callvirt   ""string object.ToString()""
-  IL_001c:  newobj     ""System.ValueTuple<int, string>..ctor(int, string)""
-  IL_0021:  stloc.0
-  IL_0022:  ldloca.s   V_0
-  IL_0024:  constrained. ""System.ValueTuple<int, string>""
-  IL_002a:  callvirt   ""string object.ToString()""
-  IL_002f:  call       ""void System.Console.WriteLine(string)""
-  IL_0034:  ret
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  ldc.i4.2
+  IL_0004:  ldc.i4.3
+  IL_0005:  ldc.i4.4
+  IL_0006:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_000b:  newobj     ""System.ValueTuple<int, (int, int)>..ctor(int, (int, int))""
+  IL_0010:  stloc.1
+  IL_0011:  ldloca.s   V_1
+  IL_0013:  constrained. ""System.ValueTuple<int, (int, int)>""
+  IL_0019:  callvirt   ""string object.ToString()""
+  IL_001e:  call       ""System.ValueTuple<int, string>..ctor(int, string)""
+  IL_0023:  ldloca.s   V_0
+  IL_0025:  constrained. ""System.ValueTuple<int, string>""
+  IL_002b:  callvirt   ""string object.ToString()""
+  IL_0030:  call       ""void System.Console.WriteLine(string)""
+  IL_0035:  ret
 }");
         }
 
@@ -632,27 +632,27 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       53 (0x35)
-  .maxstack  2
+  // Code size       54 (0x36)
+  .maxstack  3
   .locals init (System.ValueTuple<int, int> V_0) //x
-  IL_0000:  ldc.i4.1
-  IL_0001:  ldc.i4.2
-  IL_0002:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
-  IL_0007:  stloc.0
-  IL_0008:  ldloca.s   V_0
-  IL_000a:  ldflda     ""int System.ValueTuple<int, int>.Item2""
-  IL_000f:  call       ""string int.ToString()""
-  IL_0014:  call       ""void System.Console.WriteLine(string)""
-  IL_0019:  ldloca.s   V_0
-  IL_001b:  ldc.i4.s   40
-  IL_001d:  stfld      ""int System.ValueTuple<int, int>.Item1""
-  IL_0022:  ldloc.0
-  IL_0023:  ldfld      ""int System.ValueTuple<int, int>.Item1""
-  IL_0028:  ldloc.0
-  IL_0029:  ldfld      ""int System.ValueTuple<int, int>.Item2""
-  IL_002e:  add
-  IL_002f:  call       ""void System.Console.WriteLine(int)""
-  IL_0034:  ret
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  ldc.i4.2
+  IL_0004:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  ldflda     ""int System.ValueTuple<int, int>.Item2""
+  IL_0010:  call       ""string int.ToString()""
+  IL_0015:  call       ""void System.Console.WriteLine(string)""
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  ldc.i4.s   40
+  IL_001e:  stfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0023:  ldloc.0
+  IL_0024:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0029:  ldloc.0
+  IL_002a:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_002f:  add
+  IL_0030:  call       ""void System.Console.WriteLine(int)""
+  IL_0035:  ret
 }
 ");
         }
@@ -678,27 +678,27 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       53 (0x35)
-  .maxstack  2
+  // Code size       54 (0x36)
+  .maxstack  3
   .locals init (System.ValueTuple<int, int> V_0) //x
-  IL_0000:  ldc.i4.1
-  IL_0001:  ldc.i4.2
-  IL_0002:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
-  IL_0007:  stloc.0
-  IL_0008:  ldloca.s   V_0
-  IL_000a:  ldflda     ""int System.ValueTuple<int, int>.Item2""
-  IL_000f:  call       ""string int.ToString()""
-  IL_0014:  call       ""void System.Console.WriteLine(string)""
-  IL_0019:  ldloca.s   V_0
-  IL_001b:  ldc.i4.s   40
-  IL_001d:  stfld      ""int System.ValueTuple<int, int>.Item1""
-  IL_0022:  ldloc.0
-  IL_0023:  ldfld      ""int System.ValueTuple<int, int>.Item1""
-  IL_0028:  ldloc.0
-  IL_0029:  ldfld      ""int System.ValueTuple<int, int>.Item2""
-  IL_002e:  add
-  IL_002f:  call       ""void System.Console.WriteLine(int)""
-  IL_0034:  ret
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  ldc.i4.2
+  IL_0004:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  ldflda     ""int System.ValueTuple<int, int>.Item2""
+  IL_0010:  call       ""string int.ToString()""
+  IL_0015:  call       ""void System.Console.WriteLine(string)""
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  ldc.i4.s   40
+  IL_001e:  stfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0023:  ldloc.0
+  IL_0024:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0029:  ldloc.0
+  IL_002a:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_002f:  add
+  IL_0030:  call       ""void System.Console.WriteLine(int)""
+  IL_0035:  ret
 }
 ");
         }
@@ -724,27 +724,27 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       53 (0x35)
-  .maxstack  2
+  // Code size       54 (0x36)
+  .maxstack  3
   .locals init (System.ValueTuple<int, int> V_0) //x
-  IL_0000:  ldc.i4.1
-  IL_0001:  ldc.i4.2
-  IL_0002:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
-  IL_0007:  stloc.0
-  IL_0008:  ldloca.s   V_0
-  IL_000a:  ldflda     ""int System.ValueTuple<int, int>.Item2""
-  IL_000f:  call       ""string int.ToString()""
-  IL_0014:  call       ""void System.Console.WriteLine(string)""
-  IL_0019:  ldloca.s   V_0
-  IL_001b:  ldc.i4.s   40
-  IL_001d:  stfld      ""int System.ValueTuple<int, int>.Item1""
-  IL_0022:  ldloc.0
-  IL_0023:  ldfld      ""int System.ValueTuple<int, int>.Item1""
-  IL_0028:  ldloc.0
-  IL_0029:  ldfld      ""int System.ValueTuple<int, int>.Item2""
-  IL_002e:  add
-  IL_002f:  call       ""void System.Console.WriteLine(int)""
-  IL_0034:  ret
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  ldc.i4.2
+  IL_0004:  call       ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_0009:  ldloca.s   V_0
+  IL_000b:  ldflda     ""int System.ValueTuple<int, int>.Item2""
+  IL_0010:  call       ""string int.ToString()""
+  IL_0015:  call       ""void System.Console.WriteLine(string)""
+  IL_001a:  ldloca.s   V_0
+  IL_001c:  ldc.i4.s   40
+  IL_001e:  stfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0023:  ldloc.0
+  IL_0024:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0029:  ldloc.0
+  IL_002a:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_002f:  add
+  IL_0030:  call       ""void System.Console.WriteLine(int)""
+  IL_0035:  ret
 }
 ");
         }
@@ -770,36 +770,36 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       86 (0x56)
-  .maxstack  3
+  // Code size       87 (0x57)
+  .maxstack  4
   .locals init (System.ValueTuple<int, (int c, int d)> V_0) //x
-  IL_0000:  ldc.i4.1
-  IL_0001:  ldc.i4.2
-  IL_0002:  ldc.i4.3
-  IL_0003:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
-  IL_0008:  newobj     ""System.ValueTuple<int, (int c, int d)>..ctor(int, (int c, int d))""
-  IL_000d:  stloc.0
-  IL_000e:  ldloca.s   V_0
-  IL_0010:  ldflda     ""(int c, int d) System.ValueTuple<int, (int c, int d)>.Item2""
-  IL_0015:  ldflda     ""int System.ValueTuple<int, int>.Item1""
-  IL_001a:  call       ""string int.ToString()""
-  IL_001f:  call       ""void System.Console.WriteLine(string)""
-  IL_0024:  ldloca.s   V_0
-  IL_0026:  ldflda     ""(int c, int d) System.ValueTuple<int, (int c, int d)>.Item2""
-  IL_002b:  ldc.i4.s   39
-  IL_002d:  stfld      ""int System.ValueTuple<int, int>.Item2""
-  IL_0032:  ldloc.0
-  IL_0033:  ldfld      ""int System.ValueTuple<int, (int c, int d)>.Item1""
-  IL_0038:  ldloc.0
-  IL_0039:  ldfld      ""(int c, int d) System.ValueTuple<int, (int c, int d)>.Item2""
-  IL_003e:  ldfld      ""int System.ValueTuple<int, int>.Item1""
-  IL_0043:  add
-  IL_0044:  ldloc.0
-  IL_0045:  ldfld      ""(int c, int d) System.ValueTuple<int, (int c, int d)>.Item2""
-  IL_004a:  ldfld      ""int System.ValueTuple<int, int>.Item2""
-  IL_004f:  add
-  IL_0050:  call       ""void System.Console.WriteLine(int)""
-  IL_0055:  ret
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  ldc.i4.1
+  IL_0003:  ldc.i4.2
+  IL_0004:  ldc.i4.3
+  IL_0005:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_000a:  call       ""System.ValueTuple<int, (int c, int d)>..ctor(int, (int c, int d))""
+  IL_000f:  ldloca.s   V_0
+  IL_0011:  ldflda     ""(int c, int d) System.ValueTuple<int, (int c, int d)>.Item2""
+  IL_0016:  ldflda     ""int System.ValueTuple<int, int>.Item1""
+  IL_001b:  call       ""string int.ToString()""
+  IL_0020:  call       ""void System.Console.WriteLine(string)""
+  IL_0025:  ldloca.s   V_0
+  IL_0027:  ldflda     ""(int c, int d) System.ValueTuple<int, (int c, int d)>.Item2""
+  IL_002c:  ldc.i4.s   39
+  IL_002e:  stfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_0033:  ldloc.0
+  IL_0034:  ldfld      ""int System.ValueTuple<int, (int c, int d)>.Item1""
+  IL_0039:  ldloc.0
+  IL_003a:  ldfld      ""(int c, int d) System.ValueTuple<int, (int c, int d)>.Item2""
+  IL_003f:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0044:  add
+  IL_0045:  ldloc.0
+  IL_0046:  ldfld      ""(int c, int d) System.ValueTuple<int, (int c, int d)>.Item2""
+  IL_004b:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_0050:  add
+  IL_0051:  call       ""void System.Console.WriteLine(int)""
+  IL_0056:  ret
 }
 ");
         }
@@ -1003,31 +1003,31 @@ class C
             comp.VerifyDiagnostics();
             comp.VerifyIL("C.Main", @"
 {
-  // Code size       66 (0x42)
-  .maxstack  5
+  // Code size       67 (0x43)
+  .maxstack  6
   .locals init (System.ValueTuple<int, (int c, (int e, int f) d)> V_0) //v
   IL_0000:  ldc.i4.1
   IL_0001:  ldc.i4.2
   IL_0002:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
-  IL_0007:  ldc.i4.1
-  IL_0008:  ldc.i4.2
-  IL_0009:  ldc.i4.3
-  IL_000a:  ldc.i4.4
-  IL_000b:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
-  IL_0010:  newobj     ""System.ValueTuple<int, (int e, int f)>..ctor(int, (int e, int f))""
-  IL_0015:  newobj     ""System.ValueTuple<int, (int c, (int e, int f) d)>..ctor(int, (int c, (int e, int f) d))""
-  IL_001a:  stloc.0
-  IL_001b:  ldloc.0
-  IL_001c:  call       ""System.Collections.Generic.Dictionary<(int, int), (int a, (int c, (int e, int f) d) b)> C.Test<(int, int), (int a, (int c, (int e, int f) d) b)>((int, int), (int a, (int c, (int e, int f) d) b))""
-  IL_0021:  ldc.i4.1
-  IL_0022:  ldc.i4.2
-  IL_0023:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
-  IL_0028:  callvirt   ""(int a, (int c, (int e, int f) d) b) System.Collections.Generic.Dictionary<(int, int), (int a, (int c, (int e, int f) d) b)>.this[(int, int)].get""
-  IL_002d:  ldfld      ""(int c, (int e, int f) d) System.ValueTuple<int, (int c, (int e, int f) d)>.Item2""
-  IL_0032:  ldfld      ""(int e, int f) System.ValueTuple<int, (int e, int f)>.Item2""
-  IL_0037:  ldfld      ""int System.ValueTuple<int, int>.Item2""
-  IL_003c:  call       ""void System.Console.WriteLine(int)""
-  IL_0041:  ret
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  ldc.i4.1
+  IL_000a:  ldc.i4.2
+  IL_000b:  ldc.i4.3
+  IL_000c:  ldc.i4.4
+  IL_000d:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_0012:  newobj     ""System.ValueTuple<int, (int e, int f)>..ctor(int, (int e, int f))""
+  IL_0017:  call       ""System.ValueTuple<int, (int c, (int e, int f) d)>..ctor(int, (int c, (int e, int f) d))""
+  IL_001c:  ldloc.0
+  IL_001d:  call       ""System.Collections.Generic.Dictionary<(int, int), (int a, (int c, (int e, int f) d) b)> C.Test<(int, int), (int a, (int c, (int e, int f) d) b)>((int, int), (int a, (int c, (int e, int f) d) b))""
+  IL_0022:  ldc.i4.1
+  IL_0023:  ldc.i4.2
+  IL_0024:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_0029:  callvirt   ""(int a, (int c, (int e, int f) d) b) System.Collections.Generic.Dictionary<(int, int), (int a, (int c, (int e, int f) d) b)>.this[(int, int)].get""
+  IL_002e:  ldfld      ""(int c, (int e, int f) d) System.ValueTuple<int, (int c, (int e, int f) d)>.Item2""
+  IL_0033:  ldfld      ""(int e, int f) System.ValueTuple<int, (int e, int f)>.Item2""
+  IL_0038:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_003d:  call       ""void System.Console.WriteLine(int)""
+  IL_0042:  ret
 }
 ");
         }

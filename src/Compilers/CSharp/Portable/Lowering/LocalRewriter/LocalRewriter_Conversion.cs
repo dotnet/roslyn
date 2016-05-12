@@ -231,6 +231,29 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // for the purpose of lowering/codegeneration thay are identity conversions.
 
                         Debug.Assert(rewrittenOperand.Type.Equals(rewrittenType, ignoreDynamic: true));
+
+                        // Let's try to avoid creating conversions for the benefit of a better codegen.
+                        if (rewrittenOperand.Type == rewrittenType)
+                        {
+                            return rewrittenOperand;
+                        }
+
+                        if (rewrittenOperand.Kind == BoundKind.ObjectCreationExpression)
+                        {
+                            Debug.Assert(!rewrittenOperand.Type.IsTupleType && rewrittenType.IsTupleType);
+                            var creation = (BoundObjectCreationExpression)rewrittenOperand;
+                            // Simply change the result type of the node.
+                            return creation.Update(creation.Constructor,
+                                                   creation.Arguments,
+                                                   creation.ArgumentNamesOpt,
+                                                   creation.ArgumentRefKindsOpt,
+                                                   creation.Expanded,
+                                                   creation.ArgsToParamsOpt,
+                                                   creation.ConstantValueOpt,
+                                                   creation.InitializerExpressionOpt,
+                                                   rewrittenType);
+                        }
+
                         conversionKind = ConversionKind.Identity;
                         break;
                     }
