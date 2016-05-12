@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
         Protected MustOverride Function IsArgumentListToken(node As TSyntaxNode, token As SyntaxToken) As Boolean
         Protected MustOverride Function GetIntrinsicOperatorDocumentation(node As TSyntaxNode, document As Document, cancellationToken As CancellationToken) As IEnumerable(Of AbstractIntrinsicOperatorDocumentation)
 
-        Private Function TryGetSyntaxNode(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, triggerReason As SignatureHelpTriggerReason, cancellationToken As CancellationToken, ByRef node As TSyntaxNode) As Boolean
+        Private Function TryGetSyntaxNode(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, triggerReason As SignatureHelpTriggerKind, cancellationToken As CancellationToken, ByRef node As TSyntaxNode) As Boolean
             Return CommonSignatureHelpUtilities.TryGetSyntax(
                 root,
                 position,
@@ -26,11 +26,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
                 node)
         End Function
 
-        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As SignatureHelpTriggerInfo, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems)
+        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, trigger As SignatureHelpTrigger, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems)
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
             Dim node As TSyntaxNode = Nothing
-            If Not TryGetSyntaxNode(root, position, document.GetLanguageService(Of ISyntaxFactsService), triggerInfo.TriggerReason, cancellationToken, node) Then
+            If Not TryGetSyntaxNode(root, position, document.GetLanguageService(Of ISyntaxFactsService), trigger.Kind, cancellationToken, node) Then
                 Return Nothing
             End If
 
@@ -101,7 +101,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
 
         Public Overrides Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState
             Dim node As TSyntaxNode = Nothing
-            If TryGetSyntaxNode(root, position, syntaxFacts, SignatureHelpTriggerReason.InvokeSignatureHelpCommand, cancellationToken, node) AndAlso
+            If TryGetSyntaxNode(root, position, syntaxFacts, SignatureHelpTriggerKind.Other, cancellationToken, node) AndAlso
                 currentSpan.Start = node.SpanStart Then
 
                 Return GetCurrentArgumentStateWorker(node, position)

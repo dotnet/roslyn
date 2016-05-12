@@ -89,14 +89,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 .Setup(Function(p) p.GetItemsAsync(
                     document:=It.IsAny(Of Document),
                     position:=It.IsAny(Of Integer),
-                    triggerInfo:=It.IsAny(Of SignatureHelpTriggerInfo),
+                    trigger:=It.IsAny(Of SignatureHelpTrigger),
                     cancellationToken:=It.IsAny(Of CancellationToken))) _
                 .Returns(Task.FromResult(items))
 
             Dim testData = CreateTestData(provider:=slowProvider.Object, waitForPresentation:=True)
 
             ' Now force an update to the model that will result in stopping the session
-            slowProvider.Setup(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTriggerInfo), It.IsAny(Of CancellationToken))) _
+            slowProvider.Setup(Function(p) p.GetItemsAsync(It.IsAny(Of Document), It.IsAny(Of Integer), It.IsAny(Of SignatureHelpTrigger), It.IsAny(Of CancellationToken))) _
                 .Returns(Task.FromResult(Of SignatureHelpItems)(Nothing))
 
             testData.TypeChar(" "c)
@@ -117,7 +117,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 .Setup(Function(p) p.GetItemsAsync(
                     document:=It.IsAny(Of Document),
                     position:=It.IsAny(Of Integer),
-                    triggerInfo:=It.IsAny(Of SignatureHelpTriggerInfo),
+                    trigger:=It.IsAny(Of SignatureHelpTrigger),
                     cancellationToken:=It.IsAny(Of CancellationToken))) _
                 .Returns(Function()
                              manualResetEvent.WaitOne()
@@ -140,7 +140,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 .Setup(Function(p) p.GetItemsAsync(
                     document:=It.IsAny(Of Document),
                     position:=It.IsAny(Of Integer),
-                    triggerInfo:=It.IsAny(Of SignatureHelpTriggerInfo),
+                    trigger:=It.IsAny(Of SignatureHelpTrigger),
                     cancellationToken:=It.IsAny(Of CancellationToken))) _
                 .Returns(Function()
                              manualResetEvent.WaitOne()
@@ -163,7 +163,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                  .Setup(Function(p) p.GetItemsAsync(
                                     document:=It.IsAny(Of Document),
                                     position:=It.IsAny(Of Integer),
-                                    triggerInfo:=It.IsAny(Of SignatureHelpTriggerInfo),
+                                    trigger:=It.IsAny(Of SignatureHelpTrigger),
                                     cancellationToken:=It.IsAny(Of CancellationToken))) _
                                  .Returns(Task.FromResult(New SignatureHelpItems(slowProvider.Object, CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing)))
 
@@ -176,7 +176,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                  .Setup(Function(p) p.GetItemsAsync(
                                     document:=It.IsAny(Of Document),
                                     position:=It.IsAny(Of Integer),
-                                    triggerInfo:=It.IsAny(Of SignatureHelpTriggerInfo),
+                                    trigger:=It.IsAny(Of SignatureHelpTrigger),
                                     cancellationToken:=It.IsAny(Of CancellationToken))) _
                                  .Returns(Function()
                                               checkpoint.Task.Wait()
@@ -379,7 +379,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
             Public Property GetItemsCount As Integer
 
-            Public Function GetItemsAsync(document As Document, position As Integer, triggerInfo As SignatureHelpTriggerInfo, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems) Implements ISignatureHelpProvider.GetItemsAsync
+            Public Function GetItemsAsync(document As Document, position As Integer, trigger As SignatureHelpTrigger, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems) Implements ISignatureHelpProvider.GetItemsAsync
                 Trace.WriteLine("MockSignatureHelpProvider.GetItemsAsync")
 
                 GetItemsCount += 1

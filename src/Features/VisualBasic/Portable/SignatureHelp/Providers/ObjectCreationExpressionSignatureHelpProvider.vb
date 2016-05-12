@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
 
         Public Overrides Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState
             Dim expression As ObjectCreationExpressionSyntax = Nothing
-            If TryGetObjectCreationExpression(root, position, syntaxFacts, SignatureHelpTriggerReason.InvokeSignatureHelpCommand, cancellationToken, expression) AndAlso
+            If TryGetObjectCreationExpression(root, position, syntaxFacts, SignatureHelpTriggerKind.Other, cancellationToken, expression) AndAlso
                 currentSpan.Start = SignatureHelpUtilities.GetSignatureHelpSpan(expression.ArgumentList).Start Then
 
                 Return SignatureHelpUtilities.GetSignatureHelpState(expression.ArgumentList, position)
@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
             Return Nothing
         End Function
 
-        Private Function TryGetObjectCreationExpression(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, triggerReason As SignatureHelpTriggerReason, cancellationToken As CancellationToken, ByRef expression As ObjectCreationExpressionSyntax) As Boolean
+        Private Function TryGetObjectCreationExpression(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, triggerReason As SignatureHelpTriggerKind, cancellationToken As CancellationToken, ByRef expression As ObjectCreationExpressionSyntax) As Boolean
             If Not CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, AddressOf IsTriggerToken, AddressOf IsArgumentListToken, cancellationToken, expression) Then
                 Return False
             End If
@@ -50,11 +50,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
                 token <> node.ArgumentList.CloseParenToken
         End Function
 
-        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, triggerInfo As SignatureHelpTriggerInfo, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems)
+        Protected Overrides Async Function GetItemsWorkerAsync(document As Document, position As Integer, trigger As SignatureHelpTrigger, cancellationToken As CancellationToken) As Task(Of SignatureHelpItems)
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
             Dim objectCreationExpression As ObjectCreationExpressionSyntax = Nothing
-            If Not TryGetObjectCreationExpression(root, position, document.GetLanguageService(Of ISyntaxFactsService), triggerInfo.TriggerReason, cancellationToken, objectCreationExpression) Then
+            If Not TryGetObjectCreationExpression(root, position, document.GetLanguageService(Of ISyntaxFactsService), trigger.Kind, cancellationToken, objectCreationExpression) Then
                 Return Nothing
             End If
 

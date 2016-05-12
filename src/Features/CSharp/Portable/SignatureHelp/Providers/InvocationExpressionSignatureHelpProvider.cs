@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
             return ch == ')';
         }
 
-        private bool TryGetInvocationExpression(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, SignatureHelpTriggerReason triggerReason, CancellationToken cancellationToken, out InvocationExpressionSyntax expression)
+        private bool TryGetInvocationExpression(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, SignatureHelpTriggerKind triggerReason, CancellationToken cancellationToken, out InvocationExpressionSyntax expression)
         {
             if (!CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken, out expression))
             {
@@ -52,12 +52,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
                 token != expression.ArgumentList.CloseParenToken;
         }
 
-        protected override async Task<SignatureHelpItems> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        protected override async Task<SignatureHelpItems> GetItemsWorkerAsync(Document document, int position, SignatureHelpTrigger trigger, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             InvocationExpressionSyntax invocationExpression;
-            if (!TryGetInvocationExpression(root, position, document.GetLanguageService<ISyntaxFactsService>(), triggerInfo.TriggerReason, cancellationToken, out invocationExpression))
+            if (!TryGetInvocationExpression(root, position, document.GetLanguageService<ISyntaxFactsService>(), trigger.Kind, cancellationToken, out invocationExpression))
             {
                 return null;
             }
@@ -120,7 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
                     root,
                     position,
                     syntaxFacts,
-                    SignatureHelpTriggerReason.InvokeSignatureHelpCommand,
+                    SignatureHelpTriggerKind.Other,
                     cancellationToken,
                     out expression) &&
                 currentSpan.Start == SignatureHelpUtilities.GetSignatureHelpSpan(expression.ArgumentList).Start)

@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         public abstract bool IsRetriggerCharacter(char ch);
         public abstract SignatureHelpState GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken);
 
-        protected abstract Task<SignatureHelpItems> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken);
+        protected abstract Task<SignatureHelpItems> GetItemsWorkerAsync(Document document, int position, SignatureHelpTrigger trigger, CancellationToken cancellationToken);
 
         protected static SignatureHelpItems CreateSignatureHelpItems(
             IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState state)
@@ -165,9 +165,9 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         }
 
         public async Task<SignatureHelpItems> GetItemsAsync(
-            Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken)
+            Document document, int position, SignatureHelpTrigger trigger, CancellationToken cancellationToken)
         {
-            var itemsForCurrentDocument = await GetItemsWorkerAsync(document, position, triggerInfo, cancellationToken).ConfigureAwait(false);
+            var itemsForCurrentDocument = await GetItemsWorkerAsync(document, position, trigger, cancellationToken).ConfigureAwait(false);
             if (itemsForCurrentDocument == null)
             {
                 return itemsForCurrentDocument;
@@ -179,7 +179,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 return itemsForCurrentDocument;
             }
 
-            var relatedDocumentsAndItems = await GetItemsForRelatedDocuments(document, relatedDocuments, position, triggerInfo, cancellationToken).ConfigureAwait(false);
+            var relatedDocumentsAndItems = await GetItemsForRelatedDocuments(document, relatedDocuments, position, trigger, cancellationToken).ConfigureAwait(false);
             var candidateLinkedProjectsAndSymbolSets = await ExtractSymbolsFromRelatedItems(position, relatedDocumentsAndItems, cancellationToken).ConfigureAwait(false);
 
             var totalProjects = candidateLinkedProjectsAndSymbolSets.Select(c => c.Item1).Concat(document.Project.Id);
@@ -265,14 +265,14 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             return item;
         }
 
-        protected async Task<List<Tuple<Document, IEnumerable<SignatureHelpItem>>>> GetItemsForRelatedDocuments(Document document, IEnumerable<DocumentId> relatedDocuments, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        protected async Task<List<Tuple<Document, IEnumerable<SignatureHelpItem>>>> GetItemsForRelatedDocuments(Document document, IEnumerable<DocumentId> relatedDocuments, int position, SignatureHelpTrigger trigger, CancellationToken cancellationToken)
         {
             var supportedPlatforms = new List<Tuple<Document, IEnumerable<SignatureHelpItem>>>();
             foreach (var relatedDocumentId in relatedDocuments)
             {
                 var relatedDocument = document.Project.Solution.GetDocument(relatedDocumentId);
                 var semanticModel = await relatedDocument.GetSemanticModelForSpanAsync(new TextSpan(position, 0), cancellationToken).ConfigureAwait(false);
-                var result = await GetItemsWorkerAsync(relatedDocument, position, triggerInfo, cancellationToken).ConfigureAwait(false);
+                var result = await GetItemsWorkerAsync(relatedDocument, position, trigger, cancellationToken).ConfigureAwait(false);
 
                 supportedPlatforms.Add(Tuple.Create(relatedDocument, result != null ? result.Items : SpecializedCollections.EmptyEnumerable<SignatureHelpItem>()));
             }

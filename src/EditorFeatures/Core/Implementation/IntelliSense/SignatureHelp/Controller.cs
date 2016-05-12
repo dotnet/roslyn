@@ -76,13 +76,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             }
         }
 
-        private void StartSession(ImmutableArray<ISignatureHelpProvider> providers, SignatureHelpTriggerInfo triggerInfo)
+        private void StartSession(ImmutableArray<ISignatureHelpProvider> providers, SignatureHelpTrigger trigger)
         {
             AssertIsForeground();
             VerifySessionIsInactive();
 
             this.sessionOpt = new Session(this, Presenter.CreateSession(TextView, SubjectBuffer, null));
-            this.sessionOpt.ComputeModel(providers, triggerInfo);
+            this.sessionOpt.ComputeModel(providers, trigger);
         }
 
         private ImmutableArray<ISignatureHelpProvider> GetProviders()
@@ -122,7 +122,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 return;
             }
 
-            sessionOpt.ComputeModel(GetProviders(), new SignatureHelpTriggerInfo(SignatureHelpTriggerReason.RetriggerCommand));
+            sessionOpt.ComputeModel(GetProviders(), SignatureHelpTrigger.CreateRetriggerTrigger());
         }
     }
 }

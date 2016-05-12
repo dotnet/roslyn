@@ -607,8 +607,8 @@
     <Compile Include="SignatureHelp\SignatureHelpService.cs" />
     <Compile Include="SignatureHelp\SignatureHelpServiceWithProviders.cs" />
     <Compile Include="SignatureHelp\SignatureHelpState.cs" />
-    <Compile Include="SignatureHelp\SignatureHelpTriggerInfo.cs" />
-    <Compile Include="SignatureHelp\SignatureHelpTriggerReason.cs" />
+    <Compile Include="SignatureHelp\SignatureHelpTrigger.cs" />
+    <Compile Include="SignatureHelp\SignatureHelpTriggerKind.cs" />
     <Compile Include="Snippets\ISnippetInfoService.cs" />
     <Compile Include="Snippets\SnippetInfo.cs" />
     <Compile Include="SolutionCrawler\AbstractDocumentDifferenceService.cs" />

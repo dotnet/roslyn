@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             ImmutableArray<ISignatureHelpProvider> providers,
             Document document,
             int caretPosition,
-            SignatureHelpTriggerInfo trigger = default(SignatureHelpTriggerInfo),
+            SignatureHelpTrigger trigger = default(SignatureHelpTrigger),
             OptionSet options = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {

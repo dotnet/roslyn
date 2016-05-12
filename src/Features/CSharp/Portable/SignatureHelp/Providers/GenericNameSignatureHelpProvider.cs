@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
         protected virtual bool TryGetGenericIdentifier(
             SyntaxNode root, int position,
             ISyntaxFactsService syntaxFacts,
-            SignatureHelpTriggerReason triggerReason,
+            SignatureHelpTriggerKind triggerReason,
             CancellationToken cancellationToken,
             out SyntaxToken genericIdentifier, out SyntaxToken lessThanToken)
         {
@@ -65,12 +65,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
                 token != node.TypeArgumentList.GreaterThanToken;
         }
 
-        protected override async Task<SignatureHelpItems> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        protected override async Task<SignatureHelpItems> GetItemsWorkerAsync(Document document, int position, SignatureHelpTrigger trigger, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             SyntaxToken genericIdentifier, lessThanToken;
-            if (!TryGetGenericIdentifier(root, position, document.GetLanguageService<ISyntaxFactsService>(), triggerInfo.TriggerReason, cancellationToken,
+            if (!TryGetGenericIdentifier(root, position, document.GetLanguageService<ISyntaxFactsService>(), trigger.Kind, cancellationToken,
                     out genericIdentifier, out lessThanToken))
             {
                 return null;
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
         public override SignatureHelpState GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
         {
             SyntaxToken genericIdentifier, lessThanToken;
-            if (!TryGetGenericIdentifier(root, position, syntaxFacts, SignatureHelpTriggerReason.InvokeSignatureHelpCommand, cancellationToken,
+            if (!TryGetGenericIdentifier(root, position, syntaxFacts, SignatureHelpTriggerKind.Other, cancellationToken,
                     out genericIdentifier, out lessThanToken))
             {
                 return null;

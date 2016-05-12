@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
             return ch == ')';
         }
 
-        private bool TryGetConstructorInitializer(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, SignatureHelpTriggerReason triggerReason, CancellationToken cancellationToken, out ConstructorInitializerSyntax expression)
+        private bool TryGetConstructorInitializer(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, SignatureHelpTriggerKind triggerReason, CancellationToken cancellationToken, out ConstructorInitializerSyntax expression)
         {
             if (!CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, IsTriggerToken, IsArgumentListToken, cancellationToken, out expression))
             {
@@ -55,12 +55,12 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
                 token != expression.ArgumentList.CloseParenToken;
         }
 
-        protected override async Task<SignatureHelpItems> GetItemsWorkerAsync(Document document, int position, SignatureHelpTriggerInfo triggerInfo, CancellationToken cancellationToken)
+        protected override async Task<SignatureHelpItems> GetItemsWorkerAsync(Document document, int position, SignatureHelpTrigger trigger, CancellationToken cancellationToken)
         {
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
 
             ConstructorInitializerSyntax constructorInitializer;
-            if (!TryGetConstructorInitializer(root, position, document.GetLanguageService<ISyntaxFactsService>(), triggerInfo.TriggerReason, cancellationToken, out constructorInitializer))
+            if (!TryGetConstructorInitializer(root, position, document.GetLanguageService<ISyntaxFactsService>(), trigger.Kind, cancellationToken, out constructorInitializer))
             {
                 return null;
             }
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.SignatureHelp.Providers
         public override SignatureHelpState GetCurrentArgumentState(SyntaxNode root, int position, ISyntaxFactsService syntaxFacts, TextSpan currentSpan, CancellationToken cancellationToken)
         {
             ConstructorInitializerSyntax expression;
-            if (TryGetConstructorInitializer(root, position, syntaxFacts, SignatureHelpTriggerReason.InvokeSignatureHelpCommand, cancellationToken, out expression) &&
+            if (TryGetConstructorInitializer(root, position, syntaxFacts, SignatureHelpTriggerKind.Other, cancellationToken, out expression) &&
                 currentSpan.Start == SignatureHelpUtilities.GetSignatureHelpSpan(expression.ArgumentList).Start)
             {
                 return SignatureHelpUtilities.GetSignatureHelpState(expression.ArgumentList, position);

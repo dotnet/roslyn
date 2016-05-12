@@ -24,15 +24,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
         {
             public void ComputeModel(
                 ImmutableArray<ISignatureHelpProvider> providers,
-                SignatureHelpTriggerInfo triggerInfo)
+                SignatureHelpTrigger trigger)
             {
-                ComputeModel(providers, ImmutableArray<ISignatureHelpProvider>.Empty, triggerInfo);
+                ComputeModel(providers, ImmutableArray<ISignatureHelpProvider>.Empty, trigger);
             }
 
             public void ComputeModel(
                 ImmutableArray<ISignatureHelpProvider> matchedProviders,
                 ImmutableArray<ISignatureHelpProvider> unmatchedProviders,
-                SignatureHelpTriggerInfo triggerInfo)
+                SignatureHelpTrigger trigger)
             {
                 AssertIsForeground();
 
@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 // If we've already computed a model, then just use that.  Otherwise, actually
                 // compute a new model and send that along.
                 Computation.ChainTaskAndNotifyControllerWhenFinished(
-                    (model, cancellationToken) => ComputeModelInBackgroundAsync(model, matchedProviders, unmatchedProviders, caretPosition, disconnectedBufferGraph, triggerInfo, cancellationToken));
+                    (model, cancellationToken) => ComputeModelInBackgroundAsync(model, matchedProviders, unmatchedProviders, caretPosition, disconnectedBufferGraph, trigger, cancellationToken));
             }
 
             private async Task<Model> ComputeModelInBackgroundAsync(
@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 ImmutableArray<ISignatureHelpProvider> unmatchedProviders,
                 SnapshotPoint caretPosition,
                 DisconnectedBufferGraph disconnectedBufferGraph,
-                SignatureHelpTriggerInfo triggerInfo,
+                SignatureHelpTrigger trigger,
                 CancellationToken cancellationToken)
             {
                 try
@@ -67,11 +67,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                             return currentModel;
                         }
 
-                        if (triggerInfo.TriggerReason == SignatureHelpTriggerReason.RetriggerCommand)
+                        if (trigger.Kind == SignatureHelpTriggerKind.Retrigger)
                         {
                             Trace.WriteLine("Retrigger");
                             if (currentModel == null ||
-                                (triggerInfo.TriggerCharacter.HasValue && !currentModel.Provider.IsRetriggerCharacter(triggerInfo.TriggerCharacter.Value)))
+                                (trigger.Character != 0 && !currentModel.Provider.IsRetriggerCharacter(trigger.Character)))
                             {
                                 return currentModel;
                             }
@@ -80,12 +80,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                         var service = document.GetLanguageService<SignatureHelpService>();
 
                         // first try to query the providers that can trigger on the specified character
-                        var result = await service.GetSignaturesAsync(matchedProviders, document, caretPosition, triggerInfo, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        var result = await service.GetSignaturesAsync(matchedProviders, document, caretPosition, trigger, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                         if (result?.Provider == null)
                         {
                             // no match, so now query the other providers
-                            result = await service.GetSignaturesAsync(unmatchedProviders, document, caretPosition, triggerInfo, cancellationToken: cancellationToken).ConfigureAwait(false);
+                            result = await service.GetSignaturesAsync(unmatchedProviders, document, caretPosition, trigger, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                             if (result?.Provider == null)
                             {

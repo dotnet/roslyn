@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
 
         Public Overrides Function GetCurrentArgumentState(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, currentSpan As TextSpan, cancellationToken As CancellationToken) As SignatureHelpState
             Dim statement As RaiseEventStatementSyntax = Nothing
-            If TryGetRaiseEventStatement(root, position, syntaxFacts, SignatureHelpTriggerReason.InvokeSignatureHelpCommand, cancellationToken, statement) AndAlso
+            If TryGetRaiseEventStatement(root, position, syntaxFacts, SignatureHelpTriggerKind.Other, cancellationToken, statement) AndAlso
                 currentSpan.Start = statement.Name.SpanStart Then
 
                 Return SignatureHelpUtilities.GetSignatureHelpState(statement.ArgumentList, position)
@@ -30,7 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
             Return Nothing
         End Function
 
-        Private Function TryGetRaiseEventStatement(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, triggerReason As SignatureHelpTriggerReason, cancellationToken As CancellationToken, ByRef statement As RaiseEventStatementSyntax) As Boolean
+        Private Function TryGetRaiseEventStatement(root As SyntaxNode, position As Integer, syntaxFacts As ISyntaxFactsService, triggerReason As SignatureHelpTriggerKind, cancellationToken As CancellationToken, ByRef statement As RaiseEventStatementSyntax) As Boolean
             If Not CommonSignatureHelpUtilities.TryGetSyntax(root, position, syntaxFacts, triggerReason, AddressOf IsTriggerToken, AddressOf IsArgumentListToken, cancellationToken, statement) Then
                 Return False
             End If
@@ -53,14 +53,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.SignatureHelp.Providers
         Protected Overrides Async Function GetItemsWorkerAsync(
             document As Document,
             position As Integer,
-            triggerInfo As SignatureHelpTriggerInfo,
+            trigger As SignatureHelpTrigger,
             cancellationToken As CancellationToken
         ) As Task(Of SignatureHelpItems)
 
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
 
             Dim raiseEventStatement As RaiseEventStatementSyntax = Nothing
-            If Not TryGetRaiseEventStatement(root, position, document.GetLanguageService(Of ISyntaxFactsService), triggerInfo.TriggerReason, cancellationToken, raiseEventStatement) Then
+            If Not TryGetRaiseEventStatement(root, position, document.GetLanguageService(Of ISyntaxFactsService), trigger.Kind, cancellationToken, raiseEventStatement) Then
                 Return Nothing
             End If
 
