@@ -258,8 +258,7 @@ tuple_type_element
     ;
 ```
 
-- Static semantics (Type rules, constraints, all-or-none names, can't be used on right-hand-side of a 'is', ...)
-- Dynamic semantics (what does it do at runtime?)
+TODO: more details on semantics, both static (Type rules, constraints, all-or-none names, can't be used on right-hand-side of a 'is', ...) and dynamic (what does it do at runtime?)
 
 For tuple literals:
 
@@ -290,5 +289,4 @@ tuple_literal_element
 
 A tuple literal cannot be used as default value for an optional parameter.
 
-- Static semantics (new kind of conversion from expression, new kind of conversion from type, all-or-none, scrambled names, underlying types, underlying names, listing the members of this type, what it means to access, )
-- Dynamic semantics (what happens when you do this conversion, )
+TODO: provide more details on semantics, both static (new kind of conversion from expression, new kind of conversion from type, all-or-none, scrambled names, underlying types, underlying names, listing the members of this type, what it means to access, ) and dynamic (what happens when you do this conversion, )
