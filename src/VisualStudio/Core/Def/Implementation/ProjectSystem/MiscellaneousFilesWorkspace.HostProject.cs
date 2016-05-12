@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
@@ -11,7 +12,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 {
     internal partial class MiscellaneousFilesWorkspace
     {
-        private class HostProject : IVisualStudioHostProject
+        private sealed class HostProject : IVisualStudioHostProject
         {
             public ProjectId Id { get; }
             public string Language { get; }
@@ -112,6 +113,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             public IReadOnlyList<string> GetFolderNames(uint documentItemID)
             {
                 return SpecializedCollections.EmptyReadOnlyList<string>();
+            }
+
+            public void UpdateGeneratedDocuments(ImmutableArray<DocumentInfo> documentsRemoved, ImmutableArray<DocumentInfo> documentsAdded)
+            {
+                throw new NotImplementedException();
             }
         }
     }

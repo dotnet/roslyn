@@ -286,6 +286,15 @@ namespace Microsoft.VisualStudio.LanguageServices.SolutionExplorer {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Generated Source.
+        /// </summary>
+        internal static string GeneratedSourceFolderItem_Name {
+            get {
+                return ResourceManager.GetString("GeneratedSourceFolderItem_Name", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Default.
         /// </summary>
         internal static string Severity_Default {
