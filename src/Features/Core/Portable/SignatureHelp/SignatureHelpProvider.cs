@@ -36,12 +36,13 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         protected static SignatureHelpItems CreateSignatureHelpItems(
             IList<SignatureHelpItem> items, TextSpan applicableSpan, SignatureHelpState state)
         {
-            if (items == null || !items.Any() || state == null)
+            if (items == null || items.Count == 0 || state == null)
             {
                 return null;
             }
 
             items = Filter(items, state.ArgumentNames);
+
             return new SignatureHelpItems(items, applicableSpan, state.ArgumentIndex, state.ArgumentCount, state.ArgumentName);
         }
 
@@ -211,6 +212,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             }
 
             return new SignatureHelpItems(
+                this,
                 finalItems, itemsForCurrentDocument.ApplicableSpan,
                 itemsForCurrentDocument.ArgumentIndex,
                 itemsForCurrentDocument.ArgumentCount,

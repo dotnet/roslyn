@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.SignatureHelp;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
@@ -48,8 +47,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
             private async Task<Model> ComputeModelInBackgroundAsync(
                 Model currentModel,
-                IList<ISignatureHelpProvider> matchedProviders,
-                IList<ISignatureHelpProvider> unmatchedProviders,
+                ImmutableArray<ISignatureHelpProvider> matchedProviders,
+                ImmutableArray<ISignatureHelpProvider> unmatchedProviders,
                 SnapshotPoint caretPosition,
                 DisconnectedBufferGraph disconnectedBufferGraph,
                 SignatureHelpTriggerInfo triggerInfo,
@@ -78,19 +77,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                             }
                         }
 
-                        // first try to query the providers that can trigger on the specified character
-                        var result = await ComputeItemsAsync(matchedProviders, caretPosition, triggerInfo, document, cancellationToken).ConfigureAwait(false);
-                        var provider = result.Item1;
-                        var items = result.Item2;
+                        var service = document.GetLanguageService<SignatureHelpService>();
 
-                        if (provider == null)
+                        // first try to query the providers that can trigger on the specified character
+                        var result = await service.GetSignaturesAsync(matchedProviders, document, caretPosition, triggerInfo, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+                        if (result?.Provider == null)
                         {
                             // no match, so now query the other providers
-                            result = await ComputeItemsAsync(unmatchedProviders, caretPosition, triggerInfo, document, cancellationToken).ConfigureAwait(false);
-                            provider = result.Item1;
-                            items = result.Item2;
+                            result = await service.GetSignaturesAsync(unmatchedProviders, document, caretPosition, triggerInfo, cancellationToken: cancellationToken).ConfigureAwait(false);
 
-                            if (provider == null)
+                            if (result?.Provider == null)
                             {
                                 // the other providers didn't produce items either, so we don't produce a model
                                 return null;
@@ -98,20 +95,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                         }
 
                         if (currentModel != null &&
-                            currentModel.Provider == provider &&
-                            currentModel.GetCurrentSpanInSubjectBuffer(disconnectedBufferGraph.SubjectBufferSnapshot).Span.Start == items.ApplicableSpan.Start &&
-                            currentModel.ArgumentIndex == items.ArgumentIndex &&
-                            currentModel.ArgumentCount == items.ArgumentCount &&
-                            currentModel.ArgumentName == items.ArgumentName)
+                            currentModel.Provider == result.Provider &&
+                            currentModel.GetCurrentSpanInSubjectBuffer(disconnectedBufferGraph.SubjectBufferSnapshot).Span.Start == result.ApplicableSpan.Start &&
+                            currentModel.ArgumentIndex == result.ArgumentIndex &&
+                            currentModel.ArgumentCount == result.ArgumentCount &&
+                            currentModel.ArgumentName == result.ArgumentName)
                         {
                             // The new model is the same as the current model.  Return the currentModel
                             // so we keep the active selection.
                             return currentModel;
                         }
 
-                        var selectedItem = GetSelectedItem(currentModel, items, provider);
-                        var model = new Model(disconnectedBufferGraph, items.ApplicableSpan, provider,
-                            items.Items, selectedItem, items.ArgumentIndex, items.ArgumentCount, items.ArgumentName,
+                        var selectedItem = GetSelectedItem(currentModel, result);
+                        var model = new Model(disconnectedBufferGraph, result.ApplicableSpan, result.Provider,
+                            result.Items, selectedItem, result.ArgumentIndex, result.ArgumentCount, result.ArgumentName,
                             selectedParameter: 0);
 
                         var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
@@ -139,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 return s1 != null && s2 != null && s1.SequenceEqual(s2);
             }
 
-            private static SignatureHelpItem GetSelectedItem(Model currentModel, SignatureHelpItems items, ISignatureHelpProvider provider)
+            private static SignatureHelpItem GetSelectedItem(Model currentModel, SignatureHelpItems items)
             {
                 // Try to find the most appropriate item in the list to select by default.
 
@@ -151,7 +148,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
                 // If the provider did not pick a default, and it's the same provider as the previous
                 // model we have, then try to return the same item that we had before. 
-                if (currentModel != null && currentModel.Provider == provider)
+                if (currentModel != null && currentModel.Provider == items.Provider)
                 {
                     return items.Items.FirstOrDefault(i => DisplayPartsMatch(i, currentModel.SelectedItem)) ?? items.Items.First();
                 }
@@ -168,65 +165,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             private static bool CompareParts(TaggedText p1, TaggedText p2)
             {
                 return p1.ToString() == p2.ToString();
-            }
-
-            private async Task<Tuple<ISignatureHelpProvider, SignatureHelpItems>> ComputeItemsAsync(
-                IList<ISignatureHelpProvider> providers,
-                SnapshotPoint caretPosition,
-                SignatureHelpTriggerInfo triggerInfo,
-                Document document,
-                CancellationToken cancellationToken)
-            {
-                try
-                {
-                    ISignatureHelpProvider bestProvider = null;
-                    SignatureHelpItems bestItems = null;
-
-                    // TODO(cyrusn): We're calling into extensions, we need to make ourselves resilient
-                    // to the extension crashing.
-                    foreach (var provider in providers)
-                    {
-                        cancellationToken.ThrowIfCancellationRequested();
-
-                        var currentItems = await provider.GetItemsAsync(document, caretPosition, triggerInfo, cancellationToken).ConfigureAwait(false);
-                        if (currentItems != null && currentItems.ApplicableSpan.IntersectsWith(caretPosition.Position))
-                        {
-                            // If another provider provides sig help items, then only take them if they
-                            // start after the last batch of items.  i.e. we want the set of items that
-                            // conceptually are closer to where the caret position is.  This way if you have:
-                            //
-                            //  Foo(new Bar($$
-                            //
-                            // Then invoking sig help will only show the items for "new Bar(" and not also
-                            // the items for "Foo(..."
-                            if (IsBetter(bestItems, currentItems.ApplicableSpan))
-                            {
-                                bestItems = currentItems;
-                                bestProvider = provider;
-                            }
-                        }
-                    }
-
-                    return Tuple.Create(bestProvider, bestItems);
-                }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
-                {
-                    throw ExceptionUtilities.Unreachable;
-                }
-            }
-
-            private bool IsBetter(SignatureHelpItems bestItems, TextSpan? currentTextSpan)
-            {
-                // If we have no best text span, then this span is definitely better.
-                if (bestItems == null)
-                {
-                    return true;
-                }
-
-                // Otherwise we want the one that is conceptually the innermost signature.  So it's
-                // only better if the distance from it to the caret position is less than the best
-                // one so far.
-                return currentTextSpan.Value.Start > bestItems.ApplicableSpan.Start;
             }
         }
     }

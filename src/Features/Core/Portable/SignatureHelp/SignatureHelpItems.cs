@@ -12,6 +12,11 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
     internal class SignatureHelpItems
     {
         /// <summary>
+        /// The <see cref="ISignatureHelpProvider"/> that produced this <see cref="SignatureHelpItems"/>.
+        /// </summary>
+        public ISignatureHelpProvider Provider { get; }
+
+        /// <summary>
         /// The list of items to present to the user.
         /// </summary>
         public IList<SignatureHelpItem> Items { get; }
@@ -53,6 +58,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         public int? SelectedItemIndex { get; }
 
         public SignatureHelpItems(
+            ISignatureHelpProvider provider,
             IList<SignatureHelpItem> items,
             TextSpan applicableSpan,
             int argumentIndex,
@@ -60,6 +66,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             string argumentName,
             int? selectedItem = null)
         {
+            Contract.ThrowIfNull(provider, "provider is null");
             Contract.ThrowIfNull(items);
             Contract.ThrowIfTrue(items.IsEmpty());
             Contract.ThrowIfTrue(selectedItem.HasValue && selectedItem.Value >= items.Count);
@@ -92,6 +99,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 Debug.Assert(selectedItem.Value >= 0, "actual item was not part of the final list");
             }
 
+            this.Provider = provider;
             this.Items = distinctItems;
             this.ApplicableSpan = applicableSpan;
             this.ArgumentIndex = argumentIndex;

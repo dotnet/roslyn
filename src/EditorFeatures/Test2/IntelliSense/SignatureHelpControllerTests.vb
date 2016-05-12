@@ -80,10 +80,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         <WorkItem(985007, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/985007")>
         <WpfFact, Trait(Traits.Feature, Traits.Features.SignatureHelp)>
         Public Sub UpKeyShouldNotCrashWhenSessionIsDismissed()
-            Dim items = New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing)
+            Dim slowProvider = New Mock(Of ISignatureHelpProvider)
+
+            Dim items = New SignatureHelpItems(slowProvider.Object, CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing)
 
             ' Create a provider that will return an empty state when queried the second time
-            Dim slowProvider = New Mock(Of ISignatureHelpProvider)
             slowProvider _
                 .Setup(Function(p) p.GetItemsAsync(
                     document:=It.IsAny(Of Document),
@@ -120,7 +121,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     cancellationToken:=It.IsAny(Of CancellationToken))) _
                 .Returns(Function()
                              manualResetEvent.WaitOne()
-                             Dim items = New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing)
+                             Dim items = New SignatureHelpItems(slowProvider.Object, CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing)
                              Return Task.FromResult(items)
                          End Function)
 
@@ -143,7 +144,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                     cancellationToken:=It.IsAny(Of CancellationToken))) _
                 .Returns(Function()
                              manualResetEvent.WaitOne()
-                             Dim items = New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing)
+                             Dim items = New SignatureHelpItems(slowProvider.Object, CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing)
                              Return Task.FromResult(items)
                          End Function)
 
@@ -164,7 +165,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                     position:=It.IsAny(Of Integer),
                                     triggerInfo:=It.IsAny(Of SignatureHelpTriggerInfo),
                                     cancellationToken:=It.IsAny(Of CancellationToken))) _
-                                 .Returns(Task.FromResult(New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing)))
+                                 .Returns(Task.FromResult(New SignatureHelpItems(slowProvider.Object, CreateItems(2), TextSpan.FromBounds(0, 0), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing)))
 
                              Dim testData = dispatcher.Invoke(Function() CreateTestData(provider:=slowProvider.Object, waitForPresentation:=True))
 
@@ -179,7 +180,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                                     cancellationToken:=It.IsAny(Of CancellationToken))) _
                                  .Returns(Function()
                                               checkpoint.Task.Wait()
-                                              Dim items = New SignatureHelpItems(CreateItems(2), TextSpan.FromBounds(0, 2), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing)
+                                              Dim items = New SignatureHelpItems(slowProvider.Object, CreateItems(2), TextSpan.FromBounds(0, 2), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing)
                                               Return Task.FromResult(items)
                                           End Function)
 
@@ -383,7 +384,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
                 GetItemsCount += 1
                 Return Task.FromResult(If(_items.Any(),
-                                       New SignatureHelpItems(_items, TextSpan.FromBounds(position, position), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing),
+                                       New SignatureHelpItems(Me, _items, TextSpan.FromBounds(position, position), selectedItem:=0, argumentIndex:=0, argumentCount:=0, argumentName:=Nothing),
                                        Nothing))
             End Function
 
