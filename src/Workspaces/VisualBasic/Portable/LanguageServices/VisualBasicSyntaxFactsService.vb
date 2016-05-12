@@ -16,6 +16,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.SyntaxFacts
 Namespace Microsoft.CodeAnalysis.VisualBasic
     <ExportLanguageService(GetType(ISyntaxFactsService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicSyntaxFactsService
+        Inherits AbstractSyntaxFactsService
         Implements ISyntaxFactsService
 
         Public Function IsAwaitKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsAwaitKeyword
@@ -767,7 +768,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Class, classDecl.ClassStatement.Identifier.Span,
-                        GetInheritanceNames(classDecl.Inherits, classDecl.Implements))
+                        GetInheritanceNames(classDecl))
                     Return True
                 Case SyntaxKind.ConstructorBlock
                     Dim constructor = CType(node, ConstructorBlockSyntax)
@@ -840,7 +841,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Interface, interfaceDecl.InterfaceStatement.Identifier.Span,
-                        GetInheritanceNames(interfaceDecl.Inherits, interfaceDecl.Implements))
+                        GetInheritanceNames(interfaceDecl))
                     Return True
                 Case SyntaxKind.ModifiedIdentifier
                     Dim modifiedIdentifier = CType(node, ModifiedIdentifierSyntax)
@@ -865,7 +866,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Module, moduleDecl.ModuleStatement.Identifier.Span,
-                        GetInheritanceNames(moduleDecl.Inherits, moduleDecl.Implements))
+                        GetInheritanceNames(moduleDecl))
                     Return True
                 Case SyntaxKind.PropertyStatement
                     Dim propertyDecl = CType(node, PropertyStatementSyntax)
@@ -884,7 +885,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Struct, structDecl.StructureStatement.Identifier.Span,
-                        GetInheritanceNames(structDecl.Inherits, structDecl.Implements))
+                        GetInheritanceNames(structDecl))
                     Return True
             End Select
 
@@ -892,46 +893,86 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return False
         End Function
 
-        Private Function GetInheritanceNames(
-                inheritsList As SyntaxList(Of InheritsStatementSyntax),
-                implementsList As SyntaxList(Of ImplementsStatementSyntax)) As ImmutableArray(Of String)
+        Private Function GetInheritanceNames(typeBlock As TypeBlockSyntax) As ImmutableArray(Of String)
             Dim builder = ImmutableArray.CreateBuilder(Of String)
 
-            For Each inheritsStatement In inheritsList
-                AddInheritanceNames(builder, inheritsStatement.Types)
+            Dim aliasMap = GetAliasMap(typeBlock)
+            Try
+                For Each inheritsStatement In typeBlock.Inherits
+                    AddInheritanceNames(builder, inheritsStatement.Types, aliasMap)
+                Next
+
+                For Each implementsStatement In typeBlock.Implements
+                    AddInheritanceNames(builder, implementsStatement.Types, aliasMap)
+                Next
+
+                Return builder.ToImmutable()
+            Finally
+                FreeAliasMap(aliasMap)
+            End Try
+        End Function
+
+        Private Function GetAliasMap(typeBlock As TypeBlockSyntax) As Dictionary(Of String, String)
+            Dim compilationUnit = typeBlock.SyntaxTree.GetCompilationUnitRoot()
+
+            Dim aliasMap As Dictionary(Of String, String) = Nothing
+            For Each import In compilationUnit.Imports
+                For Each clause In import.ImportsClauses
+                    If clause.IsKind(SyntaxKind.SimpleImportsClause) Then
+                        Dim simpleImport = DirectCast(clause, SimpleImportsClauseSyntax)
+                        If simpleImport.Alias IsNot Nothing Then
+                            Dim mappedName = GetTypeName(simpleImport.Name)
+                            If mappedName IsNot Nothing Then
+                                aliasMap = If(aliasMap, AllocateAliasMap())
+                                aliasMap(simpleImport.Alias.Identifier.ValueText) = mappedName
+                            End If
+                        End If
+                    End If
+                Next
             Next
 
-            For Each implementsStatement In implementsList
-                AddInheritanceNames(builder, implementsStatement.Types)
-            Next
-
-            Return builder.ToImmutable()
+            Return aliasMap
         End Function
 
         Private Sub AddInheritanceNames(
                 builder As ImmutableArray(Of String).Builder,
-                types As SeparatedSyntaxList(Of TypeSyntax))
+                types As SeparatedSyntaxList(Of TypeSyntax),
+                aliasMap As Dictionary(Of String, String))
 
             For Each typeSyntax In types
-                AddInheritanceName(builder, typeSyntax)
+                AddInheritanceName(builder, typeSyntax, aliasMap)
             Next
         End Sub
 
         Private Sub AddInheritanceName(
                 builder As ImmutableArray(Of String).Builder,
-                typeSyntax As TypeSyntax)
-            If TypeOf typeSyntax Is SimpleNameSyntax Then
-                AddSimpleName(builder, DirectCast(typeSyntax, SimpleNameSyntax))
-            ElseIf TypeOf typeSyntax Is QualifiedNameSyntax Then
-                AddSimpleName(builder, DirectCast(typeSyntax, QualifiedNameSyntax).Right)
+                typeSyntax As TypeSyntax,
+                aliasMap As Dictionary(Of String, String))
+            Dim name = GetTypeName(typeSyntax)
+            If name IsNot Nothing Then
+                builder.Add(name)
+
+                Dim mappedName As String = Nothing
+                If aliasMap?.TryGetValue(name, mappedName) = True Then
+                    ' Looks Like this could be an alias.  Also include the name the alias points to
+                    builder.Add(mappedName)
+                End If
             End If
         End Sub
 
-        Private Sub AddSimpleName(
-                builder As ImmutableArray(Of String).Builder,
-                simpleName As SimpleNameSyntax)
-            builder.Add(simpleName.Identifier.ValueText)
-        End Sub
+        Private Function GetTypeName(typeSyntax As TypeSyntax) As String
+            If TypeOf typeSyntax Is SimpleNameSyntax Then
+                GetSimpleName(DirectCast(typeSyntax, SimpleNameSyntax))
+            ElseIf TypeOf typeSyntax Is QualifiedNameSyntax Then
+                GetSimpleName(DirectCast(typeSyntax, QualifiedNameSyntax).Right)
+            End If
+
+            Return Nothing
+        End Function
+
+        Private Function GetSimpleName(simpleName As SimpleNameSyntax) As String
+            Return simpleName.Identifier.ValueText
+        End Function
 
         Private Function GetContainerDisplayName(node As SyntaxNode) As String
             Return GetDisplayName(node, DisplayNameOptions.IncludeTypeParameters)

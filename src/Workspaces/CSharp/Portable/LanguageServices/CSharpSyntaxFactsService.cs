@@ -21,7 +21,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     [ExportLanguageService(typeof(ISyntaxFactsService), LanguageNames.CSharp), Shared]
-    internal class CSharpSyntaxFactsService : ISyntaxFactsService
+    internal class CSharpSyntaxFactsService : AbstractSyntaxFactsService, ISyntaxFactsService
     {
         public bool IsAwaitKeyword(SyntaxToken token)
         {
@@ -867,16 +867,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private readonly static ObjectPool<List<Dictionary<string, string>>> s_aliasMapListPool =
-            new ObjectPool<List<Dictionary<string, string>>>(() => new List<Dictionary<string, string>>());
-        private readonly static ObjectPool<Dictionary<string, string>> s_aliasMapPool =
-            new ObjectPool<Dictionary<string, string>>(() => new Dictionary<string, string>());
-
         private ImmutableArray<string> GetInheritanceNames(BaseListSyntax baseList)
         {
             var builder = ImmutableArray.CreateBuilder<string>(baseList.Types.Count);
 
-            var aliasMaps = s_aliasMapListPool.Allocate();
+            var aliasMaps = AllocateAliasMapList();
             try
             {
                 AddAliasMaps(baseList, aliasMaps);
@@ -890,12 +885,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             finally
             {
-                foreach (var aliasMap in aliasMaps)
-                {
-                    s_aliasMapPool.ClearAndFree(aliasMap);
-                }
-
-                s_aliasMapListPool.ClearAndFree(aliasMaps);
+                FreeAliasMapList(aliasMaps);
             }
         }
 
@@ -925,7 +915,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var mappedName = GetTypeName(usingDecl.Name);
                     if (mappedName != null)
                     {
-                        aliasMap = aliasMap ?? s_aliasMapPool.Allocate();
+                        aliasMap = aliasMap ?? AllocateAliasMap();
 
                         // If we have:  using X = Foo, then we store a mapping from X -> Foo
                         // here.  That way if we see a class that inherits from X we also state
