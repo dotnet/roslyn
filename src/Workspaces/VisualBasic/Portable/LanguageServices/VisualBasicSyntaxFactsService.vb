@@ -905,7 +905,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 AddInheritanceNames(builder, implementsStatement.Types)
             Next
 
-            Return builder.MoveToImmutable()
+            Return builder.ToImmutable()
         End Function
 
         Private Sub AddInheritanceNames(

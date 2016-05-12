@@ -876,7 +876,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 AddInheritanceName(builder, baseType.Type);
             }
 
-            return builder.MoveToImmutable();
+            return builder.ToImmutable();
         }
 
         private void AddInheritanceName(ImmutableArray<string>.Builder builder, TypeSyntax type)
