@@ -867,38 +867,129 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
+        private readonly static ObjectPool<List<Dictionary<string, string>>> s_aliasMapListPool =
+            new ObjectPool<List<Dictionary<string, string>>>(() => new List<Dictionary<string, string>>());
+        private readonly static ObjectPool<Dictionary<string, string>> s_aliasMapPool =
+            new ObjectPool<Dictionary<string, string>>(() => new Dictionary<string, string>());
+
         private ImmutableArray<string> GetInheritanceNames(BaseListSyntax baseList)
         {
             var builder = ImmutableArray.CreateBuilder<string>(baseList.Types.Count);
 
-            foreach (var baseType in baseList.Types)
+            var aliasMaps = s_aliasMapListPool.Allocate();
+            try
             {
-                AddInheritanceName(builder, baseType.Type);
-            }
+                AddAliasMaps(baseList, aliasMaps);
 
-            return builder.ToImmutable();
+                foreach (var baseType in baseList.Types)
+                {
+                    AddInheritanceName(builder, baseType.Type, aliasMaps);
+                }
+
+                return builder.ToImmutable();
+            }
+            finally
+            {
+                foreach (var aliasMap in aliasMaps)
+                {
+                    s_aliasMapPool.ClearAndFree(aliasMap);
+                }
+
+                s_aliasMapListPool.ClearAndFree(aliasMaps);
+            }
         }
 
-        private void AddInheritanceName(ImmutableArray<string>.Builder builder, TypeSyntax type)
+        private void AddAliasMaps(SyntaxNode node, List<Dictionary<string, string>> aliasMaps)
+        {
+            for (var current = node; current != null; current = current.Parent)
+            {
+                if (node.IsKind(SyntaxKind.NamespaceDeclaration))
+                {
+                    ProcessUsings(aliasMaps, ((NamespaceDeclarationSyntax)node).Usings);
+                }
+                else if (node.IsKind(SyntaxKind.CompilationUnit))
+                {
+                    ProcessUsings(aliasMaps, ((CompilationUnitSyntax)node).Usings);
+                }
+            }
+        }
+
+        private void ProcessUsings(List<Dictionary<string, string>> aliasMaps, SyntaxList<UsingDirectiveSyntax> usings)
+        {
+            Dictionary<string, string> aliasMap = null;
+
+            foreach (var usingDecl in usings)
+            {
+                if (usingDecl.Alias != null)
+                {
+                    var mappedName = GetTypeName(usingDecl.Name);
+                    if (mappedName != null)
+                    {
+                        aliasMap = aliasMap ?? s_aliasMapPool.Allocate();
+
+                        // If we have:  using X = Foo, then we store a mapping from X -> Foo
+                        // here.  That way if we see a class that inherits from X we also state
+                        // that it inherits from Foo as well.
+                        aliasMap[usingDecl.Alias.Name.Identifier.ValueText] = mappedName;
+                    }
+                }
+            }
+
+            if (aliasMap != null)
+            {
+                aliasMaps.Add(aliasMap);
+            }
+        }
+
+        private void AddInheritanceName(
+            ImmutableArray<string>.Builder builder, TypeSyntax type,
+            List<Dictionary<string, string>> aliasMaps)
+        {
+            var name = GetTypeName(type);
+            if (name != null)
+            {
+                // First, add the name that the typename that the type directly says it inherits from.
+                builder.Add(name);
+
+                // Now, walk the alias chain and add any names this alias may eventually map to.
+                var currentName = name;
+                foreach (var aliasMap in aliasMaps)
+                {
+                    string mappedName;
+                    if (aliasMap.TryGetValue(currentName, out mappedName))
+                    {
+                        // Looks like this could be an alias.  Also include the name the alias points to
+                        builder.Add(mappedName);
+
+                        // Keep on searching.  An alias in an inner namespcae can refer to an 
+                        // alias in an outer namespace.  
+                        currentName = mappedName;
+                    }
+                }
+            }
+        }
+
+        private string GetTypeName(TypeSyntax type)
         {
             if (type is SimpleNameSyntax)
             {
-                AddSimpleInheritanceName(builder, (SimpleNameSyntax)type);
+                return GetSimpleTypeName((SimpleNameSyntax)type);
             }
             else if (type is QualifiedNameSyntax)
             {
-                AddSimpleInheritanceName(builder, ((QualifiedNameSyntax)type).Right);
+                return GetSimpleTypeName(((QualifiedNameSyntax)type).Right);
             }
             else if (type is AliasQualifiedNameSyntax)
             {
-                AddSimpleInheritanceName(builder, ((AliasQualifiedNameSyntax)type).Name);
+                return GetSimpleTypeName(((AliasQualifiedNameSyntax)type).Name);
             }
+
+            return null;
         }
 
-        private static void AddSimpleInheritanceName(
-            ImmutableArray<string>.Builder builder, SimpleNameSyntax name)
+        private static string GetSimpleTypeName(SimpleNameSyntax name)
         {
-            builder.Add(name.Identifier.ValueText);
+            return name.Identifier.ValueText;
         }
 
         private static string ExpandExplicitInterfaceName(string identifier, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier)
