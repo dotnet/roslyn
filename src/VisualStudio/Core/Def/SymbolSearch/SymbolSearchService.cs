@@ -36,8 +36,8 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         ISymbolSearchService,
         IDisposable
     {
-        // Value is typed as 'object' so we don't load the elfie dll until actually necessary.
-        private ConcurrentDictionary<string, object> _sourceToDatabase = new ConcurrentDictionary<string, object>();
+        private ConcurrentDictionary<string, IAddReferenceDatabaseWrapper> _sourceToDatabase = 
+            new ConcurrentDictionary<string, IAddReferenceDatabaseWrapper>();
 
         public SymbolSearchService(
             VSShell.SVsServiceProvider serviceProvider,
@@ -115,14 +115,14 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         public IEnumerable<PackageWithTypeResult> FindPackagesWithType(
             string source, string name, int arity, CancellationToken cancellationToken)
         {
-            object databaseObj;
-            if (!_sourceToDatabase.TryGetValue(source, out databaseObj))
+            IAddReferenceDatabaseWrapper databaseWrapper;
+            if (!_sourceToDatabase.TryGetValue(source, out databaseWrapper))
             {
                 // Don't have a database to search.  
                 yield break;
             }
 
-            var database = databaseObj as AddReferenceDatabase;
+            var database = databaseWrapper.Database;
             if (name == "var")
             {
                 // never find anything named 'var'.
@@ -189,14 +189,14 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             string name, int arity, CancellationToken cancellationToken)
         {
             // Our reference assembly data is stored in the nuget.org DB.
-            object databaseObj;
-            if (!_sourceToDatabase.TryGetValue(NugetOrgSource, out databaseObj))
+            IAddReferenceDatabaseWrapper databaseWrapper;
+            if (!_sourceToDatabase.TryGetValue(NugetOrgSource, out databaseWrapper))
             {
                 // Don't have a database to search.  
                 yield break;
             }
 
-            var database = (AddReferenceDatabase)databaseObj;
+            var database = databaseWrapper.Database;
             if (name == "var")
             {
                 // never find anything named 'var'.

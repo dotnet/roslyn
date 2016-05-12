@@ -423,7 +423,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             private AddReferenceDatabase CreateAndSetInMemoryDatabase(byte[] bytes)
             {
                 var database = CreateDatabaseFromBytes(bytes);
-                _service._sourceToDatabase[_source] = database;
+                _service._sourceToDatabase[_source] = new AddReferenceDatabaseWrapper(database);
                 return database;
             }
 
