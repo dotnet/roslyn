@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -83,7 +84,6 @@ namespace Roslyn.Diagnostics.Analyzers
             internal void OnSymbolAction(SymbolAnalysisContext symbolContext)
             {
                 ISymbol symbol = symbolContext.Symbol;
-
                 var methodSymbol = symbol as IMethodSymbol;
                 if (methodSymbol != null &&
                     s_ignorableMethodKinds.Contains(methodSymbol.MethodKind))
@@ -96,19 +96,41 @@ namespace Roslyn.Diagnostics.Analyzers
                     return;
                 }
 
+                Debug.Assert(!symbol.IsImplicitlyDeclared);
+                OnSymbolActionCore(symbol, symbolContext.ReportDiagnostic, isImplicitlyDeclaredConstructor: false);
+
+                // Handle implicitly declared public constructors.
+                if (symbol.Kind == SymbolKind.NamedType)
+                {
+                    var namedType = (INamedTypeSymbol)symbol;
+                    if (namedType.InstanceConstructors.Length == 1 &&
+                        (namedType.TypeKind == TypeKind.Class || namedType.TypeKind == TypeKind.Struct))
+                    {
+                        var instanceConstructor = namedType.InstanceConstructors[0];
+                        if (instanceConstructor.IsImplicitlyDeclared)
+                        {
+                            OnSymbolActionCore(instanceConstructor, symbolContext.ReportDiagnostic, isImplicitlyDeclaredConstructor: true);
+                        }
+                    }
+                }
+            }
+
+            internal void OnSymbolActionCore(ISymbol symbol, Action<Diagnostic> reportDiagnostic, bool isImplicitlyDeclaredConstructor)
+            {
                 string publicApiName = GetPublicApiName(symbol);
                 _visitedApiList.Add(publicApiName);
 
                 if (!_publicApiMap.ContainsKey(publicApiName))
                 {
-                    string errorMessageName = symbol.ToDisplayString(ShortSymbolNameFormat);
+                    string errorMessageName = GetErrorMessageName(symbol, isImplicitlyDeclaredConstructor);
                     ImmutableDictionary<string, string> propertyBag = ImmutableDictionary<string, string>.Empty
                         .Add(PublicApiNamePropertyBagKey, publicApiName)
                         .Add(MinimalNamePropertyBagKey, errorMessageName);
 
-                    foreach (Location sourceLocation in symbol.Locations.Where(loc => loc.IsInSource))
+                    var locations = isImplicitlyDeclaredConstructor ? symbol.ContainingType.Locations : symbol.Locations;
+                    foreach (Location sourceLocation in locations.Where(loc => loc.IsInSource))
                     {
-                        symbolContext.ReportDiagnostic(Diagnostic.Create(DeclareNewApiRule, sourceLocation, propertyBag, errorMessageName));
+                        reportDiagnostic(Diagnostic.Create(DeclareNewApiRule, sourceLocation, propertyBag, errorMessageName));
                     }
                 }
 
@@ -122,10 +144,22 @@ namespace Roslyn.Diagnostics.Analyzers
                     IsPublicApi(symbol.ContainingType.BaseType) &&
                     !CanTypeBeExtendedPublicly(symbol.ContainingType.BaseType))
                 {
-                    string errorMessageName = symbol.ToDisplayString(ShortSymbolNameFormat);
+                    string errorMessageName = GetErrorMessageName(symbol, isImplicitlyDeclaredConstructor);
                     ImmutableDictionary<string, string> propertyBag = ImmutableDictionary<string, string>.Empty;
-                    symbolContext.ReportDiagnostic(Diagnostic.Create(ExposedNoninstantiableType, symbol.Locations[0], propertyBag, errorMessageName));
+                    var locations = isImplicitlyDeclaredConstructor ? symbol.ContainingType.Locations : symbol.Locations;
+                    reportDiagnostic(Diagnostic.Create(ExposedNoninstantiableType, locations[0], propertyBag, errorMessageName));
                 }
+            }
+
+            private static string GetErrorMessageName(ISymbol symbol, bool isImplicitlyDeclaredConstructor)
+            {
+                string errorMessageName = symbol.ToDisplayString(ShortSymbolNameFormat);
+                if (isImplicitlyDeclaredConstructor)
+                {
+                    errorMessageName = string.Format(RoslynDiagnosticsAnalyzersResources.PublicImplicitConstructorErroMessageName, errorMessageName);
+                }
+
+                return errorMessageName;
             }
 
             internal void OnCompilationEnd(CompilationAnalysisContext context)

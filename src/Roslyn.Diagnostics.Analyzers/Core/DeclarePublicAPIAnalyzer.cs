@@ -237,8 +237,8 @@ namespace Roslyn.Diagnostics.Analyzers
                 return false;
             }
 
-            shippedData = ReadApiData(ShippedFileName, shippedText.GetText(cancellationToken));
-            unshippedData = ReadApiData(UnshippedFileName, unshippedText.GetText(cancellationToken));
+            shippedData = ReadApiData(shippedText.Path, shippedText.GetText(cancellationToken));
+            unshippedData = ReadApiData(unshippedText.Path, unshippedText.GetText(cancellationToken));
             return true;
         }
 

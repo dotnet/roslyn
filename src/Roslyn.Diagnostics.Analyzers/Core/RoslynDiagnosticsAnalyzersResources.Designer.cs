@@ -98,7 +98,7 @@ namespace Roslyn.Diagnostics.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Do not invoke Diagnostic.Descriptor.
+        ///   Looks up a localized string similar to Do not invoke property &apos;{0}&apos; on type &apos;{1}&apos;, instead directly access the required member{2} on &apos;{1}&apos;.
         /// </summary>
         internal static string DoNotInvokeDiagnosticDescriptorMessage {
             get {
@@ -251,6 +251,15 @@ namespace Roslyn.Diagnostics.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to implicit constructor for {0}.
+        /// </summary>
+        internal static string PublicImplicitConstructorErroMessageName {
+            get {
+                return ResourceManager.GetString("PublicImplicitConstructorErroMessageName", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to When removing a public type or member the corresponding entry in PublicAPI.txt should also be removed. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes..
         /// </summary>
         internal static string RemoveDeletedApiDescription {
@@ -278,7 +287,7 @@ namespace Roslyn.Diagnostics.Analyzers {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Compilation event queue is required to generate symbol declared events for all declared source symbols. Hence, every source symbol type or one of it&apos;s base types must generate a symbol declared event..
+        ///   Looks up a localized string similar to Compilation event queue is required to generate symbol declared events for all declared source symbols. Hence, every source symbol type or one of its base types must generate a symbol declared event..
         /// </summary>
         internal static string SymbolDeclaredEventMustBeGeneratedForSourceSymbolsDescription {
             get {
