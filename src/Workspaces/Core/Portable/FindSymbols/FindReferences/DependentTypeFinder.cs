@@ -145,7 +145,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             CancellationToken cancellationToken)
         {
             // Only an interface can be implemented.
-            if (type != null && type.TypeKind == TypeKind.Interface)
+            if (type?.TypeKind == TypeKind.Interface)
             {
                 return GetDependentTypesAsync(
                     type,
