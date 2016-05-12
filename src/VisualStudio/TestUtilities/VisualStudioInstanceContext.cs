@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 
 namespace Roslyn.VisualStudio.Test.Utilities
 {
@@ -28,7 +26,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
         {
             try
             {
-                _instance.CloseAndDeleteOpenSolution();
+                _instance.Cleanup();
                 _instanceFactory.NotifyCurrentInstanceContextDisposed(canReuse: true);
             }
             catch (Exception)
