@@ -89,6 +89,7 @@ public class C
         {{
           ""ruleId"": ""CS0169"",
           ""level"": ""warning"",
+          ""message"": ""The field 'C.x' is never used"",
           ""locations"": [
             {{
               ""analysisTarget"": {{
@@ -102,37 +103,44 @@ public class C
               }}
             }}
           ],
-          ""message"": ""The field 'C.x' is never used"",
-          ""tags"": [
-            ""Compiler"",
-            ""Telemetry""
-          ],
           ""properties"": {{
-            ""severity"": ""Warning"",
-            ""warningLevel"": ""3"",
-            ""defaultSeverity"": ""Warning"",
-            ""title"": ""Field is never used"",
-            ""category"": ""Compiler"",
-            ""isEnabledByDefault"": ""True""
+            ""warningLevel"": 3
           }}
         }},
         {{
           ""ruleId"": ""CS5001"",
           ""level"": ""error"",
-          ""message"": ""Program does not contain a static 'Main' method suitable for an entry point"",
+          ""message"": ""Program does not contain a static 'Main' method suitable for an entry point""
+        }}
+      ],
+      ""rules"": {{
+        ""CS0169"": {{
+          ""id"": ""CS0169"",
+          ""shortDescription"": ""Field is never used"",
+          ""defaultLevel"": ""warning"",
+          ""properties"": {{
+            ""category"": ""Compiler"",
+            ""isEnabledByDefault"": true
+          }},
+          ""tags"": [
+            ""Compiler"",
+            ""Telemetry""
+          ]
+        }},
+        ""CS5001"": {{
+          ""id"": ""CS5001"",
+          ""defaultLevel"": ""error"",
+          ""properties"": {{
+            ""category"": ""Compiler"",
+            ""isEnabledByDefault"": true
+          }},
           ""tags"": [
             ""Compiler"",
             ""Telemetry"",
             ""NotConfigurable""
-          ],
-          ""properties"": {{
-            ""severity"": ""Error"",
-            ""defaultSeverity"": ""Error"",
-            ""category"": ""Compiler"",
-            ""isEnabledByDefault"": ""True""
-          }}
+          ]
         }}
-      ]
+      }}
     }}
   ]
 }}", AnalyzerForErrorLogTest.GetUriForPath(sourceFile));
@@ -178,6 +186,10 @@ public class C
         {{
           ""ruleId"": ""CS0169"",
           ""level"": ""warning"",
+          ""message"": ""The field 'C.x' is never used"",
+          ""suppressionStates"": [
+            ""suppressedInSource""
+          ],
           ""locations"": [
             {{
               ""analysisTarget"": {{
@@ -191,40 +203,44 @@ public class C
               }}
             }}
           ],
-          ""message"": ""The field 'C.x' is never used"",
-          ""suppressionStates"": [
-            ""suppressedInSource""
-          ],
-          ""tags"": [
-            ""Compiler"",
-            ""Telemetry""
-          ],
           ""properties"": {{
-            ""severity"": ""Warning"",
-            ""warningLevel"": ""3"",
-            ""defaultSeverity"": ""Warning"",
-            ""title"": ""Field is never used"",
-            ""category"": ""Compiler"",
-            ""isEnabledByDefault"": ""True""
+            ""warningLevel"": 3
           }}
         }},
         {{
           ""ruleId"": ""CS5001"",
           ""level"": ""error"",
-          ""message"": ""Program does not contain a static 'Main' method suitable for an entry point"",
+          ""message"": ""Program does not contain a static 'Main' method suitable for an entry point""
+        }}
+      ],
+      ""rules"": {{
+        ""CS0169"": {{
+          ""id"": ""CS0169"",
+          ""shortDescription"": ""Field is never used"",
+          ""defaultLevel"": ""warning"",
+          ""properties"": {{
+            ""category"": ""Compiler"",
+            ""isEnabledByDefault"": true
+          }},
+          ""tags"": [
+            ""Compiler"",
+            ""Telemetry""
+          ]
+        }},
+        ""CS5001"": {{
+          ""id"": ""CS5001"",
+          ""defaultLevel"": ""error"",
+          ""properties"": {{
+            ""category"": ""Compiler"",
+            ""isEnabledByDefault"": true
+          }},
           ""tags"": [
             ""Compiler"",
             ""Telemetry"",
             ""NotConfigurable""
-          ],
-          ""properties"": {{
-            ""severity"": ""Error"",
-            ""defaultSeverity"": ""Error"",
-            ""category"": ""Compiler"",
-            ""isEnabledByDefault"": ""True""
-          }}
+          ]
         }}
-      ]
+      }}
     }}
   ]
 }}", AnalyzerForErrorLogTest.GetUriForPath(sourceFile));

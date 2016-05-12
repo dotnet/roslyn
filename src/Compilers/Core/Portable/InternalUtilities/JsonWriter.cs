@@ -103,7 +103,7 @@ namespace Roslyn.Utilities
         public void Write(int value)
         {
             WritePending();
-            _output.Write(value);
+            _output.Write(value.ToString(CultureInfo.InvariantCulture));
             _pending = Pending.CommaNewLineAndIndent;
         }
 

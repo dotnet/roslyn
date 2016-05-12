@@ -309,14 +309,14 @@ namespace Microsoft.CodeAnalysis
             var expectedFileVersion = compiler.GetAssemblyFileVersion();
 
             return string.Format(@"{{
-  ""version"": ""{0}"",
+  ""version"": ""1.0.0-beta.4"",
   ""runs"": [
     {{
       ""tool"": {{
-        ""name"": ""{1}"",
-        ""version"": ""{2}"",
-        ""fileVersion"": ""{3}""
-      }},", ErrorLogger.OutputFormatVersion, expectedToolName, expectedProductVersion, expectedFileVersion);
+        ""name"": ""{0}"",
+        ""version"": ""{1}"",
+        ""fileVersion"": ""{2}""
+      }},", expectedToolName, expectedProductVersion, expectedFileVersion);
         }
 
         public static string Stringize(this Diagnostic e)

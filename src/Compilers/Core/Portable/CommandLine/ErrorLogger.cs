@@ -15,28 +15,29 @@ namespace Microsoft.CodeAnalysis
     /// <summary>
     /// Used for logging all compiler diagnostics into a given <see cref="Stream"/>.
     /// This logger is responsible for closing the given stream on <see cref="Dispose"/>.
-    /// The log format is SARIF (Static Analysis Results Interchange Format)
+    /// It is incorrect to use the logger concurrently from multiple threads.
     ///
+    /// The log format is SARIF (Static Analysis Results Interchange Format)
     /// https://sarifweb.azurewebsites.net
     /// https://github.com/sarif-standard/sarif-spec
     /// </summary>
     internal partial class ErrorLogger : IDisposable
     {
-        // Internal for testing purposes.
-        internal const string OutputFormatVersion = "1.0.0-beta.4";
-
         private readonly JsonWriter _writer;
+        private readonly DiagnosticDescriptorSet _descriptors;
+        private readonly CultureInfo _culture;
 
-        public ErrorLogger(Stream stream, string toolName, string toolFileVersion, Version toolAssemblyVersion)
+        public ErrorLogger(Stream stream, string toolName, string toolFileVersion, Version toolAssemblyVersion, CultureInfo culture)
         {
             Debug.Assert(stream != null);
             Debug.Assert(stream.Position == 0);
 
             _writer = new JsonWriter(new StreamWriter(stream));
+            _descriptors = new DiagnosticDescriptorSet();
+            _culture = culture;
 
             _writer.WriteObjectStart(); // root
-            _writer.Write("version", OutputFormatVersion);
-
+            _writer.Write("version", "1.0.0-beta.4");
             _writer.WriteArrayStart("runs");
             _writer.WriteObjectStart(); // run
 
@@ -54,21 +55,24 @@ namespace Microsoft.CodeAnalysis
             _writer.WriteObjectEnd();
         }
 
-        internal void LogDiagnostic(Diagnostic diagnostic, CultureInfo culture)
+        public void LogDiagnostic(Diagnostic diagnostic)
         {
             _writer.WriteObjectStart(); // result
             _writer.Write("ruleId", diagnostic.Id);
-            _writer.Write("level", GetLevel(diagnostic.Severity));
 
-            WriteLocations(diagnostic.Location, diagnostic.AdditionalLocations);
-
-            string message = diagnostic.GetMessage(culture);
-            if (string.IsNullOrEmpty(message))
+            string ruleIdKey = _descriptors.Add(diagnostic.Descriptor);
+            if (ruleIdKey != diagnostic.Id)
             {
-                message = "<None>";
+                _writer.Write("ruleIdKey", ruleIdKey);
             }
 
-            _writer.Write("message", message);
+            _writer.Write("level", GetLevel(diagnostic.Severity));
+
+            string message = diagnostic.GetMessage(_culture);
+            if (!string.IsNullOrEmpty(message))
+            {
+                _writer.Write("message", message);
+            }
 
             if (diagnostic.IsSuppressed)
             {
@@ -77,9 +81,8 @@ namespace Microsoft.CodeAnalysis
                 _writer.WriteArrayEnd();
             }
 
-            WriteTags(diagnostic);
-
-            WriteProperties(diagnostic, culture);
+            WriteLocations(diagnostic.Location, diagnostic.AdditionalLocations);
+            WriteProperties(diagnostic);
 
             _writer.WriteObjectEnd(); // result
         }
@@ -128,7 +131,6 @@ namespace Microsoft.CodeAnalysis
         {
             Debug.Assert(location.SourceTree != null);
 
-            
             _writer.WriteObjectStart();
             _writer.Write("uri", GetUri(location.SourceTree));
 
@@ -160,56 +162,100 @@ namespace Microsoft.CodeAnalysis
             return uri.ToString();
         }
 
-        private void WriteTags(Diagnostic diagnostic)
+        private void WriteProperties(Diagnostic diagnostic)
         {
-            if (diagnostic.CustomTags.Count > 0)
-            {
-                _writer.WriteArrayStart("tags");
+            // Currently, the following are always inherited from the descriptor and therefore will be
+            // captured as rule metadata and need not be logged here. IsWarningAsError is also omitted
+            // because it can be inferred from level vs. defaultLevel in the log.
+            Debug.Assert(diagnostic.CustomTags.SequenceEqual(diagnostic.Descriptor.CustomTags));
+            Debug.Assert(diagnostic.Category == diagnostic.Descriptor.Category);
+            Debug.Assert(diagnostic.DefaultSeverity == diagnostic.Descriptor.DefaultSeverity);
+            Debug.Assert(diagnostic.IsEnabledByDefault == diagnostic.Descriptor.IsEnabledByDefault);
 
-                foreach (string tag in diagnostic.CustomTags)
+            if (diagnostic.WarningLevel > 0 || diagnostic.Properties.Count > 0)
+            {
+                _writer.WriteObjectStart("properties");
+
+                if (diagnostic.WarningLevel > 0)
                 {
-                    _writer.Write(tag);
+                    _writer.Write("warningLevel", diagnostic.WarningLevel);
                 }
 
-                _writer.WriteArrayEnd();
+                if (diagnostic.Properties.Count > 0)
+                {
+                    _writer.WriteObjectStart("customProperties");
+
+                    foreach (var pair in diagnostic.Properties.OrderBy(x => x.Key, StringComparer.Ordinal))
+                    {
+                        _writer.Write(pair.Key, pair.Value);
+                    }
+
+                    _writer.WriteObjectEnd();
+                }
+
+                _writer.WriteObjectEnd(); // properties
             }
         }
 
-        private void WriteProperties(Diagnostic diagnostic, CultureInfo culture)
+        private void WriteRules()
         {
-            _writer.WriteObjectStart("properties");
-
-            _writer.Write("severity", diagnostic.Severity.ToString());
-
-            if (diagnostic.Severity == DiagnosticSeverity.Warning)
+            if (_descriptors.Count > 0)
             {
-                _writer.Write("warningLevel", diagnostic.WarningLevel.ToString());
+                _writer.WriteObjectStart("rules");
+
+                foreach (var pair in _descriptors.ToSortedList())
+                {
+                    DiagnosticDescriptor descriptor = pair.Value;
+
+                    _writer.WriteObjectStart(pair.Key); // rule
+                    _writer.Write("id", descriptor.Id);
+
+                    string shortDescription = descriptor.Title.ToString(_culture);
+                    if (!string.IsNullOrEmpty(shortDescription))
+                    {
+                        _writer.Write("shortDescription", shortDescription);
+                    }
+
+                    string fullDescription = descriptor.Description.ToString(_culture);
+                    if (!string.IsNullOrEmpty(fullDescription))
+                    {
+                        _writer.Write("fullDescription", fullDescription);
+                    }
+
+                    _writer.Write("defaultLevel", GetLevel(descriptor.DefaultSeverity));
+
+                    if (!string.IsNullOrEmpty(descriptor.HelpLinkUri))
+                    {
+                        _writer.Write("helpUri", descriptor.HelpLinkUri);
+                    }
+
+                    _writer.WriteObjectStart("properties");
+
+                    if (!string.IsNullOrEmpty(descriptor.Category))
+                    {
+                        _writer.Write("category", descriptor.Category);
+                    }
+
+                    _writer.Write("isEnabledByDefault", descriptor.IsEnabledByDefault);
+                    _writer.WriteObjectEnd(); // properties
+
+                    if (descriptor.CustomTags.Any())
+                    {
+                        _writer.WriteArrayStart("tags");
+
+                        foreach (string tag in descriptor.CustomTags)
+                        {
+                            _writer.Write(tag);
+                        }
+
+                        _writer.WriteArrayEnd(); // tags
+                    }
+
+                    _writer.WriteObjectEnd(); // rule
+                }
+
+                _writer.WriteObjectEnd(); // rules
             }
-
-            _writer.Write("defaultSeverity", diagnostic.DefaultSeverity.ToString());
-
-            string title = diagnostic.Descriptor.Title.ToString(culture);
-            if (!string.IsNullOrEmpty(title))
-            {
-                _writer.Write("title", title);
-            }
-
-            _writer.Write("category", diagnostic.Category);
-
-            string helpLink = diagnostic.Descriptor.HelpLinkUri;
-            if (!string.IsNullOrEmpty(helpLink))
-            {
-                _writer.Write("helpLink", helpLink);
-            }
-
-            _writer.Write("isEnabledByDefault", diagnostic.IsEnabledByDefault.ToString());
-
-            foreach (var pair in diagnostic.Properties.OrderBy(x => x.Key, StringComparer.Ordinal))
-            {
-                _writer.Write("customProperties." + pair.Key, pair.Value);
-            }
-
-            _writer.WriteObjectEnd(); // properties
         }
 
         private static string GetLevel(DiagnosticSeverity severity)
@@ -223,22 +269,101 @@ namespace Microsoft.CodeAnalysis
                     return "error";
 
                 case DiagnosticSeverity.Warning:
+                    return "warning";
+
                 case DiagnosticSeverity.Hidden:
                 default:
-                    // note that in the hidden or default cases, we still write out the actual severity as a
-                    // property so no information is lost. We have to conform to the SARIF spec for kind,
-                    // which allows only pass, warning, error, or notApplicable.
-                    return "warning";
+                    // hidden diagnostics are not reported on the command line and therefore not currently given to 
+                    // the error logger. We could represent it with a custom property in the SARIF log if that changes.
+                    Debug.Assert(false);
+                    goto case DiagnosticSeverity.Warning;
             }
         }
 
         public void Dispose()
         {
             _writer.WriteArrayEnd();  // results
+
+            WriteRules();
+
             _writer.WriteObjectEnd(); // run
             _writer.WriteArrayEnd();  // runs
             _writer.WriteObjectEnd(); // root
             _writer.Dispose();
+        }
+
+        /// <summary>
+        /// Represents a distinct set of <see cref="DiagnosticDescriptor"/>s and provides unique string keys 
+        /// to distinguish them.
+        ///
+        /// The first <see cref="DiagnosticDescriptor"/> added with a given <see cref="DiagnosticDescriptor.Id"/>
+        /// value is given that value as its unique key. Subsequent adds with the same ID will have .NNNN
+        /// apppended to their with an auto-incremented numeric value to disambiguate the collision.
+        /// </summary>
+        private sealed class DiagnosticDescriptorSet
+        {
+            // DiagnosticDescriptor.Id -> (descriptor -> key)
+            private readonly Dictionary<string, Dictionary<DiagnosticDescriptor, string>> _descriptors
+                = new Dictionary<string, Dictionary<DiagnosticDescriptor, string>>();
+           
+            /// <summary>
+            /// The total number of descriptors in the set.
+            /// </summary>
+            public int Count { get; private set; }
+
+            /// <summary>
+            /// Adds a descriptor to the set if not already present.
+            /// </summary>
+            /// <returns>
+            /// The unique key assigned to the given descriptor.
+            /// </returns>
+            public string Add(DiagnosticDescriptor descriptor)
+            {
+                Dictionary<DiagnosticDescriptor, string> keys;
+
+                if (!_descriptors.TryGetValue(descriptor.Id, out keys))
+                {
+                    keys = new Dictionary<DiagnosticDescriptor, string>();
+                    _descriptors.Add(descriptor.Id, keys);
+                }
+
+                string key;
+                if (!keys.TryGetValue(descriptor, out key))
+                {
+                    key = descriptor.Id;
+
+                    if (keys.Count > 0)
+                    {
+                        key += "." + keys.Count.ToString("000", CultureInfo.InvariantCulture);
+                    }
+
+                    keys.Add(descriptor, key);
+                    Count++;
+                }
+
+                return key;
+            }
+
+            /// <summary>
+            /// Converts the set to a list of (key, descriptor) pairs sorted by key.
+            /// </summary>
+            public List<KeyValuePair<string, DiagnosticDescriptor>> ToSortedList()
+            {
+                var list = new List<KeyValuePair<string, DiagnosticDescriptor>>(Count);
+
+                foreach (var outerPair in _descriptors)
+                {
+                    foreach (var innerPair in outerPair.Value)
+                    {
+                        Debug.Assert(list.Capacity > list.Count);
+                        list.Add(new KeyValuePair<string, DiagnosticDescriptor>(innerPair.Value, innerPair.Key));
+                    }
+                }
+
+                Debug.Assert(list.Capacity == list.Count);
+                list.Sort((x, y) => string.CompareOrdinal(x.Key, y.Key));
+                return list;
+            }
         }
     }
 }

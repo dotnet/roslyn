@@ -95,6 +95,7 @@ End Class
         {{
           ""ruleId"": ""BC42024"",
           ""level"": ""warning"",
+          ""message"": ""Unused local variable: 'x'."",
           ""locations"": [
             {{
               ""analysisTarget"": {{
@@ -108,37 +109,44 @@ End Class
               }}
             }}
           ],
-          ""message"": ""Unused local variable: 'x'."",
-          ""tags"": [
-            ""Compiler"",
-            ""Telemetry""
-          ],
           ""properties"": {{
-            ""severity"": ""Warning"",
-            ""warningLevel"": ""1"",
-            ""defaultSeverity"": ""Warning"",
-            ""title"": ""Unused local variable"",
-            ""category"": ""Compiler"",
-            ""isEnabledByDefault"": ""True""
+            ""warningLevel"": 1
           }}
         }},
         {{
           ""ruleId"": ""BC30420"",
           ""level"": ""error"",
-          ""message"": ""'Sub Main' was not found in '{1}'."",
+          ""message"": ""'Sub Main' was not found in '{1}'.""
+        }}
+      ],
+      ""rules"": {{
+        ""BC30420"": {{
+          ""id"": ""BC30420"",
+          ""defaultLevel"": ""error"",
+          ""properties"": {{
+            ""category"": ""Compiler"",
+            ""isEnabledByDefault"": true
+          }},
           ""tags"": [
             ""Compiler"",
             ""Telemetry"",
             ""NotConfigurable""
-          ],
+          ]
+        }},
+        ""BC42024"": {{
+          ""id"": ""BC42024"",
+          ""shortDescription"": ""Unused local variable"",
+          ""defaultLevel"": ""warning"",
           ""properties"": {{
-            ""severity"": ""Error"",
-            ""defaultSeverity"": ""Error"",
             ""category"": ""Compiler"",
-            ""isEnabledByDefault"": ""True""
-          }}
+            ""isEnabledByDefault"": true
+          }},
+          ""tags"": [
+            ""Compiler"",
+            ""Telemetry""
+          ]
         }}
-      ]
+      }}
     }}
   ]
 }}", AnalyzerForErrorLogTest.GetUriForPath(sourceFilePath), Path.GetFileNameWithoutExtension(sourceFilePath))
@@ -189,6 +197,10 @@ End Class
         {{
           ""ruleId"": ""BC42024"",
           ""level"": ""warning"",
+          ""message"": ""Unused local variable: 'x'."",
+          ""suppressionStates"": [
+            ""suppressedInSource""
+          ],
           ""locations"": [
             {{
               ""analysisTarget"": {{
@@ -202,40 +214,44 @@ End Class
               }}
             }}
           ],
-          ""message"": ""Unused local variable: 'x'."",
-          ""suppressionStates"": [
-            ""suppressedInSource""
-          ],
-          ""tags"": [
-            ""Compiler"",
-            ""Telemetry""
-          ],
           ""properties"": {{
-            ""severity"": ""Warning"",
-            ""warningLevel"": ""1"",
-            ""defaultSeverity"": ""Warning"",
-            ""title"": ""Unused local variable"",
-            ""category"": ""Compiler"",
-            ""isEnabledByDefault"": ""True""
+            ""warningLevel"": 1
           }}
         }},
         {{
           ""ruleId"": ""BC30420"",
           ""level"": ""error"",
-          ""message"": ""'Sub Main' was not found in '{1}'."",
+          ""message"": ""'Sub Main' was not found in '{1}'.""
+        }}
+      ],
+      ""rules"": {{
+        ""BC30420"": {{
+          ""id"": ""BC30420"",
+          ""defaultLevel"": ""error"",
+          ""properties"": {{
+            ""category"": ""Compiler"",
+            ""isEnabledByDefault"": true
+          }},
           ""tags"": [
             ""Compiler"",
             ""Telemetry"",
             ""NotConfigurable""
-          ],
+          ]
+        }},
+        ""BC42024"": {{
+          ""id"": ""BC42024"",
+          ""shortDescription"": ""Unused local variable"",
+          ""defaultLevel"": ""warning"",
           ""properties"": {{
-            ""severity"": ""Error"",
-            ""defaultSeverity"": ""Error"",
             ""category"": ""Compiler"",
-            ""isEnabledByDefault"": ""True""
-          }}
+            ""isEnabledByDefault"": true
+          }},
+          ""tags"": [
+            ""Compiler"",
+            ""Telemetry""
+          ]
         }}
-      ]
+      }}
     }}
   ]
 }}", AnalyzerForErrorLogTest.GetUriForPath(sourceFilePath), Path.GetFileNameWithoutExtension(sourceFilePath))
