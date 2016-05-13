@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                     {
                                         interfaceQueue.Add(derivedType);
                                     }
-                                    else if (derivedType.TypeKind == TypeKind.Struct)
+                                    else if (derivedType.TypeKind == TypeKind.Class)
                                     {
                                         classQueue.Add(derivedType);
                                     }
