@@ -33,6 +33,19 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// </remarks>
     internal static class DependentTypeFinder
     {
+        // Cache certain delegates so we don't need to create them over and over again.
+        private static SourceInfoMatches s_infoMatchesDelegate = GetSourceInfoMatchesFunction(DeclaredSymbolInfoKind.Delegate);
+        private static SourceInfoMatches s_infoMatchesEnum = GetSourceInfoMatchesFunction(DeclaredSymbolInfoKind.Enum);
+        private static SourceInfoMatches s_infoMatchesStruct = GetSourceInfoMatchesFunction(DeclaredSymbolInfoKind.Struct);
+
+        private static TypeMatches s_isDelegateType = (t, p, c) => t.IsDelegateType();
+        private static TypeMatches s_isEnumType = (t, p, c) => t.IsEnumType();
+        private static TypeMatches s_isStructType = (t, p, c) => t.IsStructType();
+
+        private static TypeMatches s_derivesFromObject = (t, p, c) => t.BaseType?.SpecialType == SpecialType.System_Object;
+
+        private static Func<Location, bool> s_isInMetadata = loc => loc.IsInMetadata;
+
         /// <summary>
         /// For a given <see cref="Compilation"/>, stores a flat list of all the accessible metadata types
         /// within the compilation.
@@ -324,19 +337,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             return SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>();
         }
-
-        // Cache certain delegates so we don't need to create them over and over again.
-        private static SourceInfoMatches s_infoMatchesDelegate = GetSourceInfoMatchesFunction(DeclaredSymbolInfoKind.Delegate);
-        private static SourceInfoMatches s_infoMatchesEnum = GetSourceInfoMatchesFunction(DeclaredSymbolInfoKind.Enum);
-        private static SourceInfoMatches s_infoMatchesStruct = GetSourceInfoMatchesFunction(DeclaredSymbolInfoKind.Struct);
-
-        private static TypeMatches s_isDelegateType = (t, p, c) => t.IsDelegateType();
-        private static TypeMatches s_isEnumType = (t, p, c) => t.IsEnumType();
-        private static TypeMatches s_isStructType = (t, p, c) => t.IsStructType();
-
-        private static TypeMatches s_derivesFromObject = (t, p, c) => t.BaseType?.SpecialType == SpecialType.System_Object;
-
-        private static Func<Location, bool> s_isInMetadata = loc => loc.IsInMetadata;
 
         private static SourceInfoMatches GetSourceInfoMatchesFunction(DeclaredSymbolInfoKind kind)
         {
