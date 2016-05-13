@@ -513,9 +513,6 @@ namespace Microsoft.CodeAnalysis
 
             "System.ValueTuple`8",
 
-            "System.Reflection.TypeInfo",
-            "System.Reflection.IntrospectionExtensions",
-            "System.Reflection.Module",
             "Microsoft.CodeAnalysis.Runtime.Instrumentation",
 
             "System.IFormatProvider"
