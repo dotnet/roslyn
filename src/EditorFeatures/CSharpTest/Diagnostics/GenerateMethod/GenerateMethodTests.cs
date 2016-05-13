@@ -2880,30 +2880,70 @@ class Program
 }");
         }
 
+        [WorkItem(10004, "https://github.com/dotnet/roslyn/issues/10004")]
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-        public async Task MethodWithTuple()
+        public async Task TestGenerateMethodWithMultipleOfSameGenericType()
         {
             await TestAsync(
+@"using System;
+
+public class C
+{
+}
+
+public static class Ex
+{
+    public static T M1<T>(this T t) where T : C
+    {
+        return [|t.M<T, T>()|];
+    }
+}
+",
+@"using System;
+
+public class C
+{
+    internal T2 M<T1, T2>()
+        where T1 : C
+        where T2 : C
+    {
+    }
+}
+
+public static class Ex
+{
+    public static T M1<T>(this T t) where T : C
+    {
+        return t.M<T, T>();
+    }
+}
+");
+        }
+
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+            public async Task MethodWithTuple()
+            {
+                await TestAsync(
 @"class Class { void Method() { (int, string) d = [|NewMethod|]((1, ""hello"")); } }",
 @"using System; class Class { void Method() { (int, string) d = NewMethod((1, ""hello"")); } private (int, string) NewMethod((int, string) p) { throw new NotImplementedException(); } }",
 parseOptions: TestOptions.Regular.WithTuplesFeature(),
 withScriptOption: true);
-        }
+            }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task MethodWithTupleWithNames()
-        {
-            await TestAsync(
+            {
+                await TestAsync(
 @"class Class { void Method() { (int a, string b) d = [|NewMethod|]((c: 1, d: ""hello"")); } }",
 @"using System; class Class { void Method() { (int a, string b) d = NewMethod((c: 1, d: ""hello"")); } private (int a, string b) NewMethod((int c, string d) p) { throw new NotImplementedException(); } }",
 parseOptions: TestOptions.Regular.WithTuplesFeature(),
 withScriptOption: true);
-        }
+            }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task MethodWithTupleWithOneName()
-        {
-            await TestAsync(
+            {
+                await TestAsync(
 @"class Class { void Method() { (int a, string) d = [|NewMethod|]((c: 1, ""hello"")); } }",
 @"using System; class Class { void Method() { (int a, string) d = NewMethod((c: 1, ""hello"")); } private (int a, string Item2) NewMethod((int c, string Item2) p) { throw new NotImplementedException(); } }",
 parseOptions: TestOptions.Regular.WithTuplesFeature(),

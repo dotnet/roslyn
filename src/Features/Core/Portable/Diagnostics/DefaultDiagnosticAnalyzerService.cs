@@ -9,24 +9,22 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
 {
-    [ExportIncrementalAnalyzerProvider(WorkspaceKind.MiscellaneousFiles)]
     [Shared]
-    internal partial class MiscellaneousDiagnosticAnalyzerService : IIncrementalAnalyzerProvider, IDiagnosticUpdateSource
+    [ExportIncrementalAnalyzerProvider(WellKnownSolutionCrawlerAnalyzers.Diagnostic, workspaceKinds: null)]
+    internal partial class DefaultDiagnosticAnalyzerService : IIncrementalAnalyzerProvider, IDiagnosticUpdateSource
     {
-        private readonly IDiagnosticAnalyzerService _analyzerService;
+        private const int Syntax = 1;
+        private const int Semantic = 2;
 
         [ImportingConstructor]
-        public MiscellaneousDiagnosticAnalyzerService(IDiagnosticAnalyzerService analyzerService, IDiagnosticUpdateSourceRegistrationService registrationService)
+        public DefaultDiagnosticAnalyzerService(IDiagnosticUpdateSourceRegistrationService registrationService)
         {
-            _analyzerService = analyzerService;
-
             registrationService.Register(this);
         }
 
@@ -37,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 return null;
             }
 
-            return new SyntaxOnlyDiagnosticAnalyzer(this, workspace);
+            return new CompilerDiagnosticAnalyzer(this, workspace);
         }
 
         public event EventHandler<DiagnosticsUpdatedArgs> DiagnosticsUpdated;
@@ -62,21 +60,33 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             this.DiagnosticsUpdated?.Invoke(this, state);
         }
 
-        private class SyntaxOnlyDiagnosticAnalyzer : IIncrementalAnalyzer
+        private class CompilerDiagnosticAnalyzer : IIncrementalAnalyzer
         {
-            private readonly MiscellaneousDiagnosticAnalyzerService _service;
+            private readonly DefaultDiagnosticAnalyzerService _service;
             private readonly Workspace _workspace;
 
-            public SyntaxOnlyDiagnosticAnalyzer(MiscellaneousDiagnosticAnalyzerService service, Workspace workspace)
+            public CompilerDiagnosticAnalyzer(DefaultDiagnosticAnalyzerService service, Workspace workspace)
             {
                 _service = service;
                 _workspace = workspace;
             }
 
+            public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
+            {
+                if (e.Option == InternalRuntimeDiagnosticOptions.Syntax ||
+                    e.Option == InternalRuntimeDiagnosticOptions.Semantic)
+                {
+                    return true;
+                }
+
+                return false;
+            }
+
             public async Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
             {
-                // if closed file diagnostic is off and document is not opened, then don't do anything
-                if (!CheckOptions(document))
+                // right now, there is no way to observe diagnostics for closed file.
+                if (!_workspace.IsDocumentOpen(document.Id) ||
+                    !_workspace.Options.GetOption(InternalRuntimeDiagnosticOptions.Syntax))
                 {
                     return;
                 }
@@ -87,25 +97,45 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 Contract.Requires(document.Project.Solution.Workspace == _workspace);
 
                 var diagnosticData = diagnostics == null ? ImmutableArray<DiagnosticData>.Empty : diagnostics.Select(d => DiagnosticData.Create(document, d)).ToImmutableArrayOrEmpty();
+
                 _service.RaiseDiagnosticsUpdated(
-                    DiagnosticsUpdatedArgs.DiagnosticsCreated(new MiscUpdateArgsId(document.Id),
+                    DiagnosticsUpdatedArgs.DiagnosticsCreated(new DefaultUpdateArgsId(_workspace.Kind, Syntax, document.Id),
+                    _workspace, document.Project.Solution, document.Project.Id, document.Id, diagnosticData));
+            }
+
+            public async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken)
+            {
+                // right now, there is no way to observe diagnostics for closed file.
+                if (!_workspace.IsDocumentOpen(document.Id) ||
+                    !_workspace.Options.GetOption(InternalRuntimeDiagnosticOptions.Semantic))
+                {
+                    return;
+                }
+
+                var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var diagnostics = model.GetMethodBodyDiagnostics(span: null, cancellationToken: cancellationToken).Concat(
+                                    model.GetDeclarationDiagnostics(span: null, cancellationToken: cancellationToken));
+
+                Contract.Requires(document.Project.Solution.Workspace == _workspace);
+
+                var diagnosticData = diagnostics == null ? ImmutableArray<DiagnosticData>.Empty : diagnostics.Select(d => DiagnosticData.Create(document, d)).ToImmutableArrayOrEmpty();
+
+                _service.RaiseDiagnosticsUpdated(
+                    DiagnosticsUpdatedArgs.DiagnosticsCreated(new DefaultUpdateArgsId(_workspace.Kind, Semantic, document.Id),
                     _workspace, document.Project.Solution, document.Project.Id, document.Id, diagnosticData));
             }
 
             public void RemoveDocument(DocumentId documentId)
             {
                 // a file is removed from misc project
-                RaiseEmptyDiagnosticUpdated(documentId);
+                RaiseEmptyDiagnosticUpdated(Syntax, documentId);
+                RaiseEmptyDiagnosticUpdated(Semantic, documentId);
             }
 
             public Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
             {
                 // no closed file diagnostic and file is not opened, remove any existing diagnostics
-                if (!CheckOptions(document))
-                {
-                    RaiseEmptyDiagnosticUpdated(document.Id);
-                }
-
+                RemoveDocument(document.Id);
                 return SpecializedTasks.EmptyTask;
             }
 
@@ -114,16 +144,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 return DocumentResetAsync(document, cancellationToken);
             }
 
-            private void RaiseEmptyDiagnosticUpdated(DocumentId documentId)
+            private void RaiseEmptyDiagnosticUpdated(int kind, DocumentId documentId)
             {
                 _service.RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs.DiagnosticsRemoved(
-                    ValueTuple.Create(this, documentId), _workspace, null, documentId.ProjectId, documentId));
-            }
-
-            // method we don't care. misc project only supports syntax errors
-            public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken)
-            {
-                return SpecializedTasks.EmptyTask;
+                    new DefaultUpdateArgsId(_workspace.Kind, kind, documentId), _workspace, null, documentId.ProjectId, documentId));
             }
 
             public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
@@ -136,11 +160,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
                 return SpecializedTasks.EmptyTask;
             }
 
-            public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
-            {
-                return false;
-            }
-
             public Task NewSolutionSnapshotAsync(Solution solution, CancellationToken cancellationToken)
             {
                 return SpecializedTasks.EmptyTask;
@@ -150,45 +169,31 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Diagnostics
             {
             }
 
-            private bool CheckOptions(Document document)
+            private class DefaultUpdateArgsId : BuildToolId.Base<int, DocumentId>, ISupportLiveUpdate
             {
-                if (ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(document.Project) &&
-                    document.Options.GetOption(RuntimeOptions.FullSolutionAnalysis))
+                private readonly string _workspaceKind;
+
+                public DefaultUpdateArgsId(string workspaceKind, int type, DocumentId documentId) : base(type, documentId)
                 {
-                    return true;
+                    _workspaceKind = workspaceKind;
                 }
 
-                return document.IsOpen();
-            }
-
-            private class MiscUpdateArgsId : BuildToolId.Base<DocumentId>, ISupportLiveUpdate
-            {
-                public MiscUpdateArgsId(DocumentId documentId) : base(documentId)
-                {
-                }
-
-                public override string BuildTool
-                {
-                    get
-                    {
-                        return PredefinedBuildTools.Live;
-                    }
-                }
+                public override string BuildTool => PredefinedBuildTools.Live;
 
                 public override bool Equals(object obj)
                 {
-                    var other = obj as MiscUpdateArgsId;
+                    var other = obj as DefaultUpdateArgsId;
                     if (other == null)
                     {
                         return false;
                     }
 
-                    return base.Equals(obj);
+                    return _workspaceKind == other._workspaceKind && base.Equals(obj);
                 }
 
                 public override int GetHashCode()
                 {
-                    return base.GetHashCode();
+                    return Hash.Combine(_workspaceKind.GetHashCode(), base.GetHashCode());
                 }
             }
         }
