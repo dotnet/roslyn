@@ -82,6 +82,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.IsNullableType() ? type.GetNullableUnderlyingType() : type;
         }
 
+        public static TypeSymbol TupleUnderlyingTypeOrSelf(this TypeSymbol type)
+        {
+            return type.TupleUnderlyingType ?? type;
+        }
+
         public static TypeSymbol EnumUnderlyingType(this TypeSymbol type)
         {
             return type.IsEnumType() ? type.GetEnumUnderlyingType() : type;
