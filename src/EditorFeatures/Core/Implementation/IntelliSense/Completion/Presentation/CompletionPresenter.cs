@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         {
             _completionBroker = completionBroker;
             _glyphService = glyphService;
-            _completionSetFactory = VersionSelector.Select(completionSetFactories);
+            _completionSetFactory = VersionSelector.SelectHighest(completionSetFactories);
         }
 
         ICompletionPresenterSession IIntelliSensePresenter<ICompletionPresenterSession, ICompletionSession>.CreateSession(ITextView textView, ITextBuffer subjectBuffer, ICompletionSession session)
