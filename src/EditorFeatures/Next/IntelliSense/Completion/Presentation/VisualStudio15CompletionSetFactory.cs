@@ -3,7 +3,7 @@ using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Presentation
 {
-    [ExportVersionSpecific(typeof(ICompletionSetFactory), VisualStudioVersion.VS15)]
+    [ExportVersionSpecific(typeof(ICompletionSetFactory), VisualStudioVersion.Dev15)]
     internal sealed class VisualStudio15CompletionSetFactory : ICompletionSetFactory
     {
         public ICompletionSet CreateCompletionSet(
