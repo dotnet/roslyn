@@ -254,7 +254,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static TypeMatches GetTypeImmediatelyDerivesFromInterfaceFunction(INamedTypeSymbol baseInterface)
         {
-            return (t, p, c) => t.Interfaces.Any(i => OriginalSymbolsMatch(i, baseInterface, p.Solution, c));
+            // return (t, p, c) => t.Interfaces.Any(i => OriginalSymbolsMatch(i, baseInterface, p.Solution, c));
+            return (t, p, c) => t.Interfaces.Any(i => SymbolEquivalenceComparer.Instance.Equals(i.OriginalDefinition, baseInterface));
         }
 
         private static SourceInfoMatches GetSourceInfoImmediatelyDerivesFromInterfaceFunction(
