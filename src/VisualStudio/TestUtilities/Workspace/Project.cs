@@ -35,5 +35,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
         public ProjectLanguage Language => _language;
 
         public Solution Solution => _solution;
+
+        public void OpenFile(string fileName) => DteProject.DTE.ExecuteCommandAsync("File.OpenFile", fileName).GetAwaiter().GetResult();
     }
 }
