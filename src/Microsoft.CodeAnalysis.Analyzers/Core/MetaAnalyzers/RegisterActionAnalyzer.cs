@@ -523,7 +523,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     var hasEndAction = false;
                     var hasNonEndAction = false;
 
-                    List<NodeAndSymbol> registeredActions = null;
+                    List<NodeAndSymbol> registeredActions;
                     if (_nestedActionsMap != null && _nestedActionsMap.TryGetValue(contextParameter, out registeredActions))
                     {
                         foreach (NodeAndSymbol invocationInfo in registeredActions)
