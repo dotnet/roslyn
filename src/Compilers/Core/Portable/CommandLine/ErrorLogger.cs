@@ -299,19 +299,21 @@ namespace Microsoft.CodeAnalysis
         /// to distinguish them.
         ///
         /// The first <see cref="DiagnosticDescriptor"/> added with a given <see cref="DiagnosticDescriptor.Id"/>
-        /// value is given that value as its unique key. Subsequent adds with the same ID will have .NNNN
-        /// apppended to their with an auto-incremented numeric value to disambiguate the collision.
+        /// value is given that value as its unique key. Subsequent adds with the same ID will have .NNN
+        /// apppended to their with an auto-incremented numeric value.
         /// </summary>
         private sealed class DiagnosticDescriptorSet
         {
-            // DiagnosticDescriptor.Id -> (descriptor -> key)
-            private readonly Dictionary<string, Dictionary<DiagnosticDescriptor, string>> _descriptors
-                = new Dictionary<string, Dictionary<DiagnosticDescriptor, string>>();
-           
+            // DiagnosticDescriptor.Id -> auto-incremented counter
+            private Dictionary<string, int> _counters = new Dictionary<string, int>();
+
+            // DiagnosticDescriptor -> unique key
+            private Dictionary<DiagnosticDescriptor, string> _keys = new Dictionary<DiagnosticDescriptor, string>();
+
             /// <summary>
             /// The total number of descriptors in the set.
             /// </summary>
-            public int Count { get; private set; }
+            public int Count => _keys.Count;
 
             /// <summary>
             /// Adds a descriptor to the set if not already present.
@@ -321,28 +323,33 @@ namespace Microsoft.CodeAnalysis
             /// </returns>
             public string Add(DiagnosticDescriptor descriptor)
             {
-                Dictionary<DiagnosticDescriptor, string> keys;
-
-                if (!_descriptors.TryGetValue(descriptor.Id, out keys))
-                {
-                    keys = new Dictionary<DiagnosticDescriptor, string>();
-                    _descriptors.Add(descriptor.Id, keys);
-                }
-
+                // Case 1: Descriptor has already been seen -> retrieve key from cache.
                 string key;
-                if (!keys.TryGetValue(descriptor, out key))
+                if (_keys.TryGetValue(descriptor, out key))
                 {
-                    key = descriptor.Id;
-
-                    if (keys.Count > 0)
-                    {
-                        key += "." + keys.Count.ToString("000", CultureInfo.InvariantCulture);
-                    }
-
-                    keys.Add(descriptor, key);
-                    Count++;
+                    return key;
                 }
 
+                // Case 2: First time we see a decriptor with a given ID -> use its ID as the key.
+                int counter;
+                if (!_counters.TryGetValue(descriptor.Id, out counter))
+                {
+                    _counters.Add(descriptor.Id, 0);
+                    _keys.Add(descriptor, descriptor.Id);
+                    return descriptor.Id;
+                }
+
+                // Case 3: We've already seen a different descriptor with the same ID -> generate a key.
+                //
+                // This will only need to loop in the corner case where there is an actual descriptor 
+                // with non-generated ID=X.NNN and more than one descriptor with ID=X.
+                do
+                {
+                    _counters[descriptor.Id] = ++counter;
+                    key = descriptor.Id + "." + counter.ToString("000", CultureInfo.InvariantCulture);
+                } while (_counters.ContainsKey(key));
+
+                _keys.Add(descriptor, key);
                 return key;
             }
 
@@ -351,15 +358,14 @@ namespace Microsoft.CodeAnalysis
             /// </summary>
             public List<KeyValuePair<string, DiagnosticDescriptor>> ToSortedList()
             {
+                Debug.Assert(Count > 0);
+
                 var list = new List<KeyValuePair<string, DiagnosticDescriptor>>(Count);
 
-                foreach (var outerPair in _descriptors)
+                foreach (var pair in _keys)
                 {
-                    foreach (var innerPair in outerPair.Value)
-                    {
-                        Debug.Assert(list.Capacity > list.Count);
-                        list.Add(new KeyValuePair<string, DiagnosticDescriptor>(innerPair.Value, innerPair.Key));
-                    }
+                    Debug.Assert(list.Capacity > list.Count);
+                    list.Add(new KeyValuePair<string, DiagnosticDescriptor>(pair.Value, pair.Key));
                 }
 
                 Debug.Assert(list.Capacity == list.Count);
