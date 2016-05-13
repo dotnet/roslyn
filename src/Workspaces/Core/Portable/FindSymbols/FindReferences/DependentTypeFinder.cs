@@ -126,8 +126,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             CancellationToken cancellationToken)
         {
             // Only a class can have derived types.
-            if (type != null &&
-                type.TypeKind == TypeKind.Class &&
+            if (type?.TypeKind == TypeKind.Class &&
                 !type.IsSealed)
             {
                 return GetDependentTypesAsync(
@@ -256,7 +255,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (type?.TypeKind == TypeKind.Class)
+            if (type?.TypeKind == TypeKind.Class &&
+                !type.IsSealed)
             {
                 return GetTypesAsync(
                     type, solution, projects: null,
