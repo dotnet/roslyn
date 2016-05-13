@@ -219,7 +219,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                 {
                                     // Seeing this type for the first time.  If it is a class or
                                     // interface, then add it to the list of symbols to keep 
-                                    // searching for.
+                                    // searching for.  If it's an interface, keep looking for 
+                                    // derived types of that interface.  If it's a class, just add
+                                    // in the entire derived class chain of that class.
                                     if (derivedType.TypeKind == TypeKind.Interface)
                                     {
                                         interfaceQueue.Add(derivedType);
@@ -628,46 +630,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 return null;
             };
-        }
-
-        private static async Task<IEnumerable<INamedTypeSymbol>> GetDependentTypesAsync(
-            INamedTypeSymbol type,
-            Solution solution,
-            IImmutableSet<Project> projects,
-            Func<INamedTypeSymbol, INamedTypeSymbol, bool> predicate,
-            ConditionalWeakTable<Compilation, ConcurrentDictionary<SymbolKey, List<SymbolKey>>> cache,
-            CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var dependentProjects = await DependentProjectsFinder.GetDependentProjectsAsync(type, solution, projects, cancellationToken).ConfigureAwait(false);
-
-            // If it's a type from source, then only other types from source could derive from
-            // it.  If it's a type from metadata then unfortunately anything could derive from
-            // it.
-            bool locationsInMetadata = type.Locations.Any(loc => loc.IsInMetadata);
-
-            ConcurrentSet<ISymbol> results = new ConcurrentSet<ISymbol>(SymbolEquivalenceComparer.Instance);
-
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var projectTasks = new List<Task>();
-            foreach (var project in dependentProjects)
-            {
-                projectTasks.Add(Task.Run(
-                    async () => await GetDependentTypesInProjectAsync(type, project, solution, predicate, cache, locationsInMetadata, results, cancellationToken).ConfigureAwait(false), cancellationToken));
-            }
-
-            await Task.WhenAll(projectTasks).ConfigureAwait(false);
-
-            if (results.Any())
-            {
-                return results.OfType<INamedTypeSymbol>();
-            }
-            else
-            {
-                return SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>();
-            }
         }
 
         private static async Task GetDependentTypesInProjectAsync(
