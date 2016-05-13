@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
                 // VBCSCompiler is used as a DLL in these tests, need to hook the resolve to the installed location.
                 AppDomain.CurrentDomain.AssemblyResolve += OnAssemblyResolve;
-                basePath = GetMSBuildDirectory();
+                basePath = TestHelpers.GetMSBuildDirectory();
                 if (basePath == null)
                 {
                     return;
@@ -69,23 +69,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             if (e.Name.StartsWith("VBCSCompiler"))
             {
                 return Assembly.LoadFrom(CompilerServerExecutable);
-            }
-
-            return null;
-        }
-
-        private static string GetMSBuildDirectory()
-        {
-            using (var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\MSBuild\ToolsVersions\14.0", false))
-            {
-                if (key != null)
-                {
-                    var toolsPath = key.GetValue("MSBuildToolsPath");
-                    if (toolsPath != null)
-                    {
-                        return toolsPath.ToString();
-                    }
-                }
             }
 
             return null;

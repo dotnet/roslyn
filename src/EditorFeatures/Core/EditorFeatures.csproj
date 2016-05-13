@@ -59,11 +59,6 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.VisualStudio.Language.CallHierarchy, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <HintPath>$(DevEnvDir)\PrivateAssemblies\Microsoft.VisualStudio.Language.CallHierarchy.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Text.Internal, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
@@ -80,6 +75,7 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="InteractiveHost" />
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures.Next" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.CSharp.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices" />
@@ -227,6 +223,8 @@
     <Compile Include="Extensibility\Composition\IContentTypeMetadata.cs" />
     <Compile Include="Extensibility\Composition\OrderableContentTypeMetadata.cs" />
     <Compile Include="Extensibility\Composition\OrderableLanguageAndRoleMetadata.cs" />
+    <Compile Include="Extensibility\Composition\VisualStudioVersionMetadata.cs" />
+    <Compile Include="Extensibility\ExportVersionSpecificAttribute.cs" />
     <Compile Include="Extensibility\Highlighting\ExportHighlighterAttribute.cs" />
     <Compile Include="Extensibility\Highlighting\IHighlighter.cs" />
     <Compile Include="Extensibility\NavigationBar\AbstractNavigationBarItemService.cs" />
@@ -258,6 +256,7 @@
     <Compile Include="Extensibility\SignatureHelp\ISignatureHelpPresenterSession.cs" />
     <Compile Include="Extensibility\SignatureHelp\PredefinedSignatureHelpPresenterNames.cs" />
     <Compile Include="Extensibility\SignatureHelp\SignatureHelpItemEventArgs.cs" />
+    <Compile Include="Extensibility\VersionSelector.cs" />
     <Compile Include="Implementation\Classification\SemanticClassificationBufferTaggerProvider.cs" />
     <Compile Include="Implementation\Classification\SemanticClassificationBufferTaggerProvider.Tagger.cs" />
     <Compile Include="Implementation\Classification\SemanticClassificationUtilities.cs" />
@@ -273,9 +272,10 @@
     <Compile Include="Implementation\Intellisense\Completion\Presentation\ClassificationTags.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\ImageMonikers.cs" />
     <Compile Include="Implementation\Intellisense\Completion\SimplePresentationItem.cs" />
-    <Compile Include="Implementation\Intellisense\Completion\Presentation\IntellisenseFilter2.cs" />
-    <Compile Include="Implementation\Intellisense\Completion\Temporary\IIntellisenseFilter.cs" />
-    <Compile Include="Implementation\Intellisense\Completion\Temporary\IntellisenseFilter.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\Presentation\ICompletionSetFactory.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\Presentation\RoslynCompletionSet.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\Presentation\ICompletionSet.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\Presentation\VisualStudio14CompletionSetFactory.cs" />
     <Compile Include="Implementation\Interactive\IAbstractResetInteractiveCommand.cs" />
     <Compile Include="Implementation\Outlining\AbstractSyntaxOutliner.cs" />
     <Compile Include="Implementation\Outlining\InvalidOutliningRegionException.cs" />
@@ -480,7 +480,6 @@
     <Compile Include="Implementation\Intellisense\Completion\Model.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\CompletionPresenter.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\CompletionPresenterSession.cs" />
-    <Compile Include="Implementation\Intellisense\Completion\Presentation\CompletionSet3.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\CompletionSource.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\CustomCommitCompletion.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\ToolTipProvider.cs" />
