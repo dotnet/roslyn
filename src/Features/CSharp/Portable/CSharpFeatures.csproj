@@ -92,6 +92,9 @@
     <Compile Include="CodeFixes\Suppression\CSharpSuppressionCodeFixProvider.cs" />
     <Compile Include="CodeFixes\TypeStyle\UseExplicitTypeCodeFixProvider.cs" />
     <Compile Include="CodeFixes\TypeStyle\UseImplicitTypeCodeFixProvider.cs" />
+    <Compile Include="CodeRefactorings\ConvertToInterpolatedString\ConvertToInterpolatedStringRefactoringProvider.cs" />
+    <Compile Include="CodeRefactorings\ConvertToInterpolatedString\InterpolatedStringRewriter.cs" />
+    <Compile Include="CodeRefactorings\ConvertToInterpolatedString\MultiLineCommentInInterpolatedStringFormattingRule.cs" />
     <Compile Include="CodeRefactorings\EncapsulateField\EncapsulateFieldCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\ExtractInterface\ExtractInterfaceCodeRefactoringProvider.cs" />
     <Compile Include="CodeRefactorings\ExtractMethod\ExtractMethodCodeRefactoringProvider.cs" />
