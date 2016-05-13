@@ -66,9 +66,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             SyntaxNode expression,
             CancellationToken cancellationToken)
         {
-            var typeInfo = semanticModel.GetTypeInfo(expression, cancellationToken);
+            var naturalType = semanticModel.GetNaturalType(expression, cancellationToken);
             var symbolInfo = semanticModel.GetSymbolInfo(expression, cancellationToken);
-            return typeInfo.Type ?? symbolInfo.GetAnySymbol().ConvertToType(semanticModel.Compilation);
+            return naturalType ?? symbolInfo.GetAnySymbol().ConvertToType(semanticModel.Compilation);
         }
 
         public static IEnumerable<ISymbol> GetSymbols(

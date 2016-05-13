@@ -500,7 +500,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundTupleExpression 
+    internal partial class BoundTupleLiteral
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
@@ -710,7 +710,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case CSharp.ConversionKind.ImplicitDynamic:
                     case CSharp.ConversionKind.ExplicitEnumeration:
                     case CSharp.ConversionKind.ImplicitEnumeration:
-                    case CSharp.ConversionKind.ImplicitTuple:
+                    case CSharp.ConversionKind.ImplicitTupleLiteral:
                     case CSharp.ConversionKind.ExplicitNullable:
                     case CSharp.ConversionKind.ImplicitNullable:
                     case CSharp.ConversionKind.ExplicitNumeric:

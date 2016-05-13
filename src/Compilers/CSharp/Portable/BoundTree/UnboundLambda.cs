@@ -35,6 +35,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public MessageID MessageID { get { return Syntax.Kind() == SyntaxKind.AnonymousMethodExpression ? MessageID.IDS_AnonMethod : MessageID.IDS_Lambda; } }
 
         private readonly bool _inferredFromSingleType;
+        private readonly bool _inferredFromNaturalType;
         private readonly RefKind _refKind;
         private readonly TypeSymbol _inferredReturnType;
         private readonly HashSet<DiagnosticInfo> _inferredReturnTypeUseSiteDiagnostics;
@@ -48,6 +49,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return _inferredFromSingleType;
+            }
+        }
+
+        public bool InferredFromNaturalType
+        {
+            get
+            {
+                return _inferredFromNaturalType;
             }
         }
 
@@ -68,7 +77,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (inferReturnType)
             {
-                this._inferredReturnType = InferReturnType(this.Body, this.Binder, this.Symbol.IsAsync, ref this._inferredReturnTypeUseSiteDiagnostics, out this._refKind, out this._inferredFromSingleType);
+                this._inferredReturnType = InferReturnType(this.Body, this.Binder, this.Symbol.IsAsync, ref this._inferredReturnTypeUseSiteDiagnostics, 
+                                                           out this._refKind, out this._inferredFromSingleType, out this._inferredFromNaturalType);
 
 #if DEBUG
                 _hasInferredReturnType = true;
@@ -104,10 +114,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return _inferredReturnType;
         }
 
-        private static TypeSymbol InferReturnType(BoundBlock block, Binder binder, bool isAsync, ref HashSet<DiagnosticInfo> useSiteDiagnostics, out RefKind refKind, out bool inferredFromSingleType)
+        private static TypeSymbol InferReturnType(BoundBlock block, Binder binder, bool isAsync, ref HashSet<DiagnosticInfo> useSiteDiagnostics, 
+                                                  out RefKind refKind, out bool inferredFromSingleType, out bool inferredFromNaturalType)
         {
             int numberOfDistinctReturns;
-            var resultTypes = BlockReturns.GetReturnTypes(block, out refKind, out numberOfDistinctReturns);
+            var resultTypes = BlockReturns.GetReturnTypes(block, binder, ref useSiteDiagnostics, out refKind, out numberOfDistinctReturns, out inferredFromNaturalType);
 
             inferredFromSingleType = numberOfDistinctReturns < 2;
 
@@ -154,15 +165,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             private readonly ArrayBuilder<TypeSymbol> _types;
             private bool _hasReturnWithoutArgument;
             private RefKind refKind;
+            private readonly Binder _binder;
+            private HashSet<DiagnosticInfo> _useSiteDiagnostics;
+            private bool _collectedNaturalType;
 
-            private BlockReturns()
+            private BlockReturns(Binder binder, HashSet<DiagnosticInfo> useSiteDiagnostics)
             {
                 _types = ArrayBuilder<TypeSymbol>.GetInstance();
+                _binder = binder;
+                _useSiteDiagnostics = useSiteDiagnostics;
             }
 
-            public static ImmutableArray<TypeSymbol> GetReturnTypes(BoundBlock block, out RefKind refKind, out int numberOfDistinctReturns)
+            public static ImmutableArray<TypeSymbol> GetReturnTypes(BoundBlock block, Binder binder, ref HashSet<DiagnosticInfo> useSiteDiagnostics, out RefKind refKind, 
+                                                                    out int numberOfDistinctReturns, out bool collectedNaturalType)
             {
-                var inferrer = new BlockReturns();
+                var inferrer = new BlockReturns(binder, useSiteDiagnostics);
                 inferrer.Visit(block);
                 refKind = inferrer.refKind;
                 var result = inferrer._types.ToImmutableAndFree();
@@ -171,6 +188,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     numberOfDistinctReturns += 1;
                 }
+
+                collectedNaturalType = inferrer._collectedNaturalType;
+                useSiteDiagnostics = inferrer._useSiteDiagnostics;
 
                 return result;
             }
@@ -206,7 +226,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var expression = node.ExpressionOpt;
                 if (expression != null)
                 {
-                    var returnType = expression.Type;
+                    var returnType = _binder.GetNaturalTypeOfExpression(expression, ref _useSiteDiagnostics);
+
+                    if ((object)returnType != null && (object)expression.Type == null)
+                    {
+                        _collectedNaturalType = true;
+                    }
+
                     // This is potentially inefficient if there are a large number of returns each with
                     // a different type. This seems unlikely.
                     if (!_types.Contains(returnType))
@@ -392,7 +418,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol cacheKey = GetCacheKey(delegateType);
 
             BoundLambda returnInferenceLambda;
-            if (_returnInferenceCache.TryGetValue(cacheKey, out returnInferenceLambda) && returnInferenceLambda.InferredFromSingleType)
+            if (_returnInferenceCache.TryGetValue(cacheKey, out returnInferenceLambda) && 
+                returnInferenceLambda.InferredFromSingleType &&
+                !returnInferenceLambda.InferredFromNaturalType)
             {
                 var lambdaSym = returnInferenceLambda.Symbol;
                 if (lambdaSym.ReturnType == returnType && lambdaSym.RefKind == refKind)

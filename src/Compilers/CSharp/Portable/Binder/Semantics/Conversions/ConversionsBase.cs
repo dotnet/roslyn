@@ -30,7 +30,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         protected abstract Conversion GetInterpolatedStringConversion(BoundInterpolatedString source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
 
-        protected abstract bool HasImplicitTupleConversion(BoundExpression source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
+        protected abstract Conversion GetImplicitTupleConversion(BoundExpression source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
+
+        protected abstract BoundExpression ReclassifyExpressionToNaturalTypeIfAny(BoundExpression source, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
 
         /// <summary>
         /// Attempt a quick classification of builtin conversions.  As result of "no conversion"
@@ -294,7 +296,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal Conversion ClassifyStandardImplicitConversion(BoundExpression sourceExpression, TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert(sourceExpression != null || (object)source != null);
-            Debug.Assert(sourceExpression == null || (object)sourceExpression.Type == (object)source);
+            Debug.Assert(sourceExpression == null || (object)sourceExpression.Type == (object)source ||
+                         ((object)sourceExpression.Type == null && 
+                         ReclassifyExpressionToNaturalTypeIfAny(sourceExpression, ref useSiteDiagnostics).Type == source));
             Debug.Assert((object)destination != null);
 
             // SPEC: The following implicit conversions are classified as standard implicit conversions:
@@ -328,6 +332,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (conversion.Exists)
             {
                 return conversion;
+            }
+
+            if ((object)source == null)
+            {
+                source = ReclassifyExpressionToNaturalTypeIfAny(sourceExpression, ref useSiteDiagnostics).Type;
             }
 
             if ((object)source != null)

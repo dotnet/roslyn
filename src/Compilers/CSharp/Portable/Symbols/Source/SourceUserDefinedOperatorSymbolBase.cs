@@ -287,7 +287,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (source0 != this.ContainingType && target0 != this.ContainingType &&
                 // allow conversion between T and Nullable<T> in declaration of Nullable<T>
-                source != this.ContainingType && target != this.ContainingType)
+                (source.TupleUnderlyingType ?? source) != this.ContainingType && 
+                (target.TupleUnderlyingType ?? target) != this.ContainingType)
             {
                 // CS0556: User-defined conversion must convert to or from the enclosing type
                 diagnostics.Add(ErrorCode.ERR_ConversionNotInvolvingContainedType, this.Locations[0]);

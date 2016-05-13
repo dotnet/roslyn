@@ -823,7 +823,7 @@ class C
         }
 
         [Fact]
-        public void TupleTypeMismatch()
+        public void TupleTypeMismatch_01()
         {
             var source = @"
 class C
@@ -836,9 +836,30 @@ class C
 " + trivial2uple + trivial3uple;
 
             CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature()).VerifyDiagnostics(
-                // (6,27): error CS0029: Cannot implicitly convert type '(int, string, int)' to '(int, string)'
+                // (6,27): error CS8207: Cannot implicitly convert tuple expression to '(int, string)'
                 //         (int, string) x = (1, "hello", 2);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"(1, ""hello"", 2)").WithArguments("(int, string, int)", "(int, string)").WithLocation(6, 27));
+                Diagnostic(ErrorCode.ERR_NoImplicitConvFromTupleLiteral, @"(1, ""hello"", 2)").WithArguments("(int, string)").WithLocation(6, 27)
+                );
+        }
+
+        [Fact]
+        public void TupleTypeMismatch_02()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        (int, string) x = (1, null, 2);
+    }
+}
+" + trivial2uple + trivial3uple;
+
+            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature()).VerifyDiagnostics(
+                // (6,27): error CS8207: Cannot implicitly convert tuple expression to '(int, string)'
+                //         (int, string) x = (1, null, 2);
+                Diagnostic(ErrorCode.ERR_NoImplicitConvFromTupleLiteral, "(1, null, 2)").WithArguments("(int, string)").WithLocation(6, 27)
+                );
         }
 
         [Fact]
@@ -856,12 +877,12 @@ class C
 ";
 
             CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature()).VerifyDiagnostics(
-                // (6,54): error CS0029: Cannot implicitly convert type '(string, int, int, int, int, int, int, int)' to '(int, int, int, int, int, int, int, int)'
+                // (6,54): error CS8207: Cannot implicitly convert tuple expression to '(int, int, int, int, int, int, int, int)'
                 //         (int, int, int, int, int, int, int, int) x = ("Alice", 2, 3, 4, 5, 6, 7, 8);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"(""Alice"", 2, 3, 4, 5, 6, 7, 8)").WithArguments("(string, int, int, int, int, int, int, int)", "(int, int, int, int, int, int, int, int)").WithLocation(6, 54),
-                // (7,54): error CS0029: Cannot implicitly convert type '(int, int, int, int, int, int, int, int, int)' to '(int, int, int, int, int, int, int, int)'
+                Diagnostic(ErrorCode.ERR_NoImplicitConvFromTupleLiteral, @"(""Alice"", 2, 3, 4, 5, 6, 7, 8)").WithArguments("(int, int, int, int, int, int, int, int)").WithLocation(6, 54),
+                // (7,54): error CS8207: Cannot implicitly convert tuple expression to '(int, int, int, int, int, int, int, int)'
                 //         (int, int, int, int, int, int, int, int) y = (1, 2, 3, 4, 5, 6, 7, 8, 9);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(1, 2, 3, 4, 5, 6, 7, 8, 9)").WithArguments("(int, int, int, int, int, int, int, int, int)", "(int, int, int, int, int, int, int, int)").WithLocation(7, 54)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvFromTupleLiteral, "(1, 2, 3, 4, 5, 6, 7, 8, 9)").WithArguments("(int, int, int, int, int, int, int, int)").WithLocation(7, 54)
                 );
         }
 
@@ -894,7 +915,10 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(1, ""hello"", c: 2)", node.ToString());
-            Assert.Equal("(System.Int32 Item1, System.String Item2, System.Int32 c)", model.GetTypeInfo(node).Type.ToTestDisplayString());
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("(System.Int32 Item1, System.String a)", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.NoConversion, model.GetConversion(node));
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
             var xSymbol = ((SourceLocalSymbol)model.GetDeclaredSymbol(x)).Type;
@@ -2166,10 +2190,7 @@ class C
             comp.VerifyDiagnostics(
                 // (6,9): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //         (int, string) x = (1, "hello");
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int, string)").WithArguments("System.ValueTuple`2").WithLocation(6, 9),
-                // (6,27): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
-                //         (int, string) x = (1, "hello");
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"(1, ""hello"")").WithArguments("System.ValueTuple`2").WithLocation(6, 27)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int, string)").WithArguments("System.ValueTuple`2").WithLocation(6, 9)
                 );
         }
 
@@ -2530,7 +2551,7 @@ class C
         }
 
         [Fact]
-        public void GenericTupleWithoutTupleLibrary()
+        public void GenericTupleWithoutTupleLibrary_01()
         {
             var source = @"
 class C
@@ -2551,10 +2572,7 @@ class C
             comp.VerifyDiagnostics(
                 // (10,12): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
                 //     static (T1 first, T2 second) M<T1, T2>()
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(T1 first, T2 second)").WithArguments("System.ValueTuple`2").WithLocation(10, 12),
-                // (12,16): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
-                //         return (default(T1), default(T2));
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(default(T1), default(T2))").WithArguments("System.ValueTuple`2").WithLocation(12, 16)
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(T1 first, T2 second)").WithArguments("System.ValueTuple`2").WithLocation(10, 12)
                 );
 
             var c = comp.GetTypeByMetadataName("C");
@@ -2611,6 +2629,31 @@ class C
         }
 
         [Fact]
+        public void GenericTupleWithoutTupleLibrary_02()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+    }
+
+    static (T1, T2, T3, T4, T5, T6, T7, T8, T9) M<T1, T2, T3, T4, T5, T6, T7, T8, T9>()
+    {
+        throw new System.NotSupportedException();
+    }
+}
+" + trivial2uple;
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // (8,12): error CS0518: Predefined type 'System.ValueTuple`8' is not defined or imported
+                //     static (T1, T2, T3, T4, T5, T6, T7, T8, T9) M<T1, T2, T3, T4, T5, T6, T7, T8, T9>()
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(T1, T2, T3, T4, T5, T6, T7, T8, T9)").WithArguments("System.ValueTuple`8").WithLocation(8, 12)
+                );
+        }
+
+        [Fact]
         public void GenericTuple()
         {
             var source = @"
@@ -2658,7 +2701,7 @@ class C
                 Assert.Equal("(System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, "
                      + "System.String, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, System.Int32, "
                      + "System.String, System.Int32, System.Int32)",
-                     model.GetTypeInfo(node).Type.ToTestDisplayString());
+                     model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
             };
 
             var verifier = CompileAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5 6 7 Bob 2 3", additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator, parseOptions: TestOptions.Regular.WithTuplesFeature());
@@ -2822,7 +2865,7 @@ class C
                 Assert.Equal("(System.Int32 a, System.Int32 b, System.Int32 c, System.Int32 d, System.Int32 e, System.Int32 f, System.Int32 g, "
                      + "System.String h, System.Int32 i, System.Int32 j, System.Int32 k, System.Int32 l, System.Int32 m, System.Int32 n, "
                      + "System.String o, System.Int32 p, System.Int32 q)",
-                     model.GetTypeInfo(node).Type.ToTestDisplayString());
+                     model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
             };
 
             var verifier = CompileAndVerify(source, expectedOutput: @"1 2 3 4 5 6 7 Alice 2 3 4 5 6 7 Bob 2 3", additionalRefs: new[] { MscorlibRef, ValueTupleRef, SystemRuntimeFacadeRef }, sourceSymbolValidator: validator, parseOptions: TestOptions.Regular.WithTuplesFeature());
@@ -3512,9 +3555,9 @@ class C2 : I<CB, CA>
                 // (15,25): error CS0425: The constraints for type parameter 'TC' of method 'C1.M<TC>((CB, (CA, TC)))' must match the constraints for type parameter 'TC' of interface method 'I<CB, CA>.M<TC>((CB, (CA, TC)))'. Consider using an explicit interface implementation instead.
                 //     public (CB, CA, TC) M<TC>((CB, (CA, TC)) arg)
                 Diagnostic(ErrorCode.ERR_ImplBadConstraints, "M").WithArguments("TC", "C1.M<TC>((CB, (CA, TC)))", "TC", "I<CB, CA>.M<TC>((CB, (CA, TC)))").WithLocation(15, 25),
-                // (25,16): error CS0029: Cannot implicitly convert type '(CA, CB, TC)' to '(CB, CA, TC)'
+                // (25,16): error CS8207: Cannot implicitly convert tuple expression to '(CB, CA, TC)'
                 //         return (arg.Item2.Item1, arg.Item1, arg.Item2.Item2);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(arg.Item2.Item1, arg.Item1, arg.Item2.Item2)").WithArguments("(CA, CB, TC)", "(CB, CA, TC)").WithLocation(25, 16)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvFromTupleLiteral, "(arg.Item2.Item1, arg.Item1, arg.Item2.Item2)").WithArguments("(CB, CA, TC)").WithLocation(25, 16)
                 );
         }
 
@@ -4379,11 +4422,12 @@ class C
         // error must mention   (int c, long d)
         (short a, short b) x2 = ((int c, int d))(e: 1, f:2);
 
-        // error must mention   (int e, string f)
+
         (int a, int b) x3 = ((long c, long d))(e: 1, f:""qq"");
+        (int a, int b) x4 = ((long c, long d))(1, null, 2);
     }
 }
-" + trivial2uple;
+" + trivial2uple + trivial3uple;
 
             CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature()).VerifyDiagnostics(
                 // (7,29): error CS0029: Cannot implicitly convert type '(long c, long d)' to '(int a, int b)'
@@ -4392,9 +4436,12 @@ class C
                 // (9,33): error CS0029: Cannot implicitly convert type '(int c, int d)' to '(short a, short b)'
                 //         (short a, short b) x2 = ((int c, int d))(e: 1, f:2);
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "((int c, int d))(e: 1, f:2)").WithArguments("(int c, int d)", "(short a, short b)").WithLocation(9, 33),
-                // (12,29): error CS0030: Cannot convert type '(int e, string f)' to '(long c, long d)'
+                // (12,47): error CS8208: Cannot convert tuple expression to '(long c, long d)'
                 //         (int a, int b) x3 = ((long c, long d))(e: 1, f:"qq");
-                Diagnostic(ErrorCode.ERR_NoExplicitConv, @"((long c, long d))(e: 1, f:""qq"")").WithArguments("(int e, string f)", "(long c, long d)").WithLocation(12, 29)
+                Diagnostic(ErrorCode.ERR_NoExplicitConvFromTupleLiteral, @"(e: 1, f:""qq"")").WithArguments("(long c, long d)").WithLocation(12, 47),
+                // (13,47): error CS8208: Cannot convert tuple expression to '(long c, long d)'
+                //         (int a, int b) x4 = ((long c, long d))(1, null, 2);
+                Diagnostic(ErrorCode.ERR_NoExplicitConvFromTupleLiteral, "(1, null, 2)").WithArguments("(long c, long d)").WithLocation(13, 47)
             );
         }
 
@@ -4419,8 +4466,9 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
-            Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
-            Assert.Equal("(System.Int16 a, System.String b)?", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("(System.Int16 a, System.String b)?", typeInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(Conversion.ImplicitNullable, model.GetConversion(node));
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
@@ -4448,18 +4496,47 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
-            Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
-            Assert.Equal("(System.Int16 e, System.String f)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitTuple, model.GetConversion(node));
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("(System.Int16 c, System.String d)", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitTupleLiteral, model.GetConversion(node));
 
             // semantic model returns topmost conversion from the sequence of conversions for
             // ((short c, string d)?)(e: 1, f: ""hello"")
-            Assert.Equal("(System.Int16 c, System.String d)", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString());
-            Assert.Equal("(System.Int16 a, System.String b)?", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitNullable, model.GetConversion(node.Parent));
+            var typeInfoParent = model.GetTypeInfo(node.Parent);
+            Assert.Equal("(System.Int16 c, System.String d)?", typeInfoParent.Type.ToTestDisplayString());
+            Assert.Equal("(System.Int16 a, System.String b)?", typeInfoParent.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, model.GetConversion(node.Parent));
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
             Assert.Equal("(System.Int16 a, System.String b)? x", model.GetDeclaredSymbol(x).ToTestDisplayString());
+        }
+
+        [Fact]
+        public void TupleConvertedType01insourceImplicit()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        (short a, string b)? x =(1, ""hello"");
+    }
+}
+" + trivial2uple + trivial3uple;
+
+            var tree = Parse(source, options: TestOptions.Regular.WithTuplesFeature());
+            var comp = CreateCompilationWithMscorlib(tree);
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            var node = nodes.OfType<TupleExpressionSyntax>().Single();
+
+            Assert.Equal(@"(1, ""hello"")", node.ToString());
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("(System.Int16 a, System.String b)?", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitNullable, model.GetConversion(node));
         }
 
         [Fact]
@@ -4483,8 +4560,9 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
-            Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
-            Assert.Equal("(System.Int16 a, System.String b)?", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("(System.Int16 a, System.String b)?", typeInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(Conversion.ImplicitNullable, model.GetConversion(node));
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
@@ -4512,9 +4590,10 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
-            Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
-            Assert.Equal("(System.Int16 e, System.String f)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitTuple, model.GetConversion(node));
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("(System.Int16 c, System.String d)", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitTupleLiteral, model.GetConversion(node));
 
             // semantic model returns topmost conversion from the sequence of conversions for
             // ((short c, string d))(e: 1, f: ""hello"")
@@ -4549,8 +4628,9 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
-            Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
-            Assert.Equal("(System.Int32 a, System.String b)?", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("(System.Int32 a, System.String b)?", typeInfo.ConvertedType.ToTestDisplayString());
             Assert.Equal(Conversion.ImplicitNullable, model.GetConversion(node));
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
@@ -4578,15 +4658,17 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
-            Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
-            Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.Identity, model.GetConversion(node));
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("(System.Int32 c, System.String d)", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitTupleLiteral, model.GetConversion(node));
 
             // semantic model returns topmost conversion from the sequence of conversions for
             // ((int c, string d)?)(e: 1, f: ""hello"")
-            Assert.Equal("(System.Int32 c, System.String d)", model.GetTypeInfo(node.Parent).Type.ToTestDisplayString());
-            Assert.Equal("(System.Int32 a, System.String b)?", model.GetTypeInfo(node.Parent).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitNullable, model.GetConversion(node.Parent));
+            var typeInfoParent = model.GetTypeInfo(node.Parent);
+            Assert.Equal("(System.Int32 c, System.String d)?", typeInfoParent.Type.ToTestDisplayString());
+            Assert.Equal("(System.Int32 a, System.String b)?", typeInfoParent.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.Identity, model.GetConversion(node.Parent));
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
             Assert.Equal("(System.Int32 a, System.String b)? x", model.GetDeclaredSymbol(x).ToTestDisplayString());
@@ -4613,9 +4695,10 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
-            Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
-            Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.Identity, model.GetConversion(node));
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("(System.Int32 c, System.String d)", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitTupleLiteral, model.GetConversion(node));
 
             // semantic model returns topmost conversion from the sequence of conversions for
             // ((int c, string d))(e: 1, f: ""hello"")
@@ -4648,9 +4731,10 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
-            Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
-            Assert.Equal("(System.Int32 a, System.String b)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.Identity, model.GetConversion(node));
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("(System.Int32 a, System.String b)", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitTupleLiteral, model.GetConversion(node));
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
             Assert.Equal("(System.Int32 a, System.String b) x", model.GetDeclaredSymbol(x).ToTestDisplayString());
@@ -4677,9 +4761,10 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
-            Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
-            Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.Identity, model.GetConversion(node));
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("(System.Int32 c, System.String d)", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitTupleLiteral, model.GetConversion(node));
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
             Assert.Equal("(System.Int32 a, System.String b) x", model.GetDeclaredSymbol(x).ToTestDisplayString());
@@ -4706,9 +4791,10 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
-            Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
-            Assert.Equal("(System.Int16 a, System.String b)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitTuple, model.GetConversion(node));
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("(System.Int16 a, System.String b)", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitTupleLiteral, model.GetConversion(node));
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
             Assert.Equal("(System.Int16 a, System.String b) x", model.GetDeclaredSymbol(x).ToTestDisplayString());
@@ -4735,9 +4821,10 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(e: 1, f: ""hello"")", node.ToString());
-            Assert.Equal("(System.Int32 e, System.String f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
-            Assert.Equal("(System.Int16 e, System.String f)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitTuple, model.GetConversion(node));
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("(System.Int16 c, System.String d)", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitTupleLiteral, model.GetConversion(node));
 
             // semantic model returns topmost conversion from the sequence of conversions for
             // ((short c, string d))(e: 1, f: ""hello"")
@@ -4772,7 +4859,7 @@ class C
             Assert.Equal(@"(e: 1, f: null)", node.ToString());
             Assert.Null(model.GetTypeInfo(node).Type);
             Assert.Equal("(System.Int16 a, System.String b)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitTuple, model.GetConversion(node));
+            Assert.Equal(Conversion.ImplicitTupleLiteral, model.GetConversion(node));
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
             Assert.Equal("(System.Int16 a, System.String b) x", model.GetDeclaredSymbol(x).ToTestDisplayString());
@@ -4800,8 +4887,8 @@ class C
 
             Assert.Equal(@"(e: 1, f: null)", node.ToString());
             Assert.Null(model.GetTypeInfo(node).Type);
-            Assert.Equal("(System.Int16 e, System.String f)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitTuple, model.GetConversion(node));
+            Assert.Equal("(System.Int16 c, System.String d)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitTupleLiteral, model.GetConversion(node));
 
             // semantic model returns topmost conversion from the sequence of conversions for
             // ((short c, string d))(e: 1, f: null)
@@ -4850,9 +4937,10 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(e: 1, f: new C1(""qq""))", node.ToString());
-            Assert.Equal("(System.Int32 e, C.C1 f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
-            Assert.Equal("(System.Int16 a, System.String b)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitTuple, model.GetConversion(node));
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("(System.Int16 a, System.String b)", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitTupleLiteral, model.GetConversion(node));
 
             var x = nodes.OfType<VariableDeclaratorSyntax>().First();
             Assert.Equal("(System.Int16 a, System.String b) x", model.GetDeclaredSymbol(x).ToTestDisplayString());
@@ -4897,9 +4985,10 @@ class C
             var node = nodes.OfType<TupleExpressionSyntax>().Single();
 
             Assert.Equal(@"(e: 1, f: new C1(""qq""))", node.ToString());
-            Assert.Equal("(System.Int32 e, C.C1 f)", model.GetTypeInfo(node).Type.ToTestDisplayString());
-            Assert.Equal("(System.Int16 e, System.String f)", model.GetTypeInfo(node).ConvertedType.ToTestDisplayString());
-            Assert.Equal(Conversion.ImplicitTuple, model.GetConversion(node));
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("(System.Int16 c, System.String d)", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.ImplicitTupleLiteral, model.GetConversion(node));
 
             // semantic model returns topmost conversion from the sequence of conversions for
             // ((short c, string d))(e: 1, f: null)
@@ -4911,6 +5000,393 @@ class C
             Assert.Equal("(System.Int16 a, System.String b) x", model.GetDeclaredSymbol(x).ToTestDisplayString());
 
             CompileAndVerify(comp, expectedOutput: "{1, qq1}");
+        }
+
+        [Fact]
+        public void TupleConvertedTypeUDC02()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        C1 x = (1, ""qq"");
+        System.Console.WriteLine(x.ToString());
+    }
+
+    class C1
+    {
+        private (byte, string) val;
+
+        private C1((byte, string) arg)
+        {
+            val = arg;
+        }
+
+        public static implicit operator C1 ((byte, string) arg)
+        {
+            return new C1(arg);
+        }
+
+        public override string ToString()
+        {
+            return val.ToString();       
+        }
+    }
+}
+" + trivial2uple;
+
+            var tree = Parse(source, options: TestOptions.Regular.WithTuplesFeature());
+            var comp = CreateCompilationWithMscorlib(tree, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics();
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            var node = nodes.OfType<TupleExpressionSyntax>().Single();
+
+            Assert.Equal(@"(1, ""qq"")", node.ToString());
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("C.C1", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitUserDefined, model.GetConversion(node).Kind);
+
+            CompileAndVerify(comp, expectedOutput: "{1, qq}");
+        }
+
+        [Fact]
+        public void TupleConvertedTypeUDC03()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        C1 x = (""1"", ""qq"");
+        System.Console.WriteLine(x.ToString());
+    }
+
+    class C1
+    {
+        private (byte, string) val;
+
+        private C1((byte, string) arg)
+        {
+            val = arg;
+        }
+
+        public static implicit operator C1 ((byte, string) arg)
+        {
+            return new C1(arg);
+        }
+
+        public override string ToString()
+        {
+            return val.ToString();       
+        }
+    }
+}
+" + trivial2uple;
+
+            var tree = Parse(source, options: TestOptions.Regular.WithTuplesFeature());
+            var comp = CreateCompilationWithMscorlib(tree, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (6,16): error CS8207: Cannot implicitly convert tuple expression to 'C.C1'
+                //         C1 x = ("1", "qq");
+                Diagnostic(ErrorCode.ERR_NoImplicitConvFromTupleLiteral, @"(""1"", ""qq"")").WithArguments("C.C1").WithLocation(6, 16)
+                );
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            var node = nodes.OfType<TupleExpressionSyntax>().Single();
+
+            Assert.Equal(@"(""1"", ""qq"")", node.ToString());
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("C.C1", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(Conversion.NoConversion, model.GetConversion(node));
+        }
+        
+        [Fact]
+        public void TupleConvertedTypeUDC04()
+        {
+            var source = @"
+public class C
+{
+    static void Main()
+    {
+        C1 x = (1, ""qq"");
+        System.Console.WriteLine(x.ToString());
+    }
+
+    public class C1
+    {
+        private (byte, string) val;
+
+        public C1((byte, string) arg)
+        {
+            val = arg;
+        }
+
+        public override string ToString()
+        {
+            return val.ToString();       
+        }
+    }
+}
+
+namespace System
+{
+    // struct with two values
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+
+        public override string ToString()
+        {
+            return '{' + Item1?.ToString() + "", "" + Item2?.ToString() + '}';
+        }
+
+        public static implicit operator C.C1 ((T1, T2) arg)
+        {
+            return new C.C1(((byte)(int)(object)arg.Item1, (string)(object)arg.Item2));
+        }
+    }
+}
+";
+
+            var tree = Parse(source, options: TestOptions.Regular.WithTuplesFeature());
+            var comp = CreateCompilationWithMscorlib(tree, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics();
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            var node = nodes.OfType<TupleExpressionSyntax>().First();
+
+            Assert.Equal(@"(1, ""qq"")", node.ToString());
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("C.C1", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitUserDefined, model.GetConversion(node).Kind);
+
+            CompileAndVerify(comp, expectedOutput: "{1, qq}");
+        }
+
+        [Fact]
+        public void TupleConvertedTypeUDC05()
+        {
+            var source = @"
+public class C
+{
+    static void Main()
+    {
+        C1 x = (1, ""qq"");
+        System.Console.WriteLine(x.ToString());
+    }
+
+    public class C1
+    {
+        private (byte, string) val;
+
+        public C1((byte, string) arg)
+        {
+            val = arg;
+        }
+
+        public static implicit operator C1 ((byte, string) arg)
+        {
+            System.Console.WriteLine(""C1"");
+            return new C1(arg);
+        }
+
+        public override string ToString()
+        {
+            return val.ToString();       
+        }
+    }
+}
+
+namespace System
+{
+    // struct with two values
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+
+        public override string ToString()
+        {
+            return '{' + Item1?.ToString() + "", "" + Item2?.ToString() + '}';
+        }
+
+        public static implicit operator C.C1 ((T1, T2) arg)
+        {
+            System.Console.WriteLine(""VT"");
+            return new C.C1(((byte)(int)(object)arg.Item1, (string)(object)arg.Item2));
+        }
+    }
+}
+";
+
+            var tree = Parse(source, options: TestOptions.Regular.WithTuplesFeature());
+            var comp = CreateCompilationWithMscorlib(tree, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics();
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            var node = nodes.OfType<TupleExpressionSyntax>().First();
+
+            Assert.Equal(@"(1, ""qq"")", node.ToString());
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("C.C1", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitUserDefined, model.GetConversion(node).Kind);
+
+            CompileAndVerify(comp, expectedOutput: 
+@"VT
+{1, qq}");
+        }
+
+        [Fact]
+        public void TupleConvertedTypeUDC06()
+        {
+            var source = @"
+public class C
+{
+    static void Main()
+    {
+        C1 x = (1, null);
+        System.Console.WriteLine(x.ToString());
+    }
+
+    public class C1
+    {
+        private (byte, string) val;
+
+        public C1((byte, string) arg)
+        {
+            val = arg;
+        }
+
+        public static implicit operator C1 ((byte, string) arg)
+        {
+            System.Console.WriteLine(""C1"");
+            return new C1(arg);
+        }
+
+        public override string ToString()
+        {
+            return val.ToString();       
+        }
+    }
+}
+
+namespace System
+{
+    // struct with two values
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+            this.Item2 = item2;
+        }
+
+        public override string ToString()
+        {
+            return '{' + Item1?.ToString() + "", "" + Item2?.ToString() + '}';
+        }
+
+        public static implicit operator C.C1 ((T1, T2) arg)
+        {
+            System.Console.WriteLine(""VT"");
+            return new C.C1(((byte)(int)(object)arg.Item1, (string)(object)arg.Item2));
+        }
+    }
+}
+";
+
+            var tree = Parse(source, options: TestOptions.Regular.WithTuplesFeature());
+            var comp = CreateCompilationWithMscorlib(tree, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics();
+
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            var node = nodes.OfType<TupleExpressionSyntax>().First();
+
+            Assert.Equal(@"(1, null)", node.ToString());
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("C.C1", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitUserDefined, model.GetConversion(node).Kind);
+
+            CompileAndVerify(comp, expectedOutput:
+@"C1
+{1, }");
+        }
+
+        [Fact]
+        public void TupleConvertedTypeUDC07()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        C1 x = M1();
+        System.Console.WriteLine(x.ToString());
+    }
+
+    static (int, string) M1()
+    {
+        return (1, ""qq"");
+    }
+
+    class C1
+    {
+        private (byte, string) val;
+
+        private C1((byte, string) arg)
+        {
+            val = arg;
+        }
+
+        public static implicit operator C1 ((byte, string) arg)
+        {
+            return new C1(arg);
+        }
+    }
+}
+" + trivial2uple;
+
+            var tree = Parse(source, options: TestOptions.Regular.WithTuplesFeature());
+            var comp = CreateCompilationWithMscorlib(tree, options: TestOptions.ReleaseExe);
+
+            comp.VerifyDiagnostics(
+                // (6,16): error CS0029: Cannot implicitly convert type '(int, string)' to 'C.C1'
+                //         C1 x = M1();
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "M1()").WithArguments("(int, string)", "C.C1").WithLocation(6, 16)
+                );
         }
 
         [Fact]
@@ -9242,6 +9718,196 @@ class C
                 );
         }
 
+        [Fact]
+        public void TargetTyping_01()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var x0 = new {tuple = (null, null)};
+        System.Console.WriteLine(x0.ToString());
+        System.ValueType x1 = (null, ""1"");
+    }
+
+    [TestAttribute((null, ""2""))]
+    [TestAttribute((3, ""3""))]
+    [TestAttribute(Val = (null, ""4""))]
+    [TestAttribute(Val = (5, ""5""))]
+    static void AttributeTarget1(){}
+
+    async System.Threading.Tasks.Task AsyncTest()
+    {
+        await (null, ""6"");
+        await (7, ""7"");
+    }
+
+    static void Default((int, string) val1 = (8, null),
+                        (int, string) val2 = (9, ""9""),
+                        (int, string) val3 = (""10"", ""10""))
+    {}
+
+    [TestAttribute((""11"", ""11""))]
+    [TestAttribute(Val = (""12"", ""12""))]
+    static void AttributeTarget2(){}
+
+    enum TestEnum
+    {
+        V1 = (13, null),
+        V2 = (14, ""14""),
+        V3 = (""15"", ""15""),
+    }
+
+    static void Test2()
+    {
+        var x = (16, (16 , null));
+        System.Console.WriteLine(x);
+
+        var u = __refvalue((17, null), (int, string));
+        var v = __refvalue((18, ""18""), (int, string));
+        var w = __refvalue((""19"", ""19""), (int, string));
+    }
+
+    
+}
+
+class TestAttribute : System.Attribute
+{
+    public TestAttribute()
+    {}
+    public TestAttribute((int, string) val)
+    {}
+
+    public (int, string) Val {get; set;}
+}
+" + trivial2uple;
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), references: new [] { SystemRef });
+            comp.VerifyDiagnostics(
+                // (6,32): error CS8206: Type of the tuple element cannot be infered from '<null>'.
+                //         var x0 = new {tuple = (null, null)};
+                Diagnostic(ErrorCode.ERR_CannotInferTupleElementType, "null").WithArguments("<null>").WithLocation(6, 32),
+                // (6,38): error CS8206: Type of the tuple element cannot be infered from '<null>'.
+                //         var x0 = new {tuple = (null, null)};
+                Diagnostic(ErrorCode.ERR_CannotInferTupleElementType, "null").WithArguments("<null>").WithLocation(6, 38),
+                // PROTOTYPE(tuples): Should try to complain about the null in the literal.
+                // (8,31): error CS8207: Cannot implicitly convert tuple expression to 'ValueType'
+                //         System.ValueType x1 = (null, "1");
+                Diagnostic(ErrorCode.ERR_NoImplicitConvFromTupleLiteral, @"(null, ""1"")").WithArguments("System.ValueType").WithLocation(8, 31),
+                // (11,20): error CS1503: Argument 1: cannot convert from '<tuple>' to '(int, string)'
+                //     [TestAttribute((null, "2"))]
+                Diagnostic(ErrorCode.ERR_BadArgType, @"(null, ""2"")").WithArguments("1", "<tuple>", "(int, string)").WithLocation(11, 20),
+                // (12,6): error CS0181: Attribute constructor parameter 'val' has type '(int, string)', which is not a valid attribute parameter type
+                //     [TestAttribute((3, "3"))]
+                Diagnostic(ErrorCode.ERR_BadAttributeParamType, "TestAttribute").WithArguments("val", "(int, string)").WithLocation(12, 6),
+                // (13,20): error CS0655: 'Val' is not a valid named attribute argument because it is not a valid attribute parameter type
+                //     [TestAttribute(Val = (null, "4"))]
+                Diagnostic(ErrorCode.ERR_BadNamedAttributeArgumentType, "Val").WithArguments("Val").WithLocation(13, 20),
+                // (14,20): error CS0655: 'Val' is not a valid named attribute argument because it is not a valid attribute parameter type
+                //     [TestAttribute(Val = (5, "5"))]
+                Diagnostic(ErrorCode.ERR_BadNamedAttributeArgumentType, "Val").WithArguments("Val").WithLocation(14, 20),
+                // (19,16): error CS8206: Type of the tuple element cannot be infered from '<null>'.
+                //         await (null, "6");
+                Diagnostic(ErrorCode.ERR_CannotInferTupleElementType, "null").WithArguments("<null>").WithLocation(19, 16),
+                // (20,9): error CS1061: '(int, string)' does not contain a definition for 'GetAwaiter' and no extension method 'GetAwaiter' accepting a first argument of type '(int, string)' could be found (are you missing a using directive or an assembly reference?)
+                //         await (7, "7");
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, @"await (7, ""7"")").WithArguments("(int, string)", "GetAwaiter").WithLocation(20, 9),
+                // (23,46): error CS1736: Default parameter value for 'val1' must be a compile-time constant
+                //     static void Default((int, string) val1 = (8, null),
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "(8, null)").WithArguments("val1").WithLocation(23, 46),
+                // (24,46): error CS1736: Default parameter value for 'val2' must be a compile-time constant
+                //                         (int, string) val2 = (9, "9"))
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"(9, ""9"")").WithArguments("val2").WithLocation(24, 46),
+                // (25,46): error CS1736: Default parameter value for 'val3' must be a compile-time constant
+                //                         (int, string) val3 = ("10", "10"))
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, @"(""10"", ""10"")").WithArguments("val3").WithLocation(25, 46),
+                // (28,20): error CS1503: Argument 1: cannot convert from '<tuple>' to '(int, string)'
+                //     [TestAttribute(("11", "11"))]
+                Diagnostic(ErrorCode.ERR_BadArgType, @"(""11"", ""11"")").WithArguments("1", "<tuple>", "(int, string)").WithLocation(28, 20),
+                // (29,20): error CS0655: 'Val' is not a valid named attribute argument because it is not a valid attribute parameter type
+                //     [TestAttribute(Val = ("12", "12"))]
+                Diagnostic(ErrorCode.ERR_BadNamedAttributeArgumentType, "Val").WithArguments("Val").WithLocation(29, 20),
+                // (34,14): error CS8207: Cannot implicitly convert tuple expression to 'int'
+                //         V1 = (13, null),
+                Diagnostic(ErrorCode.ERR_NoImplicitConvFromTupleLiteral, "(13, null)").WithArguments("int").WithLocation(34, 14),
+                // (35,14): error CS8207: Cannot implicitly convert tuple expression to 'int'
+                //         V2 = (14, "14"),
+                Diagnostic(ErrorCode.ERR_NoImplicitConvFromTupleLiteral, @"(14, ""14"")").WithArguments("int").WithLocation(35, 14),
+                // (36,14): error CS8207: Cannot implicitly convert tuple expression to 'int'
+                //         V3 = ("15", "15"),
+                Diagnostic(ErrorCode.ERR_NoImplicitConvFromTupleLiteral, @"(""15"", ""15"")").WithArguments("int").WithLocation(36, 14),
+                // (41,28): error CS8206: Type of the tuple element cannot be infered from '<null>'.
+                //         var x = (16, (16 , null));
+                Diagnostic(ErrorCode.ERR_CannotInferTupleElementType, "null").WithArguments("<null>").WithLocation(41, 28),
+                // (44,17): error CS8207: Cannot implicitly convert tuple expression to 'TypedReference'
+                //         var u = __refvalue((17, null), (int, string));
+                Diagnostic(ErrorCode.ERR_NoImplicitConvFromTupleLiteral, "__refvalue((17, null), (int, string))").WithArguments("System.TypedReference").WithLocation(44, 17),
+                // (45,17): error CS8207: Cannot implicitly convert tuple expression to 'TypedReference'
+                //         var v = __refvalue((18, "18"), (int, string));
+                Diagnostic(ErrorCode.ERR_NoImplicitConvFromTupleLiteral, @"__refvalue((18, ""18""), (int, string))").WithArguments("System.TypedReference").WithLocation(45, 17),
+                // (46,17): error CS8207: Cannot implicitly convert tuple expression to 'TypedReference'
+                //         var w = __refvalue(("19", "19"), (int, string));
+                Diagnostic(ErrorCode.ERR_NoImplicitConvFromTupleLiteral, @"__refvalue((""19"", ""19""), (int, string))").WithArguments("System.TypedReference").WithLocation(46, 17)
+                );
+        }
+
+        [Fact]
+        public void TargetTyping_02()
+        {
+            var source = @"
+class C
+{
+    static void Print<T>(T val)
+    {
+        System.Console.WriteLine($""{typeof(T)} - {val.ToString()}"");
+    }
+
+    static void Main()
+    {
+        var x0 = new {tuple = (1, ""s"")};
+        Print(x0.tuple);
+        System.ValueType x1 = (2, ""s"");
+        Print(x1);
+        (int, (int, string)) x2 = (3, (3 , null));
+        Print(x2);
+    }
+}
+" + trivial2uple;
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), options:TestOptions.ReleaseExe);
+            CompileAndVerify(comp, expectedOutput:
+@"System.ValueTuple`2[System.Int32,System.String] - {1, s}
+System.ValueType - {2, s}
+System.ValueTuple`2[System.Int32,System.ValueTuple`2[System.Int32,System.String]] - {3, {3, }}
+");
+        }
+
+        [Fact]
+        public void TargetTyping_03()
+        {
+            var source = @"
+class Class { void Method() { tuple = (1, ""hello""); } }
+" + trivial2uple;
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), references: new[] { SystemRef });
+            comp.VerifyDiagnostics(
+                // (2,31): error CS0103: The name 'tuple' does not exist in the current context
+                // class Class { void Method() { tuple = (1, "hello"); } }
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "tuple").WithArguments("tuple").WithLocation(2, 31)
+                );
+
+            var tree = comp.SyntaxTrees.Single();
+            var model = comp.GetSemanticModel(tree, ignoreAccessibility: false);
+            var nodes = tree.GetCompilationUnitRoot().DescendantNodes();
+            var node = nodes.OfType<TupleExpressionSyntax>().Single();
+
+            Assert.Equal(@"(1, ""hello"")", node.ToString());
+            var typeInfo = model.GetTypeInfo(node);
+            Assert.Null(typeInfo.Type);
+            Assert.Equal("(System.Int32, System.String)", typeInfo.ConvertedType.ToTestDisplayString());
+            Assert.Equal(ConversionKind.ImplicitTupleLiteral, model.GetConversion(node).Kind);
+        }
 
         [Fact]
         public void MissingUnderlyingType()

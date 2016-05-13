@@ -149,6 +149,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal abstract CSharpTypeInfo GetTypeInfoWorker(CSharpSyntaxNode node, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
+        /// Gets natural type of expression, if any. This is overridden by various specializations of SemanticModel.
+        /// It can assume that CheckSyntaxNode and CanGetSemanticInfo have already been called.
+        /// </summary>
+        /// <param name="node">The syntax node to get information for.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        internal abstract TypeSymbol GetNaturalTypeWorker(ExpressionSyntax node, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
         /// Gets a list of method or indexed property symbols for a syntax node. This is overridden by various specializations of SemanticModel.
         /// It can assume that CheckSyntaxNode and CanGetSemanticInfo have already been called, as well as that named
         /// argument nodes have been handled.
@@ -793,6 +801,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Gets natural type of expression, if any.
+        /// </summary>
+        /// <param name="expression">The syntax node to get information for.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        public TypeSymbol GetNaturalType(ExpressionSyntax expression, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            CheckSyntaxNode(expression);
+
+            return CanGetSemanticInfo(expression)
+                ? GetNaturalTypeWorker(expression, cancellationToken)
+                : null;
+        }
+
+        /// <summary>
         /// Gets type information about an attribute.
         /// </summary>
         /// <param name="attributeSyntax">The syntax node to get semantic information for.</param>
@@ -866,6 +888,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             var typeInfo = GetTypeInfoForNode(boundNode, boundNode, boundNodeForSyntacticParent: null);
 
             return typeInfo;
+        }
+
+        public TypeSymbol GetSpeculativeNaturalType(int position, ExpressionSyntax expression, SpeculativeBindingOption bindingOption)
+        {
+            return GetSpeculativeNaturalTypeWorker(position, expression, bindingOption);
+        }
+
+        internal TypeSymbol GetSpeculativeNaturalTypeWorker(int position, ExpressionSyntax expression, SpeculativeBindingOption bindingOption)
+        {
+            if (!CanGetSemanticInfo(expression, isSpeculative: true))
+            {
+                return null;
+            }
+
+            Binder binder;
+            ImmutableArray<Symbol> crefSymbols;
+            var boundNode = GetSpeculativelyBoundExpression(position, expression, bindingOption, out binder, out crefSymbols) as BoundExpression; //calls CheckAndAdjustPosition
+
+            if (boundNode == null)
+            {
+                return null;
+            }
+
+            switch (boundNode.Kind)
+            {
+                case BoundKind.Lambda:
+                case BoundKind.UnboundLambda:
+                    return null;
+            }
+
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            return binder.GetNaturalTypeOfExpression(boundNode, ref useSiteDiagnostics);
         }
 
         /// <summary>
@@ -1818,14 +1872,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                             type = ((BoundLocal)boundExpr).LocalSymbol.Type;
                         }
                     }
-
-                    if (boundExpr.Kind == BoundKind.ConvertedTupleLiteral)
-                    {
-                        // The bound tree always fully binds tuple literals. From the language point of
-                        // view, however, converted tuple literals represent tuple conversions
-                        // from tuple literal expressions which may or may not have types
-                        type = ((BoundConvertedTupleLiteral)boundExpr).NaturalTypeOpt;
-                    }
                 }
 
                 if (highestBoundExpr?.Kind == BoundKind.Lambda) // the enclosing conversion is explicit
@@ -1838,19 +1884,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // Type and ConvertedType are the same, but the conversion isn't Identity.
                     type = null;
                     conversion = new Conversion(ConversionKind.AnonymousFunction, lambda.Symbol, false);
-                }
-                else if (highestBoundExpr?.Kind == BoundKind.ConvertedTupleLiteral) 
-                {
-                    Debug.Assert(highestBoundExpr == boundExpr);
-                    var convertedLiteral = (BoundConvertedTupleLiteral)highestBoundExpr;
-                    // The bound tree always fully binds tuple literals. From the language point of
-                    // view, however, converted tuple literals represent tuple conversions
-                    // from tuple literal expressions which may or may not have types
-                    type = convertedLiteral.NaturalTypeOpt;
-                    convertedType = convertedLiteral.Type;
-                    conversion = convertedType.Equals(type, ignoreDynamic: true) ?
-                                        Conversion.Identity :
-                                        Conversion.ImplicitTuple;
                 }
                 else if (highestBoundExpr != null && highestBoundExpr != boundExpr && highestBoundExpr.HasExpressionType())
                 {
@@ -4483,6 +4516,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected sealed override SymbolInfo GetSymbolInfoCore(SyntaxNode node, CancellationToken cancellationToken)
         {
             return this.GetSymbolInfoFromNode(node, cancellationToken);
+        }
+
+        protected sealed override ITypeSymbol GetNaturalTypeCore(SyntaxNode expression, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var expressionSyntax = expression as ExpressionSyntax;
+
+            if (expressionSyntax == null)
+            {
+                return null;
+            }
+
+            return this.GetNaturalType(expressionSyntax, cancellationToken);
         }
 
         protected sealed override TypeInfo GetTypeInfoCore(SyntaxNode node, CancellationToken cancellationToken)

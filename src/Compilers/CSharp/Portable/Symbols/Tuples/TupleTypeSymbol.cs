@@ -67,14 +67,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Helps create a TupleTypeSymbol from source.
         /// </summary>
-        internal static NamedTypeSymbol Create(
+        internal static TupleTypeSymbol Create(
             Location locationOpt,
             ImmutableArray<TypeSymbol> elementTypes,
             ImmutableArray<Location> elementLocations,
             ImmutableArray<string> elementNames,
             CSharpCompilation compilation,
-            CSharpSyntaxNode syntax = null,
-            DiagnosticBag diagnostics = null
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics
             )
         {
             Debug.Assert(elementNames.IsDefault || elementTypes.Length == elementNames.Length);
@@ -86,7 +85,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 throw ExceptionUtilities.Unreachable;
             }
 
-            NamedTypeSymbol underlyingType = GetTupleUnderlyingType(elementTypes, syntax, compilation, diagnostics);
+            NamedTypeSymbol underlyingType = GetTupleUnderlyingType(elementTypes, compilation, ref useSiteDiagnostics);
 
             return Create(locationOpt, underlyingType, elementLocations, elementNames);
         }
@@ -222,28 +221,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Copy this tuple, but modify it to use the new element names.
-        /// </summary>
-        internal TupleTypeSymbol WithElementNames(ImmutableArray<string> newElementNames)
-        {
-            Debug.Assert(newElementNames.IsDefault || this._elementTypes.Length == newElementNames.Length);
-
-            if (this._elementNames.IsDefault)
-            {
-                if (newElementNames.IsDefault)
-                {
-                    return this;
-                }
-            }
-            else if (!newElementNames.IsDefault && this._elementNames.SequenceEqual(newElementNames))
-            {
-                return this;
-            }
-
-            return new TupleTypeSymbol(null, _underlyingType, default(ImmutableArray<Location>), newElementNames, _elementTypes);
-        }
-
-        /// <summary>
         /// Decompose the underlying tuple type into its links and store them into the underlyingTupleTypeChain.
         ///
         /// For instance, ValueTuple&lt;..., ValueTuple&lt; int >> (the underlying type for an 8-tuple)
@@ -326,10 +303,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// Produces the underlying ValueTuple corresponding to this list of element types.
-        ///
-        /// Pass a null diagnostic bag and syntax node if you don't care about diagnostics.
         /// </summary>
-        private static NamedTypeSymbol GetTupleUnderlyingType(ImmutableArray<TypeSymbol> elementTypes, CSharpSyntaxNode syntax, CSharpCompilation compilation, DiagnosticBag diagnostics)
+        private static NamedTypeSymbol GetTupleUnderlyingType(ImmutableArray<TypeSymbol> elementTypes, CSharpCompilation compilation, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             int numElements = elementTypes.Length;
             int remainder;
@@ -338,22 +313,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             NamedTypeSymbol currentSymbol = default(NamedTypeSymbol);
             NamedTypeSymbol firstTupleType = compilation.GetWellKnownType(GetTupleType(remainder));
 
-            if ((object)diagnostics != null && (object)syntax != null)
-            {
-                Binder.ReportUseSiteDiagnostics(firstTupleType, diagnostics, syntax);
-            }
-
+            firstTupleType.AddUseSiteDiagnostics(ref useSiteDiagnostics);
             currentSymbol = firstTupleType.Construct(ImmutableArray.Create(elementTypes, (chainLength - 1) * (RestPosition - 1), remainder));
 
             int loop = chainLength - 1;
             if (loop > 0)
             {
                 NamedTypeSymbol chainedTupleType = compilation.GetWellKnownType(GetTupleType(RestPosition));
-
-                if ((object)diagnostics != null && (object)syntax != null)
-                {
-                    Binder.ReportUseSiteDiagnostics(firstTupleType, diagnostics, syntax);
-                }
+                chainedTupleType.AddUseSiteDiagnostics(ref useSiteDiagnostics);
 
                 do
                 {

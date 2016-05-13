@@ -12,7 +12,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         Identity,
         ImplicitNumeric,
         ImplicitEnumeration,
-        ImplicitTuple,
+
+        /// <summary>
+        /// An implicit conversion from a tuple literal to a tuple or a tuple compatible type of matching cardinality.
+        /// </summary>
+        ImplicitTupleLiteral,
+
         ImplicitNullable,
         NullLiteral,
         ImplicitReference,

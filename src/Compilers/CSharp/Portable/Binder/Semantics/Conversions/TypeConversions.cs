@@ -38,9 +38,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             throw ExceptionUtilities.Unreachable;
         }
 
-        protected override bool HasImplicitTupleConversion(BoundExpression source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        protected override Conversion GetImplicitTupleConversion(BoundExpression source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             // Tuple conversions require a Binder, recursively
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        protected override BoundExpression ReclassifyExpressionToNaturalTypeIfAny(BoundExpression source, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            // This functionality requires a Binder
             throw ExceptionUtilities.Unreachable;
         }
     }

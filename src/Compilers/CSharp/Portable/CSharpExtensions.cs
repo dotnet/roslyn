@@ -640,6 +640,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Gets natural type of expression, if any.
+        /// </summary>
+        public static ITypeSymbol GetNaturalType(this SemanticModel semanticModel, ExpressionSyntax expression, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            if (csmodel != null)
+            {
+                return csmodel.GetNaturalType(expression, cancellationToken);
+            }
+            else
+            {
+                return null;
+            }
+        }
+
+        /// <summary>
         /// Gets type information about an attribute.
         /// </summary>
         public static TypeInfo GetTypeInfo(this SemanticModel semanticModel, AttributeSyntax attributeSyntax, CancellationToken cancellationToken = default(CancellationToken))
@@ -670,6 +686,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 return CSharpTypeInfo.None;
+            }
+        }
+
+        /// <summary>
+        /// Binds the expression in the context of the specified location and gets its natural type, if any.
+        /// This method is used to get information about an expression that did not actually
+        /// appear in the source code.
+        /// </summary>
+        public static ITypeSymbol GetSpeculativeNaturalType(this SemanticModel semanticModel, int position, ExpressionSyntax expression, SpeculativeBindingOption bindingOption)
+        {
+            var csmodel = semanticModel as CSharpSemanticModel;
+            if (csmodel != null)
+            {
+                return csmodel.GetSpeculativeNaturalType(position, expression, bindingOption);
+            }
+            else
+            {
+                return null;
             }
         }
 

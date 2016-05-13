@@ -61,6 +61,18 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Gets natural type of expression, if any.
+        /// </summary>
+        /// <param name="semanticModel"></param>
+        /// <param name="expression">The syntax node to get information for.</param>
+        /// <param name="cancellationToken">A cancellation token that can be used to cancel the
+        /// process of obtaining the semantic info.</param>
+        public static ITypeSymbol GetNaturalType(this SemanticModel semanticModel, SyntaxNode expression, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return semanticModel.GetNaturalType(expression, cancellationToken);
+        }
+
+        /// <summary>
         /// If "nameSyntax" resolves to an alias name, return the IAliasSymbol corresponding
         /// to A. Otherwise return null.
         /// </summary>

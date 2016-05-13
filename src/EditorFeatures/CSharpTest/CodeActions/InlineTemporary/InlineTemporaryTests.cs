@@ -3970,7 +3970,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public async Task Tuples()
+        public async Task Tuples_01()
         {
             var code = @"
 using System;
@@ -3989,6 +3989,33 @@ class C
 {
     public void M()
     {
+        (((int, string))((1, ""hello""))).ToString();
+    }
+}";
+
+            await TestAsync(code, expected, index: 0, compareTokens: false, parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task Tuples_02()
+        {
+            var code = @"
+using System;
+class C
+{
+    public void M()
+    {
+        var [||]x = (1, ""hello"");
+        x.ToString();
+    }
+}";
+
+            var expected = @"
+using System;
+class C
+{
+    public void M()
+    {
         ((1, ""hello"")).ToString();
     }
 }";
@@ -3997,7 +4024,7 @@ class C
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
-        public async Task TuplesWithNames()
+        public async Task TuplesWithNames_01()
         {
             var code = @"
 using System;
@@ -4006,6 +4033,33 @@ class C
     public void M()
     {
         (int a, string b) [||]x = (a: 1, b: ""hello"");
+        x.ToString();
+    }
+}";
+
+            var expected = @"
+using System;
+class C
+{
+    public void M()
+    {
+        (((int a, string b))((a: 1, b: ""hello""))).ToString();
+    }
+}";
+
+            await TestAsync(code, expected, index: 0, compareTokens: false, parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TuplesWithNames_02()
+        {
+            var code = @"
+using System;
+class C
+{
+    public void M()
+    {
+        var [||]x = (a: 1, b: ""hello"");
         x.ToString();
     }
 }";

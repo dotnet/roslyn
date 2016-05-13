@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundTupleExpression
+    internal partial class BoundTupleLiteral
     {
         public override object Display
         {

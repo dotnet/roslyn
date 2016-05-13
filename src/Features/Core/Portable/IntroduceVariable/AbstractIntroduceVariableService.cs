@@ -327,6 +327,12 @@ namespace Microsoft.CodeAnalysis.IntroduceVariable
                 return typeInfo.Type;
             }
 
+            var naturalType = semanticModel.GetNaturalType(expression, cancellationToken);
+            if (naturalType != null)
+            {
+                return naturalType;
+            }
+
             if (typeInfo.ConvertedType != null)
             {
                 return typeInfo.ConvertedType;

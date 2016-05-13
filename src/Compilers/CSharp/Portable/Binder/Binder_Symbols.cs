@@ -453,15 +453,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return new ExtendedErrorTypeSymbol(this.Compilation.Assembly.GlobalNamespace, LookupResultKind.NotCreatable, diagnostics.Add(ErrorCode.ERR_TupleTooFewElements, syntax.Location));
             }
 
-            return TupleTypeSymbol.Create(syntax.Location,
-                                            typesArray,
-                                            locationsArray,
-                                            elementNames == null ?
-                                                default(ImmutableArray<string>) :
-                                                elementNames.ToImmutableAndFree(),
-                                            this.Compilation,
-                                            syntax,
-                                            diagnostics);
+            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            var result = TupleTypeSymbol.Create(syntax.Location,
+                                                typesArray,
+                                                locationsArray,
+                                                elementNames == null ?
+                                                    default(ImmutableArray<string>) :
+                                                    elementNames.ToImmutableAndFree(),
+                                                this.Compilation,
+                                                ref useSiteDiagnostics);
+
+            diagnostics.Add(syntax, useSiteDiagnostics);
+            return result;
         }
 
         private static void CollectTupleFieldMemberNames(string name, int position, int tupleSize, ref ArrayBuilder<string> elementNames)
