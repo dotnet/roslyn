@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,7 +16,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace Roslyn.Diagnostics.Analyzers
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = "DeclarePublicAPIFix"), Shared]
-    public class DeclarePublicAPIFix : CodeFixProvider
+    public sealed class DeclarePublicAPIFix : CodeFixProvider
     {
         public sealed override ImmutableArray<string> FixableDiagnosticIds
         {
@@ -42,11 +43,14 @@ namespace Roslyn.Diagnostics.Analyzers
             {
                 string minimalSymbolName = diagnostic.Properties[DeclarePublicAPIAnalyzer.MinimalNamePropertyBagKey];
                 string publicSurfaceAreaSymbolName = diagnostic.Properties[DeclarePublicAPIAnalyzer.PublicApiNamePropertyBagKey];
+                ImmutableHashSet<string> siblingSymbolNamesToRemove = diagnostic.Properties[DeclarePublicAPIAnalyzer.PublicApiNamesOfSiblingsToRemovePropertyBagKey]
+                    .Split(DeclarePublicAPIAnalyzer.PublicApiNamesOfSiblingsToRemovePropertyBagValueSeparator.ToCharArray())
+                    .ToImmutableHashSet();
 
                 context.RegisterCodeFix(
                         new AdditionalDocumentChangeAction(
                             $"Add {minimalSymbolName} to public API",
-                            c => GetFix(publicSurfaceAreaDocument, publicSurfaceAreaSymbolName, c)),
+                            c => GetFix(publicSurfaceAreaDocument, publicSurfaceAreaSymbolName, siblingSymbolNamesToRemove, c)),
                         diagnostic);
             }
         }
@@ -56,10 +60,11 @@ namespace Roslyn.Diagnostics.Analyzers
             return project.AdditionalDocuments.FirstOrDefault(doc => doc.Name.Equals(DeclarePublicAPIAnalyzer.UnshippedFileName, StringComparison.Ordinal));
         }
 
-        private async Task<Solution> GetFix(TextDocument publicSurfaceAreaDocument, string newSymbolName, CancellationToken cancellationToken)
+        private async Task<Solution> GetFix(TextDocument publicSurfaceAreaDocument, string newSymbolName, ImmutableHashSet<string> siblingSymbolNamesToRemove, CancellationToken cancellationToken)
         {
             SourceText sourceText = await publicSurfaceAreaDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
             SourceText newSourceText = AddSymbolNamesToSourceText(sourceText, new[] { newSymbolName });
+            newSourceText = RemoveSymbolNamesFromSourceText(newSourceText, siblingSymbolNamesToRemove);
 
             return publicSurfaceAreaDocument.Project.Solution.WithAdditionalDocumentText(publicSurfaceAreaDocument.Id, newSourceText);
         }
@@ -74,6 +79,22 @@ namespace Roslyn.Diagnostics.Analyzers
             }
 
             IOrderedEnumerable<string> sortedLines = lines.OrderBy(s => s, StringComparer.Ordinal);
+
+            SourceText newSourceText = sourceText.Replace(new TextSpan(0, sourceText.Length), string.Join(Environment.NewLine, sortedLines));
+            return newSourceText;
+        }
+
+        private static SourceText RemoveSymbolNamesFromSourceText(SourceText sourceText, ImmutableHashSet<string> linesToRemove)
+        {
+            if (linesToRemove.IsEmpty)
+            {
+                return sourceText;
+            }
+
+            HashSet<string> lines = GetLinesFromSourceText(sourceText);
+            var newLines = lines.Where(line => !linesToRemove.Contains(line));
+
+            IOrderedEnumerable<string> sortedLines = newLines.OrderBy(s => s, StringComparer.Ordinal);
 
             SourceText newSourceText = sourceText.Replace(new TextSpan(0, sourceText.Length), string.Join(Environment.NewLine, sortedLines));
             return newSourceText;
@@ -171,6 +192,7 @@ namespace Roslyn.Diagnostics.Analyzers
                             .GroupBy(d => d.Location.SourceTree);
 
                     var newSymbolNames = new List<string>();
+                    var symbolNamesToRemoveBuilder = ImmutableHashSet.CreateBuilder<string>();
 
                     foreach (IGrouping<SyntaxTree, Diagnostic> grouping in groupedDiagnostics)
                     {
@@ -189,10 +211,26 @@ namespace Roslyn.Diagnostics.Analyzers
                             string publicSurfaceAreaSymbolName = diagnostic.Properties[DeclarePublicAPIAnalyzer.PublicApiNamePropertyBagKey];
 
                             newSymbolNames.Add(publicSurfaceAreaSymbolName);
+
+                            string siblingNamesToRemove = diagnostic.Properties[DeclarePublicAPIAnalyzer.PublicApiNamesOfSiblingsToRemovePropertyBagKey];
+                            if (siblingNamesToRemove.Length > 0)
+                            {
+                                var namesToRemove = siblingNamesToRemove.Split(DeclarePublicAPIAnalyzer.PublicApiNamesOfSiblingsToRemovePropertyBagValueSeparator.ToCharArray());
+                                foreach (var nameToRemove in namesToRemove)
+                                {
+                                    symbolNamesToRemoveBuilder.Add(nameToRemove);
+                                }
+                            }
                         }
                     }
 
+                    var symbolNamesToRemove = symbolNamesToRemoveBuilder.ToImmutable();
+
+                    // We shouldn't be attempting to remove any symbol name, while also adding it.
+                    Debug.Assert(newSymbolNames.All(newSymbolName => !symbolNamesToRemove.Contains(newSymbolName)));
+
                     SourceText newSourceText = AddSymbolNamesToSourceText(sourceText, newSymbolNames);
+                    newSourceText = RemoveSymbolNamesFromSourceText(newSourceText, symbolNamesToRemove);
 
                     updatedPublicSurfaceAreaText.Add(new KeyValuePair<DocumentId, SourceText>(publicSurfaceAreaAdditionalDocument.Id, newSourceText));
                 }

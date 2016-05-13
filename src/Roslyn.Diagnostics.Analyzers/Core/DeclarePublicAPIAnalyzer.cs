@@ -18,6 +18,8 @@ namespace Roslyn.Diagnostics.Analyzers
         internal const string UnshippedFileName = "PublicAPI.Unshipped.txt";
         internal const string PublicApiNamePropertyBagKey = "PublicAPIName";
         internal const string MinimalNamePropertyBagKey = "MinimalName";
+        internal const string PublicApiNamesOfSiblingsToRemovePropertyBagKey = "PublicApiNamesOfSiblingsToRemove";
+        internal const string PublicApiNamesOfSiblingsToRemovePropertyBagValueSeparator = ";;";
         internal const string RemovedApiPrefix = "*REMOVED*";
         internal const string InvalidReasonShippedCantHaveRemoved = "The shipped API file can't have removed members";
 
@@ -104,20 +106,6 @@ namespace Roslyn.Diagnostics.Analyzers
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DeclareNewApiRule, RemoveDeletedApiRule, ExposedNoninstantiableType, PublicApiFilesInvalid, DuplicateSymbolInApiFiles);
 
-        private readonly ImmutableArray<AdditionalText> _extraAdditionalFiles;
-
-        /// <summary>
-        /// This API is used for testing to allow arguments to be passed to the analyzer.
-        /// </summary>
-        public DeclarePublicAPIAnalyzer(ImmutableArray<AdditionalText> extraAdditionalFiles)
-        {
-            _extraAdditionalFiles = extraAdditionalFiles;
-        }
-
-        public DeclarePublicAPIAnalyzer()
-        {
-        }
-
         public override void Initialize(AnalysisContext context)
         {
             // TODO: Make the analyzer thread-safe.
@@ -131,11 +119,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
         private void OnCompilationStart(CompilationStartAnalysisContext compilationContext)
         {
-            ImmutableArray<AdditionalText> additionalFiles = compilationContext.Options.AdditionalFiles;
-            if (!_extraAdditionalFiles.IsDefaultOrEmpty)
-            {
-                additionalFiles = additionalFiles.AddRange(_extraAdditionalFiles);
-            }
+            var additionalFiles = compilationContext.Options.AdditionalFiles;
 
             ApiData shippedData;
             ApiData unshippedData;
@@ -193,6 +177,11 @@ namespace Roslyn.Diagnostics.Analyzers
             if (memberType != null)
             {
                 publicApiName = publicApiName + " -> " + memberType.ToDisplayString(s_publicApiFormat);
+            }
+
+            if (((symbol as INamespaceSymbol)?.IsGlobalNamespace).GetValueOrDefault())
+            {
+                return string.Empty;
             }
 
             return publicApiName;

@@ -1,12 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Immutable;
+using System.Collections.Generic;
 using System.IO;
-using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Diagnostics.Test.Utilities;
 using Xunit;
@@ -15,66 +13,90 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
 {
     public class DeclarePublicAPIAnalyzerTests : CodeFixTestBase
     {
-        private sealed class TestAdditionalText : AdditionalText
-        {
-            private readonly StringText _text;
-
-            public TestAdditionalText(string path, string text)
-            {
-                this.Path = path;
-                _text = new StringText(text, encodingOpt: null);
-            }
-
-            public override string Path { get; }
-
-            public override SourceText GetText(CancellationToken cancellationToken = default(CancellationToken)) => _text;
-        }
-
         protected override CodeFixProvider GetCSharpCodeFixProvider()
         {
-            return null;
+            return new DeclarePublicAPIFix();
         }
 
         protected override CodeFixProvider GetBasicCodeFixProvider()
         {
-            return null;
+            return new DeclarePublicAPIFix();
         }
 
         protected override DiagnosticAnalyzer GetCSharpDiagnosticAnalyzer()
         {
-            return null;
+            return new DeclarePublicAPIAnalyzer();
         }
 
         protected override DiagnosticAnalyzer GetBasicDiagnosticAnalyzer()
         {
-            return null;
+            return new DeclarePublicAPIAnalyzer();
         }
 
-        private DeclarePublicAPIAnalyzer CreateAnalyzer(string shippedApiText = "", string unshippedApiText = "", string shippedApiFilePath = null, string unshippedApiFilePath = null)
+        private TestAdditionalDocument GetShippedAdditionalTextFile(string shippedApiText = "", string shippedApiFilePath = DeclarePublicAPIAnalyzer.ShippedFileName)
         {
-            var shippedText = new TestAdditionalText(shippedApiFilePath ?? DeclarePublicAPIAnalyzer.ShippedFileName, shippedApiText);
-            var unshippedText = new TestAdditionalText(unshippedApiFilePath ?? DeclarePublicAPIAnalyzer.UnshippedFileName, unshippedApiText);
-            ImmutableArray<AdditionalText> array = ImmutableArray.Create<AdditionalText>(shippedText, unshippedText);
-            return new DeclarePublicAPIAnalyzer(array);
+            return new TestAdditionalDocument(
+                filePath: shippedApiFilePath,
+                fileName: DeclarePublicAPIAnalyzer.ShippedFileName,
+                text: shippedApiText);
+        }
+
+        private TestAdditionalDocument GetUnshippedAdditionalTextFile(string unshippedApiText = "", string unshippedApiFilePath = DeclarePublicAPIAnalyzer.UnshippedFileName)
+        {
+            return new TestAdditionalDocument(
+                filePath: unshippedApiFilePath,
+                fileName: DeclarePublicAPIAnalyzer.UnshippedFileName,
+                text: unshippedApiText);
+        }
+
+        private IEnumerable<TestAdditionalDocument> GetAdditionalTextFiles(
+            string shippedApiText = "",
+            string unshippedApiText = "",
+            string shippedApiFilePath = DeclarePublicAPIAnalyzer.ShippedFileName,
+            string unshippedApiFilePath = DeclarePublicAPIAnalyzer.UnshippedFileName)
+        {
+            yield return GetShippedAdditionalTextFile(shippedApiText, shippedApiFilePath);
+            yield return GetUnshippedAdditionalTextFile(unshippedApiText, unshippedApiFilePath);
         }
 
         private void VerifyBasic(string source, string shippedApiText, string unshippedApiText, params DiagnosticResult[] expected)
         {
-            DeclarePublicAPIAnalyzer analyzer = CreateAnalyzer(shippedApiText, unshippedApiText);
-            Verify(source, LanguageNames.VisualBasic, analyzer, expected);
+            var additionalFiles = GetAdditionalTextFiles(shippedApiText, unshippedApiText);
+            Verify(source, LanguageNames.VisualBasic, GetBasicDiagnosticAnalyzer(), additionalFiles, expected);
         }
 
         private void VerifyCSharp(string source, string shippedApiText, string unshippedApiText, params DiagnosticResult[] expected)
         {
-            DeclarePublicAPIAnalyzer analyzer = CreateAnalyzer(shippedApiText, unshippedApiText);
-            Verify(source, LanguageNames.CSharp, analyzer, expected);
+            var additionalFiles = GetAdditionalTextFiles(shippedApiText, unshippedApiText);
+            Verify(source, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), additionalFiles, expected);
         }
 
         private void VerifyCSharp(string source, string shippedApiText, string unshippedApiText, string shippedApiFilePath, string unshippedApiFilePath, params DiagnosticResult[] expected)
         {
-            DeclarePublicAPIAnalyzer analyzer = CreateAnalyzer(shippedApiText, unshippedApiText, shippedApiFilePath, unshippedApiFilePath);
-            Verify(source, LanguageNames.CSharp, analyzer, expected);
+            var additionalFiles = GetAdditionalTextFiles(shippedApiText, unshippedApiText, shippedApiFilePath, unshippedApiFilePath);
+            Verify(source, LanguageNames.CSharp, GetCSharpDiagnosticAnalyzer(), additionalFiles, expected);
         }
+
+        private void VerifyCSharpAdditionalFileFix(string source, string shippedApiText, string oldUnshippedApiText, string newUnshippedApiText, bool onlyFixFirstFixableDiagnostic = false)
+        {
+            VerifyAdditionalFileFix(LanguageNames.CSharp, source, shippedApiText, oldUnshippedApiText, newUnshippedApiText, onlyFixFirstFixableDiagnostic);
+        }
+
+        private void VerifyBasicAdditionalFileFix(string source, string shippedApiText, string oldUnshippedApiText, string newUnshippedApiText, bool onlyFixFirstFixableDiagnostic = false)
+        {
+            VerifyAdditionalFileFix(LanguageNames.VisualBasic, source, shippedApiText, oldUnshippedApiText, newUnshippedApiText, onlyFixFirstFixableDiagnostic);
+        }
+
+        private void VerifyAdditionalFileFix(string language, string source, string shippedApiText, string oldUnshippedApiText, string newUnshippedApiText, bool onlyFixFirstFixableDiagnostic)
+        {
+            var analyzer = language == LanguageNames.CSharp ? GetCSharpDiagnosticAnalyzer() : GetBasicDiagnosticAnalyzer();
+            var fixer = language == LanguageNames.CSharp ? GetCSharpCodeFixProvider() : GetBasicCodeFixProvider();
+            var additionalFiles = GetAdditionalTextFiles(shippedApiText, oldUnshippedApiText);
+            var newAdditionalFileToVerify = GetUnshippedAdditionalTextFile(newUnshippedApiText);
+            VerifyAdditionalFileFix(language, analyzer, fixer, source, additionalFiles, newAdditionalFileToVerify, onlyFixFirstFixableDiagnostic: onlyFixFirstFixableDiagnostic);
+        }
+
+        #region Diagnostic tests
 
         [Fact]
         public void SimpleMissingType()
@@ -481,7 +503,7 @@ C.Property.set -> void
 C.Method() -> void
 ";
             string unshippedText = $@"";
-            
+
             VerifyCSharp(source, shippedText, unshippedText,
                 // PublicAPI.Shipped.txt(7,1): warning RS0017: Symbol 'C.Method() -> void' is part of the declared API, but is either not public or could not be found
                 GetAdditionalFileResultAt(7, 1, DeclarePublicAPIAnalyzer.ShippedFileName, DeclarePublicAPIAnalyzer.RemoveDeletedApiRule, "C.Method() -> void"));
@@ -518,5 +540,367 @@ C.Method() -> void
                 // <%TEMP_PATH%>\PublicAPI.Shipped.txt(7,1): warning RS0017: Symbol 'C.Method() -> void' is part of the declared API, but is either not public or could not be found
                 GetAdditionalFileResultAt(7, 1, shippedFilePath, DeclarePublicAPIAnalyzer.RemoveDeletedApiRule, "C.Method() -> void"));
         }
+
+        #endregion
+
+        #region Fix tests
+
+        [Fact]
+        public void TestSimpleMissingMember_Fix()
+        {
+            var source = @"
+public class C
+{
+    public int Field;
+    public int Property { get; set; }
+    public void Method() { } 
+    public int ArrowExpressionProperty => 0;
+
+    public int NewField; // Newly added field, not in current public API.
+}
+";
+
+            var shippedText = @"";
+            var unshippedText = @"C
+C.ArrowExpressionProperty.get -> int
+C.C() -> void
+C.Field -> int
+C.Method() -> void
+C.Property.get -> int
+C.Property.set -> void";
+            var fixedUnshippedText = @"C
+C.ArrowExpressionProperty.get -> int
+C.C() -> void
+C.Field -> int
+C.Method() -> void
+C.NewField -> int
+C.Property.get -> int
+C.Property.set -> void";
+
+            VerifyCSharpAdditionalFileFix(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        public void TestAddAndRemoveMembers_CSharp_Fix()
+        {
+            // Unshipped file has a state 'ObsoleteField' entry and a missing 'NewField' entry.
+            var source = @"
+public class C
+{
+    public int Field;
+    public int Property { get; set; }
+    public void Method() { } 
+    public int ArrowExpressionProperty => 0;
+
+    public int NewField;
+}
+";
+            var shippedText = @"";
+            var unshippedText = @"C
+C.ArrowExpressionProperty.get -> int
+C.C() -> void
+C.Field -> int
+C.Method() -> void
+C.ObsoleteField -> int
+C.Property.get -> int
+C.Property.set -> void";
+            var fixedUnshippedText = @"C
+C.ArrowExpressionProperty.get -> int
+C.C() -> void
+C.Field -> int
+C.Method() -> void
+C.NewField -> int
+C.Property.get -> int
+C.Property.set -> void";
+
+            VerifyCSharpAdditionalFileFix(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        public void TestSimpleMissingType_Fix()
+        {
+            var source = @"
+public class C
+{
+    private C() { }
+}
+";
+
+            var shippedText = @"";
+            var unshippedText = @"";
+            var fixedUnshippedText = @"C";
+
+            VerifyCSharpAdditionalFileFix(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        public void TestMultipleMissingTypeAndMember_Fix()
+        {
+            var source = @"
+public class C
+{
+    private C() { }
+    public int Field;
+}
+
+public class C2 { }
+";
+
+            var shippedText = @"";
+            var unshippedText = @"";
+            var fixedUnshippedText = @"C
+C.Field -> int
+C2
+C2.C2() -> void";
+
+            VerifyCSharpAdditionalFileFix(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        public void TestChangingMethodSignatureForAnUnshippedMethod_Fix()
+        {
+            var source = @"
+public class C
+{
+    private C() { }
+    public void Method(int p1){ }
+}
+";
+
+            var shippedText = @"C";
+            // previously method had no params, so the fix should remove the previous overload.
+            var unshippedText = @"C.Method() -> void";
+            var fixedUnshippedText = @"C.Method(int p1) -> void";
+
+            VerifyCSharpAdditionalFileFix(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        public void TestChangingMethodSignatureForAnUnshippedMethodWithShippedOverloads_Fix()
+        {
+            var source = @"
+public class C
+{
+    private C() { }
+    public void Method(int p1){ }
+    public void Method(int p1, int p2){ }
+    public void Method(char p1){ }
+}
+";
+
+            var shippedText = @"C
+C.Method(int p1) -> void
+C.Method(int p1, int p2) -> void";
+            // previously method had no params, so the fix should remove the previous overload.
+            var unshippedText = @"C.Method() -> void";
+            var fixedUnshippedText = @"C.Method(char p1) -> void";
+
+            VerifyCSharpAdditionalFileFix(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        public void TestAddingNewPublicOverload_Fix()
+        {
+            var source = @"
+public class C
+{
+    private C() { }
+    public void Method(){ }
+    internal void Method(int p1){ }
+    internal void Method(int p1, int p2){ }
+    public void Method(char p1){ }
+}
+";
+
+            var shippedText = @"";
+            var unshippedText = @"C
+C.Method(char p1) -> void";
+            var fixedUnshippedText = @"C
+C.Method() -> void
+C.Method(char p1) -> void";
+
+            VerifyCSharpAdditionalFileFix(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        public void TestMissingTypeAndMemberAndNestedMembers_Fix()
+        {
+            var source = @"
+public class C
+{
+    private C() { }
+    public int Field;
+
+    public class CC
+    {
+        public int Field;
+    }
+}
+
+public class C2 { }
+";
+
+            var shippedText = @"C.CC
+C.CC.CC() -> void";
+            var unshippedText = @"";
+            var fixedUnshippedText = @"C
+C.CC.Field -> int
+C.Field -> int
+C2
+C2.C2() -> void";
+
+            VerifyCSharpAdditionalFileFix(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        public void TestMissingNestedGenericMembersAndStaleMembers_Fix()
+        {
+            var source = @"
+public class C
+{
+    private C() { }
+    public CC<int> Field;
+    private C3.C4 Field2;
+    private C3.C4 Method(C3.C4 p1) { }
+
+    public class CC<T>
+    {
+        public int Field;
+        public CC<int> Field2;
+    }
+    
+    public class C3
+    {
+        public class C4 { }
+    }
+}
+
+public class C2 { }
+";
+
+            var shippedText = @"";
+            var unshippedText = @"C.C3
+C.C3.C3() -> void
+C.C3.C4
+C.C3.C4.C4() -> void
+C.CC<T>
+C.CC<T>.CC() -> void
+C.Field2 -> C.C3.C4
+C.Method(C.C3.C4 p1) -> C.C3.C4
+";
+            var fixedUnshippedText = @"C
+C.C3
+C.C3.C3() -> void
+C.C3.C4
+C.C3.C4.C4() -> void
+C.CC<T>
+C.CC<T>.CC() -> void
+C.CC<T>.Field -> int
+C.CC<T>.Field2 -> C.CC<int>
+C.Field -> C.CC<int>
+C2
+C2.C2() -> void";
+
+            VerifyCSharpAdditionalFileFix(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        public void TestWithExistingUnshippedNestedMembers_Fix()
+        {
+            var source = @"
+public class C
+{
+    private C() { }
+    public int Field;
+
+    public class CC
+    {
+        public int Field;
+    }
+}
+
+public class C2 { }
+";
+
+            var shippedText = @"";
+            var unshippedText = @"C.CC
+C.CC.CC() -> void
+C.CC.Field -> int";
+            var fixedUnshippedText = @"C
+C.CC
+C.CC.CC() -> void
+C.CC.Field -> int
+C.Field -> int
+C2
+C2.C2() -> void";
+
+            VerifyCSharpAdditionalFileFix(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        public void TestWithExistingShippedNestedMembers_Fix()
+        {
+            var source = @"
+public class C
+{
+    private C() { }
+    public int Field;
+
+    public class CC
+    {
+        public int Field;
+    }
+}
+
+public class C2 { }
+";
+
+            var shippedText = @"C.CC
+C.CC.CC() -> void
+C.CC.Field -> int";
+            var unshippedText = @"";
+            var fixedUnshippedText = @"C
+C.Field -> int
+C2
+C2.C2() -> void";
+
+            VerifyCSharpAdditionalFileFix(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        public void TestOnlyRemoveStaleSiblingEntries_Fix()
+        {
+            var source = @"
+public class C
+{
+    private C() { }
+    public int Field;
+
+    public class CC
+    {
+        private int Field; // This has a stale public API entry, but this shouldn't be removed unless we attempt to add a public API entry for a sibling.
+    }
+}
+
+public class C2 { }
+";
+
+            var shippedText = @"";
+            var unshippedText = @"
+C.CC
+C.CC.CC() -> void
+C.CC.Field -> int";
+            var fixedUnshippedText = @"C
+C.CC
+C.CC.CC() -> void
+C.CC.Field -> int
+C.Field -> int
+C2
+C2.C2() -> void";
+
+            VerifyCSharpAdditionalFileFix(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        #endregion
     }
 }

@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Analyzer.Utilities;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
@@ -84,14 +85,7 @@ namespace Roslyn.Diagnostics.Analyzers
             internal void OnSymbolAction(SymbolAnalysisContext symbolContext)
             {
                 ISymbol symbol = symbolContext.Symbol;
-                var methodSymbol = symbol as IMethodSymbol;
-                if (methodSymbol != null &&
-                    s_ignorableMethodKinds.Contains(methodSymbol.MethodKind))
-                {
-                    return;
-                }
-
-                if (!IsPublicApi(symbol))
+                if (!IsPublicAPI(symbol))
                 {
                     return;
                 }
@@ -123,9 +117,12 @@ namespace Roslyn.Diagnostics.Analyzers
                 if (!_publicApiMap.ContainsKey(publicApiName))
                 {
                     string errorMessageName = GetErrorMessageName(symbol, isImplicitlyDeclaredConstructor);
+                    // Compute public API names for any stale siblings to remove from unshipped text (e.g. during signature change of unshipped public API).
+                    var siblingPublicApiNamesToRemove = GetSiblingNamesToRemoveFromUnshippedText(symbol);
                     ImmutableDictionary<string, string> propertyBag = ImmutableDictionary<string, string>.Empty
                         .Add(PublicApiNamePropertyBagKey, publicApiName)
-                        .Add(MinimalNamePropertyBagKey, errorMessageName);
+                        .Add(MinimalNamePropertyBagKey, errorMessageName)
+                        .Add(PublicApiNamesOfSiblingsToRemovePropertyBagKey, siblingPublicApiNamesToRemove);
 
                     var locations = isImplicitlyDeclaredConstructor ? symbol.ContainingType.Locations : symbol.Locations;
                     foreach (Location sourceLocation in locations.Where(loc => loc.IsInSource))
@@ -141,7 +138,7 @@ namespace Roslyn.Diagnostics.Analyzers
                     symbol.ContainingType.TypeKind == TypeKind.Class &&
                     !symbol.ContainingType.IsSealed &&
                     symbol.ContainingType.BaseType != null &&
-                    IsPublicApi(symbol.ContainingType.BaseType) &&
+                    IsPublicApiCore(symbol.ContainingType.BaseType) &&
                     !CanTypeBeExtendedPublicly(symbol.ContainingType.BaseType))
                 {
                     string errorMessageName = GetErrorMessageName(symbol, isImplicitlyDeclaredConstructor);
@@ -160,6 +157,126 @@ namespace Roslyn.Diagnostics.Analyzers
                 }
 
                 return errorMessageName;
+            }
+
+            private string GetSiblingNamesToRemoveFromUnshippedText(ISymbol symbol)
+            {
+                // Don't crash the analyzer if we are unable to determine stale entries to remove in public API text.
+                try
+                {
+                    return GetSiblingNamesToRemoveFromUnshippedTextCore(symbol);
+                }
+                catch(Exception ex)
+                {
+                    Debug.Assert(false, ex.Message);
+                    return string.Empty;
+                }
+            }
+
+            private string GetSiblingNamesToRemoveFromUnshippedTextCore(ISymbol symbol)
+            {
+                // Compute all sibling names that must be removed from unshipped text, as they are no longer public or have been changed.
+                var containingSymbol = symbol.ContainingSymbol as INamespaceOrTypeSymbol;
+                if (containingSymbol != null)
+                {
+                    // First get the lines in the unshipped text for siblings of the symbol:
+                    //  (a) Contains Public API name of containing symbol.
+                    //  (b) Doesn't contain Public API name of nested types/namespaces of containing symbol.
+                    var containingSymbolPublicApiName = GetPublicApiName(containingSymbol);
+
+                    var nestedNamespaceOrTypeMembers = containingSymbol.GetMembers().OfType<INamespaceOrTypeSymbol>().ToImmutableArray();
+                    var nestedNamespaceOrTypesPublicApiNames = new List<string>(nestedNamespaceOrTypeMembers.Length);
+                    foreach (var nestedNamespaceOrType in nestedNamespaceOrTypeMembers)
+                    {
+                        var nestedNamespaceOrTypePublicApiName = GetPublicApiName(nestedNamespaceOrType);
+                        nestedNamespaceOrTypesPublicApiNames.Add(nestedNamespaceOrTypePublicApiName);
+                    }
+
+                    var publicApiLinesForSiblingsOfSymbol = new HashSet<string>();
+                    foreach (var apiLine in _unshippedData.ApiList)
+                    {
+                        var apiLineText = apiLine.Text;
+                        if (apiLineText == containingSymbolPublicApiName)
+                        {
+                            // Not a sibling of symbol.
+                            continue;
+                        }
+
+                        if (!ContainsPublicApiName(apiLineText, containingSymbolPublicApiName))
+                        {
+                            // Doesn't contain containingSymbol public API name - not a sibling of symbol.
+                            continue;
+                        }
+
+                        var containedInNestedMember = false;
+                        foreach (var nestedNamespaceOrTypePublicApiName in nestedNamespaceOrTypesPublicApiNames)
+                        {
+                            if (ContainsPublicApiName(apiLineText, nestedNamespaceOrTypePublicApiName + "."))
+                            {
+                                // Belongs to a nested type/namespace in containingSymbol - not a sibling of symbol.
+                                containedInNestedMember = true;
+                                break;
+                            }
+                        }
+
+                        if (containedInNestedMember)
+                        {
+                            continue;
+                        }
+
+                        publicApiLinesForSiblingsOfSymbol.Add(apiLineText);
+                    }
+
+                    // Now remove the lines for siblings which are still public APIs - we don't want to remove those.
+                    if (publicApiLinesForSiblingsOfSymbol.Count > 0)
+                    {
+                        var siblings = containingSymbol.GetMembers();
+                        foreach (var sibling in siblings)
+                        {
+                            if (sibling.IsImplicitlyDeclared)
+                            {
+                                if (!sibling.IsConstructor())
+                                {
+                                    continue;
+                                }
+                            }
+                            else if (!IsPublicAPI(sibling))
+                            {
+                                continue;
+                            }
+
+                            var siblingPublicApiName = GetPublicApiName(sibling);
+                            publicApiLinesForSiblingsOfSymbol.Remove(siblingPublicApiName);
+                        }
+
+                        // Join all the symbols names with a special separator.
+                        return string.Join(PublicApiNamesOfSiblingsToRemovePropertyBagValueSeparator, publicApiLinesForSiblingsOfSymbol);
+                    }
+                }
+
+                return string.Empty;
+            }
+
+            private static bool ContainsPublicApiName(string apiLineText, string publicApiNameToSearch)
+            {
+                // Ensure we don't search in parameter list/return type.
+                var indexOfParamsList = apiLineText.IndexOf('(');
+                if (indexOfParamsList > 0)
+                {
+                    apiLineText = apiLineText.Substring(0, indexOfParamsList);
+                }
+                else
+                {
+                    var indexOfReturnType = apiLineText.IndexOf("->", StringComparison.Ordinal);
+                    if (indexOfReturnType > 0)
+                    {
+                        apiLineText = apiLineText.Substring(0, indexOfReturnType);
+                    }
+                }
+
+                // Ensure that we don't have any leading characters in matched substring, apart from whitespace.
+                var index = apiLineText.IndexOf(publicApiNameToSearch, StringComparison.Ordinal);
+                return index == 0 || (index > 0 && apiLineText[index - 1] == ' ');
             }
 
             internal void OnCompilationEnd(CompilationAnalysisContext context)
@@ -199,19 +316,31 @@ namespace Roslyn.Diagnostics.Analyzers
                 return list;
             }
 
-            private bool IsPublicApi(ISymbol symbol)
+            private bool IsPublicAPI(ISymbol symbol)
+            {
+                var methodSymbol = symbol as IMethodSymbol;
+                if (methodSymbol != null &&
+                    s_ignorableMethodKinds.Contains(methodSymbol.MethodKind))
+                {
+                    return false;
+                }
+
+                return IsPublicApiCore(symbol);
+            }
+
+            private bool IsPublicApiCore(ISymbol symbol)
             {
                 switch (symbol.DeclaredAccessibility)
                 {
                     case Accessibility.Public:
-                        return symbol.ContainingType == null || IsPublicApi(symbol.ContainingType);
+                        return symbol.ContainingType == null || IsPublicApiCore(symbol.ContainingType);
                     case Accessibility.Protected:
                     case Accessibility.ProtectedOrInternal:
                         // Protected symbols must have parent types (that is, top-level protected
                         // symbols are not allowed.
                         return
                             symbol.ContainingType != null &&
-                            IsPublicApi(symbol.ContainingType) &&
+                            IsPublicApiCore(symbol.ContainingType) &&
                             CanTypeBeExtendedPublicly(symbol.ContainingType);
                     default:
                         return false;
