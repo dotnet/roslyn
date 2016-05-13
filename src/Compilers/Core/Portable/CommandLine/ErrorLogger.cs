@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis
             {
                 _writer.WriteArrayStart("locations");
                 _writer.WriteObjectStart(); // location
-                _writer.WriteKey("analysisTarget");
+                _writer.WriteKey("resultFile");
 
                 WritePhysicalLocation(location);
 

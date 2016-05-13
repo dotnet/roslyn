@@ -98,7 +98,7 @@ End Class
           ""message"": ""Unused local variable: 'x'."",
           ""locations"": [
             {{
-              ""analysisTarget"": {{
+              ""resultFile"": {{
                 ""uri"": ""{0}"",
                 ""region"": {{
                   ""startLine"": 4,
@@ -203,7 +203,7 @@ End Class
           ],
           ""locations"": [
             {{
-              ""analysisTarget"": {{
+              ""resultFile"": {{
                 ""uri"": ""{0}"",
                 ""region"": {{
                   ""startLine"": 5,

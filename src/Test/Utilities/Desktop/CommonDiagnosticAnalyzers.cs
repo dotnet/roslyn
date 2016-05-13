@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis
           ""message"": """ + Descriptor1.MessageFormat + @""",
           ""locations"": [
             {
-              ""analysisTarget"": {
+              ""resultFile"": {
                 ""uri"": """ + filePath + @""",
                 ""region"": {
                   ""startLine"": " + (expectedLineSpan.StartLinePosition.Line + 1) + @",

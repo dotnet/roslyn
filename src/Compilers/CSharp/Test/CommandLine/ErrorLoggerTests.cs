@@ -92,7 +92,7 @@ public class C
           ""message"": ""The field 'C.x' is never used"",
           ""locations"": [
             {{
-              ""analysisTarget"": {{
+              ""resultFile"": {{
                 ""uri"": ""{0}"",
                 ""region"": {{
                   ""startLine"": 4,
@@ -192,7 +192,7 @@ public class C
           ],
           ""locations"": [
             {{
-              ""analysisTarget"": {{
+              ""resultFile"": {{
                 ""uri"": ""{0}"",
                 ""region"": {{
                   ""startLine"": 5,
