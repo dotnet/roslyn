@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal class SyntaxTreeDeclarationInfo : AbstractSyntaxTreeInfo
     {
         private const string PersistenceName = "<SyntaxTreeInfoDeclarationPersistence>";
-        private const string SerializationFormat = "2";
+        private const string SerializationFormat = "3";
 
         /// <summary>
         /// in memory cache will hold onto any info related to opened documents in primary branch or all documents in forked branch

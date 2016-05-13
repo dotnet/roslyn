@@ -85,6 +85,17 @@ namespace Roslyn.Utilities
             return _dictionary.TryAdd(value, 0);
         }
 
+        public void AddRange(IEnumerable<T> values)
+        {
+            if (values != null)
+            {
+                foreach (var v in values)
+                {
+                    Add(v);
+                }
+            }
+        }
+
         /// <summary>
         /// Attempts to remove a value from the set.
         /// </summary>
