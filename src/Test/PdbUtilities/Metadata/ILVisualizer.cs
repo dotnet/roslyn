@@ -406,10 +406,19 @@ namespace Roslyn.Test.MetadataUtilities
                             break;
 
                         case OperandType.InlineString:
-                            sb.Append(' ');
-                            sb.Append(VisualizeUserString(ReadUInt32(ilBytes, ref curIndex)));
-                            break;
+                            {
+                                sb.Append(' ');
+                                uint pseudoToken = ReadUInt32(ilBytes, ref curIndex);
+                                // Check for an encoding of that indices the current module's module version ID.
+                                if (pseudoToken == 0x80000000)
+                                {
+                                    sb.Append("##MVID##");
+                                    break;
+                                }
 
+                                sb.Append(VisualizeUserString(pseudoToken));
+                                break;
+                            }
                         case OperandType.InlineNone:
                             break;
 
