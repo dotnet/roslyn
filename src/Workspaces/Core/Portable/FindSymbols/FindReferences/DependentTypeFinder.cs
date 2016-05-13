@@ -632,30 +632,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             };
         }
 
-        private static bool TryGetDependentTypes(ConditionalWeakTable<Compilation, ConcurrentDictionary<SymbolKey, List<SymbolKey>>> cache, Compilation compilation, SymbolKey typeId, out List<SymbolKey> dependentTypeIds)
-        {
-            dependentTypeIds = null;
-
-            ConcurrentDictionary<SymbolKey, List<SymbolKey>> dictionary;
-
-            return cache.TryGetValue(compilation, out dictionary) &&
-                   dictionary.TryGetValue(typeId, out dependentTypeIds);
-        }
-
-        private static List<SymbolKey> GetOrAddDependentTypes(ConditionalWeakTable<Compilation, ConcurrentDictionary<SymbolKey, List<SymbolKey>>> cache, Compilation compilation, SymbolKey typeId, List<SymbolKey> dependentTypeIds)
-        {
-            List<SymbolKey> result;
-            if (TryGetDependentTypes(cache, compilation, typeId, out result))
-            {
-                return result;
-            }
-            else
-            {
-                return cache.GetValue(compilation, s_createSymbolDictionary)
-                            .GetOrAdd(typeId, dependentTypeIds);
-            }
-        }
-
         internal static bool OriginalSymbolsMatch(
             ISymbol searchSymbol,
             ISymbol symbolToMatch,
