@@ -346,6 +346,7 @@ Public Class ParseMethods
             End Class
         ]]>,
         <errors>
+            <error id="30812"/>
             <error id="30180"/>
         </errors>)
     End Sub

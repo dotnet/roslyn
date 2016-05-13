@@ -684,11 +684,10 @@ Property Scen4(
 p1 as vb$anonymous1
 ) a
 ]]>,
-            Diagnostic(ERRID.ERR_AutoPropertyCantHaveParams, <![CDATA[(
-p1 as vb$anonymous1
-)]]>.Value),
-            Diagnostic(ERRID.ERR_ExpectedEOS, "a")
-)
+Diagnostic(ERRID.ERR_InvalidParameterSyntax, "anonymous1"),
+Diagnostic(ERRID.ERR_AutoPropertyCantHaveParams, <![CDATA[(
+ p1 as vb$anonymous1
+)]]>.Value))
     End Sub
 
     <Fact>
