@@ -82,7 +82,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     cancellationToken.ThrowIfCancellationRequested();
 
                     // Search for all the workqueue types in parallel.
-                    var tasks = workQueue.Select(t => GetTypesImmediatelyDerivedFromClassesAsync(t, solution, cancellationToken)).ToArray();
+                    var tasks = workQueue.Select(t => GetTypesImmediatelyDerivedFromClassesAsync(
+                        t, solution, projects, cancellationToken)).ToArray();
                     await Task.WhenAll(tasks).ConfigureAwait(false);
 
                     workQueue.Clear();
@@ -144,7 +145,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // Search for all the workqueue types in parallel.
                     if (interfaceQueue.Count > 0)
                     {
-                        var interfaceTasks = interfaceQueue.Select(t => GetTypesImmediatelyDerivedFromInterfacesAsync(t, solution, cancellationToken)).ToArray();
+                        var interfaceTasks = interfaceQueue.Select(t => GetTypesImmediatelyDerivedFromInterfacesAsync(
+                            t, solution, projects, cancellationToken)).ToArray();
                         await Task.WhenAll(interfaceTasks).ConfigureAwait(false);
 
                         interfaceQueue.Clear();
@@ -200,15 +202,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution,
             CancellationToken cancellationToken)
         {
+            return GetTypesImmediatelyDerivedFromInterfacesAsync(
+                type, solution, projects: null,
+                cancellationToken: cancellationToken);
+        }
+
+        public static Task<IEnumerable<INamedTypeSymbol>> GetTypesImmediatelyDerivedFromInterfacesAsync(
+            INamedTypeSymbol type,
+            Solution solution,
+            IImmutableSet<Project> projects,
+            CancellationToken cancellationToken)
+        {
             cancellationToken.ThrowIfCancellationRequested();
 
             if (type?.TypeKind == TypeKind.Interface)
             {
                 type = type.OriginalDefinition;
                 return GetTypesAsync(
-                    type, solution, projects: null,
-                    searchProjectAsync: GetTypesImmediatelyDerivedFromInterfacesAsync,
-                    cancellationToken: cancellationToken);
+                    type, solution, projects,
+                    GetTypesImmediatelyDerivedFromInterfacesAsync,
+                    cancellationToken);
             }
 
             return SpecializedTasks.EmptyEnumerable<INamedTypeSymbol>();
@@ -278,12 +291,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 return null;
             };
-
         }
 
         public static Task<IEnumerable<INamedTypeSymbol>> GetTypesImmediatelyDerivedFromClassesAsync(
             INamedTypeSymbol type,
             Solution solution,
+            CancellationToken cancellationToken)
+        {
+            return GetTypesImmediatelyDerivedFromClassesAsync(
+                type, solution, projects: null, 
+                cancellationToken: cancellationToken);
+        }
+
+        public static Task<IEnumerable<INamedTypeSymbol>> GetTypesImmediatelyDerivedFromClassesAsync(
+            INamedTypeSymbol type,
+            Solution solution,
+            IImmutableSet<Project> projects,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -292,9 +315,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 !type.IsSealed)
             {
                 return GetTypesAsync(
-                    type, solution, projects: null,
-                    searchProjectAsync: GetTypesImmediatelyDerivedFromClassesAsync,
-                    cancellationToken: cancellationToken);
+                    type, solution, projects,
+                    GetTypesImmediatelyDerivedFromClassesAsync,
+                    cancellationToken);
             }
 
             return SpecializedTasks.EmptyEnumerable<INamedTypeSymbol>();
