@@ -74,7 +74,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
             return new Project(dteProject, this, projectLanguage);
         }
 
-        public Project GetOpenedProject(string projectName, ProjectLanguage projectLanguage)
+        public Project GetProject(string projectName, ProjectLanguage projectLanguage)
         {
             DteProject dteProject = GetDteProject(projectName);
             return new Project(dteProject, this, projectLanguage);

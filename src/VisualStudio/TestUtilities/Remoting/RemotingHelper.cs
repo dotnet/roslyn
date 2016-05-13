@@ -52,10 +52,7 @@ namespace Roslyn.VisualStudio.Test.Utilities.Remoting
             }
         }
 
-        public static IWpfTextViewMargin GetTextViewMargin(string marginName)
-        {
-            return InvokeOnUIThread(() => ActiveTextViewHost.GetTextViewMargin(marginName));
-        }
+        public static IWpfTextViewMargin GetTextViewMargin(string marginName) => InvokeOnUIThread(() => ActiveTextViewHost.GetTextViewMargin(marginName));
 
         public static ReadOnlyCollection<ICompletionSession> ActiveTextViewCompletionSessions => CompletionBroker.GetSessions(ActiveTextView);
 
