@@ -632,26 +632,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             };
         }
 
-        private static List<INamedTypeSymbol> GetAllSourceAndAccessibleTypesInCompilation(Compilation compilation, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            List<INamedTypeSymbol> types;
-            if (s_compilationAllSourceAndAccessibleTypesTable.TryGetValue(compilation, out types))
-            {
-                return types;
-            }
-
-            types = new List<INamedTypeSymbol>();
-
-            // Note that we are checking the GlobalNamespace of the compilation (which includes all types).
-            types.AddRange(compilation.GlobalNamespace.GetAllTypes(cancellationToken)
-                                                      .Where(t => t.Locations.Any(loc => loc.IsInSource) ||
-                                                             (t.DeclaredAccessibility != Accessibility.Private && t.IsAccessibleWithin(compilation.Assembly))));
-
-            return s_compilationAllSourceAndAccessibleTypesTable.GetValue(compilation, _ => types);
-        }
-
         private static List<INamedTypeSymbol> GetAllSourceTypesInCompilation(Compilation compilation, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
