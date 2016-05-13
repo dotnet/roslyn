@@ -16,8 +16,6 @@ using Xunit;
 using System.Xml;
 using System.Threading.Tasks;
 
-using static System.FormattableString;
-
 namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 {
     public class IntegrationTests : TestBase
@@ -27,19 +25,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
         static IntegrationTests()
         {
-            var vsVersion = Environment.GetEnvironmentVariable("VisualStudioVersion") ?? "14.0";
-            using (var key = Registry.LocalMachine.OpenSubKey(Invariant($@"SOFTWARE\Microsoft\MSBuild\ToolsVersions\{vsVersion}"), writable: false))
-            {
-                if (key != null)
-                {
-                    var toolsPath = key.GetValue("MSBuildToolsPath");
-                    if (toolsPath != null)
-                    {
-                        s_msbuildDirectory = toolsPath.ToString();
-                        s_msbuildExecutable = Path.Combine(s_msbuildDirectory, "MSBuild.exe");
-                    }
-                }
-            }
+            s_msbuildDirectory = TestHelpers.GetMSBuildDirectory();
+            s_msbuildExecutable = Path.Combine(s_msbuildDirectory, "MSBuild.exe");
         }
 
         private readonly TempDirectory _tempDirectory;

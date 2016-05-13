@@ -22,8 +22,6 @@ using MSBuildTask::Microsoft.CodeAnalysis.BuildTasks;
 using Microsoft.CodeAnalysis.CommandLine;
 using Moq;
 
-using static System.FormattableString;
-
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
     public class CompilerServerUnitTests : TestBase
@@ -53,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
                 // VBCSCompiler is used as a DLL in these tests, need to hook the resolve to the installed location.
                 AppDomain.CurrentDomain.AssemblyResolve += OnAssemblyResolve;
-                basePath = GetMSBuildDirectory();
+                basePath = TestHelpers.GetMSBuildDirectory();
                 if (basePath == null)
                 {
                     return;
@@ -71,24 +69,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             if (e.Name.StartsWith("VBCSCompiler"))
             {
                 return Assembly.LoadFrom(CompilerServerExecutable);
-            }
-
-            return null;
-        }
-
-        private static string GetMSBuildDirectory()
-        {
-            var vsVersion = Environment.GetEnvironmentVariable("VisualStudioVersion") ?? "14.0";
-            using (var key = Registry.LocalMachine.OpenSubKey(Invariant($@"SOFTWARE\Microsoft\MSBuild\ToolsVersions\{vsVersion}"), false))
-            {
-                if (key != null)
-                {
-                    var toolsPath = key.GetValue("MSBuildToolsPath");
-                    if (toolsPath != null)
-                    {
-                        return toolsPath.ToString();
-                    }
-                }
             }
 
             return null;
