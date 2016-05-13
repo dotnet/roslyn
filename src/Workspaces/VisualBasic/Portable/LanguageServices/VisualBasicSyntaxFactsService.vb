@@ -962,9 +962,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private Function GetTypeName(typeSyntax As TypeSyntax) As String
             If TypeOf typeSyntax Is SimpleNameSyntax Then
-                GetSimpleName(DirectCast(typeSyntax, SimpleNameSyntax))
+                Return GetSimpleName(DirectCast(typeSyntax, SimpleNameSyntax))
             ElseIf TypeOf typeSyntax Is QualifiedNameSyntax Then
-                GetSimpleName(DirectCast(typeSyntax, QualifiedNameSyntax).Right)
+                Return GetSimpleName(DirectCast(typeSyntax, QualifiedNameSyntax).Right)
             End If
 
             Return Nothing
