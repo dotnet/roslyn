@@ -15,10 +15,10 @@ using VSCompletion = Microsoft.VisualStudio.Language.Intellisense.Completion;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Presentation
 {
-#if NEWCOMPLETION
-    internal sealed class CompletionSet3 : CompletionSet2
+#if DEV15
+    internal sealed class FilteredRoslynCompletionSet : CompletionSet2, ICompletionSet
 #else
-    internal sealed class CompletionSet3 : CompletionSet
+    internal sealed class RoslynCompletionSet : CompletionSet, ICompletionSet
 #endif
     {
         private readonly ForegroundThreadAffinitizedObject _foregroundObject = new ForegroundThreadAffinitizedObject();
@@ -27,11 +27,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         private readonly CompletionPresenterSession _completionPresenterSession;
         private Dictionary<PresentationItem, VSCompletion> _presentationItemMap;
 
-        private CompletionHelper _completionHelper;
-        private IReadOnlyList<IntellisenseFilter2> _filters;
         private IReadOnlyDictionary<CompletionItem, string> _completionItemToFilterText;
 
-        public CompletionSet3(
+#if DEV15
+        private CompletionHelper _completionHelper;
+        private IReadOnlyList<IntellisenseFilter2> _filters;
+        public override IReadOnlyList<IIntellisenseFilter> Filters => _filters;
+
+        public FilteredRoslynCompletionSet(
+#else
+        public RoslynCompletionSet(
+#endif
             CompletionPresenterSession completionPresenterSession,
             ITextView textView,
             ITextBuffer subjectBuffer)
@@ -43,19 +49,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             this.DisplayName = "All";
         }
 
-#if NEWCOMPLETION
-        public override IReadOnlyList<IIntellisenseFilter> Filters => _filters;
-#endif
-
-        internal void SetTrackingSpan(ITrackingSpan trackingSpan)
+        void ICompletionSet.SetTrackingSpan(ITrackingSpan trackingSpan)
         {
             this.ApplicableTo = trackingSpan;
         }
 
-        internal void SetCompletionItems(
+        void ICompletionSet.SetCompletionItems(
             IList<PresentationItem> completionItems,
             PresentationItem selectedItem,
-            PresentationItem suggestionModeItem,
+            PresentationItem presetBuilder,
             bool suggestionMode,
             bool isSoftSelected,
             ImmutableArray<CompletionItemFilter> completionItemFilters,
@@ -74,12 +76,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 this.WritableCompletionBuilders.BeginBulkOperation();
                 this.WritableCompletionBuilders.Clear();
 
+#if DEV15
                 // If more than one filter was provided, then present it to the user.
                 if (_filters == null && completionItemFilters.Length > 1)
                 {
                     _filters = completionItemFilters.Select(f => new IntellisenseFilter2(this, f, GetLanguage()))
                                                     .ToArray();
                 }
+#endif
 
                 var applicableToText = this.ApplicableTo.GetText(this.ApplicableTo.TextBuffer.CurrentSnapshot);
 
@@ -90,8 +94,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                         selectedItem.CompletionService,
                         isSuggestionModeItem: true);
 
-                var showBuilder = suggestionMode || suggestionModeItem != null;
-                var bestSuggestionModeItem = applicableToText.Length > 0 ? filteredSuggestionModeItem : suggestionModeItem ?? filteredSuggestionModeItem;
+                var showBuilder = suggestionMode || presetBuilder != null;
+                var bestSuggestionModeItem = applicableToText.Length > 0 ? filteredSuggestionModeItem : presetBuilder ?? filteredSuggestionModeItem;
 
                 if (showBuilder && bestSuggestionModeItem != null)
                 {
@@ -148,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             return value;
         }
 
-        internal PresentationItem GetPresentationItem(VSCompletion completion)
+        PresentationItem ICompletionSet.GetPresentationItem(VSCompletion completion)
         {
             // Linear search is ok since this is only called by the user manually selecting 
             // an item.  Creating a reverse mapping uses too much memory and affects GCs.
@@ -191,6 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             return "";
         }
 
+#if DEV15
         private CompletionHelper GetCompletionHelper()
         {
             _foregroundObject.AssertIsForeground();
@@ -206,11 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             return _completionHelper;
         }
 
-#if NEWCOMPLETION
         public override IReadOnlyList<Span> GetHighlightedSpansInDisplayText(string displayText)
-#else
-        public IReadOnlyList<Span> GetHighlightedSpansInDisplayText(string displayText)
-#endif
         {
             if (_completionItemToFilterText != null)
             {
@@ -239,7 +240,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         internal void OnIntelliSenseFiltersChanged()
         {
-            this._completionPresenterSession.OnIntelliSenseFiltersChanged(_filters);
+            this._completionPresenterSession.OnIntelliSenseFiltersChanged(
+                _filters.ToImmutableDictionary(f => f.CompletionItemFilter, f => f.IsChecked));
         }
+#endif
+
+        CompletionSet ICompletionSet.CompletionSet => this;
     }
 }

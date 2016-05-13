@@ -14,7 +14,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
         // Make the channel name well known by using a static base and appending the process ID of the host
         public static readonly string PortNameFormatString = $"{nameof(IntegrationService)}_{{0}}";
 
-        private ConcurrentDictionary<string, ObjRef> _marshalledObjects = new ConcurrentDictionary<string, ObjRef>();
+        private readonly ConcurrentDictionary<string, ObjRef> _marshalledObjects = new ConcurrentDictionary<string, ObjRef>();
 
         public string Execute(string assemblyFilePath, string typeFullName, string methodName, BindingFlags bindingFlags, params object[] parameters)
         {
@@ -41,5 +41,9 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
             return objectUri;
         }
+
+        /// <summary>The base Uri of the service.</summary>
+        /// <remarks>This resolves to a string such as <c>ipc://IntegrationService_{HostProcessId}"</c></remarks>
+        public string Uri { get; set; }
     }
 }

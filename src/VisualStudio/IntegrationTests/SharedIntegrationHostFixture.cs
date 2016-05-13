@@ -3,7 +3,7 @@
 using Roslyn.VisualStudio.Test.Utilities;
 using Xunit;
 
-namespace Roslyn.VisualStudio.Integration.UnitTests
+namespace Roslyn.VisualStudio.IntegrationTests
 {
     [CollectionDefinition(nameof(SharedIntegrationHostFixture))]
     public sealed class SharedIntegrationHostFixture : ICollectionFixture<VisualStudioInstanceFactory>

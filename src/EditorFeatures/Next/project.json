@@ -1,0 +1,8 @@
+﻿{
+  "dependencies": {
+    "Microsoft.VisualStudio.Language.Intellisense": "15.0.25123-Dev15Preview",
+  },
+  "frameworks": {
+    "net46": {}
+  }
+}
