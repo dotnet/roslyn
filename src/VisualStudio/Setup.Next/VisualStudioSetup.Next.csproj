@@ -23,14 +23,20 @@
     <CopyNuGetImplementations>true</CopyNuGetImplementations>
   </PropertyGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\Dependencies\VisualStudio\VisualStudio.csproj">
+      <Project>{8da861d8-0cce-4334-b6c0-01a846c881ec}</Project>
+      <Name>VisualStudio</Name>
+      <Private>False</Private>
+    </ProjectReference>
     <ProjectReference Include="..\..\EditorFeatures\Next\EditorFeatures.Next.csproj">
       <Project>{366BBCDC-B05F-4677-9B5B-78BA816A1484}</Project>
       <Name>EditorFeatures.Next</Name>
-      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bBuiltProjectOutputGroupDependencies%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
+      <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup%3bGetCopyToOutputDirectoryItems%3bSatelliteDllsProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup%3b</IncludeOutputGroupsInVSIXLocalOnly>
     </ProjectReference>
     <ProjectReference Include="..\Setup\VisualStudioSetup.csproj">
       <Name>VisualStudioSetup</Name>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
@@ -54,6 +60,9 @@
     <Reference Include="System" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\Setup\ProvideRoslynBindingRedirection.cs">
+      <Link>ProvideRoslynBindingRedirection.cs</Link>
+    </Compile>
     <Compile Include="AssemblyRedirects.cs" />
   </ItemGroup>
   <ImportGroup Label="Targets">
