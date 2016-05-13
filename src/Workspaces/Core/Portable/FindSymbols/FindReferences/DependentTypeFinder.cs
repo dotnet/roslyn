@@ -632,25 +632,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             };
         }
 
-        private static List<INamedTypeSymbol> GetAllSourceTypesInCompilation(Compilation compilation, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            List<INamedTypeSymbol> types;
-            if (s_compilationSourceTypesTable.TryGetValue(compilation, out types))
-            {
-                return types;
-            }
-
-            types = new List<INamedTypeSymbol>();
-
-            // Note that we are checking the GlobalNamespace of the Compilation's *Assembly* (which
-            // only includes source types).
-            types.AddRange(compilation.Assembly.GlobalNamespace.GetAllTypes(cancellationToken));
-
-            return s_compilationSourceTypesTable.GetValue(compilation, _ => types);
-        }
-
         private static bool TryGetDependentTypes(ConditionalWeakTable<Compilation, ConcurrentDictionary<SymbolKey, List<SymbolKey>>> cache, Compilation compilation, SymbolKey typeId, out List<SymbolKey> dependentTypeIds)
         {
             dependentTypeIds = null;
