@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// This is an internal implementation of <see cref="SymbolFinder.FindDerivedClassesAsync"/>, which is a publically callable method.
         /// </summary>
-        public static Task<IEnumerable<INamedTypeSymbol>> FindDerivedClassesAsync(
+        public static async Task<IEnumerable<INamedTypeSymbol>> FindDerivedClassesAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
@@ -129,16 +129,44 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (type?.TypeKind == TypeKind.Class &&
                 !type.IsSealed)
             {
-                return GetDependentTypesAsync(
-                    type,
-                    solution,
-                    projects,
-                    s_findDerivedClassesPredicate,
-                    s_derivedClassesCache,
-                    cancellationToken);
+                // Search outwards by looking for immediately derived classes of the type passed in,
+                // then immediately derived classes of those types, and so on and so on.
+                //
+                // We do this by keeping a queue of types to search for (starting with the initial
+                // type we were given).  As long as we keep discovering new types, we keep searching
+                // outwards.  Once no new types are discovered, we're done.
+                var finalResult = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
+
+                var workQueue = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
+                workQueue.Add(type);
+
+                while (workQueue.Count > 0)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    // Search for all the workqueue types in parallel.
+                    var tasks = workQueue.Select(t => GetTypesImmediatelyDerivedFromClassesAsync(t, solution, cancellationToken)).ToArray();
+                    await Task.WhenAll(tasks).ConfigureAwait(false);
+
+                    workQueue.Clear();
+                    foreach (var task in tasks)
+                    {
+                        foreach (var derivedType in task.Result)
+                        {
+                            if (finalResult.Add(derivedType))
+                            {
+                                // We saw a derived type for the first time.  Enqueue it so that
+                                // we can find any derived types of it.
+                                workQueue.Add(derivedType);
+                            }
+                        }
+                    }
+                }
+
+                return finalResult;
             }
 
-            return SpecializedTasks.EmptyEnumerable<INamedTypeSymbol>();
+            return SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>();
         }
 
         public static Task<IEnumerable<INamedTypeSymbol>> FindImplementingTypesAsync(
@@ -299,7 +327,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             if (results.Any())
             {
-                return results.OfType<INamedTypeSymbol>();
+                return results.OfType<INamedTypeSymbol>().ToList();
             }
 
             return SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>();
