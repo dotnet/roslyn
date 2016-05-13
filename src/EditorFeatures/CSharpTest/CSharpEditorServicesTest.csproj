@@ -121,6 +121,8 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AddBraces\AddBracesFixAllTests.cs" />
+    <Compile Include="AddBraces\AddBracesTests.cs" />
     <Compile Include="AutomaticCompletion\AutomaticBraceCompletionTests.cs" />
     <Compile Include="AutomaticCompletion\AutomaticBracketCompletionTests.cs" />
     <Compile Include="AutomaticCompletion\AutomaticLessAndGreaterThanCompletionTests.cs" />

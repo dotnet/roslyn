@@ -10,7 +10,6 @@ using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
-using Roslyn.Test.Utilities;
 using Cci = Microsoft.Cci;
 
 namespace Roslyn.Test.Utilities
@@ -38,7 +37,7 @@ namespace Roslyn.Test.Utilities
         internal static CompilationTestData.MethodData GetMethodData(this CompilationTestData data, string qualifiedMethodName)
         {
             var methodData = default(CompilationTestData.MethodData);
-            var map = data.Methods;
+            var map = data.GetMethodsByName();
 
             if (!map.TryGetValue(qualifiedMethodName, out methodData))
             {

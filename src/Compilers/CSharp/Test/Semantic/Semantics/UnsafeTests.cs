@@ -2962,7 +2962,7 @@ public unsafe struct S
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "Alias*").WithArguments("S"));
         }
 
-        [Fact]
+        [Fact()]
         public void ERR_ManagedAddr_Members()
         {
             var text = @"

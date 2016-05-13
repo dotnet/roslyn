@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis
         protected Task RaiseDocumentOpenedEventAsync(Document document)
         {
             var ev = _eventMap.GetEventHandlers<EventHandler<DocumentEventArgs>>(DocumentOpenedEventName);
-            if (ev.HasHandlers)
+            if (ev.HasHandlers && document != null)
             {
                 return this.ScheduleTask(() =>
                 {
@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis
         protected Task RaiseDocumentClosedEventAsync(Document document)
         {
             var ev = _eventMap.GetEventHandlers<EventHandler<DocumentEventArgs>>(DocumentClosedEventName);
-            if (ev.HasHandlers)
+            if (ev.HasHandlers && document != null)
             {
                 return this.ScheduleTask(() =>
                 {
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis
         protected Task RaiseDocumentActiveContextChangedEventAsync(Document document)
         {
             var ev = _eventMap.GetEventHandlers<EventHandler<DocumentEventArgs>>(DocumentActiveContextChangedName);
-            if (ev.HasHandlers)
+            if (ev.HasHandlers && document != null)
             {
                 return this.ScheduleTask(() =>
                 {

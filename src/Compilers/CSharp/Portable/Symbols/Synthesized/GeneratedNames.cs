@@ -515,5 +515,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             return "<" + sourceParameter.Name + ">";
         }
+
+        internal static string ReplacedMemberName(string memberName, int uniqueId)
+        {
+            return "<" + memberName + ">v__" + StringExtensions.GetNumeral(uniqueId);
+        }
     }
 }

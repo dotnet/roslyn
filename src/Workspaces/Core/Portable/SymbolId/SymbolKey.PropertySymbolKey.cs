@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis
 
                 var comparisonOptions = new ComparisonOptions(compilation.IsCaseSensitive, ignoreAssemblyKey, compareMethodTypeParametersByName: true);
                 var matchingProperties = properties.Where(p =>
-                    ParametersMatch(comparisonOptions, compilation, p.OriginalDefinition.Parameters, _refKinds, _originalParameterTypeKeys, cancellationToken));
+                    ParametersMatch(comparisonOptions, p.OriginalDefinition.Parameters, _refKinds, _originalParameterTypeKeys, cancellationToken));
 
                 return CreateSymbolInfo(matchingProperties);
             }

@@ -29,6 +29,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             private readonly FileChangeTracker _fileChangeTracker;
             private readonly ReiteratedVersionSnapshotTracker _snapshotTracker;
             private readonly TextLoader _doNotAccessDirectlyLoader;
+            private readonly bool _isGenerated;
 
             /// <summary>
             /// The text buffer that is open in the editor. When the file is closed, this is null.
@@ -54,7 +55,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 ITextUndoHistoryRegistry textUndoHistoryRegistry,
                 IVsFileChangeEx fileChangeService,
                 ITextBuffer openTextBuffer,
-                DocumentId id)
+                DocumentId id,
+                bool isGenerated)
             {
                 Contract.ThrowIfNull(documentProvider);
 
@@ -73,6 +75,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 _openTextBuffer = openTextBuffer;
                 _snapshotTracker = new ReiteratedVersionSnapshotTracker(openTextBuffer);
+                _isGenerated = isGenerated;
 
                 // The project system does not tell us the CodePage specified in the proj file, so
                 // we use null to auto-detect.
@@ -127,7 +130,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     folders: this.Folders,
                     sourceCodeKind: this.SourceCodeKind,
                     loader: this.Loader,
-                    filePath: this.FilePath);
+                    filePath: this.FilePath,
+                    isGenerated: _isGenerated);
             }
 
             internal void ProcessOpen(ITextBuffer openedBuffer, bool isCurrentContext)

@@ -38,14 +38,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
             Assert.Equal(origlist.Count, newlist.Count)
 
             For i = 0 To newlist.Count - 1
-                ResolveAndVerifySymbol(newlist(i), newCompilation, origlist(i), originalCompilation)
+                ResolveAndVerifySymbol(newlist(i), origlist(i), originalCompilation)
             Next
 
         End Sub
 
         Friend Shared Sub ResolveAndVerifyTypeSymbol(node As ExpressionSyntax, sourceSymbol As ITypeSymbol, model As SemanticModel, sourceComp As Compilation)
             Dim typeinfo = model.GetTypeInfo(node)
-            ResolveAndVerifySymbol(If(typeinfo.Type, typeinfo.ConvertedType), model.Compilation, sourceSymbol, sourceComp)
+            ResolveAndVerifySymbol(If(typeinfo.Type, typeinfo.ConvertedType), sourceSymbol, sourceComp)
         End Sub
 
         Friend Shared Sub ResolveAndVerifySymbol(node As ExpressionSyntax, sourceSymbol As ISymbol, model As SemanticModel, sourceComp As Compilation, Optional comparison As SymbolIdComparison = SymbolIdComparison.None)
@@ -56,29 +56,29 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
                 symbol = syminfo.CandidateSymbols.Single()
             End If
 
-            ResolveAndVerifySymbol(symbol, model.Compilation, sourceSymbol, sourceComp, comparison)
+            ResolveAndVerifySymbol(symbol, sourceSymbol, sourceComp, comparison)
         End Sub
 
-        Friend Shared Sub ResolveAndVerifySymbol(symbol1 As ISymbol, compilation1 As Compilation, symbol2 As ISymbol, compilation2 As Compilation, Optional comparison As SymbolIdComparison = SymbolIdComparison.None)
+        Friend Shared Sub ResolveAndVerifySymbol(symbol1 As ISymbol, symbol2 As ISymbol, compilation2 As Compilation, Optional comparison As SymbolIdComparison = SymbolIdComparison.None)
 
-            AssertSymbolsIdsEqual(symbol1, compilation1, symbol2, compilation2, comparison)
+            AssertSymbolsIdsEqual(symbol1, symbol2, compilation2, comparison)
 
-            Dim resolvedSymbol = ResolveSymbol(symbol1, compilation1, compilation2, comparison)
+            Dim resolvedSymbol = ResolveSymbol(symbol1, compilation2, comparison)
             Assert.NotNull(resolvedSymbol)
             Assert.Equal(symbol2, resolvedSymbol)
             Assert.Equal(symbol2.GetHashCode(), resolvedSymbol.GetHashCode())
         End Sub
 
-        Friend Shared Function ResolveSymbol(originalSymbol As ISymbol, originalCompilation As Compilation, targetCompilation As Compilation, comparison As SymbolIdComparison) As ISymbol
-            Dim sid = SymbolKey.Create(originalSymbol, originalCompilation, CancellationToken.None)
+        Friend Shared Function ResolveSymbol(originalSymbol As ISymbol, targetCompilation As Compilation, comparison As SymbolIdComparison) As ISymbol
+            Dim sid = SymbolKey.Create(originalSymbol, CancellationToken.None)
             Dim symInfo = sid.Resolve(targetCompilation, (comparison And SymbolIdComparison.IgnoreAssemblyIds) = SymbolIdComparison.IgnoreAssemblyIds)
             Return symInfo.Symbol
         End Function
 
-        Friend Shared Sub AssertSymbolsIdsEqual(symbol1 As ISymbol, compilation1 As Compilation, symbol2 As ISymbol, compilation2 As Compilation, comparison As SymbolIdComparison, Optional expectEqual As Boolean = True)
+        Friend Shared Sub AssertSymbolsIdsEqual(symbol1 As ISymbol, symbol2 As ISymbol, compilation2 As Compilation, comparison As SymbolIdComparison, Optional expectEqual As Boolean = True)
 
-            Dim sid1 = SymbolKey.Create(symbol1, compilation1, CancellationToken.None)
-            Dim sid2 = SymbolKey.Create(symbol2, compilation2, CancellationToken.None)
+            Dim sid1 = SymbolKey.Create(symbol1, CancellationToken.None)
+            Dim sid2 = SymbolKey.Create(symbol2, CancellationToken.None)
 
             Dim isCaseSensitive = (comparison And SymbolIdComparison.CaseSensitive) = SymbolIdComparison.CaseSensitive
             Dim ignoreAssemblyIds = (comparison And SymbolIdComparison.IgnoreAssemblyIds) = SymbolIdComparison.IgnoreAssemblyIds

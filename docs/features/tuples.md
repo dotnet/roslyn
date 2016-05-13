@@ -230,3 +230,66 @@ M1((1, ()=>(2, 3)));         // the first overload is used due to "exact match" 
 
 ``` 
 
+Language grammar changes
+---------------------
+This is based on the [ANTLR grammar](https://raw.githubusercontent.com/ljw1004/csharpspec/gh-pages/csharp.g4) from Lucian.
+
+For tuple type declarations:
+
+```ANTLR
+struct_type
+    : type_name
+    | simple_type
+    | nullable_type
+    | tuple_type // new
+    ; 
+    
+tuple_type
+    : '(' tuple_type_element_list ')'
+    ;
+    
+tuple_type_element_list
+    : tuple_type_element ',' tuple_type_element
+    | tuple_type_element_list ',' tuple_type_element
+    ;
+    
+tuple_type_element
+    : type identifier?
+    ;
+```
+
+For tuple literals:
+
+```ANTLR
+literal
+    : boolean_literal
+    | integer_literal
+    | real_literal
+    | character_literal
+    | string_literal
+    | null_literal
+    | tuple_literal // new
+    ;
+
+tuple_literal
+    : '(' tuple_literal_element_list ')'
+    ;
+
+tuple_literal_element_list
+    : tuple_literal_element ',' tuple_literal_element
+    | tuple_literal_element_list ',' tuple_literal_element
+    ;
+
+tuple_literal_element
+    : ( identifier ':' )? expression
+    ;
+```
+
+Note that because it is not a constant expression, a tuple literal cannot be used as default value for an optional parameter.
+
+Open issues:
+-----------
+
+- [ ] Provide more details on semantics of tuple type declarations, both static (Type rules, constraints, all-or-none names, can't be used on right-hand-side of a 'is', ...) and dynamic (what does it do at runtime?).
+- [ ] Provide more details on semantics of tuple literals, both static (new kind of conversion from expression, new kind of conversion from type, all-or-none, scrambled names, underlying types, underlying names, listing the members of this type, what it means to access, ) and dynamic (what happens when you do this conversion?).
+- [ ] Exactly matching expression
