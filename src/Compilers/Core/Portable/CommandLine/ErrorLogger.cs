@@ -91,7 +91,7 @@ namespace Microsoft.CodeAnalysis
 
         private void WriteLocations(Location location, IReadOnlyList<Location> additionalLocations)
         {
-            if (location.SourceTree != null)
+            if (HasPath(location))
             {
                 _writer.WriteArrayStart("locations");
                 _writer.WriteObjectStart(); // location
@@ -108,13 +108,13 @@ namespace Microsoft.CodeAnalysis
             // as SARIF relatedLocations.
             if (additionalLocations != null &&
                 additionalLocations.Count > 0 &&
-                additionalLocations.Any(l => l.SourceTree != null))
+                additionalLocations.Any(l => HasPath(l)))
             {
                 _writer.WriteArrayStart("relatedLocations");
 
                 foreach (var additionalLocation in additionalLocations)
                 {
-                    if (additionalLocation.SourceTree != null)
+                    if (HasPath(additionalLocation))
                     {
                         _writer.WriteObjectStart(); // annotatedCodeLocation
                         _writer.WriteKey("physicalLocation");
@@ -131,13 +131,15 @@ namespace Microsoft.CodeAnalysis
 
         private void WritePhysicalLocation(Location location)
         {
-            Debug.Assert(location.SourceTree != null);
+            Debug.Assert(HasPath(location));
+
+            FileLinePositionSpan span = location.GetLineSpan();
 
             _writer.WriteObjectStart();
-            _writer.Write("uri", GetUri(location.SourceTree));
+            _writer.Write("uri", GetUri(span.Path));
 
             // Note that SARIF lines and columns are 1-based, but FileLinePositionSpan is 0-based
-            FileLinePositionSpan span = location.GetLineSpan();
+            
             _writer.WriteObjectStart("region");
             _writer.Write("startLine", span.StartLinePosition.Line + 1);
             _writer.Write("startColumn", span.StartLinePosition.Character + 1);
@@ -148,17 +150,24 @@ namespace Microsoft.CodeAnalysis
             _writer.WriteObjectEnd();
         }
 
-        private static string GetUri(SyntaxTree syntaxTree)
+        private static bool HasPath(Location location)
         {
+            return !string.IsNullOrEmpty(location.GetLineSpan().Path);
+        }
+
+        private static string GetUri(string path)
+        {
+            Debug.Assert(!string.IsNullOrEmpty(path));
+
             Uri uri;
 
-            if (!Uri.TryCreate(syntaxTree.FilePath, UriKind.RelativeOrAbsolute, out uri))
+            if (!Uri.TryCreate(path, UriKind.RelativeOrAbsolute, out uri))
             {
-                // The only constraint on SyntaxTree.FilePath is that it can be interpreted by
+                // The only constraint on paths are that they can be interpreted by
                 // various resolvers so there is no guarantee we can turn the arbitrary string
                 // in to a URI. If our attempt to do so fails, use the original string as the
                 // "URI".
-                return syntaxTree.FilePath;
+                return path;
             }
 
             return uri.ToString();
