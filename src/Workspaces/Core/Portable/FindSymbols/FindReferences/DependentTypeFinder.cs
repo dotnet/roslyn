@@ -632,59 +632,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             };
         }
 
-        private static async Task GetDependentTypesInProjectAsync(
-            INamedTypeSymbol type, Project project, Solution solution, Func<INamedTypeSymbol, INamedTypeSymbol, bool> predicate, ConditionalWeakTable<Compilation, ConcurrentDictionary<SymbolKey, List<SymbolKey>>> cache,
-            bool locationsInMetadata, ConcurrentSet<ISymbol> results, CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-            var typeId = type.GetSymbolKey();
-
-            List<SymbolKey> dependentTypeIds;
-            if (!TryGetDependentTypes(cache, compilation, typeId, out dependentTypeIds))
-            {
-                List<INamedTypeSymbol> allTypes;
-                if (locationsInMetadata)
-                {
-                    // From metadata, have to check other (non private) metadata types, as well as
-                    // source types.
-                    allTypes = GetAllSourceAndAccessibleTypesInCompilation(compilation, cancellationToken);
-                }
-                else
-                {
-                    // It's from source, so only other source types could derive from it.
-                    allTypes = GetAllSourceTypesInCompilation(compilation, cancellationToken);
-                }
-
-                dependentTypeIds = new List<SymbolKey>();
-                foreach (var t in allTypes)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    if (predicate(t, type))
-                    {
-                        dependentTypeIds.Add(t.GetSymbolKey());
-                    }
-                }
-
-                dependentTypeIds = GetOrAddDependentTypes(cache, compilation, typeId, dependentTypeIds);
-            }
-
-            foreach (var id in dependentTypeIds)
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                var resolvedSymbols = id.Resolve(compilation, cancellationToken: cancellationToken).GetAllSymbols();
-                foreach (var resolvedSymbol in resolvedSymbols)
-                {
-                    var mappedSymbol = await SymbolFinder.FindSourceDefinitionAsync(resolvedSymbol, solution, cancellationToken).ConfigureAwait(false) ?? resolvedSymbol;
-                    results.Add(mappedSymbol);
-                }
-            }
-        }
-
         private static List<INamedTypeSymbol> GetAllSourceAndAccessibleTypesInCompilation(Compilation compilation, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
