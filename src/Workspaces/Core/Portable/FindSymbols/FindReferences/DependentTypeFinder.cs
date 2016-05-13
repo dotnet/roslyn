@@ -34,87 +34,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal static class DependentTypeFinder
     {
         /// <summary>
-        /// For a given <see cref="Compilation"/>, stores a flat list of all the source types and all the accessible metadata types
-        /// within the compilation.
-        /// </summary>
-        private static readonly ConditionalWeakTable<Compilation, List<INamedTypeSymbol>> s_compilationAllSourceAndAccessibleTypesTable =
-            new ConditionalWeakTable<Compilation, List<INamedTypeSymbol>>();
-
-        /// <summary>
         /// For a given <see cref="Compilation"/>, stores a flat list of all the accessible metadata types
         /// within the compilation.
         /// </summary>
         private static readonly ConditionalWeakTable<Compilation, List<INamedTypeSymbol>> s_compilationAllAccessibleMetadataTypesTable =
             new ConditionalWeakTable<Compilation, List<INamedTypeSymbol>>();
-
-        /// <summary>
-        /// For a given <see cref="Compilation"/>, stores a flat list of all the source types.
-        /// </summary>
-        private static readonly ConditionalWeakTable<Compilation, List<INamedTypeSymbol>> s_compilationSourceTypesTable =
-            new ConditionalWeakTable<Compilation, List<INamedTypeSymbol>>();
-
-        /// <summary>
-        /// A predicate for determining if one class derives from another. Static to avoid unnecessary allocations.
-        /// </summary>
-        private static readonly Func<INamedTypeSymbol, INamedTypeSymbol, bool> s_findDerivedClassesPredicate =
-            (t1, t2) => t1.InheritsFromIgnoringConstruction(t2);
-
-        /// <summary>
-        /// For a given <see cref="Compilation"/>, maps from a class (from the compilation or one of its dependencies)
-        /// to the set of classes in the compilation that derive from it.
-        /// </summary>
-        /// <remarks>
-        /// <see cref="SymbolKey"/>s are used instead of <see cref="ISymbol"/>s to avoid keeping other compilations alive
-        /// unnecessarily.
-        /// </remarks>
-        private static readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<SymbolKey, List<SymbolKey>>> s_derivedClassesCache =
-            new ConditionalWeakTable<Compilation, ConcurrentDictionary<SymbolKey, List<SymbolKey>>>();
-
-        /// <summary>
-        /// A predicate for determining if one interface derives from another. Static to avoid unnecessary allocations.
-        /// </summary>
-        private static readonly Func<INamedTypeSymbol, INamedTypeSymbol, bool> s_findDerivedInterfacesPredicate =
-            (t1, t2) => t1.TypeKind == TypeKind.Interface && t1.OriginalDefinition.AllInterfaces.Contains(t2);
-
-        /// <summary>
-        /// For a given <see cref="Compilation"/>, maps from an interface (from the compilation or one of its dependencies)
-        /// to the set of interfaces in the compilation that derive from it.
-        /// </summary>
-        /// <remarks>
-        /// <see cref="SymbolKey"/>s are used instead of <see cref="ISymbol"/>s to avoid keeping other compilations alive
-        /// unnecessarily.
-        /// </remarks>
-        private static readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<SymbolKey, List<SymbolKey>>> s_derivedInterfacesCache =
-            new ConditionalWeakTable<Compilation, ConcurrentDictionary<SymbolKey, List<SymbolKey>>>();
-
-        /// <summary>
-        /// A predicate for determining if a class implements an interface. Static to avoid unnecessary allocations.
-        /// </summary>
-        private static readonly Func<INamedTypeSymbol, INamedTypeSymbol, bool> s_findImplementingInterfacesPredicate =
-            (t1, t2) => t1.OriginalDefinition.ImplementsIgnoringConstruction(t2);
-
-        /// <summary>
-        /// For a given <see cref="Compilation"/>, maps from an interface (from the compilation or one of its dependencies)
-        /// to the set of types in the compilation that implement it.
-        /// </summary>
-        /// <remarks>
-        /// <see cref="SymbolKey"/>s are used instead of <see cref="ISymbol"/>s to avoid keeping other compilations alive
-        /// unnecessarily.
-        /// </remarks>
-        private static readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<SymbolKey, List<SymbolKey>>> s_implementingInterfacesCache =
-            new ConditionalWeakTable<Compilation, ConcurrentDictionary<SymbolKey, List<SymbolKey>>>();
-
-        /// <summary>
-        /// Used by the cache to compare <see cref="SymbolKey"/>s used as keys in the cache. We make sure to check the casing of names and assembly IDs during the comparison,
-        /// in order to be as discriminating as possible.
-        /// </summary>
-        private static readonly IEqualityComparer<SymbolKey> s_symbolIdComparer = SymbolKey.GetComparer(ignoreCase: true, ignoreAssemblyKeys: false);
-
-        /// <summary>
-        /// Used to create a new concurrent <see cref="SymbolKey"/> map for a given compilation when needed.
-        /// </summary>
-        private static readonly ConditionalWeakTable<Compilation, ConcurrentDictionary<SymbolKey, List<SymbolKey>>>.CreateValueCallback s_createSymbolDictionary =
-            _ => new ConcurrentDictionary<SymbolKey, List<SymbolKey>>(s_symbolIdComparer);
 
         /// <summary>
         /// This is an internal implementation of <see cref="SymbolFinder.FindDerivedClassesAsync"/>, which is a publically callable method.
