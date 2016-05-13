@@ -1953,5 +1953,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATURE_PartialInterfaces
         FEATURE_ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
         FEATURE_IOperation
+        FEATURE_NoLongerRequireDefaultValueOnOptionalParameter
     End Enum
 End Namespace

@@ -4442,12 +4442,14 @@ checkNullable:
                     If param.ContainsDiagnostics Then
                         param = param.AddTrailingSyntax(ResyncAt({SyntaxKind.CommaToken, SyntaxKind.CloseParenToken}))
                     Else
-                        ' TODO: MAKE THIS CONDITIONAL ON A LANGUAGE FEATURE FLAG
-                        If param.Default Is Nothing Then
-                            param = param.AddTrailingSyntax(ResyncAt({SyntaxKind.CommaToken, SyntaxKind.CloseParenToken}))
-
+                        ' Check to see ifLanguage Featue is available.
+                        If CheckFeatureAvailability(Feature.NoLongerRequireDefaultValueOnOptionalParameter) Then
+                            If param.Default Is Nothing Then
+                                'param = param.AddTrailingSyntax(ResyncAt({SyntaxKind.CommaToken, SyntaxKind.CloseParenToken}))
+                            End If
                         End If
                     End If
+
                     Dim comma As PunctuationSyntax = Nothing
                     If Not TryGetTokenAndEatNewLine(SyntaxKind.CommaToken, comma) Then
 
@@ -4620,9 +4622,11 @@ checkNullable:
                 value = ParseExpressionCore()
 
             ElseIf modifiers.Any AndAlso modifiers.Any(SyntaxKind.OptionalKeyword) Then
-                'TODO:           Make this dependant on language feature flag
-                'equals = ReportSyntaxError(InternalSyntaxFactory.MissingPunctuation(SyntaxKind.EqualsToken), ERRID.ERR_ObsoleteOptionalWithoutValue)
-                'value = ParseExpressionCore()
+
+                If CheckFeatureAvailability(Feature.NoLongerRequireDefaultValueOnOptionalParameter) = False Then
+                    equals = ReportSyntaxError(InternalSyntaxFactory.MissingPunctuation(SyntaxKind.EqualsToken), ERRID.ERR_ObsoleteOptionalWithoutValue)
+                    value = ParseExpressionCore()
+                End If
 
             End If
 

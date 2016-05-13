@@ -30,6 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         PartialInterfaces
         ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
         IOperation
+        NoLongerRequireDefaultValueOnOptionalParameter
     End Enum
 
     Friend Module FeatureExtensions
@@ -77,7 +78,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                      Feature.PartialInterfaces,
                      Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
                     Return LanguageVersion.VisualBasic14
-
+                Case Feature.NoLongerRequireDefaultValueOnOptionalParameter
+                    Return LanguageVersion.VisualBasic15
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select
@@ -135,9 +137,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ERRID.FEATURE_ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
                 Case Feature.IOperation
                     Return ERRID.FEATURE_IOperation
+                Case Feature.NoLongerRequireDefaultValueOnOptionalParameter
+                    Return ERRID.FEATURE_NoLongerRequireDefaultValueOnOptionalParameter
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select
         End Function
+
     End Module
 End Namespace
