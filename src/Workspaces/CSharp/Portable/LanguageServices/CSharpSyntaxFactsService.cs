@@ -898,13 +898,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             for (var current = node; current != null; current = current.Parent)
             {
-                if (node.IsKind(SyntaxKind.NamespaceDeclaration))
+                if (current.IsKind(SyntaxKind.NamespaceDeclaration))
                 {
-                    ProcessUsings(aliasMaps, ((NamespaceDeclarationSyntax)node).Usings);
+                    ProcessUsings(aliasMaps, ((NamespaceDeclarationSyntax)current).Usings);
                 }
-                else if (node.IsKind(SyntaxKind.CompilationUnit))
+                else if (current.IsKind(SyntaxKind.CompilationUnit))
                 {
-                    ProcessUsings(aliasMaps, ((CompilationUnitSyntax)node).Usings);
+                    ProcessUsings(aliasMaps, ((CompilationUnitSyntax)current).Usings);
                 }
             }
         }
