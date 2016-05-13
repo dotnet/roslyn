@@ -2,8 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -22,17 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
     {
         internal partial class Session
         {
-            public void ComputeModel(
-                ImmutableArray<ISignatureHelpProvider> providers,
-                SignatureHelpTrigger trigger)
-            {
-                ComputeModel(providers, ImmutableArray<ISignatureHelpProvider>.Empty, trigger);
-            }
-
-            public void ComputeModel(
-                ImmutableArray<ISignatureHelpProvider> matchedProviders,
-                ImmutableArray<ISignatureHelpProvider> unmatchedProviders,
-                SignatureHelpTrigger trigger)
+            public void ComputeModel(SignatureHelpTrigger trigger)
             {
                 AssertIsForeground();
 
@@ -42,13 +30,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 // If we've already computed a model, then just use that.  Otherwise, actually
                 // compute a new model and send that along.
                 Computation.ChainTaskAndNotifyControllerWhenFinished(
-                    (model, cancellationToken) => ComputeModelInBackgroundAsync(model, matchedProviders, unmatchedProviders, caretPosition, disconnectedBufferGraph, trigger, cancellationToken));
+                    (model, cancellationToken) => ComputeModelInBackgroundAsync(model, caretPosition, disconnectedBufferGraph, trigger, cancellationToken));
             }
 
             private async Task<Model> ComputeModelInBackgroundAsync(
                 Model currentModel,
-                ImmutableArray<ISignatureHelpProvider> matchedProviders,
-                ImmutableArray<ISignatureHelpProvider> unmatchedProviders,
                 SnapshotPoint caretPosition,
                 DisconnectedBufferGraph disconnectedBufferGraph,
                 SignatureHelpTrigger trigger,
@@ -67,31 +53,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                             return currentModel;
                         }
 
-                        if (trigger.Kind == SignatureHelpTriggerKind.Retrigger)
-                        {
-                            Trace.WriteLine("Retrigger");
-                            if (currentModel == null ||
-                                (trigger.Character != 0 && !currentModel.Provider.IsRetriggerCharacter(trigger.Character)))
-                            {
-                                return currentModel;
-                            }
-                        }
-
                         var service = document.GetLanguageService<SignatureHelpService>();
 
-                        // first try to query the providers that can trigger on the specified character
-                        var result = await service.GetSignaturesAsync(matchedProviders, document, caretPosition, trigger, cancellationToken: cancellationToken).ConfigureAwait(false);
-
+                        var result = await service.GetSignaturesAsync(document, caretPosition, trigger, cancellationToken: cancellationToken).ConfigureAwait(false);
                         if (result?.Provider == null)
                         {
-                            // no match, so now query the other providers
-                            result = await service.GetSignaturesAsync(unmatchedProviders, document, caretPosition, trigger, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-                            if (result?.Provider == null)
-                            {
-                                // the other providers didn't produce items either, so we don't produce a model
-                                return null;
-                            }
+                            return null;
                         }
 
                         if (currentModel != null &&
@@ -148,7 +115,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
                 // If the provider did not pick a default, and it's the same provider as the previous
                 // model we have, then try to return the same item that we had before. 
-                if (currentModel != null && currentModel.Provider == items.Provider)
+                if (currentModel != null)
                 {
                     return items.Items.FirstOrDefault(i => DisplayPartsMatch(i, currentModel.SelectedItem)) ?? items.Items.First();
                 }

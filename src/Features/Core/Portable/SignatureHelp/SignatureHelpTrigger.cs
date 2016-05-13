@@ -41,11 +41,11 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         }
 
         /// <summary>
-        /// Creates a new instance of a <see cref="SignatureHelpTrigger"/> association with the insertion of a typed character into the document.
+        /// Creates a new instance of a <see cref="SignatureHelpTrigger"/> association with updating at a particular position in the document.
         /// </summary>
-        public static SignatureHelpTrigger CreateRetriggerTrigger(char character = (char)0)
+        public static SignatureHelpTrigger CreateUpdateTrigger()
         {
-            return new SignatureHelpTrigger(SignatureHelpTriggerKind.Retrigger, character);
+            return new SignatureHelpTrigger(SignatureHelpTriggerKind.Update);
         }
     }
 }

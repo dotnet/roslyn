@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 {
     internal abstract partial class SignatureHelpProvider
     {
-        internal class SymbolKeySignatureHelpItem : SignatureHelpItem, IEquatable<SymbolKeySignatureHelpItem>
+        private class SymbolKeySignatureHelpItem : SignatureHelpItem, IEquatable<SymbolKeySignatureHelpItem>
         {
             public SymbolKey? SymbolKey { get; }
 

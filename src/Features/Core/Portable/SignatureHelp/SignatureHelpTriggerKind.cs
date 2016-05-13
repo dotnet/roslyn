@@ -15,8 +15,8 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         Insertion,
 
         /// <summary>
-        /// Completion is being retriggered.
+        /// Signature Help is being updated.
         /// </summary>
-        Retrigger,
+        Update,
     }
 }

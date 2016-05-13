@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
     {
         internal override void OnTextViewBufferPostChanged(object sender, EventArgs args)
         {
-            Retrigger();
+            Update();
         }
     }
 }

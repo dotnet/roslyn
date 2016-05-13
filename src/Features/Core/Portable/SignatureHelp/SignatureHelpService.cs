@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.SignatureHelp
 {
@@ -28,16 +29,33 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
         public abstract string Language { get; }
 
         /// <summary>
+        /// Returns true if the character recently inserted in the text should trigger SignatureHelp.
+        /// </summary>
+        /// <param name="text">The document text to trigger completion within </param>
+        /// <param name="caretPosition">The position of the caret after the triggering action.</param>
+        /// <param name="trigger">The potential triggering action.</param>
+        /// <param name="options">Optional options that override the default options.</param>
+        /// <remarks>
+        /// This API uses SourceText instead of Document so implementations can only be based on text, not syntax or semantics.
+        /// </remarks>
+        public virtual bool ShouldTriggerSignatureHelp(
+            SourceText text,
+            int caretPosition,
+            SignatureHelpTrigger trigger,
+            OptionSet options = null)
+        {
+            return false;
+        }
+
+        /// <summary>
         /// Gets the signatures available at the caret position.
         /// </summary>
-        /// <param name="providers">An array of <see cref="ISignatureHelpProvider"/>s from which to retrieve signatures.</param>
         /// <param name="document">The document that signature help is occuring within.</param>
         /// <param name="caretPosition">The position of the caret after the triggering action.</param>
         /// <param name="trigger">The triggering action.</param>
         /// <param name="options">Optional options that override the default options.</param>
         /// <param name="cancellationToken"></param>
         public abstract Task<SignatureList> GetSignaturesAsync(
-            ImmutableArray<ISignatureHelpProvider> providers,
             Document document,
             int caretPosition,
             SignatureHelpTrigger trigger = default(SignatureHelpTrigger),

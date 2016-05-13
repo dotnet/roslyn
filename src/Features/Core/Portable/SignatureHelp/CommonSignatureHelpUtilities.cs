@@ -127,7 +127,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 expression = token.Parent?.GetAncestorsOrThis<TSyntax>().SkipWhile(syntax => !isArgumentListToken(syntax, token)).FirstOrDefault();
                 return expression != null;
             }
-            else if (triggerReason == SignatureHelpTriggerKind.Retrigger)
+            else if (triggerReason == SignatureHelpTriggerKind.Update)
             {
                 if (!syntaxFacts.IsInNonUserCode(root.SyntaxTree, position, cancellationToken) ||
                     syntaxFacts.IsEntirelyWithinStringOrCharOrNumericLiteral(root.SyntaxTree, position, cancellationToken))

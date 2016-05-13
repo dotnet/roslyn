@@ -1,10 +1,10 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.SignatureHelp;
 using Microsoft.CodeAnalysis.Text;
@@ -76,24 +76,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             }
         }
 
-        private void StartSession(ImmutableArray<ISignatureHelpProvider> providers, SignatureHelpTrigger trigger)
+        private void StartSession(SignatureHelpTrigger trigger)
         {
             AssertIsForeground();
             VerifySessionIsInactive();
 
             this.sessionOpt = new Session(this, Presenter.CreateSession(TextView, SubjectBuffer, null));
-            this.sessionOpt.ComputeModel(providers, trigger);
-        }
-
-        private ImmutableArray<ISignatureHelpProvider> GetProviders()
-        {
-            this.AssertIsForeground();
-
-            var signatureHelpService = GetSignatureHelpService() as SignatureHelpServiceWithProviders;
-
-            return signatureHelpService != null
-                ? signatureHelpService.GetProviders()
-                : ImmutableArray<ISignatureHelpProvider>.Empty;
+            this.sessionOpt.ComputeModel(trigger);
         }
 
         private SignatureHelpService GetSignatureHelpService()
@@ -108,7 +97,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
             return workspace.Services.GetLanguageServices(this.SubjectBuffer).GetService<SignatureHelpService>();
         }
 
-        private void Retrigger()
+        private OptionSet GetOptions()
+        {
+            AssertIsForeground();
+
+            Workspace workspace;
+            if (!Workspace.TryGetWorkspace(this.SubjectBuffer.AsTextContainer(), out workspace))
+            {
+                return null;
+            }
+
+            return workspace.Options;
+        }
+
+        private void Update()
         {
             AssertIsForeground();
             if (!IsSessionActive)
@@ -122,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 return;
             }
 
-            sessionOpt.ComputeModel(GetProviders(), SignatureHelpTrigger.CreateRetriggerTrigger());
+            sessionOpt.ComputeModel(SignatureHelpTrigger.CreateUpdateTrigger());
         }
     }
 }
