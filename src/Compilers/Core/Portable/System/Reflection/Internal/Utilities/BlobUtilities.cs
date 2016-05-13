@@ -278,5 +278,60 @@ namespace Roslyn.Reflection
                 throw new ArgumentOutOfRangeException(nameof(byteCount));
             }
         }
+
+        internal static int GetUserStringByteLength(int characterCount)
+        {
+            return characterCount * 2 + 1;
+        }
+
+        internal static byte GetUserStringTrailingByte(string str)
+        {
+            // Write out a trailing byte indicating if the string is really quite simple
+            foreach (char ch in str)
+            {
+                if (ch >= 0x7F)
+                {
+                    return 1;
+                }
+
+                switch ((int)ch)
+                {
+                    case 0x1:
+                    case 0x2:
+                    case 0x3:
+                    case 0x4:
+                    case 0x5:
+                    case 0x6:
+                    case 0x7:
+                    case 0x8:
+                    case 0xE:
+                    case 0xF:
+                    case 0x10:
+                    case 0x11:
+                    case 0x12:
+                    case 0x13:
+                    case 0x14:
+                    case 0x15:
+                    case 0x16:
+                    case 0x17:
+                    case 0x18:
+                    case 0x19:
+                    case 0x1A:
+                    case 0x1B:
+                    case 0x1C:
+                    case 0x1D:
+                    case 0x1E:
+                    case 0x1F:
+                    case 0x27:
+                    case 0x2D:
+                        return 1;
+
+                    default:
+                        continue;
+                }
+            }
+
+            return 0;
+        }
     }
 }
