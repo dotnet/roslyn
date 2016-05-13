@@ -6,26 +6,13 @@ using System.Reflection.Metadata;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal partial class SymbolTreeInfo
     {
-        private static SimplePool<MultiDictionary<string, MetadataDefinition>> s_definitionMapPool =
-            new SimplePool<MultiDictionary<string, MetadataDefinition>>(() => new MultiDictionary<string, MetadataDefinition>());
-
-        private static MultiDictionary<string, MetadataDefinition> AllocateDefinitionMap()
-        {
-            return s_definitionMapPool.Allocate();
-        }
-
-        private static void FreeDefinitionMap(MultiDictionary<string, MetadataDefinition> definitionMap)
-        {
-            definitionMap.Clear();
-            s_definitionMapPool.Free(definitionMap);
-        }
-
         /// <summary>
         /// this gives you SymbolTreeInfo for a metadata
         /// </summary>
@@ -117,7 +104,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             NamespaceDefinition globalNamespace, 
             List<Node> unsortedNodes)
         {
-            var definitionMap = AllocateDefinitionMap();
+            var definitionMap = OrderPreservingMultiDictionary<string, MetadataDefinition>.GetInstance();
             try
             {
                 LookupMetadataDefinitions(reader, globalNamespace, definitionMap);
@@ -132,7 +119,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
             finally
             {
-                FreeDefinitionMap(definitionMap);
+                definitionMap.Free();
             }
         }
 
@@ -140,7 +127,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             MetadataReader reader,
             string name,
             int parentIndex,
-            MultiDictionary<string, MetadataDefinition>.ValueSet definitionsWithSameName,
+            OrderPreservingMultiDictionary<string, MetadataDefinition>.ValueSet definitionsWithSameName,
             List<Node> unsortedNodes)
         {
             var node = new Node(name, parentIndex);
@@ -148,7 +135,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             unsortedNodes.Add(node);
 
             // Add all child members
-            var definitionMap = AllocateDefinitionMap();
+            var definitionMap = OrderPreservingMultiDictionary<string, MetadataDefinition>.GetInstance();
             try
             {
                 foreach (var definition in definitionsWithSameName)
@@ -166,13 +153,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
             finally
             {
-                FreeDefinitionMap(definitionMap);
+                definitionMap.Free();
             }
         }
 
         private static void LookupMetadataDefinitions(
             MetadataReader reader, MetadataDefinition definition,
-            MultiDictionary<string, MetadataDefinition> definitionMap)
+            OrderPreservingMultiDictionary<string, MetadataDefinition> definitionMap)
         {
             switch (definition.Kind)
             {
@@ -187,7 +174,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static void LookupMetadataDefinitions(
             MetadataReader reader, TypeDefinition typeDefinition,
-            MultiDictionary<string, MetadataDefinition> definitionMap)
+            OrderPreservingMultiDictionary<string, MetadataDefinition> definitionMap)
         {
             // Only bother looking for extension methods in static types.
             if ((typeDefinition.Attributes & TypeAttributes.Abstract) != 0 &&
@@ -235,7 +222,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static void LookupMetadataDefinitions(
             MetadataReader reader, NamespaceDefinition namespaceDefinition,
-            MultiDictionary<string, MetadataDefinition> definitionMap)
+            OrderPreservingMultiDictionary<string, MetadataDefinition> definitionMap)
         {
             foreach (var child in namespaceDefinition.NamespaceDefinitions)
             {
