@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>();
         }
 
-        public static Task<IEnumerable<INamedTypeSymbol>> FindImplementingTypesAsync(
+        public static async Task<IEnumerable<INamedTypeSymbol>> FindImplementingTypesAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
@@ -178,16 +178,82 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // Only an interface can be implemented.
             if (type?.TypeKind == TypeKind.Interface)
             {
-                return GetDependentTypesAsync(
-                    type,
-                    solution,
-                    projects,
-                    s_findImplementingInterfacesPredicate,
-                    s_implementingInterfacesCache,
-                    cancellationToken);
+                // Search outwards by looking for immediately implementing classes of the interface 
+                // passed in, as well as immediately derived interfaces of the interface passed
+                // in.
+                //
+                // For every implementing class we find, find all derived classes of that class as well.
+                // After all, if the base class implements the interface, then all derived classes
+                // do as well.
+                //
+                // For every extending interface we find, we also recurse and do this search as well.
+                // After all, if a type implements a derived inteface then it certainly implements
+                // the base interface as well.
+                //
+                // We do this by keeping a queue of interface types to search for (starting with the 
+                // initial interface we were given).  As long as we keep discovering new types, we
+                // keep searching outwards.  Once no new types are discovered, we're done.
+                var finalResult = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
+
+                var interfaceQueue = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
+                interfaceQueue.Add(type);
+
+                var classQueue = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
+
+                while (interfaceQueue.Count > 0 || classQueue.Count > 0)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    // Search for all the workqueue types in parallel.
+                    if (interfaceQueue.Count > 0)
+                    {
+                        var interfaceTasks = interfaceQueue.Select(t => GetTypesImmediatelyDerivedFromInterfacesAsync(t, solution, cancellationToken)).ToArray();
+                        await Task.WhenAll(interfaceTasks).ConfigureAwait(false);
+
+                        interfaceQueue.Clear();
+                        foreach (var task in interfaceTasks)
+                        {
+                            foreach (var derivedType in task.Result)
+                            {
+                                if (finalResult.Add(derivedType))
+                                {
+                                    // Seeing this type for the first time.  If it is a class or
+                                    // interface, then add it to the list of symbols to keep 
+                                    // searching for.
+                                    if (derivedType.TypeKind == TypeKind.Interface)
+                                    {
+                                        interfaceQueue.Add(derivedType);
+                                    }
+                                    else if (derivedType.TypeKind == TypeKind.Struct)
+                                    {
+                                        classQueue.Add(derivedType);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    else
+                    {
+                        Debug.Assert(classQueue.Count > 0);
+
+                        var firstClass = classQueue.First();
+                        classQueue.Remove(firstClass);
+
+                        var derivedClasses = await FindDerivedClassesAsync(firstClass, solution, projects, cancellationToken).ConfigureAwait(false);
+
+                        finalResult.AddRange(derivedClasses);
+
+                        // It's possible that one of the derived classes we discovered was also in 
+                        // classQueue. Remove them so we don't do excess work finding types we've
+                        // already found.
+                        classQueue.RemoveAll(derivedClasses);
+                    }
+                }
+
+                return finalResult;
             }
 
-            return SpecializedTasks.EmptyEnumerable<INamedTypeSymbol>();
+            return SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>();
         }
 
         public static Task<IEnumerable<INamedTypeSymbol>> GetTypesImmediatelyDerivedFromInterfacesAsync(
