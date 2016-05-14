@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
@@ -165,7 +166,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal static ImmutableArray<byte> ComputeSha1(BlobBuilder bytes)
+        internal static ImmutableArray<byte> ComputeSha1(IEnumerable<Blob> bytes)
         {
             using (var incrementalHash = IncrementalHash.Create(AssemblyHashAlgorithm.Sha1))
             {
