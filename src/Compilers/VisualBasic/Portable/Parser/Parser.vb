@@ -4441,13 +4441,6 @@ checkNullable:
                     ' being reported. For now keep backwards compatibility.
                     If param.ContainsDiagnostics Then
                         param = param.AddTrailingSyntax(ResyncAt({SyntaxKind.CommaToken, SyntaxKind.CloseParenToken}))
-                    Else
-                        ' Check to see ifLanguage Featue is available.
-                        If CheckFeatureAvailability(Feature.NoLongerRequireDefaultValueOnOptionalParameter) Then
-                            If param.Default Is Nothing Then
-                                'param = param.AddTrailingSyntax(ResyncAt({SyntaxKind.CommaToken, SyntaxKind.CloseParenToken}))
-                            End If
-                        End If
                     End If
 
                     Dim comma As PunctuationSyntax = Nothing
@@ -4616,6 +4609,7 @@ checkNullable:
             If TryGetTokenAndEatNewLine(SyntaxKind.EqualsToken, equals) Then
 
                 If Not (modifiers.Any AndAlso modifiers.Any(SyntaxKind.OptionalKeyword)) Then
+
                     equals = ReportSyntaxError(equals, ERRID.ERR_DefaultValueForNonOptionalParam)
                 End If
 
@@ -4624,20 +4618,26 @@ checkNullable:
             ElseIf modifiers.Any AndAlso modifiers.Any(SyntaxKind.OptionalKeyword) Then
 
                 If CheckFeatureAvailability(Feature.NoLongerRequireDefaultValueOnOptionalParameter) = False Then
+
                     equals = ReportSyntaxError(InternalSyntaxFactory.MissingPunctuation(SyntaxKind.EqualsToken), ERRID.ERR_ObsoleteOptionalWithoutValue)
                     value = ParseExpressionCore()
+
                 End If
 
             End If
 
             Dim initializer As EqualsValueSyntax = Nothing
-            If value IsNot Nothing Then
+            If equals IsNot Nothing Then
+                If value IsNot Nothing Then
 
-                If value.ContainsDiagnostics Then
-                    value = ResyncAt(value, SyntaxKind.CommaToken, SyntaxKind.CloseParenToken)
+                    If value.ContainsDiagnostics Then
+                        value = ResyncAt(value, SyntaxKind.CommaToken, SyntaxKind.CloseParenToken)
+                    End If
+                    initializer = SyntaxFactory.EqualsValue(equals, value)
+
                 End If
+            Else
 
-                initializer = SyntaxFactory.EqualsValue(equals, value)
             End If
 
             Return SyntaxFactory.Parameter(attributes, modifiers, paramName, optionalAsClause, initializer)
@@ -5983,10 +5983,8 @@ checkNullable:
         ''' <summary>
         ''' returns true if feature is available
         ''' </summary>
-        Private Function AssertLanguageFeature(
-            feature As ERRID
-        ) As Boolean
-
+        Private Function AssertLanguageFeature(feature As ERRID) As Boolean
+            If feature = ERRID.FEATURE_NoLongerRequireDefaultValueOnOptionalParameter Then Return CheckFeatureAvailability(InternalSyntax.Feature.NoLongerRequireDefaultValueOnOptionalParameter)
             Return True
         End Function
 

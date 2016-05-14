@@ -2879,6 +2879,46 @@ class Program
 }");
         }
 
+        [WorkItem(10004, "https://github.com/dotnet/roslyn/issues/10004")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestGenerateMethodWithMultipleOfSameGenericType()
+        {
+            await TestAsync(
+@"using System;
+
+public class C
+{
+}
+
+public static class Ex
+{
+    public static T M1<T>(this T t) where T : C
+    {
+        return [|t.M<T, T>()|];
+    }
+}
+",
+@"using System;
+
+public class C
+{
+    internal T2 M<T1, T2>()
+        where T1 : C
+        where T2 : C
+    {
+    }
+}
+
+public static class Ex
+{
+    public static T M1<T>(this T t) where T : C
+    {
+        return t.M<T, T>();
+    }
+}
+");
+        }
+
         public class GenerateConversionTest : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
         {
             internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)

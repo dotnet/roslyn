@@ -1,43 +1,36 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Reflection;
 using System.Threading.Tasks;
 using Roslyn.VisualStudio.Test.Utilities.Remoting;
 
 namespace Roslyn.VisualStudio.Test.Utilities
 {
     /// <summary>Provides a means of interacting with the interactive window in the Visual Studio host.</summary>
-    public class InteractiveWindow
+    public abstract class InteractiveWindow
     {
-        private const string DteCSharpViewCommand = "View.C#Interactive";
-        private const string DteCSharpWindowTitle = "C# Interactive";
         private const string DteReplResetCommand = "InteractiveConsole.Reset";
-
         private const string ReplPromptText = "> ";
         private const string ReplSubmissionText = ". ";
 
         private readonly string _dteViewCommand;
-        private readonly VisualStudioInstance _host;
+        private readonly VisualStudioInstance _visualStudioInstance;
         private readonly InteractiveWindowWrapper _interactiveWindowWrapper;
 
-        /// <summary>Creates a <see cref="InteractiveWindow"/> instance that can interact with the C# interactive window in the Visual Studio host.</summary>
-        internal static InteractiveWindow CreateCSharpInteractiveWindow(VisualStudioInstance host)
-            => new InteractiveWindow(host, DteCSharpViewCommand, DteCSharpWindowTitle);
-
-        internal InteractiveWindow(VisualStudioInstance host, string dteViewCommand, string dteWindowTitle)
+        internal InteractiveWindow(VisualStudioInstance visualStudioInstance, string dteViewCommand, string dteWindowTitle, string createMethodName)
         {
-            _host = host;
+            _visualStudioInstance = visualStudioInstance;
             _dteViewCommand = dteViewCommand;
 
             // We have to show the window at least once to ensure the interactive service is loaded.
             ShowAsync(waitForPrompt: false).GetAwaiter().GetResult();
 
-            var dteWindow = _host.LocateDteWindowAsync(dteWindowTitle).GetAwaiter().GetResult();
-            dteWindow.Close();
+            var dteWindow = IntegrationHelper.WaitForNotNullAsync(() => _visualStudioInstance.Dte.LocateWindow(dteWindowTitle)).GetAwaiter().GetResult();
+            IntegrationHelper.RetryRpcCall(() => dteWindow.Close());
 
             // Return a wrapper to the actual interactive window service that exists in the host process
-            _interactiveWindowWrapper = _host.ExecuteOnHostProcess<InteractiveWindowWrapper>(typeof(RemotingHelper), nameof(RemotingHelper.CreateCSharpInteractiveWindowWrapper), (BindingFlags.Public | BindingFlags.Static));
+            var integrationService = _visualStudioInstance.IntegrationService;
+            _interactiveWindowWrapper = integrationService.Execute<InteractiveWindowWrapper>(typeof(InteractiveWindowWrapper), createMethodName);
         }
 
         /// <summary>Gets the last output from the REPL.</summary>
@@ -100,7 +93,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
         public async Task ResetAsync(bool waitForPrompt = true)
         {
-            await _host.ExecuteDteCommandAsync(DteReplResetCommand).ConfigureAwait(continueOnCapturedContext: false);
+            await _visualStudioInstance.Dte.ExecuteCommandAsync(DteReplResetCommand).ConfigureAwait(continueOnCapturedContext: false);
 
             if (waitForPrompt)
             {
@@ -110,7 +103,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
         public async Task ShowAsync(bool waitForPrompt = true)
         {
-            await _host.ExecuteDteCommandAsync(_dteViewCommand).ConfigureAwait(continueOnCapturedContext: false);
+            await _visualStudioInstance.Dte.ExecuteCommandAsync(_dteViewCommand).ConfigureAwait(continueOnCapturedContext: false);
 
             if (waitForPrompt)
             {

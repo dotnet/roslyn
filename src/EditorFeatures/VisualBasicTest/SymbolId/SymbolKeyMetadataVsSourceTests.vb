@@ -88,11 +88,11 @@ End Class
             ' 'E'
             Dim mtSym05 = (TryCast(typesym.GetMembers("Item").[Single](), IPropertySymbol)).Type
 
-            ResolveAndVerifySymbol(mtSym03, comp2, originalSymbols(0), comp1, SymbolIdComparison.CaseSensitive)
-            ResolveAndVerifySymbol(mtSym01, comp2, originalSymbols(1), comp1, SymbolIdComparison.CaseSensitive)
-            ResolveAndVerifySymbol(mtSym05, comp2, originalSymbols(2), comp1, SymbolIdComparison.CaseSensitive)
-            ResolveAndVerifySymbol(mtSym02, comp2, originalSymbols(3), comp1, SymbolIdComparison.CaseInsensitive)
-            ResolveAndVerifySymbol(mtSym04, comp2, originalSymbols(4), comp1, SymbolIdComparison.CaseInsensitive)
+            ResolveAndVerifySymbol(mtSym03, originalSymbols(0), comp1, SymbolIdComparison.CaseSensitive)
+            ResolveAndVerifySymbol(mtSym01, originalSymbols(1), comp1, SymbolIdComparison.CaseSensitive)
+            ResolveAndVerifySymbol(mtSym05, originalSymbols(2), comp1, SymbolIdComparison.CaseSensitive)
+            ResolveAndVerifySymbol(mtSym02, originalSymbols(3), comp1, SymbolIdComparison.CaseInsensitive)
+            ResolveAndVerifySymbol(mtSym04, originalSymbols(4), comp1, SymbolIdComparison.CaseInsensitive)
         End Sub
 
         <Fact>
@@ -245,13 +245,13 @@ End Class
             Dim localSymbols = ver40Symbols.OrderBy(Function(s) s.Name).[Select](Function(s) DirectCast(s, ILocalSymbol)).ToList()
 
             ' a
-            ResolveAndVerifySymbol(localSymbols(0).Type, comp40, typeA, comp20, SymbolIdComparison.CaseInsensitive)
+            ResolveAndVerifySymbol(localSymbols(0).Type, typeA, comp20, SymbolIdComparison.CaseInsensitive)
             ' ary
-            ResolveAndVerifySymbol(localSymbols(1).Type, comp40, DirectCast(ver20Symbols(0), IParameterSymbol).Type, comp20, SymbolIdComparison.CaseInsensitive)
+            ResolveAndVerifySymbol(localSymbols(1).Type, DirectCast(ver20Symbols(0), IParameterSymbol).Type, comp20, SymbolIdComparison.CaseInsensitive)
             ' dt
-            ResolveAndVerifySymbol(localSymbols(2).Type, comp40, DirectCast(ver20Symbols(4), IParameterSymbol).Type, comp20, SymbolIdComparison.CaseInsensitive)
+            ResolveAndVerifySymbol(localSymbols(2).Type, DirectCast(ver20Symbols(4), IParameterSymbol).Type, comp20, SymbolIdComparison.CaseInsensitive)
             ' fi
-            ResolveAndVerifySymbol(localSymbols(3).Type, comp40, DirectCast(ver20Symbols(1), IMethodSymbol).ReturnType, comp20, SymbolIdComparison.CaseInsensitive)
+            ResolveAndVerifySymbol(localSymbols(3).Type, DirectCast(ver20Symbols(1), IMethodSymbol).ReturnType, comp20, SymbolIdComparison.CaseInsensitive)
 
         End Sub
 

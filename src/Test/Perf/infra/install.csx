@@ -12,6 +12,7 @@ using System.Diagnostics;
 using System.IO;
 using Roslyn.Test.Performance.Utilities;
 using static Roslyn.Test.Performance.Utilities.TestUtilities;
+using static System.FormattableString;
 
 TestUtilities.InitUtilitiesFromCsx();
 
@@ -35,7 +36,8 @@ foreach (var processName in new[] { "devenv", "msbuild", "VBCSCompiler"})
 var logger = new ConsoleAndFileLogger();
 
 logger.Log($"\n{message} Roslyn binaries to VS folder.");
-var devenvFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"Microsoft Visual Studio 14.0\Common7\IDE");
+var vsVersion = Environment.GetEnvironmentVariable("VisualStudioVersion") ?? "14.0";
+var devenvFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), Invariant($@"Microsoft Visual Studio {vsVersion}\Common7\IDE"));
 var destinationFolder = Path.Combine(devenvFolder, "PrivateAssemblies");
 var filesToNGen = new List<string>();
 foreach (var file in IDEFiles)
@@ -60,8 +62,8 @@ ShellOutVital(devenv, "/updateconfiguration", IsVerbose(), logger);
 ShellOutVital(devenv, $"/resetsettingsfull {Path.Combine(sourceFolder, "Default.vssettings")} /command \"File.Exit\"", IsVerbose(), logger);
 
 logger.Log($"\n{message} compilers in MSBuild folders.");
-destinationFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"MSBuild\14.0\Bin");
-var destinationFolder64 = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), @"MSBuild\14.0\Bin\amd64");
+destinationFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), Invariant($@"MSBuild\{vsVersion}\Bin"));
+var destinationFolder64 = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFilesX86), Invariant($@"MSBuild\14.0\{vsVersion}\amd64"));
 filesToNGen = new List<string>();
 foreach (var file in MSBuildFiles)
 {

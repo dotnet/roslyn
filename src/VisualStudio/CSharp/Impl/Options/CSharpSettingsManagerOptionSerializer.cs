@@ -164,6 +164,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                    option == FeatureOnOffOptions.KeywordHighlighting ||
                    option == FeatureOnOffOptions.FormatOnPaste ||
                    option == FeatureOnOffOptions.AutoXmlDocCommentGeneration ||
+                   option == FeatureOnOffOptions.AutoInsertBlockCommentStartString ||
                    option == FeatureOnOffOptions.RefactoringVerification ||
                    option == FeatureOnOffOptions.RenameTracking ||
                    option == FeatureOnOffOptions.RenameTrackingPreview;

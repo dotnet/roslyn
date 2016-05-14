@@ -134,10 +134,10 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 .AddProject(vbId, "VB", "VB", LanguageNames.VisualBasic)
                 .AddMetadataReference(vbId, MscorlibRef);
 
-            var csharpResult = await SymbolFinder.FindDeclarationsAsync(solution.GetProject(csharpId), "BackgroundColor", ignoreCase: false);
+            var csharpResult = await SymbolFinder.FindDeclarationsAsync(solution.GetProject(csharpId), "Console", ignoreCase: false);
             Assert.True(csharpResult.Count() > 0);
 
-            var vbResult = await SymbolFinder.FindDeclarationsAsync(solution.GetProject(vbId), "BackgroundColor", ignoreCase: true);
+            var vbResult = await SymbolFinder.FindDeclarationsAsync(solution.GetProject(vbId), "Console", ignoreCase: true);
             Assert.True(vbResult.Count() > 0);
         }
 
@@ -577,8 +577,8 @@ Inner i;
 
             // create symbol tree info from assembly
             var version = VersionStamp.Create();
-            var info = SymbolTreeInfo.CreateSymbolTreeInfo(
-                solution, version, assembly, "", includeInternal: true, cancellationToken: CancellationToken.None);
+            var info = SymbolTreeInfo.CreateSourceSymbolTreeInfo(
+                solution, version, assembly, "", cancellationToken: CancellationToken.None);
 
             using (var writerStream = new MemoryStream())
             {

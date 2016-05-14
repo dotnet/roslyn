@@ -39,7 +39,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
             Select Case feature
                 Case Feature.IOperation
                     Return "IOperation"
-
+                Case Feature.NoLongerRequireDefaultValueOnOptionalParameter
+                    Return "NoLongerRequireDefaultValueOnOptionalParameter"
                 Case Else
                     Return Nothing
             End Select
@@ -78,8 +79,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                      Feature.PartialInterfaces,
                      Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
                     Return LanguageVersion.VisualBasic14
+
                 Case Feature.NoLongerRequireDefaultValueOnOptionalParameter
-                    Return LanguageVersion.VisualBasic15
+                    Return LanguageVersion.VNext
+
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select
@@ -143,6 +146,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select
         End Function
-
     End Module
 End Namespace
