@@ -100,7 +100,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim parseDocumentationComments As Boolean = False ' Don't just null check documentationFileName because we want to do this even if the file name is invalid.
             Dim outputKind As OutputKind = OutputKind.ConsoleApplication
             Dim ssVersion As SubsystemVersion = SubsystemVersion.None
-            Dim languageVersion As LanguageVersion = LanguageVersion.VisualBasic14
+            Dim languageVersion As LanguageVersion = LanguageVersion.VisualBasic15
             Dim mainTypeName As String = Nothing
             Dim win32ManifestFile As String = Nothing
             Dim win32ResourceFile As String = Nothing
@@ -782,7 +782,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         languageVersion = LanguageVersion.VisualBasic15
                                     Case Else
                                         AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, "langversion", value)
+                                        Continue For
                                 End Select
+
                             End If
 
                             Continue For
