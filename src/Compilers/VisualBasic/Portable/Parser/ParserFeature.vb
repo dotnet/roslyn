@@ -81,7 +81,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return LanguageVersion.VisualBasic14
 
                 Case Feature.NoLongerRequireDefaultValueOnOptionalParameter
-                    Return LanguageVersion.VisualBasic15
+                    Return LanguageVersion.VNext
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
