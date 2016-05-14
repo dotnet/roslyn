@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis.Host
     /// <summary>
     /// Empty interface just to mark language services.
     /// </summary>
-    public interface ILanguageService
+    public interface ILanguageService 
     {
     }
 }

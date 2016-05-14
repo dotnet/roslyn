@@ -17,10 +17,11 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
     using TypeMatches = Func<INamedTypeSymbol, Project, CancellationToken, bool>;
-    using SourceInfoMatches = Func<Document, DeclaredSymbolInfo, CancellationToken, Task<ISymbol>>;
+    using SourceInfoMatches = Func<Document, DeclaredSymbolInfo, ConcurrentSet<SemanticModel>, CancellationToken, Task<ISymbol>>;
     internal delegate Task SearchProjectAsync(
         INamedTypeSymbol type, Project project, bool isInMetadata,
-        ConcurrentSet<ISymbol> results, CancellationToken cancellationToken);
+        ConcurrentSet<ISymbol> results, ConcurrentSet<SemanticModel> cachedModels, 
+        CancellationToken cancellationToken);
 
     /// <summary>
     /// Provides helper methods for finding dependent types (derivations, implementations, etc.) across a solution.
@@ -56,10 +57,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// This is an internal implementation of <see cref="SymbolFinder.FindDerivedClassesAsync"/>, which is a publically callable method.
         /// </summary>
-        public static async Task<IEnumerable<INamedTypeSymbol>> FindDerivedClassesAsync(
+        public static Task<IEnumerable<INamedTypeSymbol>> FindDerivedClassesAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
+            CancellationToken cancellationToken)
+        {
+            return FindDerivedClassesAsync(type, solution, projects,
+                cachedModels: new ConcurrentSet<SemanticModel>(), cancellationToken: cancellationToken);
+        }
+
+        /// <summary>
+        /// This is an internal implementation of <see cref="SymbolFinder.FindDerivedClassesAsync"/>, which is a publically callable method.
+        /// </summary>
+        private static async Task<IEnumerable<INamedTypeSymbol>> FindDerivedClassesAsync(
+            INamedTypeSymbol type,
+            Solution solution,
+            IImmutableSet<Project> projects,
+            ConcurrentSet<SemanticModel> cachedModels,
             CancellationToken cancellationToken)
         {
             // Only a class can have derived types.
@@ -83,7 +98,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                     // Search for all the workqueue types in parallel.
                     var tasks = workQueue.Select(t => GetTypesImmediatelyDerivedFromClassesAsync(
-                        t, solution, projects, cancellationToken)).ToArray();
+                        t, solution, projects, cachedModels, cancellationToken)).ToArray();
                     await Task.WhenAll(tasks).ConfigureAwait(false);
 
                     workQueue.Clear();
@@ -116,6 +131,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // Only an interface can be implemented.
             if (type?.TypeKind == TypeKind.Interface)
             {
+                var cachedModels = new ConcurrentSet<SemanticModel>();
+
                 // Search outwards by looking for immediately implementing classes of the interface 
                 // passed in, as well as immediately derived interfaces of the interface passed
                 // in.
@@ -146,7 +163,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     if (interfaceQueue.Count > 0)
                     {
                         var interfaceTasks = interfaceQueue.Select(t => GetTypesImmediatelyDerivedFromInterfacesAsync(
-                            t, solution, projects, cancellationToken)).ToArray();
+                            t, solution, projects, cachedModels, cancellationToken)).ToArray();
                         await Task.WhenAll(interfaceTasks).ConfigureAwait(false);
 
                         interfaceQueue.Clear();
@@ -180,7 +197,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         var firstClass = classQueue.First();
                         classQueue.Remove(firstClass);
 
-                        var derivedClasses = await FindDerivedClassesAsync(firstClass, solution, projects, cancellationToken).ConfigureAwait(false);
+                        var derivedClasses = await FindDerivedClassesAsync(
+                            firstClass, solution, projects, cachedModels, cancellationToken).ConfigureAwait(false);
 
                         finalResult.AddRange(derivedClasses);
 
@@ -204,13 +222,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             return GetTypesImmediatelyDerivedFromInterfacesAsync(
                 type, solution, projects: null,
+                cachedModels: new ConcurrentSet<SemanticModel>(),
                 cancellationToken: cancellationToken);
         }
 
-        public static Task<IEnumerable<INamedTypeSymbol>> GetTypesImmediatelyDerivedFromInterfacesAsync(
+        private static Task<IEnumerable<INamedTypeSymbol>> GetTypesImmediatelyDerivedFromInterfacesAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
+            ConcurrentSet<SemanticModel> cachedModels,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -221,7 +241,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return GetTypesAsync(
                     type, solution, projects,
                     GetTypesImmediatelyDerivedFromInterfacesAsync,
-                    cancellationToken);
+                    cachedModels, cancellationToken);
             }
 
             return SpecializedTasks.EmptyEnumerable<INamedTypeSymbol>();
@@ -229,7 +249,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static Task GetTypesImmediatelyDerivedFromInterfacesAsync(
             INamedTypeSymbol baseInterface, Project project, bool locationsInMetadata,
-            ConcurrentSet<ISymbol> results, CancellationToken cancellationToken)
+            ConcurrentSet<ISymbol> results, ConcurrentSet<SemanticModel> cachedModels,
+            CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -241,7 +262,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return AddMatchingSourceAndMetadataTypesAsync(project, results,
                     GetTypeImmediatelyDerivesFromInterfaceFunction(baseInterface),
                     GetSourceInfoImmediatelyDerivesFromInterfaceFunction(baseInterface),
-                    cancellationToken: cancellationToken);
+                    cachedModels, cancellationToken);
             }
 
             // Check for source symbols that could derive from this type. Look for 
@@ -249,7 +270,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // with our name.
             return AddMatchingSourceTypesAsync(project, results,
                 GetSourceInfoImmediatelyDerivesFromInterfaceFunction(baseInterface),
-                cancellationToken);
+                cachedModels, cancellationToken);
         }
 
         private static TypeMatches GetTypeImmediatelyDerivesFromInterfaceFunction(INamedTypeSymbol baseInterface)
@@ -262,7 +283,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var typeTestFunction = GetTypeImmediatelyDerivesFromInterfaceFunction(baseInterface);
 
-            return async (document, info, cancellationToken) =>
+            return async (document, info, cachedModels, cancellationToken) =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -280,8 +301,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         {
                             // Looks like a good candidate.  Get the actual symbol for it and see
                             // if the symbol matches the criteria.
-                            var candidate = await info.ResolveAsync(document, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
-                            if (typeTestFunction(candidate, document.Project, cancellationToken))
+                            var candidate = await ResolveAsync(document, info, cachedModels, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
+                            if (candidate != null && typeTestFunction(candidate, document.Project, cancellationToken))
                             {
                                 return candidate;
                             }
@@ -299,14 +320,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             CancellationToken cancellationToken)
         {
             return GetTypesImmediatelyDerivedFromClassesAsync(
-                type, solution, projects: null, 
+                type, solution, projects: null,
+                cachedModels:  new ConcurrentSet<SemanticModel>(),
                 cancellationToken: cancellationToken);
         }
 
-        public static Task<IEnumerable<INamedTypeSymbol>> GetTypesImmediatelyDerivedFromClassesAsync(
+        private static Task<IEnumerable<INamedTypeSymbol>> GetTypesImmediatelyDerivedFromClassesAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
+            ConcurrentSet<SemanticModel> cachedModels,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -317,7 +340,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return GetTypesAsync(
                     type, solution, projects,
                     GetTypesImmediatelyDerivedFromClassesAsync,
-                    cancellationToken);
+                    cachedModels, cancellationToken);
             }
 
             return SpecializedTasks.EmptyEnumerable<INamedTypeSymbol>();
@@ -328,6 +351,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution,
             IImmutableSet<Project> projects,
             SearchProjectAsync searchProjectAsync,
+            ConcurrentSet<SemanticModel> cachedModels,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -347,7 +371,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             foreach (var project in dependentProjects)
             {
                 projectTasks.Add(searchProjectAsync(
-                    type, project, locationsInMetadata, results, cancellationToken));
+                    type, project, locationsInMetadata, results, cachedModels, cancellationToken));
             }
 
             // Search all projects in parallel.
@@ -363,20 +387,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static SourceInfoMatches GetSourceInfoMatchesFunction(DeclaredSymbolInfoKind kind)
         {
-            return (document, info, cancellationToken) =>
+            return async (document, info, cachedModels, cancellationToken) =>
             {
                 if (info.Kind != kind)
                 {
-                    return Task.FromResult<ISymbol>(null);
+                    return null;
                 }
 
-                return info.ResolveAsync(document, cancellationToken);
+                return await ResolveAsync(document, info, cachedModels, cancellationToken).ConfigureAwait(false);
             };
         }
 
         private static Task GetTypesImmediatelyDerivedFromClassesAsync(
             INamedTypeSymbol baseType, Project project, bool locationsInMetadata,
-            ConcurrentSet<ISymbol> results, CancellationToken cancellationToken)
+            ConcurrentSet<ISymbol> results, ConcurrentSet<SemanticModel> cachedModels,
+            CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
@@ -388,19 +413,20 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // Object needs to be handled specially as many types may derive directly from it,
                     // while having no source indication that that's the case.
                     case SpecialType.System_Object:
-                        return GetAllTypesThatDeriveDirectlyFromObjectAsync(project, results, cancellationToken);
+                        return GetAllTypesThatDeriveDirectlyFromObjectAsync(
+                            project, results, cachedModels, cancellationToken);
 
                     // Delegates derive from System.MulticastDelegate
                     case SpecialType.System_MulticastDelegate:
-                        return AddAllDelegatesAsync(project, results, cancellationToken);
+                        return AddAllDelegatesAsync(project, results, cachedModels, cancellationToken);
 
                     // Structs derive from System.System.ValueType
                     case SpecialType.System_ValueType:
-                        return AddAllStructsAsync(project, results, cancellationToken);
+                        return AddAllStructsAsync(project, results, cachedModels, cancellationToken);
 
                     // Enums derive from System.Enum
                     case SpecialType.System_Enum:
-                        return AddAllEnumsAsync(project, results, cancellationToken);
+                        return AddAllEnumsAsync(project, results, cachedModels, cancellationToken);
 
                     // A normal class from metadata.
                     default:
@@ -408,7 +434,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         return AddMatchingSourceAndMetadataTypesAsync(project, results,
                             GetTypeImmediatelyDerivesFromBaseTypeFunction(baseType),
                             GetSourceInfoImmediatelyDerivesFromBaseTypeFunction(baseType),
-                            cancellationToken: cancellationToken);
+                            cachedModels, cancellationToken);
                 }
             }
 
@@ -417,7 +443,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // with our name.
             return AddMatchingSourceTypesAsync(project, results,
                 GetSourceInfoImmediatelyDerivesFromBaseTypeFunction(baseType),
-                cancellationToken);
+                cachedModels, cancellationToken);
         }
 
         private static Func<INamedTypeSymbol, Project, CancellationToken, bool> GetTypeImmediatelyDerivesFromBaseTypeFunction(
@@ -427,7 +453,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static Task GetAllTypesThatDeriveDirectlyFromObjectAsync(
-            Project project, ConcurrentSet<ISymbol> results, CancellationToken cancellationToken)
+            Project project, ConcurrentSet<ISymbol> results,
+            ConcurrentSet<SemanticModel> cachedModels,
+            CancellationToken cancellationToken)
         {
             // Or source predicate needs to find all classes in the project that derive from 
             // object. Unfortunately, we have to consider all classes. There's no way to 
@@ -440,11 +468,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // inheritance list to make any determinations.  Note: we could tell
             // for VB.  It may be a good optimization to add later. 
 
-            SourceInfoMatches sourceInfoMatches = async (doc, info, c) =>
+            SourceInfoMatches sourceInfoMatches = async (doc, info, models, c) =>
             {
                 if (info.Kind == DeclaredSymbolInfoKind.Class)
                 {
-                    var symbol = await info.ResolveAsync(doc, c).ConfigureAwait(false) as INamedTypeSymbol;
+                    var symbol = await ResolveAsync(doc, info, models, c).ConfigureAwait(false) as INamedTypeSymbol;
                     if (symbol?.BaseType?.SpecialType == SpecialType.System_Object)
                     {
                         return symbol;
@@ -455,35 +483,52 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             };
 
             return AddMatchingSourceAndMetadataTypesAsync(project, results,
-                s_derivesFromObject, sourceInfoMatches, cancellationToken);
+                s_derivesFromObject, sourceInfoMatches, cachedModels, 
+                cancellationToken);
+        }
+
+        private static async Task<ISymbol> ResolveAsync(
+            Document doc, DeclaredSymbolInfo info, ConcurrentSet<SemanticModel> models, 
+            CancellationToken cancellationToken)
+        {
+            var semanticModel = await doc.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            models.Add(semanticModel);
+            return info.Resolve(semanticModel, cancellationToken);
         }
 
         private static Task AddAllDelegatesAsync(
-            Project project, ConcurrentSet<ISymbol> results, CancellationToken cancellationToken)
+            Project project, ConcurrentSet<ISymbol> results, ConcurrentSet<SemanticModel> cachedModels,
+            CancellationToken cancellationToken)
         {
-            return AddMatchingSourceAndMetadataTypesAsync(project, results, s_isDelegateType, s_infoMatchesDelegate, cancellationToken);
+            return AddMatchingSourceAndMetadataTypesAsync(
+                project, results, s_isDelegateType, s_infoMatchesDelegate, cachedModels, cancellationToken);
         }
 
         private static Task AddAllEnumsAsync(
-            Project project, ConcurrentSet<ISymbol> results, CancellationToken cancellationToken)
+            Project project, ConcurrentSet<ISymbol> results, ConcurrentSet<SemanticModel> cachedModels,
+            CancellationToken cancellationToken)
         {
-            return AddMatchingSourceAndMetadataTypesAsync(project, results, s_isEnumType, s_infoMatchesEnum, cancellationToken);
+            return AddMatchingSourceAndMetadataTypesAsync(
+                project, results, s_isEnumType, s_infoMatchesEnum, cachedModels, cancellationToken);
         }
 
         private static Task AddAllStructsAsync(
-            Project project, ConcurrentSet<ISymbol> results, CancellationToken cancellationToken)
+            Project project, ConcurrentSet<ISymbol> results, ConcurrentSet<SemanticModel> cachedModels,
+            CancellationToken cancellationToken)
         {
-            return AddMatchingSourceAndMetadataTypesAsync(project, results, s_isStructType, s_infoMatchesStruct, cancellationToken);
+            return AddMatchingSourceAndMetadataTypesAsync(
+                project, results, s_isStructType, s_infoMatchesStruct, cachedModels, cancellationToken);
         }
 
         private static Task AddMatchingSourceAndMetadataTypesAsync(
             Project project, ConcurrentSet<ISymbol> results,
             TypeMatches metadataTypeMatches,
             SourceInfoMatches sourceInfoMatches,
+            ConcurrentSet<SemanticModel> cachedModels,
             CancellationToken cancellationToken)
         {
             var metadataTask = AddMatchingMetadataTypesAsync(project, results, metadataTypeMatches, cancellationToken);
-            var sourceTask = AddMatchingSourceTypesAsync(project, results, sourceInfoMatches, cancellationToken);
+            var sourceTask = AddMatchingSourceTypesAsync(project, results, sourceInfoMatches, cachedModels, cancellationToken);
 
             // Search source and metadata in parallel.
             return Task.WhenAll(metadataTask, sourceTask);
@@ -501,21 +546,24 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static Task AddMatchingSourceTypesAsync(
-            Project project, ConcurrentSet<ISymbol> results,
+            Project project,
+            ConcurrentSet<ISymbol> results,
             SourceInfoMatches sourceInfoMatches, 
+            ConcurrentSet<SemanticModel> models,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
             // Process all documents in the project in parallel.
             var tasks = project.Documents.Select(d =>
-                AddMatchingSourceTypesAsync(d, results, sourceInfoMatches, cancellationToken)).ToArray();
+                AddMatchingSourceTypesAsync(d, results, sourceInfoMatches, models, cancellationToken)).ToArray();
             return Task.WhenAll(tasks);
         }
 
         private static async Task AddMatchingSourceTypesAsync(
             Document document, ConcurrentSet<ISymbol> results,
             SourceInfoMatches sourceInfoMatches,
+            ConcurrentSet<SemanticModel> cachedModels,
             CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
@@ -523,7 +571,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var symbolInfos = await document.GetDeclaredSymbolInfosAsync(cancellationToken).ConfigureAwait(false);
             foreach (var info in symbolInfos)
             {
-                var matchingSymbol = await sourceInfoMatches(document, info, cancellationToken).ConfigureAwait(false);
+                var matchingSymbol = await sourceInfoMatches(document, info, cachedModels, cancellationToken).ConfigureAwait(false);
                 if (matchingSymbol != null)
                 {
                     results.Add(matchingSymbol);
@@ -549,7 +597,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var typeTestFunction = GetTypeImmediatelyDerivesFromBaseTypeFunction(baseType);
 
-            return async (document, info, cancellationToken) =>
+            return async (document, info, models, cancellationToken) =>
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
@@ -566,7 +614,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         {
                             // Looks like a good candidate.  Get the symbol for it and see if it
                             // actually matches.
-                            var candidate = await info.ResolveAsync(document, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
+                            var candidate = await ResolveAsync(document, info, models, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
                             if (typeTestFunction(candidate, document.Project, cancellationToken))
                             {
                                 return candidate;
