@@ -57,69 +57,241 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// This is an internal implementation of <see cref="SymbolFinder.FindDerivedClassesAsync"/>, which is a publically callable method.
         /// </summary>
-        public static Task<IEnumerable<INamedTypeSymbol>> FindDerivedClassesAsync(
+        public static async Task<IEnumerable<INamedTypeSymbol>> FindDerivedClassesAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
             CancellationToken cancellationToken)
         {
-            return FindDerivedClassesAsync(type, solution, projects,
-                cachedModels: new ConcurrentSet<SemanticModel>(), cancellationToken: cancellationToken);
+            if (type?.TypeKind != TypeKind.Class ||
+                type.IsSealed)
+            {
+                return SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>();
+            }
+
+            // TODO: metadata types.
+            if (type.Locations.All(loc => loc.IsInSource))
+            {
+                var sourceProject = solution.GetProject(type.ContainingAssembly);
+                if (sourceProject == null)
+                {
+                    return SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>();
+                }
+
+                projects = projects ?? ImmutableHashSet.Create(solution.Projects.ToArray());
+
+                var dependencyGraph = solution.GetProjectDependencyGraph();
+
+                // Note: it is not sufficient to just walk the list of projects passed in.
+                // Say we have projects: A <- B <- C, but only projects A and C are passed in.
+                // We might miss a derived type in C if there's an intermediate derived type
+                // in B.
+                //
+                // However, say we have projects A <- B <- C <- D, only only projects A and C
+                // are passed in.  There is no need to check D as there's no way it could
+                // contirbute an intermediate type that affects A or C.
+                var projectsThatCouldReferenceType = dependencyGraph.GetProjectsThatTransitivelyDependOnThisProject(sourceProject.Id);
+
+                var orderedProjectsToExamine = GetProjectsToExamine(
+                    solution, projects, dependencyGraph, projectsThatCouldReferenceType);
+
+                // Now walk the projects from left to right seeing what our type cascades to.
+                // Once we reach a fixed point in that project, take all the types we've found
+                // and move to the next project.  Continue this until we've exhausted all projects.
+                var currentTypes = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance) { type };
+                foreach (var project in orderedProjectsToExamine)
+                {
+                    var derivedTypes = await FindDerivedClassesInProjectAsync(
+                        currentTypes, project, cancellationToken).ConfigureAwait(false);
+
+                    // Add the types we find in this project to the set we're looking for and
+                    // move onto the next project.
+                    currentTypes.AddRange(derivedTypes);
+                }
+
+                return currentTypes;
+            }
+            else
+            {
+                throw new NotImplementedException();
+            }
+
+            //return FindDerivedClassesAsync(type, solution, projects,
+            //    cachedModels: new ConcurrentSet<SemanticModel>(), cancellationToken: cancellationToken);
+        }
+
+        private static List<Project> GetProjectsToExamine(
+            Solution solution,
+            IImmutableSet<Project> projects,
+            ProjectDependencyGraph dependencyGraph,
+            IEnumerable<ProjectId> projectsThatCouldReferenceType)
+        {
+            var projectsToExamine = GetProjectsToExamineWorker(
+                solution, projects, dependencyGraph, projectsThatCouldReferenceType);
+
+            // Ensure the projects we're going to examine are ordered topologically.
+            // That way we can just sweep over them from left to right as no project
+            // could affect a previous project in the sweep.
+            var order = new Dictionary<ProjectId, int>();
+
+            int index = 0;
+            foreach (var projectId in dependencyGraph.GetTopologicallySortedProjects())
+            {
+                order.Add(projectId, index);
+                index++;
+            }
+
+            return projectsToExamine.OrderBy((p1, p2) => order[p1.Id] - order[p1.Id]).ToList();
+        }
+
+        private static IEnumerable<Project> GetProjectsToExamineWorker(
+            Solution solution,
+            IImmutableSet<Project> projects,
+            ProjectDependencyGraph dependencyGraph,
+            IEnumerable<ProjectId> projectsThatCouldReferenceType)
+        {
+            // We need to search all projects that could reference the type *and* which are 
+            // referenced by some project in the project set.
+            foreach (var projectThatCouldReferenceType in projectsThatCouldReferenceType)
+            {
+                if (projects.Any(p => p.Id == projectThatCouldReferenceType))
+                {
+                    // We were explicitly asked to search this project, and it's a project that 
+                    // could be referencing the type we care about.  Definitely search this one.
+                    yield return solution.GetProject(projectThatCouldReferenceType);
+                }
+                else if (AnyProjectDependsOn(projects, dependencyGraph, projectThatCouldReferenceType))
+                {
+                    // While we were not explicitly asked to search 'projectThatCouldReferenceType',
+                    // we do have some project we care about that depends on that project.  Because of
+                    // this we need to search 'projectThatCouldReferenceType' in case it introduces 
+                    // intermediate types that affect the projects we care about.
+                    yield return solution.GetProject(projectThatCouldReferenceType);
+                }
+            }
+
+            // No point searching a project if it wasn't a project that could have referenced that
+            // type in the first place.
+        }
+
+        private static bool AnyProjectDependsOn(
+            IImmutableSet<Project> projects, ProjectDependencyGraph dependencyGraph, 
+            ProjectId projectThatCouldReferenceType)
+        {
+            foreach (var project in projects)
+            {
+                var projectsThisProjectDependsOn = dependencyGraph.GetProjectsThatThisProjectTransitivelyDependsOn(project.Id);
+                if (projectsThisProjectDependsOn.Contains(projectThatCouldReferenceType))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         /// <summary>
         /// This is an internal implementation of <see cref="SymbolFinder.FindDerivedClassesAsync"/>, which is a publically callable method.
         /// </summary>
-        private static async Task<IEnumerable<INamedTypeSymbol>> FindDerivedClassesAsync(
-            INamedTypeSymbol type,
-            Solution solution,
-            IImmutableSet<Project> projects,
-            ConcurrentSet<SemanticModel> cachedModels,
+        private static async Task<IEnumerable<INamedTypeSymbol>> FindDerivedClassesInProjectAsync(
+            HashSet<INamedTypeSymbol> classes,
+            Project project,
             CancellationToken cancellationToken)
         {
-            // Only a class can have derived types.
-            if (type?.TypeKind == TypeKind.Class &&
-                !type.IsSealed)
+            Debug.Assert(classes.All(c => c.TypeKind == TypeKind.Class));
+
+            // We're going to be sweeping over this project over and over until we reach a 
+            // fixed point.  In order to limit GC and excess work, we cache all the sematic
+            // models and DeclaredSymbolInfo for hte documents we look at.
+            // Because we're only processing a project at a time, this is not an issue.
+            var cachedModels = new HashSet<SemanticModel>();
+            var cachedInfos = new HashSet<DeclaredSymbolInfo>();
+
+            var finalResult = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
+
+            var currentSet = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
+            currentSet.AddAll(classes);
+
+            while (true)
             {
-                // Search outwards by looking for immediately derived classes of the type passed in,
-                // then immediately derived classes of those types, and so on and so on.
-                //
-                // We do this by keeping a queue of types to search for (starting with the initial
-                // type we were given).  As long as we keep discovering new types, we keep searching
-                // outwards.  Once no new types are discovered, we're done.
-                var finalResult = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
+                // Only bother searching for derived types of non-sealed classes we're passed in.
+                var classesToSearchFor = currentSet.Where(c => !c.IsSealed).ToSet();
+                var classNamesToSearchFor = classesToSearchFor.Select(c => c.Name).ToSet();
+                currentSet.Clear();
 
-                var workQueue = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
-                workQueue.Add(type);
-
-                while (workQueue.Count > 0)
+                if (classesToSearchFor.Count == 0)
                 {
-                    cancellationToken.ThrowIfCancellationRequested();
+                    // No more classes to search for.  Return whatever we found.
+                    return finalResult;
+                }
 
-                    // Search for all the workqueue types in parallel.
-                    var tasks = workQueue.Select(t => GetTypesImmediatelyDerivedFromClassesAsync(
-                        t, solution, projects, cachedModels, cancellationToken)).ToArray();
-                    await Task.WhenAll(tasks).ConfigureAwait(false);
+                // Search all the documents of this project in parallel.
+                var tasks = project.Documents.Select(d => FindDerivedClassesInDocumentAsync(
+                    classesToSearchFor, classNamesToSearchFor, d, cachedModels, cachedInfos, cancellationToken)).ToArray();
+                await Task.WhenAll(tasks).ConfigureAwait(false);
 
-                    workQueue.Clear();
-                    foreach (var task in tasks)
+                foreach (var task in tasks)
+                {
+                    if (task.Result != null)
                     {
                         foreach (var derivedType in task.Result)
                         {
                             if (finalResult.Add(derivedType))
                             {
-                                // We saw a derived type for the first time.  Enqueue it so that
-                                // we can find any derived types of it.
-                                workQueue.Add(derivedType);
+                                // Found a new type.  Add it to the list of types for us to search for
+                                // more derived classes of.
+                                currentSet.Add(derivedType);
                             }
                         }
                     }
                 }
+            }
+        }
 
-                return finalResult;
+        private static async Task<IEnumerable<INamedTypeSymbol>> FindDerivedClassesInDocumentAsync(
+            ISet<INamedTypeSymbol> classesToSearchFor,
+            ISet<string> classNamesToSearchFor,
+            Document document, 
+            HashSet<SemanticModel> cachedModels, 
+            HashSet<DeclaredSymbolInfo> cachedInfos, 
+            CancellationToken cancellationToken)
+        {
+            var infos = await document.GetDeclaredSymbolInfosAsync(cancellationToken).ConfigureAwait(false);
+            cachedInfos.AddRange(infos);
+
+            HashSet<INamedTypeSymbol> result = null;
+            foreach (var info in infos)
+            {
+                if (AnyInheritanceNamesMatch(info, classNamesToSearchFor))
+                {
+                    // Looks like we have a potential match.  Actually check if the symbol is viable.
+                    var symbol = await ResolveAsync(document, info, cachedModels, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
+                    if (symbol != null)
+                    {
+                        if (classesToSearchFor.Contains(symbol.BaseType.OriginalDefinition))
+                        {
+                            result = result ?? new HashSet<INamedTypeSymbol>();
+                            result.Add(symbol);
+                        }
+                    }
+                }
             }
 
-            return SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>();
+            return result;
+        }
+
+        private static bool AnyInheritanceNamesMatch(
+            DeclaredSymbolInfo info, ISet<string> classNamesToSearchFor)
+        {
+            foreach (var name in info.InheritanceNames)
+            {
+                if (classNamesToSearchFor.Contains(name))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public static async Task<IEnumerable<INamedTypeSymbol>> FindImplementingTypesAsync(
@@ -488,7 +660,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static async Task<ISymbol> ResolveAsync(
-            Document doc, DeclaredSymbolInfo info, ConcurrentSet<SemanticModel> models, 
+            Document doc, DeclaredSymbolInfo info, ICollection<SemanticModel> models, 
             CancellationToken cancellationToken)
         {
             var semanticModel = await doc.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);

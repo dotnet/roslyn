@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -11,7 +12,7 @@ namespace Roslyn.Utilities
     /// A concurrent, simplified HashSet.
     /// </summary>
     [DebuggerDisplay("Count = {Count}")]
-    internal sealed class ConcurrentSet<T> : IEnumerable<T>
+    internal sealed class ConcurrentSet<T> : ICollection<T>
     {
         /// <summary>
         /// The default concurrency level is 2. That means the collection can cope with up to two
@@ -64,6 +65,8 @@ namespace Roslyn.Utilities
         {
             get { return _dictionary.IsEmpty; }
         }
+
+        public bool IsReadOnly => false;
 
         /// <summary>
         /// Determine whether the given value is in the set.
@@ -171,6 +174,16 @@ namespace Roslyn.Utilities
         IEnumerator IEnumerable.GetEnumerator()
         {
             return GetEnumeratorImpl();
+        }
+
+        void ICollection<T>.Add(T item)
+        {
+            Add(item);
+        }
+
+        public void CopyTo(T[] array, int arrayIndex)
+        {
+            throw new NotImplementedException();
         }
     }
 }
