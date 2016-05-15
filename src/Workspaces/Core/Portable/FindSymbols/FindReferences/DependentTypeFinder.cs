@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
     internal delegate Task<IEnumerable<INamedTypeSymbol>> SearchDocumentAsync(
         HashSet<INamedTypeSymbol> classesToSearchFor,
-        HashSet<string> classNamesToSearchFor,
+        HashSet<string> typeNamesToSearchFor,
         Document document,
         HashSet<SemanticModel> cachedModels,
         HashSet<DeclaredSymbolInfo> cachedInfos,
@@ -598,7 +598,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static Task<IEnumerable<INamedTypeSymbol>> FindImmediatelyDerivedClassesInDocumentAsync(
             ISet<INamedTypeSymbol> classesToSearchFor,
-            HashSet<string> classNamesToSearchFor,
+            HashSet<string> typeNamesToSearchFor,
             Document document,
             HashSet<SemanticModel> cachedModels,
             HashSet<DeclaredSymbolInfo> cachedInfos,
@@ -606,13 +606,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             Func<INamedTypeSymbol, bool> typeMatches = t => classesToSearchFor.Contains(t.BaseType?.OriginalDefinition);
             return FindImmediatelyInheritingTypesInDocumentAsync(
-                classNamesToSearchFor, document,
+                typeNamesToSearchFor, document,
                 cachedModels, cachedInfos, typeMatches,
                 cancellationToken);
         }
 
         private static async Task<IEnumerable<INamedTypeSymbol>> FindImmediatelyInheritingTypesInDocumentAsync(
-            HashSet<string> classNamesToSearchFor,
+            HashSet<string> typeNamesToSearchFor,
             Document document, 
             HashSet<SemanticModel> cachedModels, 
             HashSet<DeclaredSymbolInfo> cachedInfos, 
@@ -625,7 +625,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             HashSet<INamedTypeSymbol> result = null;
             foreach (var info in infos)
             {
-                if (AnyInheritanceNamesMatch(info, classNamesToSearchFor))
+                if (AnyInheritanceNamesMatch(info, typeNamesToSearchFor))
                 {
                     // Looks like we have a potential match.  Actually check if the symbol is viable.
                     var symbol = await ResolveAsync(document, info, cachedModels, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
