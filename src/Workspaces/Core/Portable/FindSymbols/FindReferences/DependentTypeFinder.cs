@@ -516,7 +516,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var typesToSearchFor = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
             typesToSearchFor.AddAll(sourceAndMetadataTypes);
 
-            var typeNamesToSearchFor = new HashSet<string>();
+            var typeNamesToSearchFor = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
 
             while (typesToSearchFor.Count > 0)
             {
@@ -571,7 +571,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static bool ImmediatelyDerivesOrImplementsFrom(
             HashSet<INamedTypeSymbol> typesToSearchFor, INamedTypeSymbol type)
         {
-            if (typesToSearchFor.Contains(type.BaseType.OriginalDefinition))
+            if (typesToSearchFor.Contains(type.BaseType?.OriginalDefinition))
             {
                 return true;
             }
@@ -589,13 +589,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static Task<IEnumerable<INamedTypeSymbol>> FindImmediatelyDerivedClassesInDocumentAsync(
             ISet<INamedTypeSymbol> classesToSearchFor,
-            ISet<string> classNamesToSearchFor,
+            HashSet<string> classNamesToSearchFor,
             Document document,
             HashSet<SemanticModel> cachedModels,
             HashSet<DeclaredSymbolInfo> cachedInfos,
             CancellationToken cancellationToken)
         {
-            Func<INamedTypeSymbol, bool> typeMatches = t => classesToSearchFor.Contains(t.BaseType.OriginalDefinition);
+            Func<INamedTypeSymbol, bool> typeMatches = t => classesToSearchFor.Contains(t.BaseType?.OriginalDefinition);
             return FindImmediatelyInheritingTypesInDocumentAsync(
                 classNamesToSearchFor, document,
                 cachedModels, cachedInfos, typeMatches,
@@ -603,7 +603,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static async Task<IEnumerable<INamedTypeSymbol>> FindImmediatelyInheritingTypesInDocumentAsync(
-            ISet<string> classNamesToSearchFor,
+            HashSet<string> classNamesToSearchFor,
             Document document, 
             HashSet<SemanticModel> cachedModels, 
             HashSet<DeclaredSymbolInfo> cachedInfos, 
@@ -635,11 +635,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static bool AnyInheritanceNamesMatch(
-            DeclaredSymbolInfo info, ISet<string> classNamesToSearchFor)
+            DeclaredSymbolInfo info, HashSet<string> typeNamesToSearchFor)
         {
             foreach (var name in info.InheritanceNames)
             {
-                if (classNamesToSearchFor.Contains(name))
+                if (typeNamesToSearchFor.Contains(name))
                 {
                     return true;
                 }
