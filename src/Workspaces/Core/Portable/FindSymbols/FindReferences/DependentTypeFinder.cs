@@ -269,7 +269,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 findMetadataTypesAsync: FindDerivedAndImplementingMetadataTypesInProjectAsync,
                 findSourceTypesAsync: FindDerivedAndImplementingSourceTypesInProjectAsync,
                 shouldContinueSearching: IsInterfaceOrNonSealedClass,
-                transitive: true,
+                transitive: transitive,
                 cancellationToken: cancellationToken);
         }
 
