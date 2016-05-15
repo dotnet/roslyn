@@ -245,7 +245,8 @@ namespace M
             Assert.NotEqual(baseInterfaceSymbol, implementingClassSymbol.Interfaces.Single());
 
             // verify that the implementing types of `N.IBaseInterface` correctly resolve to `M.ImplementingClass`
-            var typesThatImplementInterface = await DependentTypeFinder.FindImmediatelyDerivedInterfacesAsync(baseInterfaceSymbol, solution, CancellationToken.None);
+            var typesThatImplementInterface = await DependentTypeFinder.FindImmediatelyDerivedAndImplementingTypesAsync(
+                baseInterfaceSymbol, solution, CancellationToken.None);
             Assert.Equal(implementingClassSymbol, typesThatImplementInterface.Single());
         }
 
@@ -284,7 +285,8 @@ End Namespace
             Assert.NotEqual(baseInterfaceSymbol, implementingClassSymbol.Interfaces.Single());
 
             // verify that the implementing types of `N.IBaseInterface` correctly resolve to `M.ImplementingClass`
-            var typesThatImplementInterface = await DependentTypeFinder.FindImmediatelyDerivedInterfacesAsync(baseInterfaceSymbol, solution, CancellationToken.None);
+            var typesThatImplementInterface = await DependentTypeFinder.FindImmediatelyDerivedAndImplementingTypesAsync(
+                baseInterfaceSymbol, solution, CancellationToken.None);
             Assert.Equal(implementingClassSymbol, typesThatImplementInterface.Single());
         }
 
@@ -322,7 +324,8 @@ namespace M
             Assert.NotEqual(baseInterfaceSymbol, implementingClassSymbol.Interfaces.Single());
 
             // verify that the implementing types of `N.IBaseInterface` correctly resolve to `M.ImplementingClass`
-            var typesThatImplementInterface = await DependentTypeFinder.FindImmediatelyDerivedInterfacesAsync(baseInterfaceSymbol, solution, CancellationToken.None);
+            var typesThatImplementInterface = await DependentTypeFinder.FindImmediatelyDerivedAndImplementingTypesAsync(
+                baseInterfaceSymbol, solution, CancellationToken.None);
             Assert.Equal(implementingClassSymbol, typesThatImplementInterface.Single());
         }
     }

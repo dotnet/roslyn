@@ -133,20 +133,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return derivedAndImplementingTypes.Where(t => t.TypeKind == TypeKind.Class).ToList();
         }
 
-        public static async Task<IEnumerable<INamedTypeSymbol>> FindImmediatelyDerivedInterfacesAsync(
+        public static Task<IEnumerable<INamedTypeSymbol>> FindImmediatelyDerivedAndImplementingTypesAsync(
             INamedTypeSymbol type,
             Solution solution,
             CancellationToken cancellationToken)
         {
-            var derivedAndImplementingTypes = await FindDerivedAndImplementingTypesAsync(
+            return FindDerivedAndImplementingTypesAsync(
                 type, solution, projects: null,
-                transitive: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-
-            // We only want derived interfaces here, not implementing classes.
-            return derivedAndImplementingTypes.Where(t => t.TypeKind == TypeKind.Interface).ToList();
+                transitive: false, cancellationToken: cancellationToken);
         }
 
-        private static async Task<IEnumerable<INamedTypeSymbol>> FindDerivedAndImplementingTypesAsync(
+        private static Task<IEnumerable<INamedTypeSymbol>> FindDerivedAndImplementingTypesAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
@@ -156,13 +153,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // Only an interface can be implemented.
             if (type?.TypeKind == TypeKind.Interface)
             {
-                var derivedAndImplementingTypes = await FindTypesAsync(type, solution, projects,
+                return FindTypesAsync(type, solution, projects,
                     findTypesInProjectAsync: FindDerivedAndImplementingTypesInProjectAsync,
                     transitive: transitive,
-                    cancellationToken: cancellationToken).ConfigureAwait(false);
+                    cancellationToken: cancellationToken);
            }
 
-            return SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>();
+            return SpecializedTasks.EmptyEnumerable<INamedTypeSymbol>();
         }
 
         private static async Task<IEnumerable<INamedTypeSymbol>> FindTypesAsync(
