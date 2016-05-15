@@ -401,7 +401,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 index++;
             }
 
-            return projectsToExamine.OrderBy((p1, p2) => order[p1.Id] - order[p1.Id]).ToList();
+            return projectsToExamine.OrderBy((p1, p2) => order[p1.Id] - order[p2.Id]).ToList();
         }
 
         private static IEnumerable<Project> GetProjectsToExamineWorker(
