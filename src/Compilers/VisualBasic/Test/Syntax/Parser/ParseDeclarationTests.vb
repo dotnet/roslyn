@@ -679,26 +679,26 @@ End Class
     <WorkItem(894067, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30213ERR_InvalidParameterSyntax_DollarAutoProp()
-        Dim code = <![CDATA[
+        Dim code = "
 Property Scen4(
  p1 as vb$anonymous1
 ) a
-]]>.Value
+"
         For Each lv As LanguageVersion In [Enum].GetValues(GetType(LanguageVersion))
             Dim vbp = VisualBasicParseOptions.Default.WithLanguageVersion(lv)
             If lv < LanguageVersion.VNext Then
                 ParseAndVerify(code, vbp,
-                               Diagnostic(ERRID.ERR_AutoPropertyCantHaveParams, <![CDATA[(
+                               Diagnostic(ERRID.ERR_AutoPropertyCantHaveParams, "(
  p1 as vb$anonymous1
-)]]>.Value),
+)"),
                                Diagnostic(ERRID.ERR_InvalidParameterSyntax, "anonymous1")
                               )
             Else
                 ParseAndVerify(code, vbp,
-                               Diagnostic(ERRID.ERR_AutoPropertyCantHaveParams, <![CDATA[(
+                               Diagnostic(ERRID.ERR_AutoPropertyCantHaveParams, "(
  p1 as vb$anonymous1
-)]]>.Value),
-                               Diagnostic(ERRID.ERR_InvalidParameterSyntax))
+)"),
+                               Diagnostic(ERRID.ERR_InvalidParameterSyntax, "anonymous1"))
             End If
         Next
     End Sub
@@ -718,7 +718,7 @@ Property Scen4(
 
     <WorkItem(887748, "DevDiv/Personal")>
     <WorkItem(889062, "DevDiv/Personal")>
-    <WorkItem(538919, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538919")>
+    <WorkItem(538919, "http:  //vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538919")>
     <Fact>
     Public Sub BC30602ERR_InterfaceMemberSyntax_TypeStatement()
         ParseAndVerify(<![CDATA[
