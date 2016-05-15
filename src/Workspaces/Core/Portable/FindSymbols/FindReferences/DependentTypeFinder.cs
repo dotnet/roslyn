@@ -473,7 +473,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return TransitivelyFindTypesInProjectAsync(
                 sourceAndMetadataTypes,
                 project,
-                findImmediatelyDerivedTypesInDocumentAsync: FindDerivedAndImplementingTypesInDocumentAsync,
+                findImmediatelyDerivedTypesInDocumentAsync: FindImmediatelyDerivedAndImplementingTypesInDocumentAsync,
                 shouldContinueSearching: shouldContinueSearching,
                 cancellationToken: cancellationToken);
         }
@@ -606,7 +606,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return finalResult;
         }
 
-        private static Task<IEnumerable<INamedTypeSymbol>> FindDerivedAndImplementingTypesInDocumentAsync(
+        private static Task<IEnumerable<INamedTypeSymbol>> FindImmediatelyDerivedAndImplementingTypesInDocumentAsync(
             HashSet<INamedTypeSymbol> typesToSearchFor,
             HashSet<string> typeNamesToSearchFor,
             Document document,
