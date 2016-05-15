@@ -681,7 +681,7 @@ End Class
     Public Sub BC30213ERR_InvalidParameterSyntax_DollarAutoProp()
         Dim code = <![CDATA[
 Property Scen4(
-p1 as vb$anonymous1
+ p1 as vb$anonymous1
 ) a
 ]]>.Value
         For Each lv As LanguageVersion In [Enum].GetValues(GetType(LanguageVersion))
@@ -697,7 +697,8 @@ p1 as vb$anonymous1
                 ParseAndVerify(code, vbp,
                                Diagnostic(ERRID.ERR_AutoPropertyCantHaveParams, <![CDATA[(
  p1 as vb$anonymous1
-)]]>.Value))
+)]]>.Value),
+                               Diagnostic(ERRID.ERR_InvalidParameterSyntax))
             End If
         Next
     End Sub

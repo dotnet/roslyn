@@ -349,6 +349,7 @@ Public Class ParseMethods
             Dim p = VisualBasicParseOptions.Default.WithLanguageVersion(lv)
             If lv < LanguageVersion.VNext Then
                 ParserTestUtilities.ParseAndVerify(code, p, <errors>
+                                                                <error id="30201"/>
                                                                 <error id="30812"/>
                                                                 <error id="30180"/>
                                                             </errors>)
