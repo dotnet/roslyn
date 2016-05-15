@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
     internal delegate Task<IEnumerable<INamedTypeSymbol>> SearchDocumentAsync(
         HashSet<INamedTypeSymbol> classesToSearchFor,
-        HashSet<string> typeNamesToSearchFor,
+        InheritanceInfo inheritanceInfo,
         Document document,
         HashSet<SemanticModel> cachedModels,
         HashSet<DeclaredSymbolInfo> cachedInfos,
@@ -31,6 +31,30 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
     internal delegate Task FindTypesInProjectCallback(bool searchInMetadata, HashSet<INamedTypeSymbol> result, HashSet<INamedTypeSymbol> currentMetadataTypes, HashSet<INamedTypeSymbol> currentSourceAndMetadataTypes, Project project, CancellationToken cancellationToken);
     internal delegate Task<IEnumerable<INamedTypeSymbol>> SearchProject(HashSet<INamedTypeSymbol> sourceAndMetadataTypes, Project project, CancellationToken cancellationToken);
+
+    internal class InheritanceInfo
+    {
+        public readonly bool DerivesFromSystemObject;
+        public readonly bool DerivesFromSystemValueType;
+        public readonly bool DerivesFromSystemEnum;
+        public readonly bool DerivesFromSystemMulticastDelegate;
+
+        public readonly HashSet<string> TypeNames;
+
+        public InheritanceInfo(
+            bool derivesFromSystemObject,
+            bool derivesFromSystemValueType,
+            bool derivesFromSystemEnum,
+            bool derivesFromSystemMulticastDelegate,
+            HashSet<string> typeNames)
+        {
+            DerivesFromSystemObject = derivesFromSystemObject;
+            DerivesFromSystemValueType = derivesFromSystemValueType;
+            DerivesFromSystemEnum = derivesFromSystemEnum;
+            DerivesFromSystemMulticastDelegate = derivesFromSystemMulticastDelegate;
+            TypeNames = typeNames;
+        }
+    }
 
     /// <summary>
     /// Provides helper methods for finding dependent types (derivations, implementations, etc.) across a solution.
@@ -526,6 +550,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             typesToSearchFor.AddAll(sourceAndMetadataTypes);
 
             var typeNamesToSearchFor = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var derivesFromSystemObject = sourceAndMetadataTypes.Any(t => t.SpecialType == SpecialType.System_Object);
+            var derivesFromSystemEnum = sourceAndMetadataTypes.Any(t => t.SpecialType == SpecialType.System_Enum);
+            var derivesFromSystemValueType = sourceAndMetadataTypes.Any(t => t.SpecialType == SpecialType.System_ValueType);
+            var derivesFromSystemMulticastDelegate = sourceAndMetadataTypes.Any(t => t.SpecialType == SpecialType.System_MulticastDelegate);
+
+            var inheritanceInfo = new InheritanceInfo(
+                derivesFromSystemObject, 
+                derivesFromSystemValueType,
+                derivesFromSystemEnum,
+                derivesFromSystemMulticastDelegate,
+                typeNamesToSearchFor);
 
             while (typesToSearchFor.Count > 0)
             {
@@ -534,7 +569,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 // Search all the documents of this project in parallel.
                 var tasks = project.Documents.Select(d => findImmediatelyDerivedTypesInDocumentAsync(
-                    typesToSearchFor, typeNamesToSearchFor, d, cachedModels, cachedInfos, cancellationToken)).ToArray();
+                    typesToSearchFor, inheritanceInfo, d,
+                    cachedModels, cachedInfos, cancellationToken)).ToArray();
+
                 await Task.WhenAll(tasks).ConfigureAwait(false);
 
                 typesToSearchFor.Clear();
@@ -563,7 +600,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static Task<IEnumerable<INamedTypeSymbol>> FindImmediatelyDerivedAndImplementingTypesInDocumentAsync(
             HashSet<INamedTypeSymbol> typesToSearchFor,
-            HashSet<string> typeNamesToSearchFor,
+            InheritanceInfo inheritanceInfo,
             Document document,
             HashSet<SemanticModel> cachedModels,
             HashSet<DeclaredSymbolInfo> cachedInfos,
@@ -572,7 +609,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Func<INamedTypeSymbol, bool> typeMatches = t => ImmediatelyDerivesOrImplementsFrom(typesToSearchFor, t);
 
             return FindImmediatelyInheritingTypesInDocumentAsync(
-                typeNamesToSearchFor, document,
+                inheritanceInfo, document,
                 cachedModels, cachedInfos, typeMatches,
                 cancellationToken);
         }
@@ -598,7 +635,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static Task<IEnumerable<INamedTypeSymbol>> FindImmediatelyDerivedClassesInDocumentAsync(
             ISet<INamedTypeSymbol> classesToSearchFor,
-            HashSet<string> typeNamesToSearchFor,
+            InheritanceInfo inheritanceInfo,
             Document document,
             HashSet<SemanticModel> cachedModels,
             HashSet<DeclaredSymbolInfo> cachedInfos,
@@ -606,13 +643,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             Func<INamedTypeSymbol, bool> typeMatches = t => classesToSearchFor.Contains(t.BaseType?.OriginalDefinition);
             return FindImmediatelyInheritingTypesInDocumentAsync(
-                typeNamesToSearchFor, document,
+                inheritanceInfo, document,
                 cachedModels, cachedInfos, typeMatches,
                 cancellationToken);
         }
 
         private static async Task<IEnumerable<INamedTypeSymbol>> FindImmediatelyInheritingTypesInDocumentAsync(
-            HashSet<string> typeNamesToSearchFor,
+            InheritanceInfo inheritanceInfo,
             Document document, 
             HashSet<SemanticModel> cachedModels, 
             HashSet<DeclaredSymbolInfo> cachedInfos, 
@@ -625,17 +662,56 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             HashSet<INamedTypeSymbol> result = null;
             foreach (var info in infos)
             {
-                if (AnyInheritanceNamesMatch(info, typeNamesToSearchFor))
+                result = await ProcessSingleInfo(
+                    inheritanceInfo, document, cachedModels,
+                    typeMatches, result, info, cancellationToken).ConfigureAwait(false);
+            }
+
+            return result;
+        }
+
+        private static async Task<HashSet<INamedTypeSymbol>> ProcessSingleInfo(
+            InheritanceInfo inheritanceInfo, Document document, HashSet<SemanticModel> cachedModels,
+            Func<INamedTypeSymbol, bool> typeMatches, HashSet<INamedTypeSymbol> result,
+            DeclaredSymbolInfo info, CancellationToken cancellationToken)
+        {
+            // If we're searching for enums/structs/delegates, then we can just look at the kind of
+            // the info to see if we have a match.
+            if ((inheritanceInfo.DerivesFromSystemEnum && info.Kind == DeclaredSymbolInfoKind.Enum) ||
+                (inheritanceInfo.DerivesFromSystemValueType && info.Kind == DeclaredSymbolInfoKind.Struct) ||
+                (inheritanceInfo.DerivesFromSystemMulticastDelegate && info.Kind == DeclaredSymbolInfoKind.Delegate))
+            {
+                var symbol = await ResolveAsync(document, info, cachedModels, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
+                if (symbol != null)
                 {
-                    // Looks like we have a potential match.  Actually check if the symbol is viable.
-                    var symbol = await ResolveAsync(document, info, cachedModels, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
-                    if (symbol != null)
+                    result = result ?? new HashSet<INamedTypeSymbol>();
+                    result.Add(symbol);
+                }
+            }
+            else if (inheritanceInfo.DerivesFromSystemObject && info.Kind == DeclaredSymbolInfoKind.Class)
+            {
+                // Searching for types derived from 'Object' needs to be handled specially.
+                // There may be no indication in source what the type actually derives from.
+                // Also, we can't just look for an empty inheritance list.  We may have 
+                // something like: "class C : IFoo".  This type derives from object, despite
+                // having a non-empty list.
+                var symbol = await ResolveAsync(document, info, cachedModels, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
+                if (symbol?.BaseType?.SpecialType == SpecialType.System_Object)
+                {
+                    result = result ?? new HashSet<INamedTypeSymbol>();
+                    result.Add(symbol);
+                }
+            }
+            else if (AnyInheritanceNamesMatch(info, inheritanceInfo.TypeNames))
+            {
+                // Looks like we have a potential match.  Actually check if the symbol is viable.
+                var symbol = await ResolveAsync(document, info, cachedModels, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
+                if (symbol != null)
+                {
+                    if (typeMatches(symbol))
                     {
-                        if (typeMatches(symbol))
-                        {
-                            result = result ?? new HashSet<INamedTypeSymbol>();
-                            result.Add(symbol);
-                        }
+                        result = result ?? new HashSet<INamedTypeSymbol>();
+                        result.Add(symbol);
                     }
                 }
             }
