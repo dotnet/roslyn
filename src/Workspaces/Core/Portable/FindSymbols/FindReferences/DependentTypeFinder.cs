@@ -552,60 +552,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return finalResult;
         }
 
-        private static async Task<IEnumerable<INamedTypeSymbol>> FindImplementingSourceTypesInProjectAsync(
-            HashSet<INamedTypeSymbol> sourceAndMetadataTypes,
-            Project project,
-            CancellationToken cancellationToken)
-        {
-            Debug.Assert(sourceAndMetadataTypes.All(c => c.TypeKind == TypeKind.Interface));
-
-            // We're going to be sweeping over this project over and over until we reach a 
-            // fixed point.  In order to limit GC and excess work, we cache all the sematic
-            // models and DeclaredSymbolInfo for hte documents we look at.
-            // Because we're only processing a project at a time, this is not an issue.
-            var cachedModels = new HashSet<SemanticModel>();
-            var cachedInfos = new HashSet<DeclaredSymbolInfo>();
-
-            var finalResult = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
-
-            var classesToSearchFor = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
-            classesToSearchFor.AddAll(sourceAndMetadataTypes);
-
-            var classNamesToSearchFor = new HashSet<string>();
-
-            while (classesToSearchFor.Count > 0)
-            {
-                // Only bother searching for derived types of non-sealed classes we're passed in.
-                classNamesToSearchFor.AddRange(classesToSearchFor.Select(c => c.Name));
-
-                // Search all the documents of this project in parallel.
-                var tasks = project.Documents.Select(d => FindImmediatelyDerivedClassesInDocumentAsync(
-                    classesToSearchFor, classNamesToSearchFor, d, cachedModels, cachedInfos, cancellationToken)).ToArray();
-                await Task.WhenAll(tasks).ConfigureAwait(false);
-
-                classesToSearchFor.Clear();
-                classNamesToSearchFor.Clear();
-
-                foreach (var task in tasks)
-                {
-                    if (task.Result != null)
-                    {
-                        foreach (var derivedType in task.Result)
-                        {
-                            if (finalResult.Add(derivedType))
-                            {
-                                // Found a new type.  If it isn't sealed, add it to the list of 
-                                // types for us to search for more derived classes of.
-                                classesToSearchFor.Add(derivedType);
-                            }
-                        }
-                    }
-                }
-            }
-
-            return finalResult;
-        }
-
         private static Task<IEnumerable<INamedTypeSymbol>> FindImmediatelyDerivedAndImplementingTypesInDocumentAsync(
             HashSet<INamedTypeSymbol> typesToSearchFor,
             HashSet<string> typeNamesToSearchFor,
