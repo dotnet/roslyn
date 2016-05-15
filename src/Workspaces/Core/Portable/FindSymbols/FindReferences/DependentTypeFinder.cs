@@ -484,10 +484,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 cancellationToken: cancellationToken);
         }
 
-        private static bool IsInterfaceOrNonSealedClass(INamedTypeSymbol t)
-        {
-            return t.TypeKind == TypeKind.Interface || IsNonSealedClass(t);
-        }
+        private static readonly Func<INamedTypeSymbol, bool> IsInterfaceOrNonSealedClass = 
+            t => t.TypeKind == TypeKind.Interface || IsNonSealedClass(t);
 
         private static Task<IEnumerable<INamedTypeSymbol>> TransitivelyFindDerivedSourceClassesInProjectAsync(
             HashSet<INamedTypeSymbol> sourceAndMetadataTypes,
