@@ -14,13 +14,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    using TypeMatches = Func<INamedTypeSymbol, Project, CancellationToken, bool>;
-    using SourceInfoMatches = Func<Document, DeclaredSymbolInfo, ConcurrentSet<SemanticModel>, CancellationToken, Task<ISymbol>>;
-    internal delegate Task SearchProjectAsync(
-        INamedTypeSymbol type, Project project, bool isInMetadata,
-        ConcurrentSet<ISymbol> results, ConcurrentSet<SemanticModel> cachedModels, 
-        CancellationToken cancellationToken);
-
     internal delegate Task<IEnumerable<INamedTypeSymbol>> SearchDocumentAsync(
         HashSet<INamedTypeSymbol> classesToSearchFor,
         InheritanceInfo inheritanceInfo,
@@ -33,6 +26,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         bool searchInMetadata, HashSet<INamedTypeSymbol> result, HashSet<INamedTypeSymbol> currentMetadataTypes,
         HashSet<INamedTypeSymbol> currentSourceAndMetadataTypes,
         Project project, bool transitive, CancellationToken cancellationToken);
+
     internal delegate Task<IEnumerable<INamedTypeSymbol>> SearchProject(
         HashSet<INamedTypeSymbol> sourceAndMetadataTypes, Project project, bool transitive, CancellationToken cancellationToken);
 
@@ -71,17 +65,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     /// </remarks>
     internal static class DependentTypeFinder
     {
-        // Cache certain delegates so we don't need to create them over and over again.
-        private static SourceInfoMatches s_infoMatchesDelegate = GetSourceInfoMatchesFunction(DeclaredSymbolInfoKind.Delegate);
-        private static SourceInfoMatches s_infoMatchesEnum = GetSourceInfoMatchesFunction(DeclaredSymbolInfoKind.Enum);
-        private static SourceInfoMatches s_infoMatchesStruct = GetSourceInfoMatchesFunction(DeclaredSymbolInfoKind.Struct);
-
-        private static TypeMatches s_isDelegateType = (t, p, c) => t.IsDelegateType();
-        private static TypeMatches s_isEnumType = (t, p, c) => t.IsEnumType();
-        private static TypeMatches s_isStructType = (t, p, c) => t.IsStructType();
-
-        private static TypeMatches s_derivesFromObject = (t, p, c) => t.BaseType?.SpecialType == SpecialType.System_Object;
-
         private static Func<Location, bool> s_isInMetadata = loc => loc.IsInMetadata;
 
         /// <summary>
@@ -90,6 +73,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         private static readonly ConditionalWeakTable<Compilation, List<INamedTypeSymbol>> s_compilationAllAccessibleMetadataTypesTable =
             new ConditionalWeakTable<Compilation, List<INamedTypeSymbol>>();
+
+        public static Task<IEnumerable<INamedTypeSymbol>> GetTypesImmediatelyDerivedFromClassesAsync(
+            INamedTypeSymbol type,
+            Solution solution,
+            CancellationToken cancellationToken)
+        {
+            return FindDerivedClassesAsync(type, solution, projects: null,
+                transitive: false, cancellationToken: cancellationToken);
+        }
 
         /// <summary>
         /// This is an internal implementation of <see cref="SymbolFinder.FindDerivedClassesAsync"/>, which is a publically callable method.
@@ -100,11 +92,22 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IImmutableSet<Project> projects,
             CancellationToken cancellationToken)
         {
+            return FindDerivedClassesAsync(type, solution, projects,
+                transitive: true, cancellationToken: cancellationToken);
+        }
+
+        private static Task<IEnumerable<INamedTypeSymbol>> FindDerivedClassesAsync(
+            INamedTypeSymbol type,
+            Solution solution,
+            IImmutableSet<Project> projects, 
+            bool transitive,
+            CancellationToken cancellationToken)
+        {
             if (IsNonSealedClass(type))
             {
                 return FindTypesAsync(type, solution, projects,
                     findTypesInProjectAsync: FindDerivedClassesInProjectAsync,
-                    transitive: true,
+                    transitive: transitive,
                     cancellationToken: cancellationToken);
             }
 
@@ -116,10 +119,30 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return type?.TypeKind == TypeKind.Class && !type.IsSealed;
         }
 
-        public static async Task<IEnumerable<INamedTypeSymbol>> TransitivelyFindImplementingTypesAsync(
+        public static Task<IEnumerable<INamedTypeSymbol>> TransitivelyFindImplementingTypesAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
+            CancellationToken cancellationToken)
+        {
+            return FindImplementingTypesAsync(type, solution, projects,
+                transitive: true, cancellationToken: cancellationToken);
+        }
+
+        public static Task<IEnumerable<INamedTypeSymbol>> GetTypesImmediatelyDerivedFromInterfacesAsync(
+            INamedTypeSymbol type,
+            Solution solution,
+            CancellationToken cancellationToken)
+        {
+            return FindImplementingTypesAsync(type, solution, projects: null,
+                transitive: false, cancellationToken: cancellationToken);
+        }
+
+        private static async Task<IEnumerable<INamedTypeSymbol>> FindImplementingTypesAsync(
+            INamedTypeSymbol type,
+            Solution solution,
+            IImmutableSet<Project> projects,
+            bool transitive, 
             CancellationToken cancellationToken)
         {
             // Only an interface can be implemented.
@@ -127,7 +150,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 var derivedAndImplementingTypes = await FindTypesAsync(type, solution, projects,
                     findTypesInProjectAsync: FindDerivedAndImplementingTypesInProjectAsync,
-                    transitive: true,
+                    transitive: transitive,
                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 // Because of how we search, we're going to find both derived interfaces and 
@@ -757,277 +780,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return false;
         }
 
-        public static Task<IEnumerable<INamedTypeSymbol>> GetTypesImmediatelyDerivedFromInterfacesAsync(
-            INamedTypeSymbol type,
-            Solution solution,
-            CancellationToken cancellationToken)
-        {
-            return GetTypesImmediatelyDerivedFromInterfacesAsync(
-                type, solution, projects: null,
-                cachedModels: new ConcurrentSet<SemanticModel>(),
-                cancellationToken: cancellationToken);
-        }
-
-        private static Task<IEnumerable<INamedTypeSymbol>> GetTypesImmediatelyDerivedFromInterfacesAsync(
-            INamedTypeSymbol type,
-            Solution solution,
-            IImmutableSet<Project> projects,
-            ConcurrentSet<SemanticModel> cachedModels,
-            CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (type?.TypeKind == TypeKind.Interface)
-            {
-                type = type.OriginalDefinition;
-                return GetTypesAsync(
-                    type, solution, projects,
-                    GetTypesImmediatelyDerivedFromInterfacesAsync,
-                    cachedModels, cancellationToken);
-            }
-
-            return SpecializedTasks.EmptyEnumerable<INamedTypeSymbol>();
-        }
-
-        private static Task GetTypesImmediatelyDerivedFromInterfacesAsync(
-            INamedTypeSymbol baseInterface, Project project, bool locationsInMetadata,
-            ConcurrentSet<ISymbol> results, ConcurrentSet<SemanticModel> cachedModels,
-            CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            Debug.Assert(baseInterface.TypeKind == TypeKind.Interface);
-            if (locationsInMetadata)
-            {
-                // For an interface from metadata, we have to find any metadata types that might
-                // derive from this interface.
-                return AddMatchingSourceAndMetadataTypesAsync(project, results,
-                    GetTypeImmediatelyDerivesFromInterfaceFunction(baseInterface),
-                    GetSourceInfoImmediatelyDerivesFromInterfaceFunction(baseInterface),
-                    cachedModels, cancellationToken);
-            }
-
-            // Check for source symbols that could derive from this type. Look for 
-            // DeclaredSymbolInfos in this project that state they derive from a type 
-            // with our name.
-            return AddMatchingSourceTypesAsync(project, results,
-                GetSourceInfoImmediatelyDerivesFromInterfaceFunction(baseInterface),
-                cachedModels, cancellationToken);
-        }
-
-        private static TypeMatches GetTypeImmediatelyDerivesFromInterfaceFunction(INamedTypeSymbol baseInterface)
-        {
-            return (t, p, c) => t.Interfaces.Any(i => SymbolEquivalenceComparer.Instance.Equals(i.OriginalDefinition, baseInterface));
-        }
-
-        private static SourceInfoMatches GetSourceInfoImmediatelyDerivesFromInterfaceFunction(
-            INamedTypeSymbol baseInterface)
-        {
-            var typeTestFunction = GetTypeImmediatelyDerivesFromInterfaceFunction(baseInterface);
-
-            return async (document, info, cachedModels, cancellationToken) =>
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // Interfaces, Classes, and Structs can derive from an interface.
-                if (info.Kind == DeclaredSymbolInfoKind.Class ||
-                    info.Kind == DeclaredSymbolInfoKind.Struct ||
-                    info.Kind == DeclaredSymbolInfoKind.Interface)
-                {
-                    // If one types derives from an interface, then we would expect to see the
-                    // interface name in the inheritance list.  Note: the inheritance name also
-                    // include mapped aliases if aliases are used in the file it is contained in.
-                    foreach (var inheritanceName in info.InheritanceNames)
-                    {
-                        if (string.Equals(baseInterface.Name, inheritanceName, StringComparison.OrdinalIgnoreCase))
-                        {
-                            // Looks like a good candidate.  Get the actual symbol for it and see
-                            // if the symbol matches the criteria.
-                            var candidate = await ResolveAsync(document, info, cachedModels, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
-                            if (candidate != null && typeTestFunction(candidate, document.Project, cancellationToken))
-                            {
-                                return candidate;
-                            }
-                        }
-                    }
-                }
-
-                return null;
-            };
-        }
-
-        public static Task<IEnumerable<INamedTypeSymbol>> GetTypesImmediatelyDerivedFromClassesAsync(
-            INamedTypeSymbol type,
-            Solution solution,
-            CancellationToken cancellationToken)
-        {
-            return GetTypesImmediatelyDerivedFromClassesAsync(
-                type, solution, projects: null,
-                cachedModels:  new ConcurrentSet<SemanticModel>(),
-                cancellationToken: cancellationToken);
-        }
-
-        private static Task<IEnumerable<INamedTypeSymbol>> GetTypesImmediatelyDerivedFromClassesAsync(
-            INamedTypeSymbol type,
-            Solution solution,
-            IImmutableSet<Project> projects,
-            ConcurrentSet<SemanticModel> cachedModels,
-            CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            if (IsNonSealedClass(type))
-            {
-                return GetTypesAsync(
-                    type, solution, projects,
-                    GetTypesImmediatelyDerivedFromClassesAsync,
-                    cachedModels, cancellationToken);
-            }
-
-            return SpecializedTasks.EmptyEnumerable<INamedTypeSymbol>();
-        }
-
-        private static async Task<IEnumerable<INamedTypeSymbol>> GetTypesAsync(
-            INamedTypeSymbol type,
-            Solution solution,
-            IImmutableSet<Project> projects,
-            SearchProjectAsync searchProjectAsync,
-            ConcurrentSet<SemanticModel> cachedModels,
-            CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var dependentProjects = await DependentProjectsFinder.GetDependentProjectsAsync(
-                type, solution, projects, cancellationToken).ConfigureAwait(false);
-
-            // If it's a type from source, then only other types from source could derive from
-            // it.  If it's a type from metadata then unfortunately anything could derive from
-            // it.
-            var locationsInMetadata = type.Locations.Any(loc => loc.IsInMetadata);
-            var results = new ConcurrentSet<ISymbol>(SymbolEquivalenceComparer.Instance);
-
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var projectTasks = new List<Task>();
-            foreach (var project in dependentProjects)
-            {
-                projectTasks.Add(searchProjectAsync(
-                    type, project, locationsInMetadata, results, cachedModels, cancellationToken));
-            }
-
-            // Search all projects in parallel.
-            await Task.WhenAll(projectTasks).ConfigureAwait(false);
-
-            if (results.Any())
-            {
-                return results.OfType<INamedTypeSymbol>().ToList();
-            }
-
-            return SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>();
-        }
-
-        private static SourceInfoMatches GetSourceInfoMatchesFunction(DeclaredSymbolInfoKind kind)
-        {
-            return async (document, info, cachedModels, cancellationToken) =>
-            {
-                if (info.Kind != kind)
-                {
-                    return null;
-                }
-
-                return await ResolveAsync(document, info, cachedModels, cancellationToken).ConfigureAwait(false);
-            };
-        }
-
-        private static Task GetTypesImmediatelyDerivedFromClassesAsync(
-            INamedTypeSymbol baseType, Project project, bool locationsInMetadata,
-            ConcurrentSet<ISymbol> results, ConcurrentSet<SemanticModel> cachedModels,
-            CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            Debug.Assert(baseType.TypeKind == TypeKind.Class);
-            if (locationsInMetadata)
-            {
-                switch (baseType.SpecialType)
-                {
-                    // Object needs to be handled specially as many types may derive directly from it,
-                    // while having no source indication that that's the case.
-                    case SpecialType.System_Object:
-                        return GetAllTypesThatDeriveDirectlyFromObjectAsync(
-                            project, results, cachedModels, cancellationToken);
-
-                    // Delegates derive from System.MulticastDelegate
-                    case SpecialType.System_MulticastDelegate:
-                        return AddAllDelegatesAsync(project, results, cachedModels, cancellationToken);
-
-                    // Structs derive from System.System.ValueType
-                    case SpecialType.System_ValueType:
-                        return AddAllStructsAsync(project, results, cachedModels, cancellationToken);
-
-                    // Enums derive from System.Enum
-                    case SpecialType.System_Enum:
-                        return AddAllEnumsAsync(project, results, cachedModels, cancellationToken);
-
-                    // A normal class from metadata.
-                    default:
-                        // Have to search metadata to see if we have any derived types
-                        return AddMatchingSourceAndMetadataTypesAsync(project, results,
-                            GetTypeImmediatelyDerivesFromBaseTypeFunction(baseType),
-                            GetSourceInfoImmediatelyDerivesFromBaseTypeFunction(baseType),
-                            cachedModels, cancellationToken);
-                }
-            }
-
-            // Check for source symbols that could derive from this type. Look for 
-            // DeclaredSymbolInfos in this project that state they derive from a type 
-            // with our name.
-            return AddMatchingSourceTypesAsync(project, results,
-                GetSourceInfoImmediatelyDerivesFromBaseTypeFunction(baseType),
-                cachedModels, cancellationToken);
-        }
-
-        private static Func<INamedTypeSymbol, Project, CancellationToken, bool> GetTypeImmediatelyDerivesFromBaseTypeFunction(
-            INamedTypeSymbol baseType)
-        {
-            return (t, p, c) => OriginalSymbolsMatch(t.BaseType, baseType, p.Solution, c);
-        }
-
-        private static Task GetAllTypesThatDeriveDirectlyFromObjectAsync(
-            Project project, ConcurrentSet<ISymbol> results,
-            ConcurrentSet<SemanticModel> cachedModels,
-            CancellationToken cancellationToken)
-        {
-            // Or source predicate needs to find all classes in the project that derive from 
-            // object. Unfortunately, we have to consider all classes. There's no way to 
-            // tell syntactically (for C# at least) if a type inherits from object or not.  
-            // i.e.  if you have:
-            //
-            //      class F : IEnumerable
-            //
-            // Then this derives from object.  We can't use the presence of an 
-            // inheritance list to make any determinations.  Note: we could tell
-            // for VB.  It may be a good optimization to add later. 
-
-            SourceInfoMatches sourceInfoMatches = async (doc, info, models, c) =>
-            {
-                if (info.Kind == DeclaredSymbolInfoKind.Class)
-                {
-                    var symbol = await ResolveAsync(doc, info, models, c).ConfigureAwait(false) as INamedTypeSymbol;
-                    if (symbol?.BaseType?.SpecialType == SpecialType.System_Object)
-                    {
-                        return symbol;
-                    }
-                }
-
-                return null;
-            };
-
-            return AddMatchingSourceAndMetadataTypesAsync(project, results,
-                s_derivesFromObject, sourceInfoMatches, cachedModels, 
-                cancellationToken);
-        }
-
         private static async Task<ISymbol> ResolveAsync(
             Document doc, DeclaredSymbolInfo info, ICollection<SemanticModel> models, 
             CancellationToken cancellationToken)
@@ -1035,89 +787,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var semanticModel = await doc.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             models.Add(semanticModel);
             return info.Resolve(semanticModel, cancellationToken);
-        }
-
-        private static Task AddAllDelegatesAsync(
-            Project project, ConcurrentSet<ISymbol> results, ConcurrentSet<SemanticModel> cachedModels,
-            CancellationToken cancellationToken)
-        {
-            return AddMatchingSourceAndMetadataTypesAsync(
-                project, results, s_isDelegateType, s_infoMatchesDelegate, cachedModels, cancellationToken);
-        }
-
-        private static Task AddAllEnumsAsync(
-            Project project, ConcurrentSet<ISymbol> results, ConcurrentSet<SemanticModel> cachedModels,
-            CancellationToken cancellationToken)
-        {
-            return AddMatchingSourceAndMetadataTypesAsync(
-                project, results, s_isEnumType, s_infoMatchesEnum, cachedModels, cancellationToken);
-        }
-
-        private static Task AddAllStructsAsync(
-            Project project, ConcurrentSet<ISymbol> results, ConcurrentSet<SemanticModel> cachedModels,
-            CancellationToken cancellationToken)
-        {
-            return AddMatchingSourceAndMetadataTypesAsync(
-                project, results, s_isStructType, s_infoMatchesStruct, cachedModels, cancellationToken);
-        }
-
-        private static Task AddMatchingSourceAndMetadataTypesAsync(
-            Project project, ConcurrentSet<ISymbol> results,
-            TypeMatches metadataTypeMatches,
-            SourceInfoMatches sourceInfoMatches,
-            ConcurrentSet<SemanticModel> cachedModels,
-            CancellationToken cancellationToken)
-        {
-            var metadataTask = AddMatchingMetadataTypesAsync(project, results, metadataTypeMatches, cancellationToken);
-            var sourceTask = AddMatchingSourceTypesAsync(project, results, sourceInfoMatches, cachedModels, cancellationToken);
-
-            // Search source and metadata in parallel.
-            return Task.WhenAll(metadataTask, sourceTask);
-        }
-
-        private static async Task AddMatchingMetadataTypesAsync(
-            Project project, ConcurrentSet<ISymbol> results, 
-            TypeMatches metadataTypeMatches, CancellationToken cancellationToken)
-        {
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-            var metadataTypes = GetAllAccessibleMetadataTypesInCompilation(compilation, cancellationToken);
-
-            // And add the matching ones to the result set.
-            results.AddRange(metadataTypes.Where(t => metadataTypeMatches(t, project, cancellationToken)));
-        }
-
-        private static Task AddMatchingSourceTypesAsync(
-            Project project,
-            ConcurrentSet<ISymbol> results,
-            SourceInfoMatches sourceInfoMatches, 
-            ConcurrentSet<SemanticModel> models,
-            CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            // Process all documents in the project in parallel.
-            var tasks = project.Documents.Select(d =>
-                AddMatchingSourceTypesAsync(d, results, sourceInfoMatches, models, cancellationToken)).ToArray();
-            return Task.WhenAll(tasks);
-        }
-
-        private static async Task AddMatchingSourceTypesAsync(
-            Document document, ConcurrentSet<ISymbol> results,
-            SourceInfoMatches sourceInfoMatches,
-            ConcurrentSet<SemanticModel> cachedModels,
-            CancellationToken cancellationToken)
-        {
-            cancellationToken.ThrowIfCancellationRequested();
-
-            var symbolInfos = await document.GetDeclaredSymbolInfosAsync(cancellationToken).ConfigureAwait(false);
-            foreach (var info in symbolInfos)
-            {
-                var matchingSymbol = await sourceInfoMatches(document, info, cachedModels, cancellationToken).ConfigureAwait(false);
-                if (matchingSymbol != null)
-                {
-                    results.Add(matchingSymbol);
-                }
-            }
         }
 
         private static List<INamedTypeSymbol> GetAllAccessibleMetadataTypesInCompilation(
@@ -1131,41 +800,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                            .Where(t => t.Locations.All(s_isInMetadata) &&
                                                        t.DeclaredAccessibility != Accessibility.Private &&
                                                        t.IsAccessibleWithin(c.Assembly)).ToList());
-        }
-
-        private static SourceInfoMatches GetSourceInfoImmediatelyDerivesFromBaseTypeFunction(
-            INamedTypeSymbol baseType)
-        {
-            var typeTestFunction = GetTypeImmediatelyDerivesFromBaseTypeFunction(baseType);
-
-            return async (document, info, models, cancellationToken) =>
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                // Only a class can derive from another class.
-                if (info.Kind == DeclaredSymbolInfoKind.Class)
-                {
-                    // If one class derives from another class, then we would expect to see the
-                    // base class name in the inheritance list.  Note: the inheritance name also
-                    // include mapped aliases if aliases are used in the file it is contained in.
-                    foreach (var inheritanceName in info.InheritanceNames)
-                    {
-                        // See if we have a type that looks like it could potentially derive from this class.
-                        if (string.Equals(baseType.Name, inheritanceName, StringComparison.OrdinalIgnoreCase))
-                        {
-                            // Looks like a good candidate.  Get the symbol for it and see if it
-                            // actually matches.
-                            var candidate = await ResolveAsync(document, info, models, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
-                            if (typeTestFunction(candidate, document.Project, cancellationToken))
-                            {
-                                return candidate;
-                            }
-                        }
-                    }
-                }
-
-                return null;
-            };
         }
 
         internal static bool OriginalSymbolsMatch(
