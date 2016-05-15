@@ -339,16 +339,26 @@ Public Class ParseMethods
 
     <Fact>
     Public Sub Bug862505()
-        ParseAndVerify(<![CDATA[
+        Dim code = <![CDATA[
             Class C1
-                Function f1(Optional ByVal c1 As New Object())
+        Function f1(Optional ByVal c1 As New Object())
                 End Function
-            End Class
-        ]]>,
-        <errors>
-            <error id="30812"/>
-            <error id="30180"/>
-        </errors>)
+    End Class
+        ]]>.Value
+        For Each lv As LanguageVersion In [Enum].GetValues(GetType(LanguageVersion))
+            Dim p = VisualBasicParseOptions.Default.WithLanguageVersion(lv)
+            If lv <= LanguageVersion.VisualBasic14 Then
+                ParserTestUtilities.ParseAndVerify(code, p, <errors>
+                                                                <error id="30812"/>
+                                                                <error id="30180"/>
+                                                            </errors>)
+            Else
+                ParserTestUtilities.ParseAndVerify(code, p, <errors>
+                                                                <error id="30180"/>
+                                                            </errors>)
+            End If
+
+        Next
     End Sub
 
     <Fact>
@@ -481,8 +491,8 @@ Public Class ParseMethods
 
         ]]>,
         <errors>
-            <error id="30808"/>
-        </errors>)
+                                                                                                            <error id="30808"/>
+                                                                                                        </errors>)
     End Sub
 
     <Fact>
@@ -512,12 +522,12 @@ Public Class ParseMethods
             End Interface
         ]]>,
         <errors>
-            <error id="31121"/>
-        </errors>)
+                                                                                                                        <error id="31121"/>
+                                                                                                                    </errors>)
     End Sub
 
     <WorkItem(891486, "DevDiv/Personal")>
-    <Fact>
+                                                                                                                        <Fact>
     Public Sub BC30198_ParsePartialAutoProperty01()
         ParseAndVerify(<![CDATA[
             Class C
@@ -527,14 +537,14 @@ Public Class ParseMethods
             End Class
         ]]>,
         <errors>
-            <error id="30198"/>
-            <error id="30199"/>
-            <error id="30429"/>
-        </errors>)
+                                                                                                                                <error id="30198"/>
+                                                                                                                                <error id="30199"/>
+                                                                                                                                <error id="30429"/>
+                                                                                                                            </errors>)
     End Sub
 
     <WorkItem(890768, "DevDiv/Personal")>
-    <Fact>
+                                                                                                                                <Fact>
     Public Sub BC36759ERR_AutoPropertyCantHaveParams_ParsePartialAutoProperty02()
         ParseAndVerify(<![CDATA[
             Module bar
@@ -542,14 +552,14 @@ Public Class ParseMethods
             End Module
         ]]>,
         <errors>
-            <error id="36759"/>
-            <error id="30198"/>
-            <error id="30203"/>
-        </errors>)
+                                                                                                                                        <error id="36759"/>
+                                                                                                                                        <error id="30198"/>
+                                                                                                                                        <error id="30203"/>
+                                                                                                                                    </errors>)
     End Sub
 
     <WorkItem(883858, "DevDiv/Personal")>
-    <Fact>
+                                                                                                                                        <Fact>
     Public Sub BC30631ERR_MissingEndGet_PropertyGetTerminatedBySet()
         ParseAndVerify(<![CDATA[
             Class c1
@@ -562,13 +572,13 @@ Public Class ParseMethods
             End Class
         ]]>,
         <errors>
-            <error id="30289"/>
-            <error id="30631"/>
-        </errors>)
+                                                                                                                                                <error id="30289"/>
+                                                                                                                                                <error id="30631"/>
+                                                                                                                                            </errors>)
     End Sub
 
     <WorkItem(893957, "DevDiv/Personal")>
-    <Fact>
+                                                                                                                                                <Fact>
     Public Sub BC36674_ParseIncompleteEndConstructForStatementLambda()
         ParseAndVerify(<![CDATA[
                 Friend Module Basic001mod
@@ -578,11 +588,11 @@ Public Class ParseMethods
                             Return New Vertebrates()
                             End Functio
             ]]>, <errors>
-                     <error id="30625"/>
-                     <error id="30026"/>
-                     <error id="36674"/>
-                     <error id="30678"/>
-                 </errors>)
+                                                                                                                                                        <error id="30625"/>
+                                                                                                                                                        <error id="30026"/>
+                                                                                                                                                        <error id="36674"/>
+                                                                                                                                                        <error id="30678"/>
+                                                                                                                                                    </errors>)
         ParseAndVerify(<![CDATA[
                Dim g2 = Function()
 Dim a1 = 1
@@ -593,8 +603,8 @@ Console.WriteLine("Function Lambda" & a2.ToString)
 End 
             ]]>,
             <errors>
-                <error id="36674"/>
-            </errors>)
+                                                                                                                                                        <error id="36674"/>
+                                                                                                                                                    </errors>)
         ParseAndVerify(<![CDATA[
                 Dim g2 = Function()
 Dim a1 = 1
@@ -602,27 +612,27 @@ Dim a2
 a2 = a1 + 2
             ]]>,
             <errors>
-                <error id="36674"/>
-            </errors>)
+                                                                                                                                                        <error id="36674"/>
+                                                                                                                                                    </errors>)
         ParseAndVerify(<![CDATA[
                         Dim g2 = Function()
                      Dim a1 = 1
                      Dim a2
             ]]>,
             <errors>
-                <error id="36674"/>
-            </errors>)
+                                                                                                                                                        <error id="36674"/>
+                                                                                                                                                    </errors>)
         ParseAndVerify(<![CDATA[
                 Dim g2 = Function()
 Return
             ]]>,
             <errors>
-                <error id="36674"/>
-            </errors>)
+                                                                                                                                                        <error id="36674"/>
+                                                                                                                                                    </errors>)
     End Sub
 
     <WorkItem(893960, "DevDiv/Personal")>
-    <Fact>
+                                                                                                                                                        <Fact>
     Public Sub ParseIncompleteCollectionInitializerInLambda()
         ParseAndVerify(<![CDATA[
                 Namespace AutoPropInitializationLambda
@@ -630,81 +640,81 @@ Return
                     Public Sub Foo()
                         Dim a = Function() If(True, New List(Of Integer) From 
             ]]>, <errors>
-                     <error id="30626" message="'Namespace' statement must end with a matching 'End Namespace'." start="17" end="55"/>
-                     <error id="30481" message="'Class' statement must end with a matching 'End Class'." start="76" end="94"/>
-                     <error id="30026" message="'End Sub' expected." start="115" end="131"/>
-                     <error id="30987" message="'{' expected." start="210" end="210"/>
-                     <error id="30198" message="')' expected." start="210" end="210"/>
-                 </errors>)
+                                                                                                                                                                <error id="30626" message="'Namespace' statement must end with a matching 'End Namespace'." start="17" end="55"/>
+                                                                                                                                                                <error id="30481" message="'Class' statement must end with a matching 'End Class'." start="76" end="94"/>
+                                                                                                                                                                <error id="30026" message="'End Sub' expected." start="115" end="131"/>
+                                                                                                                                                                <error id="30987" message="'{' expected." start="210" end="210"/>
+                                                                                                                                                                <error id="30198" message="')' expected." start="210" end="210"/>
+                                                                                                                                                            </errors>)
         ParseAndVerify(<![CDATA[
                Dim q2 = Function() If(4 > 3, Function() 1U
             ]]>,
             <errors>
-                <error id="30198"/>
-                <error id="32017"/>
-            </errors>)
+                                                                                                                                                                <error id="30198"/>
+                                                                                                                                                                <error id="32017"/>
+                                                                                                                                                            </errors>)
     End Sub
 
     <WorkItem(893976, "DevDiv/Personal")>
-    <Fact>
+                                                                                                                                                                <Fact>
     Public Sub BC30215ERR_ExpectedSubFunction_ParseDeclareKeyword()
         ParseAndVerify(<![CDATA[
                 Declare
             ]]>,
             <errors>
-                <error id="30218"/>
-                <error id="30203"/>
-                <error id="30215"/>
-            </errors>)
+                                                                                                                                                                        <error id="30218"/>
+                                                                                                                                                                        <error id="30203"/>
+                                                                                                                                                                        <error id="30215"/>
+                                                                                                                                                                    </errors>)
         ParseAndVerify(<![CDATA[
                 Declare F
             ]]>,
             <errors>
-                <error id="30218"/>
-                <error id="30215"/>
-            </errors>)
+                                                                                                                                                                        <error id="30218"/>
+                                                                                                                                                                        <error id="30215"/>
+                                                                                                                                                                    </errors>)
         ParseAndVerify(<![CDATA[
                 Declare Fu
             ]]>,
             <errors>
-                <error id="30218"/>
-                <error id="30215"/>
-            </errors>)
+                                                                                                                                                                        <error id="30218"/>
+                                                                                                                                                                        <error id="30215"/>
+                                                                                                                                                                    </errors>)
         ParseAndVerify(<![CDATA[
                 Declare Fun
             ]]>,
             <errors>
-                <error id="30218"/>
-                <error id="30215"/>
-            </errors>)
+                                                                                                                                                                        <error id="30218"/>
+                                                                                                                                                                        <error id="30215"/>
+                                                                                                                                                                    </errors>)
         ParseAndVerify(<![CDATA[
                 Declare Func
             ]]>,
             <errors>
-                <error id="30218"/>
-                <error id="30215"/>
-            </errors>)
+                                                                                                                                                                        <error id="30218"/>
+                                                                                                                                                                        <error id="30215"/>
+                                                                                                                                                                    </errors>)
         ParseAndVerify(<![CDATA[
                 Declare Function A
             ]]>,
             <errors>
-                <error id="30218"/>
-            </errors>)
+                                                                                                                                                                        <error id="30218"/>
+                                                                                                                                                                    </errors>)
     End Sub
 
     <WorkItem(893977, "DevDiv/Personal")>
-    <Fact>
+                                                                                                                                                                        <Fact>
     Public Sub BC30218ERR_MissingLibInDeclare_ParseDeclareMissingLib()
         ParseAndVerify(<![CDATA[
                  Declare Function GetCORSystemDirectory L
             ]]>,
             <errors>
-                <error id="30218"/>
-            </errors>)
+                                                                                                                                                                                <error id="30218"/>
+                                                                                                                                                                            </errors>)
     End Sub
 
     <WorkItem(893603, "DevDiv/Personal")>
-    <Fact>
+                                                                                                                                                                                <Fact>
     Public Sub BC30198_ParseIncompleteLambda()
         ParseAndVerify(<![CDATA[
                 Class SomeClass
@@ -713,32 +723,32 @@ Return
             dim y = Function
             ]]>,
             <errors>
-                <error id="36674"/>
-                <error id="30198"/>
-                <error id="30199"/>
-                <error id="30026"/>
-                <error id="30481"/>
-                <error id="30481"/>
-            </errors>)
+                                                                                                                                                                                        <error id="36674"/>
+                                                                                                                                                                                        <error id="30198"/>
+                                                                                                                                                                                        <error id="30199"/>
+                                                                                                                                                                                        <error id="30026"/>
+                                                                                                                                                                                        <error id="30481"/>
+                                                                                                                                                                                        <error id="30481"/>
+                                                                                                                                                                                    </errors>)
     End Sub
 
     <WorkItem(893959, "DevDiv/Personal")>
-    <Fact>
+                                                                                                                                                                                        <Fact>
     Public Sub BC30198_ParseConditionalBinaryOperator()
         ParseAndVerify(<![CDATA[
 Namespace AutoPropInitializationLambda
 Class HasAutoProps
 Public Property Scen4() As Object = Function(y As Object, z As Object) If(y Is Nothing, z I
 ]]>, <errors>
-         <error id="30198"/>
-         <error id="32017"/>
-         <error id="30481"/>
-         <error id="30626"/>
-     </errors>)
+                                                                                                                                                                                                <error id="30198"/>
+                                                                                                                                                                                                <error id="32017"/>
+                                                                                                                                                                                                <error id="30481"/>
+                                                                                                                                                                                                <error id="30626"/>
+                                                                                                                                                                                            </errors>)
     End Sub
 
     <WorkItem(894097, "DevDiv/Personal")>
-    <Fact>
+                                                                                                                                                                                                <Fact>
     Public Sub BC30384_ParseLambdaCatch()
         ParseAndVerify(<![CDATA[
 Sub LambdaSyntax02()
@@ -747,32 +757,32 @@ Dim s6 = Function ((x) (x + 1))
 Catch
 ]]>,
 <errors>
-    <error id="30384"/>
-    <error id="36674"/>
-    <error id="32014"/>
-    <error id="30638"/>
-    <error id="30203"/>
-    <error id="30026"/>
-</errors>)
+                                                                                                                                                                                                        <error id="30384"/>
+                                                                                                                                                                                                        <error id="36674"/>
+                                                                                                                                                                                                        <error id="32014"/>
+                                                                                                                                                                                                        <error id="30638"/>
+                                                                                                                                                                                                        <error id="30203"/>
+                                                                                                                                                                                                        <error id="30026"/>
+                                                                                                                                                                                                    </errors>)
     End Sub
 
     <WorkItem(2909, "DevDiv_Projects/Roslyn")>
-    <WorkItem(894099, "DevDiv/Personal")>
-    <Fact>
+                                                                                                                                                                                                        <WorkItem(894099, "DevDiv/Personal")>
+                                                                                                                                                                                                            <Fact>
     Public Sub BC32065_ParseGenericFunction()
         ParseAndVerify(<![CDATA[
  Dim x = Function(Of
 ]]>,
 <errors>
-    <error id="36674"/>
-    <error id="30198"/>
-    <error id="30199"/>
-    <error id="32065"/>
-</errors>)
+                                                                                                                                                                                                                    <error id="36674"/>
+                                                                                                                                                                                                                    <error id="30198"/>
+                                                                                                                                                                                                                    <error id="30199"/>
+                                                                                                                                                                                                                    <error id="32065"/>
+                                                                                                                                                                                                                </errors>)
     End Sub
 
     <WorkItem(894452, "DevDiv/Personal")>
-    <Fact>
+                                                                                                                                                                                                                    <Fact>
     Public Sub BC30384ERR_ExpectedEndTry_ParseErroneousAddressOf()
         ParseAndVerify(<![CDATA[
 Sub DELError002()
@@ -781,28 +791,28 @@ d1=addressof Sub
 Catch
 ]]>,
 <errors>
-    <error id="30384"/>
-    <error id="36673"/>
-    <error id="30198"/>
-    <error id="30199"/>
-    <error id="30026"/>
-</errors>)
+                                                                                                                                                                                                                            <error id="30384"/>
+                                                                                                                                                                                                                            <error id="36673"/>
+                                                                                                                                                                                                                            <error id="30198"/>
+                                                                                                                                                                                                                            <error id="30199"/>
+                                                                                                                                                                                                                            <error id="30026"/>
+                                                                                                                                                                                                                        </errors>)
     End Sub
 
     <WorkItem(896836, "DevDiv/Personal")>
-    <Fact>
+                                                                                                                                                                                                                            <Fact>
     Public Sub BC36918ERR_SubRequiresSingleStatement_ParseIncompleteLambdas()
         ParseAndVerify(<![CDATA[
 Dim x = Sub]]>,
 <errors>
-    <error id="36918"/>
-    <error id="30198"/>
-    <error id="30199"/>
-</errors>)
+                                                                                                                                                                                                                                    <error id="36918"/>
+                                                                                                                                                                                                                                    <error id="30198"/>
+                                                                                                                                                                                                                                    <error id="30199"/>
+                                                                                                                                                                                                                                </errors>)
     End Sub
 
     <WorkItem(897818, "DevDiv/Personal")>
-    <Fact>
+                                                                                                                                                                                                                                    <Fact>
     Public Sub BC30081ERR_ExpectedEndIf_ParseElseIfInSubLambda()
         ParseAndVerify(<![CDATA[
     module m
@@ -811,46 +821,46 @@ Dim x = Sub]]>,
     end sub
     end module
 ]]>, <errors>
-         <error id="30081" message="'If' must end with a matching 'End If'." start="76" end="78"/>
-         <error id="30201" message="Expression expected." start="78" end="78"/>
-     </errors>)
+                                                                                                                                                                                                                                            <error id="30081" message="'If' must end with a matching 'End If'." start="76" end="78"/>
+                                                                                                                                                                                                                                            <error id="30201" message="Expression expected." start="78" end="78"/>
+                                                                                                                                                                                                                                        </errors>)
     End Sub
 
     <WorkItem(897848, "DevDiv/Personal")>
-    <Fact>
+                                                                                                                                                                                                                                            <Fact>
     Public Sub BC30084ERR_ExpectedNext_ParseColonInLambdaReturn()
         ParseAndVerify(<![CDATA[
 Dim ddd = Function(m3)
 Return Sub() If True Then For Each i In list2 : 
 ]]>,
 <errors>
-    <error id="30084"/>
-    <error id="36674"/>
-</errors>)
+                                                                                                                                                                                                                                                    <error id="30084"/>
+                                                                                                                                                                                                                                                    <error id="36674"/>
+                                                                                                                                                                                                                                                </errors>)
     End Sub
 
     <WorkItem(899947, "DevDiv/Personal")>
-    <Fact>
+                                                                                                                                                                                                                                                    <Fact>
     Public Sub BC32088ERR_TypeArgsUnexpected_ParseImplementsGenerics()
         ParseAndVerify(<![CDATA[
 Sub M() Implements NS.I(Of
 ]]>,
 <errors>
-    <error id="30026"/>
-    <error id="30182"/>
-    <error id="30198"/>
-</errors>)
+                                                                                                                                                                                                                                                            <error id="30026"/>
+                                                                                                                                                                                                                                                            <error id="30182"/>
+                                                                                                                                                                                                                                                            <error id="30198"/>
+                                                                                                                                                                                                                                                        </errors>)
         ParseAndVerify(<![CDATA[
 Sub M() Implements NS.I(Of Object)
 ]]>,
 <errors>
-    <error id="30026"/>
-    <error id="32088"/>
-</errors>)
+                                                                                                                                                                                                                                                            <error id="30026"/>
+                                                                                                                                                                                                                                                            <error id="32088"/>
+                                                                                                                                                                                                                                                        </errors>)
     End Sub
 
     <WorkItem(901336, "DevDiv/Personal")>
-    <Fact>
+                                                                                                                                                                                                                                                            <Fact>
     Public Sub BC36674ERR_MultilineLambdaMissingFunction_ParseColonInsideEmbeddedLambda()
         ParseAndVerify(<![CDATA[
 Class Class5
@@ -860,36 +870,36 @@ Class Class5
                                 Dim x = True : End If
 ]]>,
 <errors>
-    <error id="36673"/>
-    <error id="36674"/>
-    <error id="30481"/>
-</errors>)
+                                                                                                                                                                                                                                                                    <error id="36673"/>
+                                                                                                                                                                                                                                                                    <error id="36674"/>
+                                                                                                                                                                                                                                                                    <error id="30481"/>
+                                                                                                                                                                                                                                                                </errors>)
     End Sub
 
     <WorkItem(903444, "DevDiv/Personal")>
-    <Fact>
+                                                                                                                                                                                                                                                                    <Fact>
     Public Sub BC36673ERR_MultilineLambdaMissingSub_ParseEventAfterLambda()
         ParseAndVerify(<![CDATA[Dim i = Sub(a as Integer, b as Long)
 Event]]>,
 <errors>
-    <error id="30203"/>
-    <error id="36673"/>
-</errors>)
+                                                                                                                                                                                                                                                                            <error id="30203"/>
+                                                                                                                                                                                                                                                                            <error id="36673"/>
+                                                                                                                                                                                                                                                                        </errors>)
     End Sub
 
     <WorkItem(904759, "DevDiv/Personal")>
-    <Fact>
+                                                                                                                                                                                                                                                                            <Fact>
     Public Sub BC30429ERR_InvalidEndSub_ParseEmbeddedSubLambda()
         ParseAndVerify(<![CDATA[Dim x1 = Sub()
 Dim x2 = Sub(y) End Sub
 End Sub]]>,
 <errors>
-    <error id="30429"/>
-</errors>)
+                                                                                                                                                                                                                                                                                    <error id="30429"/>
+                                                                                                                                                                                                                                                                                </errors>)
     End Sub
 
     <WorkItem(904937, "DevDiv/Personal")>
-    <Fact>
+                                                                                                                                                                                                                                                                                    <Fact>
     Public Sub ParseErrorsInSubLambda()
         ' The errors are semantic errors not parse errors so no errors are expected.
         ParseAndVerify(<![CDATA[Namespace n1
@@ -905,7 +915,7 @@ End Namespace
     End Sub
 
     <WorkItem(539519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539519")>
-    <Fact>
+                                                                                                                                                                                                                                                                                            <Fact>
     Public Sub ParseIncompleteMultiLineLambdaWithExpressionAfterAsClause()
         ' This looks like a single line lambda with an as clause but it is in fact a badly formed multi-line lambda
         Dim compilationDef =
@@ -917,14 +927,14 @@ Module Program
 End Module
 ]]>
         ParseAndVerify(compilationDef, <errors>
-                                           <error id="36674" message="Multiline lambda expression is missing 'End Function'." start="78" end="100"/>
-                                           <error id="30205" message="End of statement expected." start="101" end="102"/>
-                                       </errors>)
+                                                                                                                                                                                                                                                                                                    <error id="36674" message="Multiline lambda expression is missing 'End Function'." start="78" end="100"/>
+                                                                                                                                                                                                                                                                                                    <error id="30205" message="End of statement expected." start="101" end="102"/>
+                                                                                                                                                                                                                                                                                                </errors>)
     End Sub
 
 
     <WorkItem(537167, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537167")>
-    <Fact>
+                                                                                                                                                                                                                                                                                                    <Fact>
     Public Sub ParseShadowsAfterIncompleteLambda()
         ParseAndVerify(<![CDATA[
 Structure Scen31
@@ -934,15 +944,15 @@ Shadows Private Function Foo()
 End Structure
 ]]>,
 <errors>
-    <error id="36674"/>
-    <error id="30027"/>
-</errors>
+                                                                                                                                                                                                                                                                                                            <error id="36674"/>
+                                                                                                                                                                                                                                                                                                            <error id="30027"/>
+                                                                                                                                                                                                                                                                                                        </errors>
         )
     End Sub
 
 
     <WorkItem(538494, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538494")>
-    <Fact>
+                                                                                                                                                                                                                                                                                                            <Fact>
     Public Sub ParseDefaultPropAfterIncompleteLambda()
         ParseAndVerify(<![CDATA[
 Module m
@@ -951,16 +961,16 @@ Default Property
 end module
 ]]>,
 <errors>
-    <error id="36673"/>
-    <error id="30025"/>
-    <error id="30203"/>
-</errors>
+                                                                                                                                                                                                                                                                                                                    <error id="36673"/>
+                                                                                                                                                                                                                                                                                                                    <error id="30025"/>
+                                                                                                                                                                                                                                                                                                                    <error id="30203"/>
+                                                                                                                                                                                                                                                                                                                </errors>
         )
     End Sub
 
     <WorkItem(541286, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541286")>
-    <WorkItem(2257, "DevDiv_Projects/Roslyn")>
-    <Fact>
+                                                                                                                                                                                                                                                                                                                    <WorkItem(2257, "DevDiv_Projects/Roslyn")>
+                                                                                                                                                                                                                                                                                                                        <Fact>
     Public Sub BC33002ERR_OperatorNotOverloadable_ParseNotOverloadableOperators()
         ParseAndVerify(<![CDATA[
  Friend Module OLSpErr01mod
@@ -1008,19 +1018,19 @@ end module
 End Module
             ]]>,
             <errors>
-                <error id="33002"/>
-                <error id="33002"/>
-                <error id="33002"/>
-                <error id="33002"/>
-                <error id="33002"/>
-                <error id="33002"/>
-                <error id="33000"/>
-                <error id="33002"/>
-                <error id="33000"/>
-                <error id="33002"/>
-                <error id="33002"/>
-                <error id="33002"/>
-            </errors>)
+                                                                                                                                                                                                                                                                                                                                <error id="33002"/>
+                                                                                                                                                                                                                                                                                                                                <error id="33002"/>
+                                                                                                                                                                                                                                                                                                                                <error id="33002"/>
+                                                                                                                                                                                                                                                                                                                                <error id="33002"/>
+                                                                                                                                                                                                                                                                                                                                <error id="33002"/>
+                                                                                                                                                                                                                                                                                                                                <error id="33002"/>
+                                                                                                                                                                                                                                                                                                                                <error id="33000"/>
+                                                                                                                                                                                                                                                                                                                                <error id="33002"/>
+                                                                                                                                                                                                                                                                                                                                <error id="33000"/>
+                                                                                                                                                                                                                                                                                                                                <error id="33002"/>
+                                                                                                                                                                                                                                                                                                                                <error id="33002"/>
+                                                                                                                                                                                                                                                                                                                                <error id="33002"/>
+                                                                                                                                                                                                                                                                                                                            </errors>)
     End Sub
 
     <Fact(), WorkItem(544074, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544074")>
@@ -1039,8 +1049,8 @@ Module Program
 End Module
         ]]>,
         <errors>
-            <error id="30205"/>
-        </errors>)
+                                                                                                                                                                                                                                                                                                                                    <error id="30205"/>
+                                                                                                                                                                                                                                                                                                                                </errors>)
     End Sub
 
     <Fact(), WorkItem(545543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545543")>

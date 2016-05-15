@@ -2213,7 +2213,7 @@ End Module
 
     <Fact()>
     Public Sub BC30642ERR_MultipleOptionalParameterSpecifiers()
-        ParseAndVerify(<![CDATA[
+        Dim code = <![CDATA[
                 Namespace NS1
                     Module Module1
                         Public Function calcSum(ByVal ParamArray optional args() As Double) As Double
@@ -2225,12 +2225,22 @@ End Module
                         End Function
                     End Module
                 End Namespace
-            ]]>,
-        <errors>
-            <error id="30642"/>
-            <error id="30201"/>
-            <error id="30812"/>
-        </errors>)
+            ]]>.Value
+        For Each lv As LanguageVersion In [Enum].GetValues(GetType(LanguageVersion))
+            Dim vb = VisualBasicParseOptions.Default.WithLanguageVersion(lv)
+            If lv < LanguageVersion.VNext Then
+                ParseAndVerify(code, vb, <errors>
+                                             <error id="30642"/>
+                                             <error id="30201"/>
+                                             <error id="30812"/>
+                                         </errors>)
+            Else
+                ParseAndVerify(code, vb, <errors>
+                                             <error id="30642"/>
+                                             <error id="30201"/>
+                                         </errors>)
+            End If
+        Next
     End Sub
 
     <Fact()>
