@@ -195,6 +195,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 project,
                 transitivelyFindMetadataTypesAsync: TransitivelyFindDerivedMetadataClassesInProjectAsync,
                 transitivelyFindSourceTypesAsync: TransitivelyFindDerivedSourceClassesInProjectAsync,
+                shouldContinueSearching: IsNonSealedClass,
                 cancellationToken: cancellationToken);
         }
 
@@ -211,6 +212,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 project,
                 transitivelyFindMetadataTypesAsync: TransitivelyFindDerivedAndImplementingMetadataTypesInProjectAsync,
                 transitivelyFindSourceTypesAsync: TransitivelyFindDerivedAndImplementingSourceTypesInProjectAsync,
+                shouldContinueSearching: IsInterfaceOrNonSealedClass,
                 cancellationToken: cancellationToken);
         }
 
@@ -222,6 +224,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Project project,
             SearchProject transitivelyFindMetadataTypesAsync,
             SearchProject transitivelyFindSourceTypesAsync,
+            Func<INamedTypeSymbol, bool> shouldContinueSearching,
             CancellationToken cancellationToken)
         {
             // First see what derived metadata types we might find in this project.
@@ -238,8 +241,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // Add to the result list.
                     result.Add(foundType);
 
-                    currentMetadataTypes.Add(foundType);
-                    currentSourceAndMetadataTypes.Add(foundType);
+                    if (shouldContinueSearching(foundType))
+                    {
+                        currentMetadataTypes.Add(foundType);
+                        currentSourceAndMetadataTypes.Add(foundType);
+                    }
                 }
             }
 
@@ -254,7 +260,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // Add to the result list.
                 result.Add(foundType);
 
-                currentSourceAndMetadataTypes.Add(foundType);
+                if (shouldContinueSearching(foundType))
+                {
+                    currentSourceAndMetadataTypes.Add(foundType);
+                }
             }
         }
 
@@ -467,15 +476,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             // Found a new type.  If its an interface or a non-sealed class, add it to the list of 
             // types for us to continue searching for.
-            Func<INamedTypeSymbol, bool> shouldContinueSearching =
-                t => t.TypeKind == TypeKind.Interface || IsNonSealedClass(t);
-
             return TransitivelyFindTypesInProjectAsync(
                 sourceAndMetadataTypes,
                 project,
                 findImmediatelyDerivedTypesInDocumentAsync: FindImmediatelyDerivedAndImplementingTypesInDocumentAsync,
-                shouldContinueSearching: shouldContinueSearching,
+                shouldContinueSearching: IsInterfaceOrNonSealedClass,
                 cancellationToken: cancellationToken);
+        }
+
+        private static bool IsInterfaceOrNonSealedClass(INamedTypeSymbol t)
+        {
+            return t.TypeKind == TypeKind.Interface || IsNonSealedClass(t);
         }
 
         private static Task<IEnumerable<INamedTypeSymbol>> TransitivelyFindDerivedSourceClassesInProjectAsync(
