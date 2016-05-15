@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         InheritanceInfo inheritanceInfo,
         Document document,
         ConcurrentSet<SemanticModel> cachedModels,
-        ConcurrentSet<DeclaredSymbolInfo> cachedInfos,
+        ConcurrentSet<IDeclarationInfo> cachedInfos,
         CancellationToken cancellationToken);
 
     internal delegate Task FindTypesInProjectCallback(
@@ -588,7 +588,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // models and DeclaredSymbolInfo for hte documents we look at.
             // Because we're only processing a project at a time, this is not an issue.
             var cachedModels = new ConcurrentSet<SemanticModel>();
-            var cachedInfos = new ConcurrentSet<DeclaredSymbolInfo>();
+            var cachedInfos = new ConcurrentSet<IDeclarationInfo>();
 
             var finalResult = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
 
@@ -649,7 +649,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             InheritanceInfo inheritanceInfo,
             Document document,
             ConcurrentSet<SemanticModel> cachedModels,
-            ConcurrentSet<DeclaredSymbolInfo> cachedInfos,
+            ConcurrentSet<IDeclarationInfo> cachedInfos,
             CancellationToken cancellationToken)
         {
             Func<INamedTypeSymbol, bool> typeMatches = t => ImmediatelyDerivesOrImplementsFrom(typesToSearchFor, t);
@@ -684,7 +684,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             InheritanceInfo inheritanceInfo,
             Document document,
             ConcurrentSet<SemanticModel> cachedModels,
-            ConcurrentSet<DeclaredSymbolInfo> cachedInfos,
+            ConcurrentSet<IDeclarationInfo> cachedInfos,
             CancellationToken cancellationToken)
         {
             Func<INamedTypeSymbol, bool> typeMatches = t => classesToSearchFor.Contains(t.BaseType?.OriginalDefinition);
@@ -698,25 +698,25 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             InheritanceInfo inheritanceInfo,
             Document document, 
             ConcurrentSet<SemanticModel> cachedModels, 
-            ConcurrentSet<DeclaredSymbolInfo> cachedInfos, 
+            ConcurrentSet<IDeclarationInfo> cachedInfos, 
             Func<INamedTypeSymbol, bool> typeMatches,
             CancellationToken cancellationToken)
         {
-            var infos = await document.GetDeclaredSymbolInfosAsync(cancellationToken).ConfigureAwait(false);
-            cachedInfos.AddRange(infos);
+            var declarationInfo = await document.GetDeclarationInfoAsync(cancellationToken).ConfigureAwait(false);
+            cachedInfos.Add(declarationInfo);
 
             HashSet<INamedTypeSymbol> result = null;
-            foreach (var info in infos)
+            foreach (var symbolInfo in declarationInfo.DeclaredSymbolInfos)
             {
-                result = await ProcessSingleInfo(
+                result = await ProcessSymbolInfo(
                     inheritanceInfo, document, cachedModels,
-                    typeMatches, result, info, cancellationToken).ConfigureAwait(false);
+                    typeMatches, result, symbolInfo, cancellationToken).ConfigureAwait(false);
             }
 
             return result;
         }
 
-        private static async Task<HashSet<INamedTypeSymbol>> ProcessSingleInfo(
+        private static async Task<HashSet<INamedTypeSymbol>> ProcessSymbolInfo(
             InheritanceInfo inheritanceInfo, Document document, ConcurrentSet<SemanticModel> cachedModels,
             Func<INamedTypeSymbol, bool> typeMatches, HashSet<INamedTypeSymbol> result,
             DeclaredSymbolInfo info, CancellationToken cancellationToken)
