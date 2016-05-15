@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 throw new ArgumentNullException(nameof(solution));
             }
 
-            return DependentTypeFinder.FindDerivedClassesAsync(type, solution, projects, cancellationToken);
+            return DependentTypeFinder.TransitivelyFindDerivedClassesAsync(type, solution, projects, cancellationToken);
         }
 
         /// <summary>
@@ -166,13 +166,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (symbol is INamedTypeSymbol)
             {
                 var namedTypeSymbol = (INamedTypeSymbol)symbol;
-                var implementingTypes = await DependentTypeFinder.FindImplementingTypesAsync(namedTypeSymbol, solution, projects, cancellationToken).ConfigureAwait(false);
+                var implementingTypes = await DependentTypeFinder.TransitivelyFindImplementingTypesAsync(namedTypeSymbol, solution, projects, cancellationToken).ConfigureAwait(false);
                 return implementingTypes.Where(IsAccessible);
             }
             else if (symbol.IsImplementableMember())
             {
                 var containingType = symbol.ContainingType.OriginalDefinition;
-                var allTypes = await DependentTypeFinder.FindImplementingTypesAsync(containingType, solution, projects, cancellationToken).ConfigureAwait(false);
+                var allTypes = await DependentTypeFinder.TransitivelyFindImplementingTypesAsync(containingType, solution, projects, cancellationToken).ConfigureAwait(false);
 
                 List<ISymbol> results = null;
                 foreach (var t in allTypes)
