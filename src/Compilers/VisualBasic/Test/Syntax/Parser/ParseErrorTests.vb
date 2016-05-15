@@ -2539,10 +2539,19 @@ End Module
                     End Function
                 End Class
             ]]>.Value
-        ParseAndVerify(code, <errors>
-                                 <error id="30201"/>
-                                 <error id="30812"/>
-                             </errors>)
+        For Each lv As LanguageVersion In [Enum].GetValues(GetType(LanguageVersion))
+            Dim p = VisualBasicParseOptions.Default.WithLanguageVersion(lv)
+            If lv <= LanguageVersion.VisualBasic14 Then
+                ParserTestUtilities.ParseAndVerify(code, p, <errors>
+                                                                <error id="30201"/>
+                                                                <error id="30812"/>
+                                                            </errors>)
+            Else
+                ParserTestUtilities.ParseAndVerify(code, p, <Errors/>)
+            End If
+
+        Next
+
     End Sub
 
     <Fact()>
