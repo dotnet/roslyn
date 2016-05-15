@@ -74,7 +74,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly ConditionalWeakTable<Compilation, List<INamedTypeSymbol>> s_compilationAllAccessibleMetadataTypesTable =
             new ConditionalWeakTable<Compilation, List<INamedTypeSymbol>>();
 
-        public static Task<IEnumerable<INamedTypeSymbol>> GetTypesImmediatelyDerivedFromClassesAsync(
+        public static Task<IEnumerable<INamedTypeSymbol>> FindImmediatelyDerivedClassesAsync(
             INamedTypeSymbol type,
             Solution solution,
             CancellationToken cancellationToken)
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// This is an internal implementation of <see cref="SymbolFinder.FindDerivedClassesAsync"/>, which is a publically callable method.
         /// </summary>
-        public static Task<IEnumerable<INamedTypeSymbol>> TransitivelyFindDerivedClassesAsync(
+        public static Task<IEnumerable<INamedTypeSymbol>> FindTransitivelyDerivedClassesAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
@@ -119,26 +119,34 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return type?.TypeKind == TypeKind.Class && !type.IsSealed;
         }
 
-        public static Task<IEnumerable<INamedTypeSymbol>> TransitivelyFindImplementingTypesAsync(
+        public static async Task<IEnumerable<INamedTypeSymbol>> FindTransitivelyImplementingTypesAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
             CancellationToken cancellationToken)
         {
-            return FindImplementingTypesAsync(type, solution, projects,
-                transitive: true, cancellationToken: cancellationToken);
+            var derivedAndImplementingTypes = await FindDerivedAndImplementingTypesAsync(
+                type, solution, projects,
+                transitive: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            // We only want implementing types here, not derived interfaces.
+            return derivedAndImplementingTypes.Where(t => t.TypeKind == TypeKind.Class).ToList();
         }
 
-        public static Task<IEnumerable<INamedTypeSymbol>> GetTypesImmediatelyDerivedFromInterfacesAsync(
+        public static async Task<IEnumerable<INamedTypeSymbol>> FindImmediatelyDerivedInterfacesAsync(
             INamedTypeSymbol type,
             Solution solution,
             CancellationToken cancellationToken)
         {
-            return FindImplementingTypesAsync(type, solution, projects: null,
-                transitive: false, cancellationToken: cancellationToken);
+            var derivedAndImplementingTypes = await FindDerivedAndImplementingTypesAsync(
+                type, solution, projects: null,
+                transitive: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+
+            // We only want derived interfaces here, not implementing classes.
+            return derivedAndImplementingTypes.Where(t => t.TypeKind == TypeKind.Interface).ToList();
         }
 
-        private static async Task<IEnumerable<INamedTypeSymbol>> FindImplementingTypesAsync(
+        private static async Task<IEnumerable<INamedTypeSymbol>> FindDerivedAndImplementingTypesAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
@@ -152,13 +160,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     findTypesInProjectAsync: FindDerivedAndImplementingTypesInProjectAsync,
                     transitive: transitive,
                     cancellationToken: cancellationToken).ConfigureAwait(false);
-
-                // Because of how we search, we're going to find both derived interfaces and 
-                // implementing classes. We need to find the derived interfaces so we can find all 
-                // possible derived classes.  But we don't want to return derived interfaces in
-                // our result.
-                return derivedAndImplementingTypes.Where(t => t.TypeKind == TypeKind.Class).ToList();
-            }
+           }
 
             return SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>();
         }
