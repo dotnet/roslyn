@@ -23,6 +23,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         ConcurrentSet<ISymbol> results, ConcurrentSet<SemanticModel> cachedModels, 
         CancellationToken cancellationToken);
 
+    internal delegate Task FindTypesCallbackAsync(bool searchInMetadata, HashSet<INamedTypeSymbol> result, HashSet<INamedTypeSymbol> currentMetadataTypes, HashSet<INamedTypeSymbol> currentSourceAndMetadataTypes, Project project, CancellationToken cancellationToken);
+    internal delegate Task<IEnumerable<INamedTypeSymbol>> SearchProject(HashSet<INamedTypeSymbol> sourceAndMetadataTypes, Project project, CancellationToken cancellationToken);
+
     /// <summary>
     /// Provides helper methods for finding dependent types (derivations, implementations, etc.) across a solution.
     /// </summary>
@@ -57,7 +60,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// This is an internal implementation of <see cref="SymbolFinder.FindDerivedClassesAsync"/>, which is a publically callable method.
         /// </summary>
-        public static async Task<IEnumerable<INamedTypeSymbol>> FindDerivedClassesAsync(
+        public static Task<IEnumerable<INamedTypeSymbol>> FindDerivedClassesAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
@@ -66,9 +69,120 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             if (type?.TypeKind != TypeKind.Class ||
                 type.IsSealed)
             {
-                return SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>();
+                return SpecializedTasks.EmptyEnumerable<INamedTypeSymbol>();
             }
 
+            return FindTypesAsync(type, solution, projects, 
+                findTypesCallback: FindDerivedClassesInProjectAsync,
+                cancellationToken: cancellationToken);
+        }
+
+        public static Task<IEnumerable<INamedTypeSymbol>> FindImplementingTypesAsync(
+            INamedTypeSymbol type,
+            Solution solution,
+            IImmutableSet<Project> projects,
+            CancellationToken cancellationToken)
+        {
+            // Only an interface can be implemented.
+            if (type?.TypeKind != TypeKind.Interface)
+            {
+                return SpecializedTasks.EmptyEnumerable<INamedTypeSymbol>();
+            }
+
+            return FindTypesAsync(type, solution, projects,
+                findTypesCallback: FindImplementingTypesInProjectAsync,
+                cancellationToken: cancellationToken);
+
+#if false
+            var cachedModels = new ConcurrentSet<SemanticModel>();
+
+            // Search outwards by looking for immediately implementing classes of the interface 
+            // passed in, as well as immediately derived interfaces of the interface passed
+            // in.
+            //
+            // For every implementing class we find, find all derived classes of that class as well.
+            // After all, if the base class implements the interface, then all derived classes
+            // do as well.
+            //
+            // For every extending interface we find, we also recurse and do this search as well.
+            // After all, if a type implements a derived inteface then it certainly implements
+            // the base interface as well.
+            //
+            // We do this by keeping a queue of interface types to search for (starting with the 
+            // initial interface we were given).  As long as we keep discovering new types, we
+            // keep searching outwards.  Once no new types are discovered, we're done.
+            var finalResult = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
+
+            var interfaceQueue = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
+            interfaceQueue.Add(type);
+
+            var classQueue = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
+
+            while (interfaceQueue.Count > 0 || classQueue.Count > 0)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+
+                // Search for all the workqueue types in parallel.
+                if (interfaceQueue.Count > 0)
+                {
+                    var interfaceTasks = interfaceQueue.Select(t => GetTypesImmediatelyDerivedFromInterfacesAsync(
+                        t, solution, projects, cachedModels, cancellationToken)).ToArray();
+                    await Task.WhenAll(interfaceTasks).ConfigureAwait(false);
+
+                    interfaceQueue.Clear();
+                    foreach (var task in interfaceTasks)
+                    {
+                        foreach (var derivedType in task.Result)
+                        {
+                            if (finalResult.Add(derivedType))
+                            {
+                                // Seeing this type for the first time.  If it is a class or
+                                // interface, then add it to the list of symbols to keep 
+                                // searching for.  If it's an interface, keep looking for 
+                                // derived types of that interface.  If it's a class, just add
+                                // in the entire derived class chain of that class.
+                                if (derivedType.TypeKind == TypeKind.Interface)
+                                {
+                                    interfaceQueue.Add(derivedType);
+                                }
+                                else if (derivedType.TypeKind == TypeKind.Class)
+                                {
+                                    classQueue.Add(derivedType);
+                                }
+                            }
+                        }
+                    }
+                }
+                else
+                {
+                    Debug.Assert(classQueue.Count > 0);
+
+                    var firstClass = classQueue.First();
+                    classQueue.Remove(firstClass);
+
+                    var derivedClasses = await FindDerivedClassesAsync(
+                        firstClass, solution, projects, cachedModels, cancellationToken).ConfigureAwait(false);
+
+                    finalResult.AddRange(derivedClasses);
+
+                    // It's possible that one of the derived classes we discovered was also in 
+                    // classQueue. Remove them so we don't do excess work finding types we've
+                    // already found.
+                    classQueue.RemoveAll(derivedClasses);
+                }
+            }
+
+            return finalResult;
+#endif
+        }
+
+        private static async Task<IEnumerable<INamedTypeSymbol>> FindTypesAsync(
+            INamedTypeSymbol type,
+            Solution solution,
+            IImmutableSet<Project> projects,
+            FindTypesCallbackAsync findTypesCallback,
+            CancellationToken cancellationToken)
+        {
             type = type.OriginalDefinition;
             projects = projects ?? ImmutableHashSet.Create(solution.Projects.ToArray());
             var searchInMetadata = type.Locations.Any(loc => loc.IsInMetadata);
@@ -109,8 +223,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // parallel.  (Processing linearly is also probably preferable to limit the amount of
             // cache churn we could cause creating all those compilations.
 
-            var result = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
-
             var currentMetadataTypes = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
             var currentSourceAndMetadataTypes = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
 
@@ -120,10 +232,70 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 currentMetadataTypes.Add(type);
             }
 
+            var result = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
+
+            // There is a data dependency when searching projects.  Namely, the derived types we
+            // find in one project will be used when searching successive projects.  So we cannot
+            // searchthese projects in parallel.
             foreach (var project in orderedProjectsToExamine)
             {
-                // First see what derived metadata types we might find in this project.
-                var derivedMetadataTypes = await FindDerivedMetadataClassesInProjectAsync(
+                await findTypesCallback(
+                    searchInMetadata, result,
+                    currentMetadataTypes, currentSourceAndMetadataTypes,
+                    project, cancellationToken).ConfigureAwait(false);
+            }
+
+            return result;
+
+        }
+
+        private static Task FindDerivedClassesInProjectAsync(
+            bool searchInMetadata,
+            HashSet<INamedTypeSymbol> result,
+            HashSet<INamedTypeSymbol> currentMetadataTypes,
+            HashSet<INamedTypeSymbol> currentSourceAndMetadataTypes,
+            Project project,
+            CancellationToken cancellationToken)
+        {
+            return FindTypesInProjectAsync(searchInMetadata, result,
+                currentMetadataTypes, currentSourceAndMetadataTypes,
+                project,
+                findMetadataTypesAsync: FindDerivedMetadataClassesInProjectAsync,
+                findSourceTypesAsync: FindDerivedSourceClassesInProjectAsync,
+                cancellationToken: cancellationToken);
+        }
+
+        private static Task FindImplementingTypesInProjectAsync(
+            bool searchInMetadata,
+            HashSet<INamedTypeSymbol> result,
+            HashSet<INamedTypeSymbol> currentMetadataTypes,
+            HashSet<INamedTypeSymbol> currentSourceAndMetadataTypes,
+            Project project,
+            CancellationToken cancellationToken)
+        {
+            return FindTypesInProjectAsync(searchInMetadata, result,
+                currentMetadataTypes, currentSourceAndMetadataTypes,
+                project,
+                findMetadataTypesAsync: FindImplementingMetadataTypesInProjectAsync,
+                findSourceTypesAsync: FindImplementingSourceTypesInProjectAsync,
+                cancellationToken: cancellationToken);
+        }
+
+        private static async Task FindTypesInProjectAsync(
+            bool searchInMetadata,
+            HashSet<INamedTypeSymbol> result,
+            HashSet<INamedTypeSymbol> currentMetadataTypes,
+            HashSet<INamedTypeSymbol> currentSourceAndMetadataTypes,
+            Project project,
+            SearchProject findMetadataTypesAsync,
+            SearchProject findSourceTypesAsync,
+            CancellationToken cancellationToken)
+        {
+            // First see what derived metadata types we might find in this project.
+            // This is only necessary if we started with a metadata type.
+            if (searchInMetadata)
+            {
+                var derivedMetadataTypes = await findMetadataTypesAsync(
                     currentMetadataTypes, project, cancellationToken).ConfigureAwait(false);
 
                 foreach (var derivedType in derivedMetadataTypes)
@@ -140,28 +312,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         currentSourceAndMetadataTypes.Add(derivedType);
                     }
                 }
-
-                // Now search the project and see what source types we can find.
-                var derivedSourceTypes = await FindDerivedSourceClassesInProjectAsync(
-                    currentSourceAndMetadataTypes, project, cancellationToken).ConfigureAwait(false);
-
-                foreach (var derivedType in derivedSourceTypes)
-                {
-                    Debug.Assert(derivedType.Locations.All(loc => loc.IsInSource));
-
-                    // Add to the result list.
-                    result.Add(derivedType);
-
-                    // If the derived type isn't sealed, then also add it to the list of types
-                    // to search for in subsequent projects.
-                    if (!derivedType.IsSealed)
-                    {
-                        currentSourceAndMetadataTypes.Add(derivedType);
-                    }
-                }
             }
 
-            return result;
+            // Now search the project and see what source types we can find.
+            var derivedSourceTypes = await findSourceTypesAsync(
+                currentSourceAndMetadataTypes, project, cancellationToken).ConfigureAwait(false);
+
+            foreach (var derivedType in derivedSourceTypes)
+            {
+                Debug.Assert(derivedType.Locations.All(loc => loc.IsInSource));
+
+                // Add to the result list.
+                result.Add(derivedType);
+
+                // If the derived type isn't sealed, then also add it to the list of types
+                // to search for in subsequent projects.
+                if (!derivedType.IsSealed)
+                {
+                    currentSourceAndMetadataTypes.Add(derivedType);
+                }
+            }
         }
 
         private static async Task<ISet<ProjectId>> GetProjectsThatCouldReferenceTypeAsync(
@@ -361,8 +531,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         {
                             if (finalResult.Add(derivedType))
                             {
-                                // Found a new type.  Add it to the list of types for us to search for
-                                // more derived classes of.
+                                // Found a new type.  If it isn't sealed, add it to the list of 
+                                // types for us to search for more derived classes of.
                                 if (!derivedType.IsSealed)
                                 {
                                     classesToSearchFor.Add(derivedType);
@@ -420,99 +590,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return false;
-        }
-
-        public static async Task<IEnumerable<INamedTypeSymbol>> FindImplementingTypesAsync(
-            INamedTypeSymbol type,
-            Solution solution,
-            IImmutableSet<Project> projects,
-            CancellationToken cancellationToken)
-        {
-            // Only an interface can be implemented.
-            if (type?.TypeKind == TypeKind.Interface)
-            {
-                var cachedModels = new ConcurrentSet<SemanticModel>();
-
-                // Search outwards by looking for immediately implementing classes of the interface 
-                // passed in, as well as immediately derived interfaces of the interface passed
-                // in.
-                //
-                // For every implementing class we find, find all derived classes of that class as well.
-                // After all, if the base class implements the interface, then all derived classes
-                // do as well.
-                //
-                // For every extending interface we find, we also recurse and do this search as well.
-                // After all, if a type implements a derived inteface then it certainly implements
-                // the base interface as well.
-                //
-                // We do this by keeping a queue of interface types to search for (starting with the 
-                // initial interface we were given).  As long as we keep discovering new types, we
-                // keep searching outwards.  Once no new types are discovered, we're done.
-                var finalResult = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
-
-                var interfaceQueue = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
-                interfaceQueue.Add(type);
-
-                var classQueue = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
-
-                while (interfaceQueue.Count > 0 || classQueue.Count > 0)
-                {
-                    cancellationToken.ThrowIfCancellationRequested();
-
-                    // Search for all the workqueue types in parallel.
-                    if (interfaceQueue.Count > 0)
-                    {
-                        var interfaceTasks = interfaceQueue.Select(t => GetTypesImmediatelyDerivedFromInterfacesAsync(
-                            t, solution, projects, cachedModels, cancellationToken)).ToArray();
-                        await Task.WhenAll(interfaceTasks).ConfigureAwait(false);
-
-                        interfaceQueue.Clear();
-                        foreach (var task in interfaceTasks)
-                        {
-                            foreach (var derivedType in task.Result)
-                            {
-                                if (finalResult.Add(derivedType))
-                                {
-                                    // Seeing this type for the first time.  If it is a class or
-                                    // interface, then add it to the list of symbols to keep 
-                                    // searching for.  If it's an interface, keep looking for 
-                                    // derived types of that interface.  If it's a class, just add
-                                    // in the entire derived class chain of that class.
-                                    if (derivedType.TypeKind == TypeKind.Interface)
-                                    {
-                                        interfaceQueue.Add(derivedType);
-                                    }
-                                    else if (derivedType.TypeKind == TypeKind.Class)
-                                    {
-                                        classQueue.Add(derivedType);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    else
-                    {
-                        Debug.Assert(classQueue.Count > 0);
-
-                        var firstClass = classQueue.First();
-                        classQueue.Remove(firstClass);
-
-                        var derivedClasses = await FindDerivedClassesAsync(
-                            firstClass, solution, projects, cachedModels, cancellationToken).ConfigureAwait(false);
-
-                        finalResult.AddRange(derivedClasses);
-
-                        // It's possible that one of the derived classes we discovered was also in 
-                        // classQueue. Remove them so we don't do excess work finding types we've
-                        // already found.
-                        classQueue.RemoveAll(derivedClasses);
-                    }
-                }
-
-                return finalResult;
-            }
-
-            return SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>();
         }
 
         public static Task<IEnumerable<INamedTypeSymbol>> GetTypesImmediatelyDerivedFromInterfacesAsync(
