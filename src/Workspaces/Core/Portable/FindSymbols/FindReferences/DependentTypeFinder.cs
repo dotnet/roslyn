@@ -18,8 +18,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         HashSet<INamedTypeSymbol> classesToSearchFor,
         InheritanceInfo inheritanceInfo,
         Document document,
-        HashSet<SemanticModel> cachedModels,
-        HashSet<DeclaredSymbolInfo> cachedInfos,
+        ConcurrentSet<SemanticModel> cachedModels,
+        ConcurrentSet<DeclaredSymbolInfo> cachedInfos,
         CancellationToken cancellationToken);
 
     internal delegate Task FindTypesInProjectCallback(
@@ -587,8 +587,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // fixed point.  In order to limit GC and excess work, we cache all the sematic
             // models and DeclaredSymbolInfo for hte documents we look at.
             // Because we're only processing a project at a time, this is not an issue.
-            var cachedModels = new HashSet<SemanticModel>();
-            var cachedInfos = new HashSet<DeclaredSymbolInfo>();
+            var cachedModels = new ConcurrentSet<SemanticModel>();
+            var cachedInfos = new ConcurrentSet<DeclaredSymbolInfo>();
 
             var finalResult = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
 
@@ -648,8 +648,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             HashSet<INamedTypeSymbol> typesToSearchFor,
             InheritanceInfo inheritanceInfo,
             Document document,
-            HashSet<SemanticModel> cachedModels,
-            HashSet<DeclaredSymbolInfo> cachedInfos,
+            ConcurrentSet<SemanticModel> cachedModels,
+            ConcurrentSet<DeclaredSymbolInfo> cachedInfos,
             CancellationToken cancellationToken)
         {
             Func<INamedTypeSymbol, bool> typeMatches = t => ImmediatelyDerivesOrImplementsFrom(typesToSearchFor, t);
@@ -683,8 +683,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             ISet<INamedTypeSymbol> classesToSearchFor,
             InheritanceInfo inheritanceInfo,
             Document document,
-            HashSet<SemanticModel> cachedModels,
-            HashSet<DeclaredSymbolInfo> cachedInfos,
+            ConcurrentSet<SemanticModel> cachedModels,
+            ConcurrentSet<DeclaredSymbolInfo> cachedInfos,
             CancellationToken cancellationToken)
         {
             Func<INamedTypeSymbol, bool> typeMatches = t => classesToSearchFor.Contains(t.BaseType?.OriginalDefinition);
@@ -697,8 +697,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task<IEnumerable<INamedTypeSymbol>> FindImmediatelyInheritingTypesInDocumentAsync(
             InheritanceInfo inheritanceInfo,
             Document document, 
-            HashSet<SemanticModel> cachedModels, 
-            HashSet<DeclaredSymbolInfo> cachedInfos, 
+            ConcurrentSet<SemanticModel> cachedModels, 
+            ConcurrentSet<DeclaredSymbolInfo> cachedInfos, 
             Func<INamedTypeSymbol, bool> typeMatches,
             CancellationToken cancellationToken)
         {
@@ -717,7 +717,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static async Task<HashSet<INamedTypeSymbol>> ProcessSingleInfo(
-            InheritanceInfo inheritanceInfo, Document document, HashSet<SemanticModel> cachedModels,
+            InheritanceInfo inheritanceInfo, Document document, ConcurrentSet<SemanticModel> cachedModels,
             Func<INamedTypeSymbol, bool> typeMatches, HashSet<INamedTypeSymbol> result,
             DeclaredSymbolInfo info, CancellationToken cancellationToken)
         {
@@ -780,11 +780,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         }
 
         private static async Task<ISymbol> ResolveAsync(
-            Document doc, DeclaredSymbolInfo info, ICollection<SemanticModel> models, 
+            Document doc, DeclaredSymbolInfo info, ConcurrentSet<SemanticModel> cachedModels, 
             CancellationToken cancellationToken)
         {
             var semanticModel = await doc.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            models.Add(semanticModel);
+            cachedModels.Add(semanticModel);
             return info.Resolve(semanticModel, cancellationToken);
         }
 
