@@ -65,6 +65,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
     internal abstract class BuildClient
     {
         protected static bool IsRunningOnWindows => Path.DirectorySeparatorChar == '\\';
+        
+        protected static bool IsRunningOnMono => Type.GetType("Mono.Runtime") != null;
 
         /// <summary>
         /// Run a compilation through the compiler server and print the output
@@ -197,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         protected static IEnumerable<string> GetCommandLineArgs(IEnumerable<string> args)
         {
-            if (IsRunningOnWindows)
+            if (IsRunningOnWindows && !IsRunningOnMono)
             {
                 return GetCommandLineWindows(args);
             }
