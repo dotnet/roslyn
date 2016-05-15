@@ -29,8 +29,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         HashSet<DeclaredSymbolInfo> cachedInfos,
         CancellationToken cancellationToken);
 
-    internal delegate Task FindTypesInProjectCallback(bool searchInMetadata, HashSet<INamedTypeSymbol> result, HashSet<INamedTypeSymbol> currentMetadataTypes, HashSet<INamedTypeSymbol> currentSourceAndMetadataTypes, Project project, CancellationToken cancellationToken);
-    internal delegate Task<IEnumerable<INamedTypeSymbol>> SearchProject(HashSet<INamedTypeSymbol> sourceAndMetadataTypes, Project project, CancellationToken cancellationToken);
+    internal delegate Task FindTypesInProjectCallback(
+        bool searchInMetadata, HashSet<INamedTypeSymbol> result, HashSet<INamedTypeSymbol> currentMetadataTypes,
+        HashSet<INamedTypeSymbol> currentSourceAndMetadataTypes,
+        Project project, bool transitive, CancellationToken cancellationToken);
+    internal delegate Task<IEnumerable<INamedTypeSymbol>> SearchProject(
+        HashSet<INamedTypeSymbol> sourceAndMetadataTypes, Project project, bool transitive, CancellationToken cancellationToken);
 
     internal class InheritanceInfo
     {
@@ -98,8 +102,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             if (IsNonSealedClass(type))
             {
-                return TransitivelyFindTypesAsync(type, solution, projects,
-                    transitivelyFindTypesInProjectAsync: TransitivelyFindDerivedClassesInProjectAsync,
+                return FindTypesAsync(type, solution, projects,
+                    findTypesInProjectAsync: FindDerivedClassesInProjectAsync,
+                    transitive: true,
                     cancellationToken: cancellationToken);
             }
 
@@ -120,8 +125,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // Only an interface can be implemented.
             if (type?.TypeKind == TypeKind.Interface)
             {
-                var derivedAndImplementingTypes = await TransitivelyFindTypesAsync(type, solution, projects,
-                    transitivelyFindTypesInProjectAsync: TransitivelyFindDerivedAndImplementingTypesInProjectAsync,
+                var derivedAndImplementingTypes = await FindTypesAsync(type, solution, projects,
+                    findTypesInProjectAsync: FindDerivedAndImplementingTypesInProjectAsync,
+                    transitive: true,
                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 // Because of how we search, we're going to find both derived interfaces and 
@@ -134,11 +140,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>();
         }
 
-        private static async Task<IEnumerable<INamedTypeSymbol>> TransitivelyFindTypesAsync(
+        private static async Task<IEnumerable<INamedTypeSymbol>> FindTypesAsync(
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
-            FindTypesInProjectCallback transitivelyFindTypesInProjectAsync,
+            FindTypesInProjectCallback findTypesInProjectAsync,
+            bool transitive,
             CancellationToken cancellationToken)
         {
             type = type.OriginalDefinition;
@@ -197,66 +204,71 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // searchthese projects in parallel.
             foreach (var project in orderedProjectsToExamine)
             {
-                await transitivelyFindTypesInProjectAsync(
+                await findTypesInProjectAsync(
                     searchInMetadata, result,
                     currentMetadataTypes, currentSourceAndMetadataTypes,
-                    project, cancellationToken).ConfigureAwait(false);
+                    project, transitive, cancellationToken).ConfigureAwait(false);
             }
 
             return result;
         }
 
-        private static Task TransitivelyFindDerivedClassesInProjectAsync(
+        private static Task FindDerivedClassesInProjectAsync(
             bool searchInMetadata,
             HashSet<INamedTypeSymbol> result,
             HashSet<INamedTypeSymbol> currentMetadataTypes,
             HashSet<INamedTypeSymbol> currentSourceAndMetadataTypes,
             Project project,
+            bool transitive,
             CancellationToken cancellationToken)
         {
-            return TransitivelyFindTypesInProjectAsync(searchInMetadata, result,
+            return FindTypesInProjectAsync(searchInMetadata, result,
                 currentMetadataTypes, currentSourceAndMetadataTypes,
                 project,
-                transitivelyFindMetadataTypesAsync: TransitivelyFindDerivedMetadataClassesInProjectAsync,
-                transitivelyFindSourceTypesAsync: TransitivelyFindDerivedSourceClassesInProjectAsync,
+                findMetadataTypesAsync: FindDerivedMetadataClassesInProjectAsync,
+                findSourceTypesAsync: FindDerivedSourceClassesInProjectAsync,
                 shouldContinueSearching: IsNonSealedClass,
+                transitive: transitive,
                 cancellationToken: cancellationToken);
         }
 
-        private static Task TransitivelyFindDerivedAndImplementingTypesInProjectAsync(
+        private static Task FindDerivedAndImplementingTypesInProjectAsync(
             bool searchInMetadata,
             HashSet<INamedTypeSymbol> result,
             HashSet<INamedTypeSymbol> currentMetadataTypes,
             HashSet<INamedTypeSymbol> currentSourceAndMetadataTypes,
             Project project,
+            bool transitive,
             CancellationToken cancellationToken)
         {
-            return TransitivelyFindTypesInProjectAsync(searchInMetadata, result,
+            return FindTypesInProjectAsync(searchInMetadata, result,
                 currentMetadataTypes, currentSourceAndMetadataTypes,
                 project,
-                transitivelyFindMetadataTypesAsync: TransitivelyFindDerivedAndImplementingMetadataTypesInProjectAsync,
-                transitivelyFindSourceTypesAsync: TransitivelyFindDerivedAndImplementingSourceTypesInProjectAsync,
+                findMetadataTypesAsync: FindDerivedAndImplementingMetadataTypesInProjectAsync,
+                findSourceTypesAsync: FindDerivedAndImplementingSourceTypesInProjectAsync,
                 shouldContinueSearching: IsInterfaceOrNonSealedClass,
+                transitive: true,
                 cancellationToken: cancellationToken);
         }
 
-        private static async Task TransitivelyFindTypesInProjectAsync(
+        private static async Task FindTypesInProjectAsync(
             bool searchInMetadata,
             HashSet<INamedTypeSymbol> result,
             HashSet<INamedTypeSymbol> currentMetadataTypes,
             HashSet<INamedTypeSymbol> currentSourceAndMetadataTypes,
             Project project,
-            SearchProject transitivelyFindMetadataTypesAsync,
-            SearchProject transitivelyFindSourceTypesAsync,
+            SearchProject findMetadataTypesAsync,
+            SearchProject findSourceTypesAsync,
             Func<INamedTypeSymbol, bool> shouldContinueSearching,
+            bool transitive,
             CancellationToken cancellationToken)
         {
             // First see what derived metadata types we might find in this project.
             // This is only necessary if we started with a metadata type.
             if (searchInMetadata)
             {
-                var foundMetadataTypes = await transitivelyFindMetadataTypesAsync(
-                    currentMetadataTypes, project, cancellationToken).ConfigureAwait(false);
+                var foundMetadataTypes = await findMetadataTypesAsync(
+                    currentMetadataTypes, project, transitive, cancellationToken).ConfigureAwait(false);
 
                 foreach (var foundType in foundMetadataTypes)
                 {
@@ -265,7 +277,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     // Add to the result list.
                     result.Add(foundType);
 
-                    if (shouldContinueSearching(foundType))
+                    if (transitive && shouldContinueSearching(foundType))
                     {
                         currentMetadataTypes.Add(foundType);
                         currentSourceAndMetadataTypes.Add(foundType);
@@ -274,8 +286,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             // Now search the project and see what source types we can find.
-            var foundSourceTypes = await transitivelyFindSourceTypesAsync(
-                currentSourceAndMetadataTypes, project, cancellationToken).ConfigureAwait(false);
+            var foundSourceTypes = await findSourceTypesAsync(
+                currentSourceAndMetadataTypes, project, transitive, cancellationToken).ConfigureAwait(false);
 
             foreach (var foundType in foundSourceTypes)
             {
@@ -284,7 +296,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // Add to the result list.
                 result.Add(foundType);
 
-                if (shouldContinueSearching(foundType))
+                if (transitive && shouldContinueSearching(foundType))
                 {
                     currentSourceAndMetadataTypes.Add(foundType);
                 }
@@ -416,17 +428,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return false;
         }
 
-        private static  Task<IEnumerable<INamedTypeSymbol>> TransitivelyFindDerivedMetadataClassesInProjectAsync(
+        private static  Task<IEnumerable<INamedTypeSymbol>> FindDerivedMetadataClassesInProjectAsync(
             HashSet<INamedTypeSymbol> metadataTypes,
             Project project,
+            bool transitive,
             CancellationToken cancellationToken)
         {
-            Func<INamedTypeSymbol, bool> typeMatches = t => TypeTransitivelyDerivesFrom(metadataTypes, t);
-            return TransitivelyFindTypesInProjectAsync(
+            Func<INamedTypeSymbol, bool> typeMatches = t => TypeDerivesFrom(metadataTypes, t, transitive);
+            return FindMetadataTypesInProjectAsync(
                 metadataTypes, project, typeMatches, cancellationToken);
         }
 
-        private static async Task<IEnumerable<INamedTypeSymbol>> TransitivelyFindTypesInProjectAsync(
+        private static async Task<IEnumerable<INamedTypeSymbol>> FindMetadataTypesInProjectAsync(
             HashSet<INamedTypeSymbol> metadataTypes,
             Project project,
             Func<INamedTypeSymbol, bool> typeMatches,
@@ -453,24 +466,33 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return result;
         }
 
-        private static bool TypeTransitivelyDerivesFrom(
-            HashSet<INamedTypeSymbol> metadataTypes, INamedTypeSymbol type)
+        private static bool TypeDerivesFrom(
+            HashSet<INamedTypeSymbol> metadataTypes, INamedTypeSymbol type, bool transitive)
         {
-            for (var current = type.BaseType; current != null; current = current.BaseType)
+            if (transitive)
             {
-                if (metadataTypes.Contains(current.OriginalDefinition))
+                for (var current = type.BaseType; current != null; current = current.BaseType)
                 {
-                    return true;
+                    if (metadataTypes.Contains(current.OriginalDefinition))
+                    {
+                        return true;
+                    }
                 }
-            }
 
-            return false;
+                return false;
+            }
+            else
+            {
+                return metadataTypes.Contains(type.BaseType?.OriginalDefinition);
+            }
         }
 
-        private static bool TypeTransitivelyImplementsFrom(
-            HashSet<INamedTypeSymbol> metadataTypes, INamedTypeSymbol type)
+        private static bool TypeImplementsFrom(
+            HashSet<INamedTypeSymbol> metadataTypes, INamedTypeSymbol type, bool transitive)
         {
-            foreach (var interfaceType in type.AllInterfaces)
+            var interfaces = transitive ? type.AllInterfaces : type.Interfaces;
+
+            foreach (var interfaceType in interfaces)
             {
                 if (metadataTypes.Contains(interfaceType.OriginalDefinition))
                 {
@@ -481,60 +503,62 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return false;
         }
 
-        private static Task<IEnumerable<INamedTypeSymbol>> TransitivelyFindDerivedAndImplementingMetadataTypesInProjectAsync(
+        private static Task<IEnumerable<INamedTypeSymbol>> FindDerivedAndImplementingMetadataTypesInProjectAsync(
             HashSet<INamedTypeSymbol> metadataTypes,
             Project project,
+            bool transitive,
             CancellationToken cancellationToken)
         {
             Func<INamedTypeSymbol, bool> typeMatches = 
-                t => TypeTransitivelyDerivesFrom(metadataTypes, t) ||
-                     TypeTransitivelyImplementsFrom(metadataTypes, t);
-            return TransitivelyFindTypesInProjectAsync(
+                t => TypeDerivesFrom(metadataTypes, t, transitive) ||
+                     TypeImplementsFrom(metadataTypes, t, transitive);
+            return FindMetadataTypesInProjectAsync(
                 metadataTypes, project, typeMatches, cancellationToken);
         }
 
-        private static Task<IEnumerable<INamedTypeSymbol>> TransitivelyFindDerivedAndImplementingSourceTypesInProjectAsync(
+        private static Task<IEnumerable<INamedTypeSymbol>> FindDerivedAndImplementingSourceTypesInProjectAsync(
             HashSet<INamedTypeSymbol> sourceAndMetadataTypes,
             Project project,
+            bool transitive,
             CancellationToken cancellationToken)
         {
             // Found a new type.  If its an interface or a non-sealed class, add it to the list of 
             // types for us to continue searching for.
-            return TransitivelyFindTypesInProjectAsync(
+            return FindTypesInProjectAsync(
                 sourceAndMetadataTypes,
                 project,
                 findImmediatelyDerivedTypesInDocumentAsync: FindImmediatelyDerivedAndImplementingTypesInDocumentAsync,
                 shouldContinueSearching: IsInterfaceOrNonSealedClass,
+                transitive: transitive,
                 cancellationToken: cancellationToken);
         }
 
         private static readonly Func<INamedTypeSymbol, bool> IsInterfaceOrNonSealedClass = 
             t => t.TypeKind == TypeKind.Interface || IsNonSealedClass(t);
 
-        private static Task<IEnumerable<INamedTypeSymbol>> TransitivelyFindDerivedSourceClassesInProjectAsync(
+        private static Task<IEnumerable<INamedTypeSymbol>> FindDerivedSourceClassesInProjectAsync(
             HashSet<INamedTypeSymbol> sourceAndMetadataTypes,
             Project project,
+            bool transitive,
             CancellationToken cancellationToken)
         {
             Debug.Assert(sourceAndMetadataTypes.All(IsNonSealedClass));
 
-            // Found a new type.  If it isn't sealed, add it to the list of 
-            // types for us to search for more derived classes of.
-            Func<INamedTypeSymbol, bool> shouldContinueSearching = IsNonSealedClass;
-
-            return TransitivelyFindTypesInProjectAsync(
+            return FindTypesInProjectAsync(
                 sourceAndMetadataTypes,
                 project,
                 findImmediatelyDerivedTypesInDocumentAsync: FindImmediatelyDerivedClassesInDocumentAsync,
-                shouldContinueSearching: shouldContinueSearching,
+                shouldContinueSearching: IsNonSealedClass,
+                transitive: transitive,
                 cancellationToken: cancellationToken);
         }
 
-        private static async Task<IEnumerable<INamedTypeSymbol>> TransitivelyFindTypesInProjectAsync(
+        private static async Task<IEnumerable<INamedTypeSymbol>> FindTypesInProjectAsync(
             HashSet<INamedTypeSymbol> sourceAndMetadataTypes,
             Project project,
             SearchDocumentAsync findImmediatelyDerivedTypesInDocumentAsync,
             Func<INamedTypeSymbol, bool> shouldContinueSearching,
+            bool transitive,
             CancellationToken cancellationToken)
         {
             // We're going to be sweeping over this project over and over until we reach a 
@@ -585,7 +609,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                         {
                             if (finalResult.Add(derivedType))
                             {
-                                if (shouldContinueSearching(derivedType))
+                                if (transitive && shouldContinueSearching(derivedType))
                                 {
                                     typesToSearchFor.Add(derivedType);
                                 }
