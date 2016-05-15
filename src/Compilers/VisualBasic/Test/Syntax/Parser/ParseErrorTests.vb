@@ -1437,17 +1437,26 @@ End Class
 
     <Fact()>
     Public Sub BC30200ERR_InvalidNewInType()
-        ParseAndVerify(<![CDATA[
+        Dim code = <![CDATA[
                        Class C1
                             Function myfunc(Optional ByVal x As New test()) 
                             End Function
                         End Class
-                ]]>,
-            <errors>
-                <error id="30200"/>
-                <error id="30201"/>
-                <error id="30812"/>
-            </errors>)
+                ]]>.Value
+        For Each lv As LanguageVersion In [Enum].GetValues(GetType(LanguageVersion))
+            Dim vb = VisualBasicParseOptions.Default.WithLanguageVersion(lv)
+            If lv < LanguageVersion.VNext Then
+                ParseAndVerify(code, vb, <errors>
+                                             <error id="30200"/>
+                                             <error id="30201"/>
+                                             <error id="30812"/>
+                                         </errors>)
+            Else
+                ParseAndVerify(code, vb, <errors>
+                                             <error id="30200"/>
+                                         </errors>)
+            End If
+        Next
     End Sub
 
     <Fact()>
@@ -2237,7 +2246,6 @@ End Module
             Else
                 ParseAndVerify(code, vb, <errors>
                                              <error id="30642"/>
-                                             <error id="30201"/>
                                          </errors>)
             End If
         Next
@@ -2557,7 +2565,7 @@ End Module
                                                                 <error id="30812"/>
                                                             </errors>)
             Else
-                ParserTestUtilities.ParseAndVerify(code, p, <Errors/>)
+                Assert.False(ParserTestUtilities.Parse(code, p).GetDiagnostics.Any())
             End If
 
         Next

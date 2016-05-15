@@ -679,15 +679,27 @@ End Class
     <WorkItem(894067, "DevDiv/Personal")>
     <Fact>
     Public Sub BC30213ERR_InvalidParameterSyntax_DollarAutoProp()
-        ParseAndVerify(<![CDATA[
+        Dim code = <![CDATA[
 Property Scen4(
 p1 as vb$anonymous1
 ) a
-]]>,
-Diagnostic(ERRID.ERR_InvalidParameterSyntax, "anonymous1"),
-Diagnostic(ERRID.ERR_AutoPropertyCantHaveParams, <![CDATA[(
+]]>.Value
+        For Each lv As LanguageVersion In [Enum].GetValues(GetType(LanguageVersion))
+            Dim vbp = VisualBasicParseOptions.Default.WithLanguageVersion(lv)
+            If lv < LanguageVersion.VNext Then
+                ParseAndVerify(code, vbp,
+                               Diagnostic(ERRID.ERR_AutoPropertyCantHaveParams, <![CDATA[(
+ p1 as vb$anonymous1
+)]]>.Value),
+                               Diagnostic(ERRID.ERR_InvalidParameterSyntax, "anonymous1")
+                              )
+            Else
+                ParseAndVerify(code, vbp,
+                               Diagnostic(ERRID.ERR_AutoPropertyCantHaveParams, <![CDATA[(
  p1 as vb$anonymous1
 )]]>.Value))
+            End If
+        Next
     End Sub
 
     <Fact>
