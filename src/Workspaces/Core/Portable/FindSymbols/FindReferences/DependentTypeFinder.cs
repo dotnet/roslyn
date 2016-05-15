@@ -562,7 +562,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             Func<INamedTypeSymbol, bool> typeMatches = t => ImmediatelyDerivesOrImplementsFrom(typesToSearchFor, t);
 
-            return FindImmediateTypesInDocumentAsync(
+            return FindImmediatelyInheritingTypesInDocumentAsync(
                 typeNamesToSearchFor, document,
                 cachedModels, cachedInfos, typeMatches,
                 cancellationToken);
@@ -596,13 +596,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             CancellationToken cancellationToken)
         {
             Func<INamedTypeSymbol, bool> typeMatches = t => classesToSearchFor.Contains(t.BaseType.OriginalDefinition);
-            return FindImmediateTypesInDocumentAsync(
+            return FindImmediatelyInheritingTypesInDocumentAsync(
                 classNamesToSearchFor, document,
                 cachedModels, cachedInfos, typeMatches,
                 cancellationToken);
         }
 
-        private static async Task<IEnumerable<INamedTypeSymbol>> FindImmediateTypesInDocumentAsync(
+        private static async Task<IEnumerable<INamedTypeSymbol>> FindImmediatelyInheritingTypesInDocumentAsync(
             ISet<string> classNamesToSearchFor,
             Document document, 
             HashSet<SemanticModel> cachedModels, 
