@@ -759,7 +759,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Constructor,
                         ctorDecl.Identifier.Span,
-                        ImmutableArray<string>.Empty,
+                        inheritanceNames: ImmutableArray<string>.Empty,
                         parameterCount: (ushort)(ctorDecl.ParameterList?.Parameters.Count ?? 0));
                     return true;
                 case SyntaxKind.DelegateDeclaration:
@@ -768,7 +768,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Delegate, delegateDecl.Identifier.Span,
-                        ImmutableArray<string>.Empty);
+                        inheritanceNames: ImmutableArray<string>.Empty);
                     return true;
                 case SyntaxKind.EnumDeclaration:
                     var enumDecl = (EnumDeclarationSyntax)node;
@@ -776,7 +776,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Enum, enumDecl.Identifier.Span,
-                        ImmutableArray<string>.Empty);
+                        inheritanceNames: ImmutableArray<string>.Empty);
                     return true;
                 case SyntaxKind.EnumMemberDeclaration:
                     var enumMember = (EnumMemberDeclarationSyntax)node;
@@ -784,7 +784,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.EnumMember, enumMember.Identifier.Span,
-                        ImmutableArray<string>.Empty);
+                        inheritanceNames: ImmutableArray<string>.Empty);
                     return true;
                 case SyntaxKind.EventDeclaration:
                     var eventDecl = (EventDeclarationSyntax)node;
@@ -792,7 +792,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Event, eventDecl.Identifier.Span,
-                        ImmutableArray<string>.Empty);
+                        inheritanceNames: ImmutableArray<string>.Empty);
                     return true;
                 case SyntaxKind.IndexerDeclaration:
                     var indexerDecl = (IndexerDeclarationSyntax)node;
@@ -800,7 +800,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Indexer, indexerDecl.ThisKeyword.Span,
-                        ImmutableArray<string>.Empty);
+                        inheritanceNames: ImmutableArray<string>.Empty);
                     return true;
                 case SyntaxKind.InterfaceDeclaration:
                     var interfaceDecl = (InterfaceDeclarationSyntax)node;
@@ -818,7 +818,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Method,
                         method.Identifier.Span,
-                        ImmutableArray<string>.Empty,
+                        inheritanceNames: ImmutableArray<string>.Empty,
                         parameterCount: (ushort)(method.ParameterList?.Parameters.Count ?? 0),
                         typeParameterCount: (ushort)(method.TypeParameterList?.Parameters.Count ?? 0));
                     return true;
@@ -828,7 +828,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Property, property.Identifier.Span,
-                        ImmutableArray<string>.Empty);
+                        inheritanceNames: ImmutableArray<string>.Empty);
                     return true;
                 case SyntaxKind.StructDeclaration:
                     var structDecl = (StructDeclarationSyntax)node;
@@ -856,7 +856,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             GetContainerDisplayName(fieldDeclaration.Parent),
                             GetFullyQualifiedContainerName(fieldDeclaration.Parent),
                             kind, variableDeclarator.Identifier.Span,
-                            ImmutableArray<string>.Empty);
+                            inheritanceNames: ImmutableArray<string>.Empty);
                         return true;
                     }
 
