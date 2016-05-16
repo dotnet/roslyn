@@ -541,6 +541,147 @@ C.Method() -> void
                 GetAdditionalFileResultAt(7, 1, shippedFilePath, DeclarePublicAPIAnalyzer.RemoveDeletedApiRule, "C.Method() -> void"));
         }
 
+        [Fact, WorkItem(851, "https://github.com/dotnet/roslyn-analyzers/issues/851")]
+        public void TestAvoidMultipleOverloadsWithOptionalParameters()
+        {
+            var source = @"
+public class C
+{
+    // ok - single overload with optional params, 2 overloads have no public API entries.
+    public void Method1(int p1, int p2, int p1 = 0) { }
+    public void Method1() { }
+    public void Method1(int p1, int p2) { }
+    public void Method1(char p1, params int[] p2) { }
+
+    // ok - multiple overloads with optional params, but only one is public.
+    public void Method2(int p1 = 0) { }
+    internal void Method2(char p1 = '0') { }
+    private void Method2(string p1 = null) { }
+
+    // ok - multiple overloads with optional params, but all are shipped.
+    public void Method3(int p1 = 0) { }
+    public void Method3(string p1 = null) { }
+
+    // fire on unshipped (1) - multiple overloads with optional params, all but first are shipped.
+    public void Method4(int p1 = 0) { }
+    public void Method4(char p1 = 'a') { }
+    public void Method4(string p1 = null) { }
+
+    // fire on all unshipped (3) - multiple overloads with optional params, all are unshipped, 2 have unshipped entries.
+    public void Method5(int p1 = 0) { }
+    public void Method5(char p1 = 'a') { }
+    public void Method5(string p1 = null) { }
+}
+";
+
+            string shippedText = $@"
+C.Method3(int p1 = 0) -> void
+C.Method3(string p1 = null) -> void
+C.Method4(char p1 = 'a') -> void
+C.Method4(string p1 = null) -> void
+";
+            string unshippedText = $@"
+C
+C.C() -> void
+C.Method1() -> void
+C.Method1(int p1, int p2) -> void
+C.Method2(int p1 = 0) -> void
+C.Method4(int p1 = 0) -> void
+C.Method5(char p1 = 'a') -> void
+C.Method5(string p1 = null) -> void
+";
+
+            VerifyCSharp(source, shippedText, unshippedText,
+                // Test0.cs(5,17): warning RS0016: Symbol 'Method1' is not part of the declared API.
+                GetCSharpResultAt(5, 17, DeclarePublicAPIAnalyzer.DeclareNewApiRule, "Method1"),
+                // Test0.cs(8,17): warning RS0016: Symbol 'Method1' is not part of the declared API.
+                GetCSharpResultAt(8, 17, DeclarePublicAPIAnalyzer.DeclareNewApiRule, "Method1"),
+                // Test0.cs(20,17): warning RS0026: Symbol 'Method4' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See 'https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
+                GetCSharpResultAt(20, 17, DeclarePublicAPIAnalyzer.AvoidMultipleOverloadsWithOptionalParameters, "Method4", DeclarePublicAPIAnalyzer.AvoidMultipleOverloadsWithOptionalParameters.HelpLinkUri),
+                // Test0.cs(25,17): warning RS0016: Symbol 'Method5' is not part of the declared API.
+                GetCSharpResultAt(25, 17, DeclarePublicAPIAnalyzer.DeclareNewApiRule, "Method5"),
+                // Test0.cs(25,17): warning RS0026: Symbol 'Method5' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See 'https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
+                GetCSharpResultAt(25, 17, DeclarePublicAPIAnalyzer.AvoidMultipleOverloadsWithOptionalParameters, "Method5", DeclarePublicAPIAnalyzer.AvoidMultipleOverloadsWithOptionalParameters.HelpLinkUri),
+                // Test0.cs(26,17): warning RS0026: Symbol 'Method5' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See 'https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
+                GetCSharpResultAt(26, 17, DeclarePublicAPIAnalyzer.AvoidMultipleOverloadsWithOptionalParameters, "Method5", DeclarePublicAPIAnalyzer.AvoidMultipleOverloadsWithOptionalParameters.HelpLinkUri),
+                // Test0.cs(27,17): warning RS0026: Symbol 'Method5' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See 'https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
+                GetCSharpResultAt(27, 17, DeclarePublicAPIAnalyzer.AvoidMultipleOverloadsWithOptionalParameters, "Method5", DeclarePublicAPIAnalyzer.AvoidMultipleOverloadsWithOptionalParameters.HelpLinkUri));
+        }
+
+        [Fact, WorkItem(851, "https://github.com/dotnet/roslyn-analyzers/issues/851")]
+        public void TestOverloadWithOptionalParametersShouldHaveMostParameters()
+        {
+            var source = @"
+public class C
+{
+    // ok - single overload with optional params has most parameters.
+    public void Method1(int p1, int p2, int p1 = 0) { }
+    public void Method1() { }
+    public void Method1(int p1, int p2) { }
+    public void Method1(char p1, params int[] p2) { }
+
+    // ok - multiple overloads with optional params violating most params requirement, but only one is public.
+    public void Method2(int p1 = 0) { }
+    internal void Method2(int p1, char p1 = '0') { }
+    private void Method2(string p1 = null) { }
+
+    // ok - multiple overloads with optional params violating most params requirement, but all are shipped.
+    public void Method3(int p1 = 0) { }
+    public void Method3(string p1 = null) { }
+    public void Method3(int p1, int p2) { }
+
+    // fire on unshipped (1) - single overload with optional params and violating most params requirement.
+    public void Method4(int p1 = 0) { }     // unshipped
+    public void Method4(char p1, int p2) { }        // unshipped
+    public void Method4(string p1, int p2) { }      // unshipped
+
+    // fire on shipped (1) - single shipped overload with optional params and violating most params requirement due to a new unshipped API.
+    public void Method5(int p1 = 0) { }     // shipped
+    public void Method5(char p1) { }        // shipped
+    public void Method5(string p1) { }      // unshipped
+
+    // fire on multiple shipped (2) - multiple shipped overloads with optional params and violating most params requirement due to a new unshipped API
+    public void Method6(int p1 = 0) { }     // shipped
+    public void Method6(char p1 = 'a') { }  // shipped
+    public void Method6(string p1) { }      // unshipped
+}
+";
+
+            string shippedText = $@"
+C.Method3(int p1 = 0) -> void
+C.Method3(int p1, int p2) -> void
+C.Method3(string p1 = null) -> void
+C.Method5(char p1) -> void
+C.Method5(int p1 = 0) -> void
+C.Method6(char p1 = 'a') -> void
+C.Method6(int p1 = 0) -> void
+";
+            string unshippedText = $@"
+C
+C.C() -> void
+C.Method1() -> void
+C.Method1(char p1, params int[] p2) -> void
+C.Method1(int p1, int p2) -> void
+C.Method1(int p1, int p2, int p1 = 0) -> void
+C.Method2(int p1 = 0) -> void
+C.Method4(char p1, int p2) -> void
+C.Method4(int p1 = 0) -> void
+C.Method4(string p1, int p2) -> void
+C.Method5(string p1) -> void
+C.Method6(string p1) -> void
+";
+
+            VerifyCSharp(source, shippedText, unshippedText,
+                // Test0.cs(21,17): warning RS0027: Symbol 'Method4' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See 'https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
+                GetCSharpResultAt(21, 17, DeclarePublicAPIAnalyzer.OverloadWithOptionalParametersShouldHaveMostParameters, "Method4", DeclarePublicAPIAnalyzer.OverloadWithOptionalParametersShouldHaveMostParameters.HelpLinkUri),
+                // Test0.cs(26,17): warning RS0027: Symbol 'Method5' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See 'https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
+                GetCSharpResultAt(26, 17, DeclarePublicAPIAnalyzer.OverloadWithOptionalParametersShouldHaveMostParameters, "Method5", DeclarePublicAPIAnalyzer.OverloadWithOptionalParametersShouldHaveMostParameters.HelpLinkUri),
+                // Test0.cs(31,17): warning RS0027: Symbol 'Method6' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See 'https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
+                GetCSharpResultAt(31, 17, DeclarePublicAPIAnalyzer.OverloadWithOptionalParametersShouldHaveMostParameters, "Method6", DeclarePublicAPIAnalyzer.OverloadWithOptionalParametersShouldHaveMostParameters.HelpLinkUri),
+                // Test0.cs(32,17): warning RS0027: Symbol 'Method6' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See 'https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md' for details.
+                GetCSharpResultAt(32, 17, DeclarePublicAPIAnalyzer.OverloadWithOptionalParametersShouldHaveMostParameters, "Method6", DeclarePublicAPIAnalyzer.OverloadWithOptionalParametersShouldHaveMostParameters.HelpLinkUri));
+        }
+
         #endregion
 
         #region Fix tests

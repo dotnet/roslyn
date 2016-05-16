@@ -62,6 +62,24 @@ namespace Roslyn.Diagnostics.Analyzers {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Symbol &apos;{0}&apos; violates the backcompat requirement: &apos;Do not add multiple overloads with optional parameters&apos;. See &apos;{1}&apos; for details..
+        /// </summary>
+        internal static string AvoidMultipleOverloadsWithOptionalParametersMessage {
+            get {
+                return ResourceManager.GetString("AvoidMultipleOverloadsWithOptionalParametersMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Do not add multiple public overloads with optional parameters.
+        /// </summary>
+        internal static string AvoidMultipleOverloadsWithOptionalParametersTitle {
+            get {
+                return ResourceManager.GetString("AvoidMultipleOverloadsWithOptionalParametersTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to All public types and members should be declared in PublicAPI.txt. This draws attention to API changes in the code reviews and source control history, and helps prevent breaking changes..
         /// </summary>
         internal static string DeclarePublicApiDescription {
@@ -202,6 +220,24 @@ namespace Roslyn.Diagnostics.Analyzers {
         internal static string InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsTitle {
             get {
                 return ResourceManager.GetString("InvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Symbol &apos;{0}&apos; violates the backcompat requirement: &apos;Public API with optional parameter(s) should have the most parameters amongst its public overloads&apos;. See &apos;{1}&apos; for details..
+        /// </summary>
+        internal static string OverloadWithOptionalParametersShouldHaveMostParametersMessage {
+            get {
+                return ResourceManager.GetString("OverloadWithOptionalParametersShouldHaveMostParametersMessage", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Public API with optional parameter(s) should have the most parameters amongst its public overloads..
+        /// </summary>
+        internal static string OverloadWithOptionalParametersShouldHaveMostParametersTitle {
+            get {
+                return ResourceManager.GetString("OverloadWithOptionalParametersShouldHaveMostParametersTitle", resourceCulture);
             }
         }
         

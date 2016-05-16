@@ -20,13 +20,15 @@ namespace Roslyn.Diagnostics.Analyzers
             public TextSpan Span { get; private set; }
             public SourceText SourceText { get; private set; }
             public string Path { get; private set; }
+            public bool IsShippedApi { get; private set; }
 
-            internal ApiLine(string text, TextSpan span, SourceText sourceText, string path)
+            internal ApiLine(string text, TextSpan span, SourceText sourceText, string path, bool isShippedApi)
             {
                 Text = text;
                 Span = span;
                 SourceText = sourceText;
                 Path = path;
+                IsShippedApi = isShippedApi;
             }
         }
 
@@ -111,11 +113,16 @@ namespace Roslyn.Diagnostics.Analyzers
 
             internal void OnSymbolActionCore(ISymbol symbol, Action<Diagnostic> reportDiagnostic, bool isImplicitlyDeclaredConstructor)
             {
+                Debug.Assert(IsPublicAPI(symbol));
+
                 string publicApiName = GetPublicApiName(symbol);
                 _visitedApiList.Add(publicApiName);
 
-                if (!_publicApiMap.ContainsKey(publicApiName))
+                ApiLine apiLine;
+                var hasPublicApiEntry = _publicApiMap.TryGetValue(publicApiName, out apiLine);
+                if (!hasPublicApiEntry)
                 {
+                    // Unshipped public API with no entry in public API file - report diagnostic.
                     string errorMessageName = GetErrorMessageName(symbol, isImplicitlyDeclaredConstructor);
                     // Compute public API names for any stale siblings to remove from unshipped text (e.g. during signature change of unshipped public API).
                     var siblingPublicApiNamesToRemove = GetSiblingNamesToRemoveFromUnshippedText(symbol);
@@ -131,20 +138,78 @@ namespace Roslyn.Diagnostics.Analyzers
                     }
                 }
 
-                // Check if a public API is a constructor that makes this class instantiable, even though the base class
-                // is not instantiable. That API pattern is not allowed, because it causes protected members of
-                // the base class, which are not considered public APIs, to be exposed to subclasses of this class.
-                if ((symbol as IMethodSymbol)?.MethodKind == MethodKind.Constructor &&
-                    symbol.ContainingType.TypeKind == TypeKind.Class &&
-                    !symbol.ContainingType.IsSealed &&
-                    symbol.ContainingType.BaseType != null &&
-                    IsPublicApiCore(symbol.ContainingType.BaseType) &&
-                    !CanTypeBeExtendedPublicly(symbol.ContainingType.BaseType))
+                if (symbol.Kind == SymbolKind.Method)
                 {
-                    string errorMessageName = GetErrorMessageName(symbol, isImplicitlyDeclaredConstructor);
-                    ImmutableDictionary<string, string> propertyBag = ImmutableDictionary<string, string>.Empty;
-                    var locations = isImplicitlyDeclaredConstructor ? symbol.ContainingType.Locations : symbol.Locations;
-                    reportDiagnostic(Diagnostic.Create(ExposedNoninstantiableType, locations[0], propertyBag, errorMessageName));
+                    var method = (IMethodSymbol)symbol;
+                    var isMethodShippedApi = hasPublicApiEntry && apiLine.IsShippedApi;
+
+                    // Check if a public API is a constructor that makes this class instantiable, even though the base class
+                    // is not instantiable. That API pattern is not allowed, because it causes protected members of
+                    // the base class, which are not considered public APIs, to be exposed to subclasses of this class.
+                    if (!isMethodShippedApi &&
+                        method.MethodKind == MethodKind.Constructor &&
+                        method.ContainingType.TypeKind == TypeKind.Class &&
+                        !method.ContainingType.IsSealed &&
+                        method.ContainingType.BaseType != null &&
+                        IsPublicApiCore(method.ContainingType.BaseType) &&
+                        !CanTypeBeExtendedPublicly(method.ContainingType.BaseType))
+                    {
+                        string errorMessageName = GetErrorMessageName(method, isImplicitlyDeclaredConstructor);
+                        ImmutableDictionary<string, string> propertyBag = ImmutableDictionary<string, string>.Empty;
+                        var locations = isImplicitlyDeclaredConstructor ? method.ContainingType.Locations : method.Locations;
+                        reportDiagnostic(Diagnostic.Create(ExposedNoninstantiableType, locations[0], propertyBag, errorMessageName));
+                    }
+
+                    // Flag public API with optional parameters that violate backcompat requirements: https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md.
+                    if (method.HasOptionalParameters())
+                    {
+                        foreach (var overload in method.GetOverloads())
+                        {
+                            if (!IsPublicAPI(overload))
+                            {
+                                continue;
+                            }
+
+                            // RS0026: Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details.
+                            var overloadHasOptionalParams = overload.HasOptionalParameters();
+                            if (overloadHasOptionalParams)
+                            {
+                                // Flag only if 'method' is a new unshipped API with optional parameters.
+                                if (!isMethodShippedApi)
+                                {
+                                    string errorMessageName = GetErrorMessageName(method, isImplicitlyDeclaredConstructor);
+                                    reportDiagnostic(Diagnostic.Create(AvoidMultipleOverloadsWithOptionalParameters, method.Locations[0], errorMessageName, AvoidMultipleOverloadsWithOptionalParameters.HelpLinkUri));
+                                    break;
+                                }
+                            }
+
+                            // RS0027: Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.
+                            if (method.Parameters.Length <= overload.Parameters.Length)
+                            {
+                                // 'method' is unshipped: Flag regardless of whether the overload is shipped/unshipped.
+                                // 'method' is shipped:   Flag only if overload is unshipped and has no optional parameters (overload will already be flagged with RS0026)
+                                if (!isMethodShippedApi)
+                                {
+                                    string errorMessageName = GetErrorMessageName(method, isImplicitlyDeclaredConstructor);
+                                    reportDiagnostic(Diagnostic.Create(OverloadWithOptionalParametersShouldHaveMostParameters, method.Locations[0], errorMessageName, OverloadWithOptionalParametersShouldHaveMostParameters.HelpLinkUri));
+                                    break;
+                                }
+                                else if (!overloadHasOptionalParams)
+                                {
+                                    var overloadPublicApiName = GetPublicApiName(overload);
+                                    ApiLine overloadPublicApiLine;
+                                    var isOverloadUnshipped = !_publicApiMap.TryGetValue(overloadPublicApiName, out overloadPublicApiLine) ||
+                                        !overloadPublicApiLine.IsShippedApi;
+                                    if (isOverloadUnshipped)
+                                    {
+                                        string errorMessageName = GetErrorMessageName(method, isImplicitlyDeclaredConstructor);
+                                        reportDiagnostic(Diagnostic.Create(OverloadWithOptionalParametersShouldHaveMostParameters, method.Locations[0], errorMessageName, OverloadWithOptionalParametersShouldHaveMostParameters.HelpLinkUri));
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
                 }
             }
 

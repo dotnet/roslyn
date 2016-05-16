@@ -29,5 +29,7 @@ namespace Roslyn.Diagnostics.Analyzers
         // public const string MissingSharedAttributeRuleId = "RS0023";                 // Now RS0023 => Microsoft.Composition.Analyzers.PartsExportedWithMEFv2MustBeMarkedAsSharedAnalyzer
         public const string PublicApiFilesInvalid = "RS0024";
         public const string DuplicatedSymbolInPublicApiFiles = "RS0025";
+        public const string AvoidMultipleOverloadsWithOptionalParameters = "RS0026";
+        public const string OverloadWithOptionalParametersShouldHaveMostParameters = "RS0027";
     }
 }

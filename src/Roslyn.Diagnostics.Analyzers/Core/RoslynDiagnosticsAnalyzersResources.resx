@@ -220,4 +220,16 @@
   <data name="PublicImplicitConstructorErroMessageName" xml:space="preserve">
     <value>implicit constructor for {0}</value>
   </data>
+  <data name="AvoidMultipleOverloadsWithOptionalParametersTitle" xml:space="preserve">
+    <value>Do not add multiple public overloads with optional parameters</value>
+  </data>
+  <data name="AvoidMultipleOverloadsWithOptionalParametersMessage" xml:space="preserve">
+    <value>Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details.</value>
+  </data>
+  <data name="OverloadWithOptionalParametersShouldHaveMostParametersTitle" xml:space="preserve">
+    <value>Public API with optional parameter(s) should have the most parameters amongst its public overloads.</value>
+  </data>
+  <data name="OverloadWithOptionalParametersShouldHaveMostParametersMessage" xml:space="preserve">
+    <value>Symbol '{0}' violates the backcompat requirement: 'Public API with optional parameter(s) should have the most parameters amongst its public overloads'. See '{1}' for details.</value>
+  </data>
 </root>
