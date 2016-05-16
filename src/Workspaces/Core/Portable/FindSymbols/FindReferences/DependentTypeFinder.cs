@@ -662,17 +662,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                                        t.IsAccessibleWithin(c.Assembly)).ToList());
         }
 
-        private delegate Task<IEnumerable<INamedTypeSymbol>> SearchDocument(
-            HashSet<INamedTypeSymbol> classesToSearchFor,
-            InheritanceInfo inheritanceInfo,
-            Document document,
-            ConcurrentSet<SemanticModel> cachedModels,
-            ConcurrentSet<IDeclarationInfo> cachedInfos,
-            CancellationToken cancellationToken);
-
-        private delegate Task<IEnumerable<INamedTypeSymbol>> SearchProject(
-            HashSet<INamedTypeSymbol> sourceAndMetadataTypes, Project project, bool transitive, CancellationToken cancellationToken);
-
         private class InheritanceInfo
         {
             public readonly bool DerivesFromSystemObject;
