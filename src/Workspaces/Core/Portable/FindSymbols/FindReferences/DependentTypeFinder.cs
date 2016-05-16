@@ -66,6 +66,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
     internal static class DependentTypeFinder
     {
         private static Func<Location, bool> s_isInMetadata = loc => loc.IsInMetadata;
+        private static Func<Location, bool> s_isInSource = loc => loc.IsInSource;
+
+        private static readonly Func<INamedTypeSymbol, bool> s_isInterfaceOrNonSealedClass =
+            t => t.TypeKind == TypeKind.Interface || IsNonSealedClass(t);
 
         /// <summary>
         /// For a given <see cref="Compilation"/>, stores a flat list of all the accessible metadata types
@@ -158,7 +162,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return FindTypesAsync(type, solution, projects,
                     findMetadataTypesAsync: FindDerivedAndImplementingMetadataTypesInProjectAsync,
                     findImmediatelyInheritingTypesInDocumentAsync: FindImmediatelyDerivedAndImplementingTypesInDocumentAsync,
-                    shouldContinueSearching: IsInterfaceOrNonSealedClass,
+                    shouldContinueSearching: s_isInterfaceOrNonSealedClass,
                     transitive: transitive,
                     cancellationToken: cancellationToken);
            }
@@ -282,7 +286,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             foreach (var foundType in foundSourceTypes)
             {
-                Debug.Assert(foundType.Locations.All(loc => loc.IsInSource));
+                Debug.Assert(foundType.Locations.All(s_isInSource));
 
                 // Add to the result list.
                 result.Add(foundType);
@@ -507,9 +511,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return FindMetadataTypesInProjectAsync(
                 metadataTypes, project, typeMatches, cancellationToken);
         }
-
-        private static readonly Func<INamedTypeSymbol, bool> IsInterfaceOrNonSealedClass = 
-            t => t.TypeKind == TypeKind.Interface || IsNonSealedClass(t);
 
         private static async Task<IEnumerable<INamedTypeSymbol>> FindSourceTypesInProjectAsync(
             HashSet<INamedTypeSymbol> sourceAndMetadataTypes,
