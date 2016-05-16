@@ -94,7 +94,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
                 }
             }
 
-            return null;
+            throw new Exception($"The specified project could not be found. Project name: '{projectName}'");
         }
 
         public void Save()
