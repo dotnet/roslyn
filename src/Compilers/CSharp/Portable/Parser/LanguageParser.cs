@@ -6844,10 +6844,10 @@ tryAgain:
             }
 
             // deconstruction-assignment
-            if (tk == SyntaxKind.OpenParenToken)
-            {
-                return false;
-            }
+            //if (tk == SyntaxKind.OpenParenToken)
+            //{
+            //    return false;
+            //}
 
             bool? typedIdentifier = IsPossibleTypedIdentifierStart(this.CurrentToken, this.PeekToken(1), allowThisKeyword: false);
             if (typedIdentifier != null)
