@@ -492,7 +492,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var typesToSearchFor = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
             typesToSearchFor.AddAll(sourceAndMetadataTypes);
 
-            var typeNamesToSearchFor = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var derivesFromSystemObject = sourceAndMetadataTypes.Any(t => t.SpecialType == SpecialType.System_Object);
             var derivesFromSystemEnum = sourceAndMetadataTypes.Any(t => t.SpecialType == SpecialType.System_Enum);
             var derivesFromSystemValueType = sourceAndMetadataTypes.Any(t => t.SpecialType == SpecialType.System_ValueType);
@@ -502,13 +501,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 derivesFromSystemObject, 
                 derivesFromSystemValueType,
                 derivesFromSystemEnum,
-                derivesFromSystemMulticastDelegate,
-                typeNamesToSearchFor);
+                derivesFromSystemMulticastDelegate);
 
+            // As long as there are new types to search for, keep looping.
             while (typesToSearchFor.Count > 0)
             {
-                // Only bother searching for derived types of non-sealed classes we're passed in.
-                typeNamesToSearchFor.AddRange(typesToSearchFor.Select(c => c.Name));
+                // Compute the set of names to look for in the base/interface lists.
+                inheritanceInfo.TypeNames.AddRange(typesToSearchFor.Select(c => c.Name));
 
                 // Search all the documents of this project in parallel.
                 var tasks = project.Documents.Select(d => findImmediatelyDerivedTypesInDocumentAsync(
@@ -517,8 +516,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
 
+                // Clear out the information about the types we're looking for.  We'll
+                // fill these in if we discover any more types that we need to keep searching
+                // for.
                 typesToSearchFor.Clear();
-                typeNamesToSearchFor.Clear();
+                inheritanceInfo.TypeNames.Clear();
 
                 foreach (var task in tasks)
                 {
@@ -722,14 +724,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 bool derivesFromSystemObject,
                 bool derivesFromSystemValueType,
                 bool derivesFromSystemEnum,
-                bool derivesFromSystemMulticastDelegate,
-                HashSet<string> typeNames)
+                bool derivesFromSystemMulticastDelegate)
             {
                 DerivesFromSystemObject = derivesFromSystemObject;
                 DerivesFromSystemValueType = derivesFromSystemValueType;
                 DerivesFromSystemEnum = derivesFromSystemEnum;
                 DerivesFromSystemMulticastDelegate = derivesFromSystemMulticastDelegate;
-                TypeNames = typeNames;
+                TypeNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             }
         }
     }
