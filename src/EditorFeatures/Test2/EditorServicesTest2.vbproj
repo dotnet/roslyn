@@ -126,7 +126,7 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Roslyn.VisualStudio.Services.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
   </ItemGroup>
   <ItemGroup>
     <Import Include="Microsoft.CodeAnalysis.Editor" />
