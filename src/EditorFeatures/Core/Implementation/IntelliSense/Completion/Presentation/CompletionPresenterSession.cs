@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         public event EventHandler<PresentationItemEventArgs> ItemSelected;
         public event EventHandler<CompletionItemFilterStateChangedEventArgs> FilterStateChanged;
 
-        private readonly CompletionSet3 _completionSet;
+        private readonly ICompletionSet _completionSet;
 
         private ICompletionSession _editorSessionOpt;
         private bool _ignoreSelectionStatusChangedEvent;
@@ -44,6 +44,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         }
 
         public CompletionPresenterSession(
+            ICompletionSetFactory completionSetFactory,
             ICompletionBroker completionBroker,
             IGlyphService glyphService,
             ITextView textView,
@@ -54,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             _textView = textView;
             _subjectBuffer = subjectBuffer;
 
-            _completionSet = new CompletionSet3(this, textView, subjectBuffer);
+            _completionSet = completionSetFactory.CreateCompletionSet(this, textView, subjectBuffer);
             _completionSet.SelectionStatusChanged += OnCompletionSetSelectionStatusChanged;
         }
 
@@ -156,15 +157,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         internal void AugmentCompletionSession(IList<CompletionSet> completionSets)
         {
-            Contract.ThrowIfTrue(completionSets.Contains(_completionSet));
-            completionSets.Add(_completionSet);
+            Contract.ThrowIfTrue(completionSets.Contains(_completionSet.CompletionSet));
+            completionSets.Add(_completionSet.CompletionSet);
         }
 
-        internal void OnIntelliSenseFiltersChanged(IReadOnlyList<IntellisenseFilter2> filters)
+        internal void OnIntelliSenseFiltersChanged(ImmutableDictionary<CompletionItemFilter, bool> filterStates)
         {
             this.FilterStateChanged?.Invoke(this,
-                new CompletionItemFilterStateChangedEventArgs(
-                    filters.ToImmutableDictionary(f => f.CompletionItemFilter, f => f.IsChecked)));
+                new CompletionItemFilterStateChangedEventArgs(filterStates));
         }
 
         public void Dismiss()

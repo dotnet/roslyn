@@ -33,6 +33,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(FeatureOnOffOptions.AutoXmlDocCommentGeneration, value); }
         }
 
+        public int AutoInsertAsteriskForNewLinesOfBlockComments
+        {
+            get { return GetBooleanOption(FeatureOnOffOptions.AutoInsertBlockCommentStartString); }
+            set { SetBooleanOption(FeatureOnOffOptions.AutoInsertBlockCommentStartString, value); }
+        }
+
         public int BringUpOnIdentifier
         {
             get { return GetBooleanOption(CompletionOptions.TriggerOnTypingLetters); }
