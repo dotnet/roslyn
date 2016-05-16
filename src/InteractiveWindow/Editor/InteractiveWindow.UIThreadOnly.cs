@@ -93,7 +93,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             private readonly IWaitIndicator _waitIndicator;
 
             public ITextBuffer OutputBuffer { get; }
-            public ITextBuffer HistoryBuffer { get; private set; }
             public ITextBuffer StandardInputBuffer { get; }
             public ITextBuffer CurrentLanguageBuffer { get; private set; }
 
@@ -123,8 +122,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             /// <remarks>Always access through <see cref="State"/>.</remarks>
             private State _state;
-
-            private ITextBufferFactoryService _textBufferFactory;
 
             public State State
             {
@@ -156,7 +153,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             {
                 _window = window;
                 _factory = factory;
-                _textBufferFactory = bufferFactory;
                 _textBufferUndoManagerProvider = textBufferUndoManagerProvider;
                 _rtfBuilderService = (IRtfBuilderService2)rtfBuilderService;
                 _intellisenseSessionStackMap = intellisenseSessionStackMap;
@@ -310,15 +306,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 {
                     edit.Delete(0, StandardInputBuffer.CurrentSnapshot.Length);
                     edit.Apply();
-                }
-
-                if (HistoryBuffer != null) 
-                {
-                    using (var edit = HistoryBuffer.CreateEdit(EditOptions.None, null, s_suppressPromptInjectionTag)) 
-                    {
-                        edit.Delete(0, HistoryBuffer.CurrentSnapshot.Length);
-                        edit.Apply();
-                    }
                 }
 
                 // Insert an empty output buffer.
@@ -653,35 +640,25 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     return;
                 }
 
-                if (HistoryBuffer == null) 
-                {
-                    IContentType inputContentType;
-                    if (!((IPropertyOwner)_window).Properties.TryGetProperty(typeof(IContentType), out inputContentType)) 
-                    {
-                        inputContentType = _textBufferFactory.TextContentType;
-                    }
 
-                    HistoryBuffer = _textBufferFactory.CreateTextBuffer(inputContentType);
-                }
-
+                var historyBuffer = _factory.CreateAndActivateBuffer(_window);
                 _buffer.Flush();
 
-                var start = HistoryBuffer.CurrentSnapshot.Length;
-                using (var edit = HistoryBuffer.CreateEdit(EditOptions.None, null, s_suppressPromptInjectionTag)) 
+                using (var edit = historyBuffer.CreateEdit(EditOptions.None, null, s_suppressPromptInjectionTag)) 
                 {
                     if (!command.EndsWith(_lineBreakString)) 
                     {
-                        edit.Insert(start, command + _lineBreakString);
+                        edit.Insert(0, command + _lineBreakString);
                     } 
                     else 
                     {
-                        edit.Insert(start, command);
+                        edit.Insert(0, command);
                     }
                     edit.Apply();
                 }
-                var end = HistoryBuffer.CurrentSnapshot.Length;
+                var end = historyBuffer.CurrentSnapshot.Length;
 
-                var historySpan = new SnapshotSpan(HistoryBuffer.CurrentSnapshot, Span.FromBounds(start, end -_lineBreakString.Length));
+                var historySpan = new SnapshotSpan(historyBuffer.CurrentSnapshot, Span.FromBounds(0, end -_lineBreakString.Length));
                 _history.Add(historySpan);
 
                 var sourceSpans = _projectionBuffer.CurrentSnapshot.GetSourceSpans();
@@ -721,7 +698,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                     NewOutputBuffer(insertionIndex);
                 }
 
-                var trackingSpan = new CustomTrackingSpan(HistoryBuffer.CurrentSnapshot, Span.FromBounds(start, end));
+                var trackingSpan = new CustomTrackingSpan(historyBuffer.CurrentSnapshot, Span.FromBounds(0, end));
                 InsertProjectionSpans(insertionIndex, CreatePrimaryPrompt(), trackingSpan);
             }
 
