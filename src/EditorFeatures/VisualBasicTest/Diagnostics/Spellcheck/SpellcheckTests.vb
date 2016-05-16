@@ -8,11 +8,11 @@ Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Spellcheck
 Imports Microsoft.CodeAnalysis.VisualBasic.Diagnostics
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.Spellcheck
-    Public Class SpellcheckTests
+    Public Class SpellCheckTests
         Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
         Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
-            Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(Nothing, New SpellCheckCodeFixProvider())
+            Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(Nothing, New VisualBasicSpellCheckCodeFixProvider())
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSpellcheck)>
@@ -481,7 +481,7 @@ NewLines("<Assembly: Microsoft.CodeAnalysis.[||]>"))
             Friend Overrides Function CreateDiagnosticProviderAndFixer(workspace As Workspace) As Tuple(Of DiagnosticAnalyzer, CodeFixProvider)
                 Return Tuple.Create(Of DiagnosticAnalyzer, CodeFixProvider)(
                     New VisualBasicUnboundIdentifiersDiagnosticAnalyzer(),
-                    New SpellCheckCodeFixProvider())
+                    New VisualBasicSpellCheckCodeFixProvider())
             End Function
 
             <WorkItem(829970, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/829970")>

@@ -4,6 +4,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.ErrorReporting;
@@ -12,12 +13,14 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System.Collections.Immutable;
+using System.Threading;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal partial class EnumAndCompletionListTagCompletionProvider : CompletionListProvider
+    internal partial class EnumAndCompletionListTagCompletionProvider : CommonCompletionProvider
     {
-        public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
+        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             // Bring up on space or at the start of a word, or after a ( or [.
             //
@@ -30,10 +33,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 ch == ' ' ||
                 ch == '[' ||
                 ch == '(' ||
+                ch == '~' ||
                 (options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.CSharp) && CompletionUtilities.IsStartingNewWord(text, characterPosition));
         }
 
-        public override async Task ProduceCompletionListAsync(CompletionListContext context)
+        public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
             try
             {
@@ -97,16 +101,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
                 var workspace = document.Project.Solution.Workspace;
                 var text = await semanticModel.SyntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                var textChangeSpan = CompletionUtilities.GetTextChangeSpan(text, position);
 
-                var item = new CompletionItem(
-                    this,
+                var item = SymbolCompletionItem.Create(
                     displayText: displayText,
-                    filterSpan: textChangeSpan,
-                    descriptionFactory: CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, position, alias ?? type),
-                    glyph: (alias ?? type).GetGlyph(),
+                    insertionText: null,
+                    span: context.DefaultItemSpan,
+                    symbol: alias ?? type,
+                    descriptionPosition: position,
                     preselect: true,
-                    rules: ItemRules.Instance);
+                    rules: s_rules);
 
                 context.AddItem(item);
             }
@@ -115,6 +118,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 throw ExceptionUtilities.Unreachable;
             }
         }
+
+        public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        {
+            return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
+        }
+
+        private static readonly CompletionItemRules s_rules =
+            CompletionItemRules.Default.WithCommitCharacterRules(ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '.')));
 
         private INamedTypeSymbol GetCompletionListType(ITypeSymbol type, INamedTypeSymbol within, Compilation compilation)
         {

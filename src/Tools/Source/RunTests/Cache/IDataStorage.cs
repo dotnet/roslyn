@@ -23,20 +23,20 @@ namespace RunTests.Cache
         internal string StandardOutput { get; }
         internal string ErrorOutput { get; }
         internal string ResultsFileContent { get; }
-        internal TimeSpan Ellapsed { get; }
+        internal TimeSpan Elapsed { get; }
 
         internal CachedTestResult(
             int exitCode,
             string standardOutput,
             string errorOutput,
             string resultsFileContent,
-            TimeSpan ellapsed)
+            TimeSpan elapsed)
         {
             ExitCode = exitCode;
             StandardOutput = standardOutput;
             ErrorOutput = errorOutput;
             ResultsFileContent = resultsFileContent;
-            Ellapsed = ellapsed;
+            Elapsed = elapsed;
         }
     }
 }

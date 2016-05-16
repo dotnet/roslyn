@@ -11,7 +11,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.CSharp
             _outputHelper = outputHelper
         End Sub
 
-        <WpfFact(Skip:="917043")>
+        <WpfFact>
         <WorkItem(917043, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/917043")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub NoConflictForDelegate()

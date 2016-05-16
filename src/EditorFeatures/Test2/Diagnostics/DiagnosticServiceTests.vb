@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Shared.Options
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.UnitTests.Diagnostics
@@ -117,14 +118,12 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 Assert.Equal(workspaceDiagnosticAnalyzer.DiagDescriptor.Id, descriptors(0).Id)
 
                 ' Add an existing workspace analyzer to the project, ensure no duplicate diagnostics.
-                Dim duplicateProjectAnalyzers = ImmutableArray.Create(Of DiagnosticAnalyzer)(workspaceDiagnosticAnalyzer)
-                Dim duplicateProjectAnalyzersReference = New AnalyzerImageReference(duplicateProjectAnalyzers)
+                Dim duplicateProjectAnalyzersReference = diagnosticService.HostAnalyzerReferences.FirstOrDefault()
                 project = project.WithAnalyzerReferences({duplicateProjectAnalyzersReference})
 
                 ' Verify duplicate descriptors or diagnostics.
-                ' We don't do de-duplication of analyzer that belong to different layer (host and project)
                 descriptorsMap = diagnosticService.GetDiagnosticDescriptors(project)
-                Assert.Equal(2, descriptorsMap.Count)
+                Assert.Equal(1, descriptorsMap.Count)
                 descriptors = descriptorsMap.Values.SelectMany(Function(d) d).OrderBy(Function(d) d.Id).ToImmutableArray()
                 Assert.Equal(workspaceDiagnosticAnalyzer.DiagDescriptor.Id, descriptors(0).Id)
 
@@ -132,7 +131,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
                 diagnostics = diagnosticService.GetDiagnosticsForSpanAsync(document,
                                                                     document.GetSyntaxRootAsync().WaitAndGetResult(CancellationToken.None).FullSpan
                                                                     ).WaitAndGetResult(CancellationToken.None)
-                Assert.Equal(2, diagnostics.Count())
+                Assert.Equal(1, diagnostics.Count())
             End Using
         End Sub
 
@@ -414,7 +413,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         <WpfFact, WorkItem(937956, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/937956"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestDiagnosticAnalyzerExceptionHandledGracefully()
             Dim test = <Workspace>
-                           <Project Language="C#" CommonReferences="true">
+                           <Project Language="C#" CommonReferences="true" Features="IOperation">
                                <Document FilePath="Test.cs">
                                    class Foo { }
                                </Document>
@@ -515,7 +514,7 @@ Namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics.UnitTests
         <WpfFact, WorkItem(937939, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/937939"), Trait(Traits.Feature, Traits.Features.Diagnostics)>
         Public Sub TestOperationAnalyzers()
             Dim test = <Workspace>
-                           <Project Language="C#" CommonReferences="true">
+                           <Project Language="C#" CommonReferences="true" Features="IOperation">
                                <Document FilePath="Test.cs">
                                    class Foo { void M() { int x = 0; } }
                                </Document>
@@ -732,18 +731,22 @@ class AnonymousFunctions
                 Assert.Equal(1, diagnostics.Count())
                 Assert.Equal(document.Id, diagnostics.First().DocumentId)
 
+                ' REVIEW: GetProjectDiagnosticsForIdsAsync is for project diagnostics with no location. not sure why in v1, this API returns
+                '         diagnostic with location?
+
                 ' Verify compilation diagnostics are reported with correct location info when asked for project diagnostics.
-                Dim projectDiagnostics = diagnosticService.GetProjectDiagnosticsForIdsAsync(project.Solution, project.Id).WaitAndGetResult(CancellationToken.None)
+                Dim projectDiagnostics = diagnosticService.GetDiagnosticsForIdsAsync(project.Solution, project.Id).WaitAndGetResult(CancellationToken.None)
                 Assert.Equal(2, projectDiagnostics.Count())
 
-                Dim noLocationDiagnostic = projectDiagnostics.First()
+                Dim noLocationDiagnostic = projectDiagnostics.First(Function(d) Not d.HasTextSpan)
                 Assert.Equal(CompilationEndedAnalyzer.Descriptor.Id, noLocationDiagnostic.Id)
                 Assert.Equal(False, noLocationDiagnostic.HasTextSpan)
 
-                Dim withDocumentLocationDiagnostic = projectDiagnostics.Last()
+                Dim withDocumentLocationDiagnostic = projectDiagnostics.First(Function(d) d.HasTextSpan)
                 Assert.Equal(CompilationEndedAnalyzer.Descriptor.Id, withDocumentLocationDiagnostic.Id)
                 Assert.Equal(True, withDocumentLocationDiagnostic.HasTextSpan)
                 Assert.NotNull(withDocumentLocationDiagnostic.DocumentId)
+
                 Dim diagnosticDocument = project.GetDocument(withDocumentLocationDiagnostic.DocumentId)
                 Dim tree = diagnosticDocument.GetSyntaxTreeAsync().Result
                 Dim actualLocation = withDocumentLocationDiagnostic.ToDiagnosticAsync(project, CancellationToken.None).Result.Location
@@ -1915,6 +1918,8 @@ class MyClass
                        </Workspace>
 
             Using workspace = TestWorkspace.CreateWorkspace(test)
+                workspace.Options = workspace.Options.WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.CSharp, True)
+
                 Dim project = workspace.CurrentSolution.Projects.Single()
 
                 ' Add analyzer
@@ -1938,8 +1943,15 @@ class MyClass
                 ' Get cached project diagnostics.
                 Dim diagnostics = diagnosticService.GetCachedDiagnosticsAsync(workspace, project.Id).WaitAndGetResult(CancellationToken.None)
 
-                Assert.Equal(1, diagnostics.Count())
-                Assert.Equal(HiddenDiagnosticsCompilationAnalyzer.Descriptor.Id, diagnostics.Single().Id)
+                ' different behavior between v1 and v2. in v2. in v2, solution crawler never creates non-local hidden diagnostics.
+                ' v2 still creates those for LB and explicit queries such as FixAll.
+                Dim expectedCount = If(workspace.Options.GetOption(InternalDiagnosticsOptions.UseDiagnosticEngineV2), 0, 1)
+                Assert.Equal(expectedCount, diagnostics.Count())
+
+                ' Get diagnostics explicitly
+                Dim hiddenDiagnostics = diagnosticService.GetDiagnosticsAsync(project.Solution, project.Id).WaitAndGetResult(CancellationToken.None)
+                Assert.Equal(1, hiddenDiagnostics.Count())
+                Assert.Equal(HiddenDiagnosticsCompilationAnalyzer.Descriptor.Id, hiddenDiagnostics.Single().Id)
             End Using
         End Sub
 

@@ -16,11 +16,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
     {
         internal static async Task<IEnumerable<ValueTuple<DeclaredSymbolInfo, Document, IEnumerable<PatternMatch>>>> FindNavigableDeclaredSymbolInfos(Project project, string pattern, CancellationToken cancellationToken)
         {
-            var generatedCodeRecognitionService = project.LanguageServices.WorkspaceServices.GetService<IGeneratedCodeRecognitionService>();
             var patternMatcher = new PatternMatcher(pattern);
 
             var result = new List<ValueTuple<DeclaredSymbolInfo, Document, IEnumerable<PatternMatch>>>();
-            foreach (var document in project.Documents.Where(d => !generatedCodeRecognitionService?.IsGeneratedCode(d) ?? true))
+            foreach (var document in project.Documents)
             {
                 cancellationToken.ThrowIfCancellationRequested();
                 var declaredSymbolInfos = await document.GetDeclaredSymbolInfosAsync(cancellationToken).ConfigureAwait(false);
@@ -29,7 +28,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
                     cancellationToken.ThrowIfCancellationRequested();
                     var patternMatches = patternMatcher.GetMatches(
                         GetSearchName(declaredSymbolInfo),
-                        declaredSymbolInfo.FullyQualifiedContainerName);
+                        declaredSymbolInfo.FullyQualifiedContainerName,
+                        includeMatchSpans: false);
 
                     if (patternMatches != null)
                     {

@@ -26,6 +26,8 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Interactive;
 using static Microsoft.CodeAnalysis.Utilities.ForegroundThreadDataKind;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.VisualStudio.LanguageServices.Packaging;
+using Microsoft.VisualStudio.LanguageServices.SymbolSearch;
+using Microsoft.CodeAnalysis.SymbolSearch;
 
 namespace Microsoft.VisualStudio.LanguageServices.Setup
 {
@@ -43,7 +45,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         private IDisposable _solutionEventMonitor;
 
         private PackageInstallerService _packageInstallerService;
-        private PackageSearchService _packageSearchService;
+        private SymbolSearchService _symbolSearchService;
 
         protected override void Initialize()
         {
@@ -169,10 +171,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
             // Ensure the nuget package services are initialized after we've loaded
             // the solution.
             _packageInstallerService = _workspace.Services.GetService<IPackageInstallerService>() as PackageInstallerService;
-            _packageSearchService = _workspace.Services.GetService<IPackageSearchService>() as PackageSearchService;
+            _symbolSearchService = _workspace.Services.GetService<ISymbolSearchService>() as SymbolSearchService;
 
             _packageInstallerService?.Start();
-            _packageSearchService?.Start();
+            _symbolSearchService?.Start();
             
             Task.Run(() => LoadComponentsBackground());
         }
@@ -216,7 +218,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         protected override void Dispose(bool disposing)
         {
             _packageInstallerService?.Stop();
-            _packageSearchService?.Stop();
+            _symbolSearchService?.Stop();
 
             UnregisterFindResultsLibraryManager();
 

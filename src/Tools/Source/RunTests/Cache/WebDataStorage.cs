@@ -9,17 +9,21 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using System.Xml.Linq;
 
 namespace RunTests.Cache
 {
     internal sealed class WebDataStorage : IDataStorage
     {
-        private const string NameExitCode = "ExitCode";
-        private const string NameOutputStandard = "OutputStandard";
-        private const string NameOutputError = "OutputError";
-        private const string NameResultsFileName = "ResultsFileName";
-        private const string NameResultsFileContent = "ResultsFileContent";
-        private const string NameEllapsedSeconds = "EllapsedSeconds";
+        private const string NameExitCode = "exitCode";
+        private const string NameOutputStandard = "outputStandard";
+        private const string NameOutputError = "outputError";
+        private const string NameResultsFileName = "resultsFileName";
+        private const string NameResultsFileContent = "resultsFileContent";
+        private const string NameElapsedSeconds = "elapsedSeconds";
+        private const string NameTestPassed = "testPassed";
+        private const string NameTestFailed = "testFailed";
+        private const string NameTestSkipped = "testSkipped";
 
         private readonly RestClient _restClient = new RestClient(Constants.DashboardUriString);
 
@@ -37,6 +41,7 @@ namespace RunTests.Cache
                 request.Method = Method.PUT;
                 request.RequestFormat = DataFormat.Json;
                 request.AddParameter("text/json", obj.ToString(), ParameterType.RequestBody);
+
                 var response = await _restClient.ExecuteTaskAsync(request);
                 if (response.StatusCode != HttpStatusCode.NoContent)
                 {
@@ -54,6 +59,16 @@ namespace RunTests.Cache
             try
             {
                 var request = new RestRequest($"api/testcache/{checksum}");
+
+                // Add query parameters the web service uses for additional tracking
+                request.AddParameter("machineName", Environment.MachineName, ParameterType.QueryString);
+                request.AddParameter("enlistmentRoot", Constants.EnlistmentRoot, ParameterType.QueryString);
+
+                if (Constants.IsJenkinsRun)
+                {
+                    request.AddParameter("source", "jenkins", ParameterType.QueryString);
+                }
+
                 var response = await _restClient.ExecuteGetTaskAsync(request);
                 if (response.StatusCode != HttpStatusCode.OK)
                 {
@@ -66,7 +81,7 @@ namespace RunTests.Cache
                     standardOutput: obj.Value<string>(NameOutputStandard),
                     errorOutput: obj.Value<string>(NameOutputError),
                     resultsFileContent: obj.Value<string>(NameResultsFileContent),
-                    ellapsed: TimeSpan.FromSeconds(obj.Value<int>(NameEllapsedSeconds)));
+                    elapsed: TimeSpan.FromSeconds(obj.Value<int>(NameElapsedSeconds)));
                 return result;
             }
             catch (Exception ex)
@@ -78,13 +93,18 @@ namespace RunTests.Cache
 
         private static JObject CreateTestResultData(string resultsFileName, CachedTestResult testResult)
         {
+            var numbers = GetTestNumbers(resultsFileName, testResult) ?? Tuple.Create(-1, -1, -1);
             var obj = new JObject();
             obj[NameExitCode] = testResult.ExitCode;
             obj[NameOutputStandard] = testResult.StandardOutput;
-            obj[NameOutputStandard] = testResult.ErrorOutput;
+            obj[NameOutputError] = testResult.ErrorOutput;
             obj[NameResultsFileName] = resultsFileName;
             obj[NameResultsFileContent] = testResult.ResultsFileContent;
-            obj[NameEllapsedSeconds] = (int)testResult.Ellapsed.TotalSeconds;
+            obj[NameElapsedSeconds] = (int)testResult.Elapsed.TotalSeconds;
+            obj[NameTestPassed] = numbers.Item1;
+            obj[NameTestFailed] = numbers.Item2;
+            obj[NameTestSkipped] = numbers.Item3;
+
             return obj;
         }
 
@@ -96,6 +116,32 @@ namespace RunTests.Cache
             obj["AssemblyName"] = assemblyInfo.DisplayName;
             obj["IsJenkins"] = Constants.IsJenkinsRun;
             return obj;
+        }
+
+        private static Tuple<int, int, int> GetTestNumbers(string resultsFileName, CachedTestResult testResult)
+        {
+            if (!resultsFileName.EndsWith("xml", StringComparison.OrdinalIgnoreCase))
+            {
+                return null;
+            }
+
+            try
+            {
+                using (var reader = new StringReader(testResult.ResultsFileContent))
+                { 
+                    var document = XDocument.Load(reader);
+                    var assembly = document.Element("assemblies").Element("assembly");
+                    var passed = int.Parse(assembly.Attribute("passed").Value);
+                    var failed = int.Parse(assembly.Attribute("failed").Value);
+                    var skipped = int.Parse(assembly.Attribute("skipped").Value);
+                    return Tuple.Create(passed, failed, skipped);
+                }
+            }
+            catch (Exception ex)
+            {
+                Logger.Log($"Exception reading test numbers: {ex}");
+                return null;
+            }
         }
     }
 }

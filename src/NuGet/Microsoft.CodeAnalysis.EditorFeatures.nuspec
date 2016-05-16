@@ -1,0 +1,32 @@
+<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd">
+  <metadata>
+    <id>Microsoft.CodeAnalysis.EditorFeatures</id>
+    <description>
+      .NET Compiler Platform ("Roslyn") support for editor features inside the Visual Studio editor..
+      
+Supported Platforms:
+- .NET Framework 4.6
+    </description>
+    <dependencies>
+      <dependency id="Microsoft.CodeAnalysis.Features" version="[$version$]" />
+    </dependencies>
+
+    <language>en-US</language>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <version>$version$</version>
+    <authors>$authors$</authors>
+    <licenseUrl>$licenseUrl$</licenseUrl>
+    <projectUrl>$projectUrl$</projectUrl>
+    <releaseNotes>$releaseNotes$</releaseNotes>
+    <tags>$tags$</tags>
+  </metadata>
+  <files>
+    <file src="Microsoft.CodeAnalysis.EditorFeatures.dll" target="lib\net46" />
+    <file src="Microsoft.CodeAnalysis.EditorFeatures.xml" target="lib\net46" />
+    <file src="Microsoft.CodeAnalysis.CSharp.EditorFeatures.dll" target="lib\net46" />
+    <file src="Microsoft.CodeAnalysis.CSharp.EditorFeatures.xml" target="lib\net46" />
+    <file src="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.dll" target="lib\net46" />
+    <file src="Microsoft.CodeAnalysis.VisualBasic.EditorFeatures.xml" target="lib\net46" />
+  </files>
+</package>

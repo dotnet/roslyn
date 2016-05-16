@@ -278,17 +278,24 @@ namespace Microsoft.CodeAnalysis.Completion
             CancellationToken cancellationToken)
         {
             var context = new CompletionListContext(document, position, triggerInfo, options, cancellationToken);
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            if (!root.FullSpan.IntersectsWith(position))
+            if (document.SupportsSyntaxTree)
             {
-                try
+                var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+                if (!root.FullSpan.IntersectsWith(position))
                 {
-                    // Trying to track down source of https://github.com/dotnet/roslyn/issues/9325
-                    var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    ReportException(position, root, sourceText);
+                    try
+                    {
+                        // Trying to track down source of https://github.com/dotnet/roslyn/issues/9325
+                        var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                        ReportException(position, root, sourceText);
+                    }
+                    catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+                    {
+                    }
                 }
-                catch (Exception e) when (FatalError.ReportWithoutCrash(e))
+                else
                 {
+                    await provider.ProduceCompletionListAsync(context).ConfigureAwait(false);
                 }
             }
             else

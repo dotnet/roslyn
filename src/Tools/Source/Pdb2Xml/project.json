@@ -1,6 +1,5 @@
 ﻿{
   "dependencies": {
-    "Microsoft.DiaSymReader": "1.0.7"
   },
   "frameworks": {
     "net45": {}

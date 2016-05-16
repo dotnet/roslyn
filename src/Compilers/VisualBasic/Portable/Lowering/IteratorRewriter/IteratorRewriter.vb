@@ -79,12 +79,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return rewriter.Rewrite()
         End Function
 
+        ''' <returns>
+        ''' Returns true if any members that we need are missing or have use-site errors.
+        ''' </returns>
         Friend Overrides Function EnsureAllSymbolsAndSignature() As Boolean
-            Dim hasErrors As Boolean = MyBase.EnsureAllSymbolsAndSignature
-
-            If Me.Method.IsSub OrElse Me._elementType.IsErrorType Then
-                hasErrors = True
+            If MyBase.EnsureAllSymbolsAndSignature OrElse Me.Method.IsSub OrElse Me._elementType.IsErrorType Then
+                Return True
             End If
+
+            Dim bag = DiagnosticBag.GetInstance()
 
             ' NOTE: We don't ensure DebuggerStepThroughAttribute, it is just not emitted if not found
             ' EnsureWellKnownMember(Of MethodSymbol)(WellKnownMember.System_Diagnostics_DebuggerStepThroughAttribute__ctor, hasErrors)
@@ -92,25 +95,35 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' TODO: do we need these here? They are used on the actual iterator method.
             ' EnsureWellKnownMember(Of MethodSymbol)(WellKnownMember.System_Runtime_CompilerServices_IteratorStateMachine__ctor, hasErrors)
 
-            EnsureSpecialType(SpecialType.System_Object, hasErrors)
-            EnsureSpecialType(SpecialType.System_Boolean, hasErrors)
-            EnsureSpecialType(SpecialType.System_Int32, hasErrors)
+            EnsureSpecialType(SpecialType.System_Object, bag)
+            EnsureSpecialType(SpecialType.System_Boolean, bag)
+            EnsureSpecialType(SpecialType.System_Int32, bag)
+            EnsureSpecialType(SpecialType.System_IDisposable, bag)
+            EnsureSpecialMember(SpecialMember.System_IDisposable__Dispose, bag)
 
-            If Me.Method.ReturnType.IsDefinition Then
-                If Me._isEnumerable Then
-                    EnsureSpecialType(SpecialType.System_Collections_IEnumerator, hasErrors)
-                End If
-            Else
-                If Me._isEnumerable Then
-                    EnsureSpecialType(SpecialType.System_Collections_Generic_IEnumerator_T, hasErrors)
-                    EnsureSpecialType(SpecialType.System_Collections_IEnumerable, hasErrors)
-                End If
+            ' IEnumerator
+            EnsureSpecialType(SpecialType.System_Collections_IEnumerator, bag)
+            EnsureSpecialPropertyGetter(SpecialMember.System_Collections_IEnumerator__Current, bag)
+            EnsureSpecialMember(SpecialMember.System_Collections_IEnumerator__MoveNext, bag)
+            EnsureSpecialMember(SpecialMember.System_Collections_IEnumerator__Reset, bag)
 
-                EnsureSpecialType(SpecialType.System_Collections_IEnumerator, hasErrors)
+            ' IEnumerator(Of T)
+            EnsureSpecialType(SpecialType.System_Collections_Generic_IEnumerator_T, bag)
+            EnsureSpecialPropertyGetter(SpecialMember.System_Collections_Generic_IEnumerator_T__Current, bag)
+
+            If Me._isEnumerable Then
+                EnsureSpecialType(SpecialType.System_Collections_IEnumerable, bag)
+                EnsureSpecialMember(SpecialMember.System_Collections_IEnumerable__GetEnumerator, bag)
+                EnsureSpecialType(SpecialType.System_Collections_Generic_IEnumerable_T, bag)
+                EnsureSpecialMember(SpecialMember.System_Collections_Generic_IEnumerable_T__GetEnumerator, bag)
             End If
 
-            EnsureSpecialType(SpecialType.System_IDisposable, hasErrors)
+            Dim hasErrors As Boolean = bag.HasAnyErrors
+            If hasErrors Then
+                Me.Diagnostics.AddRange(bag)
+            End If
 
+            bag.Free()
             Return hasErrors
         End Function
 

@@ -42,6 +42,10 @@
       <Project>{d571f126-f0b6-487e-bb79-e91eaee46f4f}</Project>
       <Name>UnitTestFramework</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Dependencies\xUnit.net\xUnit.net.csproj">
+      <Project>{8635cb8f-d210-41ed-b4ff-71502cdb475c}</Project>
+      <Name>xUnit.net</Name>
+    </ProjectReference>
     <ProjectReference Include="..\Impl\RemoveByValVB.vbproj">
       <Project>{4900921D-C548-4FBB-9681-BAF88E09DB3C}</Project>
       <Name>RemoveByValVB</Name>
@@ -79,11 +83,10 @@
     <Compile Include="RemoveByValTests.vb" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="app.config" />
     <None Include="project.json" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
     <Import Project="..\..\..\..\..\build\Targets\Roslyn.Toolsets.Xunit.targets" />
   </ImportGroup>
- </Project>
+</Project>

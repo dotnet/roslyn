@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Collections.ObjectModel;
 using System.Diagnostics;
 using System.IO;
@@ -14,13 +15,15 @@ namespace RunTests
 {
     internal struct RunAllResult
     {
-        internal readonly bool Succeeded;
-        internal readonly int CacheCount;
+        internal bool Succeeded { get; }
+        internal int CacheCount { get; }
+        internal ImmutableArray<TestResult> TestResults { get; }
 
-        internal RunAllResult(bool succeeded, int cacheCount)
+        internal RunAllResult(bool succeeded, int cacheCount, ImmutableArray<TestResult> testResults)
         {
             Succeeded = succeeded;
             CacheCount = cacheCount;
+            TestResults = testResults;
         }
     }
 
@@ -95,7 +98,7 @@ namespace RunTests
 
             Print(completed);
 
-            return new RunAllResult(allPassed, cacheCount);
+            return new RunAllResult(allPassed, cacheCount, completed.ToImmutableArray());
         }
 
         private void Print(List<TestResult> testResults)

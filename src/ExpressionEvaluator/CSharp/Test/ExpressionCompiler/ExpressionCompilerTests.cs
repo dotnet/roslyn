@@ -2283,6 +2283,7 @@ class C
         /// Flow analysis should catch definite assignment errors
         /// for variables declared within the expression.
         /// </summary>
+        [WorkItem(549, "https://github.com/dotnet/roslyn/issues/549")]
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/549")]
         public void FlowAnalysis()
         {
@@ -3682,7 +3683,7 @@ class C
                 assemblyName: assemblyName,
                 references: new MetadataReference[] { referenceN1, referenceN2, referenceD0, referenceD1 });
 
-            Assert.Equal(((ModuleMetadata)referenceN0.GetMetadata()).Name, ((ModuleMetadata)referenceN1.GetMetadata()).Name); // different netmodule, same name
+            Assert.Equal(((ModuleMetadata)referenceN0.GetMetadataNoCopy()).Name, ((ModuleMetadata)referenceN1.GetMetadataNoCopy()).Name); // different netmodule, same name
 
             var references = new[]
             {

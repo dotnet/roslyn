@@ -365,62 +365,6 @@ End Class"
                 End Sub)
         End Sub
 
-        ''' <summary>
-        ''' The assembly-qualified type name may be from an
-        ''' unrecognized assembly. For instance, if the type was
-        ''' defined in a previous evaluation, say an anonymous
-        ''' type (e.g.: evaluate "o" after "o = New With { .P = 1 }").
-        ''' </summary>
-        <WorkItem(1449, "https://github.com/dotnet/roslyn/issues/1449")>
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/1449")>
-        Public Sub UnrecognizedAssembly()
-            Const source =
-"Friend Structure S(Of T)
-    Friend F As T
-End Structure
-Class C
-    Shared Sub M()
-    End Sub
-End Class"
-            Dim comp = CreateCompilationWithMscorlib({source}, options:=TestOptions.DebugDll, assemblyName:=ExpressionCompilerUtilities.GenerateUniqueName())
-            WithRuntimeInstance(comp,
-                Sub(runtime)
-                    Dim errorMessage As String = Nothing
-                    Dim testData = New CompilationTestData()
-
-                    ' Unrecognized type.
-                    Dim context = CreateMethodContext(runtime, "C.M")
-                    context.CompileExpression(
-                        "o.P",
-                        DkmEvaluationFlags.TreatAsExpression,
-                        ImmutableArray.Create(VariableAlias("o", "T, 9BAC6622-86EB-4EC5-94A1-9A1E6D0C25AB, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")),
-                        errorMessage,
-                        testData)
-                    Assert.Equal(errorMessage, "...")
-
-                    ' Unrecognized array element type.
-                    context = CreateMethodContext(runtime, "C.M")
-                    context.CompileExpression(
-                        "a(0).P",
-                        DkmEvaluationFlags.TreatAsExpression,
-                        ImmutableArray.Create(VariableAlias("a", "T[], 9BAC6622-86EB-4EC5-94A1-9A1E6D0C25AB, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null")),
-                        errorMessage,
-                        testData)
-                    Assert.Equal(errorMessage, "...")
-
-                    ' Unrecognized generic type argument.
-                    context = CreateMethodContext(runtime, "C.M")
-                    context.CompileExpression(
-                        "s.F",
-                        DkmEvaluationFlags.TreatAsExpression,
-                        ImmutableArray.Create(VariableAlias("s", "S`1[[T, 9BAC6622-86EB-4EC5-94A1-9A1E6D0C25AB, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null]]")),
-                        errorMessage,
-                        testData)
-                    Assert.Equal(errorMessage, "...")
-
-                End Sub)
-        End Sub
-
         <Fact>
         Public Sub Variables()
             CheckVariable("$exception", ExceptionAlias(), valid:=True)

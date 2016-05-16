@@ -598,5 +598,19 @@ Class X
     End Sub
 End Class")
         End Function
+
+        <WorkItem(9575, "https://github.com/dotnet/roslyn/issues/9575")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        Public Async Function TestMissingOnMethodCall() As Task
+            Await TestMissingAsync(
+"class C
+    public sub new(int arg)
+    end sub
+
+    public function M(s as string, i as integer, b as boolean) as boolean
+        return [|M|](i, b)
+    end function
+end class")
+        End Function
     End Class
 End Namespace

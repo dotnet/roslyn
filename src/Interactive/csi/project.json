@@ -1,7 +1,5 @@
 {
-  "dependencies": {
-    "System.Runtime": "4.0.21-beta-23504"
-  },
+  "dependencies": { },
   "frameworks": {
     "net46": { }
   },

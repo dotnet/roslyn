@@ -152,6 +152,70 @@ public class C
         }
 
         [Fact]
+        public void SymWriterErrors2()
+        {
+            var source0 =
+@"class C
+{
+}";
+            var compilation = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+
+            // Verify full metadata contains expected rows.
+            using (MemoryStream peStream = new MemoryStream(), pdbStream = new MemoryStream())
+            {
+                var result = compilation.Emit(
+                    peStream: peStream,
+                    pdbStream: pdbStream,
+                    xmlDocumentationStream: null,
+                    cancellationToken: default(CancellationToken),
+                    win32Resources: null,
+                    manifestResources: null,
+                    options: null,
+                    debugEntryPoint: null,
+                    getHostDiagnostics: null,
+                    testData: new CompilationTestData() { SymWriterFactory = () => new object() });
+
+                result.Diagnostics.Verify(
+                    // error CS0041: Unexpected error writing debug information -- 'Windows PDB writer is not available -- could not find Microsoft.DiaSymReader.Native.{0}.dll'
+                    Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments(string.Format(CodeAnalysisResources.SymWriterNotAvailable, (IntPtr.Size == 4) ? "x86" : "amd64")));
+
+                Assert.False(result.Success);
+            }
+        }
+
+        [Fact]
+        public void SymWriterErrors3()
+        {
+            var source0 =
+@"class C
+{
+}";
+            var compilation = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll.WithDeterministic(true));
+
+            // Verify full metadata contains expected rows.
+            using (MemoryStream peStream = new MemoryStream(), pdbStream = new MemoryStream())
+            {
+                var result = compilation.Emit(
+                    peStream: peStream,
+                    pdbStream: pdbStream,
+                    xmlDocumentationStream: null,
+                    cancellationToken: default(CancellationToken),
+                    win32Resources: null,
+                    manifestResources: null,
+                    options: null,
+                    debugEntryPoint: null,
+                    getHostDiagnostics: null,
+                    testData: new CompilationTestData() { SymWriterFactory = () => new MockSymUnmanagedWriter() });
+
+                result.Diagnostics.Verify(
+                    // error CS0041: Unexpected error writing debug information -- 'Windows PDB writer doesn't support deterministic compilation -- could not find Microsoft.DiaSymReader.Native.{0}.dll'
+                    Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments(string.Format(CodeAnalysisResources.SymWriterNotDeterministic, (IntPtr.Size == 4) ? "x86" : "amd64")));
+
+                Assert.False(result.Success);
+            }
+        }
+
+        [Fact]
         public void ExtendedCustomDebugInformation()
         {
             var source =

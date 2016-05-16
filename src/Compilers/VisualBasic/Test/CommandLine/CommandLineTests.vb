@@ -5668,7 +5668,7 @@ Imports System
             Return Temp.CreateFile().WriteAllBytes(CommandLineTestResources.vbc_rsp).Path
         End Function
 
-        <Fact(Skip:="972948")>
+        <Fact>
         Public Sub DefaultResponseFile()
             Dim defaultResponseFile = GetDefaultResponseFilePath()
             Assert.True(File.Exists(defaultResponseFile))
@@ -5734,7 +5734,7 @@ Imports System
             Assert.True(vbc.Arguments.CompilationOptions.OptionInfer)
         End Sub
 
-        <Fact(Skip:="972948")>
+        <Fact>
         Public Sub DefaultResponseFileNoConfig()
             Dim defaultResponseFile = GetDefaultResponseFilePath()
             Assert.True(File.Exists(defaultResponseFile))
@@ -5909,7 +5909,7 @@ End Module
         End Sub
 
         <WorkItem(1119609, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1119609")>
-        <Fact(Skip:="1119609")>
+        <Fact>
         Public Sub PreferredUILang()
             Dim outWriter As New StringWriter(CultureInfo.InvariantCulture)
             Dim exitCode = New MockVisualBasicCompiler(Nothing, _baseDirectory, {"/preferreduilang"}).Run(outWriter, Nothing)
@@ -6009,7 +6009,7 @@ End Module
             CleanupAllGeneratedFiles(source)
         End Sub
 
-        <Fact(Skip:="574361"), WorkItem(574361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/574361")>
+        <Fact, WorkItem(574361, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/574361")>
         Public Sub LangVersionForOldBC36716()
 
             Dim dir = Temp.CreateDirectory()
@@ -6037,33 +6037,36 @@ End Module
 ]]>
     </text>.Value.Replace(vbLf, vbCrLf))
 
-            Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, "/nologo /t:library /langversion:9 " & src.ToString(), expectedRetCode:=1, startFolder:=dir.Path)
+            Dim output = ProcessUtilities.RunAndGetOutput(s_basicCompilerExecutable, "/nologo /t:library /langversion:9 /preferreduilang:en " & src.ToString(), expectedRetCode:=1, startFolder:=dir.Path)
             AssertOutput(
     <text><![CDATA[
-error BC36716: Visual Basic 9.0 does not support auto-implemented properties.
-
-        Public Property Prop() As Integer
-                        ~~~~
-error BC36716: Visual Basic 9.0 does not support implicit line continuation.
-
+src.vb(8) : error BC36716: Visual Basic 9.0 does not support auto-implemented properties.
+            Public Property Prop() As Integer
+            ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src.vb(12) : error BC36716: Visual Basic 9.0 does not support auto-implemented properties.
         <CompilerGenerated()>
-                            ~
-error BC36716: Visual Basic 9.0 does not support auto-implemented properties.
-
+        ~~~~~~~~~~~~~~~~~~~~~
         Public Property Scen1() As <CompilerGenerated()> Func(Of String)
-                        ~~~~~
-error BC36716: Visual Basic 9.0 does not support implicit line continuation.
-
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src.vb(12) : error BC36716: Visual Basic 9.0 does not support implicit line continuation.
+        <CompilerGenerated()>
+        ~~~~~~~~~~~~~~~~~~~~~
+        Public Property Scen1() As <CompilerGenerated()> Func(Of String)
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src.vb(14) : error BC36716: Visual Basic 9.0 does not support auto-implemented properties.
         <CLSCompliant(False), Obsolete("obsolete message!")>
-                                                           ~
-error BC36716: Visual Basic 9.0 does not support implicit line continuation.
-
-        <AttrInThisAsmAttribute()>
-                                 ~
-error BC36716: Visual Basic 9.0 does not support auto-implemented properties.
-
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                <AttrInThisAsmAttribute()>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         Public Property Scen2() As String
-                        ~~~~~
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+src.vb(14) : error BC36716: Visual Basic 9.0 does not support implicit line continuation.
+        <CLSCompliant(False), Obsolete("obsolete message!")>
+        ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+                <AttrInThisAsmAttribute()>
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+        Public Property Scen2() As String
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]>
     </text>, output)
 

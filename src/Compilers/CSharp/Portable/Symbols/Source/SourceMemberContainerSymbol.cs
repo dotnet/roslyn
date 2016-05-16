@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -154,7 +155,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private Dictionary<string, ImmutableArray<Symbol>> _lazyMembersDictionary;
         private Dictionary<string, ImmutableArray<Symbol>> _lazyEarlyAttributeDecodingMembersDictionary;
 
-        private static readonly Dictionary<string, ImmutableArray<NamedTypeSymbol>> s_emptyTypeMembers = new Dictionary<string, ImmutableArray<NamedTypeSymbol>>();
+        private static readonly Dictionary<string, ImmutableArray<NamedTypeSymbol>> s_emptyTypeMembers = new Dictionary<string, ImmutableArray<NamedTypeSymbol>>(EmptyComparer.Instance);
         private Dictionary<string, ImmutableArray<NamedTypeSymbol>> _lazyTypeMembers;
         private ImmutableArray<Symbol> _lazyMembersFlattened;
         private ImmutableArray<SynthesizedExplicitImplementationForwardingMethod> _lazySynthesizedExplicitImplementations;
@@ -1080,7 +1081,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 Debug.Assert(s_emptyTypeMembers.Count == 0);
-                return symbols.Count > 0 ? symbols.ToDictionary(s => s.Name) : s_emptyTypeMembers;
+                return symbols.Count > 0 ? 
+                    symbols.ToDictionary(s => s.Name, StringOrdinalComparer.Instance) : 
+                    s_emptyTypeMembers;
             }
             finally
             {
@@ -1227,12 +1230,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // NOTE: members were added in a single pass over the syntax, so they're already
                 // in lexical order.
 
-                // TODO: Can we move ToDictionary() off ArrayBuilder<T> so that we don't need a temp here?
-                var temp = ArrayBuilder<Symbol>.GetInstance();
-                temp.AddRange(membersAndInitializers.NonTypeNonIndexerMembers);
-                var membersByName = temp.ToDictionary(s => s.Name);
-                temp.Free();
-
+                var membersByName = membersAndInitializers.NonTypeNonIndexerMembers.ToDictionary(s => s.Name);
                 AddNestedTypesToDictionary(membersByName, GetTypeMembersDictionary());
 
                 Interlocked.CompareExchange(ref _lazyEarlyAttributeDecodingMembersDictionary, membersByName, null);
@@ -1297,6 +1295,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             state.SpinWaitComplete(CompletionPart.Members, default(CancellationToken));
             return _lazyMembersDictionary;
+        }
+
+        internal override IEnumerable<Symbol> GetInstanceFieldsAndEvents()
+        {
+            var membersAndInitializers = this.GetMembersAndInitializers();
+            return membersAndInitializers.NonTypeNonIndexerMembers.Where(IsInstanceFieldOrEvent);
         }
 
         protected void AfterMembersChecks(DiagnosticBag diagnostics)
@@ -1771,7 +1775,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var type = field.Type;
                     if (((object)type != null) &&
                         (type.TypeKind == TypeKind.Struct) &&
-                        BaseTypeAnalysis.StructDependsOn(type, this) &&
+                        BaseTypeAnalysis.StructDependsOn((NamedTypeSymbol)type, this) &&
                         !type.IsPrimitiveRecursiveStruct()) // allow System.Int32 to contain a field of its own type
                     {
                         // If this is a backing field, report the error on the associated property.
@@ -2168,7 +2172,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 merged.Add(indexerMembers[indexerPos]);
             }
 
-            var membersByName = merged.ToDictionary(s => s.Name);
+            var membersByName = merged.ToDictionary(s => s.Name, StringOrdinalComparer.Instance);
             merged.Free();
 
             return membersByName;

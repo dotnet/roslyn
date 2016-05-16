@@ -997,7 +997,8 @@ hello from ev1
 ]]>)
         End Sub
 
-        <Fact(Skip:="529574")>
+        <Fact>
+        <WorkItem(529574, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems?_a=edit&id=529574")>
         Public Sub TestCrossLanguageOptionalAndParamarray1()
             Dim csCompilation = CreateCSharpCompilation("CS",
             <![CDATA[public class CSClass
@@ -1048,8 +1049,28 @@ Public Module Program
 End Module]]>,
                 compilationOptions:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication),
                 referencedCompilations:={csCompilation})
-            ' WARNING: Roslyn compiler produced errors while Native compiler didn't.
-            vbCompilation.VerifyDiagnostics()
+            ' WARNING: Roslyn compiler produced errors while Native compiler didn't. This is an intentional breaking change, see associated bug. 
+            vbCompilation.AssertTheseDiagnostics(
+<expected>
+BC31029: Method 'Foo' cannot handle event 'ev' because they do not have a compatible signature.
+    Function Foo(x As String) Handles w.ev, MyBase.ev, MyClass.ev
+                                        ~~
+BC31029: Method 'Foo' cannot handle event 'ev' because they do not have a compatible signature.
+    Function Foo(x As String) Handles w.ev, MyBase.ev, MyClass.ev
+                                                   ~~
+BC31029: Method 'Foo' cannot handle event 'ev' because they do not have a compatible signature.
+    Function Foo(x As String) Handles w.ev, MyBase.ev, MyClass.ev
+                                                               ~~
+BC31029: Method 'Foo2' cannot handle event 'ev' because they do not have a compatible signature.
+    Function Foo2(Optional x As String = "") Handles w.ev, MyBase.ev, MyClass.ev
+                                                       ~~
+BC31029: Method 'Foo2' cannot handle event 'ev' because they do not have a compatible signature.
+    Function Foo2(Optional x As String = "") Handles w.ev, MyBase.ev, MyClass.ev
+                                                                  ~~
+BC31029: Method 'Foo2' cannot handle event 'ev' because they do not have a compatible signature.
+    Function Foo2(Optional x As String = "") Handles w.ev, MyBase.ev, MyClass.ev
+                                                                              ~~
+</expected>)
         End Sub
 
         <Fact()>

@@ -4248,7 +4248,8 @@ BC32500: 'GuidAttribute' cannot be applied because the format of the GUID '69D3E
 
 #Region "WindowsRuntimeImportAttribute"
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/6190")>
+        <Fact>
+        <WorkItem(6190, "https://github.com/dotnet/roslyn/issues/6190")>
         <WorkItem(531295, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531295")>
         Public Sub TestWindowsRuntimeImportAttribute()
             Dim source = <compilation>

@@ -1791,7 +1791,8 @@ End Module
 
 
     <WorkItem(527673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527673")>
-    <Fact(Skip:="527673")>
+    <WorkItem(99258, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=99258")>
+    <Fact>
     Public Sub BC30357ERR_BadInterfaceOrderOnInherits()
         Dim code = <![CDATA[
                 	Interface I1
@@ -1800,9 +1801,17 @@ End Module
                     End Interface
             ]]>.Value
 
-        ParseAndVerify(code, <errors>
-                                 <error id="30357"/>
-                             </errors>)
+        Const bug99258IsFixed = False
+
+        If bug99258IsFixed Then
+            ParseAndVerify(code, <errors>
+                                     <error id="30357"/>
+                                 </errors>)
+        Else
+            ParseAndVerify(code, <errors>
+                                     <error id="30603"/>
+                                 </errors>)
+        End If
     End Sub
 
     <Fact()>
@@ -4517,7 +4526,7 @@ End Namespace
                              </errors>).VerifyErrorsOnChildrenAlsoPresentOnParent()
     End Sub
 
-    <Fact(Skip:="527553"), WorkItem(537131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537131"), WorkItem(527922, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527922"), WorkItem(527553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527553")>
+    <Fact, WorkItem(537131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537131"), WorkItem(527922, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527922"), WorkItem(527553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527553")>
     Public Sub TestNoAdjacentTriviaWithSameKind()
         Dim code = <![CDATA[
     module m1

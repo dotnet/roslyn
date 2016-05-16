@@ -1,14 +1,11 @@
 {
-  "dependencies": {},
-  "frameworks": {
-    "net45": {}
+  "dependencies": {
+    "Microsoft.NETCore.Portable.Compatibility": "1.0.0",
+    "NETStandard.Library": "1.5.0-rc2-23931",
+    "System.Console": "4.0.0-rc2-23931",
+    "System.Security.Cryptography.Algorithms": "4.1.0-rc2-23931"
   },
-  "runtimes": {
-    "win7": { },
-    "win7-anycpu": { },
-    "ubuntu.14.04": { },
-    "ubuntu.14.04-anycpu": { },
-    "osx.10.10": { },
-    "osx.10.10-anycpu": { },
+  "frameworks": {
+    "dnxcore50": {}
   }
 }

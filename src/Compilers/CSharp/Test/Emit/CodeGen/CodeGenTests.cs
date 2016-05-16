@@ -9948,7 +9948,7 @@ class MyMainClass
 
         [WorkItem(528060, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528060")]
         [WorkItem(1043494, "DevDiv")]
-        [Fact(Skip = "1043494")]
+        [Fact]
         public void DoubleDivByNegativeZero()
         {
             string source = @"
@@ -10203,7 +10203,7 @@ class Test
         }
 
         [WorkItem(528183, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528183")]
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6190")]
+        [Fact]
         public void TestExternWithoutDLLImport()
         {
             string source = @"
@@ -10212,6 +10212,7 @@ class Test
     extern void Foo();
     static void Main()
     {
+        (new Test()).Foo();
     }
 }";
             var comp = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll);
@@ -10219,12 +10220,21 @@ class Test
             // Both Dev10 and Roslyn currently generate unverifiable code for this case...
             // Dev10 reports warning CS0626: Method, operator, or accessor 'Test.Foo()' is marked external
             // and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
-            // TODO: Roslyn doesn't report this warning yet
             comp.VerifyDiagnostics(
                 // (4,17): warning CS0626: Method, operator, or accessor 'Test.Foo()' is marked external and has no attributes on it. Consider adding a DllImport attribute to specify the external implementation.
                 Diagnostic(ErrorCode.WRN_ExternMethodNoImplementation, "Foo").WithArguments("Test.Foo()"));
 
-            Assert.Throws(typeof(PeVerifyException), () => CompileAndVerify(source));
+            // NOTE: the resulting IL is unverifiable, but not an error for compat reasons
+            CompileAndVerify(comp, verify: false).VerifyIL("Test.Main",
+                @"
+{
+  // Code size       11 (0xb)
+  .maxstack  1
+  IL_0000:  newobj     ""Test..ctor()""
+  IL_0005:  call       ""void Test.Foo()""
+  IL_000a:  ret
+}
+");
         }
 
         [WorkItem(541790, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541790")]
@@ -13328,7 +13338,7 @@ True");
         }
 
         [WorkItem(1043494, "DevDiv")]
-        [Fact(Skip = "1043494")]
+        [Fact]
         public void NegativeZeroIsNotAZero()
         {
             var source = @"
@@ -13413,7 +13423,7 @@ class A
         }
 
         [WorkItem(1043494, "DevDiv")]
-        [Fact(Skip = "1043494")]
+        [Fact]
         public void NegativeZeroIsNotAZero1()
         {
             var source = @"
@@ -14823,6 +14833,73 @@ class Program
   IL_007f:  callvirt   ""int System.Collections.Generic.List<Program.TextSpan>.Count.get""
   IL_0084:  blt.s      IL_002d
   IL_0086:  ret
+}");
+        }
+
+        [WorkItem(10463, "https://github.com/dotnet/roslyn/issues/10463")]
+        [Fact]
+        public void FieldInitializerDynamic()
+        {
+            string source = @"
+using System;
+
+class M
+{
+    object a = Test((dynamic)2);
+
+    static object Test(object obj) => obj;
+
+    static void Main()
+    {
+        Console.Write(new M().a);
+    }
+}
+";
+
+            var compilation = CompileAndVerify(source, new[] { SystemCoreRef, CSharpRef }, expectedOutput: "2");
+
+            // the main point of this test is to have it PEVerify/run correctly, although checking IL too can't hurt.
+            compilation.VerifyIL("M..ctor",
+@"{
+  // Code size      115 (0x73)
+  .maxstack  10
+  IL_0000:  ldarg.0
+  IL_0001:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__3.<>p__0""
+  IL_0006:  brtrue.s   IL_0043
+  IL_0008:  ldc.i4.0
+  IL_0009:  ldstr      ""Test""
+  IL_000e:  ldnull
+  IL_000f:  ldtoken    ""M""
+  IL_0014:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_0019:  ldc.i4.2
+  IL_001a:  newarr     ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo""
+  IL_001f:  dup
+  IL_0020:  ldc.i4.0
+  IL_0021:  ldc.i4.s   33
+  IL_0023:  ldnull
+  IL_0024:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0029:  stelem.ref
+  IL_002a:  dup
+  IL_002b:  ldc.i4.1
+  IL_002c:  ldc.i4.0
+  IL_002d:  ldnull
+  IL_002e:  call       ""Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo.Create(Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags, string)""
+  IL_0033:  stelem.ref
+  IL_0034:  call       ""System.Runtime.CompilerServices.CallSiteBinder Microsoft.CSharp.RuntimeBinder.Binder.InvokeMember(Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags, string, System.Collections.Generic.IEnumerable<System.Type>, System.Type, System.Collections.Generic.IEnumerable<Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfo>)""
+  IL_0039:  call       ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>>.Create(System.Runtime.CompilerServices.CallSiteBinder)""
+  IL_003e:  stsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__3.<>p__0""
+  IL_0043:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__3.<>p__0""
+  IL_0048:  ldfld      ""System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic> System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>>.Target""
+  IL_004d:  ldsfld     ""System.Runtime.CompilerServices.CallSite<System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>> M.<>o__3.<>p__0""
+  IL_0052:  ldtoken    ""M""
+  IL_0057:  call       ""System.Type System.Type.GetTypeFromHandle(System.RuntimeTypeHandle)""
+  IL_005c:  ldc.i4.2
+  IL_005d:  box        ""int""
+  IL_0062:  callvirt   ""dynamic System.Func<System.Runtime.CompilerServices.CallSite, System.Type, dynamic, dynamic>.Invoke(System.Runtime.CompilerServices.CallSite, System.Type, dynamic)""
+  IL_0067:  stfld      ""object M.a""
+  IL_006c:  ldarg.0
+  IL_006d:  call       ""object..ctor()""
+  IL_0072:  ret
 }");
         }
     }

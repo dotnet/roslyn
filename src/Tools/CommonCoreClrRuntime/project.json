@@ -1,0 +1,12 @@
+﻿{
+  "dependencies": {
+    "Microsoft.NETCore.Runtime.CoreCLR": "1.0.2-rc2-23931",
+    "Microsoft.NETCore.TestHost": "1.0.0-rc2-23931",
+    "System.Runtime": "4.0.20"
+  },
+  "frameworks": {
+    "dnxcore50": {
+      "imports": "portable-net452"
+    }
+  }
+}

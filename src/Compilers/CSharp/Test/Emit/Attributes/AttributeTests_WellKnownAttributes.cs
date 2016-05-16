@@ -3125,7 +3125,7 @@ public class C2 { }
 
         #region ComImportAttribute, CoClassAttribute
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6190")]
+        [Fact]
         public void TestComImportAttribute()
         {
             string source = @"
@@ -3168,22 +3168,15 @@ public class MainClass
                 Assert.Equal(1, typeA.GetAttributes().Length);
 
                 var ctorA = typeA.InstanceConstructors.First();
-                Assert.True(ctorA.IsExtern);
+                Assert.False(ctorA.IsExtern);
 
                 var methodFoo = (MethodSymbol)typeA.GetMember("Foo");
-                Assert.True(methodFoo.IsExtern);
+                Assert.False(methodFoo.IsExtern);
             };
 
-            // Verify that PEVerify will fail despite the fact that compiler produces no errors
+            // the resulting code does not need to verify
             // This is consistent with Dev10 behavior
-            //
-            // Dev10 PEVerify failure:
-            // [token  0x02000002] Type load failed.
-            //
-            // Dev10 Runtime Exception:
-            // Unhandled Exception: System.TypeLoadException: Could not load type 'A' from assembly 'XXX' because the method 'Foo' has no implementation (no RVA).
-
-            Assert.Throws(typeof(PeVerifyException), () => CompileAndVerify(source, options: TestOptions.ReleaseDll, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator));
+            CompileAndVerify(source, options: TestOptions.ReleaseDll, verify:false, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator);
         }
 
         [Fact, WorkItem(544507, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544507")]
@@ -4937,7 +4930,7 @@ using System.Runtime.InteropServices;
 
         #region WindowsRuntimeImportAttribute
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6190")]
+        [Fact]
         public void TestWindowsRuntimeImportAttribute()
         {
             var source = @"
@@ -4986,7 +4979,6 @@ class A
             // Unhandled Exception: System.TypeLoadException: Windows Runtime types can only be declared in Windows Runtime assemblies.
 
             var verifier = CompileAndVerify(source, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator, verify: false);
-            verifier.EmitAndVerify("Type load failed.");
         }
 
         #endregion

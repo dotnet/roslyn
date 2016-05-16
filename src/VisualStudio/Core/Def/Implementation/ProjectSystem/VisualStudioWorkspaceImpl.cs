@@ -14,12 +14,15 @@ using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Packaging;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.SolutionCrawler;
+using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Feedback.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.Extensions;
 using Microsoft.VisualStudio.LanguageServices.Packaging;
+using Microsoft.VisualStudio.LanguageServices.SymbolSearch;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Text;
@@ -148,7 +151,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return project != null;
         }
 
-        public override bool TryApplyChanges(Microsoft.CodeAnalysis.Solution newSolution)
+        internal override bool TryApplyChanges(
+            Microsoft.CodeAnalysis.Solution newSolution,
+            IProgressTracker progressTracker)
         {
             // first make sure we can edit the document we will be updating (check them out from source control, etc)
             var changedDocs = newSolution.GetChanges(this.CurrentSolution).GetProjectChanges().SelectMany(pd => pd.GetChangedDocuments()).ToList();
@@ -157,7 +162,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 this.EnsureEditableDocuments(changedDocs);
             }
 
-            return base.TryApplyChanges(newSolution);
+            return base.TryApplyChanges(newSolution, progressTracker);
         }
 
         public override bool CanOpenDocuments

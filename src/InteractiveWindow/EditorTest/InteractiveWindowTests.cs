@@ -1089,6 +1089,13 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             await SubmitAsync("1", "2", "1 + 2").ConfigureAwait(true);
         }
 
+        [WorkItem(8569, "https://github.com/dotnet/roslyn/issues/8569")]
+        [WpfFact]
+        public async Task SubmitAsyncEmptyLine()
+        {
+            await SubmitAsync("1", "", "1 + 2").ConfigureAwait(true);
+        }
+
         private async Task SubmitAsync(params string[] submissions)
         {
             var actualSubmissions = new List<string>();

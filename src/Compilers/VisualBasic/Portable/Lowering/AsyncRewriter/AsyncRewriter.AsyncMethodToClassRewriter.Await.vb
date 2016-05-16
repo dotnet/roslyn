@@ -142,86 +142,89 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim builderFieldAsRValue As BoundExpression = Me.F.Field(Me.F.Me(), Me._builder, False)
 
-                If isAwaiterTempImpliesLateBound Then
-                    ' STMT:   Dim dcast1 As ICriticalNotifyCompletion = TryCast(AwaiterLocalTemp, ICriticalNotifyCompletion)
-                    ' STMT:   If dcast1 IsNot Nothing Then
-                    ' STMT:       builder.AwaitUnsafeOnCompleted<ICriticalNotifyCompletion,TStateMachine>(ref dcast1, ref Me)
-                    ' STMT:   Else
-                    ' STMT:       Dim dcast2 As INotifyCompletion = DirectCast(AwaiterLocalTemp, INotifyCompletion)
-                    ' STMT:       builder.AwaitOnCompleted<INotifyCompletion,TStateMachine>(ref dcast2, ref Me)
-                    ' STMT:   End If
-                    Dim asCriticalNotifyCompletion As LocalSymbol =
-                        Me.F.SynthesizedLocal(Me.F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_ICriticalNotifyCompletion))
-                    Dim asNotifyCompletion As LocalSymbol =
-                        Me.F.SynthesizedLocal(Me.F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_INotifyCompletion))
+                Dim ICriticalNotifyCompletion = Me.F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_ICriticalNotifyCompletion)
 
-                    Dim awaiterTempAsRValue As BoundLocal = Me.F.Local(awaiterTemp, False)
-                    Dim criticalNotifyCompletionAsLValue As BoundLocal = Me.F.Local(asCriticalNotifyCompletion, True)
-                    Dim notifyCompletionAsLValue As BoundLocal = Me.F.Local(asNotifyCompletion, True)
+                If Not ICriticalNotifyCompletion.IsErrorType Then
+                    If isAwaiterTempImpliesLateBound Then
+                        ' STMT:   Dim dcast1 As ICriticalNotifyCompletion = TryCast(AwaiterLocalTemp, ICriticalNotifyCompletion)
+                        ' STMT:   If dcast1 IsNot Nothing Then
+                        ' STMT:       builder.AwaitUnsafeOnCompleted<ICriticalNotifyCompletion,TStateMachine>(ref dcast1, ref Me)
+                        ' STMT:   Else
+                        ' STMT:       Dim dcast2 As INotifyCompletion = DirectCast(AwaiterLocalTemp, INotifyCompletion)
+                        ' STMT:       builder.AwaitOnCompleted<INotifyCompletion,TStateMachine>(ref dcast2, ref Me)
+                        ' STMT:   End If
+                        Dim asCriticalNotifyCompletion As LocalSymbol = Me.F.SynthesizedLocal(ICriticalNotifyCompletion)
+                        Dim asNotifyCompletion As LocalSymbol =
+                            Me.F.SynthesizedLocal(Me.F.WellKnownType(WellKnownType.System_Runtime_CompilerServices_INotifyCompletion))
 
-                    ' >>>>   dcast1 = TryCast(AwaiterLocalTemp, ICriticalNotifyCompletion)
-                    Dim asCriticalNotifyCompletionAssignment As BoundStatement =
-                        Me.MakeAssignmentStatement(
-                            Me.F.TryCast(awaiterTempAsRValue, asCriticalNotifyCompletion.Type),
-                            asCriticalNotifyCompletion)
+                        Dim awaiterTempAsRValue As BoundLocal = Me.F.Local(awaiterTemp, False)
+                        Dim criticalNotifyCompletionAsLValue As BoundLocal = Me.F.Local(asCriticalNotifyCompletion, True)
+                        Dim notifyCompletionAsLValue As BoundLocal = Me.F.Local(asNotifyCompletion, True)
 
-                    ' >>>>   builder.AwaitUnsafeOnCompleted(Of TAwaiter,TSM)((ByRef) dcast1, (ByRef) Me)
-                    Dim awaitUnsafeOnCompletedCall As BoundStatement =
-                        Me.F.ExpressionStatement(
-                            Me._owner.GenerateMethodCall(
-                                builderFieldAsRValue,
-                                Me._owner._builderType,
-                                "AwaitUnsafeOnCompleted",
-                                ImmutableArray.Create(Of TypeSymbol)(asCriticalNotifyCompletion.Type, Me.F.Me().Type),
-                                {criticalNotifyCompletionAsLValue, Me.F.ReferenceOrByrefMe()}))
+                        ' >>>>   dcast1 = TryCast(AwaiterLocalTemp, ICriticalNotifyCompletion)
+                        Dim asCriticalNotifyCompletionAssignment As BoundStatement =
+                            Me.MakeAssignmentStatement(
+                                Me.F.TryCast(awaiterTempAsRValue, asCriticalNotifyCompletion.Type),
+                                asCriticalNotifyCompletion)
 
-                    ' >>>>   dcast2 = DirectCast(AwaiterLocalTemp, INotifyCompletion)
-                    ' TODO: POSTPROCESS ASSIGNMENT
-                    Dim asNotifyCompletionAssignment As BoundStatement =
-                        Me.MakeAssignmentStatement(
-                            Me.F.DirectCast(awaiterTempAsRValue, asNotifyCompletion.Type),
-                            asNotifyCompletion)
+                        ' >>>>   builder.AwaitUnsafeOnCompleted(Of TAwaiter,TSM)((ByRef) dcast1, (ByRef) Me)
+                        Dim awaitUnsafeOnCompletedCall As BoundStatement =
+                            Me.F.ExpressionStatement(
+                                Me._owner.GenerateMethodCall(
+                                    builderFieldAsRValue,
+                                    Me._owner._builderType,
+                                    "AwaitUnsafeOnCompleted",
+                                    ImmutableArray.Create(Of TypeSymbol)(asCriticalNotifyCompletion.Type, Me.F.Me().Type),
+                                    {criticalNotifyCompletionAsLValue, Me.F.ReferenceOrByrefMe()}))
 
-                    ' >>>>   builder.AwaitOnCompleted(Of TAwaiter,TSM)((ByRef) dcast2, (ByRef) Me)
-                    Dim awaitOnCompletedCall As BoundStatement =
-                        Me.F.ExpressionStatement(
-                            Me._owner.GenerateMethodCall(
-                                builderFieldAsRValue,
-                                Me._owner._builderType,
-                                "AwaitOnCompleted",
-                                ImmutableArray.Create(Of TypeSymbol)(asNotifyCompletion.Type, Me.F.Me().Type),
-                                {notifyCompletionAsLValue, Me.F.ReferenceOrByrefMe()}))
+                        ' >>>>   dcast2 = DirectCast(AwaiterLocalTemp, INotifyCompletion)
+                        ' TODO: POSTPROCESS ASSIGNMENT
+                        Dim asNotifyCompletionAssignment As BoundStatement =
+                            Me.MakeAssignmentStatement(
+                                Me.F.DirectCast(awaiterTempAsRValue, asNotifyCompletion.Type),
+                                asNotifyCompletion)
 
-                    blockBuilder.Add(
-                        Me.F.Block(
-                            ImmutableArray.Create(Of LocalSymbol)(asCriticalNotifyCompletion, asNotifyCompletion),
-                            asCriticalNotifyCompletionAssignment,
-                            Me.F.If(
-                                condition:=Me.F.Not(Me.F.ReferenceIsNothing(Me.F.Local(asCriticalNotifyCompletion, False))),
-                                thenClause:=awaitUnsafeOnCompletedCall,
-                                elseClause:=Me.F.Block(
-                                    asNotifyCompletionAssignment,
-                                    awaitOnCompletedCall))))
+                        ' >>>>   builder.AwaitOnCompleted(Of TAwaiter,TSM)((ByRef) dcast2, (ByRef) Me)
+                        Dim awaitOnCompletedCall As BoundStatement =
+                            Me.F.ExpressionStatement(
+                                Me._owner.GenerateMethodCall(
+                                    builderFieldAsRValue,
+                                    Me._owner._builderType,
+                                    "AwaitOnCompleted",
+                                    ImmutableArray.Create(Of TypeSymbol)(asNotifyCompletion.Type, Me.F.Me().Type),
+                                    {notifyCompletionAsLValue, Me.F.ReferenceOrByrefMe()}))
 
-                Else
-                    ' STMT:   this.builder.AwaitUnsafeOnCompleted(Of TAwaiter,TSM)((ByRef) $awaiterTemp, (ByRef) Me)
-                    '  or
-                    ' STMT:   this.builder.AwaitOnCompleted(Of TAwaiter,TSM)((ByRef) $awaiterTemp, (ByRef) Me)
-                    Dim useUnsafeOnCompleted As Boolean =
-                        Conversions.IsWideningConversion(
-                            Conversions.ClassifyDirectCastConversion(
-                                awaiterType,
-                                Me.F.Compilation.GetWellKnownType(WellKnownType.System_Runtime_CompilerServices_ICriticalNotifyCompletion),
-                                useSiteDiagnostics:=Nothing))
+                        blockBuilder.Add(
+                            Me.F.Block(
+                                ImmutableArray.Create(Of LocalSymbol)(asCriticalNotifyCompletion, asNotifyCompletion),
+                                asCriticalNotifyCompletionAssignment,
+                                Me.F.If(
+                                    condition:=Me.F.Not(Me.F.ReferenceIsNothing(Me.F.Local(asCriticalNotifyCompletion, False))),
+                                    thenClause:=awaitUnsafeOnCompletedCall,
+                                    elseClause:=Me.F.Block(
+                                        asNotifyCompletionAssignment,
+                                        awaitOnCompletedCall))))
 
-                    blockBuilder.Add(
-                        Me.F.ExpressionStatement(
-                            Me._owner.GenerateMethodCall(
-                                builderFieldAsRValue,
-                                Me._owner._builderType,
-                                If(useUnsafeOnCompleted, "AwaitUnsafeOnCompleted", "AwaitOnCompleted"),
-                                ImmutableArray.Create(Of TypeSymbol)(awaiterType, Me.F.Me().Type),
-                                {Me.F.Local(awaiterTemp, True), Me.F.ReferenceOrByrefMe()})))
+                    Else
+                        ' STMT:   this.builder.AwaitUnsafeOnCompleted(Of TAwaiter,TSM)((ByRef) $awaiterTemp, (ByRef) Me)
+                        '  or
+                        ' STMT:   this.builder.AwaitOnCompleted(Of TAwaiter,TSM)((ByRef) $awaiterTemp, (ByRef) Me)
+                        Dim useUnsafeOnCompleted As Boolean =
+                            Conversions.IsWideningConversion(
+                                Conversions.ClassifyDirectCastConversion(
+                                    awaiterType,
+                                    ICriticalNotifyCompletion,
+                                    useSiteDiagnostics:=Nothing))
+
+                        blockBuilder.Add(
+                            Me.F.ExpressionStatement(
+                                Me._owner.GenerateMethodCall(
+                                    builderFieldAsRValue,
+                                    Me._owner._builderType,
+                                    If(useUnsafeOnCompleted, "AwaitUnsafeOnCompleted", "AwaitOnCompleted"),
+                                    ImmutableArray.Create(Of TypeSymbol)(awaiterType, Me.F.Me().Type),
+                                    {Me.F.Local(awaiterTemp, True), Me.F.ReferenceOrByrefMe()})))
+                    End If
                 End If
 
                 '----------------------------------------------

@@ -3,7 +3,6 @@
 Imports System.Threading
 Imports System.Threading.Tasks
 Imports System.Xml.Linq
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Completion
 Imports Microsoft.CodeAnalysis.Text
 Imports Roslyn.Test.Utilities
 

@@ -3428,7 +3428,7 @@ class C
         }
 
         [WorkItem(121, "https://github.com/dotnet/roslyn/issues/121")]
-        [Fact(Skip = "121")]
+        [Fact]
         public void Bug_AttributeOnWrongGenericParameter()
         {
             var source = @"

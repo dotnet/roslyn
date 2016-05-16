@@ -567,4 +567,20 @@ Additional information: {1}</value>
 
 Additional information: {1}</value>
   </data>
+  <data name="MoveDownAutomationText" xml:space="preserve">
+    <value>Move {0} below {1}</value>
+    <comment>{0} and {1} are parameter descriptions</comment>
+  </data>
+  <data name="MoveUpAutomationText" xml:space="preserve">
+    <value>Move {0} above {1}</value>
+    <comment>{0} and {1} are parameter descriptions</comment>
+  </data>
+  <data name="RemoveAutomationText" xml:space="preserve">
+    <value>Remove {0}</value>
+    <comment>{0} is a parameter description</comment>
+  </data>
+  <data name="RestoreAutomationText" xml:space="preserve">
+    <value>Restore {0}</value>
+    <comment>{0} is a parameter description</comment>
+  </data>
 </root>

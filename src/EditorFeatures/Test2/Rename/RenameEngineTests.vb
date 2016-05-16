@@ -3159,8 +3159,48 @@ namespace X
                         </Document>
                     </Project>
                 </Workspace>, renameTo:="IFooEx")
+            End Using
+        End Sub
 
+        <WorkItem(8139, "https://github.com/dotnet/roslyn/issues/8139")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
+        Public Sub RenameExplicitInterfaceImplementationFromDifferentProject()
+            Using result = RenameEngineResult.Create(_outputHelper,
+                <Workspace>
 
+                    <Project Language="C#" AssemblyName="Project1" CommonReferences="true">
+                        <ProjectReference>Project2</ProjectReference>
+                        <Document>
+class Program
+{
+    static void Main(string[] args)
+    {
+        Test(new Class1());
+    }
+
+    static void Test(IInterface i)
+    {
+        i.[|M|]();
+    }
+}
+                        </Document>
+                    </Project>
+
+                    <Project Language="C#" AssemblyName="Project2" CommonReferences="true">
+                        <Document>
+public class Class1 : IInterface
+{
+    void IInterface.[|$$M|]() { }  // Rename 'M' from here
+}
+
+public interface IInterface
+{
+    void [|M|]();
+}
+                        </Document>
+                    </Project>
+
+                </Workspace>, renameTo:="Foo")
             End Using
         End Sub
 
@@ -3379,7 +3419,7 @@ class C
         End Sub
 
         <WorkItem(655621, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/655621"), WorkItem(762094, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/762094")>
-        <WpfFact(Skip:="762094"), Trait(Traits.Feature, Traits.Features.Rename)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub RenamingCompilerGeneratedDelegateTypeForEventCascadesBackToEvent_5()
             Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>

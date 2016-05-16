@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis
 
         public override bool Equals(object obj)
         {
-            return ReferenceEquals(this, obj);
+            return (object)this == obj;
         }
 
         public override int GetHashCode()

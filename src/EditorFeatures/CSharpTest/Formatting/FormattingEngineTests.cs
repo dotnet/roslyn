@@ -1273,6 +1273,62 @@ class C : Attribute
             await AssertFormatAfterTypeCharAsync(code, expected);
         }
 
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task DoNotFormatCompleteBlockOnSingleLineIfTypingSemicolon()
+        {
+            var code =
+@"public class Class1
+{
+    void M()
+    {
+        try { }
+        catch { return;$$
+        x.ToString();
+    }
+}";
+            var expected = 
+@"public class Class1
+{
+    void M()
+    {
+        try { }
+        catch { return;
+        x.ToString();
+    }
+}";
+            await AssertFormatAfterTypeCharAsync(code, expected);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.Formatting)]
+        public async Task FormatCompleteBlockOnSingleLineIfTypingCloseCurlyOnLaterLine()
+        {
+            var code =
+@"public class Class1
+{
+    void M()
+    {
+        try { }
+        catch { return;
+        x.ToString();
+        }$$
+    }
+}";
+            var expected =
+@"public class Class1
+{
+    void M()
+    {
+        try { }
+        catch
+        {
+            return;
+            x.ToString();
+        }
+    }
+}";
+            await AssertFormatAfterTypeCharAsync(code, expected);
+        }
+
         [WorkItem(7900, "https://github.com/dotnet/roslyn/issues/7900")]
         [Trait(Traits.Feature, Traits.Features.Formatting)]
         public async Task FormatLockStatementWithEmbeddedStatementOnSemicolonDifferentLine()

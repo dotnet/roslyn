@@ -1,8 +1,9 @@
-﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using System;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
@@ -2343,7 +2344,6 @@ namespace System
     public class ValueType { }
     public class Enum { }
     public struct Void { }
-
     public interface IDisposable
     {
         void Dispose();
@@ -2391,6 +2391,133 @@ public class C
             var compilation = CreateCompilation(new[] { Parse(source), Parse(corlib) });
             var verifier = CompileAndVerify(compilation, verify: false);
             verifier.VerifyDiagnostics(
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1));
+        }
+
+        [Fact, WorkItem(9463, "https://github.com/dotnet/roslyn/issues/9463")]
+        public void IEnumerableIteratorReportsDiagnosticsWhenCoreTypesAreMissing()
+        {
+            // Note that IDisposable.Dispose, IEnumerator.Current and other types are missing
+            // Also, IEnumerator<T> doesn't have a get accessor
+            var source = @"
+namespace System
+{
+    public class Object { }
+    public struct Int32 { }
+    public struct Boolean { }
+    public class String { }
+    public class Exception { }
+    public class ValueType { }
+    public class Enum { }
+    public struct Void { }
+    public interface IDisposable { }
+}
+
+namespace System.Collections
+{
+    public interface IEnumerable { }
+    public interface IEnumerator { }
+}
+
+namespace System.Collections.Generic
+{
+    public interface IEnumerator<T>
+    {
+        T Current { set; }
+    }
+}
+
+public class C
+{
+    public System.Collections.IEnumerable SomeNumbers() { yield return 42; }
+}";
+            var compilation = CreateCompilation(new[] { Parse(source) });
+
+            compilation.VerifyEmitDiagnostics(
+                // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
+                Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1),
+                // (31,57): error CS0656: Missing compiler required member 'System.IDisposable.Dispose'
+                //     public System.Collections.IEnumerable SomeNumbers() { yield return 42; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ yield return 42; }").WithArguments("System.IDisposable", "Dispose").WithLocation(31, 57),
+                // (31,57): error CS0154: The property or indexer 'IEnumerator<T>.Current' cannot be used in this context because it lacks the get accessor
+                //     public System.Collections.IEnumerable SomeNumbers() { yield return 42; }
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "{ yield return 42; }").WithArguments("System.Collections.Generic.IEnumerator<T>.Current").WithLocation(31, 57),
+                // (31,57): error CS0656: Missing compiler required member 'System.Collections.IEnumerator.Current'
+                //     public System.Collections.IEnumerable SomeNumbers() { yield return 42; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ yield return 42; }").WithArguments("System.Collections.IEnumerator", "Current").WithLocation(31, 57),
+                // (31,57): error CS0656: Missing compiler required member 'System.Collections.IEnumerator.MoveNext'
+                //     public System.Collections.IEnumerable SomeNumbers() { yield return 42; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ yield return 42; }").WithArguments("System.Collections.IEnumerator", "MoveNext").WithLocation(31, 57),
+                // (31,57): error CS0656: Missing compiler required member 'System.Collections.IEnumerator.Reset'
+                //     public System.Collections.IEnumerable SomeNumbers() { yield return 42; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ yield return 42; }").WithArguments("System.Collections.IEnumerator", "Reset").WithLocation(31, 57),
+                // (31,57): error CS0656: Missing compiler required member 'System.Collections.IEnumerable.GetEnumerator'
+                //     public System.Collections.IEnumerable SomeNumbers() { yield return 42; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ yield return 42; }").WithArguments("System.Collections.IEnumerable", "GetEnumerator").WithLocation(31, 57),
+                // (31,57): error CS0518: Predefined type 'System.Collections.Generic.IEnumerable`1' is not defined or imported
+                //     public System.Collections.IEnumerable SomeNumbers() { yield return 42; }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "{ yield return 42; }").WithArguments("System.Collections.Generic.IEnumerable`1").WithLocation(31, 57),
+                // (31,57): error CS0656: Missing compiler required member 'System.Collections.Generic.IEnumerable`1.GetEnumerator'
+                //     public System.Collections.IEnumerable SomeNumbers() { yield return 42; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ yield return 42; }").WithArguments("System.Collections.Generic.IEnumerable`1", "GetEnumerator").WithLocation(31, 57));
+        }
+
+        [Fact, WorkItem(9463, "https://github.com/dotnet/roslyn/issues/9463")]
+        public void IEnumeratorIteratorReportsDiagnosticsWhenCoreTypesAreMissing()
+        {
+            // Note that IDisposable.Dispose and other types are missing
+            // Also IEnumerator.Current lacks a get accessor
+            var source = @"
+namespace System
+{
+    public class Object { }
+    public struct Int32 { }
+    public struct Boolean { }
+    public class String { }
+    public class Exception { }
+    public class ValueType { }
+    public class Enum { }
+    public struct Void { }
+
+    public interface IDisposable { }
+}
+
+namespace System.Collections
+{
+    public interface IEnumerable { }
+    public interface IEnumerator
+    {
+        Object Current { set; }
+    }
+}
+
+public class C
+{
+    public System.Collections.IEnumerator SomeNumbers() { yield return 42; }
+}";
+            var compilation = CreateCompilation(new[] { Parse(source) });
+
+            // No error about IEnumerable
+            compilation.VerifyEmitDiagnostics(
+                // (27,57): error CS0656: Missing compiler required member 'System.IDisposable.Dispose'
+                //     public System.Collections.IEnumerator SomeNumbers() { yield return 42; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ yield return 42; }").WithArguments("System.IDisposable", "Dispose").WithLocation(27, 57),
+                // (27,57): error CS0518: Predefined type 'System.Collections.Generic.IEnumerator`1' is not defined or imported
+                //     public System.Collections.IEnumerator SomeNumbers() { yield return 42; }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "{ yield return 42; }").WithArguments("System.Collections.Generic.IEnumerator`1").WithLocation(27, 57),
+                // (27,57): error CS0656: Missing compiler required member 'System.Collections.Generic.IEnumerator`1.Current'
+                //     public System.Collections.IEnumerator SomeNumbers() { yield return 42; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ yield return 42; }").WithArguments("System.Collections.Generic.IEnumerator`1", "Current").WithLocation(27, 57),
+                // (27,57): error CS0154: The property or indexer 'IEnumerator.Current' cannot be used in this context because it lacks the get accessor
+                //     public System.Collections.IEnumerator SomeNumbers() { yield return 42; }
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "{ yield return 42; }").WithArguments("System.Collections.IEnumerator.Current").WithLocation(27, 57),
+                // (27,57): error CS0656: Missing compiler required member 'System.Collections.IEnumerator.MoveNext'
+                //     public System.Collections.IEnumerator SomeNumbers() { yield return 42; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ yield return 42; }").WithArguments("System.Collections.IEnumerator", "MoveNext").WithLocation(27, 57),
+                // (27,57): error CS0656: Missing compiler required member 'System.Collections.IEnumerator.Reset'
+                //     public System.Collections.IEnumerator SomeNumbers() { yield return 42; }
+                Diagnostic(ErrorCode.ERR_MissingPredefinedMember, "{ yield return 42; }").WithArguments("System.Collections.IEnumerator", "Reset").WithLocation(27, 57),
                 // warning CS8021: No value for RuntimeMetadataVersion found. No assembly containing System.Object was found nor was a value for RuntimeMetadataVersion specified through options.
                 Diagnostic(ErrorCode.WRN_NoRuntimeMetadataVersion).WithLocation(1, 1));
         }

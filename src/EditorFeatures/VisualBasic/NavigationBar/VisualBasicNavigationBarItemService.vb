@@ -464,13 +464,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 symbol = symbols.CandidateSymbols(item.NavigationSymbolIndex.Value)
             End If
 
-            ' First figure out the location that we want to grab considering partial types
-            Dim location = symbol.Locations.FirstOrDefault(Function(l) l.SourceTree.Equals(document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken)))
-
-            If location Is Nothing Then
-                location = symbol.Locations.FirstOrDefault
-            End If
-
+            Dim location As Location = GetSourceNavigationLocation(document, symbol, cancellationToken)
             If location Is Nothing Then
                 Return Nothing
             End If
@@ -486,6 +480,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
             End If
 
             Return New VirtualTreePoint(location.SourceTree, location.SourceTree.GetText(cancellationToken), location.SourceSpan.Start)
+        End Function
+
+        Private Shared Function GetSourceNavigationLocation(document As Document, symbol As ISymbol, cancellationToken As CancellationToken) As Location
+            Dim sourceLocations = symbol.Locations.Where(Function(l) l.IsInSource)
+
+            ' First figure out the location that we want to grab considering partial types
+            Dim location = sourceLocations.FirstOrDefault(Function(l) l.SourceTree.Equals(document.GetSyntaxTreeAsync(cancellationToken).WaitAndGetResult(cancellationToken)))
+
+            If location Is Nothing Then
+                location = sourceLocations.FirstOrDefault
+            End If
+
+            Return location
         End Function
 
         Public Overrides Sub NavigateToItem(document As Document, item As NavigationBarItem, textView As ITextView, cancellationToken As CancellationToken)

@@ -16,8 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 {
     internal sealed class CSharpSymbolMatcher : SymbolMatcher
     {
-        private static readonly StringComparer s_nameComparer = StringComparer.Ordinal;
-
         private readonly MatchDefs _defs;
         private readonly MatchSymbols _symbols;
 
@@ -113,7 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         return null;
                     }
 
-                    return this.VisitTypeMembers(otherContainer, nestedType, GetNestedTypes, (a, b) => s_nameComparer.Equals(a.Name, b.Name));
+                    return this.VisitTypeMembers(otherContainer, nestedType, GetNestedTypes, (a, b) => StringOrdinalComparer.Equals(a.Name, b.Name));
                 }
 
                 var member = def as Cci.ITypeDefinitionMember;
@@ -128,7 +126,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     var field = def as Cci.IFieldDefinition;
                     if (field != null)
                     {
-                        return this.VisitTypeMembers(otherContainer, field, GetFields, (a, b) => s_nameComparer.Equals(a.Name, b.Name));
+                        return this.VisitTypeMembers(otherContainer, field, GetFields, (a, b) => StringOrdinalComparer.Equals(a.Name, b.Name));
                     }
                 }
 
@@ -161,7 +159,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             {
                 if (_lazyTopLevelTypes == null)
                 {
-                    var typesByName = new Dictionary<string, Cci.INamespaceTypeDefinition>(s_nameComparer);
+                    var typesByName = new Dictionary<string, Cci.INamespaceTypeDefinition>(StringOrdinalComparer.Instance);
                     foreach (var type in this.GetTopLevelTypes())
                     {
                         // All generated top-level types are assumed to be in the global namespace.
@@ -667,19 +665,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             private bool AreEventsEqual(EventSymbol @event, EventSymbol other)
             {
-                Debug.Assert(s_nameComparer.Equals(@event.Name, other.Name));
+                Debug.Assert(StringOrdinalComparer.Equals(@event.Name, other.Name));
                 return _comparer.Equals(@event.Type, other.Type);
             }
 
             private bool AreFieldsEqual(FieldSymbol field, FieldSymbol other)
             {
-                Debug.Assert(s_nameComparer.Equals(field.Name, other.Name));
+                Debug.Assert(StringOrdinalComparer.Equals(field.Name, other.Name));
                 return _comparer.Equals(field.Type, other.Type);
             }
 
             private bool AreMethodsEqual(MethodSymbol method, MethodSymbol other)
             {
-                Debug.Assert(s_nameComparer.Equals(method.Name, other.Name));
+                Debug.Assert(StringOrdinalComparer.Equals(method.Name, other.Name));
 
                 Debug.Assert(method.IsDefinition);
                 Debug.Assert(other.IsDefinition);
@@ -708,7 +706,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             private bool AreNamedTypesEqual(NamedTypeSymbol type, NamedTypeSymbol other)
             {
-                Debug.Assert(s_nameComparer.Equals(type.Name, other.Name));
+                Debug.Assert(StringOrdinalComparer.Equals(type.Name, other.Name));
                 // TODO: Test with overloads (from PE base class?) that have modifiers.
                 Debug.Assert(!type.HasTypeArgumentsCustomModifiers);
                 Debug.Assert(!other.HasTypeArgumentsCustomModifiers);
@@ -718,7 +716,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             private bool AreParametersEqual(ParameterSymbol parameter, ParameterSymbol other)
             {
                 Debug.Assert(parameter.Ordinal == other.Ordinal);
-                return s_nameComparer.Equals(parameter.Name, other.Name) &&
+                return StringOrdinalComparer.Equals(parameter.Name, other.Name) &&
                     (parameter.RefKind == other.RefKind) &&
                     _comparer.Equals(parameter.Type, other.Type);
             }
@@ -734,7 +732,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             private bool ArePropertiesEqual(PropertySymbol property, PropertySymbol other)
             {
-                Debug.Assert(s_nameComparer.Equals(property.Name, other.Name));
+                Debug.Assert(StringOrdinalComparer.Equals(property.Name, other.Name));
                 return _comparer.Equals(property.Type, other.Type) &&
                     property.Parameters.SequenceEqual(other.Parameters, AreParametersEqual);
             }
@@ -742,7 +740,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             private bool AreTypeParametersEqual(TypeParameterSymbol type, TypeParameterSymbol other)
             {
                 Debug.Assert(type.Ordinal == other.Ordinal);
-                Debug.Assert(s_nameComparer.Equals(type.Name, other.Name));
+                Debug.Assert(StringOrdinalComparer.Equals(type.Name, other.Name));
                 // Comparing constraints is unnecessary: two methods cannot differ by
                 // constraints alone and changing the signature of a method is a rude
                 // edit. Furthermore, comparing constraint types might lead to a cycle.
@@ -796,7 +794,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     members.AddRange(synthesizedMembers);
                 }
 
-                var result = members.ToDictionary(s => ((Symbol)s).Name, s_nameComparer);
+                var result = members.ToDictionary(s => ((Symbol)s).Name, StringOrdinalComparer.Instance);
                 members.Free();
                 return result;
             }

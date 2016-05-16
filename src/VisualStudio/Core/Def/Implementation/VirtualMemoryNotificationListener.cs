@@ -2,6 +2,7 @@
 
 using System;
 using System.Composition;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Host;
@@ -21,6 +22,9 @@ namespace Microsoft.VisualStudio.LanguageServices
     [Export, Shared]
     internal sealed class VirtualMemoryNotificationListener : ForegroundThreadAffinitizedObject, IVsBroadcastMessageEvents
     {
+        // memory threshold to turn off full solution analysis - 200MB
+        private const long MemoryThreshold = 200 * 1024 * 1024;
+
         private readonly VisualStudioWorkspace _workspace;
         private readonly WorkspaceCacheService _workspaceCacheService;
 
@@ -64,14 +68,22 @@ namespace Microsoft.VisualStudio.LanguageServices
                         if (!_alreadyLogged)
                         {
                             // record that we had hit critical memory barrier
-                            Logger.Log(FunctionId.VirtualMemory_MemoryLow, KeyValueLogMessage.Create(m => m["Memory"] = msg));
+                            Logger.Log(FunctionId.VirtualMemory_MemoryLow, KeyValueLogMessage.Create(m =>
+                            {
+                                // which message we are logging and memory left in bytes when this is called.
+                                m["MSG"] = msg;
+                                m["MemoryLeft"] = (long)wParam;
+                            }));
+
                             _alreadyLogged = true;
                         }
 
                         _workspaceCacheService.FlushCaches();
 
                         // turn off full solution analysis
-                        if (_workspace.Options.GetOption(RuntimeOptions.FullSolutionAnalysis))
+                        if ((long)wParam < MemoryThreshold &&
+                            _workspace.Options.GetOption(InternalFeatureOnOffOptions.FullSolutionAnalysisMemoryMonitor) &&
+                            _workspace.Options.GetOption(RuntimeOptions.FullSolutionAnalysis))
                         {
                             _workspace.Services.GetService<IOptionService>().SetOptions(_workspace.Options.WithChangedOption(RuntimeOptions.FullSolutionAnalysis, false));
 

@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename
                 _outputHelper = outputHelper
             End Sub
 
-            <WpfFact(Skip:="798375, 799977")>
+            <WpfFact>
             <WorkItem(798375, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798375")>
             <WorkItem(773543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773543")>
             <Trait(Traits.Feature, Traits.Features.Rename)>
@@ -40,7 +40,7 @@ End Class
                 End Using
             End Sub
 
-            <WpfFact(Skip:="798375")>
+            <WpfFact>
             <WorkItem(798375, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798375")>
             <WorkItem(773534, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/773534")>
             <Trait(Traits.Feature, Traits.Features.Rename)>
@@ -1835,7 +1835,7 @@ End Module
 
             <WorkItem(566542, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/566542")>
             <WorkItem(545604, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545604")>
-            <WpfFact(Skip:="566542"), Trait(Traits.Feature, Traits.Features.Rename)>
+            <WpfFact, Trait(Traits.Feature, Traits.Features.Rename)>
             Public Sub QualifyTypeNameInImports()
                 Using result = RenameEngineResult.Create(_outputHelper,
                     <Workspace>
@@ -3108,6 +3108,24 @@ End Class
                         </Workspace>, renameTo:="T")
 
                     result.AssertLabeledSpansAre("Conflict", type:=RelatedLocationType.UnresolvedConflict)
+                End Using
+            End Sub
+
+            <Fact>
+            <Trait(Traits.Feature, Traits.Features.Rename)>
+            <WorkItem(10469, "https://github.com/dotnet/roslyn/issues/10469")>
+            Public Sub RenameTypeToCurrent()
+                Using result = RenameEngineResult.Create(_outputHelper,
+                        <Workspace>
+                            <Project Language="Visual Basic" CommonReferences="true">
+                                <Document>
+Class {|current:$$C|}
+End Class
+                                </Document>
+                            </Project>
+                        </Workspace>, renameTo:="Current")
+
+                    result.AssertLabeledSpansAre("current", type:=RelatedLocationType.NoConflict)
                 End Using
             End Sub
         End Class

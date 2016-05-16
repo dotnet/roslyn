@@ -1264,5 +1264,94 @@ class C
             // Make sure we emit without errors when System.Boolean is missing.
             CompileAndVerify(comp, verify: false);
         }
+
+        [Fact]
+        [WorkItem(7840, "https://github.com/dotnet/roslyn/issues/7840")]
+        public void DynamicDisplayClassFieldMissingBoolean()
+        {
+            var source0 =
+@"namespace System
+{
+    public class Object { }
+    public struct Int32 { }
+    public class ValueType { }
+    public class Attribute { }
+    public struct Void { }
+    public struct IntPtr { }
+    public class MulticastDelegate { }
+}";
+            var source1 =
+@"delegate void D();
+class C
+{
+    static void Main()
+    {
+        dynamic x = 1;
+        D d = () => { dynamic y = x; };
+    }
+}";
+            var comp = CreateCompilation(source0);
+            comp.VerifyDiagnostics();
+            var ref0 = comp.EmitToImageReference();
+            comp = CreateCompilation(source1, references: new[] { ref0, SystemCoreRef });
+            comp.VerifyDiagnostics();
+            // Make sure we emit without errors when System.Boolean is missing.
+            CompileAndVerify(comp, verify: false);
+        }
+
+        [Fact]
+        public void BackingField()
+        {
+            var source =
+@"class C
+{
+    static dynamic[] P { get; set; }
+}";
+            CompileAndVerify(source, additionalRefs: new[] { CSharpRef, SystemCoreRef }, expectedSignatures: new[]
+            {
+                Signature(
+                    "C",
+                    "<P>k__BackingField",
+                    ".field [System.Runtime.CompilerServices.CompilerGeneratedAttribute()] [System.Runtime.CompilerServices.DynamicAttribute(System.Collections.ObjectModel.ReadOnlyCollection`1[System.Reflection.CustomAttributeTypedArgument])] private static System.Object[] <P>k__BackingField")
+            });
+        }
+
+        [Fact]
+        [WorkItem(1095613, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1095613")]
+        public void DisplayClassField()
+        {
+            var source =
+@"using System;
+class C
+{
+    static void F(dynamic[] a)
+    {
+        H(() => G(a));
+        dynamic d = a;
+        H(() => G(d));
+    }
+    static void G(object a)
+    {
+    }
+    static void H(Action a)
+    {
+    }
+    static void Main()
+    {
+        F(new object[0]);
+    }
+}";
+            CompileAndVerify(source, additionalRefs: new[] { CSharpRef, SystemCoreRef }, expectedSignatures: new[]
+            {
+                Signature(
+                    "C+<>c__DisplayClass0_0",
+                    "a",
+                    ".field [System.Runtime.CompilerServices.DynamicAttribute(System.Collections.ObjectModel.ReadOnlyCollection`1[System.Reflection.CustomAttributeTypedArgument])] public instance System.Object[] a"),
+                Signature(
+                    "C+<>c__DisplayClass0_0",
+                    "d",
+                    ".field [System.Runtime.CompilerServices.DynamicAttribute()] public instance System.Object d")
+            });
+        }
     }
 }

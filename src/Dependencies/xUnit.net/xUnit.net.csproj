@@ -1,0 +1,12 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\..\..\build\Targets\ProducesNoOutput.Settings.targets" />
+  <PropertyGroup>
+    <ProjectGuid>{8635CB8F-D210-41ED-B4FF-71502CDB475C}</ProjectGuid>
+    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include="project.json" />
+  </ItemGroup>
+  <Import Project="..\..\..\build\Targets\ProducesNoOutput.Imports.targets" />
+</Project>

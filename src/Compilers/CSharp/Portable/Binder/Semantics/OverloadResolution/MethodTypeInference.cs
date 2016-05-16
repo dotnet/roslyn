@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Collections;
 
 /*
 SPEC:
@@ -2224,122 +2225,129 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var candidates = new HashSet<TypeSymbol>();
-
-            // Optimization: if we have one exact bound then we need not add any
-            // inexact bounds; we're just going to remove them anyway.
-
-            if (exact == null)
+            var candidates = PooledHashSet<TypeSymbol>.GetInstance();
+            try
             {
+
+                // Optimization: if we have one exact bound then we need not add any
+                // inexact bounds; we're just going to remove them anyway.
+
+                if (exact == null)
+                {
+                    if (lower != null)
+                    {
+                        foreach (var lowerBound in lower)
+                        {
+                            candidates.Add(lowerBound);
+                        }
+                    }
+                    if (upper != null)
+                    {
+                        foreach (var upperBound in upper)
+                        {
+                            candidates.Add(upperBound);
+                        }
+                    }
+                }
+                else
+                {
+                    candidates.Add(exact.First());
+                }
+
+                if (candidates.Count == 0)
+                {
+                    return false;
+                }
+
+                // Don't mutate the collection as we're iterating it.
+                var initialCandidates = candidates.ToList();
+
+                // SPEC:   For each lower bound U of Xi all types to which there is not an
+                // SPEC:   implicit conversion from U are removed from the candidate set.
+
                 if (lower != null)
                 {
-                    foreach (var lowerBound in lower)
+                    foreach (var bound in lower)
                     {
-                        candidates.Add(lowerBound);
+                        // Make a copy; don't modify the collection as we're iterating it.
+                        foreach (var candidate in initialCandidates)
+                        {
+                            if (bound != candidate && !ImplicitConversionExists(bound, candidate, ref useSiteDiagnostics))
+                            {
+                                candidates.Remove(candidate);
+                            }
+                        }
                     }
                 }
+
+                // SPEC:   For each upper bound U of Xi all types from which there is not an
+                // SPEC:   implicit conversion to U are removed from the candidate set.
+
                 if (upper != null)
                 {
-                    foreach (var upperBound in upper)
+                    foreach (var bound in upper)
                     {
-                        candidates.Add(upperBound);
-                    }
-                }
-            }
-            else
-            {
-                candidates.Add(exact.First());
-            }
-
-            if (candidates.Count == 0)
-            {
-                return false;
-            }
-
-            // Don't mutate the collection as we're iterating it.
-            var initialCandidates = candidates.ToList();
-
-            // SPEC:   For each lower bound U of Xi all types to which there is not an
-            // SPEC:   implicit conversion from U are removed from the candidate set.
-
-            if (lower != null)
-            {
-                foreach (var bound in lower)
-                {
-                    // Make a copy; don't modify the collection as we're iterating it.
-                    foreach (var candidate in initialCandidates)
-                    {
-                        if (bound != candidate && !ImplicitConversionExists(bound, candidate, ref useSiteDiagnostics))
+                        foreach (var candidate in initialCandidates)
                         {
-                            candidates.Remove(candidate);
+                            if (bound != candidate && !ImplicitConversionExists(candidate, bound, ref useSiteDiagnostics))
+                            {
+                                candidates.Remove(candidate);
+                            }
                         }
                     }
                 }
-            }
 
-            // SPEC:   For each upper bound U of Xi all types from which there is not an
-            // SPEC:   implicit conversion to U are removed from the candidate set.
+                // SPEC: * If among the remaining candidate types there is a unique type V to
+                // SPEC:   which there is an implicit conversion from all the other candidate
+                // SPEC:   types, then the parameter is fixed to V.
 
-            if (upper != null)
-            {
-                foreach (var bound in upper)
+                // SPEC: 4.7 The Dynamic Type
+                //       Type inference (7.5.2) will prefer dynamic over object if both are candidates.
+                // This rule doesn't have to be implemented explicitly due to special handling of 
+                // conversions from dynamic in ImplicitConversionExists helper.
+
+                TypeSymbol best = null;
+                foreach (var candidate in candidates)
                 {
-                    foreach (var candidate in initialCandidates)
+                    foreach (var candidate2 in candidates)
                     {
-                        if (bound != candidate && !ImplicitConversionExists(candidate, bound, ref useSiteDiagnostics))
+                        if (candidate != candidate2 && !ImplicitConversionExists(candidate2, candidate, ref useSiteDiagnostics))
                         {
-                            candidates.Remove(candidate);
+                            goto OuterBreak;
                         }
                     }
-                }
-            }
 
-            // SPEC: * If among the remaining candidate types there is a unique type V to
-            // SPEC:   which there is an implicit conversion from all the other candidate
-            // SPEC:   types, then the parameter is fixed to V.
-
-            // SPEC: 4.7 The Dynamic Type
-            //       Type inference (7.5.2) will prefer dynamic over object if both are candidates.
-            // This rule doesn't have to be implemented explicitly due to special handling of 
-            // conversions from dynamic in ImplicitConversionExists helper.
-
-            TypeSymbol best = null;
-            foreach (var candidate in candidates)
-            {
-                foreach (var candidate2 in candidates)
-                {
-                    if (candidate != candidate2 && !ImplicitConversionExists(candidate2, candidate, ref useSiteDiagnostics))
+                    if ((object)best == null)
                     {
-                        goto OuterBreak;
+                        best = candidate;
                     }
+                    else if (!(best.IsDynamic() && candidate.IsObjectType()))
+                    {
+                        Debug.Assert(!(best.IsObjectType() && candidate.IsDynamic()));
+                        Debug.Assert(!(best.IsDynamic() && candidate.IsObjectType()));
+
+                        // best candidate is not unique
+                        return false;
+                    }
+
+                    OuterBreak:
+                    ;
                 }
 
                 if ((object)best == null)
                 {
-                    best = candidate;
-                }
-                else if (!(best.IsDynamic() && candidate.IsObjectType()))
-                {
-                    Debug.Assert(!(best.IsObjectType() && candidate.IsDynamic()));
-                    Debug.Assert(!(best.IsDynamic() && candidate.IsObjectType()));
-
-                    // best candidate is not unique
+                    // no best candidate
                     return false;
                 }
 
-            OuterBreak:
-                ;
+                _fixedResults[iParam] = best;
+                UpdateDependenciesAfterFix(iParam);
+                return true;
             }
-
-            if ((object)best == null)
+            finally
             {
-                // no best candidate
-                return false;
+                candidates.Free();
             }
-
-            _fixedResults[iParam] = best;
-            UpdateDependenciesAfterFix(iParam);
-            return true;
         }
 
         private bool ImplicitConversionExists(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)

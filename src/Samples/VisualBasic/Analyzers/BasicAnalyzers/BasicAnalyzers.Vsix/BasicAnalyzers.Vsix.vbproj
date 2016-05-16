@@ -66,6 +66,9 @@
     </None>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Empty.vb" />
+  </ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\BasicAnalyzers\BasicAnalyzers.vbproj">
       <Project>{9E86BCE5-E095-4E9F-9C45-22D5AEB6AD2A}</Project>
       <Name>BasicAnalyzers</Name>

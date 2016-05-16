@@ -13,11 +13,11 @@ namespace RunTests.Cache
 {
     internal sealed class ContentUtil
     {
-        private readonly Options _options;
+        private readonly TestExecutionOptions _options;
         private readonly MD5 _hash = MD5.Create();
         private readonly Dictionary<string, string> _fileToChecksumMap = new Dictionary<string, string>();
 
-        internal ContentUtil(Options options)
+        internal ContentUtil(TestExecutionOptions options)
         {
             _options = options;
         }
@@ -83,7 +83,7 @@ namespace RunTests.Cache
 
                 try
                 {
-                    var currentPath = Path.Combine(binariesPath, Path.ChangeExtension(current.Name, "dll"));
+                    var currentPath = Path.Combine(binariesPath, $"{current.Name}.dll");
                     var currentAssembly = File.Exists(currentPath)
                         ? Assembly.ReflectionOnlyLoadFrom(currentPath)
                         : Assembly.ReflectionOnlyLoad(current.FullName);

@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
         }
 
-        internal override CompletionListProvider CreateCompletionProvider()
+        internal override CompletionProvider CreateCompletionProvider()
         {
             return new CrefCompletionProvider();
         }
@@ -434,7 +434,7 @@ class C
                 var provider = new CrefCompletionProvider();
                 var hostDocument = workspace.DocumentWithCursor;
                 var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                var completionList = await GetCompletionListAsync(provider, document, hostDocument.CursorPosition.Value, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo());
+                var completionList = await GetCompletionListAsync(provider, document, hostDocument.CursorPosition.Value, CompletionTrigger.Default);
             }
         }
 
@@ -912,6 +912,16 @@ class C
             }
 
             public string GetNameForArgument(SyntaxNode argument)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsLeftSideOfDot(SyntaxNode node)
+            {
+                throw new NotImplementedException();
+            }
+
+            public SyntaxNode GetRightSideOfDot(SyntaxNode node)
             {
                 throw new NotImplementedException();
             }

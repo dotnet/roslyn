@@ -4810,7 +4810,7 @@ End Class
         End Sub
 
         <WorkItem(527658, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527658")>
-        <Fact(Skip:="527658")>
+        <Fact>
         Public Sub PropertyWithPinnedModifierIsBogus()
             Dim ilSource = <![CDATA[
 .class public A {
@@ -4825,7 +4825,12 @@ Class B
     End Sub
 End Class
 ]]></file></compilation>
-            CreateCompilationWithCustomILSource(vbSource, ilSource).VerifyDiagnostics()
+            CreateCompilationWithCustomILSource(vbSource, ilSource).AssertTheseDiagnostics(
+<expected>
+BC30643: Property 'Foo' is of an unsupported type.
+        Dim x As Object = A.Foo
+                            ~~~
+</expected>)
         End Sub
 
         <WorkItem(538850, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538850")>
@@ -4874,7 +4879,7 @@ End Class
         End Sub
 
         <WorkItem(527664, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527664")>
-        <Fact(Skip:="527664")>
+        <Fact>
         Public Sub PropertyWithOpenGenericTypeAsTypeArgumentOfReturnTypeIsNotSupported()
             Dim ilSource = <![CDATA[
 .class public E<T> { }
@@ -4894,7 +4899,7 @@ End Class
         End Sub
 
         <WorkItem(527657, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527657")>
-        <Fact(Skip:="527657")>
+        <Fact>
         Public Sub Dev10IgnoresSentinelInPropertySignature()
             Dim ilSource = <![CDATA[
 .class public A {
@@ -4931,7 +4936,7 @@ End Class
         End Sub
 
         <WorkItem(527660, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527660")>
-        <Fact(Skip:="527660")>
+        <Fact>
         Public Sub CanReadPropertyWithModOptInBaseClassOfReturnType()
             Dim ilSource = <![CDATA[
 .class public E extends class [mscorlib]System.Collections.Generic.List`1<int32> modopt(int8) { }
@@ -4947,7 +4952,7 @@ Class B
         Dim x As Object = A.Foo
     End Sub
 End Class
-]]>.</file></compilation>
+]]></file></compilation>
             CompileWithCustomILSource(vbSource, ilSource)
         End Sub
 
@@ -4988,7 +4993,7 @@ End Class
         End Sub
 
         <WorkItem(527656, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527656")>
-        <Fact(Skip:="527656")>
+        <Fact>
         Public Sub CanReadNonModOptPropertyWithOpenGenericModOptGetter()
             Dim ilSource = <![CDATA[
 .class public A {
@@ -5127,7 +5132,8 @@ BC30456: 'get_Foo' is not a member of 'A'.
         End Sub
 
         <WorkItem(527662, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527662")>
-        <Fact(Skip:="527662")>
+        <WorkItem(99292, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=99292")>
+        <Fact>
         Public Sub CanNotReadPropertyWithModReqInBaseClassOfReturnType()
             Dim ilSource = <![CDATA[
 .class public E extends class [mscorlib]System.Collections.Generic.List`1<int32 modreq(int8)[]> { }
@@ -7784,17 +7790,22 @@ BC30002: Type 'System.Object' is not defined.
         End Sub
 
         <WorkItem(530418, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530418")>
-        <Fact(Skip:="530418")>
+        <WorkItem(101153, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=101153")>
+        <Fact>
         Public Sub MissingSystemTypes_AutoProperty()
             Dim compilation = CompilationUtils.CreateCompilationWithReferences(
-<compilation>
+<compilation name="MissingSystemTypes_AutoProperty">
     <file name="a.vb"><![CDATA[
 Class C
     Property P As Object
 End Class
    ]]></file>
 </compilation>, references:=Nothing)
-            compilation.AssertTheseDiagnostics(<errors><![CDATA[
+
+            Const bug101153IsFixed = False
+
+            If bug101153IsFixed Then
+                compilation.AssertTheseDiagnostics(<errors><![CDATA[
 BC35000: Requested operation is not available because the runtime library function 'System.Runtime.CompilerServices.RuntimeHelpers.GetObjectValue' is not defined.
     Property P As Object
              ~
@@ -7811,6 +7822,22 @@ BC30002: Type 'System.Object' is not defined.
     Property P As Object
                   ~~~~~~
      ]]></errors>)
+            Else
+                compilation.AssertTheseDiagnostics(<errors><![CDATA[
+BC30002: Type 'System.Void' is not defined.
+Class C
+~~~~~~~~
+BC31091: Import of type 'Object' from assembly or module 'MissingSystemTypes_AutoProperty.dll' failed.
+Class C
+      ~
+BC30002: Type 'System.Void' is not defined.
+    Property P As Object
+    ~~~~~~~~~~~~~~~~~~~~
+BC30002: Type 'System.Object' is not defined.
+    Property P As Object
+                  ~~~~~~
+     ]]></errors>)
+            End If
         End Sub
 
         <WorkItem(531292, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531292")>

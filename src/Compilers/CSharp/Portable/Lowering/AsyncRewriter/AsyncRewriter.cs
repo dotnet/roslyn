@@ -65,12 +65,38 @@ namespace Microsoft.CodeAnalysis.CSharp
             stateMachineType = new AsyncStateMachine(slotAllocatorOpt, compilationState, method, methodOrdinal, typeKind);
             compilationState.ModuleBuilderOpt.CompilationState.SetStateMachineType(method, stateMachineType);
             var rewriter = new AsyncRewriter(bodyWithAwaitLifted, method, methodOrdinal, stateMachineType, slotAllocatorOpt, compilationState, diagnostics);
-            if (!rewriter._constructedSuccessfully)
+
+            if (!rewriter.VerifyPresenceOfRequiredAPIs())
             {
                 return body;
             }
 
             return rewriter.Rewrite();
+        }
+
+        /// <returns>
+        /// Returns true if all types and members we need are present and good
+        /// </returns>
+        protected bool VerifyPresenceOfRequiredAPIs()
+        {
+            DiagnosticBag bag = DiagnosticBag.GetInstance();
+
+            EnsureWellKnownMember(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_MoveNext, bag);
+            EnsureWellKnownMember(WellKnownMember.System_Runtime_CompilerServices_IAsyncStateMachine_SetStateMachine, bag);
+
+            bool hasErrors = bag.HasAnyErrors();
+            if (hasErrors)
+            {
+                diagnostics.AddRange(bag);
+            }
+
+            bag.Free();
+            return !hasErrors && _constructedSuccessfully;
+        }
+
+        private Symbol EnsureWellKnownMember(WellKnownMember member, DiagnosticBag bag)
+        {
+            return Binder.GetWellKnownTypeMember(F.Compilation, member, bag, body.Syntax.Location);
         }
 
         protected override bool PreserveInitialParameterValues

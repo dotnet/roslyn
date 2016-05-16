@@ -1337,7 +1337,7 @@ Class M1
         sub1(Of Integer, String)(New Integer() {1, 2, 3}, New String() {"a", "b"})
     End Sub
 
-    Private Sub sub1(Of T1, T2)(v1() As Integer, v2() As String)
+    Private Sub sub1(Of T1, T2)(v1() As T1, v2() As T2)
         Throw New NotImplementedException()
     End Sub
 End Class
@@ -2200,6 +2200,38 @@ NewLines("Imports System \n Imports System.Collections.Generic \n Module Program
 NewLines("Imports System \n Imports System.Collections.Generic \n Module Program \n Sub M() \n Dim x = New Dictionary ( Of Integer , Boolean ) From { { 1, T() } } \n End Sub \n Private Function T() As Boolean \n Throw New NotImplementedException() \n End Function \n End Module"))
         End Function
 
+        <WorkItem(10004, "https://github.com/dotnet/roslyn/issues/10004")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestGenerateMethodWithMultipleOfSameGenericType() As Task
+            Await TestAsync(
+<text>
+Namespace TestClasses
+    Public Class C
+    End Class
+
+    Module Ex
+        Public Function M(Of T As C)(a As T) As T
+            Return [|a.Test(Of T, T)()|]
+        End Function
+    End Module
+End Namespace
+</text>.Value.Replace(vbLf, vbCrLf),
+<text>
+Namespace TestClasses
+    Public Class C
+        Friend Function Test(Of T1 As C, T2 As C)() As T2
+        End Function
+    End Class
+
+    Module Ex
+        Public Function M(Of T As C)(a As T) As T
+            Return a.Test(Of T, T)()
+        End Function
+    End Module
+End Namespace
+</text>.Value.Replace(vbLf, vbCrLf))
+        End Function
+
         Public Class GenerateConversionTests
             Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -2484,7 +2516,6 @@ Class Digit
 End Class
 </text>.Value.Replace(vbLf, vbCrLf), compareTokens:=False)
             End Function
-
         End Class
     End Class
 End Namespace

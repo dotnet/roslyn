@@ -13,6 +13,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpParseOptions Script = new CSharpParseOptions(kind: SourceCodeKind.Script, documentationMode: DocumentationMode.None);
         public static readonly CSharpParseOptions Regular = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None);
         public static readonly CSharpParseOptions RegularWithDocumentationComments = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.Diagnose);
+        
+        public static readonly CSharpParseOptions RegularWithIOperationFeature = Regular.WithIOperationsFeature();
 
         private static readonly SmallDictionary<string, string> s_experimentalFeatures = new SmallDictionary<string, string>(); // no experimental features to enable
         public static readonly CSharpParseOptions ExperimentalParseOptions =
@@ -52,6 +54,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static CSharpParseOptions WithStrictFeature(this CSharpParseOptions options)
         {
             return options.WithFeature("strict", "true");
+        }
+        
+        public static CSharpParseOptions WithIOperationsFeature(this CSharpParseOptions options)
+        {
+            return options.WithFeature("IOperation", "true");
         }
     }
 }

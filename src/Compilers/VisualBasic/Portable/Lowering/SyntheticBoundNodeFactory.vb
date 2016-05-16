@@ -320,7 +320,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' Assignment expressions in lowered form should always have suppressObjectClone = True
         ''' </summary>
         Public Function AssignmentExpression(left As BoundExpression, right As BoundExpression) As BoundAssignmentOperator
-            Debug.Assert(left.Type = right.Type)
+            Debug.Assert(left.Type = right.Type OrElse right.Type.IsErrorType() OrElse left.Type.IsErrorType())
             Dim boundNode = New BoundAssignmentOperator(_syntax, left, right, True)
             boundNode.SetWasCompilerGenerated()
             Return boundNode

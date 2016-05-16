@@ -1,7 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
@@ -14,21 +12,42 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 {
     internal partial class DiagnosticIncrementalAnalyzer
     {
-        private readonly static Func<object, object> s_cacheCreator = _ => new ConcurrentDictionary<Project, ImmutableArray<StateSet>>(concurrencyLevel: 2, capacity: 10);
-
-        public override async Task SynchronizeWithBuildAsync(DiagnosticAnalyzerService.BatchUpdateToken token, Project project, ImmutableArray<DiagnosticData> diagnostics)
+        public override async Task SynchronizeWithBuildAsync(Workspace workspace, ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> map)
         {
-            if (!PreferBuildErrors(project.Solution.Workspace))
+            if (!PreferBuildErrors(workspace))
             {
                 // prefer live errors over build errors
                 return;
             }
 
+            var solution = workspace.CurrentSolution;
+            foreach (var projectEntry in map)
+            {
+                var project = solution.GetProject(projectEntry.Key);
+                if (project == null)
+                {
+                    continue;
+                }
+
+                var stateSets = _stateManager.CreateBuildOnlyProjectStateSet(project);
+                var lookup = projectEntry.Value.ToLookup(d => d.DocumentId);
+
+                // do project one first
+                await SynchronizeWithBuildAsync(project, stateSets, lookup[null]).ConfigureAwait(false);
+
+                foreach (var document in project.Documents)
+                {
+                    await SynchronizeWithBuildAsync(document, stateSets, lookup[document.Id]).ConfigureAwait(false);
+                }
+            }
+        }
+
+        private async Task SynchronizeWithBuildAsync(Project project, IEnumerable<StateSet> stateSets, IEnumerable<DiagnosticData> diagnostics)
+        {
             using (var poolObject = SharedPools.Default<HashSet<string>>().GetPooledObject())
             {
                 var lookup = CreateDiagnosticIdLookup(diagnostics);
-
-                foreach (var stateSet in _stateManager.GetBuildOnlyStateSets(token.GetCache(_stateManager, s_cacheCreator), project))
+                foreach (var stateSet in stateSets)
                 {
                     var descriptors = HostAnalyzerManager.GetDiagnosticDescriptors(stateSet.Analyzer);
                     var liveDiagnostics = ConvertToLiveDiagnostics(lookup, descriptors, poolObject.Object);
@@ -47,14 +66,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
         }
 
-        public override async Task SynchronizeWithBuildAsync(DiagnosticAnalyzerService.BatchUpdateToken token, Document document, ImmutableArray<DiagnosticData> diagnostics)
+        private async Task SynchronizeWithBuildAsync(Document document, IEnumerable<StateSet> stateSets, IEnumerable<DiagnosticData> diagnostics)
         {
             var workspace = document.Project.Solution.Workspace;
-            if (!PreferBuildErrors(workspace))
-            {
-                // prefer live errors over build errors
-                return;
-            }
 
             // check whether, for opened documents, we want to prefer live diagnostics
             if (PreferLiveErrorsOnOpenedFiles(workspace) && workspace.IsDocumentOpen(document.Id))
@@ -68,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             {
                 var lookup = CreateDiagnosticIdLookup(diagnostics);
 
-                foreach (var stateSet in _stateManager.GetBuildOnlyStateSets(token.GetCache(_stateManager, s_cacheCreator), document.Project))
+                foreach (var stateSet in stateSets)
                 {
                     // we are using Default so that things like LB can't use cached information
                     var textVersion = VersionStamp.Default;
@@ -141,13 +155,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             return builder == null ? ImmutableArray<DiagnosticData>.Empty : builder.ToImmutable();
         }
 
-        private static ILookup<string, DiagnosticData> CreateDiagnosticIdLookup(ImmutableArray<DiagnosticData> diagnostics)
+        private static ILookup<string, DiagnosticData> CreateDiagnosticIdLookup(IEnumerable<DiagnosticData> diagnostics)
         {
-            if (diagnostics.Length == 0)
-            {
-                return null;
-            }
-
             return diagnostics.ToLookup(d => d.Id);
         }
 

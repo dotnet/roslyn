@@ -138,16 +138,14 @@ text;
                 var document = workspace.CurrentSolution.GetDocument(documentId);
                 var position = hostDocument.CursorPosition.Value;
 
-                var completionList = await GetCompletionListAsync(document, position, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo());
+                var completionList = await GetCompletionListAsync(document, position, CompletionTrigger.Default);
                 var item = completionList.Items.First(i => i.DisplayText.StartsWith(textTypedSoFar));
 
                 var optionService = workspace.Services.GetService<IOptionService>();
                 var options = optionService.GetOptions().WithChangedOption(CSharpCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord, sendThroughEnterEnabled);
                 optionService.SetOptions(options);
 
-                var completionService = document.Project.LanguageServices.GetService<ICompletionService>();
-                var completionRules = completionService.GetCompletionRules();
-
+                var completionRules = CompletionHelper.GetHelper(document);
                 Assert.Equal(expected, completionRules.SendEnterThroughToEditor(item, textTypedSoFar, workspace.Options));
             }
         }
@@ -166,8 +164,9 @@ text;
                 var position = document.CursorPosition.Value;
                 var text = document.TextBuffer.CurrentSnapshot.AsText();
                 var options = workspace.Options.WithChangedOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.CSharp, triggerOnLetter);
+                var trigger = CompletionTrigger.CreateInsertionTrigger(text[position]);
 
-                var isTextualTriggerCharacterResult = CompletionProvider.IsTriggerCharacter(text, position, options);
+                var isTextualTriggerCharacterResult = CompletionProvider.ShouldTriggerCompletion(text, position + 1, trigger, options);
 
                 if (expectedTriggerCharacter)
                 {
@@ -206,11 +205,10 @@ text;
                 var document = workspace.CurrentSolution.GetDocument(documentId);
                 var position = hostDocument.CursorPosition.Value;
 
-                var completionList = await GetCompletionListAsync(document, position, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo());
+                var completionList = await GetCompletionListAsync(document, position, CompletionTrigger.Default);
                 var item = completionList.Items.First(i => i.DisplayText.StartsWith(textTypedSoFar));
 
-                var completionService = document.Project.LanguageServices.GetService<ICompletionService>();
-                var completionRules = completionService.GetCompletionRules();
+                var completionRules = CompletionHelper.GetHelper(document);
 
                 foreach (var ch in validChars)
                 {

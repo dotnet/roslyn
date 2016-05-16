@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
 Imports Microsoft.CodeAnalysis.Editor.Commands
+Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.Editor.UnitTests
@@ -19,7 +20,6 @@ Imports Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 Imports Microsoft.VisualStudio.Shell
 Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.BraceCompletion
-Imports Microsoft.VisualStudio.Text.BraceCompletion.Implementation
 Imports Microsoft.VisualStudio.Text.Operations
 Imports Microsoft.VisualStudio.TextManager.Interop
 Imports Moq
@@ -42,16 +42,19 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Snippets
                 New VisualBasic.Snippets.SnippetCommandHandler(mockEditorAdaptersFactoryService.Object, mockSVsServiceProvider.Object))
 
             If languageName = LanguageNames.VisualBasic Then
-                Dim snippetProvider As CompletionListProvider = New VisualBasic.Snippets.SnippetCompletionProvider(Nothing)
+                Dim snippetProvider As CompletionProvider = New VisualBasic.Snippets.SnippetCompletionProvider(Nothing)
+
+                Dim completionService = DirectCast(Workspace.Services.GetLanguageServices(languageName).GetService(Of CompletionService), CommonCompletionService)
+                completionService.SetTestProviders({snippetProvider})
 
                 Dim asyncCompletionService = New AsyncCompletionService(
                     GetService(Of IEditorOperationsFactoryService)(),
                     UndoHistoryRegistry,
                     GetService(Of IInlineRenameService)(),
+                    GetService(Of IWaitIndicator)(),
                     New TestCompletionPresenter(Me),
                     GetExports(Of IAsynchronousOperationListener, FeatureMetadata)(),
-                    CreateLazyProviders({snippetProvider}, languageName, roles:=Nothing),
-                    GetExports(Of IBraceCompletionSessionProvider, IBraceCompletionMetadata)())
+                    GetExports(Of IBraceCompletionSessionProvider, BraceCompletionMetadata)())
 
                 Dim CompletionCommandHandler = New CompletionCommandHandler(asyncCompletionService)
 

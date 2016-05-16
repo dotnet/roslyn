@@ -114,15 +114,15 @@ Public Class VisualBasicParseOptionsTests
         Assert.Equal(highest, CInt(PredefinedPreprocessorSymbols.CurrentVersionNumber))
     End Sub
 
-    <Fact(Skip:="Win8 targets")>
+    <Fact>
     Public Sub PredefinedPreprocessorSymbols_Win8()
         Dim options = VisualBasicParseOptions.Default
 
-        ' TODO: Dim symbols = AddPredefinedPreprocessorSymbols(OutputKind.WinMD)
-        ' AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", 11.0), New KeyValuePair(Of String, Object)("TARGET", "appcontainerexe")}, symbols.AsEnumerable)
+        Dim symbols = AddPredefinedPreprocessorSymbols(OutputKind.WindowsRuntimeApplication)
+        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber), New KeyValuePair(Of String, Object)("TARGET", "appcontainerexe")}, symbols.AsEnumerable)
 
-        'TODO: symbols = AddPredefinedPreprocessorSymbols(OutputKind.AppContainer)
-        ' AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", 11.0), New KeyValuePair(Of String, Object)("TARGET", "winmdobj")}, symbols.AsEnumerable)
+        symbols = AddPredefinedPreprocessorSymbols(OutputKind.WindowsRuntimeMetadata)
+        AssertEx.SetEqual({New KeyValuePair(Of String, Object)("VBC_VER", PredefinedPreprocessorSymbols.CurrentVersionNumber), New KeyValuePair(Of String, Object)("TARGET", "winmdobj")}, symbols.AsEnumerable)
     End Sub
 
     <Fact>

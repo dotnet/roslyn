@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
@@ -19,6 +20,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             _workspace = workspace;
 
             _workspace.DocumentClosed += OnDocumentClosed;
+            _workspace.WorkspaceChanged += OnWorkspaceChanged;
         }
 
         public void TrackOpenDocument(DocumentId documentId, object id, AbstractTableEntriesSnapshot<T> snapshot)
@@ -43,28 +45,78 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
-        private void OnDocumentClosed(object sender, DocumentEventArgs e)
+        private void StopTracking(DocumentId documentId)
         {
             lock (_gate)
             {
-                Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<T>>> secondMap;
-                if (!_map.TryGetValue(e.Document.Id, out secondMap))
-                {
-                    return;
-                }
+                StopTracking_NoLock(documentId);
+            }
+        }
 
-                _map.Remove(e.Document.Id);
-                foreach (var weakSnapshot in secondMap.Values)
+        private void StopTracking(Solution solution, ProjectId projectId = null)
+        {
+            lock (_gate)
+            {
+                foreach (var documentId in _map.Keys.Where(d => projectId == null ? true : d.ProjectId == projectId).ToList())
                 {
-                    AbstractTableEntriesSnapshot<T> snapshot;
-                    if (!weakSnapshot.TryGetTarget(out snapshot))
+                    if (solution.GetDocument(documentId) != null)
                     {
+                        // document still exist.
                         continue;
                     }
 
-                    snapshot.StopTracking();
+                    StopTracking_NoLock(documentId);
                 }
             }
+        }
+
+        private void StopTracking_NoLock(DocumentId documentId)
+        {
+            Dictionary<object, WeakReference<AbstractTableEntriesSnapshot<T>>> secondMap;
+            if (!_map.TryGetValue(documentId, out secondMap))
+            {
+                return;
+            }
+
+            _map.Remove(documentId);
+            foreach (var weakSnapshot in secondMap.Values)
+            {
+                AbstractTableEntriesSnapshot<T> snapshot;
+                if (!weakSnapshot.TryGetTarget(out snapshot))
+                {
+                    continue;
+                }
+
+                snapshot.StopTracking();
+            }
+        }
+
+        private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+        {
+            switch (e.Kind)
+            {
+                case WorkspaceChangeKind.SolutionRemoved:
+                case WorkspaceChangeKind.SolutionCleared:
+                    StopTracking(e.NewSolution);
+                    break;
+
+                case WorkspaceChangeKind.ProjectRemoved:
+                    StopTracking(e.NewSolution, e.ProjectId);
+                    break;
+
+                case WorkspaceChangeKind.DocumentRemoved:
+                    StopTracking(e.DocumentId);
+                    break;
+
+                default:
+                    // do nothing
+                    break;
+            }
+        }
+
+        private void OnDocumentClosed(object sender, DocumentEventArgs e)
+        {
+            StopTracking(e.Document.Id);
         }
     }
 }

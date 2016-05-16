@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     /// <summary>
     /// Represents an assembly built by compiler.
     /// </summary>
-    internal sealed class SourceAssemblySymbol : MetadataOrSourceAssemblySymbol, IAttributeTargetSymbol
+    internal sealed class SourceAssemblySymbol : MetadataOrSourceAssemblySymbol, ISourceAssemblySymbol, IAttributeTargetSymbol
     {
         /// <summary>
         /// A Compilation the assembly is created for.
@@ -2181,6 +2181,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.AssemblyInformationalVersionAttribute))
             {
+                Version dummy;
+                string verString = (string)attribute.CommonConstructorArguments[0].Value;
+                if (!VersionHelper.TryParse(verString, version: out dummy))
+                {
+                    Location attributeArgumentSyntaxLocation = attribute.GetAttributeArgumentSyntaxLocation(0, arguments.AttributeSyntaxOpt);
+                    arguments.Diagnostics.Add(ErrorCode.WRN_InvalidVersionFormat, attributeArgumentSyntaxLocation);
+                }
                 arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().AssemblyInformationalVersionAttributeSetting = (string)attribute.CommonConstructorArguments[0].Value;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SatelliteContractVersionAttribute))
@@ -2521,7 +2528,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if (wellKnownAttributeData != null && wellKnownAttributeData.ForwardedTypes != null)
                 {
-                    forwardedTypesFromSource = new Dictionary<string, NamedTypeSymbol>();
+                    forwardedTypesFromSource = new Dictionary<string, NamedTypeSymbol>(StringOrdinalComparer.Instance);
 
                     foreach (NamedTypeSymbol forwardedType in wellKnownAttributeData.ForwardedTypes)
                     {
@@ -2583,5 +2590,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         public override AssemblyMetadata GetMetadata() => null;
+
+        Compilation ISourceAssemblySymbol.Compilation
+        {
+            get { return _compilation; }
+        }
     }
 }

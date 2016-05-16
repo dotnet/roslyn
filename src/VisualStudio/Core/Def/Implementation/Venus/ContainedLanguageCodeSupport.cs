@@ -389,7 +389,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     return member.Kind == SymbolKind.Method;
 
                 default:
-                    throw new ArgumentException("InvalidValue", "memberType");
+                    throw new ArgumentException("InvalidValue", nameof(memberType));
             }
         }
 

@@ -746,13 +746,20 @@ End Select
         VisualBasicSyntaxTree.ParseText(text)
     End Sub
 
-    <Fact(Skip:="658140"), WorkItem(658140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658140")>
+    <Fact, WorkItem(658140, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658140")>
+    <WorkItem(103047, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems?_a=edit&id=103047")>
     Public Sub ParseFileOnBinaryFile()
         ' This is doing the same thing as ParseFile, but using a MemoryStream
         ' instead of FileStream (because I don't want to write a file to disk).
         Using data As New MemoryStream(TestResources.NetFX.v4_0_30319.mscorlib)
-            Dim tree As SyntaxTree = VisualBasicSyntaxTree.ParseText(EncodedStringText.Create(data))
-            tree.GetDiagnostics().VerifyErrorCodes(Diagnostic(ERRID.ERR_BinaryFile))
+            Const bug103047IsFixed = False
+
+            If bug103047IsFixed Then
+                Dim tree As SyntaxTree = VisualBasicSyntaxTree.ParseText(EncodedStringText.Create(data))
+                tree.GetDiagnostics().VerifyErrorCodes(Diagnostic(ERRID.ERR_BinaryFile))
+            Else
+                Assert.Throws(Of System.IO.InvalidDataException)(Sub() VisualBasicSyntaxTree.ParseText(EncodedStringText.Create(data)))
+            End If
         End Using
     End Sub
 

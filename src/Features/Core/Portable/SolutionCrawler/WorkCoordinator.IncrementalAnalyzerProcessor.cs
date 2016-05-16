@@ -52,7 +52,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     _lazyDiagnosticAnalyzerService = new Lazy<IDiagnosticAnalyzerService>(() => GetDiagnosticAnalyzerService(analyzerProviders));
 
-                    var lazyActiveFileAnalyzers = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => GetActiveFileIncrementalAnalyzers(_registration, analyzerProviders));
+                    // create active file analyzers right away
+                    var activeFileAnalyzers = GetActiveFileIncrementalAnalyzers(_registration, analyzerProviders);
+
+                    // create non active file analyzers lazily.
                     var lazyAllAnalyzers = new Lazy<ImmutableArray<IIncrementalAnalyzer>>(() => GetIncrementalAnalyzers(_registration, analyzerProviders));
 
                     // event and worker queues
@@ -60,7 +63,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     var globalNotificationService = _registration.GetService<IGlobalOperationNotificationService>();
 
-                    _highPriorityProcessor = new HighPriorityProcessor(listener, this, lazyActiveFileAnalyzers, highBackOffTimeSpanInMs, shutdownToken);
+                    _highPriorityProcessor = new HighPriorityProcessor(listener, this, activeFileAnalyzers, highBackOffTimeSpanInMs, shutdownToken);
                     _normalPriorityProcessor = new NormalPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, normalBackOffTimeSpanInMs, shutdownToken);
                     _lowPriorityProcessor = new LowPriorityProcessor(listener, this, lazyAllAnalyzers, globalNotificationService, lowBackOffTimeSpanInMs, shutdownToken);
                 }
@@ -75,10 +78,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 private static ImmutableArray<IIncrementalAnalyzer> GetActiveFileIncrementalAnalyzers(
                     Registration registration, IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> providers)
                 {
-                    var analyzers = providers.Where(p => p.Metadata.HighPriorityForActiveFile && p.Metadata.WorkspaceKinds.Contains(registration.Workspace.Kind))
-                                             .Select(p => p.Value.CreateIncrementalAnalyzer(registration.Workspace));
-
-                    var orderedAnalyzers = OrderAnalyzers(analyzers);
+                    var orderedAnalyzers = GetOrderedAnalyzers(registration, providers.Where(p => p.Metadata.HighPriorityForActiveFile));
 
                     SolutionCrawlerLogger.LogActiveFileAnalyzers(registration.CorrelationId, registration.Workspace, orderedAnalyzers);
                     return orderedAnalyzers;
@@ -87,20 +87,19 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 private static ImmutableArray<IIncrementalAnalyzer> GetIncrementalAnalyzers(
                     Registration registration, IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> providers)
                 {
-                    var analyzers = providers.Where(p => p.Metadata.WorkspaceKinds.Contains(registration.Workspace.Kind))
-                                             .Select(p => p.Value.CreateIncrementalAnalyzer(registration.Workspace));
-
-                    var orderedAnalyzers = OrderAnalyzers(analyzers);
+                    var orderedAnalyzers = GetOrderedAnalyzers(registration, providers);
 
                     SolutionCrawlerLogger.LogAnalyzers(registration.CorrelationId, registration.Workspace, orderedAnalyzers);
                     return orderedAnalyzers;
                 }
 
-                private static ImmutableArray<IIncrementalAnalyzer> OrderAnalyzers(IEnumerable<IIncrementalAnalyzer> analyzers)
+                private static ImmutableArray<IIncrementalAnalyzer> GetOrderedAnalyzers(
+                    Registration registration, IEnumerable<Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>> providers)
                 {
-                    return SpecializedCollections.SingletonEnumerable(analyzers.FirstOrDefault(a => a is BaseDiagnosticIncrementalAnalyzer))
-                                                                               .Concat(analyzers.Where(a => !(a is BaseDiagnosticIncrementalAnalyzer)))
-                                                                               .WhereNotNull().ToImmutableArray();
+                    // Sort list so BaseDiagnosticIncrementalAnalyzers (if any) come first.  OrderBy orders 'false' keys before 'true'.
+                    return providers.Select(p => p.Value.CreateIncrementalAnalyzer(registration.Workspace))
+                                    .OrderBy(a => !(a is BaseDiagnosticIncrementalAnalyzer))
+                                    .ToImmutableArray();
                 }
 
                 public void Enqueue(WorkItem item)

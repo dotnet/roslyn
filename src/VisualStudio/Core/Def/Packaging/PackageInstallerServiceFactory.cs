@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             this.AssertIsForeground();
 
             var options = _workspace.Options;
-            if (!options.GetOption(ServiceComponentOnOffOptions.PackageSearch))
+            if (!options.GetOption(ServiceComponentOnOffOptions.SymbolSearch))
             {
                 return;
             }
