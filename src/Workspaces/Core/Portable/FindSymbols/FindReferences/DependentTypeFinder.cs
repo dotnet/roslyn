@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 return FindTypesAsync(type, solution, projects,
                     findMetadataTypesAsync: FindDerivedMetadataClassesInProjectAsync,
-                    findSourceTypesAsync: FindDerivedSourceClassesInProjectAsync,
+                    findImmediatelyInheritingTypesInDocumentAsync: FindImmediatelyDerivedClassesInDocumentAsync,
                     shouldContinueSearching: IsNonSealedClass,
                     transitive: transitive,
                     cancellationToken: cancellationToken);
@@ -157,7 +157,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 return FindTypesAsync(type, solution, projects,
                     findMetadataTypesAsync: FindDerivedAndImplementingMetadataTypesInProjectAsync,
-                    findSourceTypesAsync: FindDerivedAndImplementingSourceTypesInProjectAsync,
+                    findImmediatelyInheritingTypesInDocumentAsync: FindImmediatelyDerivedAndImplementingTypesInDocumentAsync,
                     shouldContinueSearching: IsInterfaceOrNonSealedClass,
                     transitive: transitive,
                     cancellationToken: cancellationToken);
@@ -171,7 +171,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution,
             IImmutableSet<Project> projects,
             SearchProject findMetadataTypesAsync,
-            SearchProject findSourceTypesAsync,
+            SearchDocumentAsync findImmediatelyInheritingTypesInDocumentAsync,
             Func<INamedTypeSymbol, bool> shouldContinueSearching,
             bool transitive,
             CancellationToken cancellationToken)
@@ -231,7 +231,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     currentMetadataTypes, currentSourceAndMetadataTypes,
                     project,
                     findMetadataTypesAsync,
-                    findSourceTypesAsync,
+                    findImmediatelyInheritingTypesInDocumentAsync,
                     shouldContinueSearching,
                     transitive, cancellationToken).ConfigureAwait(false);
             }
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             HashSet<INamedTypeSymbol> currentSourceAndMetadataTypes,
             Project project,
             SearchProject findMetadataTypesAsync,
-            SearchProject findSourceTypesAsync,
+            SearchDocumentAsync findImmediatelyInheritingTypesInDocumentAsync,
             Func<INamedTypeSymbol, bool> shouldContinueSearching,
             bool transitive,
             CancellationToken cancellationToken)
@@ -274,8 +274,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             // Now search the project and see what source types we can find.
-            var foundSourceTypes = await findSourceTypesAsync(
-                currentSourceAndMetadataTypes, project, transitive, cancellationToken).ConfigureAwait(false);
+            var foundSourceTypes = await FindSourceTypesInProjectAsync(
+                currentSourceAndMetadataTypes, project, 
+                findImmediatelyInheritingTypesInDocumentAsync,
+                shouldContinueSearching,
+                transitive, cancellationToken).ConfigureAwait(false);
 
             foreach (var foundType in foundSourceTypes)
             {
@@ -505,42 +508,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 metadataTypes, project, typeMatches, cancellationToken);
         }
 
-        private static Task<IEnumerable<INamedTypeSymbol>> FindDerivedAndImplementingSourceTypesInProjectAsync(
-            HashSet<INamedTypeSymbol> sourceAndMetadataTypes,
-            Project project,
-            bool transitive,
-            CancellationToken cancellationToken)
-        {
-            // Found a new type.  If its an interface or a non-sealed class, add it to the list of 
-            // types for us to continue searching for.
-            return FindSourceTypesInProjectAsync(
-                sourceAndMetadataTypes,
-                project,
-                findImmediatelyDerivedTypesInDocumentAsync: FindImmediatelyDerivedAndImplementingTypesInDocumentAsync,
-                shouldContinueSearching: IsInterfaceOrNonSealedClass,
-                transitive: transitive,
-                cancellationToken: cancellationToken);
-        }
-
         private static readonly Func<INamedTypeSymbol, bool> IsInterfaceOrNonSealedClass = 
             t => t.TypeKind == TypeKind.Interface || IsNonSealedClass(t);
-
-        private static Task<IEnumerable<INamedTypeSymbol>> FindDerivedSourceClassesInProjectAsync(
-            HashSet<INamedTypeSymbol> sourceAndMetadataTypes,
-            Project project,
-            bool transitive,
-            CancellationToken cancellationToken)
-        {
-            Debug.Assert(sourceAndMetadataTypes.All(IsNonSealedClass));
-
-            return FindSourceTypesInProjectAsync(
-                sourceAndMetadataTypes,
-                project,
-                findImmediatelyDerivedTypesInDocumentAsync: FindImmediatelyDerivedClassesInDocumentAsync,
-                shouldContinueSearching: IsNonSealedClass,
-                transitive: transitive,
-                cancellationToken: cancellationToken);
-        }
 
         private static async Task<IEnumerable<INamedTypeSymbol>> FindSourceTypesInProjectAsync(
             HashSet<INamedTypeSymbol> sourceAndMetadataTypes,
