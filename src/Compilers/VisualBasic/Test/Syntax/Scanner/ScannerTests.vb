@@ -682,7 +682,6 @@ End If]]>.Value,
 
     <Fact>
     Public Sub Scanner_IntegerLiteralToken()
-        Dim myLangVersion = VisualBasicParseOptions.Default.LanguageVersion
         Dim Str = "42"
         Dim tk = ScanOnce(Str)
         Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
@@ -696,6 +695,7 @@ End If]]>.Value,
         Assert.Equal(42, tk.Value)
         Assert.Equal(" 42 ", tk.ToFullString())
 
+        Dim defaultLangVersion = VisualBasicParseOptions.Default.LanguageVersion
         Str = " 4_2 "
         tk = ScanOnce(Str)
         Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
@@ -703,7 +703,7 @@ End If]]>.Value,
         Assert.Equal(42, tk.Value)
         Assert.Equal(" 4_2 ", tk.ToFullString())
         If InternalSyntax.Feature.DigitSeparators.IsUnavailable Then
-            Assert.Equal($"error BC36716: Visual Basic {myLangVersion} does not support digit separators.", tk.Errors().Single().ToString())
+            Assert.Equal($"error BC36716: Visual Basic {defaultLangVersion} does not support digit separators.", tk.Errors().Single().ToString())
         End If
 
         Str = " &H42L "
@@ -734,7 +734,7 @@ End If]]>.Value,
         Assert.Equal(&HAL, tk.Value)
         Assert.Equal(" &B1010L ", tk.ToFullString())
         If InternalSyntax.Feature.BinaryLiterals.IsUnavailable Then
-            Assert.Equal($"error BC36716: Visual Basic {myLangVersion} does not support binary literals.", tk.Errors().Single().ToString())
+            Assert.Equal($"error BC36716: Visual Basic {defaultLangVersion} does not support binary literals.", tk.Errors().Single().ToString())
         End If
         Str = " &B1_0_1_0L "
         tk = ScanOnce(Str)
@@ -744,10 +744,10 @@ End If]]>.Value,
         Assert.Equal(" &B1_0_1_0L ", tk.ToFullString())
         Assert.Equal(2, tk.Errors().Count)
         If InternalSyntax.Feature.DigitSeparators.IsUnavailable Then
-            Assert.Equal($"error BC36716: Visual Basic {myLangVersion} does not support digit separators.", tk.Errors()(0).ToString())
+            Assert.Equal($"error BC36716: Visual Basic {defaultLangVersion} does not support digit separators.", tk.Errors()(0).ToString())
         End If
         If InternalSyntax.Feature.BinaryLiterals.IsUnavailable Then
-            Assert.Equal($"error BC36716: Visual Basic {myLangVersion} does not support binary literals.", tk.Errors()(1).ToString())
+            Assert.Equal($"error BC36716: Visual Basic {defaultLangVersion} does not support binary literals.", tk.Errors()(1).ToString())
         End If
 
     End Sub

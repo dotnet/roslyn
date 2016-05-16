@@ -99,7 +99,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                      Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
                     Return LanguageVersion.VisualBasic14
 
-                Case Feature.ImplicitDefaultValueOnOptionalParameter
+                Case Feature.DigitSeparators,
+                     Feature.BinaryLiterals,
+                     Feature.ImplicitDefaultValueOnOptionalParameter
                     Return LanguageVersion.VBnext
 
                 Case Else
