@@ -24,7 +24,7 @@ var result = ConvertConsumptionToCsv(Path.Combine(directoryUtil.CPCDirectoryPath
 
 if (result)
 {
-    var elapsedTimeViBenchJsonFilePath = GetViBenchJsonFromCsv(elapsedTimeCsvFilePath, null, null, IsVerbose(), logger);
+    var elapsedTimeViBenchJsonFilePath = GetViBenchJsonFromCsv(elapsedTimeCsvFilePath, null, null);
     string jsonFileName = Path.GetFileName(elapsedTimeViBenchJsonFilePath);
 
     // Move the json file to a file-share

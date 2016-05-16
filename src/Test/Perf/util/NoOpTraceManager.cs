@@ -1,6 +1,6 @@
 ﻿namespace Roslyn.Test.Performance.Utilities
 {
-    internal class NoOpTraceManager : ITraceManager
+    public class NoOpTraceManager : ITraceManager
     {
         public NoOpTraceManager()
         {

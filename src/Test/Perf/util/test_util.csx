@@ -15,6 +15,7 @@ using System.Runtime.CompilerServices;
 using System.Net;
 using System.Globalization;
 using Roslyn.Test.Performance.Utilities;
+using static Roslyn.Test.Performance.Utilities.TestUtilities;
 
 static PerfTest[] resultTests = null;
 

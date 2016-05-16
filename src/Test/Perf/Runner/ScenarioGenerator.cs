@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 
-namespace Roslyn.Test.Performance.Utilities
+namespace Roslyn.Test.Performance.Runner
 {
     public class ScenarioGenerator
     {

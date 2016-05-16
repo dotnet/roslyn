@@ -2,9 +2,9 @@
 
 namespace Roslyn.Test.Performance.Utilities
 {
-    internal class TraceManagerFactory
+    public class TraceManagerFactory
     {
-        public static ITraceManager GetTraceManager(bool isVerbose = false)
+        public static ITraceManager GetTraceManager()
         {
             var cpcFullPath = Path.Combine(TestUtilities.GetCPCDirectoryPath(), "CPC.exe");
             var scenarioPath = TestUtilities.GetCPCDirectoryPath();
@@ -12,9 +12,7 @@ namespace Roslyn.Test.Performance.Utilities
             {
                 return new TraceManager(
                     cpcFullPath,
-                    scenarioPath,
-                    verbose: isVerbose,
-                    logger: isVerbose ? new ConsoleAndFileLogger() : null);
+                    scenarioPath);
             }
             else
             {

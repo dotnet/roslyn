@@ -7,6 +7,14 @@ using System.Threading.Tasks;
 
 namespace Roslyn.Test.Performance.Utilities
 {
+    public static class RuntimeSettings
+    {
+        public static PerfTest[] resultTests = null;
+        public static ILogger logger = new ConsoleAndFileLogger();
+        public static bool isVerbose = true;
+        public static bool isRunnerAttached = false;
+    }
+
     public class TestUtilities
     {
         public static bool IsRunFromRunner()
@@ -22,35 +30,6 @@ namespace Roslyn.Test.Performance.Utilities
         public static ILogger Logger()
         {
             return RuntimeSettings.logger;
-        }
-
-        //
-        // Directory Locating Functions
-        //
-        public static string _myWorkingFile = null;
-
-        /// <summary>
-        /// This method should be called *ONLY* by the csx scripts.
-        /// This method *MUST NOT* be called from within the library itself. If this method is called within the library instead of csx scripts
-        /// then <paramref name="sourceFilePath"/> will be set to the path of the file when the library is actual built.
-        /// For Eg: If SomeLibarayFile.cs calls this method and if the library is built is some build machine where SomeLibarayFile.cs is saved at
-        /// Y:/Project/SomeLibarayFile.cs then when the library is used in any machine where there is no Y: drive then we will see errors saying
-        /// invalid directory path. Also note that <paramref name="sourceFilePath"/> will be set to "Y:/Project/SomeLibarayFile.cs" and not set to
-        /// the path of the file from where the call to SomeLibarayFile.cs which in turn called <see cref="InitUtilitiesFromCsx(string)"/>
-        /// </summary>
-        public static void InitUtilitiesFromCsx([CallerFilePath] string sourceFilePath = "")
-        {
-            _myWorkingFile = sourceFilePath;
-        }
-
-        /// Returns the directory that houses the currenly executing script.
-        public static string MyWorkingDirectory()
-        {
-            if (_myWorkingFile == null)
-            {
-                throw new Exception("Tests must call InitUtilitiesFromCsx before doing any path-dependent operations.");
-            }
-            return Directory.GetParent(_myWorkingFile).FullName;
         }
 
         public static string GetCPCDirectoryPath()
@@ -81,12 +60,10 @@ namespace Roslyn.Test.Performance.Utilities
 
         // Shells out, and if the process fails, log the error
         /// and quit the script.
-        /// NOTE: <paramref name="workingDirectory"/> should be set when called inside the library and not from csx. see <see cref="InitUtilitiesFromCsx(string)"/>
-        /// for more information
         public static void ShellOutVital(
                 string file,
                 string args,
-                string workingDirectory = null,
+                string workingDirectory,
                 CancellationToken cancellationToken = default(CancellationToken))
         {
             var result = ShellOut(file, args, workingDirectory, cancellationToken);
@@ -97,19 +74,12 @@ namespace Roslyn.Test.Performance.Utilities
             }
         }
 
-        /// NOTE: <paramref name="workingDirectory"/> should be set when called inside the library and not from csx. see <see cref="InitUtilitiesFromCsx(string)"/>
-        /// for more information
         public static ProcessResult ShellOut(
                 string file,
                 string args,
-                string workingDirectory = null,
+                string workingDirectory,
                 CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (workingDirectory == null)
-            {
-                workingDirectory = MyWorkingDirectory();
-            }
-
             var tcs = new TaskCompletionSource<ProcessResult>();
             var startInfo = new ProcessStartInfo(file, args);
             startInfo.RedirectStandardOutput = true;
@@ -129,7 +99,7 @@ namespace Roslyn.Test.Performance.Utilities
 
             if (RuntimeSettings.isVerbose)
             {
-                RuntimeSettings.logger.Log($"running \"{file}\" with arguments \"{args}\" from directory {workingDirectory}");
+                Log($"running \"{file}\" with arguments \"{args}\" from directory {workingDirectory}");
             }
 
             process.Start();
@@ -169,6 +139,11 @@ namespace Roslyn.Test.Performance.Utilities
 
         public static string StdoutFrom(string program, string args = "", string workingDirectory = null)
         {
+            if (workingDirectory == null)
+            {
+                workingDirectory = AppDomain.CurrentDomain.BaseDirectory;
+            }
+
             var result = ShellOut(program, args, workingDirectory);
             if (result.Failed)
             {
@@ -182,13 +157,10 @@ namespace Roslyn.Test.Performance.Utilities
         ///
         /// The actual implementation of this method may change depending on
         /// if the script is being run standalone or through the test runner.
-        public static void Log(string info, string logFile)
+        public static void Log(string info)
         {
-            System.Console.WriteLine(info);
-            if (logFile != null)
-            {
-                File.AppendAllText(logFile, info + System.Environment.NewLine);
-            }
+            RuntimeSettings.logger.Log(info);
+            RuntimeSettings.logger.Flush();
         }
 
         /// Logs the result of a finished process
@@ -201,5 +173,25 @@ namespace Roslyn.Test.Performance.Utilities
             RuntimeSettings.logger.Log($"Standard Out:\n{result.StdOut}");
             RuntimeSettings.logger.Log($"\nStandard Error:\n{result.StdErr}");
         }
+
+        public static void TestThisPlease(params PerfTest[] tests)
+        {
+            if (IsRunFromRunner())
+            {
+                RuntimeSettings.resultTests = tests;
+            }
+            else
+            {
+                foreach (var test in tests)
+                {
+                    test.Setup();
+                    for (int i = 0; i < test.Iterations; i++)
+                    {
+                        test.Test();
+                    }
+                }
+            }
+        }
+
     }
 }

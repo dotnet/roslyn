@@ -14,6 +14,8 @@ using System.IO;
 using System;
 using Roslyn.Test.Performance.Utilities;
 
+RuntimeSettings.isRunnerAttached = true;
+
 var directoryInfo = new RelativeDirectory();
 var testDirectory = Path.Combine(directoryInfo.MyWorkingDirectory, "tests");
 
@@ -34,7 +36,7 @@ foreach (var script in GetAllCsxRecursive(testDirectory))
     testInstances.AddRange(tests);
 }
 
-var traceManager = TraceManagerFactory.GetTraceManager(IsVerbose());
+var traceManager = TraceManagerFactory.GetTraceManager();
 
 traceManager.Initialize();
 foreach (var test in testInstances)

@@ -3,25 +3,52 @@ using System.Collections.Generic;
 using System.Linq;
 using System.IO;
 using System.Xml;
-using static Roslyn.Test.Performance.Utilities.TestUtilities;
-using System.Threading;
+using Roslyn.Test.Performance.Utilities;
 using System.Threading.Tasks;
-using System.Diagnostics;
+using static Roslyn.Test.Performance.Utilities.TestUtilities;
+using Microsoft.CodeAnalysis.Scripting;
+using Microsoft.CodeAnalysis.CSharp.Scripting;
 
-namespace Roslyn.Test.Performance.Utilities
+
+namespace Roslyn.Test.Performance.Runner
 {
-    public static class RuntimeSettings
-    {
-
-        public static ILogger logger = new ConsoleAndFileLogger();
-        public static bool isVerbose = true;
-        public static bool isRunnerAttached = false;
-    }
-
     public class Tools
     {
+        /// Runs the script at fileName and returns a task containing the
+        /// state of the script.
+        public static async Task<ScriptState<object>> RunFile(string fileName)
+        {
+            var scriptOptions = ScriptOptions.Default.WithFilePath(fileName);
+            var text = File.ReadAllText(fileName);
+            var prelude = "System.Collections.Generic.List<string> Args = null;";
+            var state = await CSharpScript.RunAsync(prelude).ConfigureAwait(false);
+            var args = state.GetVariable("Args");
 
-        void CopyDirectory(string source, string destination, string argument = @"/mir")
+            var newArgs = new List<string>(System.Environment.GetCommandLineArgs());
+            newArgs.Add("--from-runner");
+            args.Value = newArgs;
+            return await state.ContinueWithAsync<object>(text, scriptOptions).ConfigureAwait(false);
+        }
+
+        /// Gets all csx file recursively in a given directory
+        public static IEnumerable<string> GetAllCsxRecursive(string directoryName)
+        {
+            foreach (var fileName in Directory.EnumerateFiles(directoryName, "*.csx"))
+            {
+                yield return fileName;
+            }
+
+
+            foreach (var childDir in Directory.EnumerateDirectories(directoryName))
+            {
+                foreach (var fileName in GetAllCsxRecursive(childDir))
+                {
+                    yield return fileName;
+                }
+            }
+        }
+
+        public static void CopyDirectory(string source, string destination, string argument = @"/mir")
         {
             var result = ShellOut("Robocopy", $"{argument} {source} {destination}", "");
 
@@ -32,25 +59,6 @@ namespace Roslyn.Test.Performance.Utilities
             }
         }
 
-        /// Logs a message.
-        ///
-        /// The actual implementation of this method may change depending on
-        /// if the script is being run standalone or through the test runner.
-        static void Log(string info)
-        {
-            Console.WriteLine(info);
-        }
-
-        /// Logs the result of a finished process
-        static void LogProcessResult(ProcessResult result)
-        {
-            Log(String.Format("The process \"{0}\" {1} with code {2}",
-                $"{result.ExecutablePath} {result.Args}",
-                result.Failed ? "failed" : "succeeded",
-                result.Code));
-            Log($"Standard Out:\n{result.StdOut}");
-            Log($"\nStandard Error:\n{result.StdErr}");
-        }
         /// Takes a consumptionTempResults file and converts to csv file
         /// Each info contains the {ScenarioName, Metric Key, Metric value}
         public static bool ConvertConsumptionToCsv(string source, string destination, string requiredMetricKey, ILogger logger)
@@ -217,91 +225,6 @@ namespace Roslyn.Test.Performance.Utilities
             {
                 throw new IOException($"Failed to copy \"{source}\" to \"{destination}\".");
             }
-        }
-
-        class ProcessResult
-        {
-            public string ExecutablePath { get; set; }
-            public string Args { get; set; }
-            public int Code { get; set; }
-            public string StdOut { get; set; }
-            public string StdErr { get; set; }
-
-            public bool Failed => Code != 0;
-            public bool Succeeded => !Failed;
-        }
-
-        static ProcessResult ShellOut(
-                string file,
-                string args,
-                string workingDirectory,
-                CancellationToken? cancelationToken = null)
-        {
-            var tcs = new TaskCompletionSource<ProcessResult>();
-            var startInfo = new ProcessStartInfo(file, args);
-            startInfo.RedirectStandardOutput = true;
-            startInfo.RedirectStandardError = true;
-            startInfo.UseShellExecute = false;
-            startInfo.WorkingDirectory = workingDirectory;
-
-
-            var process = new Process
-            {
-                StartInfo = startInfo,
-                EnableRaisingEvents = true,
-            };
-
-            if (cancelationToken != null)
-            {
-                cancelationToken.Value.Register(() => process.Kill());
-            }
-
-            Log($"running \"{file}\" with arguments \"{args}\" from directory {workingDirectory}");
-
-            process.Start();
-
-            var output = new StringWriter();
-            var error = new StringWriter();
-
-            process.OutputDataReceived += (s, e) =>
-            {
-                if (!String.IsNullOrEmpty(e.Data))
-                {
-                    output.WriteLine(e.Data);
-                }
-            };
-
-            process.ErrorDataReceived += (s, e) =>
-            {
-                if (!String.IsNullOrEmpty(e.Data))
-                {
-                    error.WriteLine(e.Data);
-                }
-            };
-
-            process.BeginOutputReadLine();
-            process.BeginErrorReadLine();
-            process.WaitForExit();
-
-            return new ProcessResult
-            {
-                ExecutablePath = file,
-                Args = args,
-                Code = process.ExitCode,
-                StdOut = output.ToString(),
-                StdErr = error.ToString(),
-            };
-        }
-
-        public static string StdoutFrom(string program, string args = "", string workingDirectory = "")
-        {
-            var result = ShellOut(program, args, workingDirectory);
-            if (result.Failed)
-            {
-                LogProcessResult(result);
-                throw new Exception("Shelling out failed");
-            }
-            return result.StdOut.Trim();
         }
     }
 }

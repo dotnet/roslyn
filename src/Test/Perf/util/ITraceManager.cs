@@ -1,6 +1,6 @@
 ﻿namespace Roslyn.Test.Performance.Utilities
 {
-    internal interface ITraceManager
+    public interface ITraceManager
     {
         bool HasWarmUpIteration { get; }
 
