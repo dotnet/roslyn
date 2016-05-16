@@ -351,12 +351,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IImmutableSet<Project> projects,
             IEnumerable<ProjectId> projectsThatCouldReferenceType)
         {
+            var projectIds = projects.Select(p => p.Id).ToSet();
+
             // We need to search all projects that could reference the type *and* which are 
             // referenced by some project in the project set.
             var dependencyGraph = solution.GetProjectDependencyGraph();
             foreach (var projectThatCouldReferenceType in projectsThatCouldReferenceType)
             {
-                if (projects.Any(p => p.Id == projectThatCouldReferenceType))
+                if (projectIds.Contains(projectThatCouldReferenceType))
                 {
                     // We were explicitly asked to search this project, and it's a project that 
                     // could be referencing the type we care about.  Definitely search this one.
