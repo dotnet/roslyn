@@ -29,8 +29,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                     WithPublicSign(True).WithCryptoKeyFile("test.snk")
             AssertTheseDiagnostics(VisualBasicCompilation.Create("test", options:=options),
 <errors>
-BC36983: Option 'CryptoKeyFile' must be an absolute path.
 BC37254: Public sign was specified and requires a public key, but no public key was specified
+BC37257: Option 'CryptoKeyFile' must be an absolute path.
 </errors>)
         End Sub
 

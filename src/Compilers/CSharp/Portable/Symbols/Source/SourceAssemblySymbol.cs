@@ -794,6 +794,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
             }
+
             if (_compilation.Options.PublicSign && (object)this.AssemblyKeyContainerAttributeSetting != (object)CommonAssemblyWellKnownAttributeData.StringMissingValue)
             {
                 diagnostics.Add(ErrorCode.WRN_AttributeIgnoredWhenPublicSigning, NoLocation.Singleton, AttributeDescription.AssemblyKeyNameAttribute.FullName);
@@ -828,6 +829,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
                 }
             }
+
             if (_compilation.Options.PublicSign && (object)this.AssemblyKeyFileAttributeSetting != (object)CommonAssemblyWellKnownAttributeData.StringMissingValue)
             {
                 diagnostics.Add(ErrorCode.WRN_AttributeIgnoredWhenPublicSigning, NoLocation.Singleton, AttributeDescription.AssemblyKeyFileAttribute.FullName);

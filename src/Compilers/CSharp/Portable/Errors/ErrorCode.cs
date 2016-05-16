@@ -1232,10 +1232,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_InvalidAssemblyCulture = 7100,
         ERR_EncReferenceToAddedMember = 7101,
         ERR_MutuallyExclusiveOptions = 7102,
-        WRN_AttributeIgnoredWhenPublicSigning = 7103,
-        ERR_OptionMustBeAbsolutePath = 7104,
 
-        // available 7104-8000
+        // available 7102-8000
 
         WRN_UnimplementedCommandLineSwitch = 8001,
         WRN_ReferencedAssemblyDoesNotHaveStrongName = 8002,
@@ -1323,5 +1321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PublicSignButNoKey = 8102,
         ERR_TooManyUserStrings = 8103,
         ERR_PeWritingFailure = 8104,
+        WRN_AttributeIgnoredWhenPublicSigning = 8105,
+        ERR_OptionMustBeAbsolutePath = 8106,
     }
 }
