@@ -476,16 +476,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var typesToSearchFor = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
             typesToSearchFor.AddAll(sourceAndMetadataTypes);
 
-            var derivesFromSystemObject = sourceAndMetadataTypes.Any(t => t.SpecialType == SpecialType.System_Object);
-            var derivesFromSystemEnum = sourceAndMetadataTypes.Any(t => t.SpecialType == SpecialType.System_Enum);
-            var derivesFromSystemValueType = sourceAndMetadataTypes.Any(t => t.SpecialType == SpecialType.System_ValueType);
-            var derivesFromSystemMulticastDelegate = sourceAndMetadataTypes.Any(t => t.SpecialType == SpecialType.System_MulticastDelegate);
-
-            var inheritanceInfo = new InheritanceInfo(
-                derivesFromSystemObject, 
-                derivesFromSystemValueType,
-                derivesFromSystemEnum,
-                derivesFromSystemMulticastDelegate);
+            var inheritanceInfo = new InheritanceInfo(sourceAndMetadataTypes);
 
             // As long as there are new types to search for, keep looping.
             while (typesToSearchFor.Count > 0)
@@ -671,16 +662,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             public readonly HashSet<string> TypeNames;
 
-            public InheritanceInfo(
-                bool derivesFromSystemObject,
-                bool derivesFromSystemValueType,
-                bool derivesFromSystemEnum,
-                bool derivesFromSystemMulticastDelegate)
+            public InheritanceInfo(HashSet<INamedTypeSymbol> sourceAndMetadataTypes)
             {
-                DerivesFromSystemObject = derivesFromSystemObject;
-                DerivesFromSystemValueType = derivesFromSystemValueType;
-                DerivesFromSystemEnum = derivesFromSystemEnum;
-                DerivesFromSystemMulticastDelegate = derivesFromSystemMulticastDelegate;
+                DerivesFromSystemObject = sourceAndMetadataTypes.Any(t => t.SpecialType == SpecialType.System_Object);
+                DerivesFromSystemValueType = sourceAndMetadataTypes.Any(t => t.SpecialType == SpecialType.System_ValueType);
+                DerivesFromSystemEnum = sourceAndMetadataTypes.Any(t => t.SpecialType == SpecialType.System_Enum);
+                DerivesFromSystemMulticastDelegate = sourceAndMetadataTypes.Any(t => t.SpecialType == SpecialType.System_MulticastDelegate);
                 TypeNames = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             }
         }
