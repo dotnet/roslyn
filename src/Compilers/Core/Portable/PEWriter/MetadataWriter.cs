@@ -3060,7 +3060,8 @@ namespace Microsoft.Cci
 
         internal const uint LiteralMethodDefinitionToken = 0x80000000;
         internal const uint LiteralGreatestMethodDefinitionToken = 0x40000000;
-        
+        internal const uint ModuleVersionIdStringToken = 0x80000000;
+
         private void SubstituteFakeTokens(Blob blob, ImmutableArray<byte> methodBodyIL)
         {
             // write the raw body first and then patch tokens:
