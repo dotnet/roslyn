@@ -6091,6 +6091,11 @@ tryAgain:
             /// Might be a pointer type or a multiplication.
             /// </summary>
             PointerOrMultiplication,
+
+            /// <summary>
+            /// Might be a tuple type.
+            /// </summary>
+            TupleType,
         }
 
         private bool IsPossibleType()
@@ -6256,6 +6261,10 @@ tryAgain:
             return result;
         }
 
+        /// <summary>
+        /// Returns TupleType when a possible tuple type is found.
+        /// Note that this is not MustBeType, so that the caller can consider deconstruction syntaxes.
+        /// </summary>
         private ScanTypeFlags ScanTupleType(out SyntaxToken lastTokenOfType)
         {
             var tupleElementType = ScanType(out lastTokenOfType);
@@ -6283,12 +6292,13 @@ tryAgain:
                         {
                             lastTokenOfType = this.EatToken();
                         }
-                    } while (this.CurrentToken.Kind == SyntaxKind.CommaToken);
+                    }
+                    while (this.CurrentToken.Kind == SyntaxKind.CommaToken);
 
                     if (this.CurrentToken.Kind == SyntaxKind.CloseParenToken)
                     {
                         lastTokenOfType = this.EatToken();
-                        return ScanTypeFlags.MustBeType;
+                        return ScanTypeFlags.TupleType;
                     }
                 }
             }
@@ -6841,12 +6851,6 @@ tryAgain:
                 (tk != SyntaxKind.AsyncKeyword || (this.PeekToken(1).Kind != SyntaxKind.DelegateKeyword && !ScanAsyncLambda(0))))
             {
                 return true;
-            }
-
-            // deconstruction-assignment
-            if (tk == SyntaxKind.OpenParenToken)
-            {
-                return false;
             }
 
             bool? typedIdentifier = IsPossibleTypedIdentifierStart(this.CurrentToken, this.PeekToken(1), allowThisKeyword: false);
@@ -9854,7 +9858,8 @@ tryAgain:
             if (type == ScanTypeFlags.PointerOrMultiplication ||
                 type == ScanTypeFlags.NullableType ||
                 type == ScanTypeFlags.MustBeType ||
-                type == ScanTypeFlags.AliasQualifiedName)
+                type == ScanTypeFlags.AliasQualifiedName ||
+                type == ScanTypeFlags.TupleType)
             {
                 return true;
             }
