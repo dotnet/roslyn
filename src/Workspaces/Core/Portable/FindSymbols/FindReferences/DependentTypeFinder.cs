@@ -192,8 +192,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // contribute an intermediate type that affects A or C.  We only need to check
             // A, B and C
 
-            var dependencyGraph = solution.GetProjectDependencyGraph();
-
             // First find all the projects that could potentially reference this type.
             var projectsThatCouldReferenceType = await GetProjectsThatCouldReferenceTypeAsync(
                 type, solution, searchInMetadata, cancellationToken).ConfigureAwait(false);
@@ -206,7 +204,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // can just process them in order from first to last because we know no project
             // in this list could affect a prior project.
             var orderedProjectsToExamine = GetOrderedProjectsToExamine(
-                solution, projects, dependencyGraph, projectsThatCouldReferenceType);
+                solution, projects, projectsThatCouldReferenceType);
 
             var currentMetadataTypes = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
             var currentSourceAndMetadataTypes = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
@@ -345,24 +343,25 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static List<Project> GetOrderedProjectsToExamine(
             Solution solution,
             IImmutableSet<Project> projects,
-            ProjectDependencyGraph dependencyGraph,
             IEnumerable<ProjectId> projectsThatCouldReferenceType)
         {
             var projectsToExamine = GetProjectsToExamineWorker(
-                solution, projects, dependencyGraph, projectsThatCouldReferenceType);
+                solution, projects, projectsThatCouldReferenceType);
 
             // Ensure the projects we're going to examine are ordered topologically.
             // That way we can just sweep over them from left to right as no project
             // could affect a previous project in the sweep.
-            return OrderTopologically(dependencyGraph, projectsToExamine);
+            return OrderTopologically(solution, projectsToExamine);
         }
 
         private static List<Project> OrderTopologically(
-            ProjectDependencyGraph dependencyGraph, IEnumerable<Project> projectsToExamine)
+            Solution solution, IEnumerable<Project> projectsToExamine)
         {
-            var order = new Dictionary<ProjectId, int>();
+            var order = new Dictionary<ProjectId, int>(capacity: solution.ProjectIds.Count);
 
             int index = 0;
+
+            var dependencyGraph = solution.GetProjectDependencyGraph();
             foreach (var projectId in dependencyGraph.GetTopologicallySortedProjects())
             {
                 order.Add(projectId, index);
@@ -375,11 +374,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static IEnumerable<Project> GetProjectsToExamineWorker(
             Solution solution,
             IImmutableSet<Project> projects,
-            ProjectDependencyGraph dependencyGraph,
             IEnumerable<ProjectId> projectsThatCouldReferenceType)
         {
             // We need to search all projects that could reference the type *and* which are 
             // referenced by some project in the project set.
+            var dependencyGraph = solution.GetProjectDependencyGraph();
             foreach (var projectThatCouldReferenceType in projectsThatCouldReferenceType)
             {
                 if (projects.Any(p => p.Id == projectThatCouldReferenceType))
