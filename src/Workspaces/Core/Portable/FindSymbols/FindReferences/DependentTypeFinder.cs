@@ -69,9 +69,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             if (IsNonSealedClass(type))
             {
+                Func<HashSet<INamedTypeSymbol>, INamedTypeSymbol, bool> sourceTypeImmediatelyMatches =
+                    (s, t) => s.Contains(t.BaseType?.OriginalDefinition);
+
                 return FindTypesAsync(type, solution, projects,
                     findMetadataTypesAsync: FindDerivedMetadataClassesInProjectAsync,
-                    findImmediatelyInheritingTypesInDocumentAsync: FindImmediatelyDerivedClassesInDocumentAsync,
+                    sourceTypeImmediatelyMatches: sourceTypeImmediatelyMatches,
                     shouldContinueSearching: IsNonSealedClass,
                     transitive: transitive,
                     cancellationToken: cancellationToken);
@@ -121,7 +124,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             {
                 return FindTypesAsync(type, solution, projects,
                     findMetadataTypesAsync: FindDerivedAndImplementingMetadataTypesInProjectAsync,
-                    findImmediatelyInheritingTypesInDocumentAsync: FindImmediatelyDerivedAndImplementingTypesInDocumentAsync,
+                    sourceTypeImmediatelyMatches: ImmediatelyDerivesOrImplementsFrom,
                     shouldContinueSearching: s_isInterfaceOrNonSealedClass,
                     transitive: transitive,
                     cancellationToken: cancellationToken);
@@ -135,7 +138,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution,
             IImmutableSet<Project> projects,
             SearchProject findMetadataTypesAsync,
-            SearchDocument findImmediatelyInheritingTypesInDocumentAsync,
+            Func<HashSet<INamedTypeSymbol>, INamedTypeSymbol, bool> sourceTypeImmediatelyMatches,
             Func<INamedTypeSymbol, bool> shouldContinueSearching,
             bool transitive,
             CancellationToken cancellationToken)
@@ -195,7 +198,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     currentMetadataTypes, currentSourceAndMetadataTypes,
                     project,
                     findMetadataTypesAsync,
-                    findImmediatelyInheritingTypesInDocumentAsync,
+                    sourceTypeImmediatelyMatches,
                     shouldContinueSearching,
                     transitive, cancellationToken).ConfigureAwait(false);
             }
@@ -210,7 +213,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             HashSet<INamedTypeSymbol> currentSourceAndMetadataTypes,
             Project project,
             SearchProject findMetadataTypesAsync,
-            SearchDocument findImmediatelyInheritingTypesInDocumentAsync,
+            Func<HashSet<INamedTypeSymbol>, INamedTypeSymbol, bool> sourceTypeImmediatelyMatches,
             Func<INamedTypeSymbol, bool> shouldContinueSearching,
             bool transitive,
             CancellationToken cancellationToken)
@@ -240,7 +243,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // Now search the project and see what source types we can find.
             var foundSourceTypes = await FindSourceTypesInProjectAsync(
                 currentSourceAndMetadataTypes, project, 
-                findImmediatelyInheritingTypesInDocumentAsync,
+                sourceTypeImmediatelyMatches,
                 shouldContinueSearching,
                 transitive, cancellationToken).ConfigureAwait(false);
 
@@ -475,7 +478,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task<IEnumerable<INamedTypeSymbol>> FindSourceTypesInProjectAsync(
             HashSet<INamedTypeSymbol> sourceAndMetadataTypes,
             Project project,
-            SearchDocument findImmediatelyDerivedTypesInDocumentAsync,
+            Func<HashSet<INamedTypeSymbol>, INamedTypeSymbol, bool> sourceTypeImmediatelyMatches,
             Func<INamedTypeSymbol, bool> shouldContinueSearching,
             bool transitive,
             CancellationToken cancellationToken)
@@ -510,9 +513,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 inheritanceInfo.TypeNames.AddRange(typesToSearchFor.Select(c => c.Name));
 
                 // Search all the documents of this project in parallel.
-                var tasks = project.Documents.Select(d => findImmediatelyDerivedTypesInDocumentAsync(
+                var tasks = project.Documents.Select(d => FindImmediatelyInheritingTypesInDocumentAsync(
                     typesToSearchFor, inheritanceInfo, d,
-                    cachedModels, cachedInfos, cancellationToken)).ToArray();
+                    cachedModels, cachedInfos, 
+                    sourceTypeImmediatelyMatches, cancellationToken)).ToArray();
 
                 await Task.WhenAll(tasks).ConfigureAwait(false);
 
@@ -543,22 +547,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return finalResult;
         }
 
-        private static Task<IEnumerable<INamedTypeSymbol>> FindImmediatelyDerivedAndImplementingTypesInDocumentAsync(
-            HashSet<INamedTypeSymbol> typesToSearchFor,
-            InheritanceInfo inheritanceInfo,
-            Document document,
-            ConcurrentSet<SemanticModel> cachedModels,
-            ConcurrentSet<IDeclarationInfo> cachedInfos,
-            CancellationToken cancellationToken)
-        {
-            Func<INamedTypeSymbol, bool> typeMatches = t => ImmediatelyDerivesOrImplementsFrom(typesToSearchFor, t);
-
-            return FindImmediatelyInheritingTypesInDocumentAsync(
-                inheritanceInfo, document,
-                cachedModels, cachedInfos, typeMatches,
-                cancellationToken);
-        }
-
         private static bool ImmediatelyDerivesOrImplementsFrom(
             HashSet<INamedTypeSymbol> typesToSearchFor, INamedTypeSymbol type)
         {
@@ -578,27 +566,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return false;
         }
 
-        private static Task<IEnumerable<INamedTypeSymbol>> FindImmediatelyDerivedClassesInDocumentAsync(
-            ISet<INamedTypeSymbol> classesToSearchFor,
-            InheritanceInfo inheritanceInfo,
-            Document document,
-            ConcurrentSet<SemanticModel> cachedModels,
-            ConcurrentSet<IDeclarationInfo> cachedInfos,
-            CancellationToken cancellationToken)
-        {
-            Func<INamedTypeSymbol, bool> typeMatches = t => classesToSearchFor.Contains(t.BaseType?.OriginalDefinition);
-            return FindImmediatelyInheritingTypesInDocumentAsync(
-                inheritanceInfo, document,
-                cachedModels, cachedInfos, typeMatches,
-                cancellationToken);
-        }
-
         private static async Task<IEnumerable<INamedTypeSymbol>> FindImmediatelyInheritingTypesInDocumentAsync(
+            HashSet<INamedTypeSymbol> typesToSearchFor,
             InheritanceInfo inheritanceInfo,
             Document document, 
             ConcurrentSet<SemanticModel> cachedModels, 
             ConcurrentSet<IDeclarationInfo> cachedInfos, 
-            Func<INamedTypeSymbol, bool> typeMatches,
+            Func<HashSet<INamedTypeSymbol>, INamedTypeSymbol, bool> typeImmediatelyMatches,
             CancellationToken cancellationToken)
         {
             var declarationInfo = await document.GetDeclarationInfoAsync(cancellationToken).ConfigureAwait(false);
@@ -608,16 +582,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             foreach (var symbolInfo in declarationInfo.DeclaredSymbolInfos)
             {
                 result = await ProcessSymbolInfo(
+                    typesToSearchFor,
                     inheritanceInfo, document, cachedModels,
-                    typeMatches, result, symbolInfo, cancellationToken).ConfigureAwait(false);
+                    typeImmediatelyMatches, result, symbolInfo, cancellationToken).ConfigureAwait(false);
             }
 
             return result;
         }
 
         private static async Task<HashSet<INamedTypeSymbol>> ProcessSymbolInfo(
-            InheritanceInfo inheritanceInfo, Document document, ConcurrentSet<SemanticModel> cachedModels,
-            Func<INamedTypeSymbol, bool> typeMatches, HashSet<INamedTypeSymbol> result,
+            HashSet<INamedTypeSymbol> typesToSearchFor,
+            InheritanceInfo inheritanceInfo,
+            Document document,
+            ConcurrentSet<SemanticModel> cachedModels,
+            Func<HashSet<INamedTypeSymbol>, INamedTypeSymbol, bool> typeImmediatelyMatches,
+            HashSet<INamedTypeSymbol> result,
             DeclaredSymbolInfo info, CancellationToken cancellationToken)
         {
             // If we're searching for enums/structs/delegates, then we can just look at the kind of
@@ -653,7 +632,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 var symbol = await ResolveAsync(document, info, cachedModels, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
                 if (symbol != null)
                 {
-                    if (typeMatches(symbol))
+                    if (typeImmediatelyMatches(typesToSearchFor, symbol))
                     {
                         result = result ?? new HashSet<INamedTypeSymbol>();
                         result.Add(symbol);
