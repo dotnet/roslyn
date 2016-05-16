@@ -172,7 +172,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             type = type.OriginalDefinition;
             projects = projects ?? ImmutableHashSet.Create(solution.Projects.ToArray());
-            var searchInMetadata = type.Locations.Any(loc => loc.IsInMetadata);
+            var searchInMetadata = type.Locations.Any(s_isInMetadata);
 
             // Note: it is not sufficient to just walk the list of projects passed in,
             // searching only those for derived types.
@@ -202,14 +202,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var orderedProjectsToExamine = GetOrderedProjectsToExamine(
                 solution, projects, dependencyGraph, projectsThatCouldReferenceType);
 
-            // Now walk the projects from left to right seeing what our type cascades to. Once we 
-            // reach a fixed point in that project, take all the types we've found and move to the
-            // next project.  Continue this until we've exhausted all projects.
-            //
-            // Because there is a data-dependency between the projects, we cannot process them in
-            // parallel.  (Processing linearly is also probably preferable to limit the amount of
-            // cache churn we could cause creating all those compilations.
-
             var currentMetadataTypes = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
             var currentSourceAndMetadataTypes = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
 
@@ -221,9 +213,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             var result = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
 
-            // There is a data dependency when searching projects.  Namely, the derived types we
-            // find in one project will be used when searching successive projects.  So we cannot
-            // searchthese projects in parallel.
+            // Now walk the projects from left to right seeing what our type cascades to. Once we 
+            // reach a fixed point in that project, take all the types we've found and move to the
+            // next project.  Continue this until we've exhausted all projects.
+            //
+            // Because there is a data-dependency between the projects, we cannot process them in
+            // parallel.  (Processing linearly is also probably preferable to limit the amount of
+            // cache churn we could cause creating all those compilations.
             foreach (var project in orderedProjectsToExamine)
             {
                 await findTypesInProjectAsync(
@@ -294,7 +290,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
                 foreach (var foundType in foundMetadataTypes)
                 {
-                    Debug.Assert(foundType.Locations.Any(loc => loc.IsInMetadata));
+                    Debug.Assert(foundType.Locations.Any(s_isInMetadata));
 
                     // Add to the result list.
                     result.Add(foundType);
