@@ -14,41 +14,6 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal delegate Task<IEnumerable<INamedTypeSymbol>> SearchDocument(
-        HashSet<INamedTypeSymbol> classesToSearchFor,
-        InheritanceInfo inheritanceInfo,
-        Document document,
-        ConcurrentSet<SemanticModel> cachedModels,
-        ConcurrentSet<IDeclarationInfo> cachedInfos,
-        CancellationToken cancellationToken);
-
-    internal delegate Task<IEnumerable<INamedTypeSymbol>> SearchProject(
-        HashSet<INamedTypeSymbol> sourceAndMetadataTypes, Project project, bool transitive, CancellationToken cancellationToken);
-
-    internal class InheritanceInfo
-    {
-        public readonly bool DerivesFromSystemObject;
-        public readonly bool DerivesFromSystemValueType;
-        public readonly bool DerivesFromSystemEnum;
-        public readonly bool DerivesFromSystemMulticastDelegate;
-
-        public readonly HashSet<string> TypeNames;
-
-        public InheritanceInfo(
-            bool derivesFromSystemObject,
-            bool derivesFromSystemValueType,
-            bool derivesFromSystemEnum,
-            bool derivesFromSystemMulticastDelegate,
-            HashSet<string> typeNames)
-        {
-            DerivesFromSystemObject = derivesFromSystemObject;
-            DerivesFromSystemValueType = derivesFromSystemValueType;
-            DerivesFromSystemEnum = derivesFromSystemEnum;
-            DerivesFromSystemMulticastDelegate = derivesFromSystemMulticastDelegate;
-            TypeNames = typeNames;
-        }
-    }
-
     /// <summary>
     /// Provides helper methods for finding dependent types (derivations, implementations, etc.) across a solution.
     /// </summary>
@@ -731,6 +696,41 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                            .Where(t => t.Locations.All(s_isInMetadata) &&
                                                        t.DeclaredAccessibility != Accessibility.Private &&
                                                        t.IsAccessibleWithin(c.Assembly)).ToList());
+        }
+
+        private delegate Task<IEnumerable<INamedTypeSymbol>> SearchDocument(
+            HashSet<INamedTypeSymbol> classesToSearchFor,
+            InheritanceInfo inheritanceInfo,
+            Document document,
+            ConcurrentSet<SemanticModel> cachedModels,
+            ConcurrentSet<IDeclarationInfo> cachedInfos,
+            CancellationToken cancellationToken);
+
+        private delegate Task<IEnumerable<INamedTypeSymbol>> SearchProject(
+            HashSet<INamedTypeSymbol> sourceAndMetadataTypes, Project project, bool transitive, CancellationToken cancellationToken);
+
+        private class InheritanceInfo
+        {
+            public readonly bool DerivesFromSystemObject;
+            public readonly bool DerivesFromSystemValueType;
+            public readonly bool DerivesFromSystemEnum;
+            public readonly bool DerivesFromSystemMulticastDelegate;
+
+            public readonly HashSet<string> TypeNames;
+
+            public InheritanceInfo(
+                bool derivesFromSystemObject,
+                bool derivesFromSystemValueType,
+                bool derivesFromSystemEnum,
+                bool derivesFromSystemMulticastDelegate,
+                HashSet<string> typeNames)
+            {
+                DerivesFromSystemObject = derivesFromSystemObject;
+                DerivesFromSystemValueType = derivesFromSystemValueType;
+                DerivesFromSystemEnum = derivesFromSystemEnum;
+                DerivesFromSystemMulticastDelegate = derivesFromSystemMulticastDelegate;
+                TypeNames = typeNames;
+            }
         }
     }
 }
