@@ -84,6 +84,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 return;
             }
 
+            StartWorker();
+        }
+
+        // Don't inline this method.  The references to nuget types will cause the nuget packages 
+        // to load.
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void StartWorker()
+        {
             var componentModel = _workspace.GetVsService<SComponentModel, IComponentModel>();
             _packageInstallerServices = componentModel.GetExtensions<IVsPackageInstallerServices>().FirstOrDefault();
             _packageInstaller = componentModel.GetExtensions<IVsPackageInstaller>().FirstOrDefault();
