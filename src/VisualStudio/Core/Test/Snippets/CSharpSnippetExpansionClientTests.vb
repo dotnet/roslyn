@@ -276,12 +276,10 @@ using G=   H.I;
             Using workspace = Await TestWorkspace.CreateAsync(workspaceXml)
                 Dim document = workspace.Documents.Single()
 
-                Dim optionService = workspace.Services.GetService(Of IOptionService)()
-                Dim optionSet = optionService.GetOptions()
-                optionSet = optionSet.WithChangedOption(FormattingOptions.UseTabs, document.Project.Language, True)
-                optionSet = optionSet.WithChangedOption(FormattingOptions.TabSize, document.Project.Language, tabSize)
-                optionSet = optionSet.WithChangedOption(FormattingOptions.IndentationSize, document.Project.Language, tabSize)
-                optionService.SetOptions(optionSet)
+                workspace.Options = workspace.Options _
+                    .WithChangedOption(FormattingOptions.UseTabs, document.Project.Language, True) _
+                    .WithChangedOption(FormattingOptions.TabSize, document.Project.Language, tabSize) _
+                    .WithChangedOption(FormattingOptions.IndentationSize, document.Project.Language, tabSize)
 
                 Dim snippetExpansionClient = New SnippetExpansionClient(
                     Guids.CSharpLanguageServiceId,

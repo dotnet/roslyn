@@ -1001,7 +1001,19 @@ This version used in: {2}</value>
   <data name="Parameters" xml:space="preserve">
     <value>Parameters:</value>
   </data>
-  <data name="AddMissingSwitchCases" xml:space="preserve">
+  <data name="Add_missing_switch_cases" xml:space="preserve">
     <value>Add missing switch cases</value>
+  </data>
+  <data name="Add_both" xml:space="preserve">
+    <value>Add both</value>
+  </data>
+  <data name="Add_default_switch_case" xml:space="preserve">
+    <value>Add default switch case</value>
+  </data>
+  <data name="VariadicSignaturehelpitemMustHaveOneParam" xml:space="preserve">
+    <value>Variadic SignatureHelpItem must have at least one parameter.</value>
+  </data>
+  <data name="AddBraces" xml:space="preserve">
+    <value>Add braces</value>
   </data>
 </root>

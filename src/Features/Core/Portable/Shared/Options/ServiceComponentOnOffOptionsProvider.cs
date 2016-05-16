@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Shared.Options
     {
         private readonly IEnumerable<IOption> _options = ImmutableArray.Create(
             ServiceComponentOnOffOptions.DiagnosticProvider,
-            ServiceComponentOnOffOptions.PackageSearch);
+            ServiceComponentOnOffOptions.SymbolSearch);
 
         public IEnumerable<IOption> GetOptions() => _options;
     }

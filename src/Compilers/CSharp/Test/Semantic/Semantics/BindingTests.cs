@@ -2836,6 +2836,93 @@ public static class LazyToStringExtension
             Assert.Equal("System.Reflection.PropertyInfo x", model.GetDeclaredSymbol(param).ToTestDisplayString());
         }
 
+        [Fact, WorkItem(7520, "https://github.com/dotnet/roslyn/issues/7520")]
+        public void DelegateCreationWithIncompleteLambda()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    public void F()
+    {
+        var x = new Action<int>(i => i.
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef });
+            comp.VerifyDiagnostics(
+                // (7,40): error CS1001: Identifier expected
+                //         var x = new Action<int>(i => i.
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(7, 40),
+                // (7,40): error CS1026: ) expected
+                //         var x = new Action<int>(i => i.
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(7, 40),
+                // (7,40): error CS1002: ; expected
+                //         var x = new Action<int>(i => i.
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(7, 40),
+                // (7,38): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                //         var x = new Action<int>(i => i.
+                Diagnostic(ErrorCode.ERR_IllegalStatement, @"i.
+").WithLocation(7, 38)
+            );
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var lambda = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.SimpleLambdaExpression)).Single();
+
+            var param = lambda.ChildNodes().Where(n => n.IsKind(SyntaxKind.Parameter)).Single();
+            var symbol1 = model.GetDeclaredSymbol(param);
+            Assert.Equal("System.Int32 i", symbol1.ToTestDisplayString());
+
+            var id = lambda.DescendantNodes().First(n => n.IsKind(SyntaxKind.IdentifierName));
+            var symbol2 = model.GetSymbolInfo(id).Symbol;
+            Assert.Equal("System.Int32 i", symbol2.ToTestDisplayString());
+
+            Assert.Same(symbol1, symbol2);
+        }
+
+        [Fact, WorkItem(7520, "https://github.com/dotnet/roslyn/issues/7520")]
+        public void ImplicitDelegateCreationWithIncompleteLambda()
+        {
+            var source =
+@"
+using System;
+class C
+{
+    public void F()
+    {
+        Action<int> x = i => i.
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, new[] { SystemCoreRef });
+            comp.VerifyDiagnostics(
+                // (7,32): error CS1001: Identifier expected
+                //         Action<int> x = i => i.
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "").WithLocation(7, 32),
+                // (7,32): error CS1002: ; expected
+                //         Action<int> x = i => i.
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(7, 32),
+                // (7,30): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                //         Action<int> x = i => i.
+                Diagnostic(ErrorCode.ERR_IllegalStatement, @"i.
+").WithLocation(7, 30)
+            );
+            var tree = comp.SyntaxTrees[0];
+            var model = comp.GetSemanticModel(tree);
+            var lambda = tree.GetRoot().DescendantNodes().Where(n => n.IsKind(SyntaxKind.SimpleLambdaExpression)).Single();
+
+            var param = lambda.ChildNodes().Where(n => n.IsKind(SyntaxKind.Parameter)).Single();
+            var symbol1 = model.GetDeclaredSymbol(param);
+            Assert.Equal("System.Int32 i", symbol1.ToTestDisplayString());
+
+            var id = lambda.DescendantNodes().First(n => n.IsKind(SyntaxKind.IdentifierName));
+            var symbol2 = model.GetSymbolInfo(id).Symbol;
+            Assert.Equal("System.Int32 i", symbol2.ToTestDisplayString());
+
+            Assert.Same(symbol1, symbol2);
+        }
+
         [Fact, WorkItem(5128, "https://github.com/dotnet/roslyn/issues/5128")]
         public void GetMemberGroupInsideIncompleteLambda_01()
         {

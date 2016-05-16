@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Globalization
 Imports System.Threading
 Imports System.Threading.Tasks
@@ -14,7 +15,7 @@ Imports Moq
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     Public Class CompletionServiceTests
         <Fact>
-        Public Async Function TestComplemtionDoesNotCrashWhenSyntaxTreeNotPresent() As Task
+        Public Async Function TestCompletionDoesNotCrashWhenSyntaxTreeNotPresent() As Task
             Dim workspaceDefinition =
             <Workspace>
                 <Project Language="NoCompilation" AssemblyName="TestAssembly" CommonReferencesPortable="true">
@@ -25,16 +26,15 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             </Workspace>
             Using workspace = Await TestWorkspace.CreateAsync(workspaceDefinition)
                 Dim document = workspace.CurrentSolution.Projects.First.Documents.First
-                Dim mockCompletionService = New Mock(Of AbstractCompletionService)
-                mockCompletionService.Setup(Function(service) service.GetDefaultCompletionProviders()).Returns({New TestCompletionProvider()})
+                Dim completionService = New TestCompletionService(workspace)
 
-                Dim list = Await mockCompletionService.Object.GetCompletionListAsync(
+                Dim list = Await completionService.GetCompletionsAsync(
                     document:=document,
-                    position:=0,
-                    triggerInfo:=CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo(),
+                    caretPosition:=0,
+                    trigger:=CompletionTrigger.Default,
                     options:=Nothing,
-                    providers:=Nothing,
                     cancellationToken:=Nothing)
+
                 Assert.NotNull(list)
                 Assert.NotEmpty(list.Items)
                 Assert.True(list.Items.Length = 1, "Completion list contained more than one item")
@@ -42,15 +42,35 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End Using
         End Function
 
-        Private Class TestCompletionProvider
-            Inherits CompletionListProvider
+        Friend Class TestCompletionService
+            Inherits CompletionServiceWithProviders
 
-            Public Overrides Function IsTriggerCharacter(text As SourceText, characterPosition As Int32, options As OptionSet) As [Boolean]
+            Public Sub New(workspace As Workspace)
+                MyBase.New(workspace)
+            End Sub
+
+            Public Overrides ReadOnly Property Language As String
+                Get
+                    Return "NoCompilation"
+                End Get
+            End Property
+
+            Private Shared s_providers As ImmutableArray(Of CompletionProvider) = ImmutableArray.Create(Of CompletionProvider)(New TestCompletionProvider())
+
+            Protected Overrides Function GetBuiltInProviders() As ImmutableArray(Of CompletionProvider)
+                Return s_providers
+            End Function
+        End Class
+
+        Private Class TestCompletionProvider
+            Inherits CompletionProvider
+
+            Public Overrides Function ShouldTriggerCompletion(text As SourceText, position As Int32, trigger As CompletionTrigger, options As OptionSet) As [Boolean]
                 Return True
             End Function
 
-            Public Overrides Function ProduceCompletionListAsync(context As CompletionListContext) As Task
-                context.AddItem(New CompletionItem(Me, "Completion Item From Test Completion Provider", filterSpan:=New TextSpan(), descriptionFactory:=Nothing, glyph:=Nothing))
+            Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
+                context.AddItem(CompletionItem.Create("Completion Item From Test Completion Provider"))
                 Return Task.CompletedTask
             End Function
         End Class

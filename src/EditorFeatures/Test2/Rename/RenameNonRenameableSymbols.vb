@@ -489,7 +489,7 @@ End Class
         <WorkItem(10567, "https://github.com/dotnet/roslyn/issues/10567")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        <Trait(Traits.Feature, Test.Utilities.Traits.Features.Tuples)>
+        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
         Public Sub RenameTupleFiledInDeclaration()
 
             Using workspace = CreateWorkspaceWithWaiter(
@@ -542,7 +542,7 @@ namespace System
         <WorkItem(10567, "https://github.com/dotnet/roslyn/issues/10567")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        <Trait(Traits.Feature, Test.Utilities.Traits.Features.Tuples)>
+        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
         Public Sub RenameTupleFiledInLiteral()
             Using workspace = CreateWorkspaceWithWaiter(
                    <Workspace>
@@ -595,7 +595,7 @@ namespace System
         <WorkItem(10567, "https://github.com/dotnet/roslyn/issues/10567")>
         <WpfFact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
-        <Trait(Traits.Feature, Test.Utilities.Traits.Features.Tuples)>
+        <Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)>
         Public Sub RenameTupleFiledInFieldAccess()
             Using workspace = CreateWorkspaceWithWaiter(
        <Workspace>

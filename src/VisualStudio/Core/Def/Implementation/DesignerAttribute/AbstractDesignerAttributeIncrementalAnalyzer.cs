@@ -21,7 +21,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 {
     internal abstract partial class AbstractDesignerAttributeIncrementalAnalyzer : ForegroundThreadAffinitizedObject
     {
-        private readonly IOptionService _optionService;
         private readonly IForegroundNotificationService _notificationService;
 
         private readonly IServiceProvider _serviceProvider;
@@ -37,14 +36,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
         public AbstractDesignerAttributeIncrementalAnalyzer(
             IServiceProvider serviceProvider,
-            IOptionService optionService,
             IForegroundNotificationService notificationService,
             IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
             _serviceProvider = serviceProvider;
             Contract.ThrowIfNull(_serviceProvider);
 
-            _optionService = optionService;
             _notificationService = notificationService;
 
             _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.DesignerAttribute);
@@ -72,7 +69,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (!_optionService.GetOption(InternalFeatureOnOffOptions.DesignerAttributes))
+            if (!document.Project.Solution.Workspace.Options.GetOption(InternalFeatureOnOffOptions.DesignerAttributes))
             {
                 return;
             }

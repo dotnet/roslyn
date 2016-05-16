@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
 {
@@ -1244,7 +1244,8 @@ tryAgain:
             Volatile = 0x1000,
             Unsafe = 0x2000,
             Partial = 0x4000,
-            Async = 0x8000
+            Async = 0x8000,
+            Replace = 0x10000
         }
 
         private const SyntaxModifier AccessModifiers = SyntaxModifier.Public | SyntaxModifier.Internal | SyntaxModifier.Protected | SyntaxModifier.Private;
@@ -1288,6 +1289,8 @@ tryAgain:
                             return SyntaxModifier.Partial;
                         case SyntaxKind.AsyncKeyword:
                             return SyntaxModifier.Async;
+                        case SyntaxKind.ReplaceKeyword:
+                            return SyntaxModifier.Replace;
                     }
 
                     goto default;
@@ -1384,66 +1387,23 @@ tryAgain:
                         }
                     case SyntaxModifier.Async:
                         {
-                            // Adapted from CParser::IsAsyncMethod.
-
-                            var nextToken = PeekToken(1);
-                            if (GetModifier(nextToken) != SyntaxModifier.None && !SyntaxFacts.IsContextualKeyword(nextToken.ContextualKind))
-                            {
-                                // If the next token is a (non-contextual) modifier keyword, then this token is
-                                // definitely the async keyword
-                                modTok = ConvertToKeyword(this.EatToken());
-                                modTok = CheckFeatureAvailability(modTok, MessageID.IDS_FeatureAsync);
-                                break;
-                            }
-
-                            bool isModifier = false;
-
-                            // Some of our helpers start at the current token, so we'll have to advance for their
-                            // sake and then backtrack when we're done.  Don't leave this block without releasing
-                            // the reset point.
-                            {
-                                ResetPoint resetPoint = GetResetPoint();
-
-                                this.EatToken(); //move past "async"
-
-                                if (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
-                                {
-                                    this.EatToken(); // "partial" doesn't affect our decision, so look past it.
-                                }
-
-                                // Comment directly from CParser::IsAsyncMethod.
-                                // ... 'async' [partial] <typedecl> ...
-                                // ... 'async' [partial] <event> ...
-                                // ... 'async' [partial] <implicit> <operator> ...
-                                // ... 'async' [partial] <explicit> <operator> ...
-                                // ... 'async' [partial] <typename> <operator> ...
-                                // ... 'async' [partial] <typename> <membername> ...
-                                // DEVNOTE: Although we parse async user defined conversions, operators, etc. here,
-                                // anything other than async methods are detected as erroneous later, during the define phase
-
-                                SyntaxToken currToken = this.CurrentToken;
-                                if (IsPossibleStartOfTypeDeclaration(currToken.Kind) ||
-                                    currToken.Kind == SyntaxKind.EventKeyword ||
-                                    ((currToken.Kind == SyntaxKind.ExplicitKeyword || currToken.Kind == SyntaxKind.ImplicitKeyword) && PeekToken(1).Kind == SyntaxKind.OperatorKeyword) ||
-                                    (ScanType() != ScanTypeFlags.NotType && (this.CurrentToken.Kind == SyntaxKind.OperatorKeyword || IsPossibleMemberName())))
-                                {
-                                    isModifier = true;
-                                }
-
-                                this.Reset(ref resetPoint);
-                                this.Release(ref resetPoint);
-                            }
-
-                            if (isModifier)
+                            if (ShouldCurrentContextualKeywordBeTreatedAsModifier())
                             {
                                 modTok = ConvertToKeyword(this.EatToken());
                                 modTok = CheckFeatureAvailability(modTok, MessageID.IDS_FeatureAsync);
                                 break;
                             }
-                            else
+                            return;
+                        }
+                    case SyntaxModifier.Replace:
+                        {
+                            if (ShouldCurrentContextualKeywordBeTreatedAsModifier())
                             {
-                                return;
+                                modTok = ConvertToKeyword(this.EatToken());
+                                modTok = CheckFeatureAvailability(modTok, MessageID.IDS_FeatureReplace);
+                                break;
                             }
+                            return;
                         }
                     default:
                         {
@@ -1457,6 +1417,60 @@ tryAgain:
 
                 tokens.Add(modTok);
             }
+        }
+
+        private bool ShouldCurrentContextualKeywordBeTreatedAsModifier()
+        {
+            Debug.Assert(this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword ||
+                this.CurrentToken.ContextualKind == SyntaxKind.ReplaceKeyword);
+
+            // Adapted from CParser::IsAsyncMethod.
+
+            var nextToken = PeekToken(1);
+            if (GetModifier(nextToken) != SyntaxModifier.None && !SyntaxFacts.IsContextualKeyword(nextToken.ContextualKind))
+            {
+                // If the next token is a (non-contextual) modifier keyword, then this token is
+                // definitely the async keyword
+                return true;
+            }
+
+            bool isModifier = false;
+
+            // Some of our helpers start at the current token, so we'll have to advance for their
+            // sake and then backtrack when we're done.  Don't leave this block without releasing
+            // the reset point.
+            ResetPoint resetPoint = GetResetPoint();
+
+            this.EatToken(); //move past contextual keyword
+
+            if (this.CurrentToken.ContextualKind == SyntaxKind.PartialKeyword)
+            {
+                this.EatToken(); // "partial" doesn't affect our decision, so look past it.
+            }
+
+            // Comment directly from CParser::IsAsyncMethod.
+            // ... 'async' [partial] <typedecl> ...
+            // ... 'async' [partial] <event> ...
+            // ... 'async' [partial] <implicit> <operator> ...
+            // ... 'async' [partial] <explicit> <operator> ...
+            // ... 'async' [partial] <typename> <operator> ...
+            // ... 'async' [partial] <typename> <membername> ...
+            // DEVNOTE: Although we parse async user defined conversions, operators, etc. here,
+            // anything other than async methods are detected as erroneous later, during the define phase
+
+            SyntaxToken currToken = this.CurrentToken;
+            if (IsPossibleStartOfTypeDeclaration(currToken.Kind) ||
+                currToken.Kind == SyntaxKind.EventKeyword ||
+                ((currToken.Kind == SyntaxKind.ExplicitKeyword || currToken.Kind == SyntaxKind.ImplicitKeyword) && PeekToken(1).Kind == SyntaxKind.OperatorKeyword) ||
+                (ScanType() != ScanTypeFlags.NotType && (this.CurrentToken.Kind == SyntaxKind.OperatorKeyword || IsPossibleMemberName())))
+            {
+                isModifier = true;
+            }
+
+            this.Reset(ref resetPoint);
+            this.Release(ref resetPoint);
+
+            return isModifier;
         }
 
         private void ReportDuplicateModifiers(ref SyntaxToken modTok, SyntaxModifier newMod, SyntaxModifier mods, ref bool seenNoDuplicates, ref bool seenNoAccessibilityDuplicates)
@@ -2148,12 +2162,9 @@ tryAgain:
                 case SyntaxKind.OpenBracketToken:
                 case SyntaxKind.ImplicitKeyword:
                 case SyntaxKind.ExplicitKeyword:
-                    return true;
                 case SyntaxKind.OpenParenToken:    //tuple
-                    return IsFeatureEnabled(MessageID.IDS_FeatureTuples);
-
                 case SyntaxKind.RefKeyword:
-                    return IsFeatureEnabled(MessageID.IDS_FeatureRefLocalsReturns);
+                    return true;
 
                 default:
                     return false;
@@ -2439,10 +2450,10 @@ tryAgain:
                 // indexers, and non-conversion operators -- starts with a type 
                 // (possibly void) or the ref keyword. Parse one.
                 SyntaxToken refKeyword = null;
-                if (this.CurrentToken.Kind == SyntaxKind.RefKeyword &&
-                    IsFeatureEnabled(MessageID.IDS_FeatureRefLocalsReturns))
+                if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
                 {
                     refKeyword = this.EatToken();
+                    refKeyword = CheckFeatureAvailability(refKeyword, MessageID.IDS_FeatureRefLocalsReturns);
                 }
 
                 var type = this.ParseReturnType();
@@ -2997,9 +3008,11 @@ parse_member_name:;
                 Debug.Assert(!IsInAsync);
 
                 IsInAsync = modifiers.Any(SyntaxKind.AsyncKeyword);
+                IsInReplace = modifiers.Any(SyntaxKind.ReplaceKeyword);
 
                 this.ParseBlockAndExpressionBodiesWithSemicolon(out blockBody, out expressionBody, out semicolon);
 
+                IsInReplace = false;
                 IsInAsync = false;
 
                 var decl = _syntaxFactory.MethodDeclaration(
@@ -3248,6 +3261,8 @@ parse_member_name:;
                 parameterList = this.AddErrorToLastToken(parameterList, ErrorCode.ERR_IndexerNeedsParam);
             }
 
+            IsInReplace = modifiers.Any(SyntaxKind.ReplaceKeyword);
+
             AccessorListSyntax accessorList = null;
             ArrowExpressionClauseSyntax expressionBody = null;
             SyntaxToken semicolon = null;
@@ -3278,6 +3293,8 @@ parse_member_name:;
                 expressionBody = CheckFeatureAvailability(expressionBody, MessageID.IDS_FeatureExpressionBodiedIndexer);
                 semicolon = this.EatToken(SyntaxKind.SemicolonToken);
             }
+
+            IsInReplace = false;
 
             var decl = _syntaxFactory.IndexerDeclaration(
                 attributes,
@@ -3315,6 +3332,8 @@ parse_member_name:;
             Debug.Assert(this.CurrentToken.Kind == SyntaxKind.EqualsGreaterThanToken ||
                          this.CurrentToken.Kind == SyntaxKind.OpenBraceToken);
 
+            IsInReplace = modifiers.Any(SyntaxKind.ReplaceKeyword);
+
             AccessorListSyntax accessorList = null;
             if (this.CurrentToken.Kind == SyntaxKind.OpenBraceToken)
             {
@@ -3338,6 +3357,8 @@ parse_member_name:;
                 initializer = _syntaxFactory.EqualsValueClause(equals, refKeyword: null, value: value);
                 initializer = CheckFeatureAvailability(initializer, MessageID.IDS_FeatureAutoPropertyInitializer);
             }
+
+            IsInReplace = false;
 
             SyntaxToken semicolon = null;
             if (expressionBody != null || initializer != null)
@@ -3413,10 +3434,10 @@ parse_member_name:;
             var arrowToken = this.EatToken(SyntaxKind.EqualsGreaterThanToken);
 
             var refKeyword = default(SyntaxToken);
-            if (this.CurrentToken.Kind == SyntaxKind.RefKeyword &&
-                IsFeatureEnabled(MessageID.IDS_FeatureRefLocalsReturns))
+            if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
             {
                 refKeyword = this.EatToken();
+                refKeyword = CheckFeatureAvailability(refKeyword, MessageID.IDS_FeatureRefLocalsReturns);
             }
 
             return _syntaxFactory.ArrowExpressionClause(arrowToken, refKeyword, this.ParseExpressionCore());
@@ -4031,15 +4052,12 @@ tryAgain:
                 case SyntaxKind.OutKeyword:
                 case SyntaxKind.ParamsKeyword:
                 case SyntaxKind.ArgListKeyword:
-                    return true;
                 case SyntaxKind.OpenParenToken:   // tuple
-                    if (IsFeatureEnabled(MessageID.IDS_FeatureTuples))
-                    {
-                        return true;
-                    }
-                    goto default;
+                    return true;
+
                 case SyntaxKind.ThisKeyword:
                     return allowThisKeyword;
+
                 case SyntaxKind.IdentifierToken:
                     return this.IsTrueIdentifier();
 
@@ -4444,7 +4462,11 @@ tryAgain:
                 identifier = this.AddError(identifier, ErrorCode.ERR_UnexpectedGenericName);
             }
 
+            IsInReplace = modifiers.Any(SyntaxKind.ReplaceKeyword);
+
             var accessorList = this.ParseAccessorList(isEvent: true);
+
+            IsInReplace = false;
 
             var decl = _syntaxFactory.EventDeclaration(
                 attributes,
@@ -4859,10 +4881,10 @@ tryAgain:
 
                     SyntaxToken refKeyword = null;
                     if (isLocal && !isConst &&
-                        this.CurrentToken.Kind == SyntaxKind.RefKeyword &&
-                        IsFeatureEnabled(MessageID.IDS_FeatureRefLocalsReturns))
+                        this.CurrentToken.Kind == SyntaxKind.RefKeyword)
                     {
                         refKeyword = this.EatToken();
+                        refKeyword = CheckFeatureAvailability(refKeyword, MessageID.IDS_FeatureRefLocalsReturns);
                     }
 
                     var init = this.ParseVariableInitializer(isLocal && !isConst);
@@ -5041,10 +5063,10 @@ tryAgain:
             var delegateToken = this.EatToken(SyntaxKind.DelegateKeyword);
 
             SyntaxToken refKeyword = null;
-            if (this.CurrentToken.Kind == SyntaxKind.RefKeyword &&
-                IsFeatureEnabled(MessageID.IDS_FeatureRefLocalsReturns))
+            if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
             {
                 refKeyword = this.EatToken();
+                refKeyword = CheckFeatureAvailability(refKeyword, MessageID.IDS_FeatureRefLocalsReturns);
             }
 
             var type = this.ParseReturnType();
@@ -6194,7 +6216,7 @@ tryAgain:
                 lastTokenOfType = this.EatToken();
                 result = ScanTypeFlags.MustBeType;
             }
-            else if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken && IsFeatureEnabled(MessageID.IDS_FeatureTuples))
+            else if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
             {
                 lastTokenOfType = this.EatToken();
 
@@ -6525,6 +6547,8 @@ tryAgain:
                     result = this.AddError(result, ErrorCode.ERR_TupleTooFewElements);
                 }
 
+                result = CheckFeatureAvailability(result, MessageID.IDS_FeatureTuples);
+
                 return result;
             }
             finally
@@ -6571,7 +6595,7 @@ tryAgain:
             {
                 return this.ParseQualifiedName();
             }
-            else if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken && IsFeatureEnabled(MessageID.IDS_FeatureTuples))
+            else if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
             {
                 return this.ParseTupleType();
             }
@@ -7303,11 +7327,12 @@ tryAgain:
                 case SyntaxKind.StaticKeyword:
                 case SyntaxKind.ReadOnlyKeyword:
                 case SyntaxKind.VolatileKeyword:
-                    return true;
                 case SyntaxKind.RefKeyword:
-                    return IsFeatureEnabled(MessageID.IDS_FeatureRefLocalsReturns);
+                    return true;
+
                 case SyntaxKind.IdentifierToken:
                     return IsTrueIdentifier();
+
                 case SyntaxKind.CatchKeyword:
                 case SyntaxKind.FinallyKeyword:
                     return !_isInTry;
@@ -7676,10 +7701,11 @@ tryAgain:
                 SyntaxToken refKeyword = null;
                 VariableDeclarationSyntax decl = null;
                 bool isDeclaration = false;
-                if (this.CurrentToken.Kind == SyntaxKind.RefKeyword &&
-                    IsFeatureEnabled(MessageID.IDS_FeatureRefLocalsReturns))
+                if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
                 {
                     refKeyword = this.EatToken();
+                    refKeyword = CheckFeatureAvailability(refKeyword, MessageID.IDS_FeatureRefLocalsReturns);
+
                     isDeclaration = true;
                 }
                 else
@@ -7906,10 +7932,10 @@ tryAgain:
             ExpressionSyntax arg = null;
             if (this.CurrentToken.Kind != SyntaxKind.SemicolonToken)
             {
-                if (this.CurrentToken.Kind == SyntaxKind.RefKeyword &&
-                    IsFeatureEnabled(MessageID.IDS_FeatureRefLocalsReturns))
+                if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
                 {
                     refKeyword = this.EatToken();
+                    refKeyword = CheckFeatureAvailability(refKeyword, MessageID.IDS_FeatureRefLocalsReturns);
                 }
                 arg = this.ParseExpressionCore();
             }
@@ -8237,15 +8263,15 @@ tryAgain:
                 this.ParseDeclarationModifiers(mods);
 
                 SyntaxToken refKeyword = null;
-                if (this.CurrentToken.Kind == SyntaxKind.RefKeyword &&
-                    IsFeatureEnabled(MessageID.IDS_FeatureRefLocalsReturns))
+                if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
                 {
                     refKeyword = this.EatToken();
+                    refKeyword = CheckFeatureAvailability(refKeyword, MessageID.IDS_FeatureRefLocalsReturns);
                 }
 
                 TypeSyntax type;
                 LocalFunctionStatementSyntax localFunction;
-                this.ParseLocalDeclaration(out type, variables, true, mods.ToTokenList(), refKeyword, out localFunction);
+                this.ParseLocalDeclaration(variables, true, mods.ToTokenList(), refKeyword, out type, out localFunction);
                 if (localFunction != null)
                 {
                     Debug.Assert(variables.Count == 0);
@@ -8295,7 +8321,7 @@ tryAgain:
             var variables = _pool.AllocateSeparated<VariableDeclaratorSyntax>();
             TypeSyntax type;
             LocalFunctionStatementSyntax localFunction;
-            ParseLocalDeclaration(out type, variables, false, default(SyntaxList<SyntaxToken>), default(SyntaxToken), out localFunction);
+            ParseLocalDeclaration(variables, false, default(SyntaxList<SyntaxToken>), default(SyntaxToken), out type, out localFunction);
             Debug.Assert(localFunction == null);
             var result = _syntaxFactory.VariableDeclaration(type, variables);
             _pool.Free(variables);
@@ -8303,15 +8329,13 @@ tryAgain:
         }
 
         private void ParseLocalDeclaration(
-            out TypeSyntax type,
             SeparatedSyntaxListBuilder<VariableDeclaratorSyntax> variables,
             bool allowLocalFunctions,
             SyntaxList<SyntaxToken> mods,
             SyntaxToken refTokenOpt,
+            out TypeSyntax type,
             out LocalFunctionStatementSyntax localFunction)
         {
-            allowLocalFunctions = allowLocalFunctions && IsFeatureEnabled(MessageID.IDS_FeatureLocalFunctions);
-
             type = allowLocalFunctions ? ParseReturnType() : this.ParseType(false);
 
             VariableFlags flags = VariableFlags.Local;
@@ -8336,6 +8360,11 @@ tryAgain:
             if (allowLocalFunctions && localFunction == null && (type as PredefinedTypeSyntax)?.Keyword.Kind == SyntaxKind.VoidKeyword)
             {
                 type = this.AddError(type, ErrorCode.ERR_NoVoidHere);
+            }
+
+            if ((object)localFunction != null)
+            {
+                localFunction = CheckFeatureAvailability(localFunction, MessageID.IDS_FeatureLocalFunctions);
             }
         }
 
@@ -9069,7 +9098,13 @@ tryAgain:
                 case SyntaxKind.IdentifierToken:
                     if (this.IsTrueIdentifier())
                     {
-                        if (this.CurrentToken.ContextualKind == SyntaxKind.AsyncKeyword && this.PeekToken(1).Kind == SyntaxKind.DelegateKeyword)
+                        var contextualKind = this.CurrentToken.ContextualKind;
+                        if (contextualKind == SyntaxKind.OriginalKeyword && this.IsInReplace)
+                        {
+                            var token = ConvertToKeyword(this.EatToken());
+                            expr = _syntaxFactory.OriginalExpression(token);
+                        }
+                        else if (contextualKind == SyntaxKind.AsyncKeyword && this.PeekToken(1).Kind == SyntaxKind.DelegateKeyword)
                         {
                             expr = this.ParseAnonymousMethodExpression();
                         }
@@ -9540,31 +9575,25 @@ tryAgain:
                 && (!this.IsInQuery || !IsTokenQueryContextualKeyword(this.PeekToken(1)))
                 && this.PeekToken(2).Kind == SyntaxKind.CommaToken)
             {
-                if (IsFeatureEnabled(MessageID.IDS_FeatureTuples))
+                // Make sure it really looks like a lambda, not just a tuple
+                int curTk = 3;
+                while (true)
                 {
-                    int curTk = 3;
-                    while (true)
+                    var tk = this.PeekToken(curTk++);
+
+                    // skip  identifiers commas and predefined types in any combination for error recovery
+                    if (tk.Kind != SyntaxKind.IdentifierToken
+                        && !SyntaxFacts.IsPredefinedType(tk.Kind)
+                        && tk.Kind != SyntaxKind.CommaToken
+                        && (this.IsInQuery || !IsTokenQueryContextualKeyword(tk)))
                     {
-                        var tk = this.PeekToken(curTk++);
-
-                        // skip  identifiers commas and predefined types in any combination for error recovery
-                        if (tk.Kind != SyntaxKind.IdentifierToken
-                            && !SyntaxFacts.IsPredefinedType(tk.Kind)
-                            && tk.Kind != SyntaxKind.CommaToken
-                            && (this.IsInQuery || !IsTokenQueryContextualKeyword(tk)))
-                        {
-                            break;
-                        };
-                    }
-
-                    // ) =>
-                    return this.PeekToken(curTk - 1).Kind == SyntaxKind.CloseParenToken &&
-                           this.PeekToken(curTk).Kind == SyntaxKind.EqualsGreaterThanToken;
+                        break;
+                    };
                 }
-                else
-                {
-                    return true;
-                }
+
+                // ) =>
+                return this.PeekToken(curTk - 1).Kind == SyntaxKind.CloseParenToken &&
+                       this.PeekToken(curTk).Kind == SyntaxKind.EqualsGreaterThanToken;
             }
 
             //  case 2:  ( x ) =>
@@ -9714,25 +9743,22 @@ tryAgain:
                     var openParen = this.EatToken(SyntaxKind.OpenParenToken);
                     var expression = this.ParseSubExpression(Precedence.Expression);
 
-                    if (IsFeatureEnabled(MessageID.IDS_FeatureTuples))
+                    //  ( <expr>,    must be a tuple
+                    if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
                     {
-                        //  ( <expr>,    must be a tuple
-                        if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
-                        {
-                            var firstArg = _syntaxFactory.Argument(nameColon: null, refOrOutKeyword: default(SyntaxToken), expression: expression);
-                            return ParseTupleExpressionTail(openParen, firstArg);
-                        }
+                        var firstArg = _syntaxFactory.Argument(nameColon: null, refOrOutKeyword: default(SyntaxToken), expression: expression);
+                        return ParseTupleExpressionTail(openParen, firstArg);
+                    }
 
-                        // ( name:
-                        if (expression.Kind == SyntaxKind.IdentifierName &&
-                            this.CurrentToken.Kind == SyntaxKind.ColonToken)
-                        {
-                            var nameColon = _syntaxFactory.NameColon((IdentifierNameSyntax)expression, EatToken());
-                            expression = ParseSubExpression(0);
+                    // ( name:
+                    if (expression.Kind == SyntaxKind.IdentifierName &&
+                        this.CurrentToken.Kind == SyntaxKind.ColonToken)
+                    {
+                        var nameColon = _syntaxFactory.NameColon((IdentifierNameSyntax)expression, EatToken());
+                        expression = ParseSubExpression(0);
 
-                            var firstArg = _syntaxFactory.Argument(nameColon, refOrOutKeyword: default(SyntaxToken), expression: expression);
-                            return ParseTupleExpressionTail(openParen, firstArg);
-                        }
+                        var firstArg = _syntaxFactory.Argument(nameColon, refOrOutKeyword: default(SyntaxToken), expression: expression);
+                        return ParseTupleExpressionTail(openParen, firstArg);
                     }
 
                     var closeParen = this.EatToken(SyntaxKind.CloseParenToken);
@@ -9783,6 +9809,8 @@ tryAgain:
                 {
                     result = this.AddError(result, ErrorCode.ERR_TupleTooFewElements);
                 }
+
+                result = CheckFeatureAvailability(result, MessageID.IDS_FeatureTuples);
 
                 return result;
             }
@@ -10583,10 +10611,10 @@ tryAgain:
                 }
                 else
                 {
-                    if (this.CurrentToken.Kind == SyntaxKind.RefKeyword &&
-                        IsFeatureEnabled(MessageID.IDS_FeatureRefLocalsReturns))
+                    if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
                     {
                         refKeyword = this.EatToken();
+                        refKeyword = CheckFeatureAvailability(refKeyword, MessageID.IDS_FeatureRefLocalsReturns);
                     }
 
                     body = this.ParseExpressionCore();
@@ -10607,10 +10635,10 @@ tryAgain:
                 }
                 else
                 {
-                    if (this.CurrentToken.Kind == SyntaxKind.RefKeyword &&
-                        IsFeatureEnabled(MessageID.IDS_FeatureRefLocalsReturns))
+                    if (this.CurrentToken.Kind == SyntaxKind.RefKeyword)
                     {
                         refKeyword = this.EatToken();
+                        refKeyword = CheckFeatureAvailability(refKeyword, MessageID.IDS_FeatureRefLocalsReturns);
                     }
 
                     body = this.ParseExpressionCore();
@@ -10694,15 +10722,12 @@ tryAgain:
                 // recovery purposes and then give an error during semantic analysis.
                 case SyntaxKind.RefKeyword:
                 case SyntaxKind.OutKeyword:
-                    return true;
                 case SyntaxKind.OpenParenToken:   // tuple
-                    if (IsFeatureEnabled(MessageID.IDS_FeatureTuples))
-                    {
-                        return true;
-                    }
-                    goto default;
+                    return true;
+
                 case SyntaxKind.IdentifierToken:
                     return this.IsTrueIdentifier();
+
                 default:
                     return IsPredefinedType(this.CurrentToken.Kind);
             }
@@ -11187,9 +11212,27 @@ tryAgain:
             _syntaxFactoryContext.QueryDepth--;
         }
 
+        private bool IsInReplace
+        {
+            get
+            {
+                return _syntaxFactoryContext.IsInReplace;
+            }
+            set
+            {
+                _syntaxFactoryContext.IsInReplace = value;
+            }
+        }
+
         private new ResetPoint GetResetPoint()
         {
-            return new ResetPoint(base.GetResetPoint(), _termState, _isInTry, _syntaxFactoryContext.IsInAsync, _syntaxFactoryContext.QueryDepth);
+            return new ResetPoint(
+                base.GetResetPoint(),
+                _termState,
+                _isInTry,
+                _syntaxFactoryContext.IsInAsync,
+                _syntaxFactoryContext.IsInReplace,
+                _syntaxFactoryContext.QueryDepth);
         }
 
         private void Reset(ref ResetPoint state)
@@ -11197,6 +11240,7 @@ tryAgain:
             _termState = state.TerminatorState;
             _isInTry = state.IsInTry;
             _syntaxFactoryContext.IsInAsync = state.IsInAsync;
+            _syntaxFactoryContext.IsInReplace = state.IsInReplace;
             _syntaxFactoryContext.QueryDepth = state.QueryDepth;
             base.Reset(ref state.BaseResetPoint);
         }
@@ -11212,6 +11256,7 @@ tryAgain:
             internal readonly TerminatorState TerminatorState;
             internal readonly bool IsInTry;
             internal readonly bool IsInAsync;
+            internal readonly bool IsInReplace;
             internal readonly int QueryDepth;
 
             internal ResetPoint(
@@ -11219,12 +11264,14 @@ tryAgain:
                 TerminatorState terminatorState,
                 bool isInTry,
                 bool isInAsync,
+                bool isInReplace,
                 int queryDepth)
             {
                 this.BaseResetPoint = resetPoint;
                 this.TerminatorState = terminatorState;
                 this.IsInTry = isInTry;
                 this.IsInAsync = isInAsync;
+                this.IsInReplace = isInReplace;
                 this.QueryDepth = queryDepth;
             }
         }

@@ -54,6 +54,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return options.WithFeature(MessageID.IDS_FeatureLocalFunctions.RequiredFeature(), "true");
         }
 
+        public static CSharpParseOptions WithRefsFeature(this CSharpParseOptions options)
+        {
+            return options.WithFeature(MessageID.IDS_FeatureRefLocalsReturns.RequiredFeature(), "true");
+        }
+
         public static CSharpParseOptions WithStrictFeature(this CSharpParseOptions options)
         {
             return options.WithFeature("strict", "true");
@@ -62,6 +67,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static CSharpParseOptions WithTuplesFeature(this CSharpParseOptions options)
         {
             return options.WithFeature("tuples", "true");
+        }
+
+        public static CSharpParseOptions WithPatternsFeature(this CSharpParseOptions options)
+        {
+            return options.WithFeature("patterns", "true");
+        }
+
+        public static CSharpParseOptions WithReplaceFeature(this CSharpParseOptions options)
+        {
+            return options.WithFeature("replace", "true");
         }
     }
 }

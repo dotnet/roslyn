@@ -240,6 +240,9 @@
   <data name="IDS_FeaturePartialMethod" xml:space="preserve">
     <value>partial method</value>
   </data>
+  <data name="IDS_FeatureReplace" xml:space="preserve">
+    <value>replaced members</value>
+  </data>  
   <data name="IDS_SK_METHOD" xml:space="preserve">
     <value>method</value>
   </data>
@@ -4233,9 +4236,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ElementIsExpected" xml:space="preserve">
     <value>element is expected</value>
   </data>
-  <data name="MustCallSetMethodTestData" xml:space="preserve">
-    <value>Must call SetMethodTestData(ConcurrentDictionary) before calling SetMethodTestData(MethodSymbol, ILBuilder)</value>
-  </data>
   <data name="GenericParameterDefinition" xml:space="preserve">
     <value>Generic parameter is definition when expected to be reference {0}</value>
   </data>
@@ -4818,14 +4818,23 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RefReturningCallAndAwait" xml:space="preserve">
     <value>'await' cannot be used in an expression containing a call to '{0}' because it returns by reference</value>
   </data>
+  <data name="ERR_NoOriginalMember" xml:space="preserve">
+    <value>No original member for '{0}'</value>
+  </data>
+  <data name="ERR_DuplicateReplace" xml:space="preserve">
+    <value>Type already contains a replacement for '{0}'</value>
+  </data>
+  <data name="ERR_PartialReplace" xml:space="preserve">
+    <value>Replacement methods cannot be partial</value>
+  </data>
   <data name="ERR_ExpressionTreeContainsLocalFunction" xml:space="preserve">
     <value>An expression tree may not contain a reference to a local function</value>
   </data>
   <data name="ERR_ReturnTypesDontMatch" xml:space="preserve">
     <value>Cannot infer the return type of '{0}' due to differing return types.</value>
   </data>
-  <data name="ERR_DynamicLocalFunctionParameter" xml:space="preserve">
-    <value>Cannot invoke the local function '{0}' with dynamic parameters.</value>
+  <data name="ERR_DynamicLocalFunctionParamsParameter" xml:space="preserve">
+    <value>Cannot pass argument with dynamic type to params parameter '{0}' of local function '{1}'.</value>
   </data>
   <data name="ERR_CantInferVoid" xml:space="preserve">
     <value>Cannot infer the type of '{0}' as it does not return a value.</value>
@@ -4859,5 +4868,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_PredefinedTypeMemberNotFoundInAssembly" xml:space="preserve">
     <value>Member '{0}' was not found on type '{1}' from assembly '{2}'.</value>
+  </data>
+  <data name="IDS_FeatureTuples" xml:space="preserve">
+    <value>tuples</value>
   </data>
 </root>

@@ -150,8 +150,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             this.Compilation.Compile(
                 module,
-                win32Resources: null,
-                xmlDocStream: null,
                 emittingPdb: false,
                 diagnostics: diagnostics,
                 filterOpt: null,
@@ -213,8 +211,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             this.Compilation.Compile(
                 module,
-                win32Resources: null,
-                xmlDocStream: null,
                 emittingPdb: false,
                 diagnostics: diagnostics,
                 filterOpt: null,
@@ -404,8 +400,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             this.Compilation.Compile(
                 module,
-                win32Resources: null,
-                xmlDocStream: null,
                 emittingPdb: false,
                 diagnostics: diagnostics,
                 filterOpt: null,

@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -424,6 +425,19 @@ namespace Microsoft.CodeAnalysis
         private string GetDebuggerDisplay()
         {
             return this.Name;
+        }
+
+        /// <summary>
+        /// Returns the options that should be applied to this document. This consists of global options from <see cref="Solution.Options"/>,
+        /// merged with any settings the user has specified at the solution, project, and document levels.
+        /// </summary>
+        public DocumentOptionSet Options
+        {
+            get
+            {
+                // TODO: merge with document-specific options
+                return new DocumentOptionSet(Project.Solution.Options, Project.Language);
+            }
         }
     }
 }

@@ -4,6 +4,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.FullyQualify;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -458,6 +459,26 @@ public class Program { static void M() { [|Xaml|] } }",
 @"namespace MS.Internal.Xaml { public class A { } }
 namespace System.Xaml { public class A { } }
 public class Program { static void M() { MS.Internal.Xaml } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        public async Task TupleTest()
+        {
+            await TestAsync(
+@"class Class { ([|IDictionary|], string) Method() { Foo(); } }",
+@"class Class { (System.Collections.IDictionary, string) Method() { Foo(); } }",
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        public async Task TupleWithOneName()
+        {
+            await TestAsync(
+@"class Class { ([|IDictionary|] a, string) Method() { Foo(); } }",
+@"class Class { (System.Collections.IDictionary a, string) Method() { Foo(); } }",
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
         }
     }
 }

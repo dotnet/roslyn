@@ -177,7 +177,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
         End Class
 
         Private Class WorkspaceHost
-            Implements IVisualStudioWorkspaceHost
+            Implements IVisualStudioWorkspaceHost, IVisualStudioWorkspaceHost2
 
             Private _workspace As TestWorkspace
 
@@ -239,6 +239,14 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.ProjectSystemShim.Fr
 
             Public Sub OnDocumentTextUpdatedOnDisk(id As DocumentId) Implements IVisualStudioWorkspaceHost.OnDocumentTextUpdatedOnDisk
                 Throw New NotImplementedException()
+            End Sub
+
+            Public Sub OnHasAllInformation(projectId As ProjectId, hasAllInformation As Boolean) Implements IVisualStudioWorkspaceHost2.OnHasAllInformation
+                Throw New NotImplementedException()
+            End Sub
+
+            Public Sub UpdateGeneratedDocumentsIfNecessary(projectId As ProjectId) Implements IVisualStudioWorkspaceHost2.UpdateGeneratedDocumentsIfNecessary
+                _workspace.UpdateGeneratedDocumentsIfNecessary(projectId)
             End Sub
 
             Public Sub OnMetadataReferenceAdded(projectId As ProjectId, metadataReference As PortableExecutableReference) Implements IVisualStudioWorkspaceHost.OnMetadataReferenceAdded

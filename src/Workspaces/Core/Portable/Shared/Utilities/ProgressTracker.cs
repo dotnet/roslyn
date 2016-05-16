@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
     /// <summary>
     /// Utility class that can be used to track the progress of an operation in a threadsafe manner.
     /// </summary>
-    internal class ProgressTracker
+    internal class ProgressTracker : IProgressTracker
     {
         private int _completedItems;
         private int _totalItems;
@@ -51,6 +51,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         public void ItemCompleted()
         {
             Interlocked.Increment(ref _completedItems);
+            Update();
+        }
+
+        public void Clear()
+        {
+            _totalItems = 0;
+            _completedItems = 0;
             Update();
         }
 
