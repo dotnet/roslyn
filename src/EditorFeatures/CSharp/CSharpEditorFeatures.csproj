@@ -91,10 +91,6 @@
     <Compile Include="ChangeSignature\ChangeSignatureCommandHandler.cs" />
     <Compile Include="Classification\CSharpEditorClassificationService.cs" />
     <Compile Include="CommentSelection\CSharpCommentUncommentService.cs" />
-    <Compile Include="Completion\CompletionProviders\OverrideCompletionProvider.cs" />
-    <Compile Include="Completion\CompletionProviders\PartialCompletionProvider.cs" />
-    <Compile Include="Completion\CompletionProviders\XmlDocCommentCompletion\XmlDocCommentCompletionItemRules.cs" />
-    <Compile Include="Completion\CompletionProviders\XmlDocCommentCompletion\XmlDocCommentCompletionProvider.cs" />
     <Compile Include="ContentType\ContentTypeDefinitions.cs" />
     <Compile Include="CSharpEditorResources.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -197,21 +193,6 @@
     <Compile Include="ReferenceHighlighting\ReferenceHighlightingAdditionalReferenceProvider.cs" />
     <Compile Include="RenameTracking\CSharpRenameTrackingCodeFixProvider.cs" />
     <Compile Include="RenameTracking\CSharpRenameTrackingLanguageHeuristicsService.cs" />
-    <Compile Include="SignatureHelp\AbstractCSharpSignatureHelpProvider.cs" />
-    <Compile Include="SignatureHelp\AttributeSignatureHelpProvider.cs" />
-    <Compile Include="SignatureHelp\ConstructorInitializerSignatureHelpProvider.cs" />
-    <Compile Include="SignatureHelp\ElementAccessExpressionSignatureHelpProvider.cs" />
-    <Compile Include="SignatureHelp\GenericNamePartiallyWrittenSignatureHelpProvider.cs" />
-    <Compile Include="SignatureHelp\GenericNameSignatureHelpProvider.cs" />
-    <Compile Include="SignatureHelp\GenericNameSignatureHelpProvider_Method.cs" />
-    <Compile Include="SignatureHelp\GenericNameSignatureHelpProvider_NamedType.cs" />
-    <Compile Include="SignatureHelp\InvocationExpressionSignatureHelpProvider.cs" />
-    <Compile Include="SignatureHelp\InvocationExpressionSignatureHelpProvider_DelegateInvoke.cs" />
-    <Compile Include="SignatureHelp\InvocationExpressionSignatureHelpProvider_MethodGroup.cs" />
-    <Compile Include="SignatureHelp\ObjectCreationExpressionSignatureHelpProvider.cs" />
-    <Compile Include="SignatureHelp\ObjectCreationExpressionSignatureHelpProvider_DelegateType.cs" />
-    <Compile Include="SignatureHelp\ObjectCreationExpressionSignatureHelpProvider_NormalType.cs" />
-    <Compile Include="SignatureHelp\SignatureHelpUtilities.cs" />
     <Compile Include="TextStructureNavigation\TextStructureNavigatorProvider.cs" />
     <Compile Include="TodoComment\CSharpTodoCommentIncrementalAnalyzerProvider.cs" />
     <Compile Include="UseAutoProperty\UseAutoPropertyAnalyzer.cs" />
@@ -238,7 +219,9 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Folder Include="Completion\" />
+  </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
   </ImportGroup>

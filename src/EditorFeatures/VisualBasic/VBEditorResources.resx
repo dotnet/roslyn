@@ -171,9 +171,6 @@
   <data name="MultipleTypes" xml:space="preserve">
     <value>&lt;Multiple Types&gt;</value>
   </data>
-  <data name="Properties" xml:space="preserve">
-    <value>Properties</value>
-  </data>
   <data name="NotSupported" xml:space="preserve">
     <value>not supported</value>
   </data>

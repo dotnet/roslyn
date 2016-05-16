@@ -69,8 +69,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Dim newBaseline As EmitBaseline = Nothing
 
             If compilation.Compile(moduleBeingBuilt,
-                                   win32Resources:=Nothing,
-                                   xmlDocStream:=Nothing,
                                    emittingPdb:=True,
                                    diagnostics:=diagnostics,
                                    filterOpt:=AddressOf changes.RequiresCompilation,

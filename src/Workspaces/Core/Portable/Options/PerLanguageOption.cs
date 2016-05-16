@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Options
 {
@@ -10,13 +8,8 @@ namespace Microsoft.CodeAnalysis.Options
     /// An option that can be specified once per language.
     /// </summary>
     /// <typeparam name="T"></typeparam>
-    public class PerLanguageOption<T> : IOption2, IOption
+    public class PerLanguageOption<T> : IOption
     {
-        /// <summary>
-        /// Save per language defaults
-        /// </summary>
-        private readonly IImmutableDictionary<string, T> _perLanguageDefaults;
-
         /// <summary>
         /// Feature this option is associated with.
         /// </summary>
@@ -40,32 +33,7 @@ namespace Microsoft.CodeAnalysis.Options
         /// </summary>
         public T DefaultValue { get; }
 
-        /// <summary>
-        /// The default option value of specific language
-        /// </summary>
-        internal T GetDefaultValue(string language)
-        {
-            if (_perLanguageDefaults.Count == 0)
-            {
-                return DefaultValue;
-            }
-
-            T languageSpecificDefault;
-            if (!_perLanguageDefaults.TryGetValue(language, out languageSpecificDefault))
-            {
-                return DefaultValue;
-            }
-
-            return languageSpecificDefault;
-        }
-
-        public PerLanguageOption(string feature, string name, T defaultValue) :
-            this(feature, name, defaultValue, ImmutableDictionary<string, T>.Empty)
-        {
-        }
-
-        internal PerLanguageOption(
-            string feature, string name, T defaultValue, IDictionary<string, T> perLanguageDefaults)
+        public PerLanguageOption(string feature, string name, T defaultValue)
         {
             if (string.IsNullOrWhiteSpace(feature))
             {
@@ -77,18 +45,9 @@ namespace Microsoft.CodeAnalysis.Options
                 throw new ArgumentException(nameof(name));
             }
 
-            if (perLanguageDefaults == null)
-            {
-                throw new ArgumentNullException(nameof(perLanguageDefaults));
-            }
-
             this.Feature = feature;
             this.Name = name;
             this.DefaultValue = defaultValue;
-
-            this._perLanguageDefaults =
-                (perLanguageDefaults as IImmutableDictionary<string, T>) ??
-                        ImmutableDictionary.CreateRange<string, T>(perLanguageDefaults);
         }
 
         Type IOption.Type
@@ -104,11 +63,6 @@ namespace Microsoft.CodeAnalysis.Options
         bool IOption.IsPerLanguage
         {
             get { return true; }
-        }
-
-        object IOption2.GetDefaultValue(string language)
-        {
-            return this.GetDefaultValue(language);
         }
 
         public override string ToString()

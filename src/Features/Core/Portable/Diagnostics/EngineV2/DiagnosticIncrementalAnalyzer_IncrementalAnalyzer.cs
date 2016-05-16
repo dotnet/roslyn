@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Options;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
@@ -82,7 +83,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var includeSuppressedDiagnostics = true;
                 var analyzerDriverOpt = await _compilationManager.CreateAnalyzerDriverAsync(project, activeAnalyzers, includeSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
 
-                var result = await _executor.GetProjectAnalysisDataAsync(analyzerDriverOpt, project, stateSets, cancellationToken).ConfigureAwait(false);
+                var ignoreFullAnalysisOptions = false;
+                var result = await _executor.GetProjectAnalysisDataAsync(analyzerDriverOpt, project, stateSets, ignoreFullAnalysisOptions, cancellationToken).ConfigureAwait(false);
                 if (result.FromCache)
                 {
                     RaiseProjectDiagnosticsIfNeeded(project, stateSets, result.Result);
@@ -104,15 +106,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        public override Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
+        public override async Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_DocumentOpen, GetOpenLogMessage, document, cancellationToken))
             {
+                var stateSets = _stateManager.GetStateSets(document.Project);
+
                 // let other component knows about this event
                 _compilationManager.OnDocumentOpened();
-
-                // here we dont need to raise any event, it will be taken cared by analyze methods.
-                return SpecializedTasks.EmptyTask;
+                await _stateManager.OnDocumentOpenedAsync(stateSets, document).ConfigureAwait(false);
             }
         }
 
@@ -128,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
         }
 
-        public override async Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
+        public override Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Diagnostics_DocumentReset, GetResetLogMessage, document, cancellationToken))
             {
@@ -136,8 +138,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // let other components knows about this event
                 _compilationManager.OnDocumentReset();
-                await _stateManager.OnDocumentResetAsync(stateSets, document).ConfigureAwait(false);
+                _stateManager.OnDocumentReset(stateSets, document);
             }
+
+            return SpecializedTasks.EmptyTask;
         }
 
         public override void RemoveDocument(DocumentId documentId)
@@ -221,6 +225,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
         {
             // Get stateSets that should be run for full analysis
 
+            // if full analysis is off, remove state that is from build.
+            // this will make sure diagnostics (converted from build to live) from build will never be cleared
+            // until next build.
+            if (!ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(project))
+            {
+                stateSets = stateSets.Where(s => !s.FromBuild(project.Id));
+            }
+
             // include all analyzers if option is on
             if (project.Solution.Workspace.Options.GetOption(InternalDiagnosticsOptions.ProcessHiddenDiagnostics))
             {
@@ -230,6 +242,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             // Include only one we want to run for full solution analysis.
             // stateSet not included here will never be saved because result is unknown.
             return stateSets.Where(s => ShouldRunForFullProject(s.Analyzer, project));
+        }
+
+        private bool ShouldRunForFullProject(DiagnosticAnalyzer analyzer, Project project)
+        {
+            // PERF: Don't query descriptors for compiler analyzer, always execute it.
+            if (HostAnalyzerManager.IsCompilerDiagnosticAnalyzer(project.Language, analyzer))
+            {
+                return true;
+            }
+
+            // most of analyzers, number of descriptor is quite small, so this should be cheap.
+            return Owner.GetDiagnosticDescriptors(analyzer).Any(d => GetEffectiveSeverity(d, project.CompilationOptions) != ReportDiagnostic.Hidden);
         }
 
         private void RaiseProjectDiagnosticsIfNeeded(
@@ -378,18 +402,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             }
 
             RaiseDiagnosticsRemoved(projectId, nullSolution, stateSet, raiseEvents);
-        }
-
-        private bool ShouldRunForFullProject(DiagnosticAnalyzer analyzer, Project project)
-        {
-            // PERF: Don't query descriptors for compiler analyzer, always execute it.
-            if (HostAnalyzerManager.IsCompilerDiagnosticAnalyzer(project.Language, analyzer))
-            {
-                return true;
-            }
-
-            // most of analyzers, number of descriptor is quite small, so this should be cheap.
-            return Owner.GetDiagnosticDescriptors(analyzer).Any(d => GetEffectiveSeverity(d, project.CompilationOptions) != ReportDiagnostic.Hidden);
         }
     }
 }

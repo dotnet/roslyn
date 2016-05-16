@@ -80,6 +80,42 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add both.
+        /// </summary>
+        internal static string Add_both {
+            get {
+                return ResourceManager.GetString("Add_both", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add default switch case.
+        /// </summary>
+        internal static string Add_default_switch_case {
+            get {
+                return ResourceManager.GetString("Add_default_switch_case", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add missing switch cases.
+        /// </summary>
+        internal static string Add_missing_switch_cases {
+            get {
+                return ResourceManager.GetString("Add_missing_switch_cases", resourceCulture);
+            }
+        }
+
+        /// <summary>
+        ///   Looks up a localized string similar to Add braces.
+        /// </summary>
+        internal static string AddBraces {
+            get {
+                return ResourceManager.GetString("AddBraces", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Adding &apos;{0}&apos; around an active statement will prevent the debug session from continuing..
         /// </summary>
         internal static string AddingAAroundAnActiveStatement {
@@ -193,15 +229,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string AddingUserDefinedOperator {
             get {
                 return ResourceManager.GetString("AddingUserDefinedOperator", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Add missing switch cases.
-        /// </summary>
-        internal static string AddMissingSwitchCases {
-            get {
-                return ResourceManager.GetString("AddMissingSwitchCases", resourceCulture);
             }
         }
         
@@ -2645,6 +2672,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string UseTheNavigationBarToSwitchContext {
             get {
                 return ResourceManager.GetString("UseTheNavigationBarToSwitchContext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Variadic SignatureHelpItem must have at least one parameter..
+        /// </summary>
+        internal static string VariadicSignaturehelpitemMustHaveOneParam {
+            get {
+                return ResourceManager.GetString("VariadicSignaturehelpitemMustHaveOneParam", resourceCulture);
             }
         }
         

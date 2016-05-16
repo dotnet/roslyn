@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override void MethodChecks(DiagnosticBag diagnostics)
         {
             var syntax = GetSyntax();
-            var bodyBinder = this.DeclaringCompilation.GetBinder(syntaxReferenceOpt);
+            var bodyBinder = this.DeclaringCompilation.GetBinderFactory(syntaxReferenceOpt.SyntaxTree).GetBinder(syntax, syntax, this);
             _lazyReturnType = bodyBinder.GetSpecialType(SpecialType.System_Void, diagnostics, syntax);
         }
 

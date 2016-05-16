@@ -109,10 +109,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="Microsoft.VisualStudio.Language.CallHierarchy, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Language.NavigateTo.Interfaces, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Platform.VSEditor, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Text.Internal, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
@@ -132,6 +128,7 @@
     <Compile Include="Recommendations\AsKeywordRecommenderTests.cs" />
     <Compile Include="Recommendations\AssemblyKeywordRecommenderTests.cs" />
     <Compile Include="Recommendations\AsyncKeywordRecommenderTests.cs" />
+    <Compile Include="Recommendations\ReplaceKeywordRecommenderTests.cs" />
     <Compile Include="Recommendations\AwaitKeywordRecommenderTests.cs" />
     <Compile Include="Recommendations\BaseKeywordRecommenderTests.cs" />
     <Compile Include="Recommendations\BoolKeywordRecommenderTests.cs" />

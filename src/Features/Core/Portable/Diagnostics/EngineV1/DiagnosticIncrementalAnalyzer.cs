@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         private bool CheckOptions(Project project, bool forceAnalysis)
         {
             var workspace = project.Solution.Workspace;
-            if (workspace.Options.GetOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, project.Language) &&
+            if (ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(project) &&
                 workspace.Options.GetOption(RuntimeOptions.FullSolutionAnalysis))
             {
                 return true;
@@ -169,7 +169,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
             Func<Exception, bool> analyzerExceptionFilter = ex =>
             {
-                if (project.Solution.Workspace.Options.GetOption(InternalDiagnosticsOptions.CrashOnAnalyzerException))
+                if (project.Solution.Options.GetOption(InternalDiagnosticsOptions.CrashOnAnalyzerException))
                 {
                     // if option is on, crash the host to get crash dump.
                     FatalError.ReportUnlessCanceled(ex);

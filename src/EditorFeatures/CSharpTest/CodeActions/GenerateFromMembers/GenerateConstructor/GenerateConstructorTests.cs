@@ -190,7 +190,8 @@ index: 1);
 @"using System . Collections . Generic ; class Z { [|(int, string) a ;|] } ",
 @"using System . Collections . Generic ; class Z { (int, string) a ; public Z ( (int, string) a ) { this . a = a ; } } ",
 index: 0,
-parseOptions: TestOptions.Regular.WithTuplesFeature());
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
         }
     }
 }

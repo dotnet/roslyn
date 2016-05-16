@@ -82,6 +82,38 @@
     </PropertyGroup>
   </Target>
 
+  <!-- ====================================================================================
+
+         Generation of binding redirects.
+
+       ==================================================================================== -->
+  <ItemGroup Condition="'$(GenerateMSBuildBindingRedirects)' == 'true'">
+      <SuggestedBindingRedirects Include="Microsoft.Build, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+        <MaxVersion>$(VisualStudioReferenceAssemblyVersion)</MaxVersion>
+      </SuggestedBindingRedirects>
+      <SuggestedBindingRedirects Include="Microsoft.Build.Framework, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+        <MaxVersion>$(VisualStudioReferenceAssemblyVersion)</MaxVersion>
+      </SuggestedBindingRedirects>
+      <SuggestedBindingRedirects Include="Microsoft.Build.Tasks.$(MSBuildAssemblyNameFragment), Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+        <MaxVersion>$(VisualStudioReferenceAssemblyVersion)</MaxVersion>
+      </SuggestedBindingRedirects>
+  </ItemGroup>
+  <PropertyGroup>
+    <ForceGenerationOfBindingRedirects Condition="'$(GenerateMSBuildBindingRedirects)' == 'true'">true</ForceGenerationOfBindingRedirects>
+    <AutoGenerateBindingRedirects Condition="'$(ForceGenerationOfBindingRedirects)' == 'true'">true</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+
+  <Target Name="ForceGenerationOfBindingRedirects"
+          AfterTargets="ResolveAssemblyReferences"
+          BeforeTargets="GenerateBindingRedirects"
+          Condition="'$(ForceGenerationOfBindingRedirects)' == 'true'">
+
+    <PropertyGroup>
+      <!-- Needs to be set in a target because it has to be set after the initial evaluation in the common targets -->
+      <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+    </PropertyGroup>
+  </Target>
+
   <Choose>
     <When Condition="'$(ProjectLanguage)' == 'VB'">
       <PropertyGroup>
@@ -94,7 +126,7 @@
       </PropertyGroup>
     </When>
   </Choose>
-  
+
   <Choose>
     <When Condition="'$(ProjectLanguage)' == 'C++'">
       <PropertyGroup>
@@ -112,13 +144,13 @@
       </PropertyGroup>
     </Otherwise>
   </Choose>
-  
+
   <Import Project="$(MSBuildTargetsFilePath)" />
 
   <!-- On Mono on *nix the NuGet targets aren't imported by default, so we do that here -->
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\NuGet\Microsoft.NuGet.targets"
           Condition="'$(OS)' != 'Windows_NT'" />
-  
+
   <Choose>
     <When Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable' AND
                      '$(TargetFrameworkVersion)' == 'v5.0'">
@@ -300,7 +332,8 @@
 
        ==================================================================================== -->
 
-  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != '' AND '$(ImportVSSDKTargets)' == 'true'" />
+  <Import Project="$(VisualStudioBuildToolsNuGetPackagePath)\build\Microsoft.VsSDK.BuildTools.targets" Condition="'$(ImportVSSDKTargets)' == 'true'" />
+  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(ImportVSSDKTargets)' == 'true'" />
 
   <!-- ====================================================================================
 

@@ -411,7 +411,7 @@ namespace Microsoft.CodeAnalysis
                 AddToOpenDocumentMap(documentId);
 
                 var newText = textContainer.CurrentText;
-                var currentSolution = oldSolution;
+                Solution currentSolution;
 
                 SourceText oldText;
                 VersionStamp version;
@@ -520,7 +520,7 @@ namespace Microsoft.CodeAnalysis
 
                 // keep open document text alive by using PreserveIdentity
                 var newText = textContainer.CurrentText;
-                var currentSolution = oldSolution;
+                Solution currentSolution;
 
                 if (oldText == newText || oldText.ContentEquals(newText))
                 {

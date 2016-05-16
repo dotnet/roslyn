@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                     : applicableFixes.Count == collection.Fixes.Length
                         ? collection
                         : new CodeFixCollection(collection.Provider, collection.TextSpan, applicableFixes, 
-                            collection.FixAllProvider, collection.FixAllContext, 
+                            collection.FixAllState, 
                             collection.SupportedScopes, collection.FirstDiagnostic);
             }
 
@@ -350,10 +350,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 
                     Func<CodeAction, SuggestedActionSet> getFixAllSuggestedActionSet = 
                         codeAction => CodeFixSuggestedAction.GetFixAllSuggestedActionSet(
-                            codeAction, fixCount, fixCollection.FixAllProvider, 
-                            fixCollection.FixAllContext, fixCollection.SupportedScopes,
-                            fixCollection.FirstDiagnostic, workspace, _subjectBuffer, 
-                            _owner._editHandler, _owner._waitIndicator, _owner._listener);
+                            codeAction, fixCount, fixCollection.FixAllState, 
+                            fixCollection.SupportedScopes, fixCollection.FirstDiagnostic, 
+                            workspace, _subjectBuffer,  _owner._editHandler, 
+                            _owner._waitIndicator, _owner._listener);
 
                     foreach (var fix in fixes)
                     {
@@ -485,9 +485,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             {
                 this.AssertIsForeground();
 
-                var optionService = workspace.Services.GetService<IOptionService>();
 
-                if (optionService.GetOption(EditorComponentOnOffOptions.CodeRefactorings) &&
+                if (document.Options.GetOption(EditorComponentOnOffOptions.CodeRefactorings) &&
                     _owner._codeRefactoringService != null &&
                     supportsFeatureService.SupportsRefactorings(document) &&
                     requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring))
@@ -623,9 +622,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
                 SnapshotSpan range,
                 CancellationToken cancellationToken)
             {
-                var optionService = document.Project.Solution.Workspace.Services.GetService<IOptionService>();
-
-                if (optionService.GetOption(EditorComponentOnOffOptions.CodeRefactorings) &&
+                if (document.Options.GetOption(EditorComponentOnOffOptions.CodeRefactorings) &&
                     provider._codeRefactoringService != null &&
                     supportsFeatureService.SupportsRefactorings(document) &&
                     requestedActionCategories.Contains(PredefinedSuggestedActionCategoryNames.Refactoring))

@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Text
 Imports System.Threading
 Imports Microsoft.CodeAnalysis
@@ -12,7 +13,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Partial Friend Class CrefCompletionProvider
-        Inherits CompletionListProvider
+        Inherits CommonCompletionProvider
 
         Private Shared ReadOnly s_crefFormat As SymbolDisplayFormat =
             New SymbolDisplayFormat(
@@ -22,11 +23,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 genericsOptions:=SymbolDisplayGenericsOptions.IncludeTypeParameters,
                 miscellaneousOptions:=SymbolDisplayMiscellaneousOptions.UseSpecialTypes)
 
-        Public Overrides Function IsTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
         End Function
 
-        Public Overrides Async Function ProduceCompletionListAsync(context As CompletionListContext) As Task
+        Public Overrides Async Function ProvideCompletionsAsync(context As CompletionContext) As Task
             Dim document = context.Document
             Dim position = context.Position
             Dim cancellationToken = context.CancellationToken
@@ -54,17 +55,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
 
             Dim text = Await document.GetTextAsync(cancellationToken).ConfigureAwait(False)
-            Dim filterSpan = CompletionUtilities.GetTextChangeSpan(text, position)
 
-            Dim items = CreateCompletionItems(workspace, semanticModel, symbols, token.SpanStart, filterSpan)
+            Dim items = CreateCompletionItems(workspace, semanticModel, symbols, token.SpanStart, context.DefaultItemSpan)
             context.AddItems(items)
 
             If IsFirstCrefParameterContext(token) Then
                 ' Include Of in case they're typing a type parameter
-                context.AddItem(CreateOfCompletionItem(filterSpan))
+                context.AddItem(CreateOfCompletionItem(context.DefaultItemSpan))
             End If
 
-            context.MakeExclusive(True)
+            context.IsExclusive = True
         End Function
 
         Private Shared Function IsCrefTypeParameterContext(token As SyntaxToken) As Boolean
@@ -140,19 +140,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             End If
         End Function
 
-        Private Iterator Function CreateCompletionItems(workspace As Workspace, semanticModel As SemanticModel, symbols As IEnumerable(Of ISymbol), position As Integer, filterSpan As TextSpan) As IEnumerable(Of CompletionItem)
+        Private Iterator Function CreateCompletionItems(workspace As Workspace, semanticModel As SemanticModel, symbols As IEnumerable(Of ISymbol), position As Integer, span As TextSpan) As IEnumerable(Of CompletionItem)
             Dim builder = SharedPools.Default(Of StringBuilder).Allocate()
             Try
                 For Each symbol In symbols
                     builder.Clear()
-                    Yield CreateCompletionItem(workspace, semanticModel, symbol, position, filterSpan, builder)
+                    Yield CreateCompletionItem(workspace, semanticModel, symbol, position, span, builder)
                 Next
             Finally
                 SharedPools.Default(Of StringBuilder).ClearAndFree(builder)
             End Try
         End Function
 
-        Private Function CreateCompletionItem(workspace As Workspace, semanticModel As SemanticModel, symbol As ISymbol, position As Integer, filterSpan As TextSpan, builder As StringBuilder) As CompletionItem
+        Private Function CreateCompletionItem(workspace As Workspace, semanticModel As SemanticModel, symbol As ISymbol, position As Integer, span As TextSpan, builder As StringBuilder) As CompletionItem
             If symbol.IsUserDefinedOperator() Then
                 builder.Append("Operator ")
             End If
@@ -179,21 +179,58 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 Next
 
                 builder.Append(")"c)
-            ElseIf symbol.Kind = SymbolKind.Method
+            ElseIf symbol.Kind = SymbolKind.Method Then
                 builder.Append("()")
             End If
 
             Dim displayString = builder.ToString()
 
-            Return New CompletionItem(Me, displayString, filterSpan, glyph:=symbol.GetGlyph(),
-                                     descriptionFactory:=CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, position, symbol),
-                                     rules:=ItemRules.Instance)
+            Return SymbolCompletionItem.Create(displayText:=displayString,
+                                               insertionText:=Nothing,
+                                               span:=span,
+                                               symbol:=symbol,
+                                               descriptionPosition:=position,
+                                               rules:=GetRules(displayString))
+        End Function
+
+        Public Overrides Function GetDescriptionAsync(document As Document, item As CompletionItem, cancellationToken As CancellationToken) As Task(Of CompletionDescription)
+            If CommonCompletionItem.HasDescription(item) Then
+                Return Task.FromResult(CommonCompletionItem.GetDescription(item))
+            Else
+                Return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken)
+            End If
         End Function
 
         Private Function CreateOfCompletionItem(span As TextSpan) As CompletionItem
-            Return New CompletionItem(Me, "Of", span, glyph:=Glyph.Keyword,
+            Return CommonCompletionItem.Create("Of", span, glyph:=Glyph.Keyword,
                                       description:=RecommendedKeyword.CreateDisplayParts("Of", VBFeaturesResources.OfKeywordToolTip))
         End Function
 
+        Private Shared s_WithoutOpenParen As CharacterSetModificationRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, "("c)
+        Private Shared s_WithoutSpace As CharacterSetModificationRule = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, " "c)
+
+#If False Then
+        Private Shared s_defaultRules As CompletionItemRules =
+            CompletionItemRules.Create(commitRules:=ImmutableArray.Create(
+                CommitRule.Create(CommitRuleKind.ExcludeKeysIfMatchEndOfTypedText, " ", "OF", isCaseSensitive:=False)))
+#Else
+        Private Shared s_defaultRules As CompletionItemRules = CompletionItemRules.Default
+#End If
+
+        Private Function GetRules(displayText As String) As CompletionItemRules
+            Dim commitRules = s_defaultRules.CommitCharacterRules
+
+            If displayText.Contains("(") Then
+                commitRules = commitRules.Add(s_WithoutOpenParen)
+            End If
+
+#If False Then
+            If displayText.Contains("(Of") Then
+                commitRules = commitRules.Add(s_WithoutSpace)
+            End If
+#End If
+
+            Return s_defaultRules.WithCommitCharacterRules(commitRules)
+        End Function
     End Class
 End Namespace

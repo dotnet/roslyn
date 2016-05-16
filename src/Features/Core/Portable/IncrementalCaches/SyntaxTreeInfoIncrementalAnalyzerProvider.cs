@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.IncrementalCaches
 {
-    [ExportIncrementalAnalyzerProvider(WorkspaceKind.Host), Shared]
+    [ExportIncrementalAnalyzerProvider(nameof(SyntaxTreeInfoIncrementalAnalyzerProvider), new[] { WorkspaceKind.Host }), Shared]
     internal class SyntaxTreeInfoIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider
     {
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)

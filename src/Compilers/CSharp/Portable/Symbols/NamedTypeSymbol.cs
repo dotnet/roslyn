@@ -562,6 +562,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract override ImmutableArray<NamedTypeSymbol> GetTypeMembers(string name, int arity);
 
         /// <summary>
+        /// Get all instance field and event members.
+        /// </summary>
+        /// <remarks>
+        /// For source symbols may be called while calculating
+        /// <see cref="NamespaceOrTypeSymbol.GetMembersUnordered"/>.
+        /// </remarks>
+        internal virtual IEnumerable<Symbol> GetInstanceFieldsAndEvents()
+        {
+            return GetMembersUnordered().Where(IsInstanceFieldOrEvent);
+        }
+
+        protected static Func<Symbol, bool> IsInstanceFieldOrEvent = symbol =>
+        {
+            if (!symbol.IsStatic)
+            {
+                switch (symbol.Kind)
+                {
+                    case SymbolKind.Field:
+                    case SymbolKind.Event:
+                        return true;
+                }
+            }
+            return false;
+        };
+
+        /// <summary>
         /// Get this accessibility that was declared on this symbol. For symbols that do not have
         /// accessibility declared on them, returns NotApplicable.
         /// </summary>

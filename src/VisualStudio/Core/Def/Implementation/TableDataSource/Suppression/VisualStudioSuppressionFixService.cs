@@ -187,8 +187,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
         private IEnumerable<DiagnosticData> GetDiagnosticsToFix(Func<Project, bool> shouldFixInProject, bool selectedEntriesOnly, bool isAddSuppression)
         {
             var diagnosticsToFix = ImmutableHashSet<DiagnosticData>.Empty;
-            Action<CancellationToken> computeDiagnosticsToFix = cancellationToken =>
+            Action<IWaitContext> computeDiagnosticsToFix = context =>
             {
+                var cancellationToken = context.CancellationToken;
+
                 // If we are fixing selected diagnostics in error list, then get the diagnostics from error list entry snapshots.
                 // Otherwise, get all diagnostics from the diagnostic service.
                 var diagnosticsToFixTask = selectedEntriesOnly ?
@@ -241,8 +243,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             var newSolution = _workspace.CurrentSolution;
             HashSet<string> languages = null;
 
-            Action<CancellationToken> computeDiagnosticsAndFix = cancellationToken =>
+            Action<IWaitContext> computeDiagnosticsAndFix = context =>
             {
+                var cancellationToken = context.CancellationToken;
                 cancellationToken.ThrowIfCancellationRequested();
                 documentDiagnosticsToFixMap = GetDocumentDiagnosticsToFixAsync(diagnosticsToFix, shouldFixInProject, filterStaleDiagnostics: filterStaleDiagnostics, cancellationToken: cancellationToken)
                     .WaitAndGetResult(cancellationToken);
@@ -362,7 +365,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             }
 
             waitDialogMessage = isAddSuppression ? ServicesVSResources.ApplyingSuppressionFix : ServicesVSResources.ApplyingRemoveSuppressionFix;
-            Action<CancellationToken> applyFix = cancellationToken =>
+            Action<IWaitContext> applyFix = context =>
             {
                 var operations = SpecializedCollections.SingletonEnumerable<CodeActionOperation>(new ApplyChangesOperation(newSolution));
                 _editHandlerService.Apply(
@@ -370,7 +373,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
                     fromDocument: null,
                     operations: operations,
                     title: title,
-                    cancellationToken: cancellationToken);
+                    progressTracker: context.ProgressTracker,
+                    cancellationToken: context.CancellationToken);
             };
 
             result = InvokeWithWaitDialog(applyFix, title, waitDialogMessage);
@@ -415,18 +419,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Suppression
             }
         }
 
-        private WaitIndicatorResult InvokeWithWaitDialog(Action<CancellationToken> action, string waitDialogTitle, string waitDialogMessage)
+        private WaitIndicatorResult InvokeWithWaitDialog(
+            Action<IWaitContext> action, string waitDialogTitle, string waitDialogMessage)
         {
             var cancelled = false;
             var result = _waitIndicator.Wait(
                 waitDialogTitle,
                 waitDialogMessage,
                 allowCancel: true,
+                showProgress: true,
                 action: waitContext =>
                 {
                     try
                     {
-                        action(waitContext.CancellationToken);
+                        action(waitContext);
                     }
                     catch (OperationCanceledException)
                     {

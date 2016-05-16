@@ -11,7 +11,7 @@ namespace Roslyn.Test.Utilities
 {
     internal static class PdbTestUtilities
     {
-        public static EditAndContinueMethodDebugInformation GetEncMethodDebugInfo(this ISymUnmanagedReader symReader, MethodDefinitionHandle handle)
+        public static EditAndContinueMethodDebugInformation GetEncMethodDebugInfo(this ISymUnmanagedReader3 symReader, MethodDefinitionHandle handle)
         {
             var cdi = CustomDebugInfoUtilities.GetCustomDebugInfoBytes(symReader, handle, methodVersion: 1);
             if (cdi == null)

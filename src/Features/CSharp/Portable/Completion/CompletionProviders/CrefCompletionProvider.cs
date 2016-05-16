@@ -13,10 +13,12 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System.Collections.Immutable;
+using Microsoft.CodeAnalysis.Completion.Providers;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal partial class CrefCompletionProvider : CompletionListProvider
+    internal partial class CrefCompletionProvider : CommonCompletionProvider
     {
         public static readonly SymbolDisplayFormat QualifiedCrefFormat =
             new SymbolDisplayFormat(
@@ -38,12 +40,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     SymbolDisplayMiscellaneousOptions.EscapeKeywordIdentifiers |
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-        public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
+        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
 
-        public override async Task ProduceCompletionListAsync(CompletionListContext context)
+        public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
             var document = context.Document;
             var position = context.Position;
@@ -78,12 +80,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return;
             }
 
-            context.MakeExclusive(true);
+            context.IsExclusive = true;
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var filterSpan = GetTextChangeSpan(text, position);
+            var span = GetCompletionItemSpan(text, position);
 
-            var items = CreateCompletionItems(document.Project.Solution.Workspace, semanticModel, symbols, token, filterSpan);
+            var items = CreateCompletionItems(document.Project.Solution.Workspace, semanticModel, symbols, token, span);
             context.AddItems(items);
         }
 
@@ -208,17 +210,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             }
         }
 
-        private static TextSpan GetTextChangeSpan(SourceText text, int position)
+        private static TextSpan GetCompletionItemSpan(SourceText text, int position)
         {
-            return CommonCompletionUtilities.GetTextChangeSpan(
+            return CommonCompletionUtilities.GetWordSpan(
                 text,
                 position,
-                ch => CompletionUtilities.IsTextChangeSpanStartCharacter(ch) || ch == '{',
+                ch => CompletionUtilities.IsCompletionItemStartCharacter(ch) || ch == '{',
                 ch => CompletionUtilities.IsWordCharacter(ch) || ch == '{' || ch == '}');
         }
 
         private IEnumerable<CompletionItem> CreateCompletionItems(
-            Workspace workspace, SemanticModel semanticModel, IEnumerable<ISymbol> symbols, SyntaxToken token, TextSpan filterSpan)
+            Workspace workspace, SemanticModel semanticModel, IEnumerable<ISymbol> symbols, SyntaxToken token, TextSpan itemSpan)
         {
             var builder = SharedPools.Default<StringBuilder>().Allocate();
             try
@@ -226,7 +228,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 foreach (var symbol in symbols)
                 {
                     builder.Clear();
-                    yield return CreateItem(workspace, semanticModel, symbol, token, filterSpan, builder);
+                    yield return CreateItem(workspace, semanticModel, symbol, token, itemSpan, builder);
                 }
             }
             finally
@@ -236,7 +238,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         }
 
         private CompletionItem CreateItem(
-            Workspace workspace, SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, TextSpan filterSpan, StringBuilder builder)
+            Workspace workspace, SemanticModel semanticModel, ISymbol symbol, SyntaxToken token, TextSpan span, StringBuilder builder)
         {
             int position = token.SpanStart;
 
@@ -291,14 +293,60 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 .Replace('>', '}')
                 .ToString();
 
-            return new Item(
-                completionProvider: this,
+            return SymbolCompletionItem.Create(
                 displayText: insertionText,
                 insertionText: insertionText,
-                textSpan: filterSpan,
-                descriptionFactory: CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, position, symbol),
-                glyph: symbol.GetGlyph(),
-                sortText: symbolText);
+                span: span,
+                symbol: symbol,
+                descriptionPosition: position,
+                sortText: symbolText,
+                rules: GetRules(insertionText));
+        }
+
+        public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        {
+            return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
+        }
+
+        private static readonly CharacterSetModificationRule s_WithoutOpenBrace = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '{');
+        private static readonly CharacterSetModificationRule s_WithoutOpenParen = CharacterSetModificationRule.Create(CharacterSetModificationKind.Remove, '(');
+
+        private CompletionItemRules GetRules(string displayText)
+        {
+            var commitRules = ImmutableArray<CharacterSetModificationRule>.Empty;
+
+            if (displayText.Contains("{"))
+            {
+                commitRules = commitRules.Add(s_WithoutOpenBrace);
+            }
+
+            if (displayText.Contains("("))
+            {
+                commitRules = commitRules.Add(s_WithoutOpenParen);
+            }
+
+            if (commitRules.IsEmpty)
+            {
+                return CompletionItemRules.Default;
+            }
+            else
+            {
+                return CompletionItemRules.Default.WithCommitCharacterRules(commitRules);
+            }
+        }
+
+
+        private static readonly string InsertionTextProperty = "insertionText";
+
+        public override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+        {
+            string insertionText;
+            if (!selectedItem.Properties.TryGetValue(InsertionTextProperty, out insertionText))
+            {
+                insertionText = selectedItem.DisplayText;
+            }
+
+            return Task.FromResult<TextChange?>(new TextChange(selectedItem.Span, insertionText));
         }
     }
 }

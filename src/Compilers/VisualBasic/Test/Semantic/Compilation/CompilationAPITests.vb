@@ -1206,7 +1206,7 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
         End Sub
 
         <Fact()>
-        <Trait(Traits.Feature, Traits.Features.Tuples)>
+        <CompilerTrait(CompilerFeature.Tuples)>
         Public Sub TuplesNotSupported()
             Dim compilation = VisualBasicCompilation.Create("HelloWorld")
             Assert.Throws(Of NotSupportedException)(Function() compilation.CreateTupleTypeSymbol(New ImmutableArray(Of ITypeSymbol), New ImmutableArray(Of String)))

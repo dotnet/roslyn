@@ -4479,7 +4479,7 @@ class C<T> { }";
             Assert.True(new FormattedSymbol(sA, f1).GetHashCode().Equals(new FormattedSymbol(sA, f1).GetHashCode()));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Tuples)]
+        [Fact, CompilerTrait(CompilerFeature.Tuples)]
         public void Tuple()
         {
             var text = @"
@@ -4511,7 +4511,7 @@ public class C
                 SymbolDisplayPartKind.FieldName);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Tuples)]
+        [Fact, CompilerTrait(CompilerFeature.Tuples)]
         public void TupleWithNames()
         {
             var text = @"
@@ -4547,7 +4547,7 @@ public class C
                 SymbolDisplayPartKind.FieldName);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Tuples)]
+        [Fact, CompilerTrait(CompilerFeature.Tuples)]
         public void LongTupleWithSpecialTypes()
         {
             var text = @"
@@ -4599,7 +4599,7 @@ public class C
                 SymbolDisplayPartKind.FieldName);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Tuples)]
+        [Fact, CompilerTrait(CompilerFeature.Tuples)]
         public void TupleProperty()
         {
             var text = @"
@@ -5140,7 +5140,7 @@ class C
             #endregion
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.Tuples)]
+        [Fact, CompilerTrait(CompilerFeature.Tuples)]
         public void DisplayFakeTupleTypeSymbol()
         {
             var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef });

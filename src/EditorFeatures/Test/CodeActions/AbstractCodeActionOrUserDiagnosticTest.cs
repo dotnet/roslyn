@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Extensions;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             IList<TextSpan> expectedSpans,
             SyntaxNode fixedRoot,
             string annotationKind,
-            bool compareTokens, 
+            bool compareTokens,
             ParseOptions parseOptions = null)
         {
             expectedSpans = expectedSpans ?? new List<TextSpan>();
@@ -65,14 +66,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             await TestMissingAsync(initialMarkup, parseOptions: GetScriptOptions(), options: options, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey, fixProviderData: fixProviderData);
         }
 
-        protected Task TestMissingAsync(
+        protected async Task TestMissingAsync(
             string initialMarkup,
             ParseOptions parseOptions,
             IDictionary<OptionKey, object> options = null,
             string fixAllActionEquivalenceKey = null,
-            object fixProviderData = null)
+            object fixProviderData = null,
+            bool withScriptOption = false)
         {
-            return TestMissingAsync(initialMarkup, parseOptions, compilationOptions: null, options: options, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey, fixProviderData: fixProviderData);
+            await TestMissingAsync(initialMarkup, parseOptions, compilationOptions: null, options: options, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey, fixProviderData: fixProviderData);
+
+            if (withScriptOption)
+            {
+                await TestMissingAsync(initialMarkup, parseOptions.WithKind(SourceCodeKind.Script), compilationOptions: null, options: options, fixAllActionEquivalenceKey: fixAllActionEquivalenceKey, fixProviderData: fixProviderData);
+            }
         }
 
         protected async Task TestMissingAsync(
@@ -156,15 +163,21 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             await TestAsync(initialMarkup, expectedMarkup, GetScriptOptions(), index, compareTokens, options, fixAllActionEquivalenceKey, fixProviderData);
         }
 
-        protected Task TestAsync(
+        protected async Task TestAsync(
             string initialMarkup, string expectedMarkup,
             ParseOptions parseOptions,
             int index = 0, bool compareTokens = true,
             IDictionary<OptionKey, object> options = null,
             string fixAllActionEquivalenceKey = null,
-            object fixProviderData = null)
+            object fixProviderData = null,
+            bool withScriptOption = false)
         {
-            return TestAsync(initialMarkup, expectedMarkup, parseOptions, null, index, compareTokens, options, fixAllActionEquivalenceKey, fixProviderData);
+            await TestAsync(initialMarkup, expectedMarkup, parseOptions, null, index, compareTokens, options, fixAllActionEquivalenceKey, fixProviderData);
+
+            if (withScriptOption)
+            {
+                await TestAsync(initialMarkup, expectedMarkup, parseOptions.WithKind(SourceCodeKind.Script), null, index, compareTokens, options, fixAllActionEquivalenceKey, fixProviderData);
+            }
         }
 
         protected async Task TestAsync(
@@ -260,7 +273,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
         private static Document GetDocumentToVerify(DocumentId expectedChangedDocumentId, Solution oldSolution, Solution newSolution)
         {
             Document document;
-            // If the expectedChangedDocumentId is not mentioned then we expect only single document to be changed 
+            // If the expectedChangedDocumentId is not mentioned then we expect only single document to be changed
             if (expectedChangedDocumentId == null)
             {
                 var projectDifferences = SolutionUtilities.GetSingleChangedProjectChanges(oldSolution, newSolution);
@@ -332,7 +345,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 }
                 else if (operation.ApplyDuringTests)
                 {
-                    operation.Apply(workspace, CancellationToken.None);
+                    operation.Apply(workspace, new ProgressTracker(), CancellationToken.None);
                 }
             }
 

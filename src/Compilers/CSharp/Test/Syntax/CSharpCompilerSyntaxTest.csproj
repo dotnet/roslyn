@@ -68,6 +68,7 @@
     <Compile Include="IncrementalParsing\BinaryExpression.cs" />
     <Compile Include="IncrementalParsing\ChangingAsync.cs" />
     <Compile Include="IncrementalParsing\ChangingIdentifiers.cs" />
+    <Compile Include="IncrementalParsing\ReplaceOriginalTests.cs" />
     <Compile Include="IncrementalParsing\CompoundAssignment.cs" />
     <Compile Include="IncrementalParsing\GrammarAmbiguities.cs" />
     <Compile Include="IncrementalParsing\IncrementalParsingTests.cs" />
@@ -91,6 +92,7 @@
     <Compile Include="Parsing\ExpressionParsingTests.cs" />
     <Compile Include="Parsing\LocalFunctionParsingTests.cs" />
     <Compile Include="Parsing\ParserRegressionTests.cs" />
+    <Compile Include="Parsing\ReplaceParsingTests.cs" />
     <Compile Include="Parsing\ScriptParsingTests.cs" />
     <Compile Include="Parsing\LambdaParameterParsingTests.cs" />
     <Compile Include="Parsing\NameAttributeValueParsingTests.cs" />

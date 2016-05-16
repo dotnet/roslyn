@@ -11,6 +11,7 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Packaging
 Imports Microsoft.CodeAnalysis.Simplification
+Imports Microsoft.CodeAnalysis.SymbolSearch
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
@@ -24,7 +25,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
         ''' <summary>
         ''' For testing purposes so that tests can pass in mocks for these values.
         ''' </summary>
-        Friend Sub New(installerService As IPackageInstallerService, searchService As IPackageSearchService)
+        Friend Sub New(installerService As IPackageInstallerService,
+                       searchService As ISymbolSearchService)
             MyBase.New(installerService, searchService)
         End Sub
 
@@ -390,14 +392,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
             End If
 
             Return IsViableExtensionMethod(method, leftExpressionType)
-        End Function
-
-        Friend Overrides Function IsViableField(field As IFieldSymbol, expression As SyntaxNode, semanticModel As SemanticModel, syntaxFacts As ISyntaxFactsService, cancellationToken As CancellationToken) As Boolean
-            Return False
-        End Function
-
-        Friend Overrides Function IsViableProperty([property] As IPropertySymbol, expression As SyntaxNode, semanticModel As SemanticModel, syntaxFacts As ISyntaxFactsService, cancellationToken As CancellationToken) As Boolean
-            Return False
         End Function
 
         Friend Overrides Function IsAddMethodContext(node As SyntaxNode, semanticModel As SemanticModel) As Boolean

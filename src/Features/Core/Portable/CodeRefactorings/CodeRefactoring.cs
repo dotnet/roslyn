@@ -35,7 +35,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
 
             if (_actions.Count == 0)
             {
-                throw new ArgumentException(FeaturesResources.ActionsCanNotBeEmpty, "actions");
+                throw new ArgumentException(FeaturesResources.ActionsCanNotBeEmpty, nameof(actions));
             }
         }
     }

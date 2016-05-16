@@ -94,8 +94,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public static TupleTypeSymbol Create(NamedTypeSymbol tupleCompatibleType)
         {
             return Create(ImmutableArray<Location>.Empty,
-                          tupleCompatibleType, 
-                          default(ImmutableArray<Location>), 
+                          tupleCompatibleType,
+                          default(ImmutableArray<Location>),
                           default(ImmutableArray<string>));
         }
 
@@ -493,17 +493,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return "Item" + position;
         }
 
+        private static bool IsElementNameForbidden(string name)
+        {
+            switch (name)
+            {
+                case "CompareTo":
+                case "Deconstruct":
+                case "Equals":
+                case "GetHashCode":
+                case "Rest":
+                case "ToString":
+                    return true;
+
+                default:
+                    return false;
+            }
+        }
+
         /// <summary>
         /// Checks whether the field name is reserved and tells us which position it's reserved for.
         ///
         /// For example:
         /// Returns 3 for "Item3".
-        /// Returns 0 for "Rest".
+        /// Returns 0 for "Rest", "ToString" and other members of System.ValueTuple.
         /// Returns -1 for names that aren't reserved.
         /// </summary>
-        internal static int IsMemberNameReserved(string name)
+        internal static int IsElementNameReserved(string name)
         {
-            if (String.Equals(name, "Rest", StringComparison.Ordinal))
+            if (IsElementNameForbidden(name))
             {
                 return 0;
             }
@@ -538,7 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(type.IsDefinition);
 
             MemberDescriptor relativeDescriptor = WellKnownMembers.GetDescriptor(relativeMember);
-            return CSharpCompilation.GetRuntimeMember(type, ref relativeDescriptor, CSharpCompilation.SpecialMembersSignatureComparer.Instance, 
+            return CSharpCompilation.GetRuntimeMember(type, ref relativeDescriptor, CSharpCompilation.SpecialMembersSignatureComparer.Instance,
                                                       accessWithinOpt: null); // force lookup of public members only
         }
 
@@ -597,7 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return _underlyingType.IsReferenceType;
+                return _underlyingType.IsErrorType() ? false : _underlyingType.IsReferenceType;
             }
         }
 
@@ -841,7 +858,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     }
 
                     members.Add(new TupleErrorFieldSymbol(this, name, i,
-                                                      _elementLocations.IsDefault ? null : _elementLocations[i], 
+                                                      _elementLocations.IsDefault ? null : _elementLocations[i],
                                                       _elementTypes[i],
                                                       diagnosticInfo));
                 }
@@ -873,9 +890,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     var underlyingDefinition = _underlyingType.OriginalDefinition;
                     var members = GetMembers();
 
-                    // Go in reverse becaus we want members with default name, which precede the ones with
+                    // Go in reverse because we want members with default name, which precede the ones with
                     // friendly names, to be in the map.  
-                    for (int i = members.Length - 1; i >= 0; i--) 
+                    for (int i = members.Length - 1; i >= 0; i--)
                     {
                         var member = members[i];
                         switch (member.Kind)
@@ -885,7 +902,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 break;
 
                             case SymbolKind.Field:
-                                map[((FieldSymbol)member).TupleUnderlyingField?.OriginalDefinition] = member;
+                                var tupleUnderlyingField = ((FieldSymbol)member).TupleUnderlyingField;
+                                if ((object)tupleUnderlyingField != null)
+                                {
+                                    map[tupleUnderlyingField.OriginalDefinition] = member;
+                                }
                                 break;
 
                             case SymbolKind.Property:
