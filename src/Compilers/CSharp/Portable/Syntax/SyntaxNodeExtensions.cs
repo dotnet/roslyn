@@ -66,7 +66,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (kind = syntax.Kind()) == SyntaxKind.CatchClause ||
                 kind == SyntaxKind.CatchFilterClause ||
                 kind == SyntaxKind.SwitchSection ||
-                kind == SyntaxKind.ArrowExpressionClause;
+                kind == SyntaxKind.EqualsValueClause ||
+                kind == SyntaxKind.Attribute ||
+                kind == SyntaxKind.ArgumentList ||
+                kind == SyntaxKind.ArrowExpressionClause ||
+                (syntax is ExpressionSyntax && 
+                    // All these nodes are valid scope designators due to the pattern matching feature.
+                    ((syntax.Parent as LambdaExpressionSyntax)?.Body == syntax ||
+                     (syntax.Parent as SwitchStatementSyntax)?.Expression == syntax ||
+                     (syntax.Parent as ForEachStatementSyntax)?.Expression == syntax ||
+                     (syntax.Parent as IfStatementSyntax)?.Condition == syntax));
         }
 
         /// <summary>

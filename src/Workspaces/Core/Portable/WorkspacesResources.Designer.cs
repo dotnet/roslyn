@@ -71,6 +71,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add braces to &apos;{0}&apos; statement..
+        /// </summary>
+        internal static string AddBraces {
+            get {
+                return ResourceManager.GetString("AddBraces", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Added:.
         /// </summary>
         internal static string AddedHeader {
@@ -796,6 +805,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string OpenDocumentNotSupported {
             get {
                 return ResourceManager.GetString("OpenDocumentNotSupported", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The options being set didn&apos;t originate from a workspace..
+        /// </summary>
+        internal static string OptionsDidNotComeFromWorkspace {
+            get {
+                return ResourceManager.GetString("OptionsDidNotComeFromWorkspace", resourceCulture);
             }
         }
         

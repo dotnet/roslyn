@@ -1323,18 +1323,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TooManyUserStrings = 8103,
         ERR_PeWritingFailure = 8104,
         ERR_ReturnTypesDontMatch = 8105,
-        ERR_DynamicLocalFunctionParameter = 8106,
+        ERR_DynamicLocalFunctionParamsParameter = 8106,
         ERR_CantInferVoid = 8107,
-        ERR_PatternNullableType = 8108,
-        ERR_BadIsPatternExpression = 8109,
-        ERR_AmbigMatch0 = 8110,
-        ERR_AmbigMatch1 = 8111,
-        ERR_ThrowMisplaced = 8112,
-        ERR_ElseClauseRequiredWithWhenClause = 8113,
-        ERR_ExpressionTreeContainsLocalFunction = 8114,
+        ERR_ExpressionTreeContainsLocalFunction = 8108,
+
+        // gap here
+
+        // diagnostics for pattern-matching
+        ERR_PatternNullableType = 8150,
+        ERR_BadIsPatternExpression = 8151,
+        // Please reserve IDs up to 8199 for pattern-matching
 
         // huge gap here???
 
+        // diagnostics for ref locals and ref returns
         ERR_AutoPropertyCannotBeRefReturning = 8890,
         ERR_RefPropertyMustHaveGetAccessor = 8891,
         ERR_RefPropertyCannotHaveSetAccessor = 8892,
@@ -1348,6 +1350,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BadRefReturnExpressionTree = 8900,
         ERR_RefReturningCallInExpressionTree = 8901,
 
+        // more diagnostics for ref locals and ref returns
         ERR_RefReturnLvalueExpected = 8910,
         ERR_RefReturnNonreturnableLocal = 8911,
         ERR_RefReturnNonreturnableLocal2 = 8912,
@@ -1365,6 +1368,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefReturnLocal2 = 8925,
         ERR_RefReturnStructThis = 8926,
 
+        // more diagnostics for ref locals and ref returns
         ERR_MustBeRefAssignable = 8930,
         ERR_MustBeRefAssignableLocal = 8931,
         ERR_InitializeByValueVariableWithReference = 8932,
@@ -1372,9 +1376,20 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefAssignmentMustHaveIdentityConversion = 8934,
         ERR_ByReferenceVariableMustBeInitialized = 8935,
 
+        // more diagnostics for ref locals and ref returns
         ERR_AnonDelegateCantUseLocal = 8940,
         ERR_BadIteratorLocalType = 8941,
         ERR_BadAsyncLocalType = 8942,
         ERR_RefReturningCallAndAwait = 8943,
+        ERR_NoOriginalMember = 8944,
+        ERR_DuplicateReplace = 8945,
+        ERR_PartialReplace = 8946,
+        ERR_TupleTooFewElements = 8200,
+        ERR_TupleReservedMemberName = 8201,
+        ERR_TupleReservedMemberNameAnyPosition = 8202,
+        ERR_TupleDuplicateMemberName = 8203,
+        ERR_TupleExplicitNamesOnAllMembersOrNone = 8204,
+
+        ERR_PredefinedTypeMemberNotFoundInAssembly = 8205,
     }
 }

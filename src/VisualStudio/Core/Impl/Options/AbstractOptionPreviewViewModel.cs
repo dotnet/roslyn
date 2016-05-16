@@ -43,10 +43,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         public ObservableCollection<AbstractCodeStyleOptionViewModel> CodeStyleItems { get; set; }
 
         public OptionSet Options { get; set; }
+        private readonly OptionSet _originalOptions;
 
         protected AbstractOptionPreviewViewModel(OptionSet options, IServiceProvider serviceProvider, string language)
         {
             this.Options = options;
+            _originalOptions = options;
             this.Items = new List<object>();
             this.CodeStyleItems = new ObservableCollection<AbstractCodeStyleOptionViewModel>();
 
@@ -64,7 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         internal OptionSet ApplyChangedOptions(OptionSet optionSet)
         {
-            foreach (var optionKey in this.Options.GetAccessedOptions())
+            foreach (var optionKey in this.Options.GetChangedOptions(_originalOptions))
             {
                 if (ShouldPersistOption(optionKey))
                 {

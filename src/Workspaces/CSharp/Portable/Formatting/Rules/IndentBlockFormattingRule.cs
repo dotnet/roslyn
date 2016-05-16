@@ -154,13 +154,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 SetAlignmentBlockOperation(list, implicitArrayCreation.NewKeyword, implicitArrayCreation.Initializer.OpenBraceToken, implicitArrayCreation.Initializer.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
                 return;
             }
-
-            var propertyPattern = node as PropertyPatternSyntax;
-            if (propertyPattern?.PatternList != null)
-            {
-                SetAlignmentBlockOperation(list, propertyPattern.Type.GetFirstToken(), propertyPattern.PatternList.OpenBraceToken, propertyPattern.PatternList.CloseBraceToken, IndentBlockOption.RelativeToFirstTokenOnBaseTokenLine);
-                return;
-            }
         }
 
         private void SetAlignmentBlockOperation(List<IndentBlockOperation> list, SyntaxNode baseNode, SyntaxNode body)

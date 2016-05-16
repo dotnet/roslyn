@@ -2,8 +2,8 @@
 
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProviders
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
+Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Tests
     Public Class XmlDocCommentCompletionProviderTests
@@ -13,7 +13,7 @@ Namespace Tests
             MyBase.New(workspaceFixture)
         End Sub
 
-        Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
+        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
             Return New XmlDocCommentCompletionProvider()
         End Function
 

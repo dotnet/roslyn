@@ -736,7 +736,11 @@ End Class
 ]]>
     </file>
 </compilation>, OutputKind.DynamicallyLinkedLibrary)
-        Assert.Empty(other.GetDiagnostics())
+        CompilationUtils.AssertTheseDiagnostics(other,
+<error><![CDATA[
+BC42366: The specified version string does not conform to the recommended format - major.minor.build.revision
+<Assembly: System.Reflection.AssemblyInformationalVersion("1.2.3garbage")>
+                                                          ~~~~~~~~~~~~~~]]></error>)
         Assert.Equal("1.2.3garbage", DirectCast(other.Assembly, SourceAssemblySymbol).InformationalVersion)
     End Sub
 

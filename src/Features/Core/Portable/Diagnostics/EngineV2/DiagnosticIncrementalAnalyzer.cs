@@ -1,9 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -213,6 +216,45 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 default:
                     return Contract.FailWithReturn<ImmutableArray<DiagnosticData>>("shouldn't reach here");
             }
+        }
+
+        public override void LogAnalyzerCountSummary()
+        {
+            DiagnosticAnalyzerLogger.LogAnalyzerCrashCountSummary(_correlationId, DiagnosticLogAggregator);
+            DiagnosticAnalyzerLogger.LogAnalyzerTypeCountSummary(_correlationId, DiagnosticLogAggregator);
+
+            // reset the log aggregator
+            ResetDiagnosticLogAggregator();
+        }
+
+        private static string GetDocumentLogMessage(string title, Document document, DiagnosticAnalyzer analyzer)
+        {
+            return string.Format($"{title}: {document.FilePath ?? document.Name}, {analyzer.ToString()}");
+        }
+
+        private static string GetProjectLogMessage(Project project, IEnumerable<StateSet> stateSets)
+        {
+            return string.Format($"project: {project.FilePath ?? project.Name}, {string.Join(",", stateSets.Select(s => s.Analyzer.ToString()))}");
+        }
+
+        private static string GetResetLogMessage(Document document)
+        {
+            return string.Format($"document close/reset: {document.FilePath ?? document.Name}");
+        }
+
+        private static string GetOpenLogMessage(Document document)
+        {
+            return string.Format($"document open: {document.FilePath ?? document.Name}");
+        }
+
+        private static string GetRemoveLogMessage(DocumentId id)
+        {
+            return string.Format($"document remove: {id.ToString()}");
+        }
+
+        private static string GetRemoveLogMessage(ProjectId id)
+        {
+            return string.Format($"project remove: {id.ToString()}");
         }
     }
 }

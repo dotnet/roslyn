@@ -2,9 +2,11 @@
 
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Editor.CSharp.SignatureHelp;
+using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
+using Microsoft.CodeAnalysis.SignatureHelp;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -261,7 +263,7 @@ class D
 }";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem($"SomethingAttribute({CSharpEditorResources.Properties}: [foo = int])", string.Empty, string.Empty, currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem($"SomethingAttribute({CSharpFeaturesResources.Properties}: [foo = int])", string.Empty, string.Empty, currentParameterIndex: 0));
 
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
         }
@@ -347,7 +349,7 @@ class D
 }";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem($"SomethingAttribute({CSharpEditorResources.Properties}: [foo = int])", string.Empty, string.Empty, currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem($"SomethingAttribute({CSharpFeaturesResources.Properties}: [foo = int])", string.Empty, string.Empty, currentParameterIndex: 0));
 
             // TODO: Bug 12319: Enable tests for script when this is fixed.
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
@@ -478,7 +480,7 @@ class D
 }";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem($"SomethingAttribute([int foo = 0], [string bar = null], {CSharpEditorResources.Properties}: [fieldbar = string], [fieldfoo = int])", string.Empty, "FooParameter", currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem($"SomethingAttribute([int foo = 0], [string bar = null], {CSharpFeaturesResources.Properties}: [fieldbar = string], [fieldfoo = int])", string.Empty, "FooParameter", currentParameterIndex: 0));
 
             // TODO: Bug 12319: Enable tests for script when this is fixed.
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
@@ -505,7 +507,7 @@ class D
 }";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem($"SomethingAttribute([int foo = 0], [string bar = null], {CSharpEditorResources.Properties}: [fieldbar = string], [fieldfoo = int])", string.Empty, "BarParameter", currentParameterIndex: 1));
+            expectedOrderedItems.Add(new SignatureHelpTestItem($"SomethingAttribute([int foo = 0], [string bar = null], {CSharpFeaturesResources.Properties}: [fieldbar = string], [fieldfoo = int])", string.Empty, "BarParameter", currentParameterIndex: 1));
 
             // TODO: Bug 12319: Enable tests for script when this is fixed.
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
@@ -532,7 +534,7 @@ class D
 }";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem($"SomethingAttribute([int foo = 0], [string bar = null], {CSharpEditorResources.Properties}: [fieldbar = string], [fieldfoo = int])", string.Empty, string.Empty, currentParameterIndex: 2));
+            expectedOrderedItems.Add(new SignatureHelpTestItem($"SomethingAttribute([int foo = 0], [string bar = null], {CSharpFeaturesResources.Properties}: [fieldbar = string], [fieldfoo = int])", string.Empty, string.Empty, currentParameterIndex: 2));
 
             // TODO: Bug 12319: Enable tests for script when this is fixed.
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
@@ -557,7 +559,7 @@ class D
 }";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem($"SomethingAttribute([int foo = 0], {CSharpEditorResources.Properties}: [foo = int])", string.Empty, "FooParameter", currentParameterIndex: 0));
+            expectedOrderedItems.Add(new SignatureHelpTestItem($"SomethingAttribute([int foo = 0], {CSharpFeaturesResources.Properties}: [foo = int])", string.Empty, "FooParameter", currentParameterIndex: 0));
 
             // TODO: Bug 12319: Enable tests for script when this is fixed.
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);
@@ -582,7 +584,7 @@ class D
 }";
 
             var expectedOrderedItems = new List<SignatureHelpTestItem>();
-            expectedOrderedItems.Add(new SignatureHelpTestItem($"SomethingAttribute([int foo = 0], {CSharpEditorResources.Properties}: [foo = int])", string.Empty, string.Empty, currentParameterIndex: 1));
+            expectedOrderedItems.Add(new SignatureHelpTestItem($"SomethingAttribute([int foo = 0], {CSharpFeaturesResources.Properties}: [foo = int])", string.Empty, string.Empty, currentParameterIndex: 1));
 
             // TODO: Bug 12319: Enable tests for script when this is fixed.
             await TestAsync(markup, expectedOrderedItems, usePreviousCharAsTrigger: false);

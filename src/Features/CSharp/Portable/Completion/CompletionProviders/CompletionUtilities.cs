@@ -8,9 +8,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal static class CompletionUtilities
     {
-        internal static TextSpan GetTextChangeSpan(SourceText text, int position)
+        internal static TextSpan GetCompletionItemSpan(SourceText text, int position)
         {
-            return CommonCompletionUtilities.GetTextChangeSpan(text, position, IsTextChangeSpanStartCharacter, IsWordCharacter);
+            return CommonCompletionUtilities.GetWordSpan(text, position, IsCompletionItemStartCharacter, IsWordCharacter);
         }
 
         public static bool IsWordStartCharacter(char ch)
@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return SyntaxFacts.IsIdentifierStartCharacter(ch) || SyntaxFacts.IsIdentifierPartCharacter(ch);
         }
 
-        public static bool IsTextChangeSpanStartCharacter(char ch)
+        public static bool IsCompletionItemStartCharacter(char ch)
         {
             return ch == '@' || IsWordCharacter(ch);
         }

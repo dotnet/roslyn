@@ -3,6 +3,7 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -194,6 +195,81 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.Equal(SyntaxKind.IdentifierName, ds.Declaration.Type.Kind());
             Assert.Equal(SyntaxKind.IdentifierToken, ((IdentifierNameSyntax)ds.Declaration.Type).Identifier.Kind());
             Assert.Equal(1, ds.Declaration.Variables.Count);
+
+            Assert.NotNull(ds.Declaration.Variables[0].Identifier);
+            Assert.Equal("a", ds.Declaration.Variables[0].Identifier.ToString());
+            Assert.Null(ds.Declaration.Variables[0].ArgumentList);
+            Assert.Null(ds.Declaration.Variables[0].Initializer);
+
+            Assert.NotNull(ds.SemicolonToken);
+            Assert.False(ds.SemicolonToken.IsMissing);
+        }
+
+        [Fact]
+        public void TestLocalDeclarationStatementWithTuple()
+        {
+            var text = "(int, int) a;";
+            var statement = this.ParseStatement(text, options: TestOptions.Regular.WithTuplesFeature());
+
+            (text).ToString();
+
+            Assert.NotNull(statement);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
+            Assert.Equal(text, statement.ToString());
+            Assert.Equal(0, statement.Errors().Length);
+
+            var ds = (LocalDeclarationStatementSyntax)statement;
+            Assert.Equal(0, ds.Modifiers.Count);
+            Assert.NotNull(ds.Declaration.Type);
+            Assert.Equal("(int, int)", ds.Declaration.Type.ToString());
+            Assert.Equal(SyntaxKind.TupleType, ds.Declaration.Type.Kind());
+
+            var tt = (TupleTypeSyntax)ds.Declaration.Type;
+
+            Assert.Equal(SyntaxKind.PredefinedType, tt.Elements[0].Type.Kind());
+            Assert.Null(tt.Elements[1].Name);
+            Assert.Equal(2, tt.Elements.Count);
+
+            Assert.NotNull(ds.Declaration.Variables[0].Identifier);
+            Assert.Equal("a", ds.Declaration.Variables[0].Identifier.ToString());
+            Assert.Null(ds.Declaration.Variables[0].ArgumentList);
+            Assert.Null(ds.Declaration.Variables[0].Initializer);
+
+            Assert.NotNull(ds.SemicolonToken);
+            Assert.False(ds.SemicolonToken.IsMissing);
+        }
+
+        public void TestLocalDeclarationStatementWithNamedTuple()
+        {
+            var text = "(T x, (U k, V l, W m) y) a;";
+            var statement = this.ParseStatement(text);
+
+            (text).ToString();
+
+            Assert.NotNull(statement);
+            Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
+            Assert.Equal(text, statement.ToString());
+            Assert.Equal(0, statement.Errors().Length);
+
+            var ds = (LocalDeclarationStatementSyntax)statement;
+            Assert.Equal(0, ds.Modifiers.Count);
+            Assert.NotNull(ds.Declaration.Type);
+            Assert.Equal("(T x, (U k, V l, W m) y)", ds.Declaration.Type.ToString());
+            Assert.Equal(SyntaxKind.TupleType, ds.Declaration.Type.Kind());
+
+            var tt = (TupleTypeSyntax)ds.Declaration.Type;
+
+            Assert.Equal(SyntaxKind.IdentifierName, tt.Elements[0].Type.Kind());
+            Assert.Equal("y", tt.Elements[1].Name.ToString());
+            Assert.Equal(2, tt.Elements.Count);
+
+
+            tt = (TupleTypeSyntax)tt.Elements[1].Type;
+
+            Assert.Equal("(U k, V l, W m)", tt.ToString());
+            Assert.Equal(SyntaxKind.IdentifierName, tt.Elements[0].Type.Kind());
+            Assert.Equal("l", tt.Elements[1].Name.ToString());
+            Assert.Equal(3, tt.Elements.Count);
 
             Assert.NotNull(ds.Declaration.Variables[0].Identifier);
             Assert.Equal("a", ds.Declaration.Variables[0].Identifier.ToString());
@@ -1559,7 +1635,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             Assert.NotNull(fs.Statement);
         }
 
-        [Fact]
+        [Fact, CompilerTrait(CompilerFeature.RefLocalsReturns)]
         public void TestForWithRefVariableDeclaration()
         {
             var text = "for(ref T a = ref b, c = ref d;;) { }";
@@ -2387,19 +2463,29 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         }
 
         [Fact]
-        public void TestPartialAsLocalVariableType1()
+        public void TestContextualKeywordsAsLocalVariableTypes()
         {
-            var text = "partial v1 = null;";
+            TestContextualKeywordAsLocalVariableType(SyntaxKind.PartialKeyword);
+            TestContextualKeywordAsLocalVariableType(SyntaxKind.AsyncKeyword);
+            TestContextualKeywordAsLocalVariableType(SyntaxKind.AwaitKeyword);
+            TestContextualKeywordAsLocalVariableType(SyntaxKind.ReplaceKeyword);
+            TestContextualKeywordAsLocalVariableType(SyntaxKind.OriginalKeyword);
+        }
+
+        private void TestContextualKeywordAsLocalVariableType(SyntaxKind kind)
+        {
+            var keywordText = SyntaxFacts.GetText(kind);
+            var text = keywordText + " o = null;";
             var statement = this.ParseStatement(text);
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
             Assert.Equal(text, statement.ToString());
 
             var decl = (LocalDeclarationStatementSyntax)statement;
-            Assert.Equal("partial", decl.Declaration.Type.ToString());
+            Assert.Equal(keywordText, decl.Declaration.Type.ToString());
             Assert.IsType(typeof(IdentifierNameSyntax), decl.Declaration.Type);
             var name = (IdentifierNameSyntax)decl.Declaration.Type;
-            Assert.Equal(SyntaxKind.PartialKeyword, name.Identifier.ContextualKind());
+            Assert.Equal(kind, name.Identifier.ContextualKind());
             Assert.Equal(SyntaxKind.IdentifierToken, name.Identifier.Kind());
         }
 
@@ -2517,6 +2603,40 @@ class C
             var filterClause = root.DescendantNodes().OfType<CatchFilterClauseSyntax>().Single();
             Assert.Equal(SyntaxKind.WhenKeyword, filterClause.WhenKeyword.Kind());
             Assert.True(filterClause.WhenKeyword.HasStructuredTrivia);
+        }
+
+        [Fact]
+        public void Tuple001()
+        {
+            var source = @"
+class C1
+{
+static void Test(int arg1, (byte, byte) arg2)
+    {
+        (int, int) t1 = new(int, int)();
+        (int, int)? t2 = default((int a, int b));
+
+        (int, int) t3 = (a: (int)arg1, b: (int)arg1);
+
+        (int, int) t4 = ((int a, int b))(arg1, arg1);
+        (int, int) t5 = ((int, int))arg2;
+
+        List<(int, int)> l = new List<(int, int)>() { (a: arg1, b: arg1), (arg1, arg1) };
+
+        Func<(int a, int b), (int a, int b)> f = ((int a, int b) t) => t;
+        
+        var x = from i in ""qq""
+                from j in ""ee""
+                select (i, j);
+
+            foreach ((int, int) e in new (int, int)[10])
+            {
+            }
+        }
+}
+";
+            var tree = SyntaxFactory.ParseSyntaxTree(source, options: TestOptions.Regular.WithTuplesFeature());
+            Assert.Equal(false, tree.GetRoot().ContainsDiagnostics);
         }
 
         private sealed class TokenAndTriviaWalker : CSharpSyntaxWalker

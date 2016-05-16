@@ -1594,8 +1594,9 @@ End Module
             Await TestAsync(workspace)
         End Function
 
+        <WorkItem(10132, "https://github.com/dotnet/roslyn/issues/10132")>
         <WorkItem(545661, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545661")>
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/10132"), Trait(Traits.Feature, Traits.Features.GoToDefinition)>
+        <WpfFact, Trait(Traits.Feature, Traits.Features.GoToDefinition)>
         Public Async Function TestCrossLanguageParameterizedPropertyOverride() As Task
             Dim workspace =
 <Workspace>

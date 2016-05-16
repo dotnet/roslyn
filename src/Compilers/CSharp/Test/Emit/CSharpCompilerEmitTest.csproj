@@ -13,9 +13,17 @@
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Compilers.CSharp.Emit.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
+    <ProjectReference Include="..\..\..\..\Dependencies\DiaSymReader\DiaSymReader.csproj">
+      <Project>{27b7a354-80cc-4bac-abf5-d4081056cea9}</Project>
+      <Name>DiaSymReader</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\..\..\Dependencies\xUnit.net\xUnit.net.csproj">
+      <Project>{8635cb8f-d210-41ed-b4ff-71502cdb475c}</Project>
+      <Name>xUnit.net</Name>
+    </ProjectReference>
     <ProjectReference Include="..\..\..\..\Test\PdbUtilities\PdbUtilities.csproj">
       <Project>{AFDE6BEA-5038-4A4A-A88E-DBD2E4088EED}</Project>
       <Name>PdbUtilities</Name>
@@ -114,6 +122,7 @@
     <Compile Include="CodeGen\CodeGenTests.cs" />
     <Compile Include="CodeGen\CodeGenThrowTests.cs" />
     <Compile Include="CodeGen\CodeGenTryFinally.cs" />
+    <Compile Include="CodeGen\CodeGenTupleTest.cs" />
     <Compile Include="CodeGen\CodeGenTypeofTests.cs" />
     <Compile Include="CodeGen\CodeGenUsingStatementTests.cs" />
     <Compile Include="CodeGen\CompoundAssignmentForDelegate.cs" />

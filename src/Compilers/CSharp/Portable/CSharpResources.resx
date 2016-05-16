@@ -210,9 +210,6 @@
   <data name="IDS_FeaturePatternMatching" xml:space="preserve">
     <value>pattern matching</value>
   </data>
-  <data name="IDS_FeaturePatternMatching2" xml:space="preserve">
-    <value>pattern matching experimental features</value>
-  </data>
   <data name="IDS_FeatureImplicitArray" xml:space="preserve">
     <value>implicitly typed array</value>
   </data>
@@ -243,6 +240,9 @@
   <data name="IDS_FeaturePartialMethod" xml:space="preserve">
     <value>partial method</value>
   </data>
+  <data name="IDS_FeatureReplace" xml:space="preserve">
+    <value>replaced members</value>
+  </data>  
   <data name="IDS_SK_METHOD" xml:space="preserve">
     <value>method</value>
   </data>
@@ -4164,6 +4164,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureRefLocalsReturns" xml:space="preserve">
     <value>byref locals and returns</value>
   </data>
+  <data name="IDS_ThrowExpression" xml:space="preserve">
+    <value>&lt;throw&gt;</value>
+  </data>
   <data name="CompilationC" xml:space="preserve">
     <value>Compilation (C#): </value>
   </data>
@@ -4232,9 +4235,6 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ElementIsExpected" xml:space="preserve">
     <value>element is expected</value>
-  </data>
-  <data name="MustCallSetMethodTestData" xml:space="preserve">
-    <value>Must call SetMethodTestData(ConcurrentDictionary) before calling SetMethodTestData(MethodSymbol, ILBuilder)</value>
   </data>
   <data name="GenericParameterDefinition" xml:space="preserve">
     <value>Generic parameter is definition when expected to be reference {0}</value>
@@ -4667,6 +4667,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ConstantStringTooLong" xml:space="preserve">
     <value>Length of String constant exceeds current memory limit.  Try splitting the string into multiple constants.</value>
   </data>
+  <data name="ERR_TupleTooFewElements" xml:space="preserve">
+    <value>Tuple must contain at least two elements.</value>
+  </data>
   <data name="ERR_DebugEntryPointNotSourceMethodDefinition" xml:space="preserve">
     <value>Debug entry point must be a definition of a method declared in the current compilation.</value>
   </data>
@@ -4815,14 +4818,23 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_RefReturningCallAndAwait" xml:space="preserve">
     <value>'await' cannot be used in an expression containing a call to '{0}' because it returns by reference</value>
   </data>
+  <data name="ERR_NoOriginalMember" xml:space="preserve">
+    <value>No original member for '{0}'</value>
+  </data>
+  <data name="ERR_DuplicateReplace" xml:space="preserve">
+    <value>Type already contains a replacement for '{0}'</value>
+  </data>
+  <data name="ERR_PartialReplace" xml:space="preserve">
+    <value>Replacement methods cannot be partial</value>
+  </data>
   <data name="ERR_ExpressionTreeContainsLocalFunction" xml:space="preserve">
     <value>An expression tree may not contain a reference to a local function</value>
   </data>
   <data name="ERR_ReturnTypesDontMatch" xml:space="preserve">
     <value>Cannot infer the return type of '{0}' due to differing return types.</value>
   </data>
-  <data name="ERR_DynamicLocalFunctionParameter" xml:space="preserve">
-    <value>Cannot invoke the local function '{0}' with dynamic parameters.</value>
+  <data name="ERR_DynamicLocalFunctionParamsParameter" xml:space="preserve">
+    <value>Cannot pass argument with dynamic type to params parameter '{0}' of local function '{1}'.</value>
   </data>
   <data name="ERR_CantInferVoid" xml:space="preserve">
     <value>Cannot infer the type of '{0}' as it does not return a value.</value>
@@ -4839,19 +4851,25 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_BadIsPatternExpression" xml:space="preserve">
     <value>Invalid operand for pattern match.</value>
   </data>
-  <data name="ERR_AmbigMatch0" xml:space="preserve">
-    <value>Type of match expression cannot be determined because no branch has a type.</value>
-  </data>
-  <data name="ERR_AmbigMatch1" xml:space="preserve">
-    <value>Type of match expression cannot be determined because no branch has a most specific type.</value>
-  </data>
-  <data name="ERR_ThrowMisplaced" xml:space="preserve">
-    <value>A throw expression is not allowed here.</value>
-  </data>
-  <data name="ERR_ElseClauseRequiredWithWhenClause" xml:space="preserve">
-    <value>An 'else' clause is required when a 'when' clause is present.</value>
-  </data>
   <data name="ERR_PeWritingFailure" xml:space="preserve">
-    <value>An error occurred while writing the output file: {0}</value>
+    <value>An error occurred while writing the output file: {0}.</value>
+  </data>
+  <data name="ERR_TupleDuplicateMemberName" xml:space="preserve">
+    <value>Tuple member names must be unique.</value>
+  </data>
+  <data name="ERR_TupleExplicitNamesOnAllMembersOrNone" xml:space="preserve">
+    <value>Tuple member names must all be provided, if any one is provided.</value>
+  </data>
+  <data name="ERR_TupleReservedMemberName" xml:space="preserve">
+    <value>Tuple member name '{0}' is only allowed at position {1}.</value>
+  </data>
+  <data name="ERR_TupleReservedMemberNameAnyPosition" xml:space="preserve">
+    <value>Tuple membername '{0}' is disallowed at any position.</value>
+  </data>
+  <data name="ERR_PredefinedTypeMemberNotFoundInAssembly" xml:space="preserve">
+    <value>Member '{0}' was not found on type '{1}' from assembly '{2}'.</value>
+  </data>
+  <data name="IDS_FeatureTuples" xml:space="preserve">
+    <value>tuples</value>
   </data>
 </root>

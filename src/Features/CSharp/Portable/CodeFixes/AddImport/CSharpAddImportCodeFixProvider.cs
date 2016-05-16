@@ -19,6 +19,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
 using static Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport.AddImportDiagnosticIds;
 
@@ -154,8 +155,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
         /// <summary>For testing purposes only (so that tests can pass in mock values)</summary> 
         internal CSharpAddImportCodeFixProvider(
             IPackageInstallerService installerService,
-            IPackageSearchService packageSearchService)
-            : base(installerService, packageSearchService)
+            ISymbolSearchService symbolSearchService)
+            : base(installerService, symbolSearchService)
         {
         }
 
@@ -480,8 +481,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
                     .Single();
                 newRoot = newRoot.TrackNodes(newUsing);
                 var documentWithSyntaxRoot = document.WithSyntaxRoot(newRoot);
-                var options = document.Project.Solution.Workspace.Options;
-                var simplifiedDocument = await Simplifier.ReduceAsync(documentWithSyntaxRoot, newUsing.Span, options, cancellationToken).ConfigureAwait(false);
+                var simplifiedDocument = await Simplifier.ReduceAsync(documentWithSyntaxRoot, newUsing.Span, cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 newRoot = (CompilationUnitSyntax)await simplifiedDocument.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
                 var simplifiedUsing = newRoot.GetCurrentNode(newUsing);
@@ -716,32 +716,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport
             var leftExpressionType = semanticInfo.Type;
 
             return IsViableExtensionMethod(method, leftExpressionType);
-        }
-
-        internal override bool IsViableField(IFieldSymbol field, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
-        {
-            return IsViablePropertyOrField(field, expression, semanticModel, syntaxFacts, cancellationToken);
-        }
-
-        internal override bool IsViableProperty(IPropertySymbol property, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
-        {
-            return IsViablePropertyOrField(property, expression, semanticModel, syntaxFacts, cancellationToken);
-        }
-
-        private bool IsViablePropertyOrField(ISymbol propertyOrField, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken)
-        {
-            if (!propertyOrField.IsStatic)
-            {
-                return false;
-            }
-
-            var leftName = (expression as MemberAccessExpressionSyntax)?.Expression as SimpleNameSyntax;
-            if (leftName == null)
-            {
-                return false;
-            }
-
-            return StringComparer.Ordinal.Compare(propertyOrField.ContainingType.Name, leftName.Identifier.Text) == 0;
         }
 
         internal override bool IsAddMethodContext(SyntaxNode node, SemanticModel semanticModel)

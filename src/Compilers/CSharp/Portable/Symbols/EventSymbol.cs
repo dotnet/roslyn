@@ -302,6 +302,29 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
+        /// <summary>
+        /// Is this an event of a tuple type?
+        /// </summary>
+        public virtual bool IsTupleEvent
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// If this is an event of a tuple type, return corresponding underlying event from the
+        /// tuple underlying type. Otherwise, null. 
+        /// </summary>
+        public virtual EventSymbol TupleUnderlyingEvent
+        {
+            get
+            {
+                return null;
+            }
+        }
+
         #region IEventSymbol Members
 
         ITypeSymbol IEventSymbol.Type
@@ -379,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Equality
 
-        public sealed override bool Equals(object obj)
+        public override bool Equals(object obj)
         {
             EventSymbol other = obj as EventSymbol;
 

@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// Loads the SymbolTreeInfo for a given assembly symbol (metadata or project).  If the
         /// info can't be loaded, it will be created (and persisted if possible).
         /// </summary>
-        private static Task<SymbolTreeInfo> LoadOrCreateSymbolTreeInfoAsync(
+        private static Task<SymbolTreeInfo> LoadOrCreateSourceSymbolTreeInfoAsync(
             Solution solution,
             IAssemblySymbol assembly,
             string filePath,
@@ -30,13 +30,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             return LoadOrCreateAsync(
                 solution,
-                assembly,
                 filePath,
                 loadOnly,
-                create: version => CreateSymbolTreeInfo(solution, version, assembly, filePath, cancellationToken),
+                create: version => CreateSourceSymbolTreeInfo(solution, version, assembly, filePath, cancellationToken),
                 keySuffix: "",
                 getVersion: info => info._version,
-                readObject: reader => ReadSymbolTreeInfo(reader, (version, nodes) => GetSpellCheckerTask(solution, version, assembly, filePath, nodes)),
+                readObject: reader => ReadSymbolTreeInfo(reader, (version, nodes) => GetSpellCheckerTask(solution, version, filePath, nodes)),
                 writeObject: (w, i) => i.WriteTo(w),
                 cancellationToken: cancellationToken);
         }
@@ -47,13 +46,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         private static Task<SpellChecker> LoadOrCreateSpellCheckerAsync(
             Solution solution,
-            IAssemblySymbol assembly,
             string filePath,
             Func<VersionStamp, SpellChecker> create)
         {
             return LoadOrCreateAsync(
                 solution,
-                assembly,
                 filePath,
                 loadOnly: false,
                 create: create,
@@ -70,7 +67,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// </summary>
         private static async Task<T> LoadOrCreateAsync<T>(
             Solution solution,
-            IAssemblySymbol assembly,
             string filePath,
             bool loadOnly,
             Func<VersionStamp, T> create,
@@ -84,7 +80,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // from scratch.
             string prefix;
             VersionStamp version;
-            if (ShouldCreateFromScratch(solution, assembly, filePath, out prefix, out version, cancellationToken))
+            if (ShouldCreateFromScratch(solution, filePath, out prefix, out version, cancellationToken))
             {
                 return loadOnly ? null : create(VersionStamp.Default);
             }
@@ -145,7 +141,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         private static bool ShouldCreateFromScratch(
             Solution solution,
-            IAssemblySymbol assembly,
             string filePath,
             out string prefix,
             out VersionStamp version,

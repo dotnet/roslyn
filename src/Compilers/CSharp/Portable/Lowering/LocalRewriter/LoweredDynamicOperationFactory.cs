@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // that redefines these constants and is not supposed to run existing programs.
 
         /// <summary>
-        /// Corresponds to <see cref="Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags"/>.
+        /// Corresponds to Microsoft.CSharp.RuntimeBinder.CSharpBinderFlags.
         /// </summary>
         [Flags]
         private enum CSharpBinderFlags
@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Corresponds to <see cref="Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags"/>.
+        /// Corresponds to Microsoft.CSharp.RuntimeBinder.CSharpArgumentInfoFlags.
         /// </summary>
         [Flags]
         private enum CSharpArgumentInfoFlags

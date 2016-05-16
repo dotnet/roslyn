@@ -11,10 +11,10 @@ Imports Microsoft.CodeAnalysis.Simplification
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     <ComVisible(True)>
     Public Class AutomationObject
-        Private ReadOnly _optionService As IOptionService
+        Private ReadOnly _workspace As Workspace
 
-        Friend Sub New(optionService As IOptionService)
-            _optionService = optionService
+        Friend Sub New(workspace As Workspace)
+            _workspace = workspace
         End Sub
 
         Public Property AutoComment As Boolean
@@ -44,11 +44,25 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
+        <Obsolete("This SettingStore option has now been deprecated in favor of BasicClosedFileDiagnostics")>
         Public Property ClosedFileDiagnostics As Boolean
+            Get
+                Return ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(_workspace.Options, LanguageNames.VisualBasic)
+            End Get
+            Set(value As Boolean)
+                ' Even though this option has been deprecated, we want to respect the setting if the user has explicitly turned off closed file diagnostics (which is the non-default value for 'ClosedFileDiagnostics').
+                ' So, we invoke the setter only for value = False.
+                If Not value Then
+                    SetBooleanOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, value:=0)
+                End If
+            End Set
+        End Property
+
+        Public Property BasicClosedFileDiagnostics As Integer
             Get
                 Return GetBooleanOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic)
             End Get
-            Set(value As Boolean)
+            Set(value As Integer)
                 SetBooleanOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, value)
             End Set
         End Property
@@ -179,24 +193,61 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
+        Public Property Option_PlaceSystemNamespaceFirst As Boolean
+            Get
+                Return GetBooleanOption(OrganizerOptions.PlaceSystemNamespaceFirst)
+            End Get
+            Set(value As Boolean)
+                SetBooleanOption(OrganizerOptions.PlaceSystemNamespaceFirst, value)
+            End Set
+        End Property
+
+        Public Property Option_Suggest_imports_for_types_in_reference_assemblies As Boolean
+            Get
+                Return GetBooleanOption(AddImportOptions.SuggestForTypesInReferenceAssemblies)
+            End Get
+            Set(value As Boolean)
+                SetBooleanOption(AddImportOptions.SuggestForTypesInReferenceAssemblies, value)
+            End Set
+        End Property
+
+        Public Property Option_Suggest_imports_for_types_in_NuGet_packages As Boolean
+            Get
+                Return GetBooleanOption(AddImportOptions.SuggestForTypesInNuGetPackages)
+            End Get
+            Set(value As Boolean)
+                SetBooleanOption(AddImportOptions.SuggestForTypesInNuGetPackages, value)
+            End Set
+        End Property
+
         Private Function GetBooleanOption(key As [Option](Of Boolean)) As Boolean
-            Return _optionService.GetOption(key)
+            Return _workspace.Options.GetOption(key)
         End Function
 
         Private Sub SetBooleanOption(key As [Option](Of Boolean), value As Boolean)
-            Dim optionSet = _optionService.GetOptions()
-            optionSet = optionSet.WithChangedOption(key, value)
-            _optionService.SetOptions(optionSet)
+            _workspace.Options = _workspace.Options.WithChangedOption(key, value)
         End Sub
 
         Private Function GetBooleanOption(key As [PerLanguageOption](Of Boolean)) As Boolean
-            Return _optionService.GetOption(key, LanguageNames.VisualBasic)
+            Return _workspace.Options.GetOption(key, LanguageNames.VisualBasic)
         End Function
 
         Private Sub SetBooleanOption(key As [PerLanguageOption](Of Boolean), value As Boolean)
-            Dim optionSet = _optionService.GetOptions()
-            optionSet = optionSet.WithChangedOption(key, LanguageNames.VisualBasic, value)
-            _optionService.SetOptions(optionSet)
+            _workspace.Options = _workspace.Options.WithChangedOption(key, LanguageNames.VisualBasic, value)
+        End Sub
+
+        Private Function GetBooleanOption(key As PerLanguageOption(Of Boolean?)) As Integer
+            Dim [option] = _workspace.Options.GetOption(key, LanguageNames.VisualBasic)
+            If Not [option].HasValue Then
+                Return -1
+            End If
+
+            Return If([option].Value, 1, 0)
+        End Function
+
+        Private Sub SetBooleanOption(key As PerLanguageOption(Of Boolean?), value As Integer)
+            Dim boolValue As Boolean? = If(value < 0, Nothing, value > 0)
+            _workspace.Options = _workspace.Options.WithChangedOption(key, LanguageNames.VisualBasic, boolValue)
         End Sub
     End Class
 End Namespace

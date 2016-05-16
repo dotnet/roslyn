@@ -195,7 +195,7 @@ End Class
 
                 Assert.True(VisualBasicIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(formattingRules, root, line, workspace.Options, Nothing, ignoreMissingToken))
 
-                Dim smartFormatter = New SmartTokenFormatter(workspace.Options, formattingRules, root)
+                Dim smartFormatter = New SmartTokenFormatter(document.Options, formattingRules, root)
                 Dim changes = Await smartFormatter.FormatTokenAsync(workspace, token, Nothing)
 
                 Using edit = buffer.CreateEdit()

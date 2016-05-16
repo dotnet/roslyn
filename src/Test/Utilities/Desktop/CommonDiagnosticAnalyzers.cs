@@ -844,6 +844,40 @@ namespace Microsoft.CodeAnalysis
         }
 
         [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
+        public class GeneratedCodeAnalyzer2 : DiagnosticAnalyzer
+        {
+            public static readonly DiagnosticDescriptor Rule = new DiagnosticDescriptor(
+                "GeneratedCodeAnalyzer2Warning",
+                "Title",
+                "GeneratedCodeAnalyzer2Message for '{0}'; Total types analyzed: '{1}'",
+                "Category",
+                DiagnosticSeverity.Warning,
+                true);
+
+            public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(Rule);
+            public override void Initialize(AnalysisContext context)
+            {
+                // Analyze but don't report diagnostics on generated code.
+                context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze);
+
+                context.RegisterCompilationStartAction(compilationStartContext =>
+                {
+                    var namedTypes = new HashSet<ISymbol>();
+                    compilationStartContext.RegisterSymbolAction(symbolContext => namedTypes.Add(symbolContext.Symbol), SymbolKind.NamedType);
+
+                    compilationStartContext.RegisterCompilationEndAction(compilationEndContext =>
+                    {
+                        foreach (var namedType in namedTypes)
+                        {
+                            var diagnostic = Diagnostic.Create(Rule, namedType.Locations[0], namedType.Name, namedTypes.Count);
+                            compilationEndContext.ReportDiagnostic(diagnostic);
+                        }
+                    });
+                });
+            }
+        }
+
+        [DiagnosticAnalyzer(LanguageNames.CSharp, LanguageNames.VisualBasic)]
         public class SharedStateAnalyzer : DiagnosticAnalyzer
         {
             private readonly SyntaxTreeValueProvider<bool> _treeValueProvider;

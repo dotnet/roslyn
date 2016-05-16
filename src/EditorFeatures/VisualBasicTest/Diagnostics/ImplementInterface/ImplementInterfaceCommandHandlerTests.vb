@@ -66,9 +66,7 @@ Interface IFoo
 End Interface")
 
                 Dim commandHandler = MoveCaretAndCreateCommandHandler(workspace)
-
-                Dim optionServices = workspace.Services.GetService(Of IOptionService)()
-                optionServices.SetOptions(optionServices.GetOptions().WithChangedOption(FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers, LanguageNames.VisualBasic, False))
+                workspace.Options = workspace.Options.WithChangedOption(FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers, LanguageNames.VisualBasic, False)
 
                 Dim nextHandlerCalled = False
                 Dim view = workspace.Documents.Single().GetTextView()

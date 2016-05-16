@@ -32,6 +32,8 @@ Supported Platforms:
     <file src="Microsoft.CodeAnalysis.Workspaces.xml" target="lib\net45" />
     <file src="Microsoft.CodeAnalysis.Workspaces.Desktop.dll" target="lib\net45" />
     <file src="Microsoft.CodeAnalysis.Workspaces.Desktop.xml" target="lib\net45" />
+    <file src="Microsoft.CodeAnalysis.Workspaces.dll" target="lib\netstandard1.3" />
+    <file src="Microsoft.CodeAnalysis.Workspaces.xml" target="lib\netstandard1.3" />
     <file src="$thirdPartyNoticesPath$" target="" />
   </files>
 </package>

@@ -57,7 +57,7 @@ with_expression
 
 with_initializer_list
     : with_initializer
-    | with_initiaizer ',' with_initializer_list
+    | with_initializer ',' with_initializer_list
     ;
 
 with_initializer

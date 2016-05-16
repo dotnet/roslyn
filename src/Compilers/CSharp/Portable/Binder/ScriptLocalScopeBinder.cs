@@ -3,6 +3,7 @@
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Immutable;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -23,6 +24,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected override ImmutableArray<LabelSymbol> BuildLabels()
         {
             return _labels.GetLabels();
+        }
+        
+        internal override bool IsLabelsScopeBinder
+        {
+            get
+            {
+                return true;
+            }
+        }
+
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode scopeDesignator)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
+        {
+            throw ExceptionUtilities.Unreachable;
         }
 
         // Labels potentially shared across multiple ScriptLocalScopeBinder instances.

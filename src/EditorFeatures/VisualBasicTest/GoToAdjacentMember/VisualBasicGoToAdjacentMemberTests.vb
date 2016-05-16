@@ -417,6 +417,23 @@ End Class"
 
         <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
         <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
+        <WorkItem(10588, "https://github.com/dotnet/roslyn/issues/10588")>
+        Public Async Function PreviousFromInsideCurrent() As Task
+            Dim code = "
+class C
+    [||]Sub M1()
+        Console.WriteLine($$)
+    End Sub
+
+    Sub M2()
+    End Sub
+End Class"
+
+            Await AssertNavigatedAsync(code, next:=False)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.GoToAdjacentMember)>
+        <WorkItem(4311, "https://github.com/dotnet/roslyn/issues/4311")>
         Public Async Function PreviousFromBetweenMethodsInTrailingTrivia() As Task
             Dim code = "
 Class C

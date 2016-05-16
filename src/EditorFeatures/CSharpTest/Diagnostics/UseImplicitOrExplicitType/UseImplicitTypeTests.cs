@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
@@ -32,7 +33,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
         private readonly SimpleCodeStyleOption offWithError = new SimpleCodeStyleOption(false, NotificationOption.Error);
 
         // specify all options explicitly to override defaults.
-        private IDictionary<OptionKey, object> ImplicitTypeEverywhere() => 
+        private IDictionary<OptionKey, object> ImplicitTypeEverywhere() =>
             Options(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithInfo)
             .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo)
             .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithInfo);
@@ -1397,10 +1398,10 @@ class C
         [|int|] s = 5;
     }
 }";
-            await TestDiagnosticSeverityAndCountAsync(source, 
-                options: ImplicitTypeEnforcements(), 
-                diagnosticCount: 1, 
-                diagnosticId: IDEDiagnosticIds.UseImplicitTypeDiagnosticId, 
+            await TestDiagnosticSeverityAndCountAsync(source,
+                options: ImplicitTypeEnforcements(),
+                diagnosticCount: 1,
+                diagnosticId: IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Info);
         }
 
@@ -1440,6 +1441,57 @@ class C
                 diagnosticCount: 1,
                 diagnosticId: IDEDiagnosticIds.UseImplicitTypeDiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Error);
+        }
+
+        private static string trivial2uple =
+                    @"
+namespace System
+{
+    public class ValueTuple
+    {
+        public static ValueTuple<T1, T2> Create<T1, T2>(T1 item1, T2 item2) => new ValueTuple<T1, T2>(item1, item2);
+    }
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+        public T2 Item2;
+
+        public ValueTuple(T1 item1, T2 item2) { }
+    }
+} ";
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        [WorkItem(11094, "https://github.com/dotnet/roslyn/issues/11094")]
+        public async Task SuggestVarOnLocalWithIntrinsicTypeTuple()
+        {
+            var before = @"class C { static void M() { [|(int a, string)|] s = (a: 1, ""hello""); } }";
+            var after = @"class C { static void M() { var s = (a: 1, ""hello""); } }";
+
+            await TestAsync(before, after, options: ImplicitTypeEverywhere(), parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+
+            // We would rather this refactoring also worked. See https://github.com/dotnet/roslyn/issues/11094
+            await TestMissingAsync(before, options: ImplicitTypeWhereApparent(), parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+        }
+
+        [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/11154"), Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        public async Task ValueTupleCreate()
+        {
+            await TestAsync(
+@"using System; class C { static void M() { [|ValueTuple<int, int>|] s = ValueTuple.Create(1, 1); } }" + trivial2uple,
+@"using System; class C { static void M() { var s = ValueTuple.Create(1, 1); } }" + trivial2uple,
+options: ImplicitTypeWhereApparent(),
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
+        public async Task TupleWithDifferentNames()
+        {
+            await TestMissingAsync(
+@"class C { static void M() { [|(int, string)|] s = (c: 1, d: ""hello""); } }",
+options: ImplicitTypeEverywhere(),
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
         }
     }
 }

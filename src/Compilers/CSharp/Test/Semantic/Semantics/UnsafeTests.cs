@@ -2962,7 +2962,7 @@ public unsafe struct S
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "Alias*").WithArguments("S"));
         }
 
-        [Fact]
+        [Fact()]
         public void ERR_ManagedAddr_Members()
         {
             var text = @"
@@ -2999,6 +2999,19 @@ public unsafe struct S
                 // (12,12): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('S')
                 //     public S* s; //CS0208
                 Diagnostic(ErrorCode.ERR_ManagedAddr, "S*").WithArguments("S"));
+        }
+
+        [WorkItem(10195, "https://github.com/dotnet/roslyn/issues/10195")]
+        [Fact]
+        public void PointerToStructInPartialMethodSignature()
+        {
+            string text =
+@"unsafe partial struct S
+{
+    partial void M(S *p) { }
+    partial void M(S *p);
+}";
+            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeReleaseDll).VerifyDiagnostics();
         }
 
         #endregion IsManagedType

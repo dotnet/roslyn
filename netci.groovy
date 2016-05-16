@@ -2,149 +2,32 @@
 // Jenkins DSL: https://github.com/jenkinsci/job-dsl-plugin/wiki
 
 import jobs.generation.Utilities;
-import static Constants.*;
 
 def project = GithubProject
 
-class Constants {
-    // Number of minutes a build job is given to complete.
-    static final BuildTimeLimit = 120;
-}
-
-static void addLogRotator(def myJob) {
-  myJob.with {
-    logRotator {
-      daysToKeep(90)
-      numToKeep(-1)
-      artifactDaysToKeep(21)
-      artifactNumToKeep(-1)
-    }
-  }
-}
-
-static void addConcurrentBuild(def myJob, String category) {
-  myJob.with {
-    concurrentBuild(true)
-    if (category != null)  {
-      throttleConcurrentBuilds {
-        throttleDisabled(false)
-        maxTotal(0)
-        maxPerNode(1)
-        categories([category])
-      }
-    }
-  }
-}
-
-static void addScm(def myJob, String branchName, String refspecName = '') {
-  myJob.with {
-    scm {
-      git {
-        remote {
-          github('dotnet/roslyn', 'https', 'github.com')
-          name('')
-          refspec(refspecName)
-        }
-        branch(branchName)
-        wipeOutWorkspace(true)
-        shallowClone(true)
-      }
-    }
-  }
-}
-
-static void addWrappers(def myJob) {
-  myJob.with {
-    wrappers {
-      timeout {
-        absolute(BuildTimeLimit)
-        abortBuild()
-      }
-      timestamps()
-    }
-  }
-}
-
-static void addArtifactArchiving(def myJob, String patternString, String excludeString) {
-  myJob.with {
-    publishers {
-      flexiblePublish {
-        conditionalAction {
-          condition {
-            status('ABORTED', 'FAILURE')
-          }
-
-          publishers {
-            archiveArtifacts {
-              allowEmpty(true)
-              defaultExcludes(false)
-              exclude(excludeString)
-              fingerprint(false)
-              onlyIfSuccessful(false)
-              pattern(patternString)
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
+// Email the results of aborted / failed jobs to our infrastructure alias
 static void addEmailPublisher(def myJob) {
   myJob.with {
     publishers {
-      extendedEmail('$DEFAULT_RECIPIENTS, cc:mlinfraswat@microsoft.com', '$DEFAULT_SUBJECT', '$DEFAULT_CONTENT') {
-        trigger('Aborted', '$PROJECT_DEFAULT_SUBJECT', '$PROJECT_DEFAULT_CONTENT', null, true, true, true, true)
-        trigger('Failure', '$PROJECT_DEFAULT_SUBJECT', '$PROJECT_DEFAULT_CONTENT', null, true, true, true, true)
+      extendedEmail('mlinfraswat@microsoft.com', '$DEFAULT_SUBJECT', '$DEFAULT_CONTENT') {
+	// trigger(trigger name, subject, body, recipient list, send to developers, send to requester, include culprits, send to recipient list)
+        trigger('Aborted', '$PROJECT_DEFAULT_SUBJECT', '$PROJECT_DEFAULT_CONTENT', null, false, false, false, true)
+        trigger('Failure', '$PROJECT_DEFAULT_SUBJECT', '$PROJECT_DEFAULT_CONTENT', null, false, false, false, true)
       }
     }
   }
 }
 
-static void addUnitPublisher(def myJob) {
+// Calls a web hook on Jenkins build events.  Allows our build monitoring jobs to be push notified
+// vs. polling
+static void addBuildEventWebHook(def myJob) {
   myJob.with {
-    configure { node ->
-      node / 'publishers' << {
-      'xunit'('plugin': 'xunit@1.97') {
-      'types' {
-        'XUnitDotNetTestType' {
-          'pattern'('**/xUnitResults/*.xml')
-            'skipNoTestFiles'(false)
-            'failIfNotNew'(true)
-            'deleteOutputFiles'(true)
-            'stopProcessingIfError'(true)
-          }
-        }
-        'thresholds' {
-          'org.jenkinsci.plugins.xunit.threshold.FailedThreshold' {
-            'unstableThreshold'('')
-            'unstableNewThreshold'('')
-            'failureThreshold'('0')
-            'failureNewThreshold'('')
-          }
-          'org.jenkinsci.plugins.xunit.threshold.SkippedThreshold' {
-              'unstableThreshold'('')
-              'unstableNewThreshold'('')
-              'failureThreshold'('')
-              'failureNewThreshold'('')
-            }
-          }
-          'thresholdMode'('1')
-          'extraConfiguration' {
-            testTimeMargin('3000')
-          }
-        }
+    notifications {
+      endpoint('https://jaredpar.azurewebsites.net/api/BuildEvent?code=tts2pvyelahoiliwu7lo6flxr8ps9kaip4hyr4m0ofa3o3l3di77tzcdpk22kf9gex5m6cbrcnmi') {
+        event('all')
       }
     }
-  }
-}
-
-static void addPushTrigger(def myJob) {
-  myJob.with {
-    triggers {
-      githubPush()
-    }
-  }
+  }   
 }
 
 // Generates the standard trigger phrases.  This is the regex which ends up matching lines like:
@@ -153,48 +36,31 @@ static String generateTriggerPhrase(String jobName, String opsysName, String tri
     return "(?i).*test\\W+(${jobName.replace('_', '/').substring(7)}|${opsysName}|${triggerKeyword}|${opsysName}\\W+${triggerKeyword}|${triggerKeyword}\\W+${opsysName})\\W+please.*";
 }
 
-static void addPullRequestTrigger(def myJob, String jobName, String triggerPhraseText, Boolean triggerPhraseOnly = false) {
-  myJob.with {
-    triggers {
-      pullRequest {
-        admin('Microsoft')
-        useGitHubHooks(true)
-        triggerPhrase(triggerPhraseText)
-        onlyTriggerPhrase(triggerPhraseOnly)
-        autoCloseFailedPullRequests(false)
-        orgWhitelist('Microsoft')
-        allowMembersOfWhitelistedOrgsAsAdmin(true)
-        permitAll(true)
-        extensions {
-          commitStatus {
-            context(jobName.replace('_', '/').substring(7))
-          }
-        }
-      }
-    }
-  }
-}
-
-static void addStandardJob(def myJob, String jobName, String branchName, String triggerPhrase, Boolean triggerPhraseOnly = false) {
-  addLogRotator(myJob)
-  addWrappers(myJob)
-
+static void addRoslynJob(def myJob, String jobName, String branchName, String triggerPhrase, Boolean triggerPhraseOnly = false) {
   def includePattern = "Binaries/**/*.pdb,Binaries/**/*.xml,Binaries/**/*.log,Binaries/**/*.dmp,Binaries/**/*.zip,Binaries/**/*.png,Binaries/**/*.xml"
   def excludePattern = "Binaries/Obj/**,Binaries/Bootstrap/**,Binaries/**/nuget*.zip"
-  addArtifactArchiving(myJob, includePattern, excludePattern)
+  Utilities.addArchival(myJob, includePattern, excludePattern)
 
-  if (branchName == 'prtest') {
-    addPullRequestTrigger(myJob, jobName, triggerPhrase, triggerPhraseOnly);
-    addScm(myJob, '${sha1}', '+refs/pull/*:refs/remotes/origin/pr/*')
+  // Create the standard job.  This will setup parameter, SCM, timeout, etc ...
+  def projectName = 'dotnet/roslyn'
+  def isPr = branchName == 'prtest'
+  def defaultBranch = "*/${branchName}"
+  Utilities.standardJobSetup(myJob, projectName, isPr, defaultBranch)
+
+  // Need to setup the triggers for the job
+  if (isPr) {
+    def contextName = jobName.replace('_', '/').substring(7)
+    Utilities.addGithubPRTrigger(myJob, contextName, triggerPhrase, triggerPhraseOnly)
   } else {
-    addPushTrigger(myJob)
-    addScm(myJob, "*/${branchName}")
+    Utilities.addGithubPushTrigger(myJob)
     addEmailPublisher(myJob)
   }
+
+  addBuildEventWebHook(myJob)
 }
 
 def branchNames = []
-['master', 'future', 'stabilization', 'future-stabilization', 'hotfixes', 'prtest'].each { branchName ->
+['master', 'future', 'stabilization', 'future-stabilization', 'hotfixes', 'prtest', 'microupdate'].each { branchName ->
   def shortBranchName = branchName.substring(0, 6)
   def jobBranchName = shortBranchName in branchNames ? branchName : shortBranchName
   branchNames << jobBranchName
@@ -236,17 +102,14 @@ set TMP=%TEMP%
                   }
                 }
                 Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto')
-                // Generic throttling for Windows, no category
-                addConcurrentBuild(myJob, null)
                 break;
               case 'linux':
                 myJob.with {
-                  label('ubuntu-fast')
                   steps {
                     shell("./cibuild.sh --nocache --debug")
                   }
                 }
-                addConcurrentBuild(myJob, 'roslyn/lin/unit')
+                Utilities.setMachineAffinity(myJob, 'Ubuntu14.04', 'latest-or-auto')
                 break;
               case 'mac':
                 myJob.with {
@@ -255,13 +118,12 @@ set TMP=%TEMP%
                     shell("./cibuild.sh --nocache --debug")
                   }
                 }
-                addConcurrentBuild(myJob, 'roslyn/mac/unit')
                 triggerPhraseOnly = true;
                 break;
             }
 
-            addUnitPublisher(myJob)
-            addStandardJob(myJob, jobName, branchName, triggerPhrase, triggerPhraseOnly);
+            Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
+            addRoslynJob(myJob, jobName, branchName, triggerPhrase, triggerPhraseOnly)
           }
         }
       }
@@ -284,7 +146,6 @@ set TMP=%TEMP%
   }
 
   Utilities.setMachineAffinity(determinismJob, 'Windows_NT', 'latest-or-auto')
-  addConcurrentBuild(determinismJob, null)
-  addStandardJob(determinismJob, determinismJobName, branchName,  "(?i).*test\\W+determinism.*", true);
+  addRoslynJob(determinismJob, determinismJobName, branchName,  "(?i).*test\\W+determinism.*", true);
 }
 

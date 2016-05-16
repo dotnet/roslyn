@@ -219,27 +219,52 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// Used by EnC to create symbols for emit baseline. The PE symbols are used by <see cref="CSharpSymbolMatcher"/>.
             /// 
             /// The assembly references listed in the metadata AssemblyRef table are matched to the resolved references 
-            /// stored on this <see cref="ReferenceManager"/>. Each AssemblyRef is matched against the assembly identities
-            /// using an exact equality comparison. No unification or further resolution is performed.
+            /// stored on this <see cref="ReferenceManager"/>. We assume that the dependencies of the baseline metadata are 
+            /// the same as the dependencies of the current compilation. This is not exactly true when the dependencies use 
+            /// time-based versioning pattern, e.g. AssemblyVersion("1.0.*"). In that case we assume only the version
+            /// changed and nothing else.
+            /// 
+            /// Each AssemblyRef is matched against the assembly identities using an exact equality comparison modulo version. 
+            /// AssemblyRef with lower version in metadata is matched to a PE assembly symbol with the higher version 
+            /// (provided that the assembly name, culture, PKT and flags are the same) if there is no symbol with the exactly matching version. 
+            /// If there are multiple symbols with higher versions selects the one with the minimal version among them.
+            /// 
+            /// Matching to a higher version is necessary to support EnC for projects whose P2P dependencies use time-based versioning pattern. 
+            /// The versions of the dependent projects seen from the IDE will be higher than 
+            /// the one written in the metadata at the time their respective baselines are built.
+            /// 
+            /// No other unification or further resolution is performed.
             /// </remarks>
-            public PEAssemblySymbol CreatePEAssemblyForAssemblyMetadata(AssemblyMetadata metadata, MetadataImportOptions importOptions)
+            /// <param name="metadata"></param>
+            /// <param name="importOptions"></param>
+            /// <param name="assemblyReferenceIdentityMap">
+            /// A map of the PE assembly symbol identities to the identities of the original metadata AssemblyRefs.
+            /// This map will be used in emit when serializing AssemblyRef table of the delta. For the delta to be compatible with
+            /// the original metadata we need to map the identities of the PE assembly symbols back to the original AssemblyRefs (if different).
+            /// In other words, we pretend that the versions of the dependencies haven't changed.
+            /// </param>
+            public PEAssemblySymbol CreatePEAssemblyForAssemblyMetadata(AssemblyMetadata metadata, MetadataImportOptions importOptions, out ImmutableDictionary<AssemblyIdentity, AssemblyIdentity> assemblyReferenceIdentityMap)
             {
                 AssertBound();
 
                 // If the compilation has a reference from metadata to source assembly we can't share the referenced PE symbols.
                 Debug.Assert(!HasCircularReference);
 
-                var referencedAssembliesByIdentity = new Dictionary<AssemblyIdentity, AssemblySymbol>();
+                var referencedAssembliesByIdentity = new AssemblyIdentityMap<AssemblySymbol>();
                 foreach (var symbol in this.ReferencedAssemblies)
                 {
                     referencedAssembliesByIdentity.Add(symbol.Identity, symbol);
                 }
 
                 var assembly = metadata.GetAssembly();
+
                 var peReferences = assembly.AssemblyReferences.SelectAsArray(MapAssemblyIdentityToResolvedSymbol, referencedAssembliesByIdentity);
+
+                assemblyReferenceIdentityMap = GetAssemblyReferenceIdentityBaselineMap(peReferences, assembly.AssemblyReferences);
+
                 var assemblySymbol = new PEAssemblySymbol(assembly, DocumentationProvider.Default, isLinked: false, importOptions: importOptions);
 
-                var unifiedAssemblies = this.UnifiedAssemblies.WhereAsArray(unified => referencedAssembliesByIdentity.ContainsKey(unified.OriginalReference));
+                var unifiedAssemblies = this.UnifiedAssemblies.WhereAsArray(unified => referencedAssembliesByIdentity.Contains(unified.OriginalReference, allowHigherVersion: false));
                 InitializeAssemblyReuseData(assemblySymbol, peReferences, unifiedAssemblies);
 
                 if (assembly.ContainsNoPiaLocalTypes())
@@ -250,13 +275,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return assemblySymbol;
             }
 
-            private static AssemblySymbol MapAssemblyIdentityToResolvedSymbol(AssemblyIdentity identity, Dictionary<AssemblyIdentity, AssemblySymbol> map)
+            private static AssemblySymbol MapAssemblyIdentityToResolvedSymbol(AssemblyIdentity identity, AssemblyIdentityMap<AssemblySymbol> map)
             {
                 AssemblySymbol symbol;
-                if (map.TryGetValue(identity, out symbol))
+                if (map.TryGetValue(identity, out symbol, CompareVersionPartsSpecifiedInSource))
                 {
                     return symbol;
                 }
+
+                if (map.TryGetValue(identity, out symbol, (v1, v2, s) => true))
+                {
+                    // TODO: https://github.com/dotnet/roslyn/issues/9004
+                    throw new NotSupportedException($"Changing the version of an assembly reference is not allowed during debugging: '{identity}' changed version to {symbol.Identity.Version}");
+                }
+
                 return new MissingAssemblySymbol(identity);
             }
 

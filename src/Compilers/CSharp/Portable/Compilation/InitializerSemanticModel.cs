@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         BoundExpression result;
                         if ((object)enumField != null)
                         {
-                            result = binder.BindEnumConstantInitializer(enumField, equalsValue.Value, diagnostics);
+                            result = binder.BindEnumConstantInitializer(enumField, equalsValue, diagnostics);
                         }
                         else
                         {
@@ -194,7 +194,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         if (result != null)
                         {
-                            result = binder.WrapWithVariablesIfAny(result);
                             return new BoundFieldEqualsValue(equalsValue, field, result);
                         }
                         break;
@@ -206,7 +205,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         BoundExpression result = binder.BindVariableOrAutoPropInitializer(equalsValue, RefKind.None, property.Type, diagnostics);
                         if (result != null)
                         {
-                            result = binder.WrapWithVariablesIfAny(result);
                             return new BoundPropertyEqualsValue(equalsValue, property, result);
                         }
                         break;
@@ -276,6 +274,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 speculativeModel = null;
                 return false;
+            }
+
+            switch (initializer.Kind())
+            {
+                case SyntaxKind.EqualsValueClause:
+                    binder = new ExecutableCodeBinder(initializer, binder.ContainingMemberOrLambda, binder);
+                    break;
+
+                case SyntaxKind.ThisConstructorInitializer:
+                case SyntaxKind.BaseConstructorInitializer:
+                    ArgumentListSyntax argList = ((ConstructorInitializerSyntax)initializer).ArgumentList;
+                    if (argList != null)
+                    {
+                        binder = new ExecutableCodeBinder(argList, binder.ContainingMemberOrLambda, binder);
+                    }
+                    break;
             }
 
             speculativeModel = CreateSpeculative(parentModel, this.MemberSymbol, initializer, binder, position);

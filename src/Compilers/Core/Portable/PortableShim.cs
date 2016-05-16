@@ -60,7 +60,6 @@ namespace Roslyn.Utilities
             Touch(StackTrace.Type);
             Touch(Thread.Type);
             Touch(XPath.Extensions.Type);
-            Touch(HashAlgorithm.Type);
             Touch(SHA1.Type);
             Touch(SHA256.Type);
             Touch(SHA512.Type);
@@ -200,6 +199,11 @@ namespace Roslyn.Utilities
                 .GetTypeInfo()
                 .GetDeclaredMethod(nameof(WriteAllBytes), paramTypes: new[] { typeof(string), typeof(byte[]) })
                 .CreateDelegate<Action<string, byte[]>>();
+
+            internal static readonly Action<string, string, System.Text.Encoding> WriteAllText = Type
+                .GetTypeInfo()
+                .GetDeclaredMethod(nameof(WriteAllText), paramTypes: new[] { typeof(string), typeof(string), typeof(System.Text.Encoding) })
+                .CreateDelegate<Action<string, string, System.Text.Encoding>>();
 
             private static readonly MethodInfo SetAttributesMethod = Type
                 .GetTypeInfo()
@@ -557,36 +561,129 @@ namespace Roslyn.Utilities
         {
             private const string TypeName = "System.Security.Cryptography.HashAlgorithm";
 
-            internal static readonly Type Type = ReflectionUtilities.GetTypeFromEither(
-                contractName: $"{TypeName}, {CoreNames.System_Security_Cryptography_Primitives}",
+            private static Type s_lazyType;
+
+            internal static Type TypeOpt => ReflectionUtilities.GetTypeFromEither(ref s_lazyType,
+                contractName: TypeName + ", " + CoreNames.System_Security_Cryptography_Primitives,
                 desktopName: TypeName);
 
-            private static readonly MethodInfo s_computeHash_byte = Type
-                .GetTypeInfo()
-                .GetDeclaredMethod(nameof(ComputeHash), new[] { typeof(byte[]) });
+            private static MethodInfo s_lazyTransformBlock, s_lazyTransformFinalBlock, s_lazyComputeHashByte, s_lazyComputeHashByteIntInt, s_lazyComputeHashStream;
+            private static PropertyInfo s_lazyHash;
+            
+            internal static int TransformBlock(object hashAlgorithm, byte[] inputBuffer, int inputOffset, int inputCount, byte[] outputBuffer, int outputOffset)
+            {
+                if (s_lazyTransformBlock == null)
+                {
+                    s_lazyTransformBlock = TypeOpt.GetTypeInfo().GetDeclaredMethod(nameof(TransformBlock), new[] { typeof(byte[]), typeof(int), typeof(int), typeof(byte[]), typeof(int) });
+                }
 
-            private static readonly MethodInfo s_computeHash_byte_int_int = Type
-                .GetTypeInfo()
-                .GetDeclaredMethod(nameof(ComputeHash), new[] { typeof(byte[]), typeof(int), typeof(int) });
+                return (int)s_lazyTransformBlock.Invoke(hashAlgorithm, new object[] { inputBuffer, inputOffset, inputCount, inputBuffer, inputOffset });
+            }
 
-            private static readonly MethodInfo s_computeHash_stream = Type
-                .GetTypeInfo()
-                .GetDeclaredMethod(nameof(ComputeHash), new[] { typeof(Stream) });
+            internal static byte[] TransformFinalBlock(object hashAlgorithm, byte[] inputBuffer, int inputOffset, int inputCount)
+            {
+                if (s_lazyTransformFinalBlock == null)
+                {
+                    s_lazyTransformFinalBlock = TypeOpt.GetTypeInfo().GetDeclaredMethod(nameof(TransformFinalBlock), new[] { typeof(byte[]), typeof(int), typeof(int) });
+                }
+
+                return (byte[])s_lazyTransformFinalBlock.Invoke(hashAlgorithm, new object[] { inputBuffer, inputOffset, inputCount });
+            }
+
+            internal static byte[] Hash(object hashAlgorithm)
+            {
+                if (s_lazyHash == null)
+                {
+                    s_lazyHash = TypeOpt.GetTypeInfo().GetDeclaredProperty(nameof(Hash));
+                }
+
+                return (byte[])s_lazyHash.GetValue(hashAlgorithm);
+            }
 
             internal static byte[] ComputeHash(object hashInstance, byte[] buffer)
             {
-                return (byte[])s_computeHash_byte.Invoke(hashInstance, new object[] { buffer });
+                if (s_lazyComputeHashByte == null)
+                {
+                    s_lazyComputeHashByte = TypeOpt.GetTypeInfo().GetDeclaredMethod(nameof(ComputeHash), new[] { typeof(byte[]) });
+                }
+
+                return (byte[])s_lazyComputeHashByte.Invoke(hashInstance, new object[] { buffer });
             }
 
             internal static byte[] ComputeHash(object hashInstance, byte[] buffer, int offset, int count)
             {
-                return (byte[])s_computeHash_byte_int_int.Invoke(hashInstance, new object[] { buffer, offset, count });
+                if (s_lazyComputeHashByteIntInt == null)
+                {
+                    s_lazyComputeHashByteIntInt = TypeOpt.GetTypeInfo().GetDeclaredMethod(nameof(ComputeHash), new[] { typeof(byte[]), typeof(int), typeof(int) });
+                }
+
+                return (byte[])s_lazyComputeHashByteIntInt.Invoke(hashInstance, new object[] { buffer, offset, count });
             }
 
             internal static byte[] ComputeHash(object hashInstance, Stream inputStream)
             {
-                return (byte[])s_computeHash_stream.Invoke(hashInstance, new object[] { inputStream });
+                if (s_lazyComputeHashStream == null)
+                {
+                    s_lazyComputeHashStream = TypeOpt.GetTypeInfo().GetDeclaredMethod(nameof(ComputeHash), new[] { typeof(Stream) });
+                }
+
+                return (byte[])s_lazyComputeHashStream.Invoke(hashInstance, new object[] { inputStream });
             }
+        }
+
+        internal static class IncrementalHash
+        {
+            private const string TypeName = "System.Security.Cryptography.IncrementalHash";
+
+            private static Type s_lazyType;
+            private static MethodInfo s_lazyCreateHash, s_lazyAppendData, s_lazyHashAndReset;
+
+            internal static Type TypeOpt => ReflectionUtilities.TryGetType(ref s_lazyType,
+                TypeName + ", " + CoreNames.System_Security_Cryptography_Algorithms);
+
+            internal static IDisposable CreateHash(object hashAlgorithmName)
+            {
+                if (s_lazyCreateHash == null)
+                {
+                    s_lazyCreateHash = TypeOpt.GetTypeInfo().GetDeclaredMethod(nameof(CreateHash), new[] { HashAlgorithmName.TypeOpt });
+                }
+
+                return (IDisposable)s_lazyCreateHash.Invoke(null, new[] { hashAlgorithmName });
+            }
+
+            internal static void AppendData(object incrementalHash, byte[] data, int offset, int count)
+            {
+                if (s_lazyAppendData == null)
+                {
+                    s_lazyAppendData = TypeOpt.GetTypeInfo().GetDeclaredMethod(nameof(AppendData), new[] { typeof(byte[]), typeof(int), typeof(int) });
+                }
+
+                s_lazyAppendData.Invoke(incrementalHash, new object[] { data, offset, count });
+            }
+
+            internal static byte[] GetHashAndReset(object incrementalHash)
+            {
+                if (s_lazyHashAndReset == null)
+                {
+                    s_lazyHashAndReset = TypeOpt.GetTypeInfo().GetDeclaredMethod(nameof(GetHashAndReset), new Type[0]);
+                }
+
+                return (byte[])s_lazyHashAndReset.Invoke(incrementalHash, new object[0]);
+            }
+        }
+
+        internal static class HashAlgorithmName
+        {
+            private const string TypeName = "System.Security.Cryptography.HashAlgorithmName";
+
+            private static Type s_lazyType;
+            private static object s_lazySHA1;
+            
+            internal static Type TypeOpt => ReflectionUtilities.GetTypeFromEither(ref s_lazyType,
+                contractName: TypeName + ", " + CoreNames.System_Security_Cryptography_Primitives,
+                desktopName: TypeName);
+
+            internal static object SHA1 => s_lazySHA1 ?? (s_lazySHA1 = TypeOpt.GetTypeInfo().GetDeclaredProperty("SHA1").GetValue(null));
         }
 
         internal static class SHA1

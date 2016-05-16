@@ -612,6 +612,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             { WasCompilerGenerated = true };
         }
 
+        public BoundCall Call(BoundExpression receiver, MethodSymbol method, ImmutableArray<RefKind> refKinds, ImmutableArray<BoundExpression> args)
+        {
+            Debug.Assert(method.ParameterCount == args.Length);
+            return new BoundCall(
+                Syntax, receiver, method, args,
+                ImmutableArray<String>.Empty, refKinds, false, false, false,
+                ImmutableArray<int>.Empty, LookupResultKind.Viable, method.ReturnType)
+            { WasCompilerGenerated = true };
+        }
+
         public BoundExpression Conditional(BoundExpression condition, BoundExpression consequence, BoundExpression alternative, TypeSymbol type)
         {
             return new BoundConditionalOperator(Syntax, condition, consequence, alternative, default(ConstantValue), type) { WasCompilerGenerated = true };
@@ -905,16 +915,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Throw(Null(Compilation.GetWellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Exception)));
         }
 
-        public BoundExpression ThrowNullExpression(TypeSymbol type)
-        {
-            return new BoundThrowExpression(Syntax, Null(Compilation.GetWellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Exception)), type);
-        }
-
-        public BoundExpression ThrowExpression(BoundExpression thrown, TypeSymbol type)
-        {
-            return new BoundThrowExpression(thrown.Syntax, thrown, type);
-        }
-
         public BoundExpression Null(TypeSymbol type)
         {
             BoundExpression nullLiteral = new BoundLiteral(Syntax, ConstantValue.Null, type) { WasCompilerGenerated = true };
@@ -1123,14 +1123,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundBlock block)
         {
             var source = Local(local);
-            return new BoundCatchBlock(Syntax, local, source, source.Type, exceptionFilterOpt: null, body: block, isSynthesizedAsyncCatchAll: false);
+            return new BoundCatchBlock(Syntax, ImmutableArray.Create(local), source, source.Type, exceptionFilterOpt: null, body: block, isSynthesizedAsyncCatchAll: false);
         }
 
         internal BoundCatchBlock Catch(
             BoundExpression source,
             BoundBlock block)
         {
-            return new BoundCatchBlock(Syntax, null, source, source.Type, exceptionFilterOpt: null, body: block, isSynthesizedAsyncCatchAll: false);
+            return new BoundCatchBlock(Syntax, ImmutableArray<LocalSymbol>.Empty, source, source.Type, exceptionFilterOpt: null, body: block, isSynthesizedAsyncCatchAll: false);
         }
 
         internal BoundTryStatement Fault(BoundBlock tryBlock, BoundBlock faultBlock)

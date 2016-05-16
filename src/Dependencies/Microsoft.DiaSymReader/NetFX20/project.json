@@ -3,6 +3,6 @@
         "Microsoft.NetFX20": "1.0.3"
     },
     "frameworks": {
-        "net45": {}
+        "net46": {}
     },
 }

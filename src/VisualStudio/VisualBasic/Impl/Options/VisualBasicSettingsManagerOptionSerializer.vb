@@ -17,6 +17,7 @@ Imports Microsoft.VisualStudio.Shell
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     <ExportLanguageSpecificOptionSerializer(
         LanguageNames.VisualBasic,
+        AddImportOptions.FeatureName,
         SimplificationOptions.PerLanguageFeatureName,
         ExtractMethodOptions.FeatureName,
         FeatureOnOffOptions.OptionName,
@@ -46,6 +47,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                             New KeyValuePair(Of String, IOption)(SettingStorageRoot + "AutoRequiredMemberInsert", FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers)})
 
             Dim Types As Type() = {
+                GetType(AddImportOptions),
                 GetType(FormattingOptions),
                 GetType(ExtractMethodOptions),
                 GetType(SimplificationOptions),
@@ -85,6 +87,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                 End If
 
                 Return [option].Feature = FormattingOptions.InternalTabFeatureName Or
+                       [option].Feature = AddImportOptions.FeatureName Or
                        [option].Feature = ExtractMethodOptions.FeatureName Or
                        [option].Feature = SimplificationOptions.PerLanguageFeatureName Or
                        [option].Feature = ServiceFeatureOnOffOptions.OptionName Or

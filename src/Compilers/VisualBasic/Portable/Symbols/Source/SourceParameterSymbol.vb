@@ -400,10 +400,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                                 Select Case pinvoke.CharacterSet
                                     Case Cci.Constants.CharSet_None, CharSet.Ansi
-                                        info.SetMarshalAsSimpleType(UnmanagedType.AnsiBStr)
+                                        info.SetMarshalAsSimpleType(Cci.Constants.UnmanagedType_AnsiBStr)
 
                                     Case Cci.Constants.CharSet_Auto
-                                        info.SetMarshalAsSimpleType(UnmanagedType.TBStr)
+                                        info.SetMarshalAsSimpleType(Cci.Constants.UnmanagedType_TBStr)
 
                                     Case CharSet.Unicode
                                         info.SetMarshalAsSimpleType(UnmanagedType.BStr)
@@ -412,7 +412,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                                         Throw ExceptionUtilities.UnexpectedValue(pinvoke.CharacterSet)
                                 End Select
                             Else
-                                info.SetMarshalAsSimpleType(UnmanagedType.VBByRefStr)
+                                info.SetMarshalAsSimpleType(Cci.Constants.UnmanagedType_VBByRefStr)
                             End If
 
                             Return info

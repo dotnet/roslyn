@@ -170,7 +170,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     severity = DiagnosticSeverity.Info;
                     break;
                 default:
-                    throw new ArgumentException(ServicesVSResources.NotAValidValue, "nPriority");
+                    throw new ArgumentException(ServicesVSResources.NotAValidValue, nameof(nPriority));
             }
 
             var diagnostic = GetDiagnosticData(

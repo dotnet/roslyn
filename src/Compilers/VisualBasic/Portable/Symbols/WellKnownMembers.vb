@@ -32,7 +32,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend Function GetExtensionAttributeConstructor(<Out> ByRef useSiteError As DiagnosticInfo) As MethodSymbol
             If _lazyExtensionAttributeConstructor Is ErrorTypeSymbol.UnknownResultType Then
 
-                Dim system_Runtime_CompilerServices = Me.GlobalNamespace.LookupNestedNamespace(ImmutableArray.Create("System", "Runtime", "CompilerServices"))
+                Dim system_Runtime_CompilerServices = Me.GlobalNamespace.LookupNestedNamespace(ImmutableArray.Create(MetadataHelpers.SystemString, "Runtime", "CompilerServices"))
                 Dim attributeType As NamedTypeSymbol = Nothing
 
                 Dim sourceModuleSymbol = DirectCast(Me.SourceModule, SourceModuleSymbol)
@@ -341,7 +341,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function GetWellKnownType(type As WellKnownType) As NamedTypeSymbol
-            Debug.Assert(type >= WellKnownType.First AndAlso type <= WellKnownType.Last)
+            Debug.Assert(type >= WellKnownType.First AndAlso type <= WellKnownType.Last AndAlso type <> WellKnownType.ExtSentinel)
             Dim index As Integer = type - WellKnownType.First
 
             If _lazyWellKnownTypes Is Nothing OrElse _lazyWellKnownTypes(index) Is Nothing Then
