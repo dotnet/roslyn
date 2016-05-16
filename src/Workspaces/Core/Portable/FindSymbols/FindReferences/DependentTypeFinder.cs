@@ -351,47 +351,33 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             IImmutableSet<Project> projects,
             IEnumerable<ProjectId> projectsThatCouldReferenceType)
         {
-            var projectIds = projects.Select(p => p.Id).ToSet();
-
-            // We need to search all projects that could reference the type *and* which are 
-            // referenced by some project in the project set.
             var dependencyGraph = solution.GetProjectDependencyGraph();
-            foreach (var projectThatCouldReferenceType in projectsThatCouldReferenceType)
-            {
-                if (projectIds.Contains(projectThatCouldReferenceType))
-                {
-                    // We were explicitly asked to search this project, and it's a project that 
-                    // could be referencing the type we care about.  Definitely search this one.
-                    yield return solution.GetProject(projectThatCouldReferenceType);
-                }
-                else if (AnyProjectDependsOn(projects, dependencyGraph, projectThatCouldReferenceType))
-                {
-                    // While we were not explicitly asked to search 'projectThatCouldReferenceType',
-                    // we do have some project we care about that depends on that project.  Because of
-                    // this we need to search 'projectThatCouldReferenceType' in case it introduces 
-                    // intermediate types that affect the projects we care about.
-                    yield return solution.GetProject(projectThatCouldReferenceType);
-                }
-            }
 
-            // No point searching a project if it wasn't a project that could have referenced that
-            // type in the first place.
-        }
+            // Take the projects that were passed in, and find all the projects that 
+            // they depend on (including themselves).  i.e. if we have a solution that
+            // looks like:
+            //      A <- B <- C <- D
+            //          /
+            //         └
+            //        E
+            // and we're passed in 'B, C, E' as hte project to search, then this set 
+            // will be A, B, C, E.
+            var allProjectsThatTheseProjectsDependOn = projects
+                .SelectMany(p => dependencyGraph.GetProjectsThatThisProjectTransitivelyDependsOn(p.Id))
+                .Concat(projects.Select(p => p.Id)).ToSet();
 
-        private static bool AnyProjectDependsOn(
-            IImmutableSet<Project> projects, ProjectDependencyGraph dependencyGraph, 
-            ProjectId projectThatCouldReferenceType)
-        {
-            foreach (var project in projects)
-            {
-                var projectsThisProjectDependsOn = dependencyGraph.GetProjectsThatThisProjectTransitivelyDependsOn(project.Id);
-                if (projectsThisProjectDependsOn.Contains(projectThatCouldReferenceType))
-                {
-                    return true;
-                }
-            }
+            // We then intersect this set with the actual set of projects that could reference
+            // the type.  Say this list is B, C, D.  The intersection of this list and the above
+            // one will then be 'B' and 'C'.  
+            //
+            // In other words, there is no point searching A and E (because they can't even 
+            // reference the type).  And there's no point searching 'D' because it can't contribute
+            // any information that would affect the result in the projects we are asked to search
+            // within.
 
-            return false;
+            return projectsThatCouldReferenceType.Intersect(allProjectsThatTheseProjectsDependOn)
+                                                 .Select(solution.GetProject)
+                                                 .ToList();
         }
 
         private static async Task<IEnumerable<INamedTypeSymbol>> FindMetadataTypesInProjectAsync(
