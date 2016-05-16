@@ -28,8 +28,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static Func<Location, bool> s_isInMetadata = loc => loc.IsInMetadata;
         private static Func<Location, bool> s_isInSource = loc => loc.IsInSource;
 
+        private static Func<INamedTypeSymbol, bool> s_isNonSealedClass = 
+            t => t?.TypeKind == TypeKind.Class && !t.IsSealed;
+
         private static readonly Func<INamedTypeSymbol, bool> s_isInterfaceOrNonSealedClass =
-            t => t.TypeKind == TypeKind.Interface || IsNonSealedClass(t);
+            t => t.TypeKind == TypeKind.Interface || s_isNonSealedClass(t);
 
         /// <summary>
         /// For a given <see cref="Compilation"/>, stores a flat list of all the accessible metadata types
@@ -67,7 +70,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             bool transitive,
             CancellationToken cancellationToken)
         {
-            if (IsNonSealedClass(type))
+            if (s_isNonSealedClass(type))
             {
                 Func<HashSet<INamedTypeSymbol>, INamedTypeSymbol, bool> metadataTypeMatches =
                     (s, t) => TypeDerivesFrom(s, t, transitive);
@@ -78,17 +81,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 return FindTypesAsync(type, solution, projects,
                     metadataTypeMatches: metadataTypeMatches,
                     sourceTypeImmediatelyMatches: sourceTypeImmediatelyMatches,
-                    shouldContinueSearching: IsNonSealedClass,
+                    shouldContinueSearching: s_isNonSealedClass,
                     transitive: transitive,
                     cancellationToken: cancellationToken);
             }
 
             return SpecializedTasks.EmptyEnumerable<INamedTypeSymbol>();
-        }
-
-        private static bool IsNonSealedClass(INamedTypeSymbol type)
-        {
-            return type?.TypeKind == TypeKind.Class && !type.IsSealed;
         }
 
         public static async Task<IEnumerable<INamedTypeSymbol>> FindTransitivelyImplementingTypesAsync(
