@@ -1185,5 +1185,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Return String.Empty
         End Function
+
+        Public Function IsLeftSideOfDot(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLeftSideOfDot
+            Return TryCast(node, ExpressionSyntax).IsLeftSideOfDot()
+        End Function
+
+        Public Function GetRightSideOfDot(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetRightSideOfDot
+            Return If(TryCast(node, QualifiedNameSyntax)?.Right,
+                      TryCast(node, MemberAccessExpressionSyntax)?.Name)
+        End Function
     End Class
 End Namespace
