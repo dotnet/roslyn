@@ -876,6 +876,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var builder = ImmutableArray.CreateBuilder<string>(baseList.Types.Count);
 
+            // It's not sufficient to just store the textual names we see in the inheritance list
+            // of a type.  For example if we have:
+            //
+            //   using Y = X;
+            //      ...
+            //      using Z = Y;
+            //      ...
+            //      class C : Z
+            //
+            // It's insufficient to just state that 'C' derives from 'Z'.  If we search for derived
+            // types from 'B' we won't examine 'C'.  To solve this, we keep track of the aliasing
+            // that occurs in containing scopes.  Then, when we're adding an inheritance name we 
+            // walk the alias maps and we also add any names that these names alias to.  In the
+            // above example we'd put Z, Y, and X in the inheritance names list for 'C'.
+
+            // Each dictionary in this list is a mapping from alias name to the name of the thing
+            // it aliases.  Then, each scope with alias mapping gets its own entry in this list.
+            // For the above example, we would produce:  [{Z => Y}, {Y => X}]
             var aliasMaps = AllocateAliasMapList();
             try
             {
