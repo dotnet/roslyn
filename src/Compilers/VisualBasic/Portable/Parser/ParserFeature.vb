@@ -37,6 +37,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
     Friend Module FeatureExtensions
 
         <Extension>
+        Friend Function IsAvailable(feature As Feature, Optional TheLangVersion As LanguageVersion = 0) As Boolean
+            If TheLangVersion = 0 Then TheLangVersion = VisualBasicParseOptions.Default.LanguageVersion
+            If [Enum].IsDefined(GetType(LanguageVersion), TheLangVersion) = False Then Throw New NotSupportedException($"LanguageVersion {TheLangVersion} is not supported.")
+            Return feature.GetLanguageVersion <= TheLangVersion
+        End Function
+
+        <Extension>
+        Friend Function IsUnavailable(feature As Feature, Optional TheLangVersion As LanguageVersion = 0) As Boolean
+            If TheLangVersion = 0 Then TheLangVersion = VisualBasicParseOptions.Default.LanguageVersion
+            If [Enum].IsDefined(GetType(LanguageVersion), TheLangVersion) = False Then Throw New NotSupportedException($"LanguageVersion {TheLangVersion} is not supported.")
+            Return feature.GetLanguageVersion > TheLangVersion
+        End Function
+
+        <Extension>
         Friend Function GetFeatureFlag(feature As Feature) As String
             Select Case feature
                 Case Feature.DigitSeparators
