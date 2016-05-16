@@ -357,6 +357,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Public Overrides ReadOnly Property ERR_OptionMustBeAbsolutePath As Integer
+            Get
+                Return ERRID.ERR_OptionMustBeAbsolutePath
+            End Get
+        End Property
+
         ' resources:
         Public Overrides ReadOnly Property ERR_CantOpenWin32Resource As Integer
             Get

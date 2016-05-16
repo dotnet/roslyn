@@ -1606,6 +1606,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ERR_InvalidAssemblyCulture = 36982
 
+        ERR_OptionMustBeAbsolutePath = 36983
+
         ERR_CantAwaitAsyncSub1 = 37001
         ERR_ResumableLambdaInExpressionTree = 37050
         ERR_DllImportOnResumableMethod = 37051

@@ -398,7 +398,7 @@ public class C {}";
             Assert.Equal(CorFlags.ILOnly, metadata.Module.PEReaderOpt.PEHeaders.CorHeader.Flags);
         }
 
-        [Fact]
+        [Fact, WorkItem(9150, "https://github.com/dotnet/roslyn/issues/9150")]
         public void PublicKeyFromOptions_PublicSign()
         {
             // attributes are ignored
@@ -425,7 +425,7 @@ public class C {}
             Assert.Equal(CorFlags.ILOnly | CorFlags.StrongNameSigned, metadata.Module.PEReaderOpt.PEHeaders.CorHeader.Flags);
         }
 
-        [Fact]
+        [Fact, WorkItem(9150, "https://github.com/dotnet/roslyn/issues/9150")]
         public void KeyFileFromAttributes_PublicSign()
         {
             string source = @"
@@ -443,7 +443,7 @@ public class C {}
             Assert.True(c.Options.PublicSign);
         }
 
-        [Fact]
+        [Fact, WorkItem(9150, "https://github.com/dotnet/roslyn/issues/9150")]
         public void KeyContainerFromAttributes_PublicSign()
         {
             string source = @"

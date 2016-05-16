@@ -1233,6 +1233,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_EncReferenceToAddedMember = 7101,
         ERR_MutuallyExclusiveOptions = 7102,
         WRN_AttributeIgnoredWhenPublicSigning = 7103,
+        ERR_OptionMustBeAbsolutePath = 7104,
 
         // available 7104-8000
 
