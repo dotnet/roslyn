@@ -69,11 +69,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             if (IsNonSealedClass(type))
             {
+                Func<HashSet<INamedTypeSymbol>, INamedTypeSymbol, bool> metadataTypeMatches =
+                    (s, t) => TypeDerivesFrom(s, t, transitive);
+
                 Func<HashSet<INamedTypeSymbol>, INamedTypeSymbol, bool> sourceTypeImmediatelyMatches =
                     (s, t) => s.Contains(t.BaseType?.OriginalDefinition);
 
                 return FindTypesAsync(type, solution, projects,
-                    findMetadataTypesAsync: FindDerivedMetadataClassesInProjectAsync,
+                    metadataTypeMatches: metadataTypeMatches,
                     sourceTypeImmediatelyMatches: sourceTypeImmediatelyMatches,
                     shouldContinueSearching: IsNonSealedClass,
                     transitive: transitive,
@@ -122,8 +125,12 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // Only an interface can be implemented.
             if (type?.TypeKind == TypeKind.Interface)
             {
+                Func<HashSet<INamedTypeSymbol>, INamedTypeSymbol, bool> metadataTypeMatches =
+                    (s, t) => TypeDerivesFrom(s, t, transitive) ||
+                              TypeImplementsFrom(s, t, transitive);
+
                 return FindTypesAsync(type, solution, projects,
-                    findMetadataTypesAsync: FindDerivedAndImplementingMetadataTypesInProjectAsync,
+                    metadataTypeMatches: metadataTypeMatches,
                     sourceTypeImmediatelyMatches: ImmediatelyDerivesOrImplementsFrom,
                     shouldContinueSearching: s_isInterfaceOrNonSealedClass,
                     transitive: transitive,
@@ -137,7 +144,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             INamedTypeSymbol type,
             Solution solution,
             IImmutableSet<Project> projects,
-            SearchProject findMetadataTypesAsync,
+            Func<HashSet<INamedTypeSymbol>, INamedTypeSymbol, bool> metadataTypeMatches,
             Func<HashSet<INamedTypeSymbol>, INamedTypeSymbol, bool> sourceTypeImmediatelyMatches,
             Func<INamedTypeSymbol, bool> shouldContinueSearching,
             bool transitive,
@@ -197,7 +204,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     searchInMetadata, result,
                     currentMetadataTypes, currentSourceAndMetadataTypes,
                     project,
-                    findMetadataTypesAsync,
+                    metadataTypeMatches,
                     sourceTypeImmediatelyMatches,
                     shouldContinueSearching,
                     transitive, cancellationToken).ConfigureAwait(false);
@@ -212,7 +219,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             HashSet<INamedTypeSymbol> currentMetadataTypes,
             HashSet<INamedTypeSymbol> currentSourceAndMetadataTypes,
             Project project,
-            SearchProject findMetadataTypesAsync,
+            Func<HashSet<INamedTypeSymbol>, INamedTypeSymbol, bool> metadataTypeMatches,
             Func<HashSet<INamedTypeSymbol>, INamedTypeSymbol, bool> sourceTypeImmediatelyMatches,
             Func<INamedTypeSymbol, bool> shouldContinueSearching,
             bool transitive,
@@ -222,8 +229,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             // This is only necessary if we started with a metadata type.
             if (searchInMetadata)
             {
-                var foundMetadataTypes = await findMetadataTypesAsync(
-                    currentMetadataTypes, project, transitive, cancellationToken).ConfigureAwait(false);
+                var foundMetadataTypes = await FindMetadataTypesInProjectAsync(
+                    currentMetadataTypes, project, metadataTypeMatches, cancellationToken).ConfigureAwait(false);
 
                 foreach (var foundType in foundMetadataTypes)
                 {
@@ -387,21 +394,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return false;
         }
 
-        private static Task<IEnumerable<INamedTypeSymbol>> FindDerivedMetadataClassesInProjectAsync(
-            HashSet<INamedTypeSymbol> metadataTypes,
-            Project project,
-            bool transitive,
-            CancellationToken cancellationToken)
-        {
-            Func<INamedTypeSymbol, bool> typeMatches = t => TypeDerivesFrom(metadataTypes, t, transitive);
-            return FindMetadataTypesInProjectAsync(
-                metadataTypes, project, typeMatches, cancellationToken);
-        }
-
         private static async Task<IEnumerable<INamedTypeSymbol>> FindMetadataTypesInProjectAsync(
             HashSet<INamedTypeSymbol> metadataTypes,
             Project project,
-            Func<INamedTypeSymbol, bool> typeMatches,
+            Func<HashSet<INamedTypeSymbol>, INamedTypeSymbol, bool> metadataTypeMatches,
             CancellationToken cancellationToken)
         {
             if (metadataTypes.Count == 0)
@@ -416,7 +412,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             foreach (var type in typesInCompilation)
             {
-                if (typeMatches(type))
+                if (metadataTypeMatches(metadataTypes, type))
                 {
                     result.Add(type);
                 }
@@ -460,19 +456,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return false;
-        }
-
-        private static Task<IEnumerable<INamedTypeSymbol>> FindDerivedAndImplementingMetadataTypesInProjectAsync(
-            HashSet<INamedTypeSymbol> metadataTypes,
-            Project project,
-            bool transitive,
-            CancellationToken cancellationToken)
-        {
-            Func<INamedTypeSymbol, bool> typeMatches = 
-                t => TypeDerivesFrom(metadataTypes, t, transitive) ||
-                     TypeImplementsFrom(metadataTypes, t, transitive);
-            return FindMetadataTypesInProjectAsync(
-                metadataTypes, project, typeMatches, cancellationToken);
         }
 
         private static async Task<IEnumerable<INamedTypeSymbol>> FindSourceTypesInProjectAsync(
