@@ -41,7 +41,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly ConditionalWeakTable<Compilation, List<INamedTypeSymbol>> s_compilationAllAccessibleMetadataTypesTable =
             new ConditionalWeakTable<Compilation, List<INamedTypeSymbol>>();
 
-        public static Task<IEnumerable<INamedTypeSymbol>> FindImmediatelyDerivedClassesAsync(
+        /// <summary>
+        /// Used for implementing the Inherited-By relation for progression.
+        /// </summary>
+        internal static Task<IEnumerable<INamedTypeSymbol>> FindImmediatelyDerivedClassesAsync(
             INamedTypeSymbol type,
             Solution solution,
             CancellationToken cancellationToken)
@@ -89,6 +92,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return SpecializedTasks.EmptyEnumerable<INamedTypeSymbol>();
         }
 
+        /// <summary>
+        /// Implementation of <see cref="SymbolFinder.FindImplementationsAsync"/> for 
+        /// <see cref="INamedTypeSymbol"/>s
+        /// </summary>
         public static async Task<IEnumerable<INamedTypeSymbol>> FindTransitivelyImplementingTypesAsync(
             INamedTypeSymbol type,
             Solution solution,
@@ -103,7 +110,10 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return derivedAndImplementingTypes.Where(t => t.TypeKind == TypeKind.Class).ToList();
         }
 
-        public static Task<IEnumerable<INamedTypeSymbol>> FindImmediatelyDerivedAndImplementingTypesAsync(
+        /// <summary>
+        /// Used for implementing the Inherited-By relation for progression.
+        /// </summary>
+        internal static Task<IEnumerable<INamedTypeSymbol>> FindImmediatelyDerivedAndImplementingTypesAsync(
             INamedTypeSymbol type,
             Solution solution,
             CancellationToken cancellationToken)
