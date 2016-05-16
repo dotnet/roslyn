@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="kind">The kind of source code.<see cref="SourceCodeKind"/></param>
         ''' <param name="preprocessorSymbols">An enumerable sequence of KeyValuePair representing preprocessor symbols.</param>
         Public Sub New(
-            Optional languageVersion As LanguageVersion = LanguageVersion.VisualBasic14,
+            Optional languageVersion As LanguageVersion = LanguageVersion.VBnext,
             Optional documentationMode As DocumentationMode = DocumentationMode.Parse,
             Optional kind As SourceCodeKind = SourceCodeKind.Regular,
             Optional preprocessorSymbols As IEnumerable(Of KeyValuePair(Of String, Object)) = Nothing)
@@ -138,7 +138,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         ''' <summary>
         ''' Returns the parser language version.
-        ''' </summary>        
+        ''' </summary>
         Public ReadOnly Property LanguageVersion As LanguageVersion
             Get
                 Return _languageVersion
@@ -146,10 +146,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ''' <summary>
-        ''' The preprocessor symbols to parse with. 
+        ''' The preprocessor symbols to parse with.
         ''' </summary>
         ''' <remarks>
-        ''' May contain duplicate keys. The last one wins. 
+        ''' May contain duplicate keys. The last one wins.
         ''' </remarks>
         Public ReadOnly Property PreprocessorSymbols As ImmutableArray(Of KeyValuePair(Of String, Object))
             Get
@@ -158,7 +158,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
 
         ''' <summary>
-        ''' Returns a collection of preprocessor symbol names. 
+        ''' Returns a collection of preprocessor symbol names.
         ''' </summary>
         Public Overrides ReadOnly Property PreprocessorSymbolNames As IEnumerable(Of String)
             Get

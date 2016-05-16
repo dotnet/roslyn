@@ -4615,13 +4615,13 @@ checkNullable:
                 value = ParseExpressionCore()
 
             ElseIf modifiers.Any AndAlso modifiers.Any(SyntaxKind.OptionalKeyword) Then
-
-                equals = ReportSyntaxError(InternalSyntaxFactory.MissingPunctuation(SyntaxKind.EqualsToken), ERRID.ERR_ObsoleteOptionalWithoutValue)
-                value = ParseExpressionCore()
-
+                If Parser.CheckFeatureAvailability(Feature.ImplicitDefaultValueOnOptionalParameter) = False Then
+                    equals = ReportSyntaxError(InternalSyntaxFactory.MissingPunctuation(SyntaxKind.EqualsToken), ERRID.ERR_ObsoleteOptionalWithoutValue)
+                    value = ParseExpressionCore()
+                End If
             End If
 
-            Dim initializer As EqualsValueSyntax = Nothing
+                Dim initializer As EqualsValueSyntax = Nothing
 
             If value IsNot Nothing Then
 
