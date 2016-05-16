@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             // Found a new type.  If its an interface or a non-sealed class, add it to the list of 
             // types for us to continue searching for.
-            return FindTypesInProjectAsync(
+            return FindSourceTypesInProjectAsync(
                 sourceAndMetadataTypes,
                 project,
                 findImmediatelyDerivedTypesInDocumentAsync: FindImmediatelyDerivedAndImplementingTypesInDocumentAsync,
@@ -533,7 +533,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             Debug.Assert(sourceAndMetadataTypes.All(IsNonSealedClass));
 
-            return FindTypesInProjectAsync(
+            return FindSourceTypesInProjectAsync(
                 sourceAndMetadataTypes,
                 project,
                 findImmediatelyDerivedTypesInDocumentAsync: FindImmediatelyDerivedClassesInDocumentAsync,
@@ -542,7 +542,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 cancellationToken: cancellationToken);
         }
 
-        private static async Task<IEnumerable<INamedTypeSymbol>> FindTypesInProjectAsync(
+        private static async Task<IEnumerable<INamedTypeSymbol>> FindSourceTypesInProjectAsync(
             HashSet<INamedTypeSymbol> sourceAndMetadataTypes,
             Project project,
             SearchDocumentAsync findImmediatelyDerivedTypesInDocumentAsync,
