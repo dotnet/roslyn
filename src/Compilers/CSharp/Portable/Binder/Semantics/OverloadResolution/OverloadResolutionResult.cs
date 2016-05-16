@@ -44,10 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                if (!_bestResultState.HasValue())
-                {
-                    _bestResultState = TryGetBestResult(this.ResultsBuilder, out _bestResult);
-                }
+                EnsureBestResultLoaded();
 
                 return _bestResultState == ThreeState.True && _bestResult.Result.IsValid;
             }
@@ -61,8 +58,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
+                EnsureBestResultLoaded();
+
                 Debug.Assert(_bestResultState == ThreeState.True && _bestResult.Result.IsValid);
                 return _bestResult;
+            }
+        }
+
+        private void EnsureBestResultLoaded()
+        {
+            if (!_bestResultState.HasValue())
+            {
+                _bestResultState = TryGetBestResult(this.ResultsBuilder, out _bestResult);
             }
         }
 
@@ -76,6 +83,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
+                EnsureBestResultLoaded();
+
                 Debug.Assert(_bestResultState == ThreeState.True);
                 return _bestResult;
             }
@@ -85,6 +94,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
+                EnsureBestResultLoaded();
+
                 return _bestResultState.Value();
             }
         }
@@ -193,6 +204,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isMethodGroupConversion = false) where T : Symbol
         {
             Debug.Assert(!this.Succeeded, "Don't ask for diagnostic info on a successful overload resolution result.");
+
+            // Each argument must have non-null Display in case it is used in a diagnostic.
+            Debug.Assert(arguments.Arguments.All(a => a.Display != null));
 
             // This kind is only used for default(MemberResolutionResult<T>), so we should never see it in
             // the candidate list.

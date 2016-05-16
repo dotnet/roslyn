@@ -7,8 +7,12 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Host;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Collections.Immutable;
 using Roslyn.Utilities;
@@ -327,14 +331,15 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public Project GetProject(IAssemblySymbol assemblySymbol, CancellationToken cancellationToken = default(CancellationToken))
         {
-            Compilation compilation;
-            ProjectId id;
+            if (assemblySymbol == null)
+            {
+                return null;
+            }
 
-            // The symbol must be from one of the compilations already built.
-            // if the symbol is a source symbol then one of the compilations must be its source
-            // if the symbol is metadata then one of the compilations must have a reference to it's metadata assembly.
+            // TODO: Remove this loop when we add source assembly symbols to s_assemblyOrModuleSymbolToProjectMap
             foreach (var state in _projectIdToProjectStateMap.Values)
             {
+                Compilation compilation;
                 if (this.TryGetCompilation(state.Id, out compilation))
                 {
                     // if the symbol is the compilation's assembly symbol, we are done
@@ -342,19 +347,12 @@ namespace Microsoft.CodeAnalysis
                     {
                         return this.GetProject(state.Id);
                     }
-
-                    // otherwise check to see if this compilation has a metadata reference for this assembly symbol
-                    // and if we know what project that metadata reference is associated with.
-                    var mdref = compilation.GetMetadataReference(assemblySymbol);
-                    if (mdref != null && s_metadataReferenceToProjectMap.TryGetValue(mdref, out id))
-                    {
-                        return this.GetProject(id);
-                    }
                 }
             }
 
-            // no project was found in this solution to be associated with this assembly symbol
-            return null;
+            ProjectId id;
+            s_assemblyOrModuleSymbolToProjectMap.TryGetValue(assemblySymbol, out id);
+            return id == null ? null : this.GetProject(id);
         }
 
         /// <summary>
@@ -1150,6 +1148,79 @@ namespace Microsoft.CodeAnalysis
             return this.ForkProject(this.GetProjectState(projectId).WithAnalyzerReferences(analyzerReferences));
         }
 
+        internal ImmutableArray<DocumentInfo> GetGeneratedDocuments(ProjectId projectId)
+        {
+            CheckContainsProject(projectId);
+            return this.GetGeneratedDocumentsAsync(projectId, CancellationToken.None).Result;
+        }
+
+        // See CompilationTracker.BuildCompilationInfoFromScratchAsync.
+        private async Task<Compilation> CreateCompilationAsync(ProjectState projectState, CancellationToken cancellationToken)
+        {
+            var compilationFactory = projectState.LanguageServices.GetService<ICompilationFactoryService>();
+            var compilation = compilationFactory.CreateCompilation(
+                projectState.AssemblyName,
+                projectState.CompilationOptions);
+
+            foreach (var document in projectState.OrderedDocumentStates)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                compilation = compilation.AddSyntaxTrees(await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false));
+            }
+
+            var newReferences = ArrayBuilder<MetadataReference>.GetInstance();
+            newReferences.AddRange(projectState.MetadataReferences);
+
+            foreach (var projectReference in projectState.ProjectReferences)
+            {
+                var referencedProject = this.GetProject(projectReference.ProjectId);
+                var metadataReference = await this.GetMetadataReferenceAsync(projectReference, projectState, cancellationToken).ConfigureAwait(false);
+                // A reference can fail to be created if a skeleton assembly could not be constructed.
+                if (metadataReference != null)
+                {
+                    newReferences.Add(metadataReference);
+                }
+            }
+
+            compilation = compilation.WithReferences(newReferences);
+            newReferences.Free();
+            return compilation;
+        }
+
+        private async Task<ImmutableArray<DocumentInfo>> GetGeneratedDocumentsAsync(ProjectId projectId, CancellationToken cancellationToken)
+        {
+            var projectState = this.GetProjectState(projectId);
+            var projectInfo = projectState.ProjectInfo;
+            var builder = ArrayBuilder<SourceGenerator>.GetInstance();
+            foreach (var reference in projectInfo.AnalyzerReferences)
+            {
+                builder.AddRange(reference.GetSourceGenerators(projectInfo.Language));
+            }
+            var generators = builder.ToImmutableAndFree();
+            if (generators.IsEmpty)
+            {
+                return ImmutableArray<DocumentInfo>.Empty;
+            }
+            var compilation = await this.CreateCompilationAsync(projectState, cancellationToken).ConfigureAwait(false);
+            var trees = compilation.GenerateSource(
+                generators,
+                PathUtilities.GetDirectoryName(projectState.OutputFilePath),
+                writeToDisk: false,
+                cancellationToken: cancellationToken);
+            var documents = ArrayBuilder<DocumentInfo>.GetInstance();
+            foreach (var tree in trees)
+            {
+                var sourceText = await tree.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                var documentId = DocumentId.CreateNewId(projectId);
+                var version = VersionStamp.Create();
+                var filePath = tree.FilePath;
+                var loader = TextLoader.From(TextAndVersion.Create(sourceText, version, filePath));
+                var info = DocumentInfo.Create(documentId, PathUtilities.GetFileName(filePath), loader: loader, filePath: filePath, isGenerated: true);
+                documents.Add(info);
+            }
+            return documents.ToImmutableAndFree();
+        }
+
         private Solution AddDocument(DocumentState state)
         {
             if (state == null)
@@ -1836,7 +1907,8 @@ namespace Microsoft.CodeAnalysis
                 return ImmutableArray.Create<DocumentId>(documentId);
             }
 
-            return this.GetDocumentIdsWithFilePath(filePath);
+            var documentIds = this.GetDocumentIdsWithFilePath(filePath);
+            return this.FilterDocumentIdsByLanguage(documentIds, projectState.ProjectInfo.Language).ToImmutableArray();
         }
 
         /// <summary>
@@ -2056,18 +2128,28 @@ namespace Microsoft.CodeAnalysis
                 : project.Solution.GetProjectState(project.Id).HasAllInformation ? SpecializedTasks.True : SpecializedTasks.False;
         }
 
-        private static readonly ConditionalWeakTable<MetadataReference, ProjectId> s_metadataReferenceToProjectMap =
-            new ConditionalWeakTable<MetadataReference, ProjectId>();
+        /// <summary>
+        /// Symbols need to be either <see cref="IAssemblySymbol"/> or <see cref="IModuleSymbol"/>.
+        /// </summary>
+        private static readonly ConditionalWeakTable<ISymbol, ProjectId> s_assemblyOrModuleSymbolToProjectMap =
+            new ConditionalWeakTable<ISymbol, ProjectId>();
 
-        private void RecordReferencedProject(MetadataReference reference, ProjectId projectId)
+        private static void RecordSourceOfAssemblySymbol(ISymbol assemblyOrModuleSymbol, ProjectId projectId)
         {
-            // remember which project is associated with this reference
+            if (assemblyOrModuleSymbol == null)
+            {
+                return;
+            }
+
+            Contract.ThrowIfNull(projectId);
+
+            // remember which project is associated with this assembly
             ProjectId tmp;
-            if (!s_metadataReferenceToProjectMap.TryGetValue(reference, out tmp))
+            if (!s_assemblyOrModuleSymbolToProjectMap.TryGetValue(assemblyOrModuleSymbol, out tmp))
             {
                 // use GetValue to avoid race condition exceptions from Add.
                 // the first one to set the value wins.
-                s_metadataReferenceToProjectMap.GetValue(reference, _ => projectId);
+                s_assemblyOrModuleSymbolToProjectMap.GetValue(assemblyOrModuleSymbol, _ => projectId);
             }
             else
             {
@@ -2077,31 +2159,17 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        internal ProjectId GetProjectId(MetadataReference reference)
-        {
-            ProjectId id = null;
-            s_metadataReferenceToProjectMap.TryGetValue(reference, out id);
-            return id;
-        }
-
         /// <summary>
         /// Get a metadata reference for the project's compilation
         /// </summary>
-        internal async Task<MetadataReference> GetMetadataReferenceAsync(ProjectReference projectReference, ProjectState fromProject, CancellationToken cancellationToken)
+        internal Task<MetadataReference> GetMetadataReferenceAsync(ProjectReference projectReference, ProjectState fromProject, CancellationToken cancellationToken)
         {
             try
             {
                 // Get the compilation state for this project.  If it's not already created, then this
                 // will create it.  Then force that state to completion and get a metadata reference to it.
                 var tracker = this.GetCompilationTracker(projectReference.ProjectId);
-                var mdref = await tracker.GetMetadataReferenceAsync(this, fromProject, projectReference, cancellationToken).ConfigureAwait(false);
-
-                if (mdref != null)
-                {
-                    RecordReferencedProject(mdref, projectReference.ProjectId);
-                }
-
-                return mdref;
+                return tracker.GetMetadataReferenceAsync(this, fromProject, projectReference, cancellationToken);
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
@@ -2126,14 +2194,7 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            var mdref = state.GetPartialMetadataReference(this, fromProject, projectReference, cancellationToken);
-
-            if (mdref != null)
-            {
-                RecordReferencedProject(mdref, projectReference.ProjectId);
-            }
-
-            return mdref;
+            return state.GetPartialMetadataReference(this, fromProject, projectReference, cancellationToken);
         }
 
         /// <summary>
@@ -2296,6 +2357,19 @@ namespace Microsoft.CodeAnalysis
             if (!this.ContainsAdditionalDocument(documentId))
             {
                 throw new InvalidOperationException(WorkspacesResources.DocumentNotInSolution);
+            }
+        }
+
+        /// <summary>
+        /// Returns the options that should be applied to this solution. This consists of global options from <see cref="Workspace.Options"/>,
+        /// merged with any settings the user has specified at the solution level.
+        /// </summary>
+        public OptionSet Options
+        {
+            get
+            {
+                // TODO: merge with solution-specific options
+                return this.Workspace.Options;
             }
         }
     }

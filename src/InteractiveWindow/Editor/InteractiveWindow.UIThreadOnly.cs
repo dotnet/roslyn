@@ -845,36 +845,30 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
                     var snapshotSpan = CurrentLanguageBuffer.CurrentSnapshot.GetExtent();
                     var trimmedSpan = snapshotSpan.TrimEnd();
-
-                    if (trimmedSpan.Length == 0)
-                    {
-                        // TODO: reuse the current language buffer
-                        PrepareForInput();
-                        return;
-                    }
-                    else
+                    if (trimmedSpan.Length > 0)
                     {
                         _history.Add(historySpan);
-                        State = State.ExecutingInput;
+                    }
 
-                        StartCursorTimer();
+                    State = State.ExecutingInput;
 
-                        var executionResult = await Evaluator.ExecuteCodeAsync(snapshotSpan.GetText()).ConfigureAwait(true);
-                        Debug.Assert(_window.OnUIThread()); // ConfigureAwait should bring us back to the UI thread.
+                    StartCursorTimer();
 
-                        // For reset command typed at prompt -> the state should be WaitingForInput. 
-                        // For all other submissions on the prompt -> it should be Executing input.
-                        // If reset button is clicked during a long running submission -> it could be Resetting because 
-                        // oldService is disposed first as part of resetting, which leads to await call above returning, and new service is 
-                        // created after that as part of completing the resetting process. 
-                        Debug.Assert(State == State.ExecutingInput ||
-                            State == State.WaitingForInput ||
-                            State == State.Resetting, $"Unexpected state {State}");
+                    var executionResult = await Evaluator.ExecuteCodeAsync(snapshotSpan.GetText()).ConfigureAwait(true);
+                    Debug.Assert(_window.OnUIThread()); // ConfigureAwait should bring us back to the UI thread.
 
-                        if (State == State.ExecutingInput)
-                        {
-                            FinishExecute(executionResult.IsSuccessful);
-                        }
+                    // For reset command typed at prompt -> the state should be WaitingForInput. 
+                    // For all other submissions on the prompt -> it should be Executing input.
+                    // If reset button is clicked during a long running submission -> it could be Resetting because 
+                    // oldService is disposed first as part of resetting, which leads to await call above returning, and new service is 
+                    // created after that as part of completing the resetting process. 
+                    Debug.Assert(State == State.ExecutingInput ||
+                        State == State.WaitingForInput ||
+                        State == State.Resetting, $"Unexpected state {State}");
+
+                    if (State == State.ExecutingInput)
+                    {
+                        FinishExecute(executionResult.IsSuccessful);
                     }
                 }
                 catch (Exception e) when (_window.ReportAndPropagateException(e))

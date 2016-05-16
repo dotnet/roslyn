@@ -153,19 +153,35 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Get locals declared immediately in scope represented by the node.
+        /// Get locals declared immediately in scope designated by the node.
         /// </summary>
-        internal virtual ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode node)
+        internal virtual ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode scopeDesignator)
         {
-            return this.Next.GetDeclaredLocalsForScope(node);
+            return this.Next.GetDeclaredLocalsForScope(scopeDesignator);
         }
 
         /// <summary>
-        /// Get local functions declared immediately in scope represented by the node.
+        /// Get local functions declared immediately in scope designated by the node.
         /// </summary>
-        internal virtual ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode node)
+        internal virtual ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
         {
-            return this.Next.GetDeclaredLocalFunctionsForScope(node);
+            return this.Next.GetDeclaredLocalFunctionsForScope(scopeDesignator);
+        }
+
+        internal virtual bool IsLocalFunctionsScopeBinder
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        internal virtual bool IsLabelsScopeBinder
+        {
+            get
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -756,42 +772,26 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 #endif
         
-        internal Binder WithPatternVariablesIfAny(ExpressionSyntax scopeOpt)
+        internal BoundExpression WrapWithVariablesIfAny(CSharpSyntaxNode scopeDesignator, BoundExpression expression)
         {
-            Debug.Assert(Locals.Length == 0);
-            return new PatternVariableBinder(scopeOpt, scopeOpt, this);
-        }
-
-        internal Binder WithPatternVariablesIfAny(ArgumentListSyntax initializerArgumentListOpt)
-        {
-            Debug.Assert(Locals.Length == 0);
-
-            if (initializerArgumentListOpt == null || initializerArgumentListOpt.Arguments.Count == 0)
-            {
-                return this;
-            }
-
-            return new PatternVariableBinder(initializerArgumentListOpt, initializerArgumentListOpt.Arguments, this);
-        }
-
-        internal void BuildAndAddPatternVariables(
-            ArrayBuilder<LocalSymbol> builder,
-            CSharpSyntaxNode node = null,
-            ImmutableArray<CSharpSyntaxNode> nodes = default(ImmutableArray<CSharpSyntaxNode>))
-        {
-            var patterns = PatternVariableFinder.FindPatternVariables(node, nodes);
-            foreach (var pattern in patterns)
-            {
-                builder.Add(SourceLocalSymbol.MakeLocal(ContainingMemberOrLambda, this, RefKind.None, pattern.Type, pattern.Identifier, LocalDeclarationKind.PatternVariable));
-            }
-            patterns.Free();
-        }
-
-        internal BoundExpression WrapWithVariablesIfAny(BoundExpression expression)
-        {
-            return (Locals.Length == 0)
+            var locals = this.GetDeclaredLocalsForScope(scopeDesignator);
+            return (locals.IsEmpty)
                 ? expression
-                : new BoundSequence(expression.Syntax, Locals, ImmutableArray<BoundExpression>.Empty, expression, expression.Type) { WasCompilerGenerated = true };
+                : new BoundSequence(scopeDesignator, locals, ImmutableArray<BoundExpression>.Empty, expression, expression.Type) { WasCompilerGenerated = true };
+        }
+
+        internal BoundStatement WrapWithVariablesIfAny(CSharpSyntaxNode scopeDesignator, BoundStatement statement)
+        {
+            var locals = this.GetDeclaredLocalsForScope(scopeDesignator);
+            if (locals.IsEmpty)
+            {
+                return statement;
+            }
+
+            return new BoundBlock(statement.Syntax, locals,
+                                  ImmutableArray<LocalFunctionSymbol>.Empty,
+                                  ImmutableArray.Create(statement))
+                        { WasCompilerGenerated = true };
         }
     }
 }

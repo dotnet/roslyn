@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.GenerateFromMembers.GenerateConstructor;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
 using Roslyn.Test.Utilities;
@@ -179,6 +180,18 @@ index: 1);
         {
             await TestMissingAsync(
 "using System ; class X { public X ( string v ) { } static void Test ( ) { new X ( new [|string|] ( ) ) ; } } ");
+        }
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task Tuple()
+        {
+            await TestAsync(
+@"using System . Collections . Generic ; class Z { [|(int, string) a ;|] } ",
+@"using System . Collections . Generic ; class Z { (int, string) a ; public Z ( (int, string) a ) { this . a = a ; } } ",
+index: 0,
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
         }
     }
 }

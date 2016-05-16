@@ -1,7 +1,6 @@
 {
   "dependencies": {
-    "ManagedEsent": "1.9.2.0",
-    "Microsoft.Composition": "1.0.27",
+    "ManagedEsent": "1.9.2.0"
   },
   "frameworks": {
     "net46": { }

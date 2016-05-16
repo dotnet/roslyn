@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
         }
 
-        internal override CompletionListProvider CreateCompletionProvider()
+        internal override CompletionProvider CreateCompletionProvider()
         {
             return new ObjectInitializerCompletionProvider();
         }
@@ -574,13 +574,12 @@ class d
                 var hostDocument = workspace.Documents.Single();
                 var position = hostDocument.CursorPosition.Value;
                 var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                var triggerInfo = CompletionTriggerInfo.CreateTypeCharTriggerInfo('a');
+                var triggerInfo = CompletionTrigger.CreateInsertionTrigger('a');
 
                 var completionList = await GetCompletionListAsync(document, position, triggerInfo);
                 var item = completionList.Items.First();
 
-                var completionService = document.Project.LanguageServices.GetService<ICompletionService>();
-                var completionRules = completionService.GetCompletionRules();
+                var completionRules = CompletionHelper.GetHelper(document);
 
                 Assert.False(completionRules.SendEnterThroughToEditor(item, string.Empty, workspace.Options), "Expected false from SendEnterThroughToEditor()");
             }
@@ -743,6 +742,32 @@ class Container
             await VerifyItemExistsAsync(markup, "D");
         }
 
+        [WorkItem(4754, "https://github.com/dotnet/roslyn/issues/4754")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ObjectInitializerOfGenericTypeConstructedWithInaccessibleType()
+        {
+            var markup = @"
+class Generic<T>
+{
+    public string Value { get; set; }
+}
+
+class Program
+{
+    private class InaccessibleToGeneric
+    {
+
+    }
+
+    static void Main(string[] args)
+    {
+        var g = new Generic<InaccessibleToGeneric> { $$ }
+    }
+}";
+
+            await VerifyItemExistsAsync(markup, "Value");
+        }
+
         private async Task VerifyExclusiveAsync(string markup, bool exclusive)
         {
             using (var workspace = await TestWorkspace.CreateCSharpAsync(markup))
@@ -750,9 +775,9 @@ class Container
                 var hostDocument = workspace.Documents.Single();
                 var position = hostDocument.CursorPosition.Value;
                 var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                var triggerInfo = CompletionTriggerInfo.CreateTypeCharTriggerInfo('a');
+                var triggerInfo = CompletionTrigger.CreateInsertionTrigger('a');
 
-                var completionList = await GetCompletionListAsync(document, position, triggerInfo);
+                var completionList = await GetCompletionListContextAsync(document, position, triggerInfo);
 
                 if (completionList != null)
                 {

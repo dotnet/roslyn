@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.CommandLine
 
         internal static int Run(IEnumerable<string> arguments, RequestLanguage language, CompileFunc compileFunc)
         {
-            // Should be using BuildClient.GetCommandLineArgs(arguments) here.  But the native invoke 
-            // ends up giving us both CoreRun and the exe file.  Need to find a good way to remove the host 
-            // as well as the EXE argument. 
+            // Should be using BuildClient.GetCommandLineArgs(arguments) here.  But the native invoke
+            // ends up giving us both CoreRun and the exe file.  Need to find a good way to remove the host
+            // as well as the EXE argument.
             // https://github.com/dotnet/roslyn/issues/6677
             var client = new CoreClrBuildClient(language, compileFunc);
             var clientDir = AppContext.BaseDirectory;
@@ -49,11 +49,13 @@ namespace Microsoft.CodeAnalysis.CommandLine
         protected override async Task<BuildResponse> RunServerCompilation(List<string> arguments, BuildPaths buildPaths, string pipeName, string keepAlive, string libDirectory, CancellationToken cancellationToken)
         {
             var client = new TcpClient();
-            await client.ConnectAsync("127.0.0.1", port: 12000).ConfigureAwait(true);
+            var port = int.Parse(pipeName);
+            await client.ConnectAsync("127.0.0.1", port: port).ConfigureAwait(true);
 
             var request = BuildRequest.Create(_language, buildPaths.WorkingDirectory, arguments, keepAlive, libDirectory);
             await request.WriteAsync(client.GetStream(), cancellationToken).ConfigureAwait(true);
-            return await BuildResponse.ReadAsync(client.GetStream(), cancellationToken).ConfigureAwait(true);
+            var ret = await BuildResponse.ReadAsync(client.GetStream(), cancellationToken).ConfigureAwait(true);
+            return ret;
         }
     }
 }

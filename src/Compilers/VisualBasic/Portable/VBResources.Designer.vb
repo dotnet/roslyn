@@ -12253,6 +12253,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Tuples are not supported in VB..
+        '''</summary>
+        Friend ReadOnly Property TuplesNotSupported() As String
+            Get
+                Return ResourceManager.GetString("TuplesNotSupported", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Type argument cannot be Nothing.
         '''</summary>
         Friend ReadOnly Property TypeArgumentCannotBeNothing() As String

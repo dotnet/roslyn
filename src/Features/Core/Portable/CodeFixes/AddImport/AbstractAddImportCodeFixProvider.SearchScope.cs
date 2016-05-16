@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 // TODO(cyrusn): It's a shame we have to compute this twice.  However, there's no
                 // great way to store the original value we compute because it happens deep in the 
                 // compiler bowels when we call FindDeclarations.
-                using (var similarityChecker = new WordSimilarityChecker(name))
+                using (var similarityChecker = new WordSimilarityChecker(name, substringsAreSimilar: false))
                 {
                     return symbols.Select(s =>
                     {
@@ -136,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             protected override async Task<IEnumerable<ISymbol>> FindDeclarationsAsync(string name, SymbolFilter filter, SearchQuery searchQuery)
             {
                 var service = _project.Solution.Workspace.Services.GetService<ISymbolTreeInfoCacheService>();
-                var info = await service.TryGetSymbolTreeInfoAsync(_project, CancellationToken).ConfigureAwait(false);
+                var info = await service.TryGetSourceSymbolTreeInfoAsync(_project, CancellationToken).ConfigureAwait(false);
                 if (info == null)
                 {
                     // Looks like there was nothing in the cache.  Return no results for now.
@@ -194,7 +194,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 string name, SymbolFilter filter, SearchQuery searchQuery)
             {
                 var service = _solution.Workspace.Services.GetService<ISymbolTreeInfoCacheService>();
-                var info = await service.TryGetSymbolTreeInfoAsync(_solution, _assembly, _metadataReference, CancellationToken).ConfigureAwait(false);
+                var info = await service.TryGetMetadataSymbolTreeInfoAsync(_solution, _metadataReference, CancellationToken).ConfigureAwait(false);
                 if (info == null)
                 {
                     return SpecializedCollections.EmptyEnumerable<ISymbol>();

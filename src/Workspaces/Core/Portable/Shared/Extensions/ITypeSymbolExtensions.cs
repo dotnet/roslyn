@@ -575,7 +575,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 
         private static string GetParameterName(ITypeSymbol type)
         {
-            if (type == null || type.IsAnonymousType())
+            if (type == null || type.IsAnonymousType() || type.IsTupleType)
             {
                 return DefaultParameterName;
             }

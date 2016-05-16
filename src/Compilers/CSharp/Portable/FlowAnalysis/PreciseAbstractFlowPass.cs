@@ -513,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyAccess:
                     var access = (BoundPropertyAccess)node;
 
-                    if (Binder.AccessingAutopropertyFromConstructor(access, _member))
+                    if (Binder.AccessingAutoPropertyFromConstructor(access, _member))
                     {
                         var backingField = (access.PropertySymbol as SourcePropertySymbol)?.BackingField;
                         if (backingField != null)
@@ -910,6 +910,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitTupleLiteral(BoundTupleLiteral node)
+        {
+            return VisitTupleExpression(node);
+        }
+
+        public override BoundNode VisitConvertedTupleLiteral(BoundConvertedTupleLiteral node)
+        {
+            return VisitTupleExpression(node);
+        }
+
+        private BoundNode VisitTupleExpression(BoundTupleExpression node)
+        {
+            VisitArguments(node.Arguments, default(ImmutableArray<RefKind>), null);
+            if (_trackExceptions) NotePossibleException(node);
+            return null;
+        }
+
         public override BoundNode VisitDynamicObjectCreationExpression(BoundDynamicObjectCreationExpression node)
         {
             VisitArguments(node.Arguments, node.ArgumentRefKindsOpt, null);
@@ -1026,33 +1043,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             return null;
         }
-
-        public override BoundNode VisitLetStatement(BoundLetStatement node)
-        {
-            VisitRvalue(node.Expression);
-            VisitPattern(node.Expression, node.Pattern);
-            if (node.Guard != null)
-            {
-                var whenSucceed = StateWhenTrue;
-                var whenFail = StateWhenFalse;
-                SetState(whenSucceed);
-                VisitCondition(node.Guard);
-                IntersectWith(ref whenFail, ref this.StateWhenFalse);
-                whenSucceed = this.StateWhenTrue;
-                SetConditionalState(whenSucceed, whenFail);
-            }
-
-            var afterState = StateWhenTrue;
-            SetState(StateWhenFalse);
-            if (node.Else != null)
-            {
-                VisitStatement(node.Else);
-            }
-
-            IntersectWith(ref this.State, ref afterState);
-            return null;
-        }
-
 
         public override BoundNode VisitBlock(BoundBlock node)
         {
@@ -1498,7 +1488,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            return !Binder.AccessingAutopropertyFromConstructor((BoundPropertyAccess)expr, _member);
+            return !Binder.AccessingAutoPropertyFromConstructor((BoundPropertyAccess)expr, _member);
         }
 
         public override BoundNode VisitAssignmentOperator(BoundAssignmentOperator node)
@@ -1597,7 +1587,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var property = node.PropertySymbol;
 
-            if (Binder.AccessingAutopropertyFromConstructor(node, _member))
+            if (Binder.AccessingAutoPropertyFromConstructor(node, _member))
             {
                 var backingField = (property as SourcePropertySymbol)?.BackingField;
                 if (backingField != null)

@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Globalization
+Imports System.Reflection
 Imports System.Runtime.InteropServices
 Imports System.Threading
 Imports Microsoft.Cci
@@ -277,20 +278,20 @@ lReportErrorOnTwoTokens:
             Return New SourceDeclareMethodSymbol(container, name, flags, binder, syntax, importData)
         End Function
 
-        Private Shared Function GetPInvokeAttributes(syntax As DeclareStatementSyntax) As PInvokeAttributes
-            Dim result As PInvokeAttributes
+        Private Shared Function GetPInvokeAttributes(syntax As DeclareStatementSyntax) As MethodImportAttributes
+            Dim result As MethodImportAttributes
             Select Case syntax.CharsetKeyword.Kind
                 Case SyntaxKind.None, SyntaxKind.AnsiKeyword
-                    result = PInvokeAttributes.CharSetAnsi Or PInvokeAttributes.NoMangle
+                    result = MethodImportAttributes.CharSetAnsi Or MethodImportAttributes.ExactSpelling
 
                 Case SyntaxKind.UnicodeKeyword
-                    result = PInvokeAttributes.CharSetUnicode Or PInvokeAttributes.NoMangle
+                    result = MethodImportAttributes.CharSetUnicode Or MethodImportAttributes.ExactSpelling
 
                 Case SyntaxKind.AutoKeyword
-                    result = PInvokeAttributes.CharSetAuto
+                    result = MethodImportAttributes.CharSetAuto
             End Select
 
-            Return result Or PInvokeAttributes.CallConvWinapi Or PInvokeAttributes.SupportsLastError
+            Return result Or MethodImportAttributes.CallingConventionWinApi Or MethodImportAttributes.SetLastError
         End Function
 
         Friend Shared Function CreateOperator(

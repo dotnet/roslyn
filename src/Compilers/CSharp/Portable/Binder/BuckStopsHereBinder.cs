@@ -154,12 +154,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode node)
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode scopeDesignator)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode node)
+        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
         {
             throw ExceptionUtilities.Unreachable;
         }
@@ -204,32 +204,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // There's supposed to be a LockBinder (or other overrider of this method) in the chain.
             throw ExceptionUtilities.Unreachable;
-        }
-
-        internal override ImmutableArray<LocalSymbol> Locals
-        {
-            get
-            {
-                return ImmutableArray<LocalSymbol>.Empty;
-            }
-        }
-
-        internal override ImmutableArray<LocalFunctionSymbol> LocalFunctions
-        {
-            get
-            {
-                // There's supposed to be a LocalScopeBinder (or other overrider of this method) in the chain.
-                throw ExceptionUtilities.Unreachable;
-            }
-        }
-
-        internal override ImmutableArray<LabelSymbol> Labels
-        {
-            get
-            {
-                // There's supposed to be a LocalScopeBinder (or other overrider of this method) in the chain.
-                throw ExceptionUtilities.Unreachable;
-            }
         }
 
         internal override ImmutableHashSet<Symbol> LockedOrDisposedVariables

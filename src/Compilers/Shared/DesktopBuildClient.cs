@@ -104,7 +104,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
             var clientDir = buildPaths.ClientDirectory;
             var timeoutNewProcess = timeoutOverride ?? TimeOutMsNewProcess;
             var timeoutExistingProcess = timeoutOverride ?? TimeOutMsExistingProcess;
-            var clientMutexName = BuildProtocolConstants.GetClientMutexName(pipeName);
+            var clientMutexName = GetClientMutexName(pipeName);
             bool holdsMutex;
             using (var clientMutex = new Mutex(initiallyOwned: true,
                                                name: clientMutexName,
@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
                     }
 
                     // Check for an already running server
-                    var serverMutexName = BuildProtocolConstants.GetServerMutexName(pipeName);
+                    var serverMutexName = GetServerMutexName(pipeName);
                     bool wasServerRunning = WasServerMutexOpen(serverMutexName);
                     var timeout = wasServerRunning ? timeoutExistingProcess : timeoutNewProcess;
 
@@ -164,19 +164,6 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
 
             return Task.FromResult<BuildResponse>(new RejectedBuildResponse());
-        }
-
-        internal static bool WasServerMutexOpen(string mutexName)
-        {
-            Mutex mutex;
-            var open = Mutex.TryOpenExisting(mutexName, out mutex);
-            if (open)
-            {
-                mutex.Close();
-                return true;
-            }
-
-            return false;
         }
 
         /// <summary>
@@ -452,6 +439,29 @@ namespace Microsoft.CodeAnalysis.CommandLine
             }
 
             return basePipeName;
+        }
+
+        internal static bool WasServerMutexOpen(string mutexName)
+        {
+            Mutex mutex;
+            var open = Mutex.TryOpenExisting(mutexName, out mutex);
+            if (open)
+            {
+                mutex.Dispose();
+                return true;
+            }
+
+            return false;
+        }
+
+        internal static string GetServerMutexName(string pipeName)
+        {
+            return $"{pipeName}.server";
+        }
+
+        internal static string GetClientMutexName(string pipeName)
+        {
+            return $"{pipeName}.client";
         }
     }
 }

@@ -1,0 +1,11 @@
+﻿{
+  "dependencies": {
+    "Microsoft.Diagnostics.Runtime": "0.8.31-beta"
+  },
+  "frameworks": {
+    "net46": {}
+  },
+  "runtimes": {
+    "win7": {}
+  }
+}

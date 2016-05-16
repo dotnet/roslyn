@@ -10,7 +10,6 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Text;
-using Roslyn.Reflection.Metadata.Decoding;
 
 namespace Roslyn.Test.MetadataUtilities
 {
@@ -626,6 +625,11 @@ namespace Roslyn.Test.MetadataUtilities
             return sb.ToString();
         }
 
+        private string Version(Version version)
+        {
+            return version.Major + "." + version.Minor + "." + version.Build + "." + version.Revision;
+        }
+
         private string SequencePoint(SequencePoint sequencePoint)
         {
             string range = sequencePoint.IsHidden ?
@@ -1110,7 +1114,7 @@ namespace Roslyn.Test.MetadataUtilities
 
             AddRow(
                 Literal(entry.Name),
-                entry.Version.Major + "." + entry.Version.Minor + "." + entry.Version.Revision + "." + entry.Version.Build,
+                Version(entry.Version),
                 Literal(entry.Culture),
                 Literal(entry.PublicKey, BlobKind.Key),
                 EnumValue<int>(entry.Flags),
@@ -1136,7 +1140,7 @@ namespace Roslyn.Test.MetadataUtilities
 
                 AddRow(
                     Literal(entry.Name),
-                    entry.Version.Major + "." + entry.Version.Minor + "." + entry.Version.Revision + "." + entry.Version.Build,
+                    Version(entry.Version),
                     Literal(entry.Culture),
                     Literal(entry.PublicKeyOrToken, BlobKind.Key),
                     EnumValue<int>(entry.Flags)
@@ -1497,7 +1501,7 @@ namespace Roslyn.Test.MetadataUtilities
 
                 var entry = _reader.GetMethodDebugInformation(handle);
 
-                _writer.WriteLine($"{MetadataTokens.GetRowNumber(handle)}: {Token(() => entry.Document)} #{_reader.GetHeapOffset(entry.SequencePointsBlob):x}");
+                _writer.WriteLine($"{MetadataTokens.GetRowNumber(handle):x}: {Token(() => entry.Document)} #{_reader.GetHeapOffset(entry.SequencePointsBlob):x}");
 
                 if (entry.SequencePointsBlob.IsNil)
                 {

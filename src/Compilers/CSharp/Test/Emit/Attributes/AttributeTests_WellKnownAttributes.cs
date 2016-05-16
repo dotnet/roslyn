@@ -2207,12 +2207,12 @@ public class C
                 Assert.Equal(true, info.ThrowOnUnmappableCharacter);
 
                 Assert.Equal(
-                    Cci.PInvokeAttributes.NoMangle |
-                    Cci.PInvokeAttributes.CharSetUnicode |
-                    Cci.PInvokeAttributes.SupportsLastError |
-                    Cci.PInvokeAttributes.CallConvCdecl |
-                    Cci.PInvokeAttributes.BestFitEnabled |
-                    Cci.PInvokeAttributes.ThrowOnUnmappableCharEnabled, ((Cci.IPlatformInvokeInformation)info).Flags);
+                    MethodImportAttributes.ExactSpelling |
+                    MethodImportAttributes.CharSetUnicode |
+                    MethodImportAttributes.SetLastError |
+                    MethodImportAttributes.CallingConventionCDecl |
+                    MethodImportAttributes.BestFitMappingEnable |
+                    MethodImportAttributes.ThrowOnUnmappableCharEnable, ((Cci.IPlatformInvokeInformation)info).Flags);
             });
         }
 

@@ -330,9 +330,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                     Return _otherAssembly
                 End If
 
-                ' find a referenced assembly with the exactly same identity:
+                ' find a referenced assembly with the exactly same source identity:
                 For Each otherReferencedAssembly In _otherAssembly.Modules(0).ReferencedAssemblySymbols
-                    If symbol.Identity.Equals(otherReferencedAssembly.Identity) Then
+                    Dim identity = symbol.Identity
+                    Dim otherIdentity = otherReferencedAssembly.Identity
+
+                    If AssemblyIdentityComparer.SimpleNameComparer.Equals(identity.Name, otherIdentity.Name) AndAlso
+                       If(symbol.AssemblyVersionPattern, symbol.Identity.Version).Equals(If(otherReferencedAssembly.AssemblyVersionPattern, symbol.Identity.Version)) AndAlso
+                       AssemblyIdentity.EqualIgnoringNameAndVersion(identity, otherIdentity) Then
                         Return otherReferencedAssembly
                     End If
                 Next

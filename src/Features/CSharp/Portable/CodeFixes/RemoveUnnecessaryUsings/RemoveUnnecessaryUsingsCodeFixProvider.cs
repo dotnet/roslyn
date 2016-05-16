@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.RemoveUnnecessaryImports;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnusedUsings
 {
@@ -27,24 +28,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnusedUsings
             return WellKnownFixAllProviders.BatchFixer;
         }
 
-        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var document = context.Document;
-            var span = context.Span;
-            var cancellationToken = context.CancellationToken;
-
-            var service = document.GetLanguageService<IRemoveUnnecessaryImportsService>();
-            var newDocument = await service.RemoveUnnecessaryImportsAsync(document, cancellationToken).ConfigureAwait(false);
-            if (newDocument == document || newDocument == null)
-            {
-                return;
-            }
-
             context.RegisterCodeFix(
                 new MyCodeAction(
                     CSharpFeaturesResources.RemoveUnnecessaryUsings,
-                    (c) => Task.FromResult(newDocument)),
+                    c => RemoveUnnecessaryImportsAsync(context.Document, c)),
                 context.Diagnostics);
+            return SpecializedTasks.EmptyTask;
+        }
+
+        private Task<Document> RemoveUnnecessaryImportsAsync(
+            Document document, CancellationToken cancellationToken)
+        {
+            var service = document.GetLanguageService<IRemoveUnnecessaryImportsService>();
+            return service.RemoveUnnecessaryImportsAsync(document, cancellationToken);
         }
 
         private class MyCodeAction : CodeAction.DocumentChangeAction

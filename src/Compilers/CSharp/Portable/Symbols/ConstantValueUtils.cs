@@ -53,19 +53,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             var enumConstant = fieldSymbol as SourceEnumConstantSymbol;
             Binder collisionDetector = new LocalScopeBinder(binder);
-            collisionDetector = collisionDetector.WithPatternVariablesIfAny(initializer.Value);
+            collisionDetector = new ExecutableCodeBinder(initializer, fieldSymbol, collisionDetector);
             BoundExpression result;
 
             if ((object)enumConstant != null)
             {
-                result = collisionDetector.BindEnumConstantInitializer(enumConstant, initializer.Value, diagnostics);
+                result = collisionDetector.BindEnumConstantInitializer(enumConstant, initializer, diagnostics);
             }
             else
             {
                 result = collisionDetector.BindVariableOrAutoPropInitializer(initializer, RefKind.None, fieldSymbol.Type, diagnostics);
             }
 
-            result = collisionDetector.WrapWithVariablesIfAny(result);
             return result;
         }
 

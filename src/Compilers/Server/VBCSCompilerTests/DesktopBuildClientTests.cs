@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 // compilation.
                 bool holdsMutex;
                 using (var serverMutex = new Mutex(initiallyOwned: true,
-                                                   name: BuildProtocolConstants.GetServerMutexName(_pipeName),
+                                                   name: DesktopBuildClient.GetServerMutexName(_pipeName),
                                                    createdNew: out holdsMutex))
                 {
                     Assert.True(holdsMutex);

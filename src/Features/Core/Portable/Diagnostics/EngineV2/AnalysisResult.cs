@@ -12,6 +12,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     /// </summary>
     internal struct AnalysisResult
     {
+        public readonly bool FromBuild;
         public readonly ProjectId ProjectId;
         public readonly VersionStamp Version;
 
@@ -34,17 +35,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 syntaxLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                 semanticLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
                 nonLocals: ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>>.Empty,
-                others: ImmutableArray<DiagnosticData>.Empty)
+                others: ImmutableArray<DiagnosticData>.Empty,
+                fromBuild: false)
         {
         }
 
         public AnalysisResult(
-            ProjectId projectId, VersionStamp version, ImmutableHashSet<DocumentId> documentIds, bool isEmpty)
+            ProjectId projectId, VersionStamp version, ImmutableHashSet<DocumentId> documentIds, bool isEmpty, bool fromBuild)
         {
             ProjectId = projectId;
             Version = version;
             DocumentIds = documentIds;
             IsEmpty = isEmpty;
+            FromBuild = fromBuild;
 
             _syntaxLocals = null;
             _semanticLocals = null;
@@ -58,10 +61,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> semanticLocals,
             ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> nonLocals,
             ImmutableArray<DiagnosticData> others,
-            ImmutableHashSet<DocumentId> documentIds)
+            ImmutableHashSet<DocumentId> documentIds,
+            bool fromBuild)
         {
             ProjectId = projectId;
             Version = version;
+            FromBuild = fromBuild;
 
             _syntaxLocals = syntaxLocals;
             _semanticLocals = semanticLocals;
@@ -106,7 +111,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
         public AnalysisResult ToAggregatedForm()
         {
-            return new AnalysisResult(ProjectId, Version, DocumentIds, IsEmpty);
+            return new AnalysisResult(ProjectId, Version, DocumentIds, IsEmpty, FromBuild);
         }
 
         private T ReturnIfNotDefault<T>(T value)

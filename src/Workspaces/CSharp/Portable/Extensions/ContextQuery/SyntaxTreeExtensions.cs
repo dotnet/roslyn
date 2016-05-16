@@ -1839,11 +1839,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // Foo(|
             // Foo(expr, |
             // this[|
+            // var t = (1, |
+            // var t = (| , 2)
             if (token.IsKind(SyntaxKind.OpenParenToken) ||
                 token.IsKind(SyntaxKind.OpenBracketToken) ||
                 token.IsKind(SyntaxKind.CommaToken))
             {
-                if (token.Parent.IsKind(SyntaxKind.ArgumentList, SyntaxKind.BracketedArgumentList))
+                if (token.Parent.IsKind(SyntaxKind.ArgumentList, SyntaxKind.BracketedArgumentList, SyntaxKind.TupleExpression))
                 {
                     return true;
                 }

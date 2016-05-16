@@ -5358,4 +5358,7 @@
   <data name="ERR_PeWritingFailure" xml:space="preserve">
     <value>An error occurred while writing the output file: {0}</value>
   </data>
+  <data name="TuplesNotSupported" xml:space="preserve">
+    <value>Tuples are not supported in VB.</value>
+  </data>
 </root>

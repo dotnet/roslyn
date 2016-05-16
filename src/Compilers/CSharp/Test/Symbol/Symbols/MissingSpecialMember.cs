@@ -544,6 +544,7 @@ namespace System
                 SystemXmlRef,
                 SystemXmlLinqRef,
                 SystemWindowsFormsRef,
+                ValueTupleRef
             }.Concat(WinRtRefs).ToArray();
             var comp = CreateCompilation("", refs);
 
@@ -558,6 +559,9 @@ namespace System
                     case WellKnownType.System_FormattableString:
                     case WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory:
                         // Not yet in the platform.
+                        continue;
+                    case WellKnownType.ExtSentinel:
+                        // Not a real type
                         continue;
                 }
 
@@ -581,6 +585,7 @@ namespace System
                 SystemXmlRef,
                 SystemXmlLinqRef,
                 SystemWindowsFormsRef,
+                ValueTupleRef
             }.Concat(WinRtRefs).ToArray();
             var comp = CreateCompilation("", refs);
 
@@ -596,7 +601,7 @@ namespace System
                         // C# can't embed VB core.
                         continue;
                     case WellKnownMember.System_Array__Empty:
-                        // Not available yet, but will be in upcoming release.
+                        // Not yet in the platform.
                         continue;
                 }
                 if (wkm == WellKnownMember.Count) continue; // Not a real value.

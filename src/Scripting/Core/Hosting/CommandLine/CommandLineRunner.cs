@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             ErrorLogger errorLogger = null;
             if (_compiler.Arguments.ErrorLogPath != null)
             {
-                errorLogger = _compiler.GetErrorLogger(_console.Out, CancellationToken.None);
+                errorLogger = _compiler.GetErrorLogger(_console.Error, CancellationToken.None);
                 if (errorLogger == null)
                 {
                     return CommonCompiler.Failed;
@@ -106,7 +106,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             var scriptOptions = GetScriptOptions(_compiler.Arguments, scriptPathOpt, _compiler.MessageProvider, diagnosticsInfos);
 
             var errors = _compiler.Arguments.Errors.Concat(diagnosticsInfos.Select(Diagnostic.Create));
-            if (_compiler.ReportErrors(errors, _console.Out, errorLogger))
+            if (_compiler.ReportErrors(errors, _console.Error, errorLogger))
             {
                 return CommonCompiler.Failed;
             }
@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             }
             catch (CompilationErrorException e)
             {
-                _compiler.ReportErrors(e.Diagnostics, _console.Out, errorLogger);
+                _compiler.ReportErrors(e.Diagnostics, _console.Error, errorLogger);
                 return CommonCompiler.Failed;
             }
         }
@@ -281,7 +281,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             catch (FileLoadException e) when (e.InnerException is InteractiveAssemblyLoaderException)
             {
                 _console.ForegroundColor = ConsoleColor.Red;
-                _console.Out.WriteLine(e.InnerException.Message);
+                _console.Error.WriteLine(e.InnerException.Message);
                 _console.ResetColor();
 
                 return false;
@@ -324,7 +324,7 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
             try
             {
                 _console.ForegroundColor = ConsoleColor.Red;
-                _console.Out.Write(_objectFormatter.FormatException(e));
+                _console.Error.Write(_objectFormatter.FormatException(e));
             }
             finally
             {
@@ -363,14 +363,14 @@ namespace Microsoft.CodeAnalysis.Scripting.Hosting
                 foreach (var diagnostic in ordered.Take(MaxDisplayCount))
                 {
                     _console.ForegroundColor = (diagnostic.Severity == DiagnosticSeverity.Error) ? ConsoleColor.Red : ConsoleColor.Yellow;
-                    _console.Out.WriteLine(diagnostic.ToString());
+                    _console.Error.WriteLine(diagnostic.ToString());
                 }
 
                 if (errorsAndWarnings.Length > MaxDisplayCount)
                 {
                     int notShown = errorsAndWarnings.Length - MaxDisplayCount;
                     _console.ForegroundColor = ConsoleColor.DarkRed;
-                    _console.Out.WriteLine(string.Format((notShown == 1) ? ScriptingResources.PlusAdditionalError : ScriptingResources.PlusAdditionalError, notShown));
+                    _console.Error.WriteLine(string.Format((notShown == 1) ? ScriptingResources.PlusAdditionalError : ScriptingResources.PlusAdditionalError, notShown));
                 }
             }
             finally

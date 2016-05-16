@@ -57,5 +57,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="language">Language name.</param>
         public abstract ImmutableArray<DiagnosticAnalyzer> GetAnalyzers(string language);
+
+        public abstract ImmutableArray<SourceGenerator> GetSourceGenerators(string language);
     }
 }

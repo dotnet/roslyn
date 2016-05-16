@@ -39,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         continue;
                     }
 
-                    var labelCondition = TranslatePattern(switchExpressionTemp, label.Pattern);
+                    var labelCondition = LowerPattern(label.Pattern, switchExpressionTemp);
                     if (label.Guard != null)
                     {
                         labelCondition = _factory.LogicalAnd(labelCondition, VisitExpression(label.Guard));

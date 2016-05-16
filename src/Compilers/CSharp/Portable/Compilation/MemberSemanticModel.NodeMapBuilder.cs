@@ -2,11 +2,11 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
-using System.Globalization;
 using Microsoft.CodeAnalysis.Collections;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
+using System.Diagnostics;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -223,8 +223,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             /// <param name="currentBoundNode">The bound node.</param>
             private bool ShouldAddNode(BoundNode currentBoundNode)
             {
+                BoundBlock block;
+
                 // Do not add compiler generated nodes.
-                if (currentBoundNode.WasCompilerGenerated)
+                if (currentBoundNode.WasCompilerGenerated &&
+                    (currentBoundNode.Kind != BoundKind.Block ||
+                     (block = (BoundBlock)currentBoundNode).Statements.Length != 1 ||
+                     block.Statements.Single().WasCompilerGenerated))
                 {
                     return false;
                 }

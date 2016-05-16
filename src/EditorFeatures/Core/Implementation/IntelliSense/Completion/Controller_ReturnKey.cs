@@ -74,34 +74,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return;
             }
 
-            var selectedItem = Controller.GetExternallyUsableCompletionItem(model.SelectedItem);
-
             // If the selected item is the builder, dismiss
-            if (selectedItem.IsBuilder)
+            if (model.SelectedItem.IsSuggestionModeItem)
             {
                 sendThrough = false;
                 committed = false;
                 return;
             }
 
-            var completionRules = GetCompletionRules();
+            var helper = GetCompletionHelper();
 
             if (sendThrough)
             {
                 // Get the text that the user has currently entered into the buffer
-                var viewSpan = model.GetSubjectBufferFilterSpanInViewBuffer(selectedItem.FilterSpan);
+                var viewSpan = model.GetViewBufferSpan(model.SelectedItem.Item.Span);
                 var textTypedSoFar = model.GetCurrentTextInSnapshot(
                     viewSpan, this.TextView.TextSnapshot, this.GetCaretPointInViewBuffer());
 
                 var options = GetOptions();
                 if (options != null)
                 {
-                    sendThrough = completionRules.SendEnterThroughToEditor(selectedItem, textTypedSoFar, options);
+                    sendThrough = helper.SendEnterThroughToEditor(model.SelectedItem.Item, textTypedSoFar, options);
                 }
             }
 
-            var textChange = completionRules.GetTextChange(selectedItem);
-            this.Commit(selectedItem, textChange, model, null);
+            this.Commit(model.SelectedItem, model, commitChar: null);
             committed = true;
         }
     }
