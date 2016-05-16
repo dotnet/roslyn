@@ -14,18 +14,13 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal delegate Task<IEnumerable<INamedTypeSymbol>> SearchDocumentAsync(
+    internal delegate Task<IEnumerable<INamedTypeSymbol>> SearchDocument(
         HashSet<INamedTypeSymbol> classesToSearchFor,
         InheritanceInfo inheritanceInfo,
         Document document,
         ConcurrentSet<SemanticModel> cachedModels,
         ConcurrentSet<IDeclarationInfo> cachedInfos,
         CancellationToken cancellationToken);
-
-    internal delegate Task FindTypesInProjectCallback(
-        bool searchInMetadata, HashSet<INamedTypeSymbol> result, HashSet<INamedTypeSymbol> currentMetadataTypes,
-        HashSet<INamedTypeSymbol> currentSourceAndMetadataTypes,
-        Project project, bool transitive, CancellationToken cancellationToken);
 
     internal delegate Task<IEnumerable<INamedTypeSymbol>> SearchProject(
         HashSet<INamedTypeSymbol> sourceAndMetadataTypes, Project project, bool transitive, CancellationToken cancellationToken);
@@ -175,7 +170,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Solution solution,
             IImmutableSet<Project> projects,
             SearchProject findMetadataTypesAsync,
-            SearchDocumentAsync findImmediatelyInheritingTypesInDocumentAsync,
+            SearchDocument findImmediatelyInheritingTypesInDocumentAsync,
             Func<INamedTypeSymbol, bool> shouldContinueSearching,
             bool transitive,
             CancellationToken cancellationToken)
@@ -250,7 +245,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             HashSet<INamedTypeSymbol> currentSourceAndMetadataTypes,
             Project project,
             SearchProject findMetadataTypesAsync,
-            SearchDocumentAsync findImmediatelyInheritingTypesInDocumentAsync,
+            SearchDocument findImmediatelyInheritingTypesInDocumentAsync,
             Func<INamedTypeSymbol, bool> shouldContinueSearching,
             bool transitive,
             CancellationToken cancellationToken)
@@ -515,7 +510,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task<IEnumerable<INamedTypeSymbol>> FindSourceTypesInProjectAsync(
             HashSet<INamedTypeSymbol> sourceAndMetadataTypes,
             Project project,
-            SearchDocumentAsync findImmediatelyDerivedTypesInDocumentAsync,
+            SearchDocument findImmediatelyDerivedTypesInDocumentAsync,
             Func<INamedTypeSymbol, bool> shouldContinueSearching,
             bool transitive,
             CancellationToken cancellationToken)
