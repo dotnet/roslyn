@@ -939,6 +939,29 @@ namespace N1.N2
             Assert.Equal("p1", psym.Name);
         }
 
+        [Fact]
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        public void TestGetDeclaredSymbolWithIncompleteDeclaration()
+        {
+            var compilation = CreateCompilationWithMscorlib(@"
+class C0 { }
+
+class 
+
+class C1 { }
+");
+            var tree = compilation.SyntaxTrees[0];
+            var root = tree.GetCompilationUnitRoot();
+            var typeDecl = (ClassDeclarationSyntax)root.Members[1];
+            var model = compilation.GetSemanticModel(tree);
+
+            var symbol = model.GetDeclaredSymbol(typeDecl);
+
+            Assert.NotNull(symbol);
+            Assert.Equal(string.Empty, symbol.ToTestDisplayString());
+            Assert.Equal(TypeKind.Class, symbol.TypeKind);
+        }
+
         [WorkItem(537230, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537230")]
         [Fact]
         public void TestLookupUnresolvableNamespaceUsing()
