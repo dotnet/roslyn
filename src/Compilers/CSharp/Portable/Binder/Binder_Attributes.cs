@@ -289,10 +289,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             diagnostics,
                             hadError,
                             argument,
-                            argument.Expression,
+                            BindArgumentExpression(diagnostics, argument.Expression, RefKind.None, allowArglist: false),
                             argument.NameColon,
-                            refKind: RefKind.None,
-                            allowArglist: false);
+                            refKind: RefKind.None);
 
                         if (boundNamedArgumentsBuilder != null)
                         {

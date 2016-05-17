@@ -137,5 +137,16 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return base.VisitQueryClause(node);
         }
+
+        protected override void VisitLvalue(BoundLocal node)
+        {
+            if (!node.WasCompilerGenerated && node.Syntax.Kind() == SyntaxKind.Argument &&
+                ((ArgumentSyntax)node.Syntax).Identifier == node.LocalSymbol.IdentifierToken)
+            {
+                _variablesDeclared.Add(node.LocalSymbol);
+            }
+
+            base.VisitLvalue(node);
+        }
     }
 }

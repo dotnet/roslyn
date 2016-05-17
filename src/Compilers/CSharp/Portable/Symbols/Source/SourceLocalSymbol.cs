@@ -305,6 +305,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 switch (_declarationKind)
                 {
                     case LocalDeclarationKind.RegularVariable:
+                        Debug.Assert(node is VariableDeclaratorSyntax || node is ArgumentSyntax);
+                        break;
+
                     case LocalDeclarationKind.Constant:
                     case LocalDeclarationKind.FixedVariable:
                     case LocalDeclarationKind.UsingVariable:

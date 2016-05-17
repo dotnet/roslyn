@@ -2513,5 +2513,47 @@ namespace Microsoft.CodeAnalysis.CSharp
                 name: name,
                 semicolonToken: Token(SyntaxKind.SemicolonToken));
         }
+
+        /// <summary>Creates a new ArgumentSyntax instance.</summary>
+        public static ArgumentSyntax Argument(NameColonSyntax nameColon, SyntaxToken refOrOutKeyword, ExpressionSyntax expression)
+        {
+            if (expression == null)
+                throw new ArgumentNullException(nameof(expression));
+
+            return Argument(nameColon, refOrOutKeyword, expression, null, default(SyntaxToken));
+        }
+
+        /// <summary>Creates a new ArgumentSyntax instance.</summary>
+        public static ArgumentSyntax Argument(ExpressionSyntax expression)
+        {
+            return Argument(default(NameColonSyntax), default(SyntaxToken), expression);
+        }
+
+        /// <summary>Creates a new ArgumentSyntax instance.</summary>
+        public static ArgumentSyntax Argument(NameColonSyntax nameColon, SyntaxToken outKeyword, TypeSyntax type, SyntaxToken identifier)
+        {
+            if (outKeyword.Kind() != SyntaxKind.OutKeyword)
+            {
+                throw new ArgumentException(nameof(outKeyword));
+            }
+
+            if (type == null)
+            {
+                throw new ArgumentNullException(nameof(type));
+            }
+
+            if (identifier.Kind() != SyntaxKind.IdentifierToken)
+            {
+                throw new ArgumentException(nameof(identifier));
+            }
+
+            return Argument(nameColon, outKeyword, null, type, identifier);
+        }
+
+        /// <summary>Creates a new ArgumentSyntax instance.</summary>
+        public static ArgumentSyntax Argument(SyntaxToken outKeyword, TypeSyntax type, SyntaxToken identifier)
+        {
+            return Argument(default(NameColonSyntax), outKeyword, type, identifier);
+        }
     }
 }

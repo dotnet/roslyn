@@ -120,6 +120,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         IDS_FeatureRefLocalsReturns = MessageBase + 12710,
         IDS_FeatureTuples = MessageBase + 12711,
         IDS_FeatureReplace = MessageBase + 12712,
+        IDS_FeatureOutVar = MessageBase + 12713,
     }
 
     // Message IDs may refer to strings that need to be localized.
@@ -177,6 +178,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return "tuples";
                 case MessageID.IDS_FeatureReplace:
                     return "replace";
+                case MessageID.IDS_FeatureOutVar:
+                    return "outVar";
                 default:
                     return null;
             }

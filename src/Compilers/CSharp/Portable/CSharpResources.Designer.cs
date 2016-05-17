@@ -9702,6 +9702,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to out var.
+        /// </summary>
+        internal static string IDS_FeatureOutVar {
+            get {
+                return ResourceManager.GetString("IDS_FeatureOutVar", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to partial method.
         /// </summary>
         internal static string IDS_FeaturePartialMethod {
