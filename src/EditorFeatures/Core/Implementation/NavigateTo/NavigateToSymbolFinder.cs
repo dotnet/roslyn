@@ -22,8 +22,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             foreach (var document in project.Documents)
             {
                 cancellationToken.ThrowIfCancellationRequested();
-                var declaredSymbolInfos = await document.GetDeclaredSymbolInfosAsync(cancellationToken).ConfigureAwait(false);
-                foreach (var declaredSymbolInfo in declaredSymbolInfos)
+                var declarationInfo = await document.GetDeclarationInfoAsync(cancellationToken).ConfigureAwait(false);
+
+                foreach (var declaredSymbolInfo in declarationInfo.DeclaredSymbolInfos)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     var patternMatches = patternMatcher.GetMatches(

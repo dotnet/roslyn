@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Composition;
 using System.Diagnostics;
 using System.Linq;
@@ -20,7 +21,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     [ExportLanguageService(typeof(ISyntaxFactsService), LanguageNames.CSharp), Shared]
-    internal class CSharpSyntaxFactsService : ISyntaxFactsService
+    internal class CSharpSyntaxFactsService : AbstractSyntaxFactsService, ISyntaxFactsService
     {
         public bool IsAwaitKeyword(SyntaxToken token)
         {
@@ -747,7 +748,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     declaredSymbolInfo = new DeclaredSymbolInfo(classDecl.Identifier.ValueText,
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
-                        DeclaredSymbolInfoKind.Class, classDecl.Identifier.Span);
+                        DeclaredSymbolInfoKind.Class, classDecl.Identifier.Span,
+                        GetInheritanceNames(classDecl.BaseList));
                     return true;
                 case SyntaxKind.ConstructorDeclaration:
                     var ctorDecl = (ConstructorDeclarationSyntax)node;
@@ -757,6 +759,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Constructor,
                         ctorDecl.Identifier.Span,
+                        inheritanceNames: ImmutableArray<string>.Empty,
                         parameterCount: (ushort)(ctorDecl.ParameterList?.Parameters.Count ?? 0));
                     return true;
                 case SyntaxKind.DelegateDeclaration:
@@ -764,42 +767,48 @@ namespace Microsoft.CodeAnalysis.CSharp
                     declaredSymbolInfo = new DeclaredSymbolInfo(delegateDecl.Identifier.ValueText,
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
-                        DeclaredSymbolInfoKind.Delegate, delegateDecl.Identifier.Span);
+                        DeclaredSymbolInfoKind.Delegate, delegateDecl.Identifier.Span,
+                        inheritanceNames: ImmutableArray<string>.Empty);
                     return true;
                 case SyntaxKind.EnumDeclaration:
                     var enumDecl = (EnumDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(enumDecl.Identifier.ValueText,
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
-                        DeclaredSymbolInfoKind.Enum, enumDecl.Identifier.Span);
+                        DeclaredSymbolInfoKind.Enum, enumDecl.Identifier.Span,
+                        inheritanceNames: ImmutableArray<string>.Empty);
                     return true;
                 case SyntaxKind.EnumMemberDeclaration:
                     var enumMember = (EnumMemberDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(enumMember.Identifier.ValueText,
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
-                        DeclaredSymbolInfoKind.EnumMember, enumMember.Identifier.Span);
+                        DeclaredSymbolInfoKind.EnumMember, enumMember.Identifier.Span,
+                        inheritanceNames: ImmutableArray<string>.Empty);
                     return true;
                 case SyntaxKind.EventDeclaration:
                     var eventDecl = (EventDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(ExpandExplicitInterfaceName(eventDecl.Identifier.ValueText, eventDecl.ExplicitInterfaceSpecifier),
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
-                        DeclaredSymbolInfoKind.Event, eventDecl.Identifier.Span);
+                        DeclaredSymbolInfoKind.Event, eventDecl.Identifier.Span,
+                        inheritanceNames: ImmutableArray<string>.Empty);
                     return true;
                 case SyntaxKind.IndexerDeclaration:
                     var indexerDecl = (IndexerDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(WellKnownMemberNames.Indexer,
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
-                        DeclaredSymbolInfoKind.Indexer, indexerDecl.ThisKeyword.Span);
+                        DeclaredSymbolInfoKind.Indexer, indexerDecl.ThisKeyword.Span,
+                        inheritanceNames: ImmutableArray<string>.Empty);
                     return true;
                 case SyntaxKind.InterfaceDeclaration:
                     var interfaceDecl = (InterfaceDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(interfaceDecl.Identifier.ValueText,
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
-                        DeclaredSymbolInfoKind.Interface, interfaceDecl.Identifier.Span);
+                        DeclaredSymbolInfoKind.Interface, interfaceDecl.Identifier.Span,
+                        GetInheritanceNames(interfaceDecl.BaseList));
                     return true;
                 case SyntaxKind.MethodDeclaration:
                     var method = (MethodDeclarationSyntax)node;
@@ -809,6 +818,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         GetFullyQualifiedContainerName(node.Parent),
                         DeclaredSymbolInfoKind.Method,
                         method.Identifier.Span,
+                        inheritanceNames: ImmutableArray<string>.Empty,
                         parameterCount: (ushort)(method.ParameterList?.Parameters.Count ?? 0),
                         typeParameterCount: (ushort)(method.TypeParameterList?.Parameters.Count ?? 0));
                     return true;
@@ -817,14 +827,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     declaredSymbolInfo = new DeclaredSymbolInfo(ExpandExplicitInterfaceName(property.Identifier.ValueText, property.ExplicitInterfaceSpecifier),
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
-                        DeclaredSymbolInfoKind.Property, property.Identifier.Span);
+                        DeclaredSymbolInfoKind.Property, property.Identifier.Span,
+                        inheritanceNames: ImmutableArray<string>.Empty);
                     return true;
                 case SyntaxKind.StructDeclaration:
                     var structDecl = (StructDeclarationSyntax)node;
                     declaredSymbolInfo = new DeclaredSymbolInfo(structDecl.Identifier.ValueText,
                         GetContainerDisplayName(node.Parent),
                         GetFullyQualifiedContainerName(node.Parent),
-                        DeclaredSymbolInfoKind.Struct, structDecl.Identifier.Span);
+                        DeclaredSymbolInfoKind.Struct, structDecl.Identifier.Span,
+                        GetInheritanceNames(structDecl.BaseList));
                     return true;
                 case SyntaxKind.VariableDeclarator:
                     // could either be part of a field declaration or an event field declaration
@@ -839,10 +851,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 ? DeclaredSymbolInfoKind.Constant
                                 : DeclaredSymbolInfoKind.Field;
 
-                        declaredSymbolInfo = new DeclaredSymbolInfo(variableDeclarator.Identifier.ValueText,
-                        GetContainerDisplayName(fieldDeclaration.Parent),
-                        GetFullyQualifiedContainerName(fieldDeclaration.Parent),
-                        kind, variableDeclarator.Identifier.Span);
+                        declaredSymbolInfo = new DeclaredSymbolInfo(
+                            variableDeclarator.Identifier.ValueText,
+                            GetContainerDisplayName(fieldDeclaration.Parent),
+                            GetFullyQualifiedContainerName(fieldDeclaration.Parent),
+                            kind, variableDeclarator.Identifier.Span,
+                            inheritanceNames: ImmutableArray<string>.Empty);
                         return true;
                     }
 
@@ -851,6 +865,144 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             declaredSymbolInfo = default(DeclaredSymbolInfo);
             return false;
+        }
+
+        private ImmutableArray<string> GetInheritanceNames(BaseListSyntax baseList)
+        {
+            if (baseList == null)
+            {
+                return ImmutableArray<string>.Empty;
+            }
+
+            var builder = ImmutableArray.CreateBuilder<string>(baseList.Types.Count);
+
+            // It's not sufficient to just store the textual names we see in the inheritance list
+            // of a type.  For example if we have:
+            //
+            //   using Y = X;
+            //      ...
+            //      using Z = Y;
+            //      ...
+            //      class C : Z
+            //
+            // It's insufficient to just state that 'C' derives from 'Z'.  If we search for derived
+            // types from 'B' we won't examine 'C'.  To solve this, we keep track of the aliasing
+            // that occurs in containing scopes.  Then, when we're adding an inheritance name we 
+            // walk the alias maps and we also add any names that these names alias to.  In the
+            // above example we'd put Z, Y, and X in the inheritance names list for 'C'.
+
+            // Each dictionary in this list is a mapping from alias name to the name of the thing
+            // it aliases.  Then, each scope with alias mapping gets its own entry in this list.
+            // For the above example, we would produce:  [{Z => Y}, {Y => X}]
+            var aliasMaps = AllocateAliasMapList();
+            try
+            {
+                AddAliasMaps(baseList, aliasMaps);
+
+                foreach (var baseType in baseList.Types)
+                {
+                    AddInheritanceName(builder, baseType.Type, aliasMaps);
+                }
+
+                return builder.ToImmutable();
+            }
+            finally
+            {
+                FreeAliasMapList(aliasMaps);
+            }
+        }
+
+        private void AddAliasMaps(SyntaxNode node, List<Dictionary<string, string>> aliasMaps)
+        {
+            for (var current = node; current != null; current = current.Parent)
+            {
+                if (current.IsKind(SyntaxKind.NamespaceDeclaration))
+                {
+                    ProcessUsings(aliasMaps, ((NamespaceDeclarationSyntax)current).Usings);
+                }
+                else if (current.IsKind(SyntaxKind.CompilationUnit))
+                {
+                    ProcessUsings(aliasMaps, ((CompilationUnitSyntax)current).Usings);
+                }
+            }
+        }
+
+        private void ProcessUsings(List<Dictionary<string, string>> aliasMaps, SyntaxList<UsingDirectiveSyntax> usings)
+        {
+            Dictionary<string, string> aliasMap = null;
+
+            foreach (var usingDecl in usings)
+            {
+                if (usingDecl.Alias != null)
+                {
+                    var mappedName = GetTypeName(usingDecl.Name);
+                    if (mappedName != null)
+                    {
+                        aliasMap = aliasMap ?? AllocateAliasMap();
+
+                        // If we have:  using X = Foo, then we store a mapping from X -> Foo
+                        // here.  That way if we see a class that inherits from X we also state
+                        // that it inherits from Foo as well.
+                        aliasMap[usingDecl.Alias.Name.Identifier.ValueText] = mappedName;
+                    }
+                }
+            }
+
+            if (aliasMap != null)
+            {
+                aliasMaps.Add(aliasMap);
+            }
+        }
+
+        private void AddInheritanceName(
+            ImmutableArray<string>.Builder builder, TypeSyntax type,
+            List<Dictionary<string, string>> aliasMaps)
+        {
+            var name = GetTypeName(type);
+            if (name != null)
+            {
+                // First, add the name that the typename that the type directly says it inherits from.
+                builder.Add(name);
+
+                // Now, walk the alias chain and add any names this alias may eventually map to.
+                var currentName = name;
+                foreach (var aliasMap in aliasMaps)
+                {
+                    string mappedName;
+                    if (aliasMap.TryGetValue(currentName, out mappedName))
+                    {
+                        // Looks like this could be an alias.  Also include the name the alias points to
+                        builder.Add(mappedName);
+
+                        // Keep on searching.  An alias in an inner namespcae can refer to an 
+                        // alias in an outer namespace.  
+                        currentName = mappedName;
+                    }
+                }
+            }
+        }
+
+        private string GetTypeName(TypeSyntax type)
+        {
+            if (type is SimpleNameSyntax)
+            {
+                return GetSimpleTypeName((SimpleNameSyntax)type);
+            }
+            else if (type is QualifiedNameSyntax)
+            {
+                return GetSimpleTypeName(((QualifiedNameSyntax)type).Right);
+            }
+            else if (type is AliasQualifiedNameSyntax)
+            {
+                return GetSimpleTypeName(((AliasQualifiedNameSyntax)type).Name);
+            }
+
+            return null;
+        }
+
+        private static string GetSimpleTypeName(SimpleNameSyntax name)
+        {
+            return name.Identifier.ValueText;
         }
 
         private static string ExpandExplicitInterfaceName(string identifier, ExplicitInterfaceSpecifierSyntax explicitInterfaceSpecifier)
