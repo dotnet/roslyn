@@ -24,6 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
 
         private readonly ProjectId _projectId;
         private readonly string _errorCodePrefix;
+
         private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly ExternalErrorDiagnosticUpdateSource _diagnosticProvider;
 
@@ -31,11 +32,23 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         {
             _projectId = projectId;
             _errorCodePrefix = errorCodePrefix;
-            _diagnosticProvider = serviceProvider.GetMefService<ExternalErrorDiagnosticUpdateSource>();
-            _workspace = serviceProvider.GetMefService<VisualStudioWorkspaceImpl>();
 
-            Debug.Assert(_diagnosticProvider != null);
+            _workspace = serviceProvider.GetMefService<VisualStudioWorkspaceImpl>();
+            _diagnosticProvider = serviceProvider.GetMefService<ExternalErrorDiagnosticUpdateSource>();
+
             Debug.Assert(_workspace != null);
+            Debug.Assert(_diagnosticProvider != null);
+        }
+
+        private bool CanHandle(string errorId)
+        {
+            // we accept all compiler diagnostics
+            if (errorId.StartsWith(_errorCodePrefix))
+            {
+                return true;
+            }
+
+            return _diagnosticProvider.SupportedDiagnosticId(_projectId, errorId);
         }
 
         public int AddNewErrors(IVsEnumExternalErrors pErrors)
@@ -134,9 +147,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
         // TODO: Use PreserveSig instead of throwing these exceptions for common cases.
         public void ReportError2(string bstrErrorMessage, string bstrErrorId, [ComAliasName("VsShell.VSTASKPRIORITY")]VSTASKPRIORITY nPriority, int iStartLine, int iStartColumn, int iEndLine, int iEndColumn, string bstrFileName)
         {
+            // first we check whether given error is something we can take care.
+            if (!CanHandle(bstrErrorId))
+            {
+                // it is not, let project system takes care.
+                throw new NotImplementedException();
+            }
+
             if ((iEndLine >= 0 && iEndColumn >= 0) &&
-                ((iEndLine < iStartLine) ||
-                 (iEndLine == iStartLine && iEndColumn < iStartColumn)))
+               ((iEndLine < iStartLine) ||
+                (iEndLine == iStartLine && iEndColumn < iStartColumn)))
             {
                 throw new ArgumentException(ServicesVSResources.EndPositionMustBeGreaterThanStart);
             }
