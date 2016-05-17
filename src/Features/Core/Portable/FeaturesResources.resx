@@ -574,6 +574,9 @@
   <data name="AddingANewFile" xml:space="preserve">
     <value>Adding a new file will prevent the debug session from continuing.</value>
   </data>
+  <data name="UpdatingStateMachineMethodMissingAttribute" xml:space="preserve">
+    <value>Attribute '{0}' is missing. Updating an async method or an iterator will prevent the debug session from continuing.</value>
+  </data>
   <data name="UnexpectedInterfaceMemberKind" xml:space="preserve">
     <value>Unexpected interface member kind: {0}</value>
   </data>

@@ -2226,9 +2226,9 @@ public class A
                 }
             }
 
-            public override string ConvertSymbolToString(int errorCode, ISymbol symbol)
+            public override string GetErrorDisplayString(ISymbol symbol)
             {
-                return MessageProvider.Instance.ConvertSymbolToString(errorCode, symbol);
+                return MessageProvider.Instance.GetErrorDisplayString(symbol);
             }
         }
 
