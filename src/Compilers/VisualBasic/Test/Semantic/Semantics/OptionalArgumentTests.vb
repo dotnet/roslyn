@@ -7,6 +7,8 @@ Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FeatureExtensions
 Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
@@ -1080,10 +1082,15 @@ End Class
 ]]>
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, options:=TestOptions.ReleaseDll)
+            Dim vbp = VisualBasicParseOptions.Default
+            For Each langVersion In {LanguageVersion.VBnext}
+                vbp = vbp.WithLanguageVersion(langVersion)
+                Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, options:=TestOptions.ReleaseDll,
+                                                                                                      parseOptions:=vbp)
+                If ImplicitDefaultValueOnOptionalParameter.IsUnavailable(langVersion) Then
 
-            AssertTheseDiagnostics(comp,
-<expected><![CDATA[
+                    AssertTheseDiagnostics(comp,
+"
 BC30529: All parameters must be explicitly typed if any of them are explicitly typed.
             Optional f A String = "",
                      ~
@@ -1102,7 +1109,28 @@ BC30002: Type 'CallerLineNumber' is not defined.
 BC30002: Type 'CallerMemberName' is not defined.
             <CallerMemberName> Optional m As String = Nothing)
              ~~~~~~~~~~~~~~~~
-]]></expected>)
+")
+                Else
+                    AssertTheseDiagnostics(comp,
+"
+BC30529: All parameters must be explicitly typed if any of them are explicitly typed.
+            Optional f A String = "",
+                     ~
+BC30213: Comma or ')' expected.
+            Optional f A String = "",
+                       ~
+BC30002: Type 'CallerFilePath' is not defined.
+            <CallerFilePath> Optional f As String = "",
+             ~~~~~~~~~~~~~~
+BC30002: Type 'CallerLineNumber' is not defined.
+            <CallerLineNumber> Optional l As Integer = -1,
+             ~~~~~~~~~~~~~~~~
+BC30002: Type 'CallerMemberName' is not defined.
+            <CallerMemberName> Optional m As String = Nothing)
+             ~~~~~~~~~~~~~~~~
+")
+                End If
+            Next
         End Sub
 
         <Fact()>
