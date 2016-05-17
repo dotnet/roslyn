@@ -46,7 +46,7 @@ namespace Roslyn.Reflection.Metadata.Decoding
         {
             if (provider == null)
             {
-                throw new ArgumentNullException("provider");
+                throw new ArgumentNullException(nameof(provider));
             }
 
             _metadataReaderOpt = metadataReader;

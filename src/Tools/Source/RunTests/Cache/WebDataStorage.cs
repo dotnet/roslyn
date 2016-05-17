@@ -15,16 +15,15 @@ namespace RunTests.Cache
 {
     internal sealed class WebDataStorage : IDataStorage
     {
-        private const string NameExitCode = "ExitCode";
-        private const string NameOutputStandard = "OutputStandard";
-        private const string NameOutputError = "OutputError";
-        private const string NameResultsFileName = "ResultsFileName";
-        private const string NameResultsFileContent = "ResultsFileContent";
-        private const string NameElapsedSeconds = "ElapsedSeconds";
-        private const string NameElapsedSecondsMisspelled = "EllapsedSeconds";
-        private const string NameTestPassed = "TestPassed";
-        private const string NameTestFailed = "TestFailed";
-        private const string NameTestSkipped = "TestSkipped";
+        private const string NameExitCode = "exitCode";
+        private const string NameOutputStandard = "outputStandard";
+        private const string NameOutputError = "outputError";
+        private const string NameResultsFileName = "resultsFileName";
+        private const string NameResultsFileContent = "resultsFileContent";
+        private const string NameElapsedSeconds = "elapsedSeconds";
+        private const string NameTestPassed = "testPassed";
+        private const string NameTestFailed = "testFailed";
+        private const string NameTestSkipped = "testSkipped";
 
         private readonly RestClient _restClient = new RestClient(Constants.DashboardUriString);
 
@@ -77,17 +76,12 @@ namespace RunTests.Cache
                 }
 
                 var obj = JObject.Parse(response.Content);
-
-                // During the transition from ellapsed to elapsed the client needs to accept either
-                // value from the json object.
-                var elapsedProperty = obj.Property(NameElapsedSeconds) ?? obj.Property(NameElapsedSecondsMisspelled);
-
                 var result = new CachedTestResult(
                     exitCode: obj.Value<int>(NameExitCode),
                     standardOutput: obj.Value<string>(NameOutputStandard),
                     errorOutput: obj.Value<string>(NameOutputError),
                     resultsFileContent: obj.Value<string>(NameResultsFileContent),
-                    elapsed: TimeSpan.FromSeconds(elapsedProperty.Value.Value<int>()));
+                    elapsed: TimeSpan.FromSeconds(obj.Value<int>(NameElapsedSeconds)));
                 return result;
             }
             catch (Exception ex)
@@ -107,7 +101,6 @@ namespace RunTests.Cache
             obj[NameResultsFileName] = resultsFileName;
             obj[NameResultsFileContent] = testResult.ResultsFileContent;
             obj[NameElapsedSeconds] = (int)testResult.Elapsed.TotalSeconds;
-            obj[NameElapsedSecondsMisspelled] = (int)testResult.Elapsed.TotalSeconds;
             obj[NameTestPassed] = numbers.Item1;
             obj[NameTestFailed] = numbers.Item2;
             obj[NameTestSkipped] = numbers.Item3;

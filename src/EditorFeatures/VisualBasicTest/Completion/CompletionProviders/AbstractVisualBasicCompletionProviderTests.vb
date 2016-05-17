@@ -111,13 +111,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 Dim document = workspace.CurrentSolution.GetDocument(documentId)
                 Dim position = hostDocument.CursorPosition.Value
 
-                Dim completionList = Await GetCompletionListAsync(document, position, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo())
+                Dim completionList = Await GetCompletionListAsync(document, position, CompletionTrigger.Default)
                 Dim item = completionList.Items.First(Function(i) i.DisplayText.StartsWith(textTypedSoFar))
 
-                Dim completionService = document.Project.LanguageServices.GetService(Of ICompletionService)()
-                Dim completionRules = completionService.GetCompletionRules()
-
-                Assert.Equal(expected, completionRules.SendEnterThroughToEditor(item, textTypedSoFar, workspace.Options))
+                Dim helper = CompletionHelper.GetHelper(document)
+                Assert.Equal(expected, helper.SendEnterThroughToEditor(item, textTypedSoFar, workspace.Options))
             End Using
         End Function
 
@@ -133,18 +131,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 Dim document = workspace.CurrentSolution.GetDocument(documentId)
                 Dim position = hostDocument.CursorPosition.Value
 
-                Dim completionList = Await GetCompletionListAsync(document, position, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo())
+                Dim completionList = Await GetCompletionListAsync(document, position, CompletionTrigger.Default)
                 Dim item = completionList.Items.First()
 
-                Dim completionService = document.Project.LanguageServices.GetService(Of ICompletionService)()
-                Dim completionRules = completionService.GetCompletionRules()
+                Dim helper = CompletionHelper.GetHelper(document)
 
                 For Each ch In chars
-                    Assert.True(completionRules.IsCommitCharacter(item, ch, textTypedSoFar), $"Expected '{ch}' to be a commit character")
+                    Assert.True(helper.IsCommitCharacter(item, ch, textTypedSoFar), $"Expected '{ch}' to be a commit character")
                 Next
 
                 Dim chr = "x"c
-                Assert.False(completionRules.IsCommitCharacter(item, chr, textTypedSoFar), $"Expected '{chr}' NOT to be a commit character")
+                Assert.False(helper.IsCommitCharacter(item, chr, textTypedSoFar), $"Expected '{chr}' NOT to be a commit character")
             End Using
 
         End Function
@@ -199,8 +196,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 Dim document = workspace.Documents.First()
                 Dim text = document.TextBuffer.CurrentSnapshot.AsText()
                 Dim options = workspace.Options.WithChangedOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.VisualBasic, triggerOnLetter)
-
-                Dim isTextualTriggerCharacterResult = CompletionProvider.IsTriggerCharacter(text, position, options)
+                Dim trigger = CompletionTrigger.CreateInsertionTrigger(text(position))
+                Dim isTextualTriggerCharacterResult = CompletionProvider.ShouldTriggerCompletion(text, position + 1, trigger, options)
 
                 If expectedTriggerCharacter Then
                     Dim assertText = "'" & text.ToString(New TextSpan(position, 1)) & "' expected to be textual trigger character"

@@ -71,6 +71,11 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             return symbol?.TypeKind == TypeKind.Delegate;
         }
 
+        public static bool IsStructType(this ITypeSymbol symbol)
+        {
+            return symbol?.TypeKind == TypeKind.Struct;
+        }
+
         public static bool IsAnonymousType(this INamedTypeSymbol symbol)
         {
             return symbol?.IsAnonymousType == true;

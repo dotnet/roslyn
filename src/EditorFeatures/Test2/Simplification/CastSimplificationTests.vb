@@ -4908,6 +4908,134 @@ static void Main(string[] args)
             Await TestAsync(input, expected)
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(10311, "https://github.com/dotnet/roslyn/issues/10311")>
+        Public Async Function TestCSharp_DontRemove_NecessaryUnboxingCastFromObjectToBoolean1() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    public bool GetBool(object value)
+    {
+        // "Cast is redundant".
+        return {|Simplify:(bool)value|};
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+class C
+{
+    public bool GetBool(object value)
+    {
+        // "Cast is redundant".
+        return (bool)value;
+    }
+}
+]]>
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(10311, "https://github.com/dotnet/roslyn/issues/10311")>
+        Public Async Function TestCSharp_DontRemove_NecessaryUnboxingCastFromObjectToBoolean2() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    public bool NegateBool(object value)
+    {
+        // "Cast is redundant".
+        return !{|Simplify:(bool)value|};
+    }
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+class C
+{
+    public bool NegateBool(object value)
+    {
+        // "Cast is redundant".
+        return !(bool)value;
+    }
+}
+]]>
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(10311, "https://github.com/dotnet/roslyn/issues/10311")>
+        Public Async Function TestCSharp_DontRemove_NecessaryUnboxingCastFromObjectToBoolean1_ExpressionBody() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    public bool GetBool(object value) => {|Simplify:(bool)value|};
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+class C
+{
+    public bool GetBool(object value) => (bool)value;
+}
+]]>
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Simplification)>
+        <WorkItem(10311, "https://github.com/dotnet/roslyn/issues/10311")>
+        Public Async Function TestCSharp_DontRemove_NecessaryUnboxingCastFromObjectToBoolean2_ExpressionBody() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document><![CDATA[
+class C
+{
+    public bool NegateBool(object value) => !{|Simplify:(bool)value|};
+}
+]]>
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code><![CDATA[
+class C
+{
+    public bool NegateBool(object value) => !(bool)value;
+}
+]]>
+</code>
+
+            Await TestAsync(input, expected)
+        End Function
+
 #End Region
 
 #Region "Visual Basic tests"

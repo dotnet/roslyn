@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,6 +8,8 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Options;
+using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
@@ -232,32 +233,41 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             {
                 var workspaceServices = _document.Project.Solution.Workspace.Services;
 
-                var packageSearchService = _owner._packageSearchService ?? workspaceServices.GetService<IPackageSearchService>();
-                var referenceAssemblySearchService = _owner._referenceAssemblySearchService ?? workspaceServices.GetService<IReferenceAssemblySearchService>();
+                var symbolSearchService = _owner._symbolSearchService ?? workspaceServices.GetService<ISymbolSearchService>();
                 var installerService = _owner._packageInstallerService ?? workspaceServices.GetService<IPackageInstallerService>();
 
-                if (referenceAssemblySearchService != null)
+                var language = _document.Project.Language;
+
+                var options = workspaceServices.Workspace.Options;
+                var searchReferenceAssemblies = options.GetOption(
+                    AddImportOptions.SuggestForTypesInReferenceAssemblies, language);
+                var searchNugetPackages = options.GetOption(
+                    AddImportOptions.SuggestForTypesInNuGetPackages, language);
+
+                if (symbolSearchService != null &&
+                    searchReferenceAssemblies)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
                     await FindReferenceAssemblyTypeReferencesAsync(
-                        referenceAssemblySearchService, allReferences, nameNode, name, arity, isAttributeSearch, cancellationToken).ConfigureAwait(false);
+                        symbolSearchService, allReferences, nameNode, name, arity, isAttributeSearch, cancellationToken).ConfigureAwait(false);
                 }
 
-                if (packageSearchService != null && 
+                if (symbolSearchService != null &&
+                    searchNugetPackages && 
                     installerService.IsEnabled)
                 {
                     foreach (var packageSource in installerService.PackageSources)
                     {
                         cancellationToken.ThrowIfCancellationRequested();
                         await FindNugetTypeReferencesAsync(
-                            packageSource, packageSearchService, installerService, allReferences,
+                            packageSource, symbolSearchService, installerService, allReferences,
                             nameNode, name, arity, isAttributeSearch, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }
 
             private async Task FindReferenceAssemblyTypeReferencesAsync(
-                IReferenceAssemblySearchService searchService,
+                ISymbolSearchService searchService,
                 List<Reference> allReferences,
                 TSimpleNameSyntax nameNode,
                 string name,
@@ -283,7 +293,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
             private async Task FindNugetTypeReferencesAsync(
                 PackageSource source,
-                IPackageSearchService searchService,
+                ISymbolSearchService searchService,
                 IPackageInstallerService installerService,
                 List<Reference> allReferences,
                 TSimpleNameSyntax nameNode,
@@ -493,13 +503,73 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                     return null;
                 }
 
-                var symbols = await GetSymbolsAsync(searchScope, nameNode).ConfigureAwait(false);
-                if (symbols != null)
+                // We have code like "Color.Black".  "Color" bound to a 'Color Color' property, and
+                // 'Black' did not bind.  We want to find a type called 'Color' that will actually
+                // allow 'Black' to bind.
+                var syntaxFacts = this._document.GetLanguageService<ISyntaxFactsService>();
+                if (!syntaxFacts.IsMemberAccessExpressionName(nameNode))
                 {
-                    return FilterForFieldsAndProperties(searchScope, nameNode.Parent, symbols);
+                    return null;
                 }
 
-                return null;
+                var expression = syntaxFacts.GetExpressionOfMemberAccessExpression(nameNode.Parent);
+                if (expression == null)
+                {
+                    return null;
+                }
+
+                if (!(expression is TSimpleNameSyntax))
+                {
+                    return null;
+                }
+
+                // Check if the expression before the dot binds to a property or field.
+                var symbol = this._semanticModel.GetSymbolInfo(expression, searchScope.CancellationToken).GetAnySymbol();
+                if (symbol?.Kind != SymbolKind.Property && symbol?.Kind != SymbolKind.Field)
+                {
+                    return null;
+                }
+
+                var propertyOrFieldType = symbol.GetSymbolType();
+                if (!(propertyOrFieldType is INamedTypeSymbol))
+                {
+                    return null;
+                }
+
+                // Check if we have teh 'Color Color' case.
+                var propertyType = (INamedTypeSymbol)propertyOrFieldType;
+                if (!Equals(propertyType.Name, symbol.Name))
+                {
+                    return null;
+                }
+
+                // Try to look up 'Color' as a type.
+                var symbolResults = await searchScope.FindDeclarationsAsync(
+                    symbol.Name, (TSimpleNameSyntax)expression, SymbolFilter.Type).ConfigureAwait(false);
+
+                // Return results that have accesible members.
+                var name = nameNode.GetFirstToken().ValueText;
+                return symbolResults.Where(sr => HasAccessibleStaticFieldOrProperty(sr.Symbol, name))
+                                    .Select(sr => sr.WithSymbol(sr.Symbol.ContainingNamespace))
+                                    .Select(searchScope.CreateReference)
+                                    .ToList();
+            }
+
+            private bool HasAccessibleStaticFieldOrProperty(ISymbol symbol, string fieldOrPropertyName)
+            {
+                var namedType = (INamedTypeSymbol)symbol;
+                if (namedType != null)
+                {
+                    var members = namedType.GetMembers(fieldOrPropertyName);
+                    var query = from m in members
+                                where m is IFieldSymbol || m is IPropertySymbol
+                                where m.IsAccessibleWithin(_semanticModel.Compilation.Assembly)
+                                where m.IsStatic
+                                select m;
+                    return query.Any();
+                }
+
+                return false;
             }
 
             private async Task<IList<SymbolReference>> GetNamespacesForQueryPatternsAsync(SearchScope searchScope)
@@ -620,25 +690,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
 
                 return GetProposedNamespaces(
                     searchScope, extensionMethodSymbols.Select(s => s.WithSymbol(s.Symbol.ContainingNamespace)));
-            }
-
-            private IList<SymbolReference> FilterForFieldsAndProperties(
-                SearchScope searchScope, SyntaxNode expression, IEnumerable<SymbolResult<ISymbol>> symbols)
-            {
-                var propertySymbols = OfType<IPropertySymbol>(symbols)
-                    .Where(property => property.Symbol.IsAccessibleWithin(_semanticModel.Compilation.Assembly) == true &&
-                                       _owner.IsViableProperty(property.Symbol, expression, _semanticModel, _syntaxFacts, searchScope.CancellationToken))
-                    .ToList();
-
-                var fieldSymbols = OfType<IFieldSymbol>(symbols)
-                    .Where(field => field.Symbol.IsAccessibleWithin(_semanticModel.Compilation.Assembly) == true &&
-                                    _owner.IsViableField(field.Symbol, expression, _semanticModel, _syntaxFacts, searchScope.CancellationToken))
-                    .ToList();
-
-                return GetProposedNamespaces(
-                    searchScope,
-                    propertySymbols.Select(s => s.WithSymbol(s.Symbol.ContainingNamespace)).Concat(
-                       fieldSymbols.Select(s => s.WithSymbol(s.Symbol.ContainingNamespace))));
             }
 
             private async Task<IEnumerable<SymbolResult<IMethodSymbol>>> GetAddMethodsAsync(

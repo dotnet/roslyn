@@ -9,9 +9,11 @@ namespace Roslyn.VisualStudio.Test.Utilities.Remoting
     /// <remarks>This object exists in the Visual Studio host and is marhsalled across the process boundary.</remarks>
     internal class InteractiveWindowWrapper : MarshalByRefObject
     {
-        private IInteractiveWindow _interactiveWindow;
+        private readonly IInteractiveWindow _interactiveWindow;
 
-        public InteractiveWindowWrapper(IInteractiveWindow interactiveWindow)
+        public static InteractiveWindowWrapper CreateForCSharp() => new InteractiveWindowWrapper(RemotingHelper.CSharpInteractiveWindow);
+
+        private InteractiveWindowWrapper(IInteractiveWindow interactiveWindow)
         {
             _interactiveWindow = interactiveWindow;
         }

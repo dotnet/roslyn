@@ -4,8 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
+using System.Threading;
 using Microsoft.CodeAnalysis;
-using static System.Math;
 
 namespace Roslyn.Utilities
 {
@@ -110,7 +110,11 @@ namespace Roslyn.Utilities
         }
 
         private const int MaxMatrixPoolDimension = 64;
-        private static readonly SimplePool<int[,]> s_matrixPool = new SimplePool<int[,]>(() => InitializeMatrix(new int[64, 64]));
+        private static readonly ThreadLocal<int[,]> t_matrixPool = 
+            new ThreadLocal<int[,]>(() => InitializeMatrix(new int[MaxMatrixPoolDimension, MaxMatrixPoolDimension]));
+
+        private static ThreadLocal<Dictionary<char, int>> t_dictionaryPool = 
+            new ThreadLocal<Dictionary<char, int>>(() => new Dictionary<char, int>());
 
         private static int[,] GetMatrix(int width, int height)
         {
@@ -119,15 +123,7 @@ namespace Roslyn.Utilities
                 return InitializeMatrix(new int[width, height]);
             }
 
-            return s_matrixPool.Allocate();
-        }
-
-        private static void ReleaseMatrix(int[,] matrix)
-        {
-            if (matrix.GetLength(0) <= MaxMatrixPoolDimension && matrix.GetLength(1) <= MaxMatrixPoolDimension)
-            {
-                s_matrixPool.Free(matrix);
-            }
+            return t_matrixPool.Value;
         }
 
         private static int[,] InitializeMatrix(int[,] matrix)
@@ -181,8 +177,6 @@ namespace Roslyn.Utilities
                 ? GetEditDistanceWorker(source, target, threshold)
                 : GetEditDistanceWorker(target, source, threshold);
         }
-
-        private static SimplePool<Dictionary<char, int>> s_dictionaryPool = new SimplePool<Dictionary<char, int>>(() => new Dictionary<char, int>());
 
         private static int GetEditDistanceWorker(ArraySlice<char> source, ArraySlice<char> target, int threshold)
         {
@@ -497,74 +491,68 @@ namespace Roslyn.Utilities
             Debug.Assert(offset >= 0);
 
             var matrix = GetMatrix(sourceLength + 2, targetLength + 2);
-            var characterToLastSeenIndex_inSource = s_dictionaryPool.AllocateAndClear();
 
-            try
+            var characterToLastSeenIndex_inSource = t_dictionaryPool.Value;
+            characterToLastSeenIndex_inSource.Clear();
+
+            for (int i = 1; i <= sourceLength; i++)
             {
-                for (int i = 1; i <= sourceLength; i++)
+                var lastMatchIndex_inTarget = 0;
+                var sourceChar = source[i - 1];
+
+                // Determinethe portion of the column we actually want to examine.
+                var jStart = Math.Max(1, i - offset);
+                var jEnd = Math.Min(targetLength, i + minimumEditCount + offset);
+
+                // If we're examining only a subportion of the column, then we need to make sure
+                // that the values outside that range are set to Infinity.  That way we don't
+                // consider them when we look through edit paths from above (for this column) or 
+                // from the left (for the next column).
+                if (jStart > 1)
                 {
-                    var lastMatchIndex_inTarget = 0;
-                    var sourceChar = source[i - 1];
-
-                    // Determinethe portion of the column we actually want to examine.
-                    var jStart = Math.Max(1, i - offset);
-                    var jEnd = Math.Min(targetLength, i + minimumEditCount + offset);
-
-                    // If we're examining only a subportion of the column, then we need to make sure
-                    // that the values outside that range are set to Infinity.  That way we don't
-                    // consider them when we look through edit paths from above (for this column) or 
-                    // from the left (for the next column).
-                    if (jStart > 1)
-                    {
-                        matrix[i + 1, jStart] = Infinity;
-                    }
-
-                    if (jEnd < targetLength)
-                    {
-                        matrix[i + 1, jEnd + 2] = Infinity;
-                    }
-
-                    for (int j = jStart; j <= jEnd; j++)
-                    {
-                        var targetChar = target[j - 1];
-
-                        var i1 = GetValue(characterToLastSeenIndex_inSource, targetChar);
-                        var j1 = lastMatchIndex_inTarget;
-
-                        var matched = sourceChar == targetChar;
-                        if (matched)
-                        {
-                            lastMatchIndex_inTarget = j;
-                        }
-
-                        matrix[i + 1, j + 1] = Min(
-                            matrix[i, j] + (matched ? 0 : 1),
-                            matrix[i + 1, j] + 1,
-                            matrix[i, j + 1] + 1,
-                            matrix[i1, j1] + (i - i1 - 1) + 1 + (j - j1 - 1));
-                    }
-
-                    characterToLastSeenIndex_inSource[sourceChar] = i;
-
-                    // Recall that minimumEditCount is simply the difference in length of our two
-                    // strings.  So matrix[i+1,i+1] is the cost for the upper-left diagonal of the
-                    // matrix.  matrix[i+1,i+1+minimumEditCount] is the cost for the lower right diagonal.
-                    // Here we are simply getting the lowest cost edit of hese two substrings so far.
-                    // If this lowest cost edit is greater than our threshold, then there is no need 
-                    // to proceed.
-                    if (matrix[i + 1, i + minimumEditCount + 1] > threshold)
-                    {
-                        return BeyondThreshold;
-                    }
+                    matrix[i + 1, jStart] = Infinity;
                 }
 
-                return matrix[sourceLength + 1, targetLength + 1];
+                if (jEnd < targetLength)
+                {
+                    matrix[i + 1, jEnd + 2] = Infinity;
+                }
+
+                for (int j = jStart; j <= jEnd; j++)
+                {
+                    var targetChar = target[j - 1];
+
+                    var i1 = GetValue(characterToLastSeenIndex_inSource, targetChar);
+                    var j1 = lastMatchIndex_inTarget;
+
+                    var matched = sourceChar == targetChar;
+                    if (matched)
+                    {
+                        lastMatchIndex_inTarget = j;
+                    }
+
+                    matrix[i + 1, j + 1] = Min(
+                        matrix[i, j] + (matched ? 0 : 1),
+                        matrix[i + 1, j] + 1,
+                        matrix[i, j + 1] + 1,
+                        matrix[i1, j1] + (i - i1 - 1) + 1 + (j - j1 - 1));
+                }
+
+                characterToLastSeenIndex_inSource[sourceChar] = i;
+
+                // Recall that minimumEditCount is simply the difference in length of our two
+                // strings.  So matrix[i+1,i+1] is the cost for the upper-left diagonal of the
+                // matrix.  matrix[i+1,i+1+minimumEditCount] is the cost for the lower right diagonal.
+                // Here we are simply getting the lowest cost edit of hese two substrings so far.
+                // If this lowest cost edit is greater than our threshold, then there is no need 
+                // to proceed.
+                if (matrix[i + 1, i + minimumEditCount + 1] > threshold)
+                {
+                    return BeyondThreshold;
+                }
             }
-            finally
-            {
-                ReleaseMatrix(matrix);
-                s_dictionaryPool.Free(characterToLastSeenIndex_inSource);
-            }
+
+            return matrix[sourceLength + 1, targetLength + 1];
         }
 
         private static string ToString(int[,] matrix, int width, int height)
@@ -654,18 +642,6 @@ namespace Roslyn.Utilities
             {
                 _values.Push(value);
             }
-        }
-    }
-
-    internal static class SimplePoolExtensions
-    {
-        public static Dictionary<TKey, TValue> AllocateAndClear<TKey, TValue>(
-            this SimplePool<Dictionary<TKey, TValue>> pool)
-        {
-            var map = pool.Allocate();
-            map.Clear();
-
-            return map;
         }
     }
 

@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <remarks></remarks>
     Friend NotInheritable Class SourceAssemblySymbol
         Inherits MetadataOrSourceAssemblySymbol
-        Implements IAttributeTargetSymbol
+        Implements ISourceAssemblySymbol, IAttributeTargetSymbol
 
         ''' <summary>
         ''' A Compilation the assembly is created for.
@@ -1716,5 +1716,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides Function GetMetadata() As AssemblyMetadata
             Return Nothing
         End Function
+
+        Private ReadOnly Property ISourceAssemblySymbol_Compilation As Compilation Implements ISourceAssemblySymbol.Compilation
+            Get
+                Return _compilation
+            End Get
+        End Property
     End Class
 End Namespace
