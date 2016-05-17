@@ -270,11 +270,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
 
                         case BoundKind.ThisReference:
-                            if (InConstructorInitializer && receiver.WasCompilerGenerated)
+                            // Can't call the HasThis method due to EE doing odd things with containing member and its containing type.
+                            if ((InConstructorInitializer || InFieldInitializer) && receiver.WasCompilerGenerated)
                             {
                                 // Only a static method can be called in a constructor initializer. If we were not in a ctor initializer
                                 // the runtime binder would ignore the receiver, but in a ctor initializer we can't read "this" before 
                                 // the base constructor is called. We need to handle this as a type qualified static method call.
+                                // Also applicable to things like field initializers, which run before the ctor initializer.
                                 expression = methodGroup.Update(
                                     methodGroup.TypeArgumentsOpt,
                                     methodGroup.Name,

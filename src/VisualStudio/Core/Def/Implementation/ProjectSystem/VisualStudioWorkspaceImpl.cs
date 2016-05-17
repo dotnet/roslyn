@@ -56,9 +56,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private readonly ForegroundThreadAffinitizedObject _foregroundObject = new ForegroundThreadAffinitizedObject();
 
-        private PackageInstallerService _packageInstallerService;
-        private SymbolSearchService _symbolSearchService;
-
         public VisualStudioWorkspaceImpl(
             SVsServiceProvider serviceProvider,
             WorkspaceBackgroundWork backgroundWork)
@@ -111,11 +108,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             // Ensure the options factory services are initialized on the UI thread
             this.Services.GetService<IOptionService>();
-
-            // Ensure the nuget package services are initialized on the UI thread.
-            _symbolSearchService = this.Services.GetService<ISymbolSearchService>() as SymbolSearchService;
-            _packageInstallerService = (PackageInstallerService)this.Services.GetService<IPackageInstallerService>();
-            _packageInstallerService.Connect(this);
         }
 
         /// <summary>NOTE: Call only from derived class constructor</summary>
@@ -1011,9 +1003,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected override void Dispose(bool finalize)
         {
-            _packageInstallerService?.Disconnect(this);
-            _symbolSearchService?.Dispose();
-
             // workspace is going away. unregister this workspace from work coordinator
             StopSolutionCrawler();
 

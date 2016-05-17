@@ -45,6 +45,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsObjectCreationExpression(SyntaxNode node);
         bool IsInvocationExpression(SyntaxNode node);
 
+        bool IsLeftSideOfDot(SyntaxNode node);
+        SyntaxNode GetRightSideOfDot(SyntaxNode node);
+
         bool IsRightSideOfQualifiedName(SyntaxNode node);
         bool IsMemberAccessExpressionName(SyntaxNode node);
 

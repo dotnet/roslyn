@@ -915,6 +915,16 @@ class C
             {
                 throw new NotImplementedException();
             }
+
+            public bool IsLeftSideOfDot(SyntaxNode node)
+            {
+                throw new NotImplementedException();
+            }
+
+            public SyntaxNode GetRightSideOfDot(SyntaxNode node)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

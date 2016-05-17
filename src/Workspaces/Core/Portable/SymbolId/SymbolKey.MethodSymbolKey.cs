@@ -87,13 +87,13 @@ namespace Microsoft.CodeAnalysis
                     // Is this a conversion operator? If so, we must also compare the return type.
                     if (_returnType != null)
                     {
-                        if (!_returnType.Equals(SymbolKey.Create(method.ReturnType, compilation, cancellationToken), comparisonOptions))
+                        if (!_returnType.Equals(SymbolKey.Create(method.ReturnType, cancellationToken), comparisonOptions))
                         {
                             continue;
                         }
                     }
 
-                    if (!ParametersMatch(comparisonOptions, compilation, method.OriginalDefinition.Parameters, _refKinds, _originalParameterTypeKeys, cancellationToken))
+                    if (!ParametersMatch(comparisonOptions, method.OriginalDefinition.Parameters, _refKinds, _originalParameterTypeKeys, cancellationToken))
                     {
                         continue;
                     }
