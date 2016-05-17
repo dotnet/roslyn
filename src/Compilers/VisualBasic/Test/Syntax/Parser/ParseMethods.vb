@@ -3,6 +3,8 @@
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FeatureExtensions
 Imports Roslyn.Test.Utilities
 
 <CLSCompliant(False)>
@@ -339,17 +341,29 @@ Public Class ParseMethods
 
     <Fact>
     Public Sub Bug862505()
-        ParseAndVerify(<![CDATA[
+        Dim source = "
             Class C1
                 Function f1(Optional ByVal c1 As New Object())
                 End Function
             End Class
-        ]]>,
-        <errors>
-            <error id="30201"/>
-            <error id="30812"/>
-            <error id="30180"/>
-        </errors>)
+"
+        Dim vbp = VisualBasicParseOptions.Default
+        For Each langVersion In {LanguageVersion.VisualBasic14, LanguageVersion.VBnext}
+            ' select which version of the parser to use.
+            vbp = vbp.WithLanguageVersion(langVersion)
+
+            If ImplicitDefaultValueOnOptionalParameter.IsUnavailable(langVersion) Then
+                ParseAndVerify(source, vbp, <errors>
+                                                <error id="30201"/>
+                                                <error id="30812"/>
+                                                <error id="30180"/>
+                                            </errors>)
+            Else
+                ParseAndVerify(source, vbp, <errors>
+                                                <error id="30180"/>
+                                            </errors>)
+            End If
+        Next
     End Sub
 
     <Fact>
