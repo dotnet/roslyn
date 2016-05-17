@@ -178,8 +178,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                     throw new ArgumentException(ServicesVSResources.NotAValidValue, nameof(nPriority));
             }
 
-            // We only handle errors that have positions.  For the rest, we punt back to the 
-            // project system.
             if (iStartLine < 0 || iStartColumn < 0)
             {
                 // we now takes care of errors that is not belong to file as well.
