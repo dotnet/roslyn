@@ -3042,21 +3042,21 @@ namespace Microsoft.Cci
 
         private UserStringHandle GetOrAddUserString(string str)
         {
-                if (!_userStringTokenOverflow)
+            if (!_userStringTokenOverflow)
+            {
+                try
                 {
-                    try
-                    {
                     return metadata.GetOrAddUserString(str);
-                    }
-                    catch (ImageFormatLimitationException)
-                    {
-                        this.Context.Diagnostics.Add(this.messageProvider.CreateDiagnostic(this.messageProvider.ERR_TooManyUserStrings, NoLocation.Singleton));
-                        _userStringTokenOverflow = true;
+                }
+                catch (ImageFormatLimitationException)
+                {
+                    this.Context.Diagnostics.Add(this.messageProvider.CreateDiagnostic(this.messageProvider.ERR_TooManyUserStrings, NoLocation.Singleton));
+                    _userStringTokenOverflow = true;
                 }
             }
 
             return default(UserStringHandle);
-                    }
+        }
 
         private UserStringHandle ReserveUserString(int length, out Blob fixup)
         {
@@ -3131,7 +3131,7 @@ namespace Microsoft.Cci
                         
                     case OperandType.InlineString:
                         {
-                        writer.Offset = offset;
+                            writer.Offset = offset;
 
                             int pseudoToken = ReadInt32(methodBodyIL, offset);
                             UserStringHandle handle;
@@ -3139,8 +3139,8 @@ namespace Microsoft.Cci
                             if ((uint)pseudoToken == ModuleVersionIdStringToken)
                             {
                                 // The pseudotoken encoding indicates that the string should refer to a textual encoding of the
-                                // current module's module version ID. This cannot be determined until very late in the compilation,
-                                // so reserve a slot for it now and fill in the value later.
+                                // current module's module version ID (such that the MVID can be realized using Guid.Parse).
+                                // The value cannot be determined until very late in the compilation, so reserve a slot for it now and fill in the value later.
                                 if (mvidStringHandle.IsNil)
                                 {
                                     const int guidStringLength = 36;
@@ -3157,8 +3157,8 @@ namespace Microsoft.Cci
 
                             writer.WriteInt32(MetadataTokens.GetToken(handle));
 
-                        offset += 4;
-                        break;
+                            offset += 4;
+                            break;
                         }
 
                     case OperandType.InlineSig: // calli
