@@ -2637,6 +2637,7 @@ namespace Microsoft.Cci
             {
                 // The guid will be filled in later:
                 mvidHandle = metadata.ReserveGuid(out mvidFixup);
+                new BlobWriter(mvidFixup).WriteBytes(0, mvidFixup.Length);
             }
 
             metadata.AddModule(

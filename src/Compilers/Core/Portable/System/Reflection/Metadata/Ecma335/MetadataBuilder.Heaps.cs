@@ -226,6 +226,7 @@ namespace Roslyn.Reflection.Metadata.Ecma335
             int offset = GetNewUserStringHeapOffset(length);
             int encodedLength = BlobUtilities.GetUserStringByteLength(length);
             fixup = _userStringWriter.ReserveBytes(BlobWriterImpl.GetCompressedIntegerSize(encodedLength) + encodedLength);
+            new BlobWriter(fixup).WriteBytes(0, fixup.Length);
             return MetadataTokens.UserStringHandle(offset);
         }
 
