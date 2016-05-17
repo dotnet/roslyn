@@ -56,13 +56,14 @@ namespace Microsoft.Cci
             var mappedFieldDataBuilder = new BlobBuilder();
             var managedResourceBuilder = new BlobBuilder(1024);
 
-            Blob mvidFixup;
+            Blob mvidFixup, mvidStringFixup;
             mdWriter.BuildMetadataAndIL(
                 nativePdbWriterOpt,
                 ilBuilder,
                 mappedFieldDataBuilder,
                 managedResourceBuilder,
-                out mvidFixup);
+                out mvidFixup,
+                out mvidStringFixup);
 
             MethodDefinitionHandle entryPointHandle;
             MethodDefinitionHandle debugEntryPointHandle;
@@ -167,14 +168,8 @@ namespace Microsoft.Cci
             var peBlob = new BlobBuilder();
             ContentId peContentId;
             peBuilder.Serialize(peBlob, peDirectoriesBuilder, out peContentId);
-
-            // Patch MVID
-            if (!mvidFixup.IsDefault)
-            {
-                var mvidWriter = new BlobWriter(mvidFixup);
-                mvidWriter.WriteBytes(peContentId.Guid);
-                Debug.Assert(mvidWriter.RemainingBytes == 0);
-            }
+                        
+            PatchModuleVersionIds(mvidFixup, mvidStringFixup, peContentId.Guid);
 
             try
             {
@@ -186,6 +181,23 @@ namespace Microsoft.Cci
             }
 
             return true;
+        }
+
+        private static void PatchModuleVersionIds(Blob guidFixup, Blob stringFixup, byte[] mvidBytes)
+        {
+            if (!guidFixup.IsDefault)
+            {
+                var writer = new BlobWriter(guidFixup);
+                writer.WriteBytes(mvidBytes);
+                Debug.Assert(writer.RemainingBytes == 0);
+            }
+
+            if (!stringFixup.IsDefault)
+            {
+                var writer = new BlobWriter(stringFixup);
+                writer.WriteUserString(new Guid(mvidBytes).ToString());
+                Debug.Assert(writer.RemainingBytes == 0);
+            }
         }
 
         private static Action<BlobBuilder, PESectionLocation> CreateNativeResourceSectionSerializer(IModule module)
