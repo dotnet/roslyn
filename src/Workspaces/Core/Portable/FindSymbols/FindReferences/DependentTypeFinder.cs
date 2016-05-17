@@ -474,17 +474,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             var typesToSearchFor = new HashSet<INamedTypeSymbol>(SymbolEquivalenceComparer.Instance);
             typesToSearchFor.AddAll(sourceAndMetadataTypes);
 
-            var inheritanceInfo = new InheritanceInfo(sourceAndMetadataTypes);
+            var inheritanceQuery = new InheritanceQuery(sourceAndMetadataTypes);
 
             // As long as there are new types to search for, keep looping.
             while (typesToSearchFor.Count > 0)
             {
                 // Compute the set of names to look for in the base/interface lists.
-                inheritanceInfo.TypeNames.AddRange(typesToSearchFor.Select(c => c.Name));
+                inheritanceQuery.TypeNames.AddRange(typesToSearchFor.Select(c => c.Name));
 
                 // Search all the documents of this project in parallel.
                 var tasks = project.Documents.Select(d => FindImmediatelyInheritingTypesInDocumentAsync(
-                    d, typesToSearchFor, inheritanceInfo,
+                    d, typesToSearchFor, inheritanceQuery,
                     cachedModels, cachedInfos, 
                     sourceTypeImmediatelyMatches, cancellationToken)).ToArray();
 
@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 // fill these in if we discover any more types that we need to keep searching
                 // for.
                 typesToSearchFor.Clear();
-                inheritanceInfo.TypeNames.Clear();
+                inheritanceQuery.TypeNames.Clear();
 
                 foreach (var task in tasks)
                 {
@@ -539,7 +539,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static async Task<IEnumerable<INamedTypeSymbol>> FindImmediatelyInheritingTypesInDocumentAsync(
             Document document,
             HashSet<INamedTypeSymbol> typesToSearchFor,
-            InheritanceInfo inheritanceInfo,
+            InheritanceQuery inheritanceQuery,
             ConcurrentSet<SemanticModel> cachedModels, 
             ConcurrentSet<IDeclarationInfo> cachedInfos, 
             Func<HashSet<INamedTypeSymbol>, INamedTypeSymbol, bool> typeImmediatelyMatches,
@@ -554,7 +554,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 result = await ProcessSymbolInfo(
                     document, symbolInfo,
                     typesToSearchFor,
-                    inheritanceInfo, cachedModels,
+                    inheritanceQuery, cachedModels,
                     typeImmediatelyMatches, result, cancellationToken).ConfigureAwait(false);
             }
 
@@ -565,7 +565,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             Document document,
             DeclaredSymbolInfo info,
             HashSet<INamedTypeSymbol> typesToSearchFor,
-            InheritanceInfo inheritanceInfo,
+            InheritanceQuery inheritanceQuery,
             ConcurrentSet<SemanticModel> cachedModels,
             Func<HashSet<INamedTypeSymbol>, INamedTypeSymbol, bool> typeImmediatelyMatches,
             HashSet<INamedTypeSymbol> result,
@@ -573,9 +573,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             // If we're searching for enums/structs/delegates, then we can just look at the kind of
             // the info to see if we have a match.
-            if ((inheritanceInfo.DerivesFromSystemEnum && info.Kind == DeclaredSymbolInfoKind.Enum) ||
-                (inheritanceInfo.DerivesFromSystemValueType && info.Kind == DeclaredSymbolInfoKind.Struct) ||
-                (inheritanceInfo.DerivesFromSystemMulticastDelegate && info.Kind == DeclaredSymbolInfoKind.Delegate))
+            if ((inheritanceQuery.DerivesFromSystemEnum && info.Kind == DeclaredSymbolInfoKind.Enum) ||
+                (inheritanceQuery.DerivesFromSystemValueType && info.Kind == DeclaredSymbolInfoKind.Struct) ||
+                (inheritanceQuery.DerivesFromSystemMulticastDelegate && info.Kind == DeclaredSymbolInfoKind.Delegate))
             {
                 var symbol = await ResolveAsync(document, info, cachedModels, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
                 if (symbol != null)
@@ -584,7 +584,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     result.Add(symbol);
                 }
             }
-            else if (inheritanceInfo.DerivesFromSystemObject && info.Kind == DeclaredSymbolInfoKind.Class)
+            else if (inheritanceQuery.DerivesFromSystemObject && info.Kind == DeclaredSymbolInfoKind.Class)
             {
                 // Searching for types derived from 'Object' needs to be handled specially.
                 // There may be no indication in source what the type actually derives from.
@@ -598,7 +598,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                     result.Add(symbol);
                 }
             }
-            else if (AnyInheritanceNamesMatch(info, inheritanceInfo.TypeNames))
+            else if (AnyInheritanceNamesMatch(info, inheritanceQuery.TypeNames))
             {
                 // Looks like we have a potential match.  Actually check if the symbol is viable.
                 var symbol = await ResolveAsync(document, info, cachedModels, cancellationToken).ConfigureAwait(false) as INamedTypeSymbol;
@@ -651,7 +651,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                                                        t.IsAccessibleWithin(c.Assembly)).ToList());
         }
 
-        private class InheritanceInfo
+        private class InheritanceQuery
         {
             public readonly bool DerivesFromSystemObject;
             public readonly bool DerivesFromSystemValueType;
@@ -660,7 +660,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
             public readonly HashSet<string> TypeNames;
 
-            public InheritanceInfo(HashSet<INamedTypeSymbol> sourceAndMetadataTypes)
+            public InheritanceQuery(HashSet<INamedTypeSymbol> sourceAndMetadataTypes)
             {
                 DerivesFromSystemObject = sourceAndMetadataTypes.Any(t => t.SpecialType == SpecialType.System_Object);
                 DerivesFromSystemValueType = sourceAndMetadataTypes.Any(t => t.SpecialType == SpecialType.System_ValueType);
