@@ -3,7 +3,7 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
+using System.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
@@ -12,14 +12,16 @@ using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.Elfie.Model.Structures;
 using Microsoft.CodeAnalysis.Elfie.Model.Tree;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Packaging;
+using Microsoft.CodeAnalysis.Shared.Options;
+using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.Settings;
-using static System.FormattableString;
 using VSShell = Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
@@ -31,20 +33,22 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
     /// This implementation also spawns a task which will attempt to keep that database up to
     /// date by downloading patches on a daily basis.
     /// </summary>
-    internal partial class SymbolSearchService :
-        ForegroundThreadAffinitizedObject,
-        ISymbolSearchService,
-        IDisposable
+    [ExportWorkspaceService(typeof(ISymbolSearchService)), Shared]
+    internal partial class SymbolSearchService : ForegroundThreadAffinitizedObject, ISymbolSearchService
     {
+        private readonly Workspace _workspace;
+
         private ConcurrentDictionary<string, IAddReferenceDatabaseWrapper> _sourceToDatabase = 
             new ConcurrentDictionary<string, IAddReferenceDatabaseWrapper>();
 
+        private bool _started;
+
+        [ImportingConstructor]
         public SymbolSearchService(
-            VSShell.SVsServiceProvider serviceProvider,
-            Workspace workspace,
-            IPackageInstallerService installerService)
-            : this(workspace, 
-                   installerService, 
+            VisualStudioWorkspaceImpl workspace,
+            VSShell.SVsServiceProvider serviceProvider)
+            : this(workspace,
+                   workspace.Services.GetService<IPackageInstallerService>(), 
                    CreateRemoteControlService(serviceProvider),
                    new LogService((IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog))),
                    new DelayService(),
@@ -56,11 +60,6 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                    FatalError.ReportWithoutCrash,
                    new CancellationTokenSource())
         {
-            installerService.PackageSourcesChanged += OnOptionChanged;
-            var optionsService = workspace.Services.GetService<IOptionService>();
-            optionsService.OptionChanged += OnOptionChanged;
-
-            OnOptionChanged(this, EventArgs.Empty);
         }
 
         private static IRemoteControlService CreateRemoteControlService(VSShell.SVsServiceProvider serviceProvider)
@@ -110,6 +109,38 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
             _cancellationTokenSource = cancellationTokenSource;
             _cancellationToken = _cancellationTokenSource.Token;
+        }
+
+        internal void Start()
+        {
+            var options = _workspace.Options;
+            if (!options.GetOption(ServiceComponentOnOffOptions.SymbolSearch))
+            {
+                return;
+            }
+
+            var optionsService = _workspace.Services.GetService<IOptionService>();
+            optionsService.OptionChanged += OnOptionChanged;
+
+            // Start the whole process once we're connected
+            _installerService.PackageSourcesChanged += OnOptionChanged;
+            OnOptionChanged(this, EventArgs.Empty);
+            _started = true;
+        }
+
+        internal void Stop()
+        {
+            if (!_started)
+            {
+                return;
+            }
+
+            var optionsService = _workspace.Services.GetService<IOptionService>();
+            optionsService.OptionChanged -= OnOptionChanged;
+
+            _installerService.PackageSourcesChanged -= OnOptionChanged;
+            // Cancel any existing work.
+            _cancellationTokenSource.Cancel();
         }
 
         public IEnumerable<PackageWithTypeResult> FindPackagesWithType(
