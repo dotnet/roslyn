@@ -170,7 +170,6 @@
     <Compile Include="SymbolSearch\SymbolSearchService.IOService.cs" />
     <Compile Include="SymbolSearch\SymbolSearchService.LogService.cs" />
     <Compile Include="SymbolSearch\SymbolSearchService.RemoteControlService.cs" />
-    <Compile Include="SymbolSearch\SymbolSearchServiceFactory.cs" />
     <Compile Include="SymbolSearch\Patching\Delta.cs" />
     <Compile Include="RoslynPackage.cs" />
     <Compile Include="ServicesVSResources.Designer.cs">
