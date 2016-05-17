@@ -200,6 +200,11 @@ namespace Roslyn.Utilities
                 .GetDeclaredMethod(nameof(WriteAllBytes), paramTypes: new[] { typeof(string), typeof(byte[]) })
                 .CreateDelegate<Action<string, byte[]>>();
 
+            internal static readonly Action<string, string, System.Text.Encoding> WriteAllText = Type
+                .GetTypeInfo()
+                .GetDeclaredMethod(nameof(WriteAllText), paramTypes: new[] { typeof(string), typeof(string), typeof(System.Text.Encoding) })
+                .CreateDelegate<Action<string, string, System.Text.Encoding>>();
+
             private static readonly MethodInfo SetAttributesMethod = Type
                 .GetTypeInfo()
                 .GetDeclaredMethod(nameof(SetAttributes), paramTypes: new[] { typeof(string), FileAttributes.Type });

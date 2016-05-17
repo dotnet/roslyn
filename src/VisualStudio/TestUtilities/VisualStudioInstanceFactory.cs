@@ -11,7 +11,6 @@ namespace Roslyn.VisualStudio.Test.Utilities
     {
         internal static readonly string VsProductVersion = Settings.Default.VsProductVersion;
 
-
         internal static readonly string VsProgId = $"VisualStudio.DTE.{VsProductVersion}";
 
         internal static readonly string Wow6432Registry = Environment.Is64BitProcess ? "WOW6432Node" : string.Empty;
@@ -78,10 +77,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
         private static Process StartNewVisualStudioProcess()
         {
-            // TODO: This might not be needed anymore as I don't believe we do things which risk corrupting the MEF cache. However,
-            // it is still useful to do in case some other action corruped the MEF cache as we don't have to restart the host
-            Process.Start(VsExeFile, $"/clearcache {VsLaunchArgs}").WaitForExit();
-            Process.Start(VsExeFile, $"/updateconfiguration {VsLaunchArgs}").WaitForExit();
+            Process.Start(VsExeFile, $"/resetsettings General.vssettings /command \"File.Exit\" {VsLaunchArgs}").WaitForExit();
 
             // Make sure we kill any leftover processes spawned by the host
             IntegrationHelper.KillProcess("DbgCLR");

@@ -41,6 +41,9 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\Collections\ImmutableArrayExtensions.cs">
       <Link>InternalUtilities\ImmutableArrayExtensions.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\OrderPreservingMultiDictionary.cs">
+      <Link>Utilities\CompilerUtilities\OrderPreservingMultiDictionary.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Collections\PooledStringBuilder.cs">
       <Link>Collections\PooledStringBuilder.cs</Link>
     </Compile>
@@ -281,12 +284,16 @@
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Closed.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.DiagnosticsWindow" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Setup" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\Compilers\Core\Portable\UnicodeCharacterUtilities.cs">
+      <Link>Shared\UnicodeCharacterUtilities.cs</Link>
+    </Compile>
     <Compile Include="CaseCorrection\AbstractCaseCorrectionService.cs" />
     <Compile Include="CaseCorrection\CaseCorrector.cs" />
     <Compile Include="CaseCorrection\ICaseCorrectionService.cs" />
@@ -336,8 +343,17 @@
     <Compile Include="CodeGeneration\CodeGenerationSymbolFactory.cs" />
     <Compile Include="CodeGeneration\CodeGenerator.cs" />
     <Compile Include="Diagnostics\DiagnosticData.cs" />
+    <Compile Include="Diagnostics\DiagnosticProvider.cs" />
     <Compile Include="Diagnostics\Extensions.cs" />
     <Compile Include="Diagnostics\InternalDiagnosticsOptions.cs" />
+    <Compile Include="Diagnostics\InternalRuntimeDiagnosticOptions.cs" />
+    <Compile Include="SolutionCrawler\ExportIncrementalAnalyzerProviderAttribute.cs" />
+    <Compile Include="SolutionCrawler\IIncrementalAnalyzer.cs" />
+    <Compile Include="SolutionCrawler\IIncrementalAnalyzerProvider.cs" />
+    <Compile Include="SolutionCrawler\IncrementalAnalyzerProviderMetadata.cs" />
+    <Compile Include="SolutionCrawler\InvocationReasons.cs" />
+    <Compile Include="SolutionCrawler\InvocationReasons_Constants.cs" />
+    <Compile Include="SolutionCrawler\ISolutionCrawlerRegistrationService.cs" />
     <Compile Include="Diagnostics\IWorkspaceVenusSpanMappingService.cs" />
     <Compile Include="Diagnostics\WellKnownDiagnosticPropertyNames.cs" />
     <Compile Include="Editing\DeclarationKind.cs" />
@@ -395,15 +411,20 @@
     <Compile Include="ExtensionManager\IErrorReportingService.cs" />
     <Compile Include="FindSymbols\DeclaredSymbolInfo.cs" />
     <Compile Include="FindSymbols\FindReferences\Finders\ILanguageServiceReferenceFinder.cs" />
+    <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo_Metadata.cs" />
+    <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo_Source.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingLogger.cs" />
     <Compile Include="Options\DocumentOptionSet.cs" />
     <Compile Include="Options\OptionSet.cs" />
     <Compile Include="Packaging\IPackageInstallerService.cs" />
+    <Compile Include="SolutionCrawler\PredefinedInvocationReasons.cs" />
     <Compile Include="SymbolSearch\ISymbolSearchService.cs" />
     <Compile Include="FindSymbols\SymbolTree\ISymbolTreeInfoCacheService.cs" />
     <Compile Include="FindSymbols\FindReferences\MetadataUnifyingEquivalenceComparer.cs" />
     <Compile Include="SymbolId\SymbolId.cs" />
     <Compile Include="Shared\Utilities\IProgressTracker.cs" />
+    <Compile Include="SolutionCrawler\NullSolutionCrawlerRegisterationService.cs" />
+    <Compile Include="SolutionCrawler\WellKnownSolutionCrawlerAnalyzers.cs" />
     <Compile Include="SymbolId\SymbolKey.TupleTypeSymbolKey.cs" />
     <Compile Include="Utilities\ArraySlice.cs" />
     <Compile Include="Utilities\BKTree.cs" />

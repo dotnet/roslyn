@@ -37,6 +37,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
             syntaxKindsPatterns.Add(SyntaxKind.WhenClause);
             syntaxKindsPatterns.Add(SyntaxKind.CasePatternSwitchLabel);
 
+            // AllInOneCSharpCode has no replace/original.
+            syntaxKindsPatterns.Add(SyntaxKind.OriginalExpression);
+
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
             using (var workspace = await TestWorkspace.CreateCSharpAsync(source, TestOptions.ExperimentalParseOptions))
             {

@@ -64,7 +64,7 @@ namespace Roslyn.Test.Utilities
                 }
 
                 var peRef = (PortableExecutableReference)metadataReference;
-                var metadata = peRef.GetMetadata();
+                var metadata = peRef.GetMetadataNoCopy();
                 var isManifestModule = peRef.Properties.Kind == MetadataImageKind.Assembly;
                 var identity = isManifestModule
                     ? ((AssemblyMetadata)metadata).GetAssembly().Identity
@@ -217,7 +217,6 @@ namespace Roslyn.Test.Utilities
                         options: emitOptions ?? EmitOptions.Default,
                         debugEntryPoint: null,
                         testData: testData,
-                        getHostDiagnostics: null,
                         cancellationToken: default(CancellationToken));
                 }
                 finally

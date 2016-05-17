@@ -23,27 +23,13 @@ namespace Roslyn.Test.Performance.Utilities
 
         public string MyWorkingDirectory => _workingDir;
 
-
-        /// Returns the directory that you can put artifacts like
-        /// etl traces or compiled binaries
-        public string MyArtifactsDirectory
+        public string TempDirectory
         {
             get
             {
-                var path = Path.Combine(MyWorkingDirectory, "artifacts");
-                Directory.CreateDirectory(path);
-                return path;
-            }
-        }
-
-        public string MyTempDirectory
-        {
-            get
-            {
-                var workingDir = MyWorkingDirectory;
-                var path = Path.Combine(workingDir, "temp");
-                Directory.CreateDirectory(path);
-                return path;
+                var tempDirectory = Environment.ExpandEnvironmentVariables(@"%SYSTEMDRIVE%\PerfTemp");
+                Directory.CreateDirectory(tempDirectory);
+                return tempDirectory;
             }
         }
 
@@ -91,22 +77,6 @@ namespace Roslyn.Test.Performance.Utilities
 
         public string TaoPath => Path.Combine(MyBinaries(), "Tao");
 
-        public string PerfDirectory => Path.Combine(RoslynDirectory, "src", "Test", "Perf");
-
-        public string BinDirectory => Path.Combine(RoslynDirectory, "Binaries");
-
-        public string BinDebugDirectory => Path.Combine(BinDirectory, "Debug");
-
-        public string BinReleaseDirectory => Path.Combine(BinDirectory, "Release");
-
-        public string DebugCscPath => Path.Combine(BinDebugDirectory, "csc.exe");
-
-        public string ReleaseCscPath => Path.Combine(BinReleaseDirectory, "csc.exe");
-
-        public string DebugVbcPath => Path.Combine(BinDebugDirectory, "vbc.exe");
-
-        public string ReleaseVbcPath => Path.Combine(BinReleaseDirectory, "vbc.exe");
-
         public string CPCDirectoryPath
         {
             get
@@ -127,7 +97,7 @@ namespace Roslyn.Test.Performance.Utilities
         public void DownloadProject(string name, int version, ILogger logger)
         {
             var zipFileName = $"{name}.{version}.zip";
-            var zipPath = Path.Combine(MyTempDirectory, zipFileName);
+            var zipPath = Path.Combine(TempDirectory, zipFileName);
             // If we've already downloaded the zip, assume that it
             // has been downloaded *and* extracted.
             if (File.Exists(zipPath))
@@ -137,7 +107,7 @@ namespace Roslyn.Test.Performance.Utilities
             }
 
             // Remove all .zip files that were downloaded before.
-            foreach (var path in Directory.EnumerateFiles(MyTempDirectory, $"{name}.*.zip"))
+            foreach (var path in Directory.EnumerateFiles(TempDirectory, $"{name}.*.zip"))
             {
                 logger.Log($"Removing old zip {path}");
                 File.Delete(path);
@@ -151,8 +121,8 @@ namespace Roslyn.Test.Performance.Utilities
             logger.Log($"Done Downloading");
 
             // Extract to temp directory
-            logger.Log($"Extracting {zipPath} to {MyTempDirectory}");
-            ZipFile.ExtractToDirectory(zipPath, MyTempDirectory);
+            logger.Log($"Extracting {zipPath} to {TempDirectory}");
+            ZipFile.ExtractToDirectory(zipPath, TempDirectory);
             logger.Log($"Done Extracting");
         }
     }

@@ -139,9 +139,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Telemetry" />
-  </ItemGroup>
-  <ItemGroup>
     <NuGetPackageToIncludeInVsix Include="ManagedEsent" />
     <NuGetPackageToIncludeInVsix Include="Microsoft.CodeAnalysis.Elfie" />
     <NuGetPackageToIncludeInVsix Include="Microsoft.DiaSymReader" />
