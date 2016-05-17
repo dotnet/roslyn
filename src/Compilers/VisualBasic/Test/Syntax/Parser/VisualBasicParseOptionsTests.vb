@@ -109,6 +109,7 @@ Public Class VisualBasicParseOptionsTests
             GetValues(GetType(LanguageVersion)).
             Cast(Of LanguageVersion).
             Select(Function(x) CInt(x)).
+            Where(Function(x) x < Integer.MaxValue).
             Max()
 
         Assert.Equal(highest, CInt(PredefinedPreprocessorSymbols.CurrentVersionNumber))

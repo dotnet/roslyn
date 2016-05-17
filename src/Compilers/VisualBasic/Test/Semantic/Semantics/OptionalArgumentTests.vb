@@ -25,7 +25,7 @@ Imports System
 
 Module Program
     Sub Foo(Of T)(x As Integer, Optional y As Integer = 10)
-        Console.WriteLine(y) 
+        Console.WriteLine(y)
     End Sub
 
     Sub Main(args As String())
@@ -104,7 +104,7 @@ expectedOutput:=<![CDATA[
 ]]>)
         End Sub
 
-        ' Report error if the default value of overridden method is different 
+        ' Report error if the default value of overridden method is different
         <Fact()>
         Public Sub TestOverridingOptionalWithDifferentDefaultValue()
             Dim source =
@@ -378,7 +378,7 @@ End Structure
       Sub X(Optional i As Integer? = 10)
         Console.WriteLine("{0}", i)
       End Sub
-  
+
     Sub main()
         X()
     End Sub
@@ -414,7 +414,7 @@ End Structure
       Sub X(Optional i As Integer? = nothing)
         Console.WriteLine("{0}", i.hasValue)
       End Sub
-  
+
     Sub main()
         X()
     End Sub
@@ -655,7 +655,7 @@ Public Class C
         Console.WriteLine(If(x, 5))
     End Sub
 
-    Public Shared Sub M6(<IUnknownConstant> <[Optional]> x As Object) 
+    Public Shared Sub M6(<IUnknownConstant> <[Optional]> x As Object)
         Console.WriteLine(If(x, 6))
     End Sub
 
@@ -1075,15 +1075,18 @@ Partial Class PC2
             <CallerMemberName> Optional m As String = Nothing)
         Console.WriteLine("callerinfo: ({0}, {1}, {2})", "[...]", l, m)
     End Sub
- 
+
 End Class
 ]]>
     </file>
 </compilation>
-            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, options:=TestOptions.ReleaseDll)
 
-            AssertTheseDiagnostics(comp,
-<expected><![CDATA[
+            For Each langVersion In {LanguageVersion.VisualBasic14, LanguageVersion.VNext}
+                Dim VBPO = TestOptions.ReleaseDll.WithParseOptions(VisualBasicParseOptions.Default.WithLanguageVersion(langVersion))
+                Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, options:=VBPO)
+                If langVersion < LanguageVersion.VNext Then
+                    AssertTheseDiagnostics(comp,
+    <expected><![CDATA[
 BC30529: All parameters must be explicitly typed if any of them are explicitly typed.
             Optional f A String = "",
                      ~
@@ -1103,6 +1106,27 @@ BC30002: Type 'CallerMemberName' is not defined.
             <CallerMemberName> Optional m As String = Nothing)
              ~~~~~~~~~~~~~~~~
 ]]></expected>)
+                Else
+                    AssertTheseDiagnostics(comp,
+    <expected><![CDATA[
+BC30529: All parameters must be explicitly typed if any of them are explicitly typed.
+            Optional f A String = "",
+                     ~
+BC30213: Comma or ')' expected.
+            Optional f A String = "",
+                       ~
+BC30002: Type 'CallerFilePath' is not defined.
+            <CallerFilePath> Optional f As String = "",
+             ~~~~~~~~~~~~~~
+BC30002: Type 'CallerLineNumber' is not defined.
+            <CallerLineNumber> Optional l As Integer = -1,
+             ~~~~~~~~~~~~~~~~
+BC30002: Type 'CallerMemberName' is not defined.
+            <CallerMemberName> Optional m As String = Nothing)
+             ~~~~~~~~~~~~~~~~
+]]></expected>)
+                End If
+            Next
         End Sub
 
         <Fact()>
@@ -1973,22 +1997,22 @@ Partial Module A
 End Module"
 
             Dim source2 = "
-Partial Module A 
-    Sub Main2() 
+Partial Module A
+    Sub Main2()
         Log()
     End Sub
 End Module
 "
             Dim source3 = "
-Partial Module A 
-    Sub Main3() 
+Partial Module A
+    Sub Main3()
         Log()
     End Sub
 End Module
 "
             Dim source4 = "
-Partial Module A 
-    Sub Main4() 
+Partial Module A
+    Sub Main4()
         Log()
     End Sub
 End Module
@@ -2034,8 +2058,8 @@ Partial Module A
     End Sub
 End Module"
             Dim source2 = "
-Partial Module A 
-    Sub Main2() 
+Partial Module A
+    Sub Main2()
         Log()
     End Sub
 End Module
@@ -2044,8 +2068,8 @@ End Module
 #ExternalSource(""make_hidden"", 30)
 #End ExternalSource
 
-Partial Module A 
-    Sub Main3() 
+Partial Module A
+    Sub Main3()
         Log()
     End Sub
 End Module
@@ -2053,8 +2077,8 @@ End Module
             Dim source4 = "
 #ExternalSource(""abc"", 30)
 
-Partial Module A 
-    Sub Main4() 
+Partial Module A
+    Sub Main4()
         Log()
     End Sub
 End Module
@@ -2064,8 +2088,8 @@ End Module
             Dim source5 = "
 #ExternalSource(""     "", 30)
 
-Partial Module A 
-    Sub Main5() 
+Partial Module A
+    Sub Main5()
         Log()
     End Sub
 End Module

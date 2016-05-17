@@ -4609,6 +4609,7 @@ checkNullable:
             If TryGetTokenAndEatNewLine(SyntaxKind.EqualsToken, equals) Then
 
                 If Not (modifiers.Any AndAlso modifiers.Any(SyntaxKind.OptionalKeyword)) Then
+
                     equals = ReportSyntaxError(equals, ERRID.ERR_DefaultValueForNonOptionalParam)
                 End If
 
@@ -4616,20 +4617,27 @@ checkNullable:
 
             ElseIf modifiers.Any AndAlso modifiers.Any(SyntaxKind.OptionalKeyword) Then
 
-                equals = ReportSyntaxError(InternalSyntaxFactory.MissingPunctuation(SyntaxKind.EqualsToken), ERRID.ERR_ObsoleteOptionalWithoutValue)
-                value = ParseExpressionCore()
+                If CheckFeatureAvailability(Feature.NoLongerRequireDefaultValueOnOptionalParameter) = False Then
+
+                    equals = ReportSyntaxError(InternalSyntaxFactory.MissingPunctuation(SyntaxKind.EqualsToken), ERRID.ERR_ObsoleteOptionalWithoutValue)
+                    value = ParseExpressionCore()
+
+                End If
 
             End If
 
             Dim initializer As EqualsValueSyntax = Nothing
+            If equals IsNot Nothing Then
+                If value IsNot Nothing Then
 
-            If value IsNot Nothing Then
+                    If value.ContainsDiagnostics Then
+                        value = ResyncAt(value, SyntaxKind.CommaToken, SyntaxKind.CloseParenToken)
+                    End If
+                    initializer = SyntaxFactory.EqualsValue(equals, value)
 
-                If value.ContainsDiagnostics Then
-                    value = ResyncAt(value, SyntaxKind.CommaToken, SyntaxKind.CloseParenToken)
                 End If
+            Else
 
-                initializer = SyntaxFactory.EqualsValue(equals, value)
             End If
 
             Return SyntaxFactory.Parameter(attributes, modifiers, paramName, optionalAsClause, initializer)
@@ -5975,10 +5983,8 @@ checkNullable:
         ''' <summary>
         ''' returns true if feature is available
         ''' </summary>
-        Private Function AssertLanguageFeature(
-            feature As ERRID
-        ) As Boolean
-
+        Private Function AssertLanguageFeature(feature As ERRID) As Boolean
+            If feature = ERRID.FEATURE_NoLongerRequireDefaultValueOnOptionalParameter Then Return CheckFeatureAvailability(InternalSyntax.Feature.NoLongerRequireDefaultValueOnOptionalParameter)
             Return True
         End Function
 
