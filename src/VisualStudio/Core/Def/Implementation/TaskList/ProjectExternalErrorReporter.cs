@@ -141,21 +141,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 throw new ArgumentException(ServicesVSResources.EndPositionMustBeGreaterThanStart);
             }
 
-            // We only handle errors that have positions.  For the rest, we punt back to the 
-            // project system.
-            if (iStartLine < 0 || iStartColumn < 0)
-            {
-                throw new NotImplementedException();
-            }
-
-            var hostProject = _workspace.GetHostProject(_projectId);
-            if (!hostProject.ContainsFile(bstrFileName))
-            {
-                throw new NotImplementedException();
-            }
-
-            var hostDocument = hostProject.GetCurrentDocumentFromPath(bstrFileName);
-
             var priority = (VSTASKPRIORITY)nPriority;
             DiagnosticSeverity severity;
             switch (priority)
@@ -172,6 +157,34 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
                 default:
                     throw new ArgumentException(ServicesVSResources.NotAValidValue, nameof(nPriority));
             }
+
+            // We only handle errors that have positions.  For the rest, we punt back to the 
+            // project system.
+            if (iStartLine < 0 || iStartColumn < 0)
+            {
+                // we now takes care of errors that is not belong to file as well.
+                var projectDiagnostic = GetDiagnosticData(
+                    null, bstrErrorId, bstrErrorMessage, severity,
+                    null, 0, 0, 0, 0,
+                    bstrFileName, 0, 0, 0, 0);
+
+                _diagnosticProvider.AddNewErrors(_projectId, projectDiagnostic);
+                return;
+            }
+
+            var hostProject = _workspace.GetHostProject(_projectId);
+            if (!hostProject.ContainsFile(bstrFileName))
+            {
+                var projectDiagnostic = GetDiagnosticData(
+                    null, bstrErrorId, bstrErrorMessage, severity,
+                    null, iStartLine, iStartColumn, iEndLine, iEndColumn,
+                    bstrFileName, iStartLine, iStartColumn, iEndLine, iEndColumn);
+
+                _diagnosticProvider.AddNewErrors(_projectId, projectDiagnostic);
+                return;
+            }
+
+            var hostDocument = hostProject.GetCurrentDocumentFromPath(bstrFileName);
 
             var diagnostic = GetDiagnosticData(
                 hostDocument.Id, bstrErrorId, bstrErrorMessage, severity,

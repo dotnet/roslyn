@@ -320,6 +320,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             RaiseDiagnosticsRemoved(documentId, projectId, documentId);
         }
 
+        public void AddNewErrors(ProjectId projectId, DiagnosticData diagnostic)
+        {
+            // capture state that will be processed in background thread.
+            var state = GetOrCreateInprogressState();
+
+            var asyncToken = _listener.BeginAsyncOperation("Project New Errors");
+            _taskQueue.ScheduleTask(() =>
+            {
+                state.AddError(projectId, diagnostic);
+            }).CompletesAsyncOperation(asyncToken);
+        }
+
         public void AddNewErrors(DocumentId documentId, DiagnosticData diagnostic)
         {
             // capture state that will be processed in background thread.
@@ -465,6 +477,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TaskList
             public void AddError(DocumentId key, DiagnosticData diagnostic)
             {
                 AddError(_documentMap, key, diagnostic);
+            }
+
+            public void AddError(ProjectId key, DiagnosticData diagnostic)
+            {
+                AddError(_projectMap, key, diagnostic);
             }
 
             private void AddErrors<T>(Dictionary<T, HashSet<DiagnosticData>> map, T key, HashSet<DiagnosticData> diagnostics)
