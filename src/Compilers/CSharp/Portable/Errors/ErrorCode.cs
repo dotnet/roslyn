@@ -1391,5 +1391,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_TupleExplicitNamesOnAllMembersOrNone = 8204,
 
         ERR_PredefinedTypeMemberNotFoundInAssembly = 8205,
+        ERR_MissingDeconstruct = 8206,
+        ERR_AmbiguousDeconstruct = 8207,
+        ERR_DeconstructRequiresOutParams = 8208,
+        ERR_DeconstructWrongParams = 8209,
     }
 }

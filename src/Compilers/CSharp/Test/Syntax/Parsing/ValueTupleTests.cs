@@ -97,7 +97,6 @@ class C
             EOF();
         }
 
-
         [Fact]
         public void LongTuple()
         {

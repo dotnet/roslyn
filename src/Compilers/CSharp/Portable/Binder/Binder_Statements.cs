@@ -1698,16 +1698,148 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private BoundAssignmentOperator BindAssignment(AssignmentExpressionSyntax node, DiagnosticBag diagnostics)
+        private BoundExpression BindAssignment(AssignmentExpressionSyntax node, DiagnosticBag diagnostics)
         {
             Debug.Assert(node != null);
             Debug.Assert(node.Left != null);
             Debug.Assert(node.Right != null);
 
+            if (node.Left.Kind() == SyntaxKind.TupleExpression)
+            {
+                return BindDeconstructionAssignment(node, diagnostics);
+            }
+
             var op1 = BindValue(node.Left, diagnostics, BindValueKind.Assignment); // , BIND_MEMBERSET);
             var op2 = BindValue(node.Right, diagnostics, BindValueKind.RValue); // , BIND_RVALUEREQUIRED);
 
             return BindAssignment(node, op1, op2, diagnostics);
+        }
+
+        private BoundExpression BindDeconstructionAssignment(AssignmentExpressionSyntax node, DiagnosticBag diagnostics)
+        {
+            SeparatedSyntaxList<ArgumentSyntax> arguments = ((TupleExpressionSyntax)node.Left).Arguments;
+
+            // receiver for Deconstruct
+            var boundRHS = BindValue(node.Right, diagnostics, BindValueKind.RValue);
+
+            int numElements = arguments.Count;
+            if (numElements < 2)
+            {
+                // this should be a parse error already.
+                BoundExpression[] args = numElements == 1 ?
+                    new[] { BindValue(arguments[0].Expression, diagnostics, BindValueKind.Assignment), boundRHS } :
+                    new[] { boundRHS };
+
+                return BadExpression(node, args);
+            }
+
+            // bind the variables and check they can be assigned to
+            var checkedVariablesBuilder = ArrayBuilder<BoundExpression>.GetInstance(arguments.Count);
+            for (int i = 0, l = numElements; i < l; i++)
+            {
+                var boundVariable = BindExpression(arguments[i].Expression, diagnostics, invoked: false, indexed: false);
+                var checkedVariable = CheckValue(boundVariable, BindValueKind.Assignment, diagnostics);
+
+                checkedVariablesBuilder.Add(checkedVariable);
+            }
+
+            var checkedVariables = checkedVariablesBuilder.ToImmutableAndFree();
+
+            // symbol and parameters for Deconstruct
+            MethodSymbol deconstructMethod;
+            ImmutableArray<TypeSymbol> parameterTypes;
+            if (!FindDeconstruct(checkedVariables, boundRHS, out deconstructMethod, out parameterTypes, node, diagnostics))
+            {
+                return new BoundDeconstructionAssignmentOperator(node, checkedVariables, boundRHS, ErrorMethodSymbol.UnknownMethod,
+                                                                ImmutableArray<BoundDeconstructionAssignmentOperator.AssignmentInfo>.Empty,
+                                                                ErrorTypeSymbol.UnknownResultType,
+                                                                hasErrors: true);
+            }
+
+            // figure out the pairwise conversions
+            var assignmentsBuilder = ArrayBuilder<BoundDeconstructionAssignmentOperator.AssignmentInfo>.GetInstance(numElements);
+            for (int i = 0; i < checkedVariables.Length; i++)
+            {
+                var leftPlaceholder = new BoundLValuePlaceholder(checkedVariables[i].Syntax, checkedVariables[i].Type) { WasCompilerGenerated = true };
+                var rightPlaceholder = new BoundRValuePlaceholder(node.Right, parameterTypes[i]) { WasCompilerGenerated = true };
+
+                // each assignment has a placeholder for a receiver and another for the source
+                BoundAssignmentOperator op = BindAssignment(node, leftPlaceholder, rightPlaceholder, diagnostics);
+                assignmentsBuilder.Add(new BoundDeconstructionAssignmentOperator.AssignmentInfo() { Assignment = op, LValuePlaceholder = leftPlaceholder, RValuePlaceholder = rightPlaceholder });
+            }
+
+            var assignments = assignmentsBuilder.ToImmutableAndFree();
+
+            TypeSymbol lastType = parameterTypes[parameterTypes.Length - 1];
+            return new BoundDeconstructionAssignmentOperator(node, checkedVariables, boundRHS, deconstructMethod, assignments, lastType);
+        }
+
+        /// <summary>
+        /// Find the Deconstruct method for the expression on the right, that will fit the assignable bound expressions on the left.
+        /// Returns true if the Deconstruct method is found. If so, it outputs the method and all of its parameter types.
+        /// </summary>
+        private static bool FindDeconstruct(ImmutableArray<BoundExpression> checkedVariables, BoundExpression boundRHS, out MethodSymbol deconstructMethod, out ImmutableArray<TypeSymbol> parameterTypes, SyntaxNode node, DiagnosticBag diagnostics)
+        {
+            const string Deconstruct = "Deconstruct";
+
+            // find symbol for Deconstruct member
+            ImmutableArray<Symbol> candidates = boundRHS.Type.GetMembers(Deconstruct);
+            switch (candidates.Length)
+            {
+                case 0:
+                    Error(diagnostics, ErrorCode.ERR_MissingDeconstruct, boundRHS.Syntax, boundRHS.Type);
+                    goto error;
+                case 1:
+                    break;
+                default:
+                    Error(diagnostics, ErrorCode.ERR_AmbiguousDeconstruct, boundRHS.Syntax, boundRHS.Type);
+                    goto error;
+            }
+
+            Symbol deconstructMember = candidates[0];
+
+            // check that the deconstruct fits
+            if (deconstructMember.Kind != SymbolKind.Method)
+            {
+                Error(diagnostics, ErrorCode.ERR_MissingDeconstruct, boundRHS.Syntax, boundRHS.Type);
+                goto error;
+            }
+
+            deconstructMethod = (MethodSymbol)deconstructMember;
+            if (deconstructMethod.MethodKind != MethodKind.Ordinary)
+            {
+                Error(diagnostics, ErrorCode.ERR_MissingDeconstruct, boundRHS.Syntax, boundRHS.Type);
+                goto error;
+            }
+
+            if (deconstructMethod.ParameterCount != checkedVariables.Length)
+            {
+                Error(diagnostics, ErrorCode.ERR_DeconstructWrongParams, boundRHS.Syntax, boundRHS.Type);
+                goto error;
+            }
+
+            // get the parameter types
+            var parameters = deconstructMethod.Parameters;
+            var parameterTypesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(parameters.Length);
+            foreach (var parameter in parameters)
+            {
+                if (parameter.RefKind != RefKind.Out)
+                {
+                    Error(diagnostics, ErrorCode.ERR_DeconstructRequiresOutParams, boundRHS.Syntax, boundRHS.Type);
+                    goto error;
+                }
+
+                parameterTypesBuilder.Add(parameter.Type);
+            }
+
+            parameterTypes = parameterTypesBuilder.ToImmutableAndFree();
+
+            return true;
+
+            error:
+
+            deconstructMethod = new ErrorMethodSymbol(boundRHS.Type, ErrorTypeSymbol.UnknownResultType, Deconstruct);
+            return false;
         }
 
         private BoundAssignmentOperator BindAssignment(AssignmentExpressionSyntax node, BoundExpression op1, BoundExpression op2, DiagnosticBag diagnostics)
@@ -3422,7 +3554,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var binder = GetBinder(node);
             Debug.Assert(binder != null);
 
-            ImmutableArray<LocalSymbol> locals = binder.GetDeclaredLocalsForScope(node); 
+            ImmutableArray<LocalSymbol> locals = binder.GetDeclaredLocalsForScope(node);
             BoundExpression exceptionSource = null;
             LocalSymbol local = locals.FirstOrDefault();
 

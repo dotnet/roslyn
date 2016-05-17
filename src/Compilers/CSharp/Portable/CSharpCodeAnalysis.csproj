@@ -406,6 +406,7 @@
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_ConditionalOperator.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_ContinueStatement.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_Conversion.cs" />
+    <Compile Include="Lowering\LocalRewriter\LocalRewriter_DeconstructionAssignmentOperator.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_DelegateCreationExpression.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_DoStatement.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_Event.cs" />

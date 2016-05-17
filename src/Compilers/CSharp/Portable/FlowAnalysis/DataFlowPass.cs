@@ -1721,6 +1721,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             Assign(node.Left, node.Right, refKind: node.RefKind);
             return null;
         }
+        
+        public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
+        {
+            base.VisitDeconstructionAssignmentOperator(node);
+
+            foreach(BoundExpression variable in node.LeftVariables)
+            {
+                Assign(variable, null, refKind: RefKind.None);
+            }
+
+            return null;
+        }
 
         public override BoundNode VisitIncrementOperator(BoundIncrementOperator node)
         {
