@@ -475,5 +475,47 @@ class C
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics(); // expect an error
         }
+
+        [Fact]
+        public void LambdaStillNotValidateStatement()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (a) => a;
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                //         (a) => a;
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "(a) => a").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
+        public void LambdaWithBodyStillNotValidtatement()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (a, b) => { };
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
+                //         (a, b) => { };
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "(a, b) => { }").WithLocation(6, 9)
+                );
+        }
     }
 }

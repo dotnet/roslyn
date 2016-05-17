@@ -3,12 +3,12 @@
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
 {
-
-
+    [CompilerTrait(CompilerFeature.Tuples)]
     public class DeconstructionTests : ParsingTests
     {
         protected override SyntaxTree ParseTree(string text, CSharpParseOptions options)
@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
         }
 
         [Fact]
-        public void Paren()
+        public void ParenExpression()
         {
             // `(id) .` starts with a parenthesized expression
             var tree = UsingTree(@"
@@ -686,6 +686,28 @@ class C
             var lhs = (MemberAccessExpressionSyntax)invocation.Expression;
             var lhsContent = (ParenthesizedExpressionSyntax)lhs.Expression;
             Assert.Equal(SyntaxKind.CastExpression, lhsContent.Expression.Kind());
+        }
+
+        [Fact]
+        public void Statement7()
+        {
+            var text = "(a) => a;";
+            var statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
+            Assert.False(statement.HasErrors);
+
+            var expression = ((ExpressionStatementSyntax)statement).Expression;
+            Assert.Equal(SyntaxKind.ParenthesizedLambdaExpression, expression.Kind());
+        }
+
+        [Fact]
+        public void Statement8()
+        {
+            var text = "(a, b) => { };";
+            var statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
+            Assert.False(statement.HasErrors);
+
+            var expression = ((ExpressionStatementSyntax)statement).Expression;
+            Assert.Equal(SyntaxKind.ParenthesizedLambdaExpression, expression.Kind());
         }
     }
 }
