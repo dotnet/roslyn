@@ -55,7 +55,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 // Initialize the module version ID (MVID) field. Dynamic instrumentation requires the MVID of the executing module, and this field makes that accessible.
-                body.Add(InitializeMVID(factory));
+                // MVID = Guid.Parse(ModuleVersionIdString);
+                body.Add(
+                    factory.Assignment(
+                       factory.ModuleVersionId(),
+                       factory.StaticCall(
+                           WellKnownMember.System_Guid__Parse,
+                           factory.ModuleVersionIdString())));
             }
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember missing)
             {
@@ -66,55 +72,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             body.Add(returnStatement);
 
             factory.CloseMethod(factory.Block(body.ToImmutableAndFree()));
-        }
-
-        private static BoundStatement InitializeMVID(SyntheticBoundNodeFactory factory)
-        {
-            CSharpCompilation compilation = factory.Compilation;
-            CSharpSyntaxNode syntax = factory.Syntax;
-
-            // It is necessary to reflect over a type defined in the module. The PrivateImplementationDetails class serves as well as any other type
-            // for this purpose, and happens to be available here.
-            BoundExpression typeInstance = factory.TypeOfPrivateImplementationDetails();
-
-            // Getting to the MVID requires getting to a representation of the current module. If the target platform is Desktop, the module is
-            // available as a property of a type instance. If the target platform is Portable, a type instance does not have a module property.
-            // Instead, the module is available as a property of a member info object, which is available as a base type of a type info object,
-            // which is available via a GetTypeInfo extension method.
-            //
-            // The Portable mechanism also works on Desktop, but not on versions prior to 4.5, so there is no one single mechanism that work on all platforms.
-
-            // Diagnostics related to the site-specific uses of well-known members are reported by the bound node factory, so there
-            // are no diagnostic checks here.
-
-            BoundExpression moduleReference;
-            Symbol system_Type__Module = compilation.GetWellKnownTypeMember(WellKnownMember.System_Type__Module);
-            if (system_Type__Module != null)
-            {
-                // moduleReference = TypeOf(PrivateImplementationDetails).Module;
-                moduleReference = factory.Property(typeInstance, WellKnownMember.System_Type__Module);
-            }
-            else
-            {
-                // moduleReference = ((System.Reflection.MemberInfo)System.Reflection.IntrospectionExtensions.GetTypeInfo(TypeOf(PrivateImplementationDetails))).Module;
-                moduleReference =
-                    factory.Property(
-                        factory.Convert(
-                            factory.WellKnownType(WellKnownType.System_Reflection_MemberInfo),
-                            factory.StaticCall(
-                                WellKnownMember.System_Reflection_IntrospectionExtensions__GetTypeInfo,
-                                typeInstance),
-                            ConversionKind.ImplicitReference),
-                        WellKnownMember.System_Reflection_MemberInfo__Module);
-            }
-
-            // MVID = moduleReference.ModuleVersionId;
-            return
-               factory.Assignment(
-                   factory.ModuleVersionId(),
-                   factory.Property(
-                       moduleReference,
-                       WellKnownMember.System_Reflection_Module__ModuleVersionId));
         }
     }
 }

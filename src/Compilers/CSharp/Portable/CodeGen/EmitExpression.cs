@@ -221,6 +221,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                     EmitModuleVersionIdLoad((BoundModuleVersionId)expression);
                     break;
 
+                case BoundKind.ModuleVersionIdString:
+                    Debug.Assert(used);
+                    EmitModuleVersionIdStringLoad((BoundModuleVersionIdString)expression);
+                    break;
+
                 case BoundKind.InstrumentationPayloadRoot:
                     Debug.Assert(used);
                     EmitInstrumentationPayloadRootLoad((BoundInstrumentationPayloadRoot)expression);
@@ -2703,7 +2708,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             _builder.EmitOpCode(ILOpCode.Stsfld);
             _builder.EmitToken(_module.GetModuleVersionId(_module.Translate(node.Type, node.Syntax, _diagnostics), node.Syntax, _diagnostics), node.Syntax, _diagnostics);
         }
-        
+
+        private void EmitModuleVersionIdStringLoad(BoundModuleVersionIdString node)
+        {
+            _builder.EmitOpCode(ILOpCode.Ldstr);
+            _builder.EmitModuleVersionIdStringToken();
+        }
+
         private void EmitInstrumentationPayloadRootLoad(BoundInstrumentationPayloadRoot node)
         {
             _builder.EmitOpCode(ILOpCode.Ldsfld);

@@ -64,6 +64,12 @@ namespace Microsoft.CodeAnalysis.CodeGen
             this.GetCurrentWriter().WriteUInt32(Cci.MetadataWriter.LiteralGreatestMethodDefinitionToken);
         }
 
+        internal void EmitModuleVersionIdStringToken()
+        {
+            // A magic value indicates that the token value is to refer to a string constant for the spelling of the current module's MVID.
+            this.GetCurrentWriter().WriteUInt32(Cci.MetadataWriter.ModuleVersionIdStringToken);
+        }
+
         internal void EmitArrayBlockInitializer(ImmutableArray<byte> data, SyntaxNode syntaxNode, DiagnosticBag diagnostics)
         {
             // get helpers

@@ -1003,6 +1003,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundModuleVersionId(Syntax, WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Guid)) { WasCompilerGenerated = true };
         }
 
+        public BoundExpression ModuleVersionIdString()
+        {
+            return new BoundModuleVersionIdString(Syntax, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_String)) { WasCompilerGenerated = true };
+        }
+
         public BoundExpression InstrumentationPayloadRoot(int analysisKind, TypeSymbol payloadType)
         {
             return new BoundInstrumentationPayloadRoot(Syntax, analysisKind, payloadType) { WasCompilerGenerated = true };

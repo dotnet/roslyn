@@ -1759,12 +1759,14 @@ namespace Microsoft.Cci
             // Therefore we do not have to fill in a new module version ID in the generated metadata
             // stream.
             Debug.Assert(this.module.Properties.PersistentIdentifier != default(Guid));
-            Blob mvidFixup;
+            Blob mvidFixup, mvidStringFixup;
 
-            BuildMetadataAndIL(pdbWriterOpt, ilBuilder, mappedFieldDataBuilder, managedResourceDataBuilder, out mvidFixup);
+            BuildMetadataAndIL(pdbWriterOpt, ilBuilder, mappedFieldDataBuilder, managedResourceDataBuilder, out mvidFixup, out mvidStringFixup);
 
             Debug.Assert(mappedFieldDataBuilder.Count == 0);
             Debug.Assert(managedResourceDataBuilder.Count == 0);
+            Debug.Assert(mvidFixup.IsDefault);
+            Debug.Assert(mvidStringFixup.IsDefault);
 
             var serializer = new TypeSystemMetadataSerializer(metadata, module.Properties.TargetRuntimeVersion, IsMinimalDelta);
             serializer.SerializeMetadata(metadataBuilder, methodBodyStreamRva: 0, mappedFieldDataStreamRva: 0);
@@ -1779,7 +1781,8 @@ namespace Microsoft.Cci
             BlobBuilder ilBuilder,
             BlobBuilder mappedFieldDataBuilder,
             BlobBuilder managedResourceDataBuilder,
-            out Blob mvidFixup)
+            out Blob mvidFixup,
+            out Blob mvidStringFixup)
         {
             // Extract information from object model into tables, indices and streams
             CreateIndices();
@@ -1789,7 +1792,7 @@ namespace Microsoft.Cci
                 DefineModuleImportScope();
             }
 
-            int[] methodBodyOffsets = SerializeMethodBodies(ilBuilder, nativePdbWriterOpt);
+            int[] methodBodyOffsets = SerializeMethodBodies(ilBuilder, nativePdbWriterOpt, out mvidStringFixup);
 
             _cancellationToken.ThrowIfCancellationRequested();
 
@@ -2622,30 +2625,25 @@ namespace Microsoft.Cci
         {
             CheckPathLength(this.module.ModuleName);
 
-            GuidHandle mvidIdx;
+            GuidHandle mvidHandle;
             Guid mvid = this.module.Properties.PersistentIdentifier;
             if (mvid != default(Guid))
             {
                 // MVID is specified upfront when emitting EnC delta:
-                mvidIdx = metadata.GetOrAddGuid(mvid);
+                mvidHandle = metadata.GetOrAddGuid(mvid);
                 mvidFixup = default(Blob);
-            }
-            else if (_deterministic)
-            {
-                // The guid will be filled in later based on hash of the file content:
-                mvidIdx = metadata.ReserveGuid(out mvidFixup);
             }
             else
             {
-                // If we are being nondeterministic generate random:
-                mvidIdx = metadata.GetOrAddGuid(Guid.NewGuid());
-                mvidFixup = default(Blob);
+                // The guid will be filled in later:
+                mvidHandle = metadata.ReserveGuid(out mvidFixup);
+                new BlobWriter(mvidFixup).WriteBytes(0, mvidFixup.Length);
             }
 
             metadata.AddModule(
                 generation: this.Generation,
                 moduleName: metadata.GetOrAddString(this.module.ModuleName),
-                mvid: mvidIdx,
+                mvid: mvidHandle,
                 encId: metadata.GetOrAddGuid(EncId),
                 encBaseId: metadata.GetOrAddGuid(EncBaseId));
         }
@@ -2803,7 +2801,7 @@ namespace Microsoft.Cci
             }
         }
 
-        private int[] SerializeMethodBodies(BlobBuilder ilBuilder, PdbWriter pdbWriterOpt)
+        private int[] SerializeMethodBodies(BlobBuilder ilBuilder, PdbWriter pdbWriterOpt, out Blob mvidStringFixup)
         {
             CustomDebugInfoWriter customDebugInfoWriter = (pdbWriterOpt != null) ? new CustomDebugInfoWriter(pdbWriterOpt) : null;
 
@@ -2814,6 +2812,9 @@ namespace Microsoft.Cci
             var lastLocalConstantHandle = default(LocalConstantHandle);
 
             var encoder = new MethodBodiesEncoder(ilBuilder);
+
+            var mvidStringHandle = default(UserStringHandle);
+            mvidStringFixup = default(Blob);
 
             int methodRid = 1;
             foreach (IMethodDefinition method in methods)
@@ -2833,7 +2834,7 @@ namespace Microsoft.Cci
                         localSignatureHandleOpt = this.SerializeLocalVariablesSignature(body);
 
                         // TODO: consider parallelizing these (local signature tokens can be piped into IL serialization & debug info generation)
-                        bodyOffset = SerializeMethodBody(encoder, body, localSignatureHandleOpt);
+                        bodyOffset = SerializeMethodBody(encoder, body, localSignatureHandleOpt, ref mvidStringHandle, ref mvidStringFixup);
 
                         pdbWriterOpt?.SerializeDebugInfo(body, localSignatureHandleOpt, customDebugInfoWriter);
                     }
@@ -2866,7 +2867,7 @@ namespace Microsoft.Cci
             return bodyOffsets;
         }
 
-        private int SerializeMethodBody(MethodBodiesEncoder encoder, IMethodBody methodBody, StandaloneSignatureHandle localSignatureHandleOpt)
+        private int SerializeMethodBody(MethodBodiesEncoder encoder, IMethodBody methodBody, StandaloneSignatureHandle localSignatureHandleOpt, ref UserStringHandle mvidStringHandle, ref Blob mvidStringFixup)
         {
             int ilLength = methodBody.IL.Length;
             var exceptionRegions = methodBody.ExceptionRegions;
@@ -2900,7 +2901,7 @@ namespace Microsoft.Cci
                 _smallMethodBodies.Add(methodBody.IL, bodyOffset);
             }
 
-            SubstituteFakeTokens(ilBlob, methodBody.IL);
+            SubstituteFakeTokens(ilBlob, methodBody.IL, ref mvidStringHandle, ref mvidStringFixup);
             SerializeMethodBodyExceptionHandlerTable(ehEncoder, exceptionRegions);
 
             return bodyOffset;
@@ -3031,25 +3032,7 @@ namespace Microsoft.Cci
             var str = _pseudoStringTokenToStringMap[index];
             if (str != null)
             {
-                UserStringHandle handle;
-                if (!_userStringTokenOverflow)
-                {
-                    try
-                    {
-                        handle = metadata.GetOrAddUserString(str);
-                    }
-                    catch (ImageFormatLimitationException)
-                    {
-                        this.Context.Diagnostics.Add(this.messageProvider.CreateDiagnostic(this.messageProvider.ERR_TooManyUserStrings, NoLocation.Singleton));
-                        _userStringTokenOverflow = true;
-                        handle = default(UserStringHandle);
-                    }
-                }
-                else
-                {
-                    handle = default(UserStringHandle);
-                }
-
+                var handle = GetOrAddUserString(str);
                 _pseudoStringTokenToTokenMap[index] = handle;
                 _pseudoStringTokenToStringMap[index] = null; // Set to null to bypass next lookup
                 return handle;
@@ -3058,10 +3041,48 @@ namespace Microsoft.Cci
             return _pseudoStringTokenToTokenMap[index];
         }
 
+        private UserStringHandle GetOrAddUserString(string str)
+        {
+            if (!_userStringTokenOverflow)
+            {
+                try
+                {
+                    return metadata.GetOrAddUserString(str);
+                }
+                catch (ImageFormatLimitationException)
+                {
+                    this.Context.Diagnostics.Add(this.messageProvider.CreateDiagnostic(this.messageProvider.ERR_TooManyUserStrings, NoLocation.Singleton));
+                    _userStringTokenOverflow = true;
+                }
+            }
+
+            return default(UserStringHandle);
+        }
+
+        private UserStringHandle ReserveUserString(int length, out Blob fixup)
+        {
+            if (!_userStringTokenOverflow)
+            {
+                try
+                {
+                    return metadata.ReserveUserString(length, out fixup);
+                }
+                catch (ImageFormatLimitationException)
+                {
+                    this.Context.Diagnostics.Add(this.messageProvider.CreateDiagnostic(this.messageProvider.ERR_TooManyUserStrings, NoLocation.Singleton));
+                    _userStringTokenOverflow = true;
+                }
+            }
+
+            fixup = default(Blob);
+            return default(UserStringHandle);
+        }
+
         internal const uint LiteralMethodDefinitionToken = 0x80000000;
         internal const uint LiteralGreatestMethodDefinitionToken = 0x40000000;
+        internal const uint ModuleVersionIdStringToken = 0x80000000;
         
-        private void SubstituteFakeTokens(Blob blob, ImmutableArray<byte> methodBodyIL)
+        private void SubstituteFakeTokens(Blob blob, ImmutableArray<byte> methodBodyIL, ref UserStringHandle mvidStringHandle, ref Blob mvidStringFixup)
         {
             // write the raw body first and then patch tokens:
             var writer = new BlobWriter(blob);
@@ -3110,10 +3131,36 @@ namespace Microsoft.Cci
                         }
                         
                     case OperandType.InlineString:
-                        writer.Offset = offset;
-                        writer.WriteInt32(MetadataTokens.GetToken(ResolveUserStringHandleFromPseudoToken(ReadInt32(methodBodyIL, offset))));
-                        offset += 4;
-                        break;
+                        {
+                            writer.Offset = offset;
+
+                            int pseudoToken = ReadInt32(methodBodyIL, offset);
+                            UserStringHandle handle;
+
+                            if ((uint)pseudoToken == ModuleVersionIdStringToken)
+                            {
+                                // The pseudotoken encoding indicates that the string should refer to a textual encoding of the
+                                // current module's module version ID (such that the MVID can be realized using Guid.Parse).
+                                // The value cannot be determined until very late in the compilation, so reserve a slot for it now and fill in the value later.
+                                if (mvidStringHandle.IsNil)
+                                {
+                                    const int guidStringLength = 36;
+                                    Debug.Assert(guidStringLength == default(Guid).ToString().Length);
+                                    mvidStringHandle = ReserveUserString(guidStringLength, out mvidStringFixup);
+                                }
+
+                                handle = mvidStringHandle;
+                            }
+                            else
+                            {
+                                handle = ResolveUserStringHandleFromPseudoToken(pseudoToken);
+                            }
+
+                            writer.WriteInt32(MetadataTokens.GetToken(handle));
+
+                            offset += 4;
+                            break;
+                        }
 
                     case OperandType.InlineSig: // calli
                     case OperandType.InlineBrTarget:
