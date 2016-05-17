@@ -28,6 +28,12 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
             private readonly Lazy<string> _lazyDisplayString;
             private readonly Lazy<ISymbol> _lazySymbol;
 
+            /// <summary>
+            /// DeclaredSymbolInfos always come from some actual declaration in source.  So they're
+            /// never implicitly declared.
+            /// </summary>
+            public bool IsImplicitlyDeclared => false;
+
             public DeclaredSymbolNavigableItem(Document document, DeclaredSymbolInfo declaredSymbolInfo)
             {
                 Document = document;
