@@ -352,7 +352,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if ((object)diagnostics != null && (object)syntax != null)
                 {
-                    Binder.ReportUseSiteDiagnostics(firstTupleType, diagnostics, syntax);
+                    Binder.ReportUseSiteDiagnostics(chainedTupleType, diagnostics, syntax);
                 }
 
                 do
