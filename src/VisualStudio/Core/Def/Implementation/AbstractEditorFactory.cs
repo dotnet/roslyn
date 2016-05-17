@@ -66,6 +66,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         protected abstract string ContentTypeName { get; }
+        protected abstract string LanguageName { get; }
 
         public void SetEncoding(bool value)
         {
@@ -260,46 +261,63 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             var workspace = ComponentModel.GetService<VisualStudioWorkspace>();
             var solution = workspace.CurrentSolution;
 
+            ProjectId projectIdToAddTo = null;
+
             foreach (var projectId in solution.ProjectIds)
             {
                 if (workspace.GetHierarchy(projectId) == hierarchy)
                 {
-                    var documentId = DocumentId.CreateNewId(projectId);
-                    var forkedSolution = solution.AddDocument(DocumentInfo.Create(documentId, filePath, loader: new FileTextLoader(filePath, defaultEncoding: null), filePath: filePath));
-                    var addedDocument = forkedSolution.GetDocument(documentId);
-
-                    var rootToFormat = addedDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
-
-                    var formattedTextChanges = Formatter.GetFormattedTextChanges(rootToFormat, workspace, addedDocument.Options, cancellationToken);
-                    var formattedText = addedDocument.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).WithChanges(formattedTextChanges);
-
-                    // Ensure the line endings are normalized. The formatter doesn't touch everything if it doesn't need to.
-                    string targetLineEnding = addedDocument.Options.GetOption(FormattingOptions.NewLine);
-
-                    var originalText = formattedText;
-                    foreach (var originalLine in originalText.Lines)
-                    {
-                        string originalNewLine = originalText.ToString(CodeAnalysis.Text.TextSpan.FromBounds(originalLine.End, originalLine.EndIncludingLineBreak));
-
-                        // Check if we have a line ending, so we don't go adding one to the end if we don't need to.
-                        if (originalNewLine.Length > 0 && originalNewLine != targetLineEnding)
-                        {
-                            var currentLine = formattedText.Lines[originalLine.LineNumber];
-                            var currentSpan = CodeAnalysis.Text.TextSpan.FromBounds(currentLine.End, currentLine.EndIncludingLineBreak);
-                            formattedText = formattedText.WithChanges(new TextChange(currentSpan, targetLineEnding));
-                        }
-                    }
-
-                    IOUtilities.PerformIO(() =>
-                    {
-                        using (var textWriter = new StreamWriter(filePath, append: false, encoding: formattedText.Encoding))
-                        {
-                            // We pass null here for cancellation, since cancelling in the middle of the file write would leave the file corrupted
-                            formattedText.Write(textWriter, cancellationToken: CancellationToken.None);
-                        }
-                    });
+                    projectIdToAddTo = projectId;
+                    break;
                 }
             }
+
+            if (projectIdToAddTo == null)
+            {
+                // We don't have a project for this, so we'll just make up a fake project altogether
+                var temporaryProject = solution.AddProject(
+                    name: nameof(FormatDocumentCreatedFromTemplate),
+                    assemblyName: nameof(FormatDocumentCreatedFromTemplate),
+                    language: LanguageName);
+
+                solution = temporaryProject.Solution;
+                projectIdToAddTo = temporaryProject.Id;
+            }
+
+            var documentId = DocumentId.CreateNewId(projectIdToAddTo);
+            var forkedSolution = solution.AddDocument(DocumentInfo.Create(documentId, filePath, loader: new FileTextLoader(filePath, defaultEncoding: null), filePath: filePath));
+            var addedDocument = forkedSolution.GetDocument(documentId);
+
+            var rootToFormat = addedDocument.GetSyntaxRootAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+
+            var formattedTextChanges = Formatter.GetFormattedTextChanges(rootToFormat, workspace, addedDocument.Options, cancellationToken);
+            var formattedText = addedDocument.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken).WithChanges(formattedTextChanges);
+
+            // Ensure the line endings are normalized. The formatter doesn't touch everything if it doesn't need to.
+            string targetLineEnding = addedDocument.Options.GetOption(FormattingOptions.NewLine);
+
+            var originalText = formattedText;
+            foreach (var originalLine in originalText.Lines)
+            {
+                string originalNewLine = originalText.ToString(CodeAnalysis.Text.TextSpan.FromBounds(originalLine.End, originalLine.EndIncludingLineBreak));
+
+                // Check if we have a line ending, so we don't go adding one to the end if we don't need to.
+                if (originalNewLine.Length > 0 && originalNewLine != targetLineEnding)
+                {
+                    var currentLine = formattedText.Lines[originalLine.LineNumber];
+                    var currentSpan = CodeAnalysis.Text.TextSpan.FromBounds(currentLine.End, currentLine.EndIncludingLineBreak);
+                    formattedText = formattedText.WithChanges(new TextChange(currentSpan, targetLineEnding));
+                }
+            }
+
+            IOUtilities.PerformIO(() =>
+            {
+                using (var textWriter = new StreamWriter(filePath, append: false, encoding: formattedText.Encoding))
+                {
+                    // We pass null here for cancellation, since cancelling in the middle of the file write would leave the file corrupted
+                    formattedText.Write(textWriter, cancellationToken: CancellationToken.None);
+                }
+            });
         }
     }
 }
