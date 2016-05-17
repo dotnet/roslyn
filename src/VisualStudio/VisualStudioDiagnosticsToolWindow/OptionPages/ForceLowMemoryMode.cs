@@ -8,7 +8,6 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
 {
     internal class ForceLowMemoryMode
     {
-        private int _size = 500;  // default to 500 MB
         private MemoryHogger _hogger;
 
         public static readonly ForceLowMemoryMode Instance = new ForceLowMemoryMode();
@@ -17,11 +16,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
         {
         }
 
-        public int Size
-        {
-            get { return _size; }
-            set { _size = value; }
-        }
+        public int Size { get; set; } = 500; // default to 500 MB
 
         public bool Enabled
         {
@@ -35,21 +30,17 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
                 if (value && _hogger == null)
                 {
                     _hogger = new MemoryHogger();
-                    var tmp = _hogger.PopulateAndMonitorAsync(this.Size);
+                    var ignore = _hogger.PopulateAndMonitorAsync(this.Size);
                 }
-                else if (!value)
+                else if (!value && _hogger != null)
                 {
-                    var hogger = _hogger;
-                    if (hogger != null)
-                    {
-                        _hogger = null;
-                        hogger.Cancel();
-                    }
+                    _hogger.Cancel();
+                    _hogger = null;
                 }
             }
         }
 
-        class MemoryHogger
+        private class MemoryHogger
         {
             private const int BlockSize = 1024 * 1024; // megabyte blocks
             private const int MonitorDelay = 10000; // 10 seconds
@@ -85,7 +76,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
                     {
                         var block = new byte[BlockSize];
 
-                        // initialize block bits (so they memory actually gets allocated.. silly runtime!)
+                        // initialize block bits (so the memory actually gets allocated.. silly runtime!)
                         for (int i = 0; i < BlockSize; i++)
                         {
                             block[i] = 0xFF;
@@ -97,7 +88,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
                         await Task.Yield();
                     }
                 }
-                catch (Exception)
+                catch (OutOfMemoryException)
                 {
                 }
 
@@ -106,21 +97,22 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
                 {
                     try
                     {
-                        // access all block cells
+                        // access all block bytes
                         for (var b = 0; b < _blocks.Count && !_cancelled; b++)
                         {
                             var block = _blocks[b];
 
+                            byte tmp;
                             for (int i = 0; i < block.Length; i++)
                             {
-                                var tmp = block[i]; // read bytes from block
+                                tmp = block[i];
                             }
 
                             // don't hog the thread
                             await Task.Yield();
                         }
                     }
-                    catch (Exception)
+                    catch (OutOfMemoryException)
                     {
                     }
 
