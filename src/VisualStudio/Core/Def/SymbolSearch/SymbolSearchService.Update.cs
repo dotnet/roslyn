@@ -5,22 +5,21 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.Packaging;
+using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 using static System.FormattableString;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.Options;
-using System.Linq;
-using System.Collections.Immutable;
 
 namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
@@ -51,8 +50,6 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly CancellationToken _cancellationToken;
 
-        private readonly Workspace _workspace;
-
         private readonly ConcurrentDictionary<string, object> _sourceToUpdateSentinel =
             new ConcurrentDictionary<string, object>();
 
@@ -67,12 +64,6 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         private readonly IDatabaseFactoryService _databaseFactoryService;
         private readonly string _localSettingsDirectory;
         private readonly Func<Exception, bool> _reportAndSwallowException;
-
-        public void Dispose()
-        {
-            // Cancel any existing work.
-            _cancellationTokenSource.Cancel();
-        }
 
         private void LogInfo(string text) => _logService.LogInfo(text);
 

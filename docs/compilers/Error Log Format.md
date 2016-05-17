@@ -21,16 +21,11 @@ The SARIF standard allows the `properties` property of `result` objects
 to contain arbitrary (string, string) key-value pairs.
 
 The keys and values used by the C# and VB compilers are serialized from
-the corresponding `Microsoft.CodeAnalysis.Diagnostic` and its
-`Microsoft.CodeAnalysis.DiagnosticDescriptor` as follows:
+the corresponding `Microsoft.CodeAnalysis.Diagnostic` as follows:
 
 Key                      | Value
 ------------------------ | ------------
-"severity"               | `Diagnostic.Severity` ("Hidden", "Info", "Warning, or "Error")
-"warningLevel"           | `Diagnostic.WarningLevel` ("1", "2", "3", or "4" for "Warning" severity; omitted otherwise)
-"defaultSeverity"        | `Diagnostic.DefaultSeverity` ("Hidden", "Info", "Warning, "Error")
-"title"                  | `DiagnosticDesciptor.Title` (omitted if null or empty)
+"warningLevel"           | `Diagnostic.WarningLevel`
 "category"               | `Diagnostic.Category`
-"helpLink"               | `DiagnosticDescriptor.HelpLink` (omitted if null or empty)
-"isEnabledByDefault"     | `Diagnostic.IsEnabledByDefault` ("True" or "False")
-"customProperties.[key]" | `Diagnostic.Properties[key]` (for each key in the dictionary)
+"isEnabledByDefault"     | `Diagnostic.IsEnabledByDefault
+"customProperties"       | `Diagnostic.Properties` 
