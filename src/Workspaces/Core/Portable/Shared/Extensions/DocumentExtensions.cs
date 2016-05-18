@@ -158,10 +158,9 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
             }
         }
 
-        public static async Task<IEnumerable<DeclaredSymbolInfo>> GetDeclaredSymbolInfosAsync(this Document document, CancellationToken cancellationToken)
+        public static async Task<IDeclarationInfo> GetDeclarationInfoAsync(this Document document, CancellationToken cancellationToken)
         {
-            var declarationInfo = await SyntaxTreeInfo.GetDeclarationInfoAsync(document, cancellationToken).ConfigureAwait(false);
-            return declarationInfo.DeclaredSymbolInfos;
+            return await SyntaxTreeInfo.GetDeclarationInfoAsync(document, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>

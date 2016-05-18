@@ -10,20 +10,24 @@ using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Packaging;
+using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.CodeAnalysis.Versions;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Interactive;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Library.FindResults;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem.RuleSets;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
+using Microsoft.VisualStudio.LanguageServices.Packaging;
+using Microsoft.VisualStudio.LanguageServices.SymbolSearch;
 using Microsoft.VisualStudio.LanguageServices.Utilities;
 using Microsoft.VisualStudio.PlatformUI;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Task = System.Threading.Tasks.Task;
-using Microsoft.VisualStudio.LanguageServices.Implementation.Interactive;
 using static Microsoft.CodeAnalysis.Utilities.ForegroundThreadDataKind;
+using Task = System.Threading.Tasks.Task;
 
 namespace Microsoft.VisualStudio.LanguageServices.Setup
 {
@@ -39,6 +43,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
         private IComponentModel _componentModel;
         private RuleSetEventHandler _ruleSetEventHandler;
         private IDisposable _solutionEventMonitor;
+
+        private PackageInstallerService _packageInstallerService;
+        private SymbolSearchService _symbolSearchService;
 
         protected override void Initialize()
         {
@@ -161,6 +168,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
             LoadAnalyzerNodeComponents();
 
+            // Ensure the nuget package services are initialized after we've loaded
+            // the solution.
+            _packageInstallerService = _workspace.Services.GetService<IPackageInstallerService>() as PackageInstallerService;
+            _symbolSearchService = _workspace.Services.GetService<ISymbolSearchService>() as SymbolSearchService;
+
+            _packageInstallerService?.Start();
+            _symbolSearchService?.Start();
+            
             Task.Run(() => LoadComponentsBackground());
         }
 
@@ -202,6 +217,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Setup
 
         protected override void Dispose(bool disposing)
         {
+            _packageInstallerService?.Stop();
+            _symbolSearchService?.Stop();
+
             UnregisterFindResultsLibraryManager();
 
             DisposeVisualStudioDocumentTrackingService();

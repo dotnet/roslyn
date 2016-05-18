@@ -68,20 +68,33 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
             if (dteProject == null)
             {
-                var dteSolutionProjects = IntegrationHelper.RetryRpcCall(() => _dteSolution.Projects);
-
-                foreach (DteProject project in dteSolutionProjects)
-                {
-                    var dteProjectName = IntegrationHelper.RetryRpcCall(() => project.Name);
-
-                    if (dteProjectName == projectName)
-                    {
-                        dteProject = project;
-                    }
-                }
+                dteProject = GetDteProject(projectName);
             }
 
             return new Project(dteProject, this, projectLanguage);
+        }
+
+        public Project GetProject(string projectName, ProjectLanguage projectLanguage)
+        {
+            DteProject dteProject = GetDteProject(projectName);
+            return new Project(dteProject, this, projectLanguage);
+        }
+
+        private DteProject GetDteProject(string projectName)
+        {
+            var dteSolutionProjects = IntegrationHelper.RetryRpcCall(() => _dteSolution.Projects);
+
+            foreach (DteProject project in dteSolutionProjects)
+            {
+                var dteProjectName = IntegrationHelper.RetryRpcCall(() => project.Name);
+
+                if (dteProjectName == projectName)
+                {
+                    return project;
+                }
+            }
+
+            throw new Exception($"The specified project could not be found. Project name: '{projectName}'");
         }
 
         public void Save()
