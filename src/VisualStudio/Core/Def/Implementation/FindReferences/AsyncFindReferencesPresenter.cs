@@ -36,8 +36,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
             this.AssertIsForeground();
 
             var manager = _tableManagerProvider.GetTableManager("FindAllReferences");
+            if (manager == null)
+            {
+                return null;
+            }
+
             var vsuiShell = (IVsUIShell)_serviceProvider.GetService(typeof(SVsUIShell));
 
+            /// NOTE(cyrusn): This hardcoded guid value is only needed as we prototype the new 
+            /// FindAllRefs experience. Once the new experience is a property part of the Dev15 
+            /// API, then we will not need this and we can refer to a well known ID properly.
             IVsWindowFrame window;
             vsuiShell.FindToolWindow((uint)__VSFINDTOOLWIN.FTW_fForceCreate, new Guid("a80febb4-e7e0-4147-b476-21aaf2453969"), out window);
             if (window != null)
