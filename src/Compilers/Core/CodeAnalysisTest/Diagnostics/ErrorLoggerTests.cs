@@ -1,13 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Xunit;
-using System.IO;
 using System;
-using System.Globalization;
-using System.Text;
-using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Text;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Text;
+
+using Microsoft.CodeAnalysis.Text;
+
+using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
 {
@@ -20,15 +21,20 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             var stream = new MemoryStream();
             using (var logger = new ErrorLogger(stream, "toolName", "1.2.3.4", new Version(1, 2, 3, 4), CultureInfo.InvariantCulture))
             {
-                var mainLocation = Location.Create(@"Z:\MainLocation.cs", new TextSpan(0, 0), new LinePositionSpan(LinePosition.Zero, LinePosition.Zero));
-                var additionalLocation = Location.Create(@"Z:\AdditionalLocation.cs", new TextSpan(0, 0), new LinePositionSpan(LinePosition.Zero, LinePosition.Zero));
+                var span = new TextSpan(0, 0);
+                var position = new LinePositionSpan(LinePosition.Zero, LinePosition.Zero);
+                var mainLocation = Location.Create(@"Z:\Main Location.cs", span, position);
                 var descriptor = new DiagnosticDescriptor("TST", "_TST_", "", "", DiagnosticSeverity.Error, false);
 
-                IEnumerable<Location> additionalLocations = new[] { additionalLocation };
+                IEnumerable<Location> additionalLocations = new[] {
+                    Location.Create(@"Relative Additional\Location.cs", span, position),
+                    Location.Create(@"a:cannot/interpret/as\uri", span, position),
+                };
+                
                 logger.LogDiagnostic(Diagnostic.Create(descriptor, mainLocation, additionalLocations));
             }
 
-            string expected = 
+            string expected =
 @"{
   ""$schema"": ""http://json.schemastore.org/sarif-1.0.0-beta.5"",
   ""version"": ""1.0.0-beta.5"",
@@ -47,7 +53,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
           ""locations"": [
             {
               ""resultFile"": {
-                ""uri"": ""file:///Z:/MainLocation.cs"",
+                ""uri"": ""file:///Z:/Main%20Location.cs"",
                 ""region"": {
                   ""startLine"": 1,
                   ""startColumn"": 1,
@@ -60,7 +66,18 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
           ""relatedLocations"": [
             {
               ""physicalLocation"": {
-                ""uri"": ""file:///Z:/AdditionalLocation.cs"",
+                ""uri"": ""Relative%20Additional/Location.cs"",
+                ""region"": {
+                  ""startLine"": 1,
+                  ""startColumn"": 1,
+                  ""endLine"": 1,
+                  ""endColumn"": 1
+                }
+              }
+            },
+            {
+              ""physicalLocation"": {
+                ""uri"": ""a%3Acannot%2Finterpret%2Fas%5Curi"",
                 ""region"": {
                   ""startLine"": 1,
                   ""startColumn"": 1,
@@ -93,7 +110,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         public void DescriptorIdCollision()
         {
             var descriptors = new[] {
-                // Toughest case: generation of TST001.001 collides with with actual TST001.001 and must be bumped to TST00.002
+                // Toughest case: generation of TST001.001 collides with with actual TST001.001 and must be bumped to TST001.002
                 new DiagnosticDescriptor("TST001.001",    "_TST001.001_",     "", "", DiagnosticSeverity.Warning, true),
                 new DiagnosticDescriptor("TST001",        "_TST001_",         "", "", DiagnosticSeverity.Warning, true),
                 new DiagnosticDescriptor("TST001",        "_TST001.002_",     "", "", DiagnosticSeverity.Warning, true),

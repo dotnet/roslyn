@@ -155,22 +155,34 @@ namespace Microsoft.CodeAnalysis
             return !string.IsNullOrEmpty(location.GetLineSpan().Path);
         }
 
+        private static readonly Uri _fileRoot = new Uri("file:///");
+
         private static string GetUri(string path)
         {
             Debug.Assert(!string.IsNullOrEmpty(path));
 
+            // Note that in general, these "paths" are opaque strings to be 
+            // interpreted by resolvers (see SyntaxTree.FilePath documentation).
+            
+            // Common case: absolute path -> absolute URI
             Uri uri;
-
-            if (!Uri.TryCreate(path, UriKind.RelativeOrAbsolute, out uri))
+            if (Uri.TryCreate(path, UriKind.Absolute, out uri))
             {
-                // The only constraint on paths are that they can be interpreted by
-                // various resolvers so there is no guarantee we can turn the arbitrary string
-                // in to a URI. If our attempt to do so fails, use the original string as the
-                // "URI".
-                return path;
+                // Note that URI.ToString() does not, for example, escape spaces to %20.
+                return uri.AbsoluteUri;
             }
 
-            return uri.ToString();
+            // First fallback attempt: interpret as relative reference if possible
+            // (perhaps the resolver works that way).
+            if (Uri.TryCreate(path, UriKind.Relative, out uri))
+            {
+                // There is no AbsoluteUri equivalent for relative URI references and ToString() 
+                // won't escape without this relative -> absolute -> relative trick.
+                return _fileRoot.MakeRelativeUri(new Uri(_fileRoot, uri)).ToString();
+            }
+
+            // Last resort: UrlEncode the whole opaque string as a relative reference with one part.
+            return System.Net.WebUtility.UrlEncode(path);
         }
 
         private void WriteProperties(Diagnostic diagnostic)
@@ -393,10 +405,14 @@ namespace Microsoft.CodeAnalysis
                 public bool Equals(DiagnosticDescriptor x, DiagnosticDescriptor y)
                 {
                     if (ReferenceEquals(x, y))
+                    {
                         return true;
+                    }
 
                     if (ReferenceEquals(x, null) || ReferenceEquals(y, null))
+                    {
                         return false;
+                    }
 
                    return (x.Category == y.Category
                         && x.DefaultSeverity == y.DefaultSeverity
@@ -411,7 +427,9 @@ namespace Microsoft.CodeAnalysis
                 public int GetHashCode(DiagnosticDescriptor obj)
                 {
                     if (ReferenceEquals(obj, null))
+                    {
                         return 0;
+                    }
 
                     int hash = Hash.Combine(obj.Category.GetHashCode(),
                         Hash.Combine(obj.DefaultSeverity.GetHashCode(),
