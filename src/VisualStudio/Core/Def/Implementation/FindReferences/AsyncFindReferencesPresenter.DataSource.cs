@@ -38,6 +38,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
 
             public string Identifier => "Roslyn Identifier";
 
+            /// <summary>
+            /// This value is expected by the "FindAllReferences" <see cref="ITableManager"/>.
+            /// Do not change it.
+            /// </summary>
             public string SourceTypeIdentifier => "FindAllReferencesProvider";
 
             public int CurrentVersionNumber { get; private set; }
