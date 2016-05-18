@@ -225,7 +225,8 @@ namespace RunTests
                 CacheCount = result.CacheCount,
                 Succeeded = result.Succeeded
             };
-            var request = new RestRequest("api/testrun", Method.POST);
+
+            var request = new RestRequest("api/testData/run", Method.POST);
             request.RequestFormat = DataFormat.Json;
             request.AddParameter("text/json", JsonConvert.SerializeObject(testRunData), ParameterType.RequestBody);
 

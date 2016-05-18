@@ -25,7 +25,7 @@ namespace RunTests.Cache
             try
             {
                 var testCacheData = CreateTestCacheData(assemblyInfo, assemblyInfo.ResultsFileName, testResult);
-                var request = new RestRequest($"api/testcache/{contentFile.Checksum}");
+                var request = new RestRequest($"api/testData/cache/{contentFile.Checksum}");
                 request.Method = Method.PUT;
                 request.RequestFormat = DataFormat.Json;
                 request.AddParameter("text/json", JsonConvert.SerializeObject(testCacheData), ParameterType.RequestBody);
@@ -46,7 +46,7 @@ namespace RunTests.Cache
         {
             try
             {
-                var request = new RestRequest($"api/testcache/{checksum}");
+                var request = new RestRequest($"api/testData/cache/{checksum}");
 
                 // Add query parameters the web service uses for additional tracking
                 request.AddParameter("machineName", Environment.MachineName, ParameterType.QueryString);
