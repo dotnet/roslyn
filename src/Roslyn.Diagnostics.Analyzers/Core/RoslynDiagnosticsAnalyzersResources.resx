@@ -217,7 +217,7 @@
   <data name="DuplicateSymbolsInPublicApiFilesMessage" xml:space="preserve">
     <value>The symbol '{0}' appears more than once in the public API files.</value>
   </data>
-  <data name="PublicImplicitConstructorErroMessageName" xml:space="preserve">
+  <data name="PublicImplicitConstructorErrorMessageName" xml:space="preserve">
     <value>implicit constructor for {0}</value>
   </data>
   <data name="AvoidMultipleOverloadsWithOptionalParametersTitle" xml:space="preserve">

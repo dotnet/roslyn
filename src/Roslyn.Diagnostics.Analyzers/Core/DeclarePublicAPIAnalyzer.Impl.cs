@@ -170,6 +170,13 @@ namespace Roslyn.Diagnostics.Analyzers
                                 continue;
                             }
 
+                            // Don't flag overloads which have identical params (e.g. overloading a generic and non-generic method with same parameter types).
+                            if (overload.Parameters.Length == method.Parameters.Length &&
+                                overload.Parameters.Select(p => p.Type).SequenceEqual(method.Parameters.Select(p => p.Type)))
+                            {
+                                continue;
+                            }
+
                             // RS0026: Symbol '{0}' violates the backcompat requirement: 'Do not add multiple overloads with optional parameters'. See '{1}' for details.
                             var overloadHasOptionalParams = overload.HasOptionalParameters();
                             if (overloadHasOptionalParams)
@@ -215,13 +222,9 @@ namespace Roslyn.Diagnostics.Analyzers
 
             private static string GetErrorMessageName(ISymbol symbol, bool isImplicitlyDeclaredConstructor)
             {
-                string errorMessageName = symbol.ToDisplayString(ShortSymbolNameFormat);
-                if (isImplicitlyDeclaredConstructor)
-                {
-                    errorMessageName = string.Format(RoslynDiagnosticsAnalyzersResources.PublicImplicitConstructorErroMessageName, errorMessageName);
-                }
-
-                return errorMessageName;
+                return isImplicitlyDeclaredConstructor ?
+                    string.Format(RoslynDiagnosticsAnalyzersResources.PublicImplicitConstructorErrorMessageName, symbol.ContainingSymbol.ToDisplayString(ShortSymbolNameFormat)) :
+                    symbol.ToDisplayString(ShortSymbolNameFormat);
             }
 
             private string GetSiblingNamesToRemoveFromUnshippedText(ISymbol symbol)
@@ -267,7 +270,7 @@ namespace Roslyn.Diagnostics.Analyzers
                             continue;
                         }
 
-                        if (!ContainsPublicApiName(apiLineText, containingSymbolPublicApiName))
+                        if (!ContainsPublicApiName(apiLineText, containingSymbolPublicApiName + "."))
                         {
                             // Doesn't contain containingSymbol public API name - not a sibling of symbol.
                             continue;

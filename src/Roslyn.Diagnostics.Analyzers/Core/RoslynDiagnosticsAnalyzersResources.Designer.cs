@@ -289,9 +289,9 @@ namespace Roslyn.Diagnostics.Analyzers {
         /// <summary>
         ///   Looks up a localized string similar to implicit constructor for {0}.
         /// </summary>
-        internal static string PublicImplicitConstructorErroMessageName {
+        internal static string PublicImplicitConstructorErrorMessageName {
             get {
-                return ResourceManager.GetString("PublicImplicitConstructorErroMessageName", resourceCulture);
+                return ResourceManager.GetString("PublicImplicitConstructorErrorMessageName", resourceCulture);
             }
         }
         

@@ -225,7 +225,6 @@ C
 C.C() -> void";
             var unshippedText = @"";
 
-            var arg = string.Format(RoslynDiagnosticsAnalyzersResources.PublicImplicitConstructorErroMessageName, "C");
             VerifyCSharp(source, shippedText, unshippedText);
         }
 
@@ -243,7 +242,6 @@ C";
             var unshippedText = @"
 C.C() -> void";
 
-            var arg = string.Format(RoslynDiagnosticsAnalyzersResources.PublicImplicitConstructorErroMessageName, "C");
             VerifyCSharp(source, shippedText, unshippedText);
         }
 
@@ -260,7 +258,7 @@ public class C
 C";
             var unshippedText = @"";
 
-            var arg = string.Format(RoslynDiagnosticsAnalyzersResources.PublicImplicitConstructorErroMessageName, "C");
+            var arg = string.Format(RoslynDiagnosticsAnalyzersResources.PublicImplicitConstructorErrorMessageName, "C");
             VerifyCSharp(source, shippedText, unshippedText,
                 // Test0.cs(2,14): warning RS0016: Symbol 'implicit constructor for C' is not part of the declared API.
                 GetCSharpResultAt(2, 14, DeclarePublicAPIAnalyzer.DeclareNewApiRule, arg));
@@ -281,7 +279,6 @@ C
 C.C() -> void";
             var unshippedText = @"";
 
-            var arg = string.Format(RoslynDiagnosticsAnalyzersResources.PublicImplicitConstructorErroMessageName, "C");
             VerifyCSharp(source, shippedText, unshippedText,
                 // PublicAPI.Shipped.txt(3,1): warning RS0017: Symbol 'C.C() -> void' is part of the declared API, but is either not public or could not be found
                 GetAdditionalFileResultAt(3, 1, DeclarePublicAPIAnalyzer.ShippedFileName, DeclarePublicAPIAnalyzer.RemoveDeletedApiRule, "C.C() -> void"));
@@ -571,6 +568,10 @@ public class C
     public void Method5(int p1 = 0) { }
     public void Method5(char p1 = 'a') { }
     public void Method5(string p1 = null) { }
+
+    // ok - multiple overloads with optional params, but all have same params (differ only by generic vs non-generic).
+    public object Method6(int p1 = 0) { return Method6<object>(p1); }
+    public T Method6<T>(int p1 = 0) { return default(T); }
 }
 ";
 
@@ -589,6 +590,8 @@ C.Method2(int p1 = 0) -> void
 C.Method4(int p1 = 0) -> void
 C.Method5(char p1 = 'a') -> void
 C.Method5(string p1 = null) -> void
+C.Method6(int p1 = 0) -> object
+C.Method6<T>(int p1 = 0) -> T
 ";
 
             VerifyCSharp(source, shippedText, unshippedText,
@@ -976,6 +979,42 @@ C2
 C2.C2() -> void";
 
             VerifyCSharpAdditionalFileFix(source, shippedText, unshippedText, fixedUnshippedText);
+        }
+
+        [Fact]
+        public void TestWithExistingUnshippedNestedGenericMembers_Fix()
+        {
+            var source = @"
+public class C
+{
+    private C() { }
+    public class CC
+    {
+        public int Field;
+    }
+
+    public class CC<T>
+    {
+        private CC() { }
+        public int Field;
+    }
+}
+";
+
+            var shippedText = @"";
+            var unshippedText = @"C
+C.CC
+C.CC.Field -> int
+C.CC<T>
+C.CC<T>.Field -> int";
+            var fixedUnshippedText = @"C
+C.CC
+C.CC.CC() -> void
+C.CC.Field -> int
+C.CC<T>
+C.CC<T>.Field -> int";
+
+            VerifyCSharpAdditionalFileFix(source, shippedText, unshippedText, fixedUnshippedText, onlyFixFirstFixableDiagnostic: true);
         }
 
         [Fact]
