@@ -42,19 +42,15 @@ namespace Microsoft.CodeAnalysis
             _writer.WriteArrayStart("runs");
             _writer.WriteObjectStart(); // run
 
-            WriteToolInfo(toolName, toolFileVersion, toolAssemblyVersion);
+            _writer.WriteObjectStart("tool");
+            _writer.Write("name", toolName);
+            _writer.Write("version", toolAssemblyVersion.ToString());
+            _writer.Write("fileVersion", toolFileVersion);
+            _writer.Write("semanticVersion", toolAssemblyVersion.ToString(fieldCount: 3));
+            _writer.Write("language", culture.Name);
+            _writer.WriteObjectEnd(); // tool
 
             _writer.WriteArrayStart("results");
-        }
-
-        private void WriteToolInfo(string name, string fileVersion, Version assemblyVersion)
-        {
-            _writer.WriteObjectStart("tool");
-            _writer.Write("name", name);
-            _writer.Write("version", assemblyVersion.ToString());
-            _writer.Write("fileVersion", fileVersion);
-            _writer.Write("semanticVersion", assemblyVersion.ToString(fieldCount: 3));
-            _writer.WriteObjectEnd();
         }
 
         public void LogDiagnostic(Diagnostic diagnostic)

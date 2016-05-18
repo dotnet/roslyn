@@ -308,6 +308,7 @@ namespace Microsoft.CodeAnalysis
             var expectedVersion = compiler.GetAssemblyVersion();
             var expectedSemanticVersion = compiler.GetAssemblyVersion().ToString(fieldCount: 3);
             var expectedFileVersion = compiler.GetAssemblyFileVersion();
+            var expectedLanguage = compiler.GetCultureName();
 
             return string.Format(@"{{
   ""$schema"": ""http://json.schemastore.org/sarif-1.0.0-beta.5"",
@@ -318,8 +319,9 @@ namespace Microsoft.CodeAnalysis
         ""name"": ""{0}"",
         ""version"": ""{1}"",
         ""fileVersion"": ""{2}"",
-        ""semanticVersion"": ""{3}""
-      }},", expectedToolName, expectedVersion, expectedFileVersion, expectedSemanticVersion);
+        ""semanticVersion"": ""{3}"",
+        ""language"": ""{4}""
+      }},", expectedToolName, expectedVersion, expectedFileVersion, expectedSemanticVersion, expectedLanguage);
         }
 
         public static string Stringize(this Diagnostic e)

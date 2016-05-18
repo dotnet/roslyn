@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         public void AdditionalLocationsAsRelatedLocations()
         {
             var stream = new MemoryStream();
-            using (var logger = new ErrorLogger(stream, "toolName", "1.2.3.4", new Version(1, 2, 3, 4), CultureInfo.InvariantCulture))
+            using (var logger = new ErrorLogger(stream, "toolName", "1.2.3.4", new Version(1, 2, 3, 4), new CultureInfo("fr-CA")))
             {
                 var span = new TextSpan(0, 0);
                 var position = new LinePositionSpan(LinePosition.Zero, LinePosition.Zero);
@@ -44,7 +44,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         ""name"": ""toolName"",
         ""version"": ""1.2.3.4"",
         ""fileVersion"": ""1.2.3.4"",
-        ""semanticVersion"": ""1.2.3""
+        ""semanticVersion"": ""1.2.3"",
+        ""language"": ""fr-CA""
       },
       ""results"": [
         {
@@ -132,7 +133,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
             };
 
             var stream = new MemoryStream();
-            using (var logger = new ErrorLogger(stream, "toolName", "1.2.3.4", new Version(1, 2, 3, 4), CultureInfo.InvariantCulture))
+            using (var logger = new ErrorLogger(stream, "toolName", "1.2.3.4", new Version(1, 2, 3, 4), new CultureInfo("en-US")))
             {
                 for (int i = 0; i < 2; i++)
                 {
@@ -153,7 +154,8 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         ""name"": ""toolName"",
         ""version"": ""1.2.3.4"",
         ""fileVersion"": ""1.2.3.4"",
-        ""semanticVersion"": ""1.2.3""
+        ""semanticVersion"": ""1.2.3"",
+        ""language"": ""en-US""
       },
       ""results"": [
         {
