@@ -35,11 +35,15 @@ Microsoft.CodeAnalysis.Completion.CompletionItem.AddProperty(string name, string
 Microsoft.CodeAnalysis.Completion.CompletionItem.AddTag(string tag) -> Microsoft.CodeAnalysis.Completion.CompletionItem
 Microsoft.CodeAnalysis.Completion.CompletionItem.DisplayText.get -> string
 Microsoft.CodeAnalysis.Completion.CompletionItem.FilterText.get -> string
+Microsoft.CodeAnalysis.Completion.CompletionItem.GetDescription() -> Microsoft.CodeAnalysis.Completion.CompletionDescription
+Microsoft.CodeAnalysis.Completion.CompletionItem.HasDescription() -> bool
 Microsoft.CodeAnalysis.Completion.CompletionItem.Properties.get -> System.Collections.Immutable.ImmutableDictionary<string, string>
 Microsoft.CodeAnalysis.Completion.CompletionItem.Rules.get -> Microsoft.CodeAnalysis.Completion.CompletionItemRules
 Microsoft.CodeAnalysis.Completion.CompletionItem.SortText.get -> string
 Microsoft.CodeAnalysis.Completion.CompletionItem.Span.get -> Microsoft.CodeAnalysis.Text.TextSpan
 Microsoft.CodeAnalysis.Completion.CompletionItem.Tags.get -> System.Collections.Immutable.ImmutableArray<string>
+Microsoft.CodeAnalysis.Completion.CompletionItem.WithDescription(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.TaggedText> description) -> Microsoft.CodeAnalysis.Completion.CompletionItem
+Microsoft.CodeAnalysis.Completion.CompletionItem.WithDescription(string description) -> Microsoft.CodeAnalysis.Completion.CompletionItem
 Microsoft.CodeAnalysis.Completion.CompletionItem.WithDisplayText(string text) -> Microsoft.CodeAnalysis.Completion.CompletionItem
 Microsoft.CodeAnalysis.Completion.CompletionItem.WithFilterText(string text) -> Microsoft.CodeAnalysis.Completion.CompletionItem
 Microsoft.CodeAnalysis.Completion.CompletionItem.WithProperties(System.Collections.Immutable.ImmutableDictionary<string, string> properties) -> Microsoft.CodeAnalysis.Completion.CompletionItem
