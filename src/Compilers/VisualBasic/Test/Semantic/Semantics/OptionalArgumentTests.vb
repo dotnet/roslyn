@@ -1083,14 +1083,14 @@ End Class
     </file>
 </compilation>
             Dim vbp = VisualBasicParseOptions.Default
-            For Each langVersion In {LanguageVersion.VBnext}
+            For Each langVersion In {LanguageVersion.VisualBasic14, LanguageVersion.VBnext}
                 vbp = vbp.WithLanguageVersion(langVersion)
                 Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, options:=TestOptions.ReleaseDll,
                                                                                                       parseOptions:=vbp)
                 If ImplicitDefaultValueOnOptionalParameter.IsUnavailable(langVersion) Then
 
                     AssertTheseDiagnostics(comp,
-"
+<expected><![CDATA[
 BC30529: All parameters must be explicitly typed if any of them are explicitly typed.
             Optional f A String = "",
                      ~
@@ -1109,10 +1109,10 @@ BC30002: Type 'CallerLineNumber' is not defined.
 BC30002: Type 'CallerMemberName' is not defined.
             <CallerMemberName> Optional m As String = Nothing)
              ~~~~~~~~~~~~~~~~
-")
+]]></expected>)
                 Else
                     AssertTheseDiagnostics(comp,
-"
+<expected><![CDATA[
 BC30529: All parameters must be explicitly typed if any of them are explicitly typed.
             Optional f A String = "",
                      ~
@@ -1128,7 +1128,7 @@ BC30002: Type 'CallerLineNumber' is not defined.
 BC30002: Type 'CallerMemberName' is not defined.
             <CallerMemberName> Optional m As String = Nothing)
              ~~~~~~~~~~~~~~~~
-")
+]]></expected>)
                 End If
             Next
         End Sub
