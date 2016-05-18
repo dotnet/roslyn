@@ -68,7 +68,7 @@ namespace RunTests.Cache
                     exitCode: testCacheData.ExitCode,
                     standardOutput: testCacheData.OutputStandard,
                     errorOutput: testCacheData.OutputError,
-                    resultsFileContent: testCacheData.ResultsFileName,
+                    resultsFileContent: testCacheData.ResultsFileContent,
                     elapsed: TimeSpan.FromSeconds(testCacheData.ElapsedSeconds));
                 return result;
             }
