@@ -8,15 +8,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
         private class TableEntriesSnapshot : ITableEntriesSnapshot
         {
             public int VersionNumber { get; }
-            private readonly ImmutableArray<TableEntry> _entries;
+            private readonly ImmutableList<TableEntry> _entries;
 
-            public TableEntriesSnapshot(ImmutableArray<TableEntry> entries, int versionNumber)
+            public TableEntriesSnapshot(ImmutableList<TableEntry> entries, int versionNumber)
             {
                 _entries = entries;
                 VersionNumber = versionNumber;
             }
 
-            public int Count => _entries.Length;
+            public int Count => _entries.Count;
 
             public void Dispose()
             {
