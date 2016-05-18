@@ -196,7 +196,6 @@ namespace Microsoft.CodeAnalysis.Completion
             return With(tags: tags);
         }
 
-        internal const string DescriptionKey = nameof(DescriptionKey);
 
         public CompletionItem WithDescription(string description)
         {
@@ -209,27 +208,26 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             var properties = Properties ?? ImmutableDictionary<string, string>.Empty;
 
-            // encode description
+            var encoded = CommonCompletionUtilities.EncodeDescription(description);
 
-
+            properties = properties.Add(CommonCompletionUtilities.DescriptionKey, encoded);
             return With(properties: properties);
         }
 
         public bool HasDescription()
         {
-            return Properties.ContainsKey(DescriptionKey);
+            return Properties.ContainsKey(CommonCompletionUtilities.DescriptionKey);
         }
 
         public CompletionDescription GetDescription()
         {
             string encoded;
-            if (!Properties.TryGetValue(DescriptionKey, out encoded))
+            if (!Properties.TryGetValue(CommonCompletionUtilities.DescriptionKey, out encoded))
             {
                 return CompletionDescription.Empty;
             }
 
-            // decode
-            var decoded = ImmutableArray<TaggedText>.Empty;
+            var decoded = CommonCompletionUtilities.DecodeDescription(encoded);
 
             return CompletionDescription.Create(decoded);
         }

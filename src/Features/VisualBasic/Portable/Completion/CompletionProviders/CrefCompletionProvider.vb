@@ -194,8 +194,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Public Overrides Function GetDescriptionAsync(document As Document, item As CompletionItem, cancellationToken As CancellationToken) As Task(Of CompletionDescription)
-            If CommonCompletionItem.HasDescription(item) Then
-                Return Task.FromResult(CommonCompletionItem.GetDescription(item))
+            If item.HasDescription() Then
+                Return Task.FromResult(item.GetDescription())
             Else
                 Return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken)
             End If

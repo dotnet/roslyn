@@ -30,9 +30,9 @@ namespace Microsoft.CodeAnalysis.Completion
 
         public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
         {
-            if (CommonCompletionItem.HasDescription(item))
+            if (item.HasDescription())
             {
-                return Task.FromResult(CommonCompletionItem.GetDescription(item));
+                return Task.FromResult(item.GetDescription());
             }
             else
             {

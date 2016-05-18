@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -18,6 +19,8 @@ namespace Microsoft.CodeAnalysis.Completion
     internal static class CommonCompletionUtilities
     {
         private const string NonBreakingSpaceString = "\x00A0";
+
+        public const string DescriptionKey = "Microsoft.CodeAnalysis.Completion.DescriptionKey";
 
         public static TextSpan GetWordSpan(SourceText text, int position,
             Func<char, bool> isWordStartCharacter, Func<char, bool> isWordCharacter)
@@ -222,6 +225,38 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             return true;
+        }
+
+        private readonly static char[] DescriptionSeparators = new char[] { '|' };
+
+        public static string EncodeDescription(ImmutableArray<TaggedText> description)
+        {
+            if (description.Length > 0)
+            {
+                return string.Join("|",
+                    description
+                        .SelectMany(d => new string[] { d.Tag, d.Text })
+                        .Select(t => t.Escape('\\', DescriptionSeparators)));
+            }
+            else
+            {
+                return string.Empty;
+            }
+        }
+
+        public static ImmutableArray<TaggedText> DecodeDescription(string encoded)
+        {
+            var parts = encoded.Split(DescriptionSeparators).Select(t => t.Unescape('\\')).ToArray();
+
+            Debug.Assert(parts.Length % 2 == 0, "Encoded parts of completion description should be even.");
+
+            var builder = ImmutableArray<TaggedText>.Empty.ToBuilder();
+            for (int i = 0; i < parts.Length; i += 2)
+            {
+                builder.Add(new TaggedText(parts[i], parts[i + 1]));
+            }
+
+            return builder.ToImmutable();
         }
     }
 }
