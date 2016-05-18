@@ -35,7 +35,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             checkBoxStyle.Setters.Add(new Setter(CheckBox.ForegroundProperty, new DynamicResourceExtension(SystemColors.WindowTextBrushKey)));
             Resources.Add(typeof(CheckBox), checkBoxStyle);
 
-            var textBoxStyle = new Style(typeof(TextBox));
+            var textBoxStyle = new System.Windows.Style(typeof(TextBox));
             textBoxStyle.Setters.Add(new Setter(TextBox.MarginProperty, new Thickness() { Left = 7, Right = 7 }));
             textBoxStyle.Setters.Add(new Setter(TextBox.ForegroundProperty, new DynamicResourceExtension(SystemColors.WindowTextBrushKey)));
             Resources.Add(typeof(TextBox), textBoxStyle);
