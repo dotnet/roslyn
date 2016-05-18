@@ -15,6 +15,8 @@ namespace Microsoft.CodeAnalysis.Editor
         /// </summary>
         Task<IEnumerable<INavigableItem>> FindReferencesAsync(Document document, int position, IWaitContext waitContext);
 
+        Task FindReferencesAsync(Document document, int position, FindReferencesContext context);
+
         /// <summary>
         /// Finds the references for the symbol at the specific position in the document and then 
         /// presents them.

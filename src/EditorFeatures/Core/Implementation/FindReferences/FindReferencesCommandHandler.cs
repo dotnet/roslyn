@@ -3,11 +3,13 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.Composition;
+using System.Linq;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -17,21 +19,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
     [ExportCommandHandler(PredefinedCommandHandlerNames.FindReferences,
        ContentTypeNames.RoslynContentType)]
     internal class FindReferencesCommandHandler :
-        ICommandHandler<FindReferencesCommandArgs>
+        ICommandHandler<FindReferencesCommandArgs>,
+        ICommandHandler<AsyncFindReferencesCommandArgs>
     {
         private readonly IEnumerable<IReferencedSymbolsPresenter> _presenters;
+        private readonly IEnumerable<IAsyncFindReferencesPresenter> _asyncPresenters;
         private readonly IWaitIndicator _waitIndicator;
+        private readonly IAsynchronousOperationListener _asyncListener;
 
         [ImportingConstructor]
         internal FindReferencesCommandHandler(
             IWaitIndicator waitIndicator,
-            [ImportMany] IEnumerable<IReferencedSymbolsPresenter> presenters)
+            [ImportMany] IEnumerable<IReferencedSymbolsPresenter> presenters,
+            [ImportMany] IEnumerable<IAsyncFindReferencesPresenter> asyncPresenters,
+            [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
             Contract.ThrowIfNull(waitIndicator);
             Contract.ThrowIfNull(presenters);
 
             _waitIndicator = waitIndicator;
             _presenters = presenters;
+            _asyncPresenters = asyncPresenters;
+            _asyncListener = new AggregateAsynchronousOperationListener(
+                asyncListeners, FeatureAttribute.ReferenceHighlighting);
         }
 
         internal void FindReferences(ITextSnapshot snapshot, int caretPosition)
@@ -81,6 +91,41 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
             var snapshot = args.SubjectBuffer.CurrentSnapshot;
 
             FindReferences(snapshot, caretPosition);
+        }
+
+        public CommandState GetCommandState(AsyncFindReferencesCommandArgs args, Func<CommandState> nextHandler)
+        {
+            return nextHandler();
+        }
+
+        public void ExecuteCommand(AsyncFindReferencesCommandArgs args, Action nextHandler)
+        {
+            var caretPosition = args.TextView.GetCaretPoint(args.SubjectBuffer) ?? -1;
+            if (caretPosition < 0)
+            {
+                nextHandler();
+                return;
+            }
+
+            var snapshot = args.SubjectBuffer.CurrentSnapshot;
+            AsyncFindReferences(snapshot, caretPosition);
+        }
+
+        private async void AsyncFindReferences(ITextSnapshot snapshot, int caretPosition)
+        {
+            var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+            if (document != null)
+            {
+                var presenter = _asyncPresenters.FirstOrDefault();
+                var service = document.Project.LanguageServices.GetService<IFindReferencesService>();
+                if (presenter != null && service != null)
+                {
+                    using (var token = _asyncListener.BeginAsyncOperation(nameof(AsyncFindReferences)))
+                    {
+                        await service.FindReferencesAsync(document, caretPosition, presenter.StartSearch()).ConfigureAwait(false);
+                    }
+                }
+            }
         }
     }
 }
