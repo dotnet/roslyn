@@ -64,6 +64,11 @@
     <Compile Include="Implementation\AnalyzerDependency\IBindingRedirectionService.cs" />
     <Compile Include="Implementation\Extensions\ServiceProviderExtensions.cs" />
     <Compile Include="ID.InteractiveCommands.cs" />
+    <Compile Include="Implementation\FindReferences\AsyncFindReferencesPresenter.cs" />
+    <Compile Include="Implementation\FindReferences\AsyncFindReferencesPresenter.DataSource.cs" />
+    <Compile Include="Implementation\FindReferences\AsyncFindReferencesPresenter.Subscription.cs" />
+    <Compile Include="Implementation\FindReferences\AsyncFindReferencesPresenter.TableEntriesSnapshot.cs" />
+    <Compile Include="Implementation\FindReferences\AsyncFindReferencesPresenter.TableEntry.cs" />
     <Compile Include="Implementation\Interactive\CSharpResetInteractiveMenuCommand.cs" />
     <Compile Include="Implementation\Interactive\AbstractResetInteractiveMenuCommand.cs" />
     <Compile Include="Implementation\Interactive\VisualBasicResetInteractiveMenuCommand.cs" />

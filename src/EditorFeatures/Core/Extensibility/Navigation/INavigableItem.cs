@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
         bool DisplayFileLocation { get; }
 
         /// <summary>
-        /// his is intended for symbols that are ordinary symbols in the language sense, and may be
+        /// This is intended for symbols that are ordinary symbols in the language sense, and may be
         /// used by code, but that are simply declared implicitly rather than with explicit language
         /// syntax.  For example, a default synthesized constructor in C# when the class contains no
         /// explicit constructors.

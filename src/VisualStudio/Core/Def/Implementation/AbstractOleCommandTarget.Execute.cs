@@ -35,6 +35,20 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
                 var contentType = subjectBuffer.ContentType;
 
+                if (pguidCmdGroup == _asyncFindRefsCommandGroup &&
+                    commandId == _asyncFindRefsCommandId)
+                {
+                    int result = VSConstants.S_OK;
+                    var guidCmdGroup = pguidCmdGroup;
+                    Action executeNextCommandTarget = () =>
+                    {
+                        result = NextCommandTarget.Exec(ref guidCmdGroup, commandId, executeInformation, pvaIn, pvaOut);
+                    };
+
+                    ExecuteAsyncFindReferences(subjectBuffer, contentType, executeNextCommandTarget);
+                    return result;
+                }
+
                 if (pguidCmdGroup == VSConstants.VSStd2K)
                 {
                     return ExecuteVisualStudio2000(ref pguidCmdGroup, commandId, executeInformation, pvaIn, pvaOut, subjectBuffer, contentType);
@@ -151,6 +165,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
             return result;
         }
+
+        private static readonly Guid _asyncFindRefsCommandGroup = new Guid("cc5d21e2-c5cf-49d0-bf20-24bb7eb776d8");
+        private static readonly int _asyncFindRefsCommandId = 256; 
 
         private int ExecuteVisualStudio97(ref Guid pguidCmdGroup, uint commandId, uint executeInformation, IntPtr pvaIn, IntPtr pvaOut, ITextBuffer subjectBuffer, IContentType contentType)
         {
@@ -917,6 +934,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         {
             CurrentHandlers.Execute(contentType,
                 args: new FindReferencesCommandArgs(ConvertTextView(), subjectBuffer),
+                lastHandler: executeNextCommandTarget);
+        }
+
+        private void ExecuteAsyncFindReferences(ITextBuffer subjectBuffer, IContentType contentType, Action executeNextCommandTarget)
+        {
+            CurrentHandlers.Execute(contentType,
+                args: new AsyncFindReferencesCommandArgs(ConvertTextView(), subjectBuffer),
                 lastHandler: executeNextCommandTarget);
         }
 
