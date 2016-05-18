@@ -21,7 +21,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
             private readonly IAsynchronousOperationListener _asyncListener;
 
             private readonly object _gate = new object();
-            private ImmutableArray<TableEntry> _entries = ImmutableArray<TableEntry>.Empty;
+            private ImmutableList<TableEntry> _entries = ImmutableList<TableEntry>.Empty;
 
             private TableEntriesSnapshot _lastSnapshot;
 
