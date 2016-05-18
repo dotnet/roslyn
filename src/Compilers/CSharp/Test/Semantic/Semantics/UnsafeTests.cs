@@ -7681,6 +7681,27 @@ class C
 
         #region PointerTypes tests
 
+        [WorkItem(5712, "https://github.com/dotnet/roslyn/issues/5712")]
+        [Fact]
+        public void PathalogicalRefStructPtrMultiDimensionalArray()
+        {
+            var text = @"
+class C
+{
+  class Foo3 { 
+     internal struct Struct1<U> {} 
+  }
+
+  unsafe void NMethodCecilNameHelper_Parameter_AllTogether<U>(ref Foo3.Struct1<int>**[][,,] ppi) { }
+}
+";
+            CreateCompilationWithMscorlib(text, options: TestOptions.UnsafeDebugDll).VerifyDiagnostics(
+                // (8,67): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('C.Foo3.Struct1<int>')
+                //   unsafe void NMethodCecilNameHelper_Parameter_AllTogether<U>(ref Foo3.Struct1<int>**[][,,] ppi) { }
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "Foo3.Struct1<int>*").WithArguments("C.Foo3.Struct1<int>").WithLocation(8, 67));
+        }
+
+
         [WorkItem(543990, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543990")]
         [Fact]
         public void PointerTypeInVolatileField()
