@@ -55,27 +55,27 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
 
                         var service = document.GetLanguageService<SignatureHelpService>();
 
-                        var result = await service.GetSignaturesAsync(document, caretPosition, trigger, cancellationToken: cancellationToken).ConfigureAwait(false);
-                        if (result?.Provider == null)
+                        var signatureList = await service.GetSignaturesAsync(document, caretPosition, trigger, cancellationToken: cancellationToken).ConfigureAwait(false);
+                        if (signatureList?.Provider == null)
                         {
                             return null;
                         }
 
                         if (currentModel != null &&
-                            currentModel.Provider == result.Provider &&
-                            currentModel.GetCurrentSpanInSubjectBuffer(disconnectedBufferGraph.SubjectBufferSnapshot).Span.Start == result.ApplicableSpan.Start &&
-                            currentModel.ArgumentIndex == result.ArgumentIndex &&
-                            currentModel.ArgumentCount == result.ArgumentCount &&
-                            currentModel.ArgumentName == result.ArgumentName)
+                            currentModel.Provider == signatureList.Provider &&
+                            currentModel.GetCurrentSpanInSubjectBuffer(disconnectedBufferGraph.SubjectBufferSnapshot).Span.Start == signatureList.ApplicableSpan.Start &&
+                            currentModel.ArgumentIndex == signatureList.ArgumentIndex &&
+                            currentModel.ArgumentCount == signatureList.ArgumentCount &&
+                            currentModel.ArgumentName == signatureList.ArgumentName)
                         {
                             // The new model is the same as the current model.  Return the currentModel
                             // so we keep the active selection.
                             return currentModel;
                         }
 
-                        var selectedItem = GetSelectedItem(currentModel, result);
-                        var model = new Model(disconnectedBufferGraph, result.ApplicableSpan, result.Provider,
-                            result.Items, selectedItem, result.ArgumentIndex, result.ArgumentCount, result.ArgumentName,
+                        var selectedItem = GetSelectedItem(currentModel, signatureList);
+                        var model = new Model(disconnectedBufferGraph, signatureList.ApplicableSpan, signatureList.Provider,
+                            signatureList.Items, selectedItem, signatureList.ArgumentIndex, signatureList.ArgumentCount, signatureList.ArgumentName,
                             selectedParameter: 0);
 
                         var syntaxFactsService = document.GetLanguageService<ISyntaxFactsService>();
@@ -103,25 +103,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHel
                 return s1 != null && s2 != null && s1.SequenceEqual(s2);
             }
 
-            private static SignatureHelpItem GetSelectedItem(Model currentModel, SignatureList items)
+            private static SignatureHelpItem GetSelectedItem(Model currentModel, SignatureList signatureList)
             {
                 // Try to find the most appropriate item in the list to select by default.
 
                 // If the provider specified one a selected item, then always stick with that one. 
-                if (items.SelectedItemIndex.HasValue)
+                if (signatureList.SelectedItemIndex.HasValue)
                 {
-                    return items.Items[items.SelectedItemIndex.Value];
+                    return signatureList.Items[signatureList.SelectedItemIndex.Value];
                 }
 
                 // If the provider did not pick a default, and it's the same provider as the previous
                 // model we have, then try to return the same item that we had before. 
                 if (currentModel != null)
                 {
-                    return items.Items.FirstOrDefault(i => DisplayPartsMatch(i, currentModel.SelectedItem)) ?? items.Items.First();
+                    return signatureList.Items.FirstOrDefault(i => DisplayPartsMatch(i, currentModel.SelectedItem)) ?? signatureList.Items.First();
                 }
 
                 // Otherwise, just pick the first item we have.
-                return items.Items.First();
+                return signatureList.Items.First();
             }
 
             private static bool DisplayPartsMatch(SignatureHelpItem i1, SignatureHelpItem i2)
