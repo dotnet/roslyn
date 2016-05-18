@@ -499,6 +499,7 @@ namespace Microsoft.CodeAnalysis
             "System.Environment",
 
             "System.Runtime.GCLatencyMode",
+            "System.IFormatProvider",
 
             "System.ValueTuple`1",
             "System.ValueTuple`2",
@@ -506,13 +507,11 @@ namespace Microsoft.CodeAnalysis
             "System.ValueTuple`4",
             "System.ValueTuple`5",
             "System.ValueTuple`6",
-            "System.ValueTuple`7",
 
             "", // extension marker
 
+            "System.ValueTuple`7",
             "System.ValueTuple`8",
-
-            "System.IFormatProvider",
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);
@@ -544,7 +543,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 else if (typeId == WellKnownType.Last)
                 {
-                    typeIdName = "System.IFormatProvider";
+                    typeIdName = "System.ValueTuple`8";
                 }
                 else if (typeId == WellKnownType.ExtSentinel)
                 {
