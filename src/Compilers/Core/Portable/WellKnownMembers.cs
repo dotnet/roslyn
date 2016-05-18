@@ -2647,43 +2647,43 @@ namespace Microsoft.CodeAnalysis
 
                 // System_ValueTuple_T7__Item1
                 (byte)MemberFlags.Field,                                                                                    // Flags
-                (byte)WellKnownType.System_ValueTuple_T7,                                                                   // DeclaringTypeId
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ValueTuple_T7 - WellKnownType.ExtSentinel),    // DeclaringTypeId
                 0,                                                                                                          // Arity
                     (byte)SignatureTypeCode.GenericTypeParameter, 0,                                                        // Field Signature
 
                 // System_ValueTuple_T7__Item2
                 (byte)MemberFlags.Field,                                                                                    // Flags
-                (byte)WellKnownType.System_ValueTuple_T7,                                                                   // DeclaringTypeId
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ValueTuple_T7 - WellKnownType.ExtSentinel),    // DeclaringTypeId
                 0,                                                                                                          // Arity
                     (byte)SignatureTypeCode.GenericTypeParameter, 1,                                                        // Field Signature
 
                 // System_ValueTuple_T7__Item3
                 (byte)MemberFlags.Field,                                                                                    // Flags
-                (byte)WellKnownType.System_ValueTuple_T7,                                                                   // DeclaringTypeId
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ValueTuple_T7 - WellKnownType.ExtSentinel),    // DeclaringTypeId
                 0,                                                                                                          // Arity
                     (byte)SignatureTypeCode.GenericTypeParameter, 2,                                                        // Field Signature
 
                 // System_ValueTuple_T7__Item4
                 (byte)MemberFlags.Field,                                                                                    // Flags
-                (byte)WellKnownType.System_ValueTuple_T7,                                                                   // DeclaringTypeId
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ValueTuple_T7 - WellKnownType.ExtSentinel),    // DeclaringTypeId
                 0,                                                                                                          // Arity
                     (byte)SignatureTypeCode.GenericTypeParameter, 3,                                                        // Field Signature
 
                 // System_ValueTuple_T7__Item5
                 (byte)MemberFlags.Field,                                                                                    // Flags
-                (byte)WellKnownType.System_ValueTuple_T7,                                                                   // DeclaringTypeId
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ValueTuple_T7 - WellKnownType.ExtSentinel),    // DeclaringTypeId
                 0,                                                                                                          // Arity
                     (byte)SignatureTypeCode.GenericTypeParameter, 4,                                                        // Field Signature
 
                 // System_ValueTuple_T7__Item6
                 (byte)MemberFlags.Field,                                                                                    // Flags
-                (byte)WellKnownType.System_ValueTuple_T7,                                                                   // DeclaringTypeId
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ValueTuple_T7 - WellKnownType.ExtSentinel),    // DeclaringTypeId
                 0,                                                                                                          // Arity
                     (byte)SignatureTypeCode.GenericTypeParameter, 5,                                                        // Field Signature
 
                 // System_ValueTuple_T7__Item7
                 (byte)MemberFlags.Field,                                                                                    // Flags
-                (byte)WellKnownType.System_ValueTuple_T7,                                                                   // DeclaringTypeId
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ValueTuple_T7 - WellKnownType.ExtSentinel),    // DeclaringTypeId
                 0,                                                                                                          // Arity
                     (byte)SignatureTypeCode.GenericTypeParameter, 6,                                                        // Field Signature
 
@@ -2800,7 +2800,7 @@ namespace Microsoft.CodeAnalysis
 
                 // System_ValueTuple_T7__ctor
                 (byte)MemberFlags.Constructor,                                                                              // Flags
-                (byte)WellKnownType.System_ValueTuple_T7,                                                                   // DeclaringTypeId
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_ValueTuple_T7 - WellKnownType.ExtSentinel),    // DeclaringTypeId
                 0,                                                                                                          // Arity
                     7,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
@@ -2833,7 +2833,7 @@ namespace Microsoft.CodeAnalysis
                 0,                                                                                                          // Arity
                     3,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
-                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_IFormatProvider - WellKnownType.ExtSentinel),
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_IFormatProvider,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
                     (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
             };

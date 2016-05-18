@@ -3052,11 +3052,12 @@ class C3
             var comp1 = CreateCompilationWithMscorlib(trivial2uple, assemblyName: "comp1", parseOptions: TestOptions.Regular.WithTuplesFeature());
             var comp2 = CreateCompilationWithMscorlib(trivial2uple, parseOptions: TestOptions.Regular.WithTuplesFeature());
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) }, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics(
-                // warning CS1685: The predefined type 'ValueTuple<T1, T2>' is defined in multiple assemblies in the global alias; using definition from 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
-                Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.ValueTuple<T1, T2>", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
-                                );
+                // (6,17): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         var x = (1, 1);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2").WithLocation(6, 17)
+                );
         }
 
         [Fact]
@@ -3071,11 +3072,12 @@ class C3
             var comp1 = CreateCompilationWithMscorlib(trivial2uple, assemblyName: "comp1", parseOptions: TestOptions.Regular.WithTuplesFeature());
             var comp2 = CreateCompilationWithMscorlib(trivial2uple, parseOptions: TestOptions.Regular.WithTuplesFeature());
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) }, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics(
-                // warning CS1685: The predefined type 'ValueTuple<T1, T2>' is defined in multiple assemblies in the global alias; using definition from 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
-                Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.ValueTuple<T1, T2>", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
-                                );
+                // (4,19): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //     public void M((int, int) x) { }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2").WithLocation(4, 19)
+                );
         }
 
         [Fact]
@@ -10607,26 +10609,22 @@ class C3
                 parseOptions: TestOptions.Regular.WithTuplesFeature(), 
                 options: TestOptions.DebugExe);
 
-            // !!! --- Expected to get an error for the tuple literal
             comp.VerifyDiagnostics(
-                // warning CS1685: The predefined type 'ValueTuple<T1, T2>' is defined in multiple assemblies in the global alias; using definition from 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
-                Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.ValueTuple<T1, T2>", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
-                                );
-
-            CompileAndVerify(comp, expectedOutput: "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
+                // (6,17): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         var x = (1, 1);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2").WithLocation(6, 17)
+                );
 
             comp = CreateCompilationWithMscorlib(source,
                 references: new[] { comp2.ToMetadataReference(), comp1.ToMetadataReference() },
                 parseOptions: TestOptions.Regular.WithTuplesFeature(),
                 options: TestOptions.DebugExe);
 
-            // !!! --- Expected to get an error for the tuple literal
             comp.VerifyDiagnostics(
-                // warning CS1685: The predefined type 'ValueTuple<T1, T2>' is defined in multiple assemblies in the global alias; using definition from 'comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
-                Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.ValueTuple<T1, T2>", "comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
-                                );
-
-            CompileAndVerify(comp, expectedOutput: "comp2, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
+                // (6,17): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         var x = (1, 1);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2").WithLocation(6, 17)
+                );
 
             comp = CreateCompilationWithMscorlib(source,
                 references: new[] { comp2.ToMetadataReference(ImmutableArray.Create("alias")), comp1.ToMetadataReference() },
@@ -10634,7 +10632,6 @@ class C3
                 options: TestOptions.DebugExe);
 
             comp.VerifyDiagnostics();
-            // This should still work
             CompileAndVerify(comp, expectedOutput: "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
         }
 
@@ -10676,10 +10673,11 @@ class C3
                 parseOptions: TestOptions.Regular.WithTuplesFeature(),
                 options: TestOptions.DebugExe);
 
-            // !!! --- Expected to get an error for the tuple literal
-            comp.VerifyDiagnostics();
-
-            CompileAndVerify(comp, expectedOutput: "C2.M1");
+            comp.VerifyDiagnostics(
+                // (6,16): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         "x".M1((1, null));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(1, null)").WithArguments("System.ValueTuple`2").WithLocation(6, 16)
+                );
 
             comp = CreateCompilationWithMscorlib(source3,
                             references: new[] { comp1.ToMetadataReference().WithAliases(ImmutableArray.Create("alias")), comp2.ToMetadataReference() },
@@ -10687,7 +10685,6 @@ class C3
                             options: TestOptions.DebugExe);
 
             comp.VerifyDiagnostics();
-            // This should still work
             CompileAndVerify(comp, expectedOutput: "C2.M1");
 
             var source4 = @"
@@ -10709,7 +10706,83 @@ class C3
                             options: TestOptions.DebugExe);
 
             comp.VerifyDiagnostics();
-            // This should still work
+            CompileAndVerify(comp, expectedOutput: "C2.M1");
+        }
+
+        [Fact]
+        [WorkItem(11322, "https://github.com/dotnet/roslyn/issues/11322")]
+        public void LongLiteralsAndAmbiguousVT_02()
+        {
+            var source1 = trivial2uple + trivial3uple + trivalRemainingTuples;
+
+            var source2 = @"
+public static class C2
+{
+    public static void M1(this string x, (int, string, int, string, int, string, int, string, int, string) y)
+    {
+        System.Console.WriteLine(""C2.M1"");
+    }
+}
+" + trivial2uple + trivial3uple + trivalRemainingTuples;
+
+            var comp1 = CreateCompilationWithMscorlibAndSystemCore(source1, assemblyName: "comp1",
+                                                      parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp1.VerifyDiagnostics();
+            var comp2 = CreateCompilationWithMscorlibAndSystemCore(source2, assemblyName: "comp2",
+                                                      parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp2.VerifyDiagnostics();
+
+            var source3 = @"
+class C3
+{
+    public static void Main()
+    {
+        ""x"".M1((1, null, 1, null, 1, null, 1, null, 1, null));
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source3,
+                references: new[] { comp1.ToMetadataReference(), comp2.ToMetadataReference() },
+                parseOptions: TestOptions.Regular.WithTuplesFeature(),
+                options: TestOptions.DebugExe);
+
+            comp.VerifyDiagnostics(
+                // (6,16): error CS0518: Predefined type 'System.ValueTuple`3' is not defined or imported
+                //         "x".M1((1, null, 1, null, 1, null, 1, null, 1, null));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(1, null, 1, null, 1, null, 1, null, 1, null)").WithArguments("System.ValueTuple`3").WithLocation(6, 16),
+                // (6,16): error CS0518: Predefined type 'System.ValueTuple`8' is not defined or imported
+                //         "x".M1((1, null, 1, null, 1, null, 1, null, 1, null));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(1, null, 1, null, 1, null, 1, null, 1, null)").WithArguments("System.ValueTuple`8").WithLocation(6, 16)
+                );
+
+            comp = CreateCompilationWithMscorlib(source3,
+                            references: new[] { comp1.ToMetadataReference().WithAliases(ImmutableArray.Create("alias")), comp2.ToMetadataReference() },
+                            parseOptions: TestOptions.Regular.WithTuplesFeature(),
+                            options: TestOptions.DebugExe);
+
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "C2.M1");
+
+            var source4 = @"
+extern alias alias1;
+using alias1;
+
+class C3
+{
+    public static void Main()
+    {
+        ""x"".M1((1, null, 1, null, 1, null, 1, null, 1, null));
+    }
+}
+";
+
+            comp = CreateCompilationWithMscorlib(source4,
+                            references: new[] { comp1.ToMetadataReference(), comp2.ToMetadataReference().WithAliases(ImmutableArray.Create("alias1")) },
+                            parseOptions: TestOptions.Regular.WithTuplesFeature(),
+                            options: TestOptions.DebugExe);
+
+            comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "C2.M1");
         }
 
