@@ -427,6 +427,52 @@ public class C<S, T>
             TestRoundTrip(constructed, compilation);
         }
 
+        [Fact, WorkItem(11193, "https://github.com/dotnet/roslyn/issues/11193")]
+        public async Task TestGetInteriorSymbolsDoesNotCrashOnSpeculativeSemanticModel()
+        {
+            var markup = @"
+class C
+{
+    void foo()
+    {
+        System.Func<int> lambda = () => 
+        {
+        int x;
+        $$
+        }
+    }
+}";
+            int position;
+            string text;
+            MarkupTestFile.GetPosition(markup, out text, out position);
+
+            var sourceText = SourceText.From(text);
+            var workspace = new AdhocWorkspace();
+            var project = workspace.AddProject("Test", LanguageNames.CSharp);
+            var document = workspace.AddDocument(project.Id, "testdocument", sourceText);
+
+            var firstModel = await document.GetSemanticModelAsync();
+            var tree1 = await document.GetSyntaxTreeAsync();
+            var basemethod1 = tree1.FindTokenOnLeftOfPosition(position, CancellationToken.None).GetAncestor<BaseMethodDeclarationSyntax>();
+
+            // Modify the document so we can use the old semantic model as a base.
+            var updated = sourceText.WithChanges(new TextChange(new TextSpan(position, 0), "insertion"));
+            workspace.TryApplyChanges(document.WithText(updated).Project.Solution);
+
+            document = workspace.CurrentSolution.GetDocument(document.Id);
+            var tree2 = await document.GetSyntaxTreeAsync();
+            var basemethod2 = tree2.FindTokenOnLeftOfPosition(position, CancellationToken.None).GetAncestor<BaseMethodDeclarationSyntax>();
+
+            var service = new CSharpSemanticFactsService();
+            SemanticModel testModel;
+            var m = service.TryGetSpeculativeSemanticModel(firstModel, basemethod1, basemethod2, out testModel);
+
+            var xSymbol = testModel.LookupSymbols(position).First(s => s.Name == "x");
+
+            // This should not throw an exception.
+            Assert.NotNull(SymbolId.CreateId(xSymbol));
+        }
+
         private void TestRoundTrip(IEnumerable<ISymbol> symbols, Compilation compilation, Func<ISymbol, object> fnId = null)
         {
             foreach (var symbol in symbols)
