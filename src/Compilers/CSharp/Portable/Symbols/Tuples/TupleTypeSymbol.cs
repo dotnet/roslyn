@@ -369,6 +369,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// For tuples with no natural type, we still need to verify that an underlying type of proper arity exists, and report if otherwise.
+        /// </summary>
+        internal static void VerifyTupleTypePresent(int cardinality, CSharpSyntaxNode syntax, CSharpCompilation compilation, DiagnosticBag diagnostics)
+        {
+            int remainder;
+            int chainLength = NumberOfValueTuples(cardinality, out remainder);
+
+            NamedTypeSymbol firstTupleType = compilation.GetWellKnownType(GetTupleType(remainder));
+
+            if ((object)diagnostics != null && (object)syntax != null)
+            {
+                Binder.ReportUseSiteDiagnostics(firstTupleType, diagnostics, syntax);
+            }
+
+            if (chainLength > 1)
+            {
+                NamedTypeSymbol chainedTupleType = compilation.GetWellKnownType(GetTupleType(RestPosition));
+
+                if ((object)diagnostics != null && (object)syntax != null)
+                {
+                    Binder.ReportUseSiteDiagnostics(chainedTupleType, diagnostics, syntax);
+
+                }
+            }
+        }
+
+        /// <summary>
         /// Find the well-known ValueTuple type of a given arity.
         /// For example, for arity=2:
         /// returns WellKnownType.System_ValueTuple_T2

@@ -10628,7 +10628,6 @@ class C3
                 options: TestOptions.DebugExe);
 
             comp.VerifyDiagnostics();
-            // This should still work
             CompileAndVerify(comp, expectedOutput: "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null");
         }
 
@@ -10670,10 +10669,10 @@ class C3
                 parseOptions: TestOptions.Regular.WithTuplesFeature(),
                 options: TestOptions.DebugExe);
 
-            // !!! --- Expected to get an error for the tuple literal
-            comp.VerifyDiagnostics();
-
-            CompileAndVerify(comp, expectedOutput: "C2.M1");
+            comp.VerifyDiagnostics(
+                // error CS8206: Predefined type 'ValueTuple<T1, T2>' cannot be used because it was defined or imported more than once.
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotUniquelyFound).WithArguments("System.ValueTuple<T1, T2>").WithLocation(1, 1)
+                );
 
             comp = CreateCompilationWithMscorlib(source3,
                             references: new[] { comp1.ToMetadataReference().WithAliases(ImmutableArray.Create("alias")), comp2.ToMetadataReference() },
@@ -10681,7 +10680,6 @@ class C3
                             options: TestOptions.DebugExe);
 
             comp.VerifyDiagnostics();
-            // This should still work
             CompileAndVerify(comp, expectedOutput: "C2.M1");
 
             var source4 = @"
@@ -10703,7 +10701,81 @@ class C3
                             options: TestOptions.DebugExe);
 
             comp.VerifyDiagnostics();
-            // This should still work
+            CompileAndVerify(comp, expectedOutput: "C2.M1");
+        }
+
+        [Fact]
+        [WorkItem(11322, "https://github.com/dotnet/roslyn/issues/11322")]
+        public void LongLiteralsAndAmbiguousVT_02()
+        {
+            var source1 = trivial2uple + trivial3uple + trivalRemainingTuples;
+
+            var source2 = @"
+public static class C2
+{
+    public static void M1(this string x, (int, string, int, string, int, string, int, string, int, string) y)
+    {
+        System.Console.WriteLine(""C2.M1"");
+    }
+}
+" + trivial2uple + trivial3uple + trivalRemainingTuples;
+
+            var comp1 = CreateCompilationWithMscorlibAndSystemCore(source1, assemblyName: "comp1",
+                                                      parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp1.VerifyDiagnostics();
+            var comp2 = CreateCompilationWithMscorlibAndSystemCore(source2, assemblyName: "comp2",
+                                                      parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp2.VerifyDiagnostics();
+
+            var source3 = @"
+class C3
+{
+    public static void Main()
+    {
+        ""x"".M1((1, null, 1, null, 1, null, 1, null, 1, null));
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source3,
+                references: new[] { comp1.ToMetadataReference(), comp2.ToMetadataReference() },
+                parseOptions: TestOptions.Regular.WithTuplesFeature(),
+                options: TestOptions.DebugExe);
+
+            comp.VerifyDiagnostics(
+                // error CS8206: Predefined type 'ValueTuple<T1, T2, T3>' cannot be used because it was defined or imported more than once.
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotUniquelyFound).WithArguments("System.ValueTuple<T1, T2, T3>").WithLocation(1, 1),
+                // error CS8206: Predefined type 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>' cannot be used because it was defined or imported more than once.
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotUniquelyFound).WithArguments("System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>").WithLocation(1, 1)
+                );
+
+            comp = CreateCompilationWithMscorlib(source3,
+                            references: new[] { comp1.ToMetadataReference().WithAliases(ImmutableArray.Create("alias")), comp2.ToMetadataReference() },
+                            parseOptions: TestOptions.Regular.WithTuplesFeature(),
+                            options: TestOptions.DebugExe);
+
+            comp.VerifyDiagnostics();
+            CompileAndVerify(comp, expectedOutput: "C2.M1");
+
+            var source4 = @"
+extern alias alias1;
+using alias1;
+
+class C3
+{
+    public static void Main()
+    {
+        ""x"".M1((1, null, 1, null, 1, null, 1, null, 1, null));
+    }
+}
+";
+
+            comp = CreateCompilationWithMscorlib(source4,
+                            references: new[] { comp1.ToMetadataReference(), comp2.ToMetadataReference().WithAliases(ImmutableArray.Create("alias1")) },
+                            parseOptions: TestOptions.Regular.WithTuplesFeature(),
+                            options: TestOptions.DebugExe);
+
+            comp.VerifyDiagnostics();
             CompileAndVerify(comp, expectedOutput: "C2.M1");
         }
 
