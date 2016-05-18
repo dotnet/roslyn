@@ -7,11 +7,8 @@
     "net45": { }
   },
   "runtimes": {
-    "win7-anycpu": { },
     "win7": { },
     "ubuntu.14.04": { },
-    "ubuntu.14.04-anycpu": { },
-    "osx.10.10": { },
-    "osx.10.10-anycpu": { }
+    "osx.10.10": { }
   }
 }
