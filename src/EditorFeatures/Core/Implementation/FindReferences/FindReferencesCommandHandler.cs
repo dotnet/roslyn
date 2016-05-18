@@ -122,7 +122,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.FindReferences
                 {
                     using (var token = _asyncListener.BeginAsyncOperation(nameof(AsyncFindReferences)))
                     {
-                        await service.FindReferencesAsync(document, caretPosition, presenter.StartSearch()).ConfigureAwait(false);
+                        var context = presenter.StartSearch();
+                        if (context != null)
+                        {
+                            await service.FindReferencesAsync(document, caretPosition, presenter.StartSearch()).ConfigureAwait(false);
+                        }
                     }
                 }
             }
