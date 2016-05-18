@@ -99,7 +99,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 if (!await TryDeserializeAsync(serializer, project, project.Id, _owner.NonLocalStateName, builder.AddOthers, cancellationToken).ConfigureAwait(false))
                 {
-                    Contract.Requires(false, "How this can happen?");
+                    // this can happen if SaveAsync is not yet called but active file merge happened. one of case is if user did build before the very first
+                    // analysis happened.
                 }
 
                 return builder.ToResult();
@@ -178,7 +179,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 if (!await TryDeserializeAsync(serializer, project, project.Id, _owner.NonLocalStateName, builder.AddOthers, cancellationToken).ConfigureAwait(false))
                 {
-                    Contract.Requires(false, "How this can happen?");
+                    // this can happen if SaveAsync is not yet called but active file merge happened. one of case is if user did build before the very first
+                    // analysis happened.
                 }
 
                 return builder.ToResult();
