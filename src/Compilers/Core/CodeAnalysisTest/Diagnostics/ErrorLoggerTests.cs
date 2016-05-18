@@ -93,10 +93,25 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         public void DescriptorIdCollision()
         {
             var descriptors = new[] {
+                // Toughest case: generation of TST001.001 collides with with actual TST001.001 and must be bumped to TST00.002
                 new DiagnosticDescriptor("TST001.001",    "_TST001.001_",     "", "", DiagnosticSeverity.Warning, true),
                 new DiagnosticDescriptor("TST001",        "_TST001_",         "", "", DiagnosticSeverity.Warning, true),
                 new DiagnosticDescriptor("TST001",        "_TST001.002_",     "", "", DiagnosticSeverity.Warning, true),
                 new DiagnosticDescriptor("TST001",        "_TST001.003_",     "", "", DiagnosticSeverity.Warning, true),
+
+                // Descriptors with same values should not get distinct entries in log
+                new DiagnosticDescriptor("TST002", "", "", "", DiagnosticSeverity.Warning, true),
+                new DiagnosticDescriptor("TST002", "", "", "", DiagnosticSeverity.Warning, true),
+
+                // Changing only the message format (which we do not write out) should not produce a distinct entry in log.
+                new DiagnosticDescriptor("TST002", "", "messageFormat", "", DiagnosticSeverity.Warning, true),
+
+                // Changing any property that we do write out should create a distinct entry
+                new DiagnosticDescriptor("TST002", "title_001", "", "", DiagnosticSeverity.Warning, true),
+                new DiagnosticDescriptor("TST002", "", "", "category_002", DiagnosticSeverity.Warning, true),
+                new DiagnosticDescriptor("TST002", "", "", "", DiagnosticSeverity.Error /*003*/, true),
+                new DiagnosticDescriptor("TST002", "", "", "", DiagnosticSeverity.Warning, isEnabledByDefault: false /*004*/),
+                new DiagnosticDescriptor("TST002", "", "", "", DiagnosticSeverity.Warning, true, "description_005"),
             };
 
             var stream = new MemoryStream();
@@ -155,6 +170,65 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
           }
         },
         {
+          ""ruleId"": ""TST002"",
+          ""level"": ""warning"",
+          ""properties"": {
+            ""warningLevel"": 1
+          }
+        },
+        {
+          ""ruleId"": ""TST002"",
+          ""level"": ""warning"",
+          ""properties"": {
+            ""warningLevel"": 1
+          }
+        },
+        {
+          ""ruleId"": ""TST002"",
+          ""level"": ""warning"",
+          ""message"": ""messageFormat"",
+          ""properties"": {
+            ""warningLevel"": 1
+          }
+        },
+        {
+          ""ruleId"": ""TST002"",
+          ""ruleKey"": ""TST002.001"",
+          ""level"": ""warning"",
+          ""properties"": {
+            ""warningLevel"": 1
+          }
+        },
+        {
+          ""ruleId"": ""TST002"",
+          ""ruleKey"": ""TST002.002"",
+          ""level"": ""warning"",
+          ""properties"": {
+            ""warningLevel"": 1
+          }
+        },
+        {
+          ""ruleId"": ""TST002"",
+          ""ruleKey"": ""TST002.003"",
+          ""level"": ""error""
+        },
+        {
+          ""ruleId"": ""TST002"",
+          ""ruleKey"": ""TST002.004"",
+          ""level"": ""warning"",
+          ""properties"": {
+            ""warningLevel"": 1
+          }
+        },
+        {
+          ""ruleId"": ""TST002"",
+          ""ruleKey"": ""TST002.005"",
+          ""level"": ""warning"",
+          ""properties"": {
+            ""warningLevel"": 1
+          }
+        },
+        {
           ""ruleId"": ""TST001.001"",
           ""level"": ""warning"",
           ""properties"": {
@@ -179,6 +253,65 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         {
           ""ruleId"": ""TST001"",
           ""ruleKey"": ""TST001.003"",
+          ""level"": ""warning"",
+          ""properties"": {
+            ""warningLevel"": 1
+          }
+        },
+        {
+          ""ruleId"": ""TST002"",
+          ""level"": ""warning"",
+          ""properties"": {
+            ""warningLevel"": 1
+          }
+        },
+        {
+          ""ruleId"": ""TST002"",
+          ""level"": ""warning"",
+          ""properties"": {
+            ""warningLevel"": 1
+          }
+        },
+        {
+          ""ruleId"": ""TST002"",
+          ""level"": ""warning"",
+          ""message"": ""messageFormat"",
+          ""properties"": {
+            ""warningLevel"": 1
+          }
+        },
+        {
+          ""ruleId"": ""TST002"",
+          ""ruleKey"": ""TST002.001"",
+          ""level"": ""warning"",
+          ""properties"": {
+            ""warningLevel"": 1
+          }
+        },
+        {
+          ""ruleId"": ""TST002"",
+          ""ruleKey"": ""TST002.002"",
+          ""level"": ""warning"",
+          ""properties"": {
+            ""warningLevel"": 1
+          }
+        },
+        {
+          ""ruleId"": ""TST002"",
+          ""ruleKey"": ""TST002.003"",
+          ""level"": ""error""
+        },
+        {
+          ""ruleId"": ""TST002"",
+          ""ruleKey"": ""TST002.004"",
+          ""level"": ""warning"",
+          ""properties"": {
+            ""warningLevel"": 1
+          }
+        },
+        {
+          ""ruleId"": ""TST002"",
+          ""ruleKey"": ""TST002.005"",
           ""level"": ""warning"",
           ""properties"": {
             ""warningLevel"": 1
@@ -213,6 +346,51 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         ""TST001.003"": {
           ""id"": ""TST001"",
           ""shortDescription"": ""_TST001.003_"",
+          ""defaultLevel"": ""warning"",
+          ""properties"": {
+            ""isEnabledByDefault"": true
+          }
+        },
+        ""TST002"": {
+          ""id"": ""TST002"",
+          ""defaultLevel"": ""warning"",
+          ""properties"": {
+            ""isEnabledByDefault"": true
+          }
+        },
+        ""TST002.001"": {
+          ""id"": ""TST002"",
+          ""shortDescription"": ""title_001"",
+          ""defaultLevel"": ""warning"",
+          ""properties"": {
+            ""isEnabledByDefault"": true
+          }
+        },
+        ""TST002.002"": {
+          ""id"": ""TST002"",
+          ""defaultLevel"": ""warning"",
+          ""properties"": {
+            ""category"": ""category_002"",
+            ""isEnabledByDefault"": true
+          }
+        },
+        ""TST002.003"": {
+          ""id"": ""TST002"",
+          ""defaultLevel"": ""error"",
+          ""properties"": {
+            ""isEnabledByDefault"": true
+          }
+        },
+        ""TST002.004"": {
+          ""id"": ""TST002"",
+          ""defaultLevel"": ""warning"",
+          ""properties"": {
+            ""isEnabledByDefault"": false
+          }
+        },
+        ""TST002.005"": {
+          ""id"": ""TST002"",
+          ""fullDescription"": ""description_005"",
           ""defaultLevel"": ""warning"",
           ""properties"": {
             ""isEnabledByDefault"": true

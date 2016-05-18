@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis
             private Dictionary<string, int> _counters = new Dictionary<string, int>();
 
             // DiagnosticDescriptor -> unique key
-            private Dictionary<DiagnosticDescriptor, string> _keys = new Dictionary<DiagnosticDescriptor, string>();
+            private Dictionary<DiagnosticDescriptor, string> _keys = new Dictionary<DiagnosticDescriptor, string>(new Comparer());
 
             /// <summary>
             /// The total number of descriptors in the set.
@@ -380,6 +380,54 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(list.Capacity == list.Count);
                 list.Sort((x, y) => string.CompareOrdinal(x.Key, y.Key));
                 return list;
+            }
+
+            /// <summary>
+            /// Compares descriptors by the values that we write to the log and nothing else.
+            /// 
+            /// We cannot use the IEquatable implementation because it includes message format 
+            /// and we don't write it out. It also ignores tags, which we do write.
+            /// </summary>
+            private sealed class Comparer : IEqualityComparer<DiagnosticDescriptor>
+            {
+                public bool Equals(DiagnosticDescriptor x, DiagnosticDescriptor y)
+                {
+                    if (ReferenceEquals(x, y))
+                        return true;
+
+                    if (ReferenceEquals(x, null) || ReferenceEquals(y, null))
+                        return false;
+
+                   return (x.Category == y.Category
+                        && x.DefaultSeverity == y.DefaultSeverity
+                        && x.Description.Equals(y.Description)
+                        && x.HelpLinkUri == y.HelpLinkUri
+                        && x.Id == y.Id
+                        && x.IsEnabledByDefault == y.IsEnabledByDefault
+                        && x.Title.Equals(y.Title)
+                        && x.CustomTags.SequenceEqual(y.CustomTags));
+                }
+
+                public int GetHashCode(DiagnosticDescriptor obj)
+                {
+                    if (ReferenceEquals(obj, null))
+                        return 0;
+
+                    int hash = Hash.Combine(obj.Category.GetHashCode(),
+                        Hash.Combine(obj.DefaultSeverity.GetHashCode(),
+                        Hash.Combine(obj.Description.GetHashCode(),
+                        Hash.Combine(obj.HelpLinkUri.GetHashCode(),
+                        Hash.Combine(obj.Id.GetHashCode(),
+                        Hash.Combine(obj.IsEnabledByDefault.GetHashCode(),
+                        obj.Title.GetHashCode()))))));
+
+                    foreach (string tag in obj.CustomTags)
+                    {
+                        hash = Hash.Combine(tag, hash);
+                    }
+
+                    return hash;
+                }
             }
         }
     }
