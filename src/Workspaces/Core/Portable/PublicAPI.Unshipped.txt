@@ -1,2 +1,15 @@
-static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.TryParse(string value, out Microsoft.CodeAnalysis.Editing.DeclarationModifiers modifiers) -> bool
+Microsoft.CodeAnalysis.CodeActions.CodeAction.CodeAction() -> void
+Microsoft.CodeAnalysis.CodeActions.CodeActionOperation.CodeActionOperation() -> void
+Microsoft.CodeAnalysis.CodeActions.CodeActionWithOptions.CodeActionWithOptions() -> void
+Microsoft.CodeAnalysis.CodeActions.PreviewOperation.PreviewOperation() -> void
+Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider.CodeFixProvider() -> void
+Microsoft.CodeAnalysis.CodeFixes.FixAllContext.DiagnosticProvider.DiagnosticProvider() -> void
+Microsoft.CodeAnalysis.CodeFixes.FixAllProvider.FixAllProvider() -> void
+Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringProvider.CodeRefactoringProvider() -> void
+Microsoft.CodeAnalysis.Editing.SyntaxGenerator.SyntaxGenerator() -> void
+Microsoft.CodeAnalysis.Host.HostLanguageServices.HostLanguageServices() -> void
+Microsoft.CodeAnalysis.Host.HostServices.HostServices() -> void
+Microsoft.CodeAnalysis.Host.HostWorkspaceServices.HostWorkspaceServices() -> void
+Microsoft.CodeAnalysis.TextLoader.TextLoader() -> void
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.NameOfExpression(Microsoft.CodeAnalysis.SyntaxNode expression) -> Microsoft.CodeAnalysis.SyntaxNode
+static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.TryParse(string value, out Microsoft.CodeAnalysis.Editing.DeclarationModifiers modifiers) -> bool

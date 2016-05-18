@@ -12,6 +12,11 @@
   <Rules AnalyzerId="System.Runtime.Analyzers" RuleNamespace="System.Runtime.Analyzers">
     <!-- Avoid zero length allocations - suppress for non-shipping/test projects (originally RS0007) -->
     <Rule Id="CA1825" Action="None" />
+    <!-- Do not use Enumerable methods on indexable collections - suppressed because we have lot of violations in non-shipping/test projects.
+         We can fix all violations once we have a code fix with fix all, and then remove this suppression.
+    -->
+    <Rule Id="RS0014" Action="None" />
+
   </Rules>
 
   <Rules AnalyzerId="Microsoft.CodeAnalysis.Analyzers" RuleNamespace="Microsoft.CodeAnalysis.Analyzers">

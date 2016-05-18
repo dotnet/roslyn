@@ -1,18 +1,12 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Net;
 using System.Runtime.CompilerServices;
-using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Roslyn.Test.Performance.Utilities
 {
-    public class RelativeDirectory
+    internal class RelativeDirectory
     {
         string _workingDir;
 

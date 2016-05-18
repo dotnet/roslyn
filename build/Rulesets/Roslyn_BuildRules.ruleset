@@ -15,6 +15,7 @@
     <Rule Id="CA1040" Action="None" />
     <Rule Id="CA1041" Action="None" />
     <Rule Id="CA1043" Action="None" />
+    <Rule Id="CA1051" Action="None" />
     <Rule Id="CA1052" Action="None" />
     <Rule Id="CA1054" Action="None" />
     <Rule Id="CA1055" Action="None" />
@@ -34,8 +35,9 @@
     <Rule Id="CA1720" Action="None" />
     <Rule Id="CA1721" Action="None" />
     <Rule Id="CA1724" Action="None" />
-    <Rule Id="CA1815" Action="None" />        <!-- Suppressed until https://github.com/dotnet/roslyn-analyzers/issues/899 is fixed -->
+    <Rule Id="CA1815" Action="None" />
     <Rule Id="CA2007" Action="Warning" />
+    <Rule Id="CA2211" Action="None" />
     <Rule Id="CA2218" Action="None" />
     <Rule Id="CA2222" Action="None" />
     <Rule Id="CA2224" Action="None" />
@@ -75,13 +77,18 @@
     <Rule Id="RS0022" Action="Error" />
     <Rule Id="RS0024" Action="Error" />
     <Rule Id="RS0025" Action="Error" />
+    <Rule Id="RS0026" Action="Error" />
+    <Rule Id="RS0027" Action="Error" />
   </Rules>
   <Rules AnalyzerId="System.Collections.Immutable.Analyzers" RuleNamespace="System.Collections.Immutable.Analyzers">
     <Rule Id="RS0012" Action="Warning" />
   </Rules>
   <Rules AnalyzerId="System.Runtime.Analyzers" RuleNamespace="System.Runtime.Analyzers">
+    <Rule Id="CA1305" Action="None" />
+    <Rule Id="CA1307" Action="None" />
     <Rule Id="CA1308" Action="None" />
     <Rule Id="CA1810" Action="None" />
+    <Rule Id="CA1816" Action="None" />
     <Rule Id="CA1825" Action="Warning" />
     <Rule Id="CA2002" Action="None" />
     <Rule Id="CA2207" Action="None" />
