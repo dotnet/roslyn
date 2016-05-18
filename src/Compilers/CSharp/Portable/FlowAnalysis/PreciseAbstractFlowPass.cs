@@ -1521,7 +1521,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 VisitLvalue(variable);
             }
 
-            VisitRvalue(node.DeconstructReceiver);
+            VisitRvalue(node.Right);
 
             return null;
         }

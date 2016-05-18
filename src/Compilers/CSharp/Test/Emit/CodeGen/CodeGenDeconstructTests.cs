@@ -110,9 +110,9 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics(
-                // (8,18): error CS8208: The Deconstruct method for type 'C' has the wrong number of parameters for this deconstruction.
+                // (8,18): error CS8209: The Deconstruct method for type 'C' doesn't have the number of parameters (2) needed for this deconstruction.
                 //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_DeconstructWrongParams, "new C()").WithArguments("C").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_DeconstructWrongParams, "new C()").WithArguments("C", "2").WithLocation(8, 18)
                 );
         }
 
@@ -139,9 +139,9 @@ class C
                 // (8,17): error CS1061: 'string' does not contain a definition for 'g' and no extension method 'g' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                 //         (x.f, y.g) = new C();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "g").WithArguments("string", "g").WithLocation(8, 17),
-                // (8,22): error CS8208: The Deconstruct method for type 'C' has the wrong number of parameters for this deconstruction.
+                // (8,22): error CS8209: The Deconstruct method for type 'C' doesn't have the number of parameters (2) needed for this deconstruction.
                 //         (x.f, y.g) = new C();
-                Diagnostic(ErrorCode.ERR_DeconstructWrongParams, "new C()").WithArguments("C").WithLocation(8, 22)
+                Diagnostic(ErrorCode.ERR_DeconstructWrongParams, "new C()").WithArguments("C", "2").WithLocation(8, 22)
                 );
         }
 
@@ -538,6 +538,28 @@ class C
                 // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
                 //         (a, b) => { };
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "(a, b) => { }").WithLocation(6, 9)
+                );
+        }
+
+        [Fact]
+        public void CastButNotCast()
+        {
+            // int and string must be types, so (int, string) must be type and ((int, string)) a cast, but then .String() cannot follow a cast...
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        ((int, string)).ToString();
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // (6,24): error CS1525: Invalid expression term '.'
+                //         ((int, string)).ToString();
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ".").WithArguments(".").WithLocation(6, 24)
                 );
         }
     }

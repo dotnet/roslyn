@@ -23,11 +23,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 lhsReceivers.Add(TransformCompoundAssignmentLHS(variable, stores, temps, isDynamicAssignment: false));
             }
 
-            BoundExpression loweredRight = VisitExpression(node.DeconstructReceiver);
+            BoundExpression loweredRight = VisitExpression(node.Right);
 
             // prepare out parameters for Deconstruct
-            var outParametersBuilder = ArrayBuilder<BoundExpression>.GetInstance();
             var deconstructParameters = node.DeconstructMember.Parameters;
+            var outParametersBuilder = ArrayBuilder<BoundExpression>.GetInstance(deconstructParameters.Length);
             Debug.Assert(deconstructParameters.Length == node.LeftVariables.Length);
 
             for (int i = 0; i < numVariables; i++)

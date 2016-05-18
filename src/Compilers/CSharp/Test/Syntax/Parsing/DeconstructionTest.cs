@@ -698,6 +698,50 @@ class C
         }
 
         [Fact]
+        public void NotACast()
+        {
+            var text = "((Int32.MaxValue, Int32.MaxValue)).ToString();";
+            var statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
+            Assert.False(statement.HasErrors);
+
+            var expression = ((ExpressionStatementSyntax)statement).Expression;
+            var invocation = (InvocationExpressionSyntax)expression;
+            var lhs = (MemberAccessExpressionSyntax)invocation.Expression;
+            var paren = (ParenthesizedExpressionSyntax)lhs.Expression;
+            Assert.Equal(SyntaxKind.TupleExpression, paren.Expression.Kind());
+        }
+
+        [Fact]
+        public void AlsoNotACast()
+        {
+            var text = "((x, y)).ToString();";
+            var statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
+            Assert.False(statement.HasErrors);
+
+            var expression = ((ExpressionStatementSyntax)statement).Expression;
+            var invocation = (InvocationExpressionSyntax)expression;
+            var lhs = (MemberAccessExpressionSyntax)invocation.Expression;
+            var paren = (ParenthesizedExpressionSyntax)lhs.Expression;
+            Assert.Equal(SyntaxKind.TupleExpression, paren.Expression.Kind());
+        }
+
+        [Fact]
+        public void StillNotACast()
+        {
+            var text = "((((x, y)))).ToString();";
+            var statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
+            Assert.False(statement.HasErrors);
+
+            var expression = ((ExpressionStatementSyntax)statement).Expression;
+            var invocation = (InvocationExpressionSyntax)expression;
+            var lhs = (MemberAccessExpressionSyntax)invocation.Expression;
+            var paren1 = (ParenthesizedExpressionSyntax)lhs.Expression;
+            var paren2 = (ParenthesizedExpressionSyntax)paren1.Expression;
+            var paren3 = (ParenthesizedExpressionSyntax)paren2.Expression;
+            Assert.Equal(SyntaxKind.TupleExpression, paren3.Expression.Kind());
+        }
+
+        [Fact]
         public void LambdaInExpressionStatement()
         {
             var text = "(a) => a;"; // syntax ok
@@ -726,5 +770,6 @@ class C
             var statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
             Assert.True(statement.HasErrors);
         }
+
     }
 }

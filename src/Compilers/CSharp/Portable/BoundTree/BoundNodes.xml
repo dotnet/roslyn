@@ -396,7 +396,7 @@
 
     <Field Name="LeftVariables" Type="ImmutableArray&lt;BoundExpression&gt;"/>
 
-    <Field Name="DeconstructReceiver" Type="BoundExpression"/>
+    <Field Name="Right" Type="BoundExpression"/>
     <Field Name="DeconstructMember" Type="MethodSymbol" Null="disallow"/>
 
     <!-- The assignments have placeholders for the left and right part of the assignment -->
