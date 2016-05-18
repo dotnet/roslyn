@@ -171,6 +171,7 @@
     <Compile Include="Semantics\NameOfTests.vb" />
     <Compile Include="Semantics\NewOnInterfaceTests.vb" />
     <Compile Include="Semantics\NoncompliantOverloadingInMetadata.vb" />
+    <Compile Include="Semantics\OptionalArgumentTests_ImplicitDefaultValue.vb" />
     <Compile Include="Semantics\OptionalArgumentTests.vb" />
     <Compile Include="Semantics\OptionApis.vb" />
     <Compile Include="Semantics\OverloadResolution.vb" />
