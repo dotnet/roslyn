@@ -162,6 +162,9 @@ namespace Microsoft.CodeAnalysis
         /// Returns a copy of the <see cref="Metadata"/> object this <see cref="PortableExecutableReference"/>
         /// contains.  This copy does not need to be <see cref="IDisposable.Dispose"/>d.
         /// </summary>
+        /// <exception cref="BadImageFormatException">If the PE image format is invalid.</exception>
+        /// <exception cref="IOException">The metadata image content can't be read.</exception>
+        /// <exception cref="FileNotFoundException">The metadata image is stored in a file that can't be found.</exception>
         public Metadata GetMetadata()
         {
             return GetMetadataNoCopy().Copy();
