@@ -29,6 +29,7 @@ namespace Microsoft.CodeAnalysis.Completion
         protected CompletionServiceWithProviders(Workspace workspace)
         {
             _workspace = workspace;
+            _createRoleProviders = CreateRoleProviders;
         }
 
         public override CompletionRules GetRules()
@@ -68,7 +69,6 @@ namespace Microsoft.CodeAnalysis.Completion
         internal void SetTestProviders(IEnumerable<CompletionProvider> testProviders)
         {
             _testProviders = testProviders != null ? testProviders.ToImmutableArray() : ImmutableArray<CompletionProvider>.Empty;
-            _lazyNameToProviderMap = null;
         }
 
         private class RoleProviders
@@ -79,31 +79,36 @@ namespace Microsoft.CodeAnalysis.Completion
         private readonly ConditionalWeakTable<ImmutableHashSet<string>, RoleProviders> _roleProviders
             = new ConditionalWeakTable<ImmutableHashSet<string>, RoleProviders>();
 
+        private readonly ConditionalWeakTable<ImmutableHashSet<string>, RoleProviders>.CreateValueCallback _createRoleProviders;
+
+        private RoleProviders CreateRoleProviders(ImmutableHashSet<string> roles)
+        {
+            var builtin = GetBuiltInProviders();
+            var imported = GetImportedProviders()
+                .Where(lz => lz.Metadata.Roles == null || lz.Metadata.Roles.Length == 0 || roles.Overlaps(lz.Metadata.Roles))
+                .Select(lz => lz.Value);
+
+            var providers = builtin.Concat(imported).Concat(_testProviders);
+
+            lock (_gate)
+            {
+                foreach (var provider in providers)
+                {
+                    _nameToProvider[provider.Name] = provider;
+                }
+            }
+
+            return new RoleProviders { Providers = providers.ToImmutableArray() };
+        }
+
         protected ImmutableArray<CompletionProvider> GetProviders(ImmutableHashSet<string> roles)
         {
             roles = roles ?? ImmutableHashSet<string>.Empty;
-
             RoleProviders providers;
-            if (!_roleProviders.TryGetValue(roles, out providers))
-            {
-                providers = _roleProviders.GetValue(roles, _ =>
-                {
-                    var builtin = GetBuiltInProviders();
-                    var imported = GetImportedProviders()
-                        .Where(lz => lz.Metadata.Roles == null || lz.Metadata.Roles.Length == 0 || roles.Overlaps(lz.Metadata.Roles))
-                        .Select(lz => lz.Value);
-                    return new RoleProviders { Providers = builtin.Concat(imported).ToImmutableArray() };
-                });
-            }
 
-            if (_testProviders.Length > 0)
-            {
-                return providers.Providers.Concat(_testProviders);
-            }
-            else
-            {
-                return providers.Providers;
-            }
+            return _roleProviders.TryGetValue(roles, out providers)
+                ? providers.Providers
+                : ImmutableArray<CompletionProvider>.Empty;
         }
 
         protected virtual ImmutableArray<CompletionProvider> GetProviders(ImmutableHashSet<string> roles, CompletionTrigger trigger)
@@ -118,19 +123,8 @@ namespace Microsoft.CodeAnalysis.Completion
             }
         }
 
-        private ImmutableDictionary<string, CompletionProvider> _lazyNameToProviderMap = null;
-        private ImmutableDictionary<string, CompletionProvider> NameToProviderMap
-        {
-            get
-            {
-                if (_lazyNameToProviderMap == null)
-                {
-                    Interlocked.CompareExchange(ref _lazyNameToProviderMap, CreateNameToProviderMap(), null);
-                }
-
-                return _lazyNameToProviderMap;
-            }
-        }
+        private readonly object _gate = new object();
+        private readonly Dictionary<string, CompletionProvider> _nameToProvider = new Dictionary<string, CompletionProvider>();
 
         private ImmutableDictionary<string, CompletionProvider> CreateNameToProviderMap()
         {
@@ -150,15 +144,17 @@ namespace Microsoft.CodeAnalysis.Completion
         internal protected CompletionProvider GetProvider(CompletionItem item)
         {
             string name;
-            CompletionProvider provider;
+            CompletionProvider provider = null;
 
-            if (item.Properties.TryGetValue("Provider", out name)
-                && this.NameToProviderMap.TryGetValue(name, out provider))
+            if (item.Properties.TryGetValue("Provider", out name))
             {
-                return provider;
+                lock (_gate)
+                {
+                    _nameToProvider.TryGetValue(name, out provider);
+                }
             }
 
-            return null;
+            return provider;
         }
 
         public override async Task<CompletionList> GetCompletionsAsync(
