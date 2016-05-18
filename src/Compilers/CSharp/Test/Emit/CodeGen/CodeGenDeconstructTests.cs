@@ -169,6 +169,29 @@ class C
         }
 
         [Fact]
+        public void DeconstructWithRefParam()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x;
+        int y;
+        (x, y) = new C();
+    }
+    public void Deconstruct(ref int x, out int y) { x = 1; y = 2; }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // (8,18): error CS8208: The Deconstruct method for type 'C' must have only out parameters.
+                //         (x, y) = new C();
+                Diagnostic(ErrorCode.ERR_DeconstructRequiresOutParams, "new C()").WithArguments("C").WithLocation(8, 18)
+                );
+        }
+
+        [Fact]
         public void DeconstructCanHaveReturnType()
         {
             string source = @"
@@ -477,7 +500,7 @@ class C
         }
 
         [Fact]
-        public void LambdaStillNotValidateStatement()
+        public void LambdaStillNotValidStatement()
         {
             string source = @"
 class C
@@ -498,7 +521,7 @@ class C
         }
 
         [Fact]
-        public void LambdaWithBodyStillNotValidtatement()
+        public void LambdaWithBodyStillNotValidStatement()
         {
             string source = @"
 class C
