@@ -7334,15 +7334,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Predefined type &apos;{0}&apos; cannot be used because it was defined or imported more than once..
-        /// </summary>
-        internal static string ERR_PredefinedTypeNotUniquelyFound {
-            get {
-                return ResourceManager.GetString("ERR_PredefinedTypeNotUniquelyFound", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to SecurityAction value &apos;{0}&apos; is invalid for PrincipalPermission attribute.
         /// </summary>
         internal static string ERR_PrincipalPermissionInvalidAction {

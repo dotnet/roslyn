@@ -97,10 +97,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    bool allowAmbiguity = type <= WellKnownType.CSharp7Sentinel; // well-known types introduced before CSharp7 allow lookup ambiguity
-
-                    result = this.Assembly.GetTypeByMetadataName(
-                        mdName, includeReferences: true, useCLSCompliantNameArityEncoding: true, isWellKnownType: true, diagnostics: warnings, allowAmbiguity: allowAmbiguity);
+                    if (type <= WellKnownType.CSharp7Sentinel)
+                    {
+                        // well-known types introduced before CSharp7 allow lookup ambiguity and report a warning
+                        result = this.Assembly.GetTypeByMetadataName(
+                            mdName, includeReferences: true, useCLSCompliantNameArityEncoding: true, isWellKnownType: true, warnings: warnings);
+                    }
+                    else
+                    {
+                        // well-known types introduced with CSharp7 or later fail to lookup if there is an ambiguity
+                        result = this.Assembly.GetTypeByMetadataName(
+                            mdName, includeReferences: true, useCLSCompliantNameArityEncoding: true, isWellKnownType: true, warnings: null);
+                    }
                 }
 
                 if ((object)result == null)
@@ -540,11 +548,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // Native compiler encodes an extra transform flag, always false, for each custom modifier.
                     HandleCustomModifiers(customModifiersCount, transformFlagsBuilder);
-                    type.VisitType((typeSymbol, builder, isNested) => AddFlags(typeSymbol, builder, isNested, addCustomModifierFlags:true), transformFlagsBuilder);
+                    type.VisitType((typeSymbol, builder, isNested) => AddFlags(typeSymbol, builder, isNested, addCustomModifierFlags: true), transformFlagsBuilder);
                 }
                 else
                 {
-                    type.VisitType((typeSymbol, builder, isNested) => AddFlags(typeSymbol, builder, isNested, addCustomModifierFlags:false), transformFlagsBuilder);
+                    type.VisitType((typeSymbol, builder, isNested) => AddFlags(typeSymbol, builder, isNested, addCustomModifierFlags: false), transformFlagsBuilder);
                 }
             }
 

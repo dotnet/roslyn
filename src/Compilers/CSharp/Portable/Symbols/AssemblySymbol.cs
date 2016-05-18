@@ -534,11 +534,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// While resolving the name, consider only types following CLS-compliant generic type names and arity encoding (ECMA-335, section 10.7.2).
         /// I.e. arity is inferred from the name and matching type must have the same emitted name and arity.
         /// </param>
-        /// <param name="diagnostics">
+        /// <param name="warnings">
         /// A diagnostic bag to receive warnings if we should allow multiple definitions and pick one.
-        /// </param>
-        /// <param name="allowAmbiguity">
-        /// If ambiguity is allowed, one of the types will be chosen and returned (with a warning) when multiple matches are found.
         /// </param>
         /// <returns>Null if the type can't be found.</returns>
         internal NamedTypeSymbol GetTypeByMetadataName(
@@ -546,8 +543,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             bool includeReferences,
             bool isWellKnownType,
             bool useCLSCompliantNameArityEncoding = false,
-            DiagnosticBag diagnostics = null,
-            bool allowAmbiguity = true)
+            DiagnosticBag warnings = null)
         {
             NamedTypeSymbol type;
             MetadataTypeName mdName;
@@ -557,7 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var parts = metadataName.Split(s_nestedTypeNameSeparators);
                 Debug.Assert(parts.Length > 0);
                 mdName = MetadataTypeName.FromFullName(parts[0], useCLSCompliantNameArityEncoding);
-                type = GetTopLevelTypeByMetadataName(ref mdName, assemblyOpt: null, includeReferences: includeReferences, isWellKnownType: isWellKnownType, diagnostics: diagnostics, allowAmbiguity: allowAmbiguity);
+                type = GetTopLevelTypeByMetadataName(ref mdName, assemblyOpt: null, includeReferences: includeReferences, isWellKnownType: isWellKnownType, warnings: warnings);
                 for (int i = 1; (object)type != null && !type.IsErrorType() && i < parts.Length; i++)
                 {
                     mdName = MetadataTypeName.FromTypeName(parts[i]);
@@ -568,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else
             {
                 mdName = MetadataTypeName.FromFullName(metadataName, useCLSCompliantNameArityEncoding);
-                type = GetTopLevelTypeByMetadataName(ref mdName, assemblyOpt: null, includeReferences: includeReferences, isWellKnownType: isWellKnownType, diagnostics: diagnostics, allowAmbiguity: allowAmbiguity);
+                type = GetTopLevelTypeByMetadataName(ref mdName, assemblyOpt: null, includeReferences: includeReferences, isWellKnownType: isWellKnownType, warnings: warnings);
             }
 
             return ((object)type == null || type.IsErrorType()) ? null : type;
@@ -721,8 +717,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             AssemblyIdentity assemblyOpt,
             bool includeReferences,
             bool isWellKnownType,
-            DiagnosticBag diagnostics = null,
-            bool allowAmbiguity = true)
+            DiagnosticBag warnings = null)
         {
             NamedTypeSymbol result;
 
@@ -777,21 +772,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if ((object)result != null)
                 {
                     // duplicate
-                    if (diagnostics == null)
+                    if (warnings == null)
                     {
                         result = null;
                     }
                     else
                     {
-                        if (allowAmbiguity)
-                        {
-                            // The predefined type '{0}' is defined in multiple assemblies in the global alias; using definition from '{1}'
-                            diagnostics.Add(ErrorCode.WRN_MultiplePredefTypes, NoLocation.Singleton, result, result.ContainingAssembly);
-                        }
-                        else
-                        {
-                            diagnostics.Add(ErrorCode.ERR_PredefinedTypeNotUniquelyFound, NoLocation.Singleton, result);
-                        }
+                        // The predefined type '{0}' is defined in multiple assemblies in the global alias; using definition from '{1}'
+                        warnings.Add(ErrorCode.WRN_MultiplePredefTypes, NoLocation.Singleton, result, result.ContainingAssembly);
                     }
 
                     break;

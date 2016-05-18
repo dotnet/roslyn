@@ -3054,8 +3054,9 @@ class C3
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) }, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics(
-                // error CS8206: Predefined type 'ValueTuple<T1, T2>' cannot be used because it was defined or imported more than once.
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotUniquelyFound).WithArguments("System.ValueTuple<T1, T2>").WithLocation(1, 1)
+                // (6,17): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         var x = (1, 1);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2").WithLocation(6, 17)
                 );
         }
 
@@ -3073,8 +3074,9 @@ class C3
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) }, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics(
-                // error CS8206: Predefined type 'ValueTuple<T1, T2>' cannot be used because it was defined or imported more than once.
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotUniquelyFound).WithArguments("System.ValueTuple<T1, T2>").WithLocation(1, 1)
+                // (4,19): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //     public void M((int, int) x) { }
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(int, int)").WithArguments("System.ValueTuple`2").WithLocation(4, 19)
                 );
         }
 
@@ -10608,8 +10610,9 @@ class C3
                 options: TestOptions.DebugExe);
 
             comp.VerifyDiagnostics(
-                // error CS8206: Predefined type 'ValueTuple<T1, T2>' cannot be used because it was defined or imported more than once.
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotUniquelyFound).WithArguments("System.ValueTuple<T1, T2>").WithLocation(1, 1)
+                // (6,17): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         var x = (1, 1);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2").WithLocation(6, 17)
                 );
 
             comp = CreateCompilationWithMscorlib(source,
@@ -10618,8 +10621,9 @@ class C3
                 options: TestOptions.DebugExe);
 
             comp.VerifyDiagnostics(
-                // error CS8206: Predefined type 'ValueTuple<T1, T2>' cannot be used because it was defined or imported more than once.
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotUniquelyFound).WithArguments("System.ValueTuple<T1, T2>").WithLocation(1, 1)
+                // (6,17): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         var x = (1, 1);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(1, 1)").WithArguments("System.ValueTuple`2").WithLocation(6, 17)
                 );
 
             comp = CreateCompilationWithMscorlib(source,
@@ -10670,8 +10674,9 @@ class C3
                 options: TestOptions.DebugExe);
 
             comp.VerifyDiagnostics(
-                // error CS8206: Predefined type 'ValueTuple<T1, T2>' cannot be used because it was defined or imported more than once.
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotUniquelyFound).WithArguments("System.ValueTuple<T1, T2>").WithLocation(1, 1)
+                // (6,16): error CS0518: Predefined type 'System.ValueTuple`2' is not defined or imported
+                //         "x".M1((1, null));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(1, null)").WithArguments("System.ValueTuple`2").WithLocation(6, 16)
                 );
 
             comp = CreateCompilationWithMscorlib(source3,
@@ -10743,10 +10748,12 @@ class C3
                 options: TestOptions.DebugExe);
 
             comp.VerifyDiagnostics(
-                // error CS8206: Predefined type 'ValueTuple<T1, T2, T3>' cannot be used because it was defined or imported more than once.
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotUniquelyFound).WithArguments("System.ValueTuple<T1, T2, T3>").WithLocation(1, 1),
-                // error CS8206: Predefined type 'ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>' cannot be used because it was defined or imported more than once.
-                Diagnostic(ErrorCode.ERR_PredefinedTypeNotUniquelyFound).WithArguments("System.ValueTuple<T1, T2, T3, T4, T5, T6, T7, TRest>").WithLocation(1, 1)
+                // (6,16): error CS0518: Predefined type 'System.ValueTuple`3' is not defined or imported
+                //         "x".M1((1, null, 1, null, 1, null, 1, null, 1, null));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(1, null, 1, null, 1, null, 1, null, 1, null)").WithArguments("System.ValueTuple`3").WithLocation(6, 16),
+                // (6,16): error CS0518: Predefined type 'System.ValueTuple`8' is not defined or imported
+                //         "x".M1((1, null, 1, null, 1, null, 1, null, 1, null));
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(1, null, 1, null, 1, null, 1, null, 1, null)").WithArguments("System.ValueTuple`8").WithLocation(6, 16)
                 );
 
             comp = CreateCompilationWithMscorlib(source3,
