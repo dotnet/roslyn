@@ -245,6 +245,8 @@ namespace Microsoft.CodeAnalysis
 
         System_Runtime_GCLatencyMode,
 
+        CSharp7Sentinel = System_Runtime_GCLatencyMode, // all types that were known before CSharp7 should remain above this sentinel
+
         System_ValueTuple_T1,
         System_ValueTuple_T2,
         System_ValueTuple_T3,

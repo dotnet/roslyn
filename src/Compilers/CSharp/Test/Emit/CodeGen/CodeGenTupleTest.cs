@@ -3052,11 +3052,11 @@ class C3
             var comp1 = CreateCompilationWithMscorlib(trivial2uple, assemblyName: "comp1", parseOptions: TestOptions.Regular.WithTuplesFeature());
             var comp2 = CreateCompilationWithMscorlib(trivial2uple, parseOptions: TestOptions.Regular.WithTuplesFeature());
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) }, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics(
-                // warning CS1685: The predefined type 'ValueTuple<T1, T2>' is defined in multiple assemblies in the global alias; using definition from 'comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'
-                Diagnostic(ErrorCode.WRN_MultiplePredefTypes).WithArguments("System.ValueTuple<T1, T2>", "comp1, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(1, 1)
-                                );
+                // error CS8206: Predefined type 'ValueTuple<T1, T2>' cannot be used because it was defined or imported more than once.
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotUniquelyFound).WithArguments("System.ValueTuple<T1, T2>").WithLocation(1, 1)
+                );
         }
 
         [Fact]

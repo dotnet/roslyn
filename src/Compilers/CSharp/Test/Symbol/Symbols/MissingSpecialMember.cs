@@ -572,6 +572,233 @@ namespace System
         }
 
         [Fact]
+        public void AllWellKnowTypesBeforeCSharp7()
+        {
+            Assert.True(WellKnownType.System_Math <= WellKnownType.CSharp7Sentinel);
+
+            Assert.True(WellKnownType.System_Array <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Attribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_CLSCompliantAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Convert <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Exception <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_FlagsAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_FormattableString <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Guid <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_IFormattable <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_RuntimeTypeHandle <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_RuntimeFieldHandle <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_RuntimeMethodHandle <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_MarshalByRefObject <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Type <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Reflection_AssemblyKeyFileAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Reflection_AssemblyKeyNameAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Reflection_MethodInfo <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Reflection_ConstructorInfo <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Reflection_MethodBase <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Reflection_FieldInfo <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Reflection_MemberInfo <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Reflection_Missing <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_CompilerServices_RuntimeHelpers <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_ExceptionServices_ExceptionDispatchInfo <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_InteropServices_StructLayoutAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_InteropServices_UnknownWrapper <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_InteropServices_DispatchWrapper <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_InteropServices_CallingConvention <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_InteropServices_ClassInterfaceAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_InteropServices_ClassInterfaceType <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_InteropServices_CoClassAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_InteropServices_ComAwareEventInfo <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_InteropServices_ComEventInterfaceAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_InteropServices_ComInterfaceType <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_InteropServices_ComSourceInterfacesAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_InteropServices_ComVisibleAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_InteropServices_DispIdAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_InteropServices_GuidAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_InteropServices_InterfaceTypeAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_InteropServices_Marshal <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_InteropServices_TypeIdentifierAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_InteropServices_BestFitMappingAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_InteropServices_DefaultParameterValueAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_InteropServices_LCIDConversionAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_InteropServices_UnmanagedFunctionPointerAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Activator <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Threading_Tasks_Task <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Threading_Tasks_Task_T <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Threading_Interlocked <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Threading_Monitor <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Threading_Thread <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.Microsoft_CSharp_RuntimeBinder_Binder <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.Microsoft_CSharp_RuntimeBinder_CSharpArgumentInfo <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.Microsoft_CSharp_RuntimeBinder_CSharpArgumentInfoFlags <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.Microsoft_CSharp_RuntimeBinder_CSharpBinderFlags <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.Microsoft_VisualBasic_CallType <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.Microsoft_VisualBasic_Embedded <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.Microsoft_VisualBasic_CompilerServices_Conversions <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.Microsoft_VisualBasic_CompilerServices_Operators <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.Microsoft_VisualBasic_CompilerServices_NewLateBinding <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.Microsoft_VisualBasic_CompilerServices_EmbeddedOperators <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.Microsoft_VisualBasic_CompilerServices_StandardModuleAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.Microsoft_VisualBasic_CompilerServices_Utils <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.Microsoft_VisualBasic_CompilerServices_LikeOperator <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.Microsoft_VisualBasic_CompilerServices_ProjectData <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.Microsoft_VisualBasic_CompilerServices_ObjectFlowControl <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.Microsoft_VisualBasic_CompilerServices_ObjectFlowControl_ForLoopControl <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.Microsoft_VisualBasic_CompilerServices_StaticLocalInitFlag <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.Microsoft_VisualBasic_CompilerServices_StringType <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.Microsoft_VisualBasic_CompilerServices_IncompleteInitialization <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.Microsoft_VisualBasic_CompilerServices_Versioned <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.Microsoft_VisualBasic_CompareMethod <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.Microsoft_VisualBasic_Strings <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.Microsoft_VisualBasic_ErrObject <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.Microsoft_VisualBasic_FileSystem <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.Microsoft_VisualBasic_ApplicationServices_ApplicationBase <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.Microsoft_VisualBasic_ApplicationServices_WindowsFormsApplicationBase <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.Microsoft_VisualBasic_Information <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.Microsoft_VisualBasic_Interaction <= WellKnownType.CSharp7Sentinel);
+
+            Assert.True(WellKnownType.System_Func_T <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Func_T2 <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Func_T3 <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Func_T4 <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Func_T5 <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Func_T6 <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Func_T7 <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Func_T8 <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Func_T9 <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Func_T10 <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Func_T11 <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Func_T12 <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Func_T13 <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Func_T14 <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Func_T15 <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Func_T16 <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Func_T17 <= WellKnownType.CSharp7Sentinel);
+
+            Assert.True(WellKnownType.System_Action <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Action_T <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Action_T2 <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Action_T3 <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Action_T4 <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Action_T5 <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Action_T6 <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Action_T7 <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Action_T8 <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Action_T9 <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Action_T10 <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Action_T11 <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Action_T12 <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Action_T13 <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Action_T14 <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Action_T15 <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Action_T16 <= WellKnownType.CSharp7Sentinel);
+
+            Assert.True(WellKnownType.System_AttributeUsageAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_ParamArrayAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_NonSerializedAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_STAThreadAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Reflection_DefaultMemberAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_CompilerServices_DateTimeConstantAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_CompilerServices_DecimalConstantAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_CompilerServices_IUnknownConstantAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_CompilerServices_IDispatchConstantAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_CompilerServices_ExtensionAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_CompilerServices_INotifyCompletion <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_CompilerServices_InternalsVisibleToAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_CompilerServices_CompilerGeneratedAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_CompilerServices_AccessedThroughPropertyAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_CompilerServices_CompilationRelaxationsAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_CompilerServices_RuntimeCompatibilityAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_CompilerServices_UnsafeValueTypeAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_CompilerServices_FixedBufferAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_CompilerServices_DynamicAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_CompilerServices_CallSiteBinder <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_CompilerServices_CallSite <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_CompilerServices_CallSite_T <= WellKnownType.CSharp7Sentinel);
+
+            Assert.True(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationToken <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_EventRegistrationTokenTable_T <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_InteropServices_WindowsRuntime_WindowsRuntimeMarshal <= WellKnownType.CSharp7Sentinel);
+
+            Assert.True(WellKnownType.Windows_Foundation_IAsyncAction <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.Windows_Foundation_IAsyncActionWithProgress_T <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.Windows_Foundation_IAsyncOperation_T <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.Windows_Foundation_IAsyncOperationWithProgress_T2 <= WellKnownType.CSharp7Sentinel);
+
+            Assert.True(WellKnownType.System_Diagnostics_Debugger <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Diagnostics_DebuggerDisplayAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Diagnostics_DebuggerNonUserCodeAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Diagnostics_DebuggerHiddenAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Diagnostics_DebuggerBrowsableAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Diagnostics_DebuggerStepThroughAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Diagnostics_DebuggerBrowsableState <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Diagnostics_DebuggableAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Diagnostics_DebuggableAttribute__DebuggingModes <= WellKnownType.CSharp7Sentinel);
+
+            Assert.True(WellKnownType.System_ComponentModel_DesignerSerializationVisibilityAttribute <= WellKnownType.CSharp7Sentinel);
+
+            Assert.True(WellKnownType.System_IEquatable_T <= WellKnownType.CSharp7Sentinel);
+
+            Assert.True(WellKnownType.System_Collections_IList <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Collections_ICollection <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Collections_Generic_EqualityComparer_T <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Collections_Generic_List_T <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Collections_Generic_IDictionary_KV <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Collections_Generic_IReadOnlyDictionary_KV <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Collections_ObjectModel_Collection_T <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Collections_ObjectModel_ReadOnlyCollection_T <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Collections_Specialized_INotifyCollectionChanged <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_ComponentModel_INotifyPropertyChanged <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_ComponentModel_EditorBrowsableAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_ComponentModel_EditorBrowsableState <= WellKnownType.CSharp7Sentinel);
+
+            Assert.True(WellKnownType.System_Linq_Enumerable <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Linq_Expressions_Expression <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Linq_Expressions_Expression_T <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Linq_Expressions_ParameterExpression <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Linq_Expressions_ElementInit <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Linq_Expressions_MemberBinding <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Linq_Expressions_ExpressionType <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Linq_IQueryable <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Linq_IQueryable_T <= WellKnownType.CSharp7Sentinel);
+
+            Assert.True(WellKnownType.System_Xml_Linq_Extensions <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Xml_Linq_XAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Xml_Linq_XCData <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Xml_Linq_XComment <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Xml_Linq_XContainer <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Xml_Linq_XDeclaration <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Xml_Linq_XDocument <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Xml_Linq_XElement <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Xml_Linq_XName <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Xml_Linq_XNamespace <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Xml_Linq_XObject <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Xml_Linq_XProcessingInstruction <= WellKnownType.CSharp7Sentinel);
+
+            Assert.True(WellKnownType.System_Security_UnverifiableCodeAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Security_Permissions_SecurityAction <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Security_Permissions_SecurityAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Security_Permissions_SecurityPermissionAttribute <= WellKnownType.CSharp7Sentinel);
+
+            Assert.True(WellKnownType.System_NotSupportedException <= WellKnownType.CSharp7Sentinel);
+
+            Assert.True(WellKnownType.System_Runtime_CompilerServices_ICriticalNotifyCompletion <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_CompilerServices_IAsyncStateMachine <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_CompilerServices_AsyncVoidMethodBuilder <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_CompilerServices_AsyncTaskMethodBuilder_T <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_CompilerServices_AsyncStateMachineAttribute <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Runtime_CompilerServices_IteratorStateMachineAttribute <= WellKnownType.CSharp7Sentinel);
+
+            Assert.True(WellKnownType.System_Windows_Forms_Form <= WellKnownType.CSharp7Sentinel);
+            Assert.True(WellKnownType.System_Windows_Forms_Application <= WellKnownType.CSharp7Sentinel);
+
+            Assert.True(WellKnownType.System_Environment <= WellKnownType.CSharp7Sentinel);
+
+            Assert.True(WellKnownType.System_Runtime_GCLatencyMode <= WellKnownType.CSharp7Sentinel);
+        }
+
+        [Fact]
         [WorkItem(530436, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530436")]
         public void AllWellKnownTypeMembers()
         {

@@ -242,7 +242,7 @@
   </data>
   <data name="IDS_FeatureReplace" xml:space="preserve">
     <value>replaced members</value>
-  </data>  
+  </data>
   <data name="IDS_SK_METHOD" xml:space="preserve">
     <value>method</value>
   </data>
@@ -4871,5 +4871,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureTuples" xml:space="preserve">
     <value>tuples</value>
+  </data>
+  <data name="ERR_PredefinedTypeNotUniquelyFound" xml:space="preserve">
+    <value>Predefined type '{0}' cannot be used because it was defined or imported more than once.</value>
   </data>
 </root>

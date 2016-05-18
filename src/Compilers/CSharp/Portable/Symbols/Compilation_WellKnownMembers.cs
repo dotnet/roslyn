@@ -97,8 +97,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
+                    bool allowAmbiguity = type <= WellKnownType.CSharp7Sentinel; // well-known types introduced before CSharp7 allow lookup ambiguity
+
                     result = this.Assembly.GetTypeByMetadataName(
-                        mdName, includeReferences: true, useCLSCompliantNameArityEncoding: true, isWellKnownType: true, warnings: warnings);
+                        mdName, includeReferences: true, useCLSCompliantNameArityEncoding: true, isWellKnownType: true, diagnostics: warnings, allowAmbiguity: allowAmbiguity);
                 }
 
                 if ((object)result == null)
