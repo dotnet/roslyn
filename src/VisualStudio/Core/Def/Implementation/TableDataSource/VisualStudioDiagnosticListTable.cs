@@ -1,15 +1,19 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.ComponentModel;
 using System.ComponentModel.Composition;
-using System.ComponentModel.Design;
 using System.Linq;
+using System.Reflection;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.TableManager;
+using Roslyn.Utilities;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 {
@@ -21,6 +25,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         private readonly IErrorList _errorList;
         private readonly LiveTableDataSource _liveTableSource;
         private readonly BuildTableDataSource _buildTableSource;
+        private readonly IOptionService _optionService;
+
+        private const string TypeScriptLanguageName = "TypeScript";
 
         [ImportingConstructor]
         public VisualStudioDiagnosticListTable(
@@ -43,6 +50,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             _errorList.PropertyChanged += OnErrorListPropertyChanged;
             AddInitialTableSource(workspace.CurrentSolution, GetCurrentDataSource());
             SuppressionStateColumnDefinition.SetDefaultFilter(_errorList.TableControl);
+
+            _optionService = workspace.Services.GetService<IOptionService>();
+            if (ErrorListHasFullSolutionAnalysisButton())
+            {
+                var errorList2 = _errorList as IErrorList2;
+                if (errorList2 != null)
+                {
+                    errorList2.AnalysisToggleStateChanged += OnErrorListFullSolutionAnalysisToggled;
+                    _optionService.OptionChanged += OnOptionChanged;
+                }                
+            }
         }
 
         private ITableDataSource GetCurrentDataSource()
@@ -128,6 +146,65 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             if (e.PropertyName == nameof(IErrorList.AreOtherErrorSourceEntriesShown))
             {
                 AddTableSourceIfNecessary(this.Workspace.CurrentSolution);
+            }
+        }
+
+        private void OnErrorListFullSolutionAnalysisToggled(object sender, AnalysisToggleStateChangedEventArgs e)
+        {
+            var newOptions = _optionService.GetOptions()
+                .WithChangedOption(RuntimeOptions.FullSolutionAnalysis, e.NewState)
+                .WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.CSharp, e.NewState)
+                .WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.VisualBasic, e.NewState)
+                .WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, TypeScriptLanguageName, e.NewState);
+            
+            _optionService.SetOptions(newOptions);
+        }
+
+        private void OnOptionChanged(object sender, OptionChangedEventArgs e)
+        {
+            Contract.ThrowIfFalse(_errorList is IErrorList2);
+
+            if (e.Option == RuntimeOptions.FullSolutionAnalysis || e.Option == ServiceFeatureOnOffOptions.ClosedFileDiagnostic)
+            {
+                var analysisDisabled = !(bool)e.Value;
+                if (analysisDisabled)
+                {
+                    ((IErrorList2)_errorList).AnalysisToggleState = false;
+                }
+            }
+        }
+
+        internal static bool ErrorListHasFullSolutionAnalysisButton()
+        {
+            try
+            {
+                // Full solution analysis option has been moved to the error list from Dev14 Update3.
+                // Use reflection to check if the new interface "IErrorList2" exists in Microsoft.VisualStudio.Shell.XX.0.dll.
+                return Assembly.GetAssembly(typeof(ErrorHandler)).GetType("Microsoft.Internal.VisualStudio.Shell.IErrorList2") != null;
+            }
+            catch (Exception)
+            {
+                // Ignore exceptions.
+                return false;
+            }
+        }
+
+        // TODO: Remove the below temporary types 'IErrorList2' and 'AnalysisToggleButtonStateChangedEventArgs' when we move to new version of Microsoft.VisualStudio.Shell.XX.0.dll that has these types.
+        private interface IErrorList2
+        {
+            bool AnalysisToggleState { get; set; }
+            event EventHandler<AnalysisToggleStateChangedEventArgs> AnalysisToggleStateChanged;
+        }
+
+        private class AnalysisToggleStateChangedEventArgs : EventArgs
+        {
+            public readonly bool OldState;
+            public readonly bool NewState;
+
+            public AnalysisToggleStateChangedEventArgs(bool oldState, bool newState)
+            {
+                OldState = oldState;
+                NewState = newState;
             }
         }
     }
