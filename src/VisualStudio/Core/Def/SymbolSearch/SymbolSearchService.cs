@@ -41,7 +41,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         private ConcurrentDictionary<string, IAddReferenceDatabaseWrapper> _sourceToDatabase = 
             new ConcurrentDictionary<string, IAddReferenceDatabaseWrapper>();
 
-        private bool _started;
+        private readonly List<string> _registeredLanguageNames = new List<string>();
 
         [ImportingConstructor]
         public SymbolSearchService(
@@ -111,36 +111,44 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             _cancellationToken = _cancellationTokenSource.Token;
         }
 
-        internal void Start()
+        internal void Start(string languageName)
         {
-            var options = _workspace.Options;
-            if (!options.GetOption(ServiceComponentOnOffOptions.SymbolSearch))
+            _registeredLanguageNames.Add(languageName);
+            if (_registeredLanguageNames.Count == 1)
             {
-                return;
+                // When the first language registers, start the service.
+
+                var options = _workspace.Options;
+                if (!options.GetOption(ServiceComponentOnOffOptions.SymbolSearch))
+                {
+                    return;
+                }
+
+                var optionsService = _workspace.Services.GetService<IOptionService>();
+                optionsService.OptionChanged += OnOptionChanged;
+
+                // Start the whole process once we're connected
+                _installerService.PackageSourcesChanged += OnOptionChanged;
             }
 
-            var optionsService = _workspace.Services.GetService<IOptionService>();
-            optionsService.OptionChanged += OnOptionChanged;
-
-            // Start the whole process once we're connected
-            _installerService.PackageSourcesChanged += OnOptionChanged;
+            // Kick things off.
             OnOptionChanged(this, EventArgs.Empty);
-            _started = true;
         }
 
-        internal void Stop()
+        internal void Stop(string languageName)
         {
-            if (!_started)
+            _registeredLanguageNames.Remove(languageName);
+            if (_registeredLanguageNames.Count == 0)
             {
-                return;
+                // once there are no more languages registered, we can actually stop this service.
+
+                var optionsService = _workspace.Services.GetService<IOptionService>();
+                optionsService.OptionChanged -= OnOptionChanged;
+
+                _installerService.PackageSourcesChanged -= OnOptionChanged;
+                // Cancel any existing work.
+                _cancellationTokenSource.Cancel();
             }
-
-            var optionsService = _workspace.Services.GetService<IOptionService>();
-            optionsService.OptionChanged -= OnOptionChanged;
-
-            _installerService.PackageSourcesChanged -= OnOptionChanged;
-            // Cancel any existing work.
-            _cancellationTokenSource.Cancel();
         }
 
         public IEnumerable<PackageWithTypeResult> FindPackagesWithType(

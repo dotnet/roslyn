@@ -69,16 +69,19 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
         private void LogException(Exception e, string text) => _logService.LogException(e, text);
 
+        internal void RegisterLanguage(string languageName)
+        {
+            this.AssertIsForeground();
+            _registeredLanguageNames.Add(languageName);
+            OnOptionChanged(null, EventArgs.Empty);
+        }
+
         private void OnOptionChanged(object sender, EventArgs e)
         {
-            var options = _workspace.Options;
-            if (!options.GetOption(AddImportOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.CSharp) &&
-                !options.GetOption(AddImportOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.VisualBasic) &&
-                !options.GetOption(AddImportOptions.SuggestForTypesInNuGetPackages, LanguageNames.CSharp) &&
-                !options.GetOption(AddImportOptions.SuggestForTypesInNuGetPackages, LanguageNames.VisualBasic))
+            // If we don't have any add-import features that would use these indices, then
+            // don't bother creating them.
+            if (!_registeredLanguageNames.Any(IsRegisteredForLanguage))
             {
-                // If we don't have any add-import features that would use these indices, then
-                // don't bother creating them.
                 return;
             }
 
@@ -94,6 +97,14 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 Task.Delay(TimeSpan.FromSeconds(10)).ContinueWith(_ =>
                     UpdateSourceInBackgroundAsync(source.Name), TaskScheduler.Default);
             }
+        }
+
+        private bool IsRegisteredForLanguage(string language)
+        {
+            var options = _workspace.Options;
+
+            return options.GetOption(AddImportOptions.SuggestForTypesInReferenceAssemblies, language) ||
+                   options.GetOption(AddImportOptions.SuggestForTypesInNuGetPackages, language);
         }
 
         // internal for testing purposes.
