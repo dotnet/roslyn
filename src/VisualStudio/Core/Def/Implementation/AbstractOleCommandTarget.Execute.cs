@@ -166,9 +166,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             return result;
         }
 
-        private static readonly Guid _asyncFindRefsCommandGroup = new Guid("cc5d21e2-c5cf-49d0-bf20-24bb7eb776d8");
-        private static readonly int _asyncFindRefsCommandId = 256; 
-
         private int ExecuteVisualStudio97(ref Guid pguidCmdGroup, uint commandId, uint executeInformation, IntPtr pvaIn, IntPtr pvaOut, ITextBuffer subjectBuffer, IContentType contentType)
         {
             int result = VSConstants.S_OK;
