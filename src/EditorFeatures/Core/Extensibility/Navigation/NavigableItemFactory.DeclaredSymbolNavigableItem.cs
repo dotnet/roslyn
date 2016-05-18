@@ -29,8 +29,8 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
             private readonly Lazy<ISymbol> _lazySymbol;
 
             /// <summary>
-            /// DeclaredSymbolInfos always come from some actual declaration in source.  So they're
-            /// never implicitly declared.
+            /// <see cref="DeclaredSymbolInfo"/>s always come from some actual declaration in 
+            /// source.  So they're never implicitly declared.
             /// </summary>
             public bool IsImplicitlyDeclared => false;
 
