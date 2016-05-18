@@ -363,7 +363,7 @@ namespace Microsoft.CodeAnalysis
                 do
                 {
                     _counters[descriptor.Id] = ++counter;
-                    key = descriptor.Id + "." + counter.ToString("000", CultureInfo.InvariantCulture);
+                    key = descriptor.Id + "-" + counter.ToString("000", CultureInfo.InvariantCulture);
                 } while (_counters.ContainsKey(key));
 
                 _keys.Add(descriptor, key);
