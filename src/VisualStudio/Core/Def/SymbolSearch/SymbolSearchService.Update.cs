@@ -69,13 +69,6 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
         private void LogException(Exception e, string text) => _logService.LogException(e, text);
 
-        internal void RegisterLanguage(string languageName)
-        {
-            this.AssertIsForeground();
-            _registeredLanguageNames.Add(languageName);
-            OnOptionChanged(null, EventArgs.Empty);
-        }
-
         private void OnOptionChanged(object sender, EventArgs e)
         {
             // If we don't have any add-import features that would use these indices, then
