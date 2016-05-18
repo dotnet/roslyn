@@ -244,8 +244,9 @@ namespace Microsoft.CodeAnalysis
         System_Environment,
 
         System_Runtime_GCLatencyMode,
+        System_IFormatProvider,
 
-        CSharp7Sentinel = System_Runtime_GCLatencyMode, // all types that were known before CSharp7 should remain above this sentinel
+        CSharp7Sentinel = System_IFormatProvider, // all types that were known before CSharp7 should remain above this sentinel
 
         System_ValueTuple_T1,
         System_ValueTuple_T2,
@@ -253,13 +254,11 @@ namespace Microsoft.CodeAnalysis
         System_ValueTuple_T4,
         System_ValueTuple_T5,
         System_ValueTuple_T6,
-        System_ValueTuple_T7,
 
         ExtSentinel, // Not a real type, just a marker for types above 255 and strictly below 512
 
+        System_ValueTuple_T7,
         System_ValueTuple_TRest,
-
-        System_IFormatProvider,
 
         Available,
         Last = Available - 1,

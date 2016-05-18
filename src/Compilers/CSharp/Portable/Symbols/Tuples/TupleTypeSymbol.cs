@@ -373,25 +373,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         internal static void VerifyTupleTypePresent(int cardinality, CSharpSyntaxNode syntax, CSharpCompilation compilation, DiagnosticBag diagnostics)
         {
+            Debug.Assert((object)diagnostics != null && (object)syntax != null);
+
             int remainder;
             int chainLength = NumberOfValueTuples(cardinality, out remainder);
 
             NamedTypeSymbol firstTupleType = compilation.GetWellKnownType(GetTupleType(remainder));
-
-            if ((object)diagnostics != null && (object)syntax != null)
-            {
-                Binder.ReportUseSiteDiagnostics(firstTupleType, diagnostics, syntax);
-            }
+            Binder.ReportUseSiteDiagnostics(firstTupleType, diagnostics, syntax);
 
             if (chainLength > 1)
             {
                 NamedTypeSymbol chainedTupleType = compilation.GetWellKnownType(GetTupleType(RestPosition));
-
-                if ((object)diagnostics != null && (object)syntax != null)
-                {
-                    Binder.ReportUseSiteDiagnostics(chainedTupleType, diagnostics, syntax);
-
-                }
+                Binder.ReportUseSiteDiagnostics(chainedTupleType, diagnostics, syntax);
             }
         }
 

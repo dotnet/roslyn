@@ -97,18 +97,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    if (type <= WellKnownType.CSharp7Sentinel)
-                    {
-                        // well-known types introduced before CSharp7 allow lookup ambiguity and report a warning
-                        result = this.Assembly.GetTypeByMetadataName(
-                            mdName, includeReferences: true, useCLSCompliantNameArityEncoding: true, isWellKnownType: true, warnings: warnings);
-                    }
-                    else
-                    {
-                        // well-known types introduced with CSharp7 or later fail to lookup if there is an ambiguity
-                        result = this.Assembly.GetTypeByMetadataName(
-                            mdName, includeReferences: true, useCLSCompliantNameArityEncoding: true, isWellKnownType: true, warnings: null);
-                    }
+                    // well-known types introduced before CSharp7 allow lookup ambiguity and report a warning
+                    DiagnosticBag legacyWarnings = (type <= WellKnownType.CSharp7Sentinel) ? warnings : null;
+
+                    result = this.Assembly.GetTypeByMetadataName(
+                        mdName, includeReferences: true, useCLSCompliantNameArityEncoding: true, isWellKnownType: true, warnings: legacyWarnings);
                 }
 
                 if ((object)result == null)
