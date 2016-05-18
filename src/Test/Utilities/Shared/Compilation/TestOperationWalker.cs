@@ -223,7 +223,6 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
         public override void VisitArgument(IArgument operation)
         {
-            var argumentKind = operation.ArgumentKind;
             var parameter = operation.Parameter;
 
             base.VisitArgument(operation);

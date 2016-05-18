@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     IArgument argument = DeriveArgument(parameterIndex, argumentIndex, this.Arguments, this.ArgumentNamesOpt, this.ArgumentRefKindsOpt, parameters, this.Syntax);
                     evaluationOrderArguments.Add(argument);
                     matchedParameters.Add(parameterIndex);
-                    if (argument.ArgumentKind == ArgumentKind.ParamArray)
+                    if ((uint)parameterIndex < parameters.Length && parameters[parameterIndex].IsParams)
                     {
                         break;
                     }
@@ -138,17 +138,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // Check for a parameter with a default value.
                         if (parameter.HasExplicitDefaultValue)
                         {
-                            return new Argument(ArgumentKind.DefaultValue, parameter, new Literal(parameter.ExplicitDefaultConstantValue, parameter.Type, invocationSyntax));
+                            return new Argument(parameter, new Literal(parameter.ExplicitDefaultConstantValue, parameter.Type, invocationSyntax));
                         }
 
                         // Check for an omitted argument that becomes an empty params array.
                         if (parameter.IsParams)
                         {
-                            return new Argument(ArgumentKind.ParamArray, parameter, CreateParamArray(parameter, boundArguments, argumentIndex, invocationSyntax));
+                            return new Argument(parameter, CreateParamArray(parameter, boundArguments, argumentIndex, invocationSyntax));
                         }
 
                         // There is no supplied argument and there is no params parameter. Any action is suspect at this point.
-                        return new SimpleArgument(parameter, new InvalidExpression(invocationSyntax));
+                        return new Argument(parameter, new InvalidExpression(invocationSyntax));
                     });
             }
 
@@ -165,7 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                         if (refMode != RefKind.None)
                         {
-                            return new Argument(ArgumentKind.Positional, parameter, argument);
+                            return new Argument(parameter, argument);
                         }
 
                         if (argumentIndex >= parameters.Length - 1 &&
@@ -176,15 +176,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                              argument.Type.TypeKind != TypeKind.Array ||
                              !argument.Type.Equals(parameters[parameters.Length - 1].Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true)))
                         {
-                            return new Argument(ArgumentKind.ParamArray, parameters[parameters.Length - 1], CreateParamArray(parameters[parameters.Length - 1], boundArguments, argumentIndex, invocationSyntax));
+                            return new Argument(parameters[parameters.Length - 1], CreateParamArray(parameters[parameters.Length - 1], boundArguments, argumentIndex, invocationSyntax));
                         }
                         else
                         {
-                            return new SimpleArgument(parameter, argument);
+                            return new Argument(parameter, argument);
                         }
                     }
 
-                    return new Argument(ArgumentKind.Named, parameter, argument);
+                    return new Argument(parameter, argument);
                 });
         }
         
@@ -267,8 +267,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public Optional<object> ConstantValue => default(Optional<object>);
 
-            public abstract ArgumentKind ArgumentKind { get; }
-
             void IOperation.Accept(OperationVisitor visitor)
             {
                 visitor.VisitArgument(this);
@@ -280,24 +278,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private sealed class SimpleArgument : ArgumentBase
-        {
-            public SimpleArgument(IParameterSymbol parameter, IOperation value)
-                : base(parameter, value)
-            { }
-
-            public override ArgumentKind ArgumentKind => ArgumentKind.Positional;
-        }
-
         private sealed class Argument : ArgumentBase
         {
-            public Argument(ArgumentKind kind, IParameterSymbol parameter, IOperation value)
+            public Argument(IParameterSymbol parameter, IOperation value)
                 : base(parameter, value)
             {
-                this.ArgumentKind = kind;
             }
-
-            public override ArgumentKind ArgumentKind { get; }
         }
     }
 

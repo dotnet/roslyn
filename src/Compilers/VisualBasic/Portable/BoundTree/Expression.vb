@@ -379,9 +379,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         argument,
                         Function(argumentValue)
                             If index >= parameters.Length - 1 AndAlso parameters.Length > 0 AndAlso parameters(parameters.Length - 1).IsParamArray Then
-                                Return New Argument(ArgumentKind.ParamArray, parameters(parameters.Length - 1), argumentValue)
+                                Return New Argument(parameters(parameters.Length - 1), argumentValue)
                             Else
-                                Return New Argument(ArgumentKind.Positional, If(CUInt(index) < CUInt(parameters.Length), parameters(index), Nothing), argumentValue)
+                                Return New Argument(If(CUInt(index) < CUInt(parameters.Length), parameters(index), Nothing), argumentValue)
                             End If
                         End Function)
             End Select
@@ -420,7 +420,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End Get
             End Property
 
-            Public MustOverride ReadOnly Property ArgumentKind As ArgumentKind Implements IArgument.ArgumentKind
             Public MustOverride ReadOnly Property Value As IOperation Implements IArgument.Value
             Public MustOverride ReadOnly Property InConversion As IOperation Implements IArgument.InConversion
             Public MustOverride ReadOnly Property OutConversion As IOperation Implements IArgument.OutConversion
@@ -450,12 +449,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Inherits ArgumentBase
 
             Private ReadOnly _value As IOperation
-            Private ReadOnly _kind As ArgumentKind
 
-            Public Sub New(kind As ArgumentKind, parameter As IParameterSymbol, value As IOperation)
+            Public Sub New(parameter As IParameterSymbol, value As IOperation)
                 MyBase.New(parameter)
                 _value = value
-                _kind = kind
             End Sub
 
             Public Overrides ReadOnly Property Value As IOperation
@@ -475,12 +472,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return Nothing
                 End Get
             End Property
-
-            Public Overrides ReadOnly Property ArgumentKind As ArgumentKind
-                Get
-                    Return _kind
-                End Get
-            End Property
         End Class
 
         Private NotInheritable Class ByRefArgument
@@ -492,13 +483,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 MyBase.New(parameter)
                 _argument = argument
             End Sub
-
-            Public Overrides ReadOnly Property ArgumentKind As ArgumentKind
-                Get
-                    ' Do the VB bound trees encode named arguments?
-                    Return ArgumentKind.Positional
-                End Get
-            End Property
 
             Public Overrides ReadOnly Property InConversion As IOperation
                 Get

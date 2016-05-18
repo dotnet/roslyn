@@ -66,7 +66,6 @@ class C
             IArgument argument = arguments[0];
             Assert.True(argument == evaluationOrderArguments[0]);
             Assert.False(argument.IsInvalid);
-            Assert.Equal(argument.ArgumentKind, ArgumentKind.Positional);
             Assert.Null(argument.InConversion);
             Assert.Null(argument.OutConversion);
             Assert.Equal(argument.Parameter.Name, "a");
@@ -83,7 +82,6 @@ class C
             argument = arguments[1];
             Assert.True(argument == evaluationOrderArguments[1]);
             Assert.False(argument.IsInvalid);
-            Assert.Equal(argument.ArgumentKind, ArgumentKind.Positional);
             Assert.Null(argument.InConversion);
             Assert.Null(argument.OutConversion);
             Assert.Equal(argument.Parameter.Name, "b");
@@ -122,7 +120,6 @@ class C
             argument = arguments[0];
             Assert.True(argument == evaluationOrderArguments[1]);
             Assert.False(argument.IsInvalid);
-            Assert.Equal(argument.ArgumentKind, ArgumentKind.Named);
             Assert.Null(argument.InConversion);
             Assert.Null(argument.OutConversion);
             Assert.Equal(argument.Parameter.Name, "a");
@@ -139,7 +136,6 @@ class C
             argument = arguments[1];
             Assert.True(argument == evaluationOrderArguments[0]);
             Assert.False(argument.IsInvalid);
-            Assert.Equal(argument.ArgumentKind, ArgumentKind.Named);
             Assert.Null(argument.InConversion);
             Assert.Null(argument.OutConversion);
             Assert.Equal(argument.Parameter.Name, "b");
@@ -171,7 +167,6 @@ class C
             argument = arguments[0];
             Assert.True(argument == evaluationOrderArguments[0]);
             Assert.False(argument.IsInvalid);
-            Assert.Equal(argument.ArgumentKind, ArgumentKind.Positional);
             Assert.Null(argument.InConversion);
             Assert.Null(argument.OutConversion);
             Assert.Equal(argument.Parameter.Name, "d");
@@ -232,7 +227,6 @@ class C
             IArgument argument = arguments[0];
             Assert.True(argument == evaluationOrderArguments[0]);
             Assert.False(argument.IsInvalid);
-            Assert.Equal(argument.ArgumentKind, ArgumentKind.Positional);
             Assert.Null(argument.InConversion);
             Assert.Null(argument.OutConversion);
             Assert.Equal(argument.Parameter.Name, "a");
@@ -248,7 +242,6 @@ class C
             argument = arguments[1];
             Assert.True(argument == evaluationOrderArguments[1]);
             Assert.False(argument.IsInvalid);
-            Assert.Equal(argument.ArgumentKind, ArgumentKind.ParamArray);
             Assert.Null(argument.InConversion);
             Assert.Null(argument.OutConversion);
             Assert.Equal(argument.Parameter.Name, "c");
@@ -302,7 +295,6 @@ class C
             argument = arguments[0];
             Assert.True(argument == evaluationOrderArguments[0]);
             Assert.False(argument.IsInvalid);
-            Assert.Equal(argument.ArgumentKind, ArgumentKind.Positional);
             Assert.Null(argument.InConversion);
             Assert.Null(argument.OutConversion);
             Assert.Equal(argument.Parameter.Name, "a");
@@ -318,7 +310,6 @@ class C
             argument = arguments[1];
             Assert.True(argument == evaluationOrderArguments[1]);
             Assert.False(argument.IsInvalid);
-            Assert.Equal(argument.ArgumentKind, ArgumentKind.ParamArray);
             Assert.Null(argument.InConversion);
             Assert.Null(argument.OutConversion);
             Assert.Equal(argument.Parameter.Name, "c");
@@ -354,7 +345,6 @@ class C
             argument = arguments[0];
             Assert.True(argument == evaluationOrderArguments[0]);
             Assert.True(argument.IsInvalid);
-            Assert.Equal(argument.ArgumentKind, ArgumentKind.Positional);
             Assert.Null(argument.InConversion);
             Assert.Null(argument.OutConversion);
             Assert.Equal(argument.Parameter.Name, "a");
@@ -367,7 +357,6 @@ class C
             argument = arguments[1];
             Assert.True(argument == evaluationOrderArguments[1]);
             Assert.False(argument.IsInvalid);
-            Assert.Equal(argument.ArgumentKind, ArgumentKind.ParamArray);
             Assert.Null(argument.InConversion);
             Assert.Null(argument.OutConversion);
             Assert.Equal(argument.Parameter.Name, "c");
@@ -405,7 +394,6 @@ class C
             argument = arguments[0];
             Assert.True(argument == evaluationOrderArguments[0]);
             Assert.False(argument.IsInvalid);
-            Assert.Equal(argument.ArgumentKind, ArgumentKind.Positional);
             Assert.Null(argument.InConversion);
             Assert.Null(argument.OutConversion);
             Assert.Equal(argument.Parameter.Name, "a");
@@ -421,7 +409,6 @@ class C
             argument = arguments[1];
             Assert.True(argument == evaluationOrderArguments[1]);
             Assert.False(argument.IsInvalid);
-            Assert.Equal(argument.ArgumentKind, ArgumentKind.Positional);
             Assert.Null(argument.InConversion);
             Assert.Null(argument.OutConversion);
             Assert.Equal(argument.Parameter.Name, "c");
@@ -569,7 +556,6 @@ class C
             IArgument argument = arguments[0];
             Assert.True(argument == evaluationOrderArguments[0]);
             Assert.False(argument.IsInvalid);
-            Assert.Equal(argument.ArgumentKind, ArgumentKind.Positional);
             Assert.Null(argument.InConversion);
             Assert.Null(argument.OutConversion);
             Assert.Equal(argument.Parameter.Name, "a");
@@ -586,7 +572,6 @@ class C
             argument = arguments[1];
             Assert.True(argument == evaluationOrderArguments[2]);
             Assert.False(argument.IsInvalid);
-            Assert.Equal(argument.ArgumentKind, ArgumentKind.DefaultValue);
             Assert.Null(argument.InConversion);
             Assert.Null(argument.OutConversion);
             Assert.Equal(argument.Parameter.Name, "b");
@@ -603,7 +588,6 @@ class C
             argument = arguments[2];
             Assert.True(argument == evaluationOrderArguments[1]);
             Assert.False(argument.IsInvalid);
-            Assert.Equal(argument.ArgumentKind, ArgumentKind.Named);
             Assert.Null(argument.InConversion);
             Assert.Null(argument.OutConversion);
             Assert.Equal(argument.Parameter.Name, "c");
@@ -636,7 +620,6 @@ class C
             argument = arguments[0];
             Assert.True(argument == evaluationOrderArguments[1]);
             Assert.False(argument.IsInvalid);
-            Assert.Equal(argument.ArgumentKind, ArgumentKind.DefaultValue);
             Assert.Null(argument.InConversion);
             Assert.Null(argument.OutConversion);
             Assert.Equal(argument.Parameter.Name, "a");
@@ -653,7 +636,6 @@ class C
             argument = arguments[1];
             Assert.True(argument == evaluationOrderArguments[0]);
             Assert.False(argument.IsInvalid);
-            Assert.Equal(argument.ArgumentKind, ArgumentKind.Named);
             Assert.Null(argument.InConversion);
             Assert.Null(argument.OutConversion);
             Assert.Equal(argument.Parameter.Name, "b");
@@ -670,7 +652,6 @@ class C
             argument = arguments[2];
             Assert.True(argument == evaluationOrderArguments[2]);
             Assert.False(argument.IsInvalid);
-            Assert.Equal(argument.ArgumentKind, ArgumentKind.DefaultValue);
             Assert.Null(argument.InConversion);
             Assert.Null(argument.OutConversion);
             Assert.Equal(argument.Parameter.Name, "c");
@@ -724,7 +705,6 @@ class C
             IArgument argument = arguments[0];
             Assert.True(argument == evaluationOrderArguments[0]);
             Assert.False(argument.IsInvalid);
-            Assert.Equal(argument.ArgumentKind, ArgumentKind.Positional);
             Assert.Null(argument.InConversion);
             Assert.Null(argument.OutConversion);
             Assert.Equal(argument.Parameter.Name, "arg1");
@@ -741,7 +721,6 @@ class C
             argument = arguments[1];
             Assert.True(argument == evaluationOrderArguments[1]);
             Assert.False(argument.IsInvalid);
-            Assert.Equal(argument.ArgumentKind, ArgumentKind.Positional);
             Assert.Null(argument.InConversion);
             Assert.Null(argument.OutConversion);
             Assert.Equal(argument.Parameter.Name, "arg2");
@@ -795,7 +774,6 @@ class C
             IArgument argument = arguments[0];
             Assert.True(argument == evaluationOrderArguments[0]);
             Assert.False(argument.IsInvalid);
-            Assert.Equal(argument.ArgumentKind, ArgumentKind.Positional);
             Assert.Null(argument.InConversion);
             Assert.Null(argument.OutConversion);
             Assert.Equal(argument.Parameter.Name, "xx");
@@ -811,7 +789,6 @@ class C
             argument = arguments[1];
             Assert.True(argument == evaluationOrderArguments[1]);
             Assert.False(argument.IsInvalid);
-            Assert.Equal(argument.ArgumentKind, ArgumentKind.Positional);
             Assert.Null(argument.InConversion);
             Assert.Null(argument.OutConversion);
             Assert.Equal(argument.Parameter.Name, "yy");
