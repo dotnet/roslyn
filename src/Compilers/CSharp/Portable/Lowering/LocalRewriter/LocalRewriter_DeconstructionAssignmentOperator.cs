@@ -54,14 +54,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < numVariables; i++)
             {
                 // lower the assignment and replace the placeholders for source and target in the process
+                var assignmentInfo = node.Assignments[i];
 
-                AddPlaceholderReplacement(node.Assignments[i].LValuePlaceholder, lhsReceivers[i]);
-                AddPlaceholderReplacement(node.Assignments[i].RValuePlaceholder, outParameters[i]);
+                AddPlaceholderReplacement(assignmentInfo.LValuePlaceholder, lhsReceivers[i]);
+                AddPlaceholderReplacement(assignmentInfo.RValuePlaceholder, outParameters[i]);
 
-                var assignment = VisitExpression(node.Assignments[i].Assignment);
+                var assignment = VisitExpression(assignmentInfo.Assignment);
 
-                RemovePlaceholderReplacement(node.Assignments[i].LValuePlaceholder);
-                RemovePlaceholderReplacement(node.Assignments[i].RValuePlaceholder);
+                RemovePlaceholderReplacement(assignmentInfo.LValuePlaceholder);
+                RemovePlaceholderReplacement(assignmentInfo.RValuePlaceholder);
 
                 stores.Add(assignment);
             }

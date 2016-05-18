@@ -1734,7 +1734,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // bind the variables and check they can be assigned to
-            var checkedVariablesBuilder = ArrayBuilder<BoundExpression>.GetInstance(arguments.Count);
+            var checkedVariablesBuilder = ArrayBuilder<BoundExpression>.GetInstance(numElements);
             for (int i = 0, l = numElements; i < l; i++)
             {
                 var boundVariable = BindExpression(arguments[i].Expression, diagnostics, invoked: false, indexed: false);
@@ -1776,14 +1776,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Find the Deconstruct method for the expression on the right, that will fit the assignable bound expressions on the left.
-        /// Returns true if the Deconstruct method is found. If so, it outputs the method and all of its parameter types.
+        /// Returns true if the Deconstruct method is found.
+        ///     - If so, it outputs the method and all of its parameter types.
+        ///     - Otherwise, it outputs null/default out parameters.
         /// </summary>
         private static bool FindDeconstruct(ImmutableArray<BoundExpression> checkedVariables, BoundExpression boundRHS, out MethodSymbol deconstructMethod, out ImmutableArray<TypeSymbol> parameterTypes, SyntaxNode node, DiagnosticBag diagnostics)
         {
-            const string Deconstruct = "Deconstruct";
-
             // find symbol for Deconstruct member
-            ImmutableArray<Symbol> candidates = boundRHS.Type.GetMembers(Deconstruct);
+            ImmutableArray<Symbol> candidates = boundRHS.Type.GetMembers("Deconstruct");
             switch (candidates.Length)
             {
                 case 0:
@@ -1838,7 +1838,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             error:
 
-            deconstructMethod = new ErrorMethodSymbol(boundRHS.Type, ErrorTypeSymbol.UnknownResultType, Deconstruct);
+            deconstructMethod = null;
+            parameterTypes = default(ImmutableArray<TypeSymbol>);
+
             return false;
         }
 
