@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (member.Kind == SymbolKind.Method)
                 {
                     var method = (MethodSymbol)member;
-                    if (method.IsExtensionMethod &&
+                    if ((method.ContainingType.IsExtensionClass || method.IsExtensionMethod) &&
                         ((options & LookupOptions.AllMethodsOnArityZero) != 0 || arity == method.Arity))
                     {
                         Debug.Assert(method.MethodKind != MethodKind.ReducedExtension);
@@ -1354,6 +1354,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             tupleCardinality = 0;
             return false;
         }
+
+        public abstract bool IsExtensionClass { get; }
 
         #region INamedTypeSymbol Members
 

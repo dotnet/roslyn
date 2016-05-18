@@ -4094,6 +4094,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to &apos;{0}&apos;: an extension class cannot be abstract, sealed, or static.
+        /// </summary>
+        internal static string ERR_ExtensionBadAbstractSealedStatic {
+            get {
+                return ResourceManager.GetString("ERR_ExtensionBadAbstractSealedStatic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to An extension Add method is not supported for a collection initializer in an expression lambda..
         /// </summary>
         internal static string ERR_ExtensionCollectionElementInitializerInExpressionTree {
@@ -9536,6 +9545,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string IDS_FeatureExpressionBodiedProperty {
             get {
                 return ResourceManager.GetString("IDS_FeatureExpressionBodiedProperty", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to extension everything.
+        /// </summary>
+        internal static string IDS_FeatureExtensionEverything {
+            get {
+                return ResourceManager.GetString("IDS_FeatureExtensionEverything", resourceCulture);
             }
         }
         

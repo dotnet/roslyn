@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int IsManagedTypeOffset = 27;
 
             private const int SpecialTypeMask = 0x3F;
-            private const int DeclarationModifiersMask = 0x3FFFFF;
+            private const int DeclarationModifiersMask = 0x7FFFFF;
             private const int IsManagedTypeMask = 0x3;
 
             private const int FieldDefinitionsNotedBit = 1 << 29;
@@ -246,7 +246,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case TypeKind.Class:
                 case TypeKind.Submission:
                     // static, sealed, and abstract allowed if a class
-                    allowedModifiers |= DeclarationModifiers.Static | DeclarationModifiers.Sealed | DeclarationModifiers.Abstract | DeclarationModifiers.Unsafe;
+                    allowedModifiers |= DeclarationModifiers.Static | DeclarationModifiers.Sealed | DeclarationModifiers.Abstract | DeclarationModifiers.Unsafe | DeclarationModifiers.Extension;
                     break;
                 case TypeKind.Struct:
                 case TypeKind.Interface:
@@ -264,6 +264,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 out modifierErrors);
 
             this.CheckUnsafeModifier(mods, diagnostics);
+
+            if (!modifierErrors &&
+                (mods & DeclarationModifiers.Extension) != 0 &&
+                ((mods & DeclarationModifiers.Abstract) != 0 ||
+                 (mods & DeclarationModifiers.Sealed) != 0 ||
+                 (mods & DeclarationModifiers.Static) != 0))
+            {
+                modifierErrors = true;
+                diagnostics.Add(ErrorCode.ERR_ExtensionBadAbstractSealedStatic, Locations[0], this);
+            }
 
             if (!modifierErrors &&
                 (mods & DeclarationModifiers.Abstract) != 0 &&
@@ -1081,8 +1091,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
 
                 Debug.Assert(s_emptyTypeMembers.Count == 0);
-                return symbols.Count > 0 ? 
-                    symbols.ToDictionary(s => s.Name, StringOrdinalComparer.Instance) : 
+                return symbols.Count > 0 ?
+                    symbols.ToDictionary(s => s.Name, StringOrdinalComparer.Instance) :
                     s_emptyTypeMembers;
             }
             finally
@@ -2381,7 +2391,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         var method = member as SourceMethodSymbol;
                         if ((object)method != null && method.IsPartial)
                         {
-                            continue; 
+                            continue;
                         }
                         if ((object)last == null)
                         {
@@ -3230,13 +3240,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region Extension Methods
 
+        public override bool IsExtensionClass
+        {
+            get { return this.declaration.IsExtensionClass; }
+        }
+
         internal bool ContainsExtensionMethods
         {
             get
             {
                 if (!_lazyContainsExtensionMethods.HasValue())
                 {
-                    bool containsExtensionMethods = ((this.IsStatic && !this.IsGenericType) || this.IsScriptClass) && this.declaration.ContainsExtensionMethods;
+                    bool containsExtensionMethods = this.IsExtensionClass || ((this.IsStatic && !this.IsGenericType) || this.IsScriptClass) && this.declaration.ContainsExtensionMethods;
                     _lazyContainsExtensionMethods = containsExtensionMethods.ToThreeState();
                 }
 

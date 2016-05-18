@@ -95,6 +95,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public bool IsExtensionClass
+        {
+            get
+            {
+                foreach (var decl in this.Declarations)
+                {
+                    if (decl.IsExtensionClass)
+                        return true;
+                }
+
+                return false;
+            }
+        }
+
         public bool ContainsExtensionMethods
         {
             get

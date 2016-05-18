@@ -258,6 +258,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return InterfacesNoUseSiteDiagnostics(basesBeingResolved);
         }
 
+        public override bool IsExtensionClass
+        {
+            get { return false; }
+        }
+
         public override bool MightContainExtensionMethods
         {
             get { return false; }

@@ -2470,6 +2470,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             TestContextualKeywordAsLocalVariableType(SyntaxKind.AwaitKeyword);
             TestContextualKeywordAsLocalVariableType(SyntaxKind.ReplaceKeyword);
             TestContextualKeywordAsLocalVariableType(SyntaxKind.OriginalKeyword);
+            TestContextualKeywordAsLocalVariableType(SyntaxKind.ExtensionKeyword);
         }
 
         private void TestContextualKeywordAsLocalVariableType(SyntaxKind kind)

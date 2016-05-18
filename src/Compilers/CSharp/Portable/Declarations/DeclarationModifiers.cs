@@ -32,9 +32,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         Async = 1 << 19,
         Replace = 1 << 20,
+        Extension = 1 << 21,
 
-        All = (1 << 21) - 1, // all modifiers
-        Unset = 1 << 21, // used when a modifiers value hasn't yet been computed
+        All = (1 << 22) - 1, // all modifiers
+        Unset = 1 << 22, // used when a modifiers value hasn't yet been computed
 
         AccessibilityMask = Private | Protected | Internal | ProtectedInternal | Public,
     }

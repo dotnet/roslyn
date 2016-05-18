@@ -194,6 +194,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         WhenKeyword = 8437,
         ReplaceKeyword = 8439,
         OriginalKeyword = 8440,
+        ExtensionKeyword = 8441,
 
         // additional preprocessor keywords
         ElifKeyword = 8467,

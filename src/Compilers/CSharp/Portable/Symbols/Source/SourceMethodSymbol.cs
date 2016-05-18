@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int DeclarationModifiersOffset = 5;
 
             private const int MethodKindMask = 0x1F;
-            private const int DeclarationModifiersMask = 0x3FFFFF;
+            private const int DeclarationModifiersMask = 0x7FFFFF;
 
             private const int ReturnsVoidBit = 1 << 27;
             private const int IsExtensionMethodBit = 1 << 28;
@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.flags.IsExtensionMethod;
+                return this.flags.IsExtensionMethod || this.ContainingType.IsExtensionClass;
             }
         }
 

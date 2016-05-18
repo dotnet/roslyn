@@ -92,6 +92,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        public bool IsExtensionClass
+        {
+            get
+            {
+                return (_modifiers & DeclarationModifiers.Extension) != 0;
+            }
+        }
+
         public bool AnyMemberHasExtensionMethodSyntax
         {
             get

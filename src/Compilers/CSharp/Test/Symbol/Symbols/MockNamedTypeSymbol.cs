@@ -213,6 +213,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             }
         }
 
+        public override bool IsExtensionClass
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
+
         public override bool MightContainExtensionMethods
         {
             get

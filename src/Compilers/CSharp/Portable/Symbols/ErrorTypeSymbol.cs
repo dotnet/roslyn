@@ -411,6 +411,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        public override bool IsExtensionClass
+        {
+            get { return false; }
+        }
+
         public sealed override bool MightContainExtensionMethods
         {
             get

@@ -73,5 +73,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         {
             return options.WithFeature("replace", "true");
         }
+
+        public static CSharpParseOptions WithExtensionEverythingFeature(this CSharpParseOptions options)
+        {
+            return options.WithFeature("extensionEverything", "true");
+        }
     }
 }

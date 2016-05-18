@@ -4872,4 +4872,10 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="IDS_FeatureTuples" xml:space="preserve">
     <value>tuples</value>
   </data>
+  <data name="IDS_FeatureExtensionEverything" xml:space="preserve">
+    <value>extension everything</value>
+  </data>
+  <data name="ERR_ExtensionBadAbstractSealedStatic" xml:space="preserve">
+    <value>'{0}': an extension class cannot be abstract, sealed, or static</value>
+  </data>
 </root>

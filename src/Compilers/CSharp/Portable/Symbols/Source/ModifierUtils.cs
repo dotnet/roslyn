@@ -111,6 +111,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return SyntaxFacts.GetText(SyntaxKind.ReplaceKeyword);
                 case DeclarationModifiers.Async:
                     return SyntaxFacts.GetText(SyntaxKind.AsyncKeyword);
+                case DeclarationModifiers.Extension:
+                    return SyntaxFacts.GetText(SyntaxKind.ExtensionKeyword);
                 default:
                     throw ExceptionUtilities.UnexpectedValue(modifier);
             }
@@ -152,6 +154,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     return DeclarationModifiers.Override;
                 case SyntaxKind.ReplaceKeyword:
                     return DeclarationModifiers.Replace;
+                case SyntaxKind.ExtensionKeyword:
+                    return DeclarationModifiers.Extension;
                 case SyntaxKind.ConstKeyword:
                     return DeclarationModifiers.Const;
                 case SyntaxKind.FixedKeyword:

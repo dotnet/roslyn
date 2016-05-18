@@ -1537,6 +1537,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        public override bool IsExtensionClass
+        {
+            get
+            {
+                // TODO: Load extension classes from disk
+                return false;
+            }
+        }
+
         public override bool MightContainExtensionMethods
         {
             get
