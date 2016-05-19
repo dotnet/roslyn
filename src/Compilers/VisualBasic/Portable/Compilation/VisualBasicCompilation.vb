@@ -1561,7 +1561,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Overrides Sub ReportUnusedImports(filterTree As SyntaxTree, diagnostics As DiagnosticBag, cancellationToken As CancellationToken)
+        Friend Overrides Sub ReportUnusedImportsAndFinishCompiling(filterTree As SyntaxTree, diagnostics As DiagnosticBag, cancellationToken As CancellationToken)
             If _lazyImportInfos IsNot Nothing Then
                 Dim unusedBuilder As ArrayBuilder(Of TextSpan) = Nothing
 
@@ -2023,7 +2023,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private Sub GetDiagnosticsForAllMethodBodies(hasDeclarationErrors As Boolean, diagnostics As DiagnosticBag, stage As CompilationStage, cancellationToken As CancellationToken)
             MethodCompiler.GetCompileDiagnostics(Me, SourceModule.GlobalNamespace, Nothing, Nothing, hasDeclarationErrors, diagnostics, stage >= CompilationStage.Emit, cancellationToken)
             DocumentationCommentCompiler.WriteDocumentationCommentXml(Me, Nothing, Nothing, diagnostics, cancellationToken)
-            Me.ReportUnusedImports(Nothing, diagnostics, cancellationToken)
+            Me.ReportUnusedImportsAndFinishCompiling(Nothing, diagnostics, cancellationToken)
         End Sub
 
         ' Get diagnostics by compiling all method bodies in the given tree.
@@ -2044,7 +2044,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Report unused import diagnostics only if computing diagnostics for the entire tree.
             ' Otherwise we cannot determine if a particular directive is used outside of the given sub-span within the tree.
             If Not filterSpanWithinTree.HasValue OrElse filterSpanWithinTree.Value = tree.GetRoot(cancellationToken).FullSpan Then
-                Me.ReportUnusedImports(tree, diagnostics, cancellationToken)
+                Me.ReportUnusedImportsAndFinishCompiling(tree, diagnostics, cancellationToken)
             End If
         End Sub
 
