@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Parsing
     // `(E, ...) = ...;` is a deconstruction-assignment, which starts with a tuple literal/expression
     // `(E, ...).Foo();` starts with a tuple literal/expression
     // `(E, ...) + ...` also starts with a tuple literal/expression 
+    // `(T, ...)? id;` starts with a tuple type
 
     [CompilerTrait(CompilerFeature.Tuples)]
     public class DeconstructionTests : ParsingTests
@@ -771,5 +772,15 @@ class C
             Assert.True(statement.HasErrors);
         }
 
+        [Fact]
+        public void NullableTuple()
+        {
+            var text = "(x, y)? z = M();";
+            var statement = SyntaxFactory.ParseStatement(text, offset: 0, options: TestOptions.Regular.WithTuplesFeature());
+            Assert.False(statement.HasErrors);
+            var declaration = ((LocalDeclarationStatementSyntax)statement).Declaration;
+            var nullable = (NullableTypeSyntax)declaration.Type;
+            Assert.Equal(SyntaxKind.TupleType, nullable.ElementType.Kind());
+        }
     }
 }
