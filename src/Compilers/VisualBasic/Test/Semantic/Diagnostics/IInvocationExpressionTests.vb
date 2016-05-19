@@ -510,6 +510,160 @@ End Class
             Assert.Equal(instanceReference.InstanceReferenceKind, InstanceReferenceKind.BaseClass)
             Assert.Equal(instanceReference.Type.Name, "Base")
         End Sub
+
+        <Fact>
+        Public Sub DefaultArgumentInvocations()
+
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Sub M1()
+        M2(1, c:=3)
+        M2(b:=2)
+    End Sub
+
+    Sub M2(Optional a As Integer= 10, Optional b As Integer = 20, Optional c As Integer = 30)
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of InvocationExpressionSyntax).ToArray()
+            Assert.Equal(nodes.Length, 2)
+
+            '  M2(1, c:=3)
+
+            Assert.Equal("M2(1, c:=3)", nodes(0).ToString())
+            Dim operation As IOperation = model.GetOperation(nodes(0))
+            Assert.Equal(operation.Kind, OperationKind.InvocationExpression)
+            Assert.False(operation.IsInvalid)
+            Dim invocation As IInvocationExpression = DirectCast(operation, IInvocationExpression)
+            Assert.False(invocation.ConstantValue.HasValue)
+            Assert.False(invocation.IsVirtual)
+            Assert.Equal(invocation.TargetMethod.Name, "M2")
+            Dim arguments As ImmutableArray(Of IArgument) = invocation.ArgumentsInParameterOrder
+            Assert.Equal(arguments.Length, 3)
+
+            Dim evaluationOrderArguments As ImmutableArray(Of IArgument) = invocation.ArgumentsInEvaluationOrder
+            Assert.Equal(evaluationOrderArguments.Length, 3)
+
+            ' 1
+
+            Dim argument As IArgument = arguments(0)
+            Assert.True(argument Is evaluationOrderArguments(0))
+            Assert.False(argument.IsInvalid)
+            Assert.Null(argument.InConversion)
+            Assert.Null(argument.OutConversion)
+            Assert.Equal(argument.Parameter.Name, "a")
+            Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) Is argument)
+            Dim argumentValue As IOperation = argument.Value
+            Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression)
+            Assert.False(argumentValue.IsInvalid)
+            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32)
+            Assert.True(argumentValue.ConstantValue.HasValue)
+            Assert.Equal(argumentValue.ConstantValue.Value, 1)
+
+            ' 20
+
+            argument = arguments(1)
+            Assert.True(argument Is evaluationOrderArguments(1))
+            Assert.False(argument.IsInvalid)
+            Assert.Null(argument.InConversion)
+            Assert.Null(argument.OutConversion)
+            Assert.Equal(argument.Parameter.Name, "b")
+            Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) Is argument)
+            argumentValue = argument.Value
+            Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression)
+            Assert.False(argumentValue.IsInvalid)
+            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32)
+            Assert.True(argumentValue.ConstantValue.HasValue)
+            Assert.Equal(argumentValue.ConstantValue.Value, 20)
+
+            ' c:=3
+
+            argument = arguments(2)
+            Assert.True(argument Is evaluationOrderArguments(2))
+            Assert.False(argument.IsInvalid)
+            Assert.Null(argument.InConversion)
+            Assert.Null(argument.OutConversion)
+            Assert.Equal(argument.Parameter.Name, "c")
+            Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) Is argument)
+            argumentValue = argument.Value
+            Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression)
+            Assert.False(argumentValue.IsInvalid)
+            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32)
+            Assert.True(argumentValue.ConstantValue.HasValue)
+            Assert.Equal(argumentValue.ConstantValue.Value, 3)
+
+            '  M2(b:=2)
+
+            Assert.Equal("M2(b:=2)", nodes(1).ToString())
+            operation = model.GetOperation(nodes(1))
+            Assert.Equal(operation.Kind, OperationKind.InvocationExpression)
+            Assert.False(operation.IsInvalid)
+            invocation = DirectCast(operation, IInvocationExpression)
+            Assert.False(invocation.ConstantValue.HasValue)
+            Assert.False(invocation.IsVirtual)
+            Assert.Equal(invocation.TargetMethod.Name, "M2")
+            arguments = invocation.ArgumentsInParameterOrder
+            Assert.Equal(arguments.Length, 3)
+
+            evaluationOrderArguments = invocation.ArgumentsInEvaluationOrder
+            Assert.Equal(evaluationOrderArguments.Length, 3)
+
+            ' 10
+
+            argument = arguments(0)
+            Assert.True(argument Is evaluationOrderArguments(0))
+            Assert.False(argument.IsInvalid)
+            Assert.Null(argument.InConversion)
+            Assert.Null(argument.OutConversion)
+            Assert.Equal(argument.Parameter.Name, "a")
+            Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) Is argument)
+            argumentValue = argument.Value
+            Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression)
+            Assert.False(argumentValue.IsInvalid)
+            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32)
+            Assert.True(argumentValue.ConstantValue.HasValue)
+            Assert.Equal(argumentValue.ConstantValue.Value, 10)
+
+            ' b:=2
+
+            argument = arguments(1)
+            Assert.True(argument Is evaluationOrderArguments(1))
+            Assert.False(argument.IsInvalid)
+            Assert.Null(argument.InConversion)
+            Assert.Null(argument.OutConversion)
+            Assert.Equal(argument.Parameter.Name, "b")
+            Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) Is argument)
+            argumentValue = argument.Value
+            Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression)
+            Assert.False(argumentValue.IsInvalid)
+            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32)
+            Assert.True(argumentValue.ConstantValue.HasValue)
+            Assert.Equal(argumentValue.ConstantValue.Value, 2)
+
+            ' 30
+
+            argument = arguments(2)
+            Assert.True(argument Is evaluationOrderArguments(2))
+            Assert.False(argument.IsInvalid)
+            Assert.Null(argument.InConversion)
+            Assert.Null(argument.OutConversion)
+            Assert.Equal(argument.Parameter.Name, "c")
+            Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) Is argument)
+            argumentValue = argument.Value
+            Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression)
+            Assert.False(argumentValue.IsInvalid)
+            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32)
+            Assert.True(argumentValue.ConstantValue.HasValue)
+            Assert.Equal(argumentValue.ConstantValue.Value, 30)
+        End Sub
     End Class
 End Namespace
 
