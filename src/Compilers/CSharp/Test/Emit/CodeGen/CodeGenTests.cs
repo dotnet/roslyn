@@ -14987,19 +14987,12 @@ class M
 
     static void Main()
     {
-        try
-        {
-            Console.Write(new M().a);
-        }
-        catch (Microsoft.CSharp.RuntimeBinder.RuntimeBinderException)
-        {
-            Console.Write(""ex caught"");
-        }
+        Console.Write(new M().a);
     }
 }
 ";
 
-            // TODO: Figure out if we want this error or not.
+            // BREAKING CHANGE: The native compiler allowed this (and generated code that will always throw at runtime)
             CreateCompilationWithMscorlib45AndCSruntime(source).VerifyDiagnostics(
                 // (6,16): error CS0236: A field initializer cannot reference the non-static field, method, or property 'M.Test(object)'
                 //     object a = Test((dynamic)2);
@@ -15090,7 +15083,7 @@ class M : B
 }
 ";
 
-            // TODO: Figure out if we want this error or not.
+            // BREAKING CHANGE: The native compiler allowed this (and generated code that will always throw at runtime)
             CreateCompilationWithMscorlib45AndCSruntime(source).VerifyDiagnostics(
                 // (16,31): error CS0120: An object reference is required for the non-static field, method, or property 'M.Test(object)'
                 //     public M() : base((object)Test((dynamic)2))
@@ -15123,6 +15116,7 @@ class M
 }
 ";
 
+            // BREAKING CHANGE: The native compiler allowed this (and generated code that will always throw at runtime)
             CreateCompilationWithMscorlib45AndCSruntime(source).VerifyDiagnostics(
                 // (8,31): error CS0120: An object reference is required for the non-static field, method, or property 'M.Test(object)'
                 //         Console.Write((object)Test((dynamic)2));
@@ -15150,6 +15144,7 @@ class M
 }
 ";
 
+            // BREAKING CHANGE: The native compiler allowed this (and generated code that will always throw at runtime)
             CreateCompilationWithMscorlib45AndCSruntime(source).VerifyDiagnostics(
                 // (4,31): error CS0236: A field initializer cannot reference the non-static field, method, or property 'M.Test(object)'
                 //     static object o = (object)Test((dynamic)2);
@@ -15160,10 +15155,6 @@ class M
         [Fact]
         public void CallingInstanceDynamicallyFromStaticContext()
         {
-            // this test is for backcompat - the native compiler allowed all these cases, early Roslyn versions did not,
-            // which is why C#5 syntax is used for this test - easy copying to see how the native compiler performs.
-            // (Roslyn emitted CS0236 for the field initializers and CS0120 for everything else)
-            // Note that even though it compiles, it is impossible for the code to actually run - it will throw no matter what.
             string source = @"
 class B
 {
@@ -15212,7 +15203,7 @@ class M
 }
 ";
 
-            // TODO: Figure out if we want this error or not.
+            // BREAKING CHANGE: The native compiler allowed this (and generated code that will always throw at runtime)
             CreateCompilationWithMscorlib45AndCSruntime(source).VerifyDiagnostics(
                 // (16,29): error CS0236: A field initializer cannot reference the non-static field, method, or property 'C.InstanceMethod(int)'
                 //     static int field = (int)InstanceMethod((dynamic)2);
@@ -15242,6 +15233,7 @@ class M
             // The native compiler allows both cases, so it's an interesting backcompat case:
             // The spec (as of 2016-05-13, it may be changed) explicitly disallows `C.InstanceMethod`,
             // but doesn't say for just `InstanceMethod` (in a way that implies it should be allowed).
+            // Roslyn disallows both cases.
             string source = @"
 class B
 {
@@ -15290,6 +15282,7 @@ class M
 }
 ";
 
+            // BREAKING CHANGE: The native compiler allowed this (and generated code that will always throw at runtime)
             CreateCompilationWithMscorlib45AndCSruntime(source).VerifyDiagnostics(
                 // (16,29): error CS0120: An object reference is required for the non-static field, method, or property 'C.InstanceMethod(int)'
                 //     static int field = (int)C.InstanceMethod((dynamic)2);
