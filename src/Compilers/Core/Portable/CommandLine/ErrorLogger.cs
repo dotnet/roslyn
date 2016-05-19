@@ -164,12 +164,14 @@ namespace Microsoft.CodeAnalysis
             Uri uri;
             if (Uri.TryCreate(path, UriKind.Absolute, out uri))
             {
-                // Note that URI.ToString() does not, for example, escape spaces to %20.
+                // We use Uri.AbsoluteUri and not Uri.ToString() because Uri.ToString() 
+                // is unescaped (e.g. spaces remain unreplaced by %20) and therefore 
+                // not well-formed.
                 return uri.AbsoluteUri;
             }
 
-            // First fallback attempt: interpret as relative reference if possible
-            // (perhaps the resolver works that way).
+            // First fallback attempt: attempt to interpret as relative path/URI.
+            // (Perhaps the resolver works that way.)
             if (Uri.TryCreate(path, UriKind.Relative, out uri))
             {
                 // There is no AbsoluteUri equivalent for relative URI references and ToString() 
@@ -177,7 +179,7 @@ namespace Microsoft.CodeAnalysis
                 return _fileRoot.MakeRelativeUri(new Uri(_fileRoot, uri)).ToString();
             }
 
-            // Last resort: UrlEncode the whole opaque string as a relative reference with one part.
+            // Last resort: UrlEncode the whole opaque string.
             return System.Net.WebUtility.UrlEncode(path);
         }
 
@@ -392,9 +394,19 @@ namespace Microsoft.CodeAnalysis
 
             /// <summary>
             /// Compares descriptors by the values that we write to the log and nothing else.
-            /// 
-            /// We cannot use the IEquatable implementation because it includes message format 
-            /// and we don't write it out. It also ignores tags, which we do write.
+            ///
+            /// We cannot just use <see cref="DiagnosticDescriptor"/>'s built-in implementation
+            /// of <see cref="IEquatable{DiagnosticDescriptor}"/> for two reasons:
+            ///
+            /// 1. <see cref="DiagnosticDescriptor.MessageFormat"/> is part of that built-in 
+            ///    equatability, but we do not write it out, and so descriptors differing only
+            ///    by MessageFormat (common) would lead to duplicate rule metadata entries in
+            ///    the log.
+            ///
+            /// 2. <see cref="DiagnosticDescriptor.CustomTags"/> is *not* part of that built-in
+            ///    equatability, but we do write them out, and so descriptors differening only
+            ///    by CustomTags (rare) would cause only one set of tags to be reported in the
+            ///    log.
             /// </summary>
             private sealed class Comparer : IEqualityComparer<DiagnosticDescriptor>
             {
@@ -410,7 +422,11 @@ namespace Microsoft.CodeAnalysis
                         return false;
                     }
 
-                   return (x.Category == y.Category
+                    // The properties are guaranteed to be non-null by DiagnosticDescriptor invariants.
+                    Debug.Assert(x.Description != null && x.Title != null && x.CustomTags != null);
+                    Debug.Assert(y.Description != null && y.Title != null && y.CustomTags != null);
+
+                    return (x.Category == y.Category
                         && x.DefaultSeverity == y.DefaultSeverity
                         && x.Description.Equals(y.Description)
                         && x.HelpLinkUri == y.HelpLinkUri
@@ -427,20 +443,18 @@ namespace Microsoft.CodeAnalysis
                         return 0;
                     }
 
-                    int hash = Hash.Combine(obj.Category.GetHashCode(),
+                    // The properties are guaranteed to be non-null by DiagnosticDescriptor invariants.
+                    Debug.Assert(obj.Category != null && obj.Description != null && obj.HelpLinkUri != null 
+                        && obj.Id != null && obj.Title != null && obj.CustomTags != null);
+
+                    return Hash.Combine(obj.Category.GetHashCode(),
                         Hash.Combine(obj.DefaultSeverity.GetHashCode(),
                         Hash.Combine(obj.Description.GetHashCode(),
                         Hash.Combine(obj.HelpLinkUri.GetHashCode(),
                         Hash.Combine(obj.Id.GetHashCode(),
                         Hash.Combine(obj.IsEnabledByDefault.GetHashCode(),
-                        obj.Title.GetHashCode()))))));
-
-                    foreach (string tag in obj.CustomTags)
-                    {
-                        hash = Hash.Combine(tag, hash);
-                    }
-
-                    return hash;
+                        Hash.Combine(obj.Title.GetHashCode(),
+                        Hash.CombineValues(obj.CustomTags))))))));
                 }
             }
         }
