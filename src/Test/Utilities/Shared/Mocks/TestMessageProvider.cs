@@ -386,5 +386,13 @@ namespace Roslyn.Test.Utilities
                 throw new NotImplementedException();
             }
         }
+
+        public override int ERR_EncUpdateFailedMissingAttribute
+        {
+            get
+            {
+                throw new NotImplementedException();
+            }
+        }
     }
 }
