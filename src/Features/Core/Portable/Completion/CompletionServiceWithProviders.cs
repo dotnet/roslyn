@@ -136,7 +136,10 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             var map = ImmutableDictionary<string, CompletionProvider>.Empty;
 
-            foreach (var provider in GetBuiltInProviders().Concat(GetImportedProviders().Select(lz => lz.Value)).Concat(_testProviders))
+            var importedProviders = GetImportedProviders().Where(lz => lz.Metadata.Language == this.Language)
+                                                          .Select(lz => lz.Value);
+
+            foreach (var provider in GetBuiltInProviders().Concat(importedProviders).Concat(_testProviders))
             {
                 if (!map.ContainsKey(provider.Name))
                 {

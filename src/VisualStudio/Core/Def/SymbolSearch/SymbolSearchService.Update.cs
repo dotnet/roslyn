@@ -69,36 +69,6 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
         private void LogException(Exception e, string text) => _logService.LogException(e, text);
 
-        private void OnOptionChanged(object sender, EventArgs e)
-        {
-            // If we don't have any add-import features that would use these indices, then
-            // don't bother creating them.
-            if (!_registeredLanguageNames.Any(IsRegisteredForLanguage))
-            {
-                return;
-            }
-
-            // Kick off a database update.  Wait a few seconds before starting so we don't
-            // interfere too much with solution loading.
-            var sources = _installerService.PackageSources;
-
-            // Always pull down the nuget.org index.  It contains the MS reference assembly index
-            // inside of it.
-            var allSources = sources.Concat(new PackageSource(NugetOrgSource, source: null));
-            foreach (var source in allSources)
-            {
-                Task.Delay(TimeSpan.FromSeconds(10)).ContinueWith(_ =>
-                    UpdateSourceInBackgroundAsync(source.Name), TaskScheduler.Default);
-            }
-        }
-
-        private bool IsRegisteredForLanguage(string language)
-        {
-            var options = _workspace.Options;
-
-            return options.GetOption(AddImportOptions.SuggestForTypesInReferenceAssemblies, language) ||
-                   options.GetOption(AddImportOptions.SuggestForTypesInNuGetPackages, language);
-        }
 
         // internal for testing purposes.
         internal Task UpdateSourceInBackgroundAsync(string source)

@@ -6,8 +6,8 @@ using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.Elfie.Model.Structures;
 using Microsoft.CodeAnalysis.Elfie.Model.Tree;
@@ -15,13 +15,13 @@ using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Options;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.Settings;
+using Roslyn.Utilities;
 using VSShell = Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
@@ -34,14 +34,12 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
     /// date by downloading patches on a daily basis.
     /// </summary>
     [ExportWorkspaceService(typeof(ISymbolSearchService)), Shared]
-    internal partial class SymbolSearchService : ForegroundThreadAffinitizedObject, ISymbolSearchService
+    internal partial class SymbolSearchService : AbstractDelayStartedService, ISymbolSearchService
     {
         private readonly Workspace _workspace;
 
         private ConcurrentDictionary<string, IAddReferenceDatabaseWrapper> _sourceToDatabase = 
             new ConcurrentDictionary<string, IAddReferenceDatabaseWrapper>();
-
-        private readonly List<string> _registeredLanguageNames = new List<string>();
 
         [ImportingConstructor]
         public SymbolSearchService(
@@ -88,7 +86,10 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             IDatabaseFactoryService databaseFactoryService,
             string localSettingsDirectory,
             Func<Exception, bool> reportAndSwallowException,
-            CancellationTokenSource cancellationTokenSource)
+            CancellationTokenSource cancellationTokenSource) 
+            : base(workspace, ServiceComponentOnOffOptions.SymbolSearch,
+                              AddImportOptions.SuggestForTypesInReferenceAssemblies,
+                              AddImportOptions.SuggestForTypesInNuGetPackages)
         {
             if (remoteControlService == null)
             {
@@ -111,44 +112,36 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             _cancellationToken = _cancellationTokenSource.Token;
         }
 
-        internal void Start(string languageName)
+        protected override void ConnectToAdditionalEventSources()
         {
-            _registeredLanguageNames.Add(languageName);
-            if (_registeredLanguageNames.Count == 1)
-            {
-                // When the first language registers, start the service.
-
-                var options = _workspace.Options;
-                if (!options.GetOption(ServiceComponentOnOffOptions.SymbolSearch))
-                {
-                    return;
-                }
-
-                var optionsService = _workspace.Services.GetService<IOptionService>();
-                optionsService.OptionChanged += OnOptionChanged;
-
-                // Start the whole process once we're connected
-                _installerService.PackageSourcesChanged += OnOptionChanged;
-            }
-
-            // Kick things off.
-            OnOptionChanged(this, EventArgs.Empty);
+            _installerService.PackageSourcesChanged += OnOptionChanged;
         }
 
-        internal void Stop(string languageName)
+        protected override void DisconnectFromAdditionalEventSources()
         {
-            _registeredLanguageNames.Remove(languageName);
-            if (_registeredLanguageNames.Count == 0)
+            _installerService.PackageSourcesChanged -= OnOptionChanged;
+        }
+
+        protected override void StartWork()
+        {
+            // Kick off a database update.  Wait a few seconds before starting so we don't
+            // interfere too much with solution loading.
+            var sources = _installerService.PackageSources;
+
+            // Always pull down the nuget.org index.  It contains the MS reference assembly index
+            // inside of it.
+            var allSources = sources.Concat(new PackageSource(NugetOrgSource, source: null));
+            foreach (var source in allSources)
             {
-                // once there are no more languages registered, we can actually stop this service.
-
-                var optionsService = _workspace.Services.GetService<IOptionService>();
-                optionsService.OptionChanged -= OnOptionChanged;
-
-                _installerService.PackageSourcesChanged -= OnOptionChanged;
-                // Cancel any existing work.
-                _cancellationTokenSource.Cancel();
+                Task.Delay(TimeSpan.FromSeconds(10)).ContinueWith(_ =>
+                    UpdateSourceInBackgroundAsync(source.Name), TaskScheduler.Default);
             }
+        }
+
+        protected override void StopWork()
+        {
+            // Cancel any existing work.
+            _cancellationTokenSource.Cancel();
         }
 
         public IEnumerable<PackageWithTypeResult> FindPackagesWithType(
