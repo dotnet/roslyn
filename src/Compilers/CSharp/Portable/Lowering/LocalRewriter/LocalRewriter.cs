@@ -255,7 +255,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         [Conditional("DEBUG")]
         private static void AssertPlaceholderReplacement(BoundValuePlaceholderBase placeholder, BoundExpression value)
         {
-            Debug.Assert(value.Type.Equals(placeholder.Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true));
+            Debug.Assert(value.Type.Equals(placeholder.Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
         }
 
         /// <summary>

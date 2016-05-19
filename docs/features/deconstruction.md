@@ -29,7 +29,7 @@ class C
 Treat deconstruction of a tuple into existing variables as a kind of assignment, using the existing AssignmentExpression.
 
 
-###Deconstruction-assignment (deconstruction into into existing variables):
+###Deconstruction-assignment (deconstruction into existing variables):
 This doesn't introduce any changes to the language grammar. We have an `assignment-expression` (also simply called `assignment` in the C# grammar) where the `unary-expression` (the left-hand-side) is a `tuple-literal`.
 In short, what this does is find a `Deconstruct` method on the expression on the right-hand-side of the assignment, invoke it, collect its `out` parameters and assign them to the variables on the left-hand-side.
 

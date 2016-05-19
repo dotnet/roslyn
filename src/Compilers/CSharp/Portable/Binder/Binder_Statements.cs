@@ -1738,7 +1738,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var checkedVariables = checkedVariablesBuilder.ToImmutableAndFree();
 
             // symbol and parameters for Deconstruct
-            MethodSymbol deconstructMethod = FindDeconstruct(checkedVariables, boundRHS, node, diagnostics);
+            DiagnosticBag bag = new DiagnosticBag();
+            MethodSymbol deconstructMethod = FindDeconstruct(checkedVariables, boundRHS, node, bag);
+            if (!diagnostics.HasAnyErrors())
+            {
+                diagnostics.AddRange(bag);
+            }
+
             if ((object)deconstructMethod == null)
             {
                 return new BoundDeconstructionAssignmentOperator(node, checkedVariables, boundRHS, ErrorMethodSymbol.UnknownMethod,
@@ -1747,14 +1753,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                 hasErrors: true);
             }
 
-            var parameterTypes = deconstructMethod.Parameters.SelectAsArray(p => p.Type);
-
             // figure out the pairwise conversions
             var assignmentsBuilder = ArrayBuilder<BoundDeconstructionAssignmentOperator.AssignmentInfo>.GetInstance(numElements);
+            var deconstructParameters = deconstructMethod.Parameters;
             for (int i = 0; i < checkedVariables.Length; i++)
             {
                 var leftPlaceholder = new BoundLValuePlaceholder(checkedVariables[i].Syntax, checkedVariables[i].Type) { WasCompilerGenerated = true };
-                var rightPlaceholder = new BoundRValuePlaceholder(node.Right, parameterTypes[i]) { WasCompilerGenerated = true };
+                var rightPlaceholder = new BoundRValuePlaceholder(node.Right, deconstructParameters[i].Type) { WasCompilerGenerated = true };
 
                 // each assignment has a placeholder for a receiver and another for the source
                 BoundAssignmentOperator op = BindAssignment(node, leftPlaceholder, rightPlaceholder, diagnostics);
@@ -1763,7 +1768,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var assignments = assignmentsBuilder.ToImmutableAndFree();
 
-            TypeSymbol lastType = parameterTypes[parameterTypes.Length - 1];
+            TypeSymbol lastType = deconstructParameters.Last().Type;
             return new BoundDeconstructionAssignmentOperator(node, checkedVariables, boundRHS, deconstructMethod, assignments, lastType);
         }
 
@@ -1806,13 +1811,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (deconstructMethod.ParameterCount != checkedVariables.Length)
             {
-                Error(diagnostics, ErrorCode.ERR_DeconstructWrongParams, boundRHS.Syntax, boundRHS.Type, checkedVariables.Length);
+                Error(diagnostics, ErrorCode.ERR_DeconstructWrongParams, boundRHS.Syntax, deconstructMethod, checkedVariables.Length);
                 return null;
             }
 
             if (deconstructMethod.Parameters.Any(p => p.RefKind != RefKind.Out))
             {
-                Error(diagnostics, ErrorCode.ERR_DeconstructRequiresOutParams, boundRHS.Syntax, boundRHS.Type);
+                Error(diagnostics, ErrorCode.ERR_DeconstructRequiresOutParams, boundRHS.Syntax, deconstructMethod);
                 return null;
             }
 

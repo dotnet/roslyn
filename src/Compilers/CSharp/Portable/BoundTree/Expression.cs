@@ -1047,13 +1047,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return visitor.VisitNoneOperation(this, argument);
         }
-
-        internal class AssignmentInfo
-        {
-            public BoundAssignmentOperator Assignment;
-            public BoundLValuePlaceholder LValuePlaceholder;
-            public BoundRValuePlaceholder RValuePlaceholder;
-        }
     }
 
     internal partial class BoundCompoundAssignmentOperator : ICompoundAssignmentExpression

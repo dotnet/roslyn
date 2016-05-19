@@ -110,9 +110,9 @@ class C
 }";
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics(
-                // (8,18): error CS8209: The Deconstruct method for type 'C' doesn't have the number of parameters (2) needed for this deconstruction.
+                // (8,18): error CS8209: The Deconstruct method for type 'C.Deconstruct(out int)' doesn't have the number of parameters (2) needed for this deconstruction.
                 //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_DeconstructWrongParams, "new C()").WithArguments("C", "2").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_DeconstructWrongParams, "new C()").WithArguments("C.Deconstruct(out int)", "2").WithLocation(8, 18)
                 );
         }
 
@@ -138,10 +138,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "f").WithArguments("long", "f").WithLocation(8, 12),
                 // (8,17): error CS1061: 'string' does not contain a definition for 'g' and no extension method 'g' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                 //         (x.f, y.g) = new C();
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "g").WithArguments("string", "g").WithLocation(8, 17),
-                // (8,22): error CS8209: The Deconstruct method for type 'C' doesn't have the number of parameters (2) needed for this deconstruction.
-                //         (x.f, y.g) = new C();
-                Diagnostic(ErrorCode.ERR_DeconstructWrongParams, "new C()").WithArguments("C", "2").WithLocation(8, 22)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "g").WithArguments("string", "g").WithLocation(8, 17)
                 );
         }
 
@@ -162,9 +159,9 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics(
-                // (8,18): error CS8208: The Deconstruct method for type 'C' must have only out parameters.
+                // (8,18): error CS8208: The Deconstruct method for type 'C.Deconstruct(out int, int)' must have only out parameters.
                 //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_DeconstructRequiresOutParams, "new C()").WithArguments("C").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_DeconstructRequiresOutParams, "new C()").WithArguments("C.Deconstruct(out int, int)").WithLocation(8, 18)
                 );
         }
 
@@ -185,9 +182,9 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics(
-                // (8,18): error CS8208: The Deconstruct method for type 'C' must have only out parameters.
+                // (8,18): error CS8208: The Deconstruct method for type 'C.Deconstruct(ref int, out int)' must have only out parameters.
                 //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_DeconstructRequiresOutParams, "new C()").WithArguments("C").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_DeconstructRequiresOutParams, "new C()").WithArguments("C.Deconstruct(ref int, out int)").WithLocation(8, 18)
                 );
         }
 
