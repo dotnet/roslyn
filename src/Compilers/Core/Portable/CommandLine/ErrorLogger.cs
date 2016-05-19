@@ -37,8 +37,8 @@ namespace Microsoft.CodeAnalysis
             _culture = culture;
 
             _writer.WriteObjectStart(); // root
-            _writer.Write("$schema", "http://json.schemastore.org/sarif-1.0.0-beta.5");
-            _writer.Write("version", "1.0.0-beta.5");
+            _writer.Write("$schema", "http://json.schemastore.org/sarif-1.0.0");
+            _writer.Write("version", "1.0.0");
             _writer.WriteArrayStart("runs");
             _writer.WriteObjectStart(); // run
 
