@@ -312,9 +312,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly Property IInvocationExpression_IsVirtual As Boolean Implements IInvocationExpression.IsVirtual
             Get
                 Dim method As IMethodSymbol = Me.Method
-                Dim instance As IOperation = Me.ReceiverOpt
-
-                Return method IsNot Nothing AndAlso instance IsNot Nothing AndAlso (method.IsVirtual OrElse method.IsAbstract OrElse method.IsOverride) AndAlso instance.Kind <> BoundKind.MyBaseReference AndAlso instance.Kind <> BoundKind.MyClassReference
+                Return method IsNot Nothing AndAlso Me.ReceiverOpt IsNot Nothing AndAlso (method.IsVirtual OrElse method.IsAbstract OrElse method.IsOverride) AndAlso Not Me.ReceiverOpt.SuppressVirtualCalls
             End Get
         End Property
 
@@ -1517,7 +1515,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IMethodBindingExpression_IsVirtual As Boolean Implements IMethodBindingExpression.IsVirtual
             Get
-                Return Me.Method IsNot Nothing AndAlso (Me.Method.IsOverridable OrElse Me.Method.IsOverrides OrElse Me.Method.IsMustOverride) AndAlso Not Me.SuppressVirtualCalls
+                Dim method As IMethodSymbol = Me.Method
+                Return method IsNot Nothing AndAlso Me.ReceiverOpt IsNot Nothing AndAlso (method.IsVirtual OrElse method.IsAbstract OrElse method.IsOverride) AndAlso Not Me.ReceiverOpt.SuppressVirtualCalls
             End Get
         End Property
 

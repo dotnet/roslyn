@@ -415,6 +415,101 @@ End CLass
             Assert.True(argumentValue.ConstantValue.HasValue)
             Assert.Equal(argumentValue.ConstantValue.Value, 3)
         End Sub
+
+        <Fact>
+        Public Sub VirtualInvocations()
+
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class Base
+    Public Overridable Sub M2()
+    End Sub
+End Class
+
+Class Derived
+    Inherits Base
+
+    Sub M1()
+        M2()
+        Me.M2()
+        MyClass.M2()
+        MyBase.M2()
+    End Sub
+
+    Public Overrides Sub M2()
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of InvocationExpressionSyntax).ToArray()
+            Assert.Equal(nodes.Length, 4)
+
+            ' M2()
+
+            Assert.Equal("M2()", nodes(0).ToString())
+            Dim operation As IOperation = model.GetOperation(nodes(0))
+            Assert.Equal(operation.Kind, OperationKind.InvocationExpression)
+            Assert.False(operation.IsInvalid)
+            Dim invocation As IInvocationExpression = DirectCast(operation, IInvocationExpression)
+            Assert.True(invocation.IsVirtual)
+            Assert.Equal(invocation.TargetMethod.Name, "M2")
+            Assert.NotNull(invocation.Instance)
+            Assert.Equal(invocation.Instance.Kind, OperationKind.InstanceReferenceExpression)
+            Dim instanceReference As IInstanceReferenceExpression = DirectCast(invocation.Instance, IInstanceReferenceExpression)
+            Assert.Equal(instanceReference.InstanceReferenceKind, InstanceReferenceKind.Implicit)
+            Assert.Equal(instanceReference.Type.Name, "Derived")
+
+            ' Me.M2()
+
+            Assert.Equal("Me.M2()", nodes(1).ToString())
+            operation = model.GetOperation(nodes(1))
+            Assert.Equal(operation.Kind, OperationKind.InvocationExpression)
+            Assert.False(operation.IsInvalid)
+            invocation = DirectCast(operation, IInvocationExpression)
+            Assert.True(invocation.IsVirtual)
+            Assert.Equal(invocation.TargetMethod.Name, "M2")
+            Assert.NotNull(invocation.Instance)
+            Assert.Equal(invocation.Instance.Kind, OperationKind.InstanceReferenceExpression)
+            instanceReference = DirectCast(invocation.Instance, IInstanceReferenceExpression)
+            Assert.Equal(instanceReference.InstanceReferenceKind, InstanceReferenceKind.Explicit)
+            Assert.Equal(instanceReference.Type.Name, "Derived")
+
+            ' MyClass.M2()
+
+            Assert.Equal("MyClass.M2()", nodes(2).ToString())
+            operation = model.GetOperation(nodes(2))
+            Assert.Equal(operation.Kind, OperationKind.InvocationExpression)
+            Assert.False(operation.IsInvalid)
+            invocation = DirectCast(operation, IInvocationExpression)
+            Assert.False(invocation.IsVirtual)
+            Assert.Equal(invocation.TargetMethod.Name, "M2")
+            Assert.NotNull(invocation.Instance)
+            Assert.Equal(invocation.Instance.Kind, OperationKind.InstanceReferenceExpression)
+            instanceReference = DirectCast(invocation.Instance, IInstanceReferenceExpression)
+            Assert.Equal(instanceReference.InstanceReferenceKind, InstanceReferenceKind.ThisClass)
+            Assert.Equal(instanceReference.Type.Name, "Derived")
+
+            ' MyBase.M2()
+
+            Assert.Equal("MyBase.M2()", nodes(3).ToString())
+            operation = model.GetOperation(nodes(3))
+            Assert.Equal(operation.Kind, OperationKind.InvocationExpression)
+            Assert.False(operation.IsInvalid)
+            invocation = DirectCast(operation, IInvocationExpression)
+            Assert.False(invocation.IsVirtual)
+            Assert.Equal(invocation.TargetMethod.Name, "M2")
+            Assert.NotNull(invocation.Instance)
+            Assert.Equal(invocation.Instance.Kind, OperationKind.InstanceReferenceExpression)
+            instanceReference = DirectCast(invocation.Instance, IInstanceReferenceExpression)
+            Assert.Equal(instanceReference.InstanceReferenceKind, InstanceReferenceKind.BaseClass)
+            Assert.Equal(instanceReference.Type.Name, "Base")
+        End Sub
     End Class
 End Namespace
 
