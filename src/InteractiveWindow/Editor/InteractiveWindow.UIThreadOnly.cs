@@ -38,6 +38,8 @@ namespace Microsoft.VisualStudio.InteractiveWindow
 
             private readonly IInteractiveWindowEditorFactoryService _factory;
 
+            private readonly ITextBufferFactoryService _textBufferFactoryService;
+
             private readonly ITextBufferUndoManagerProvider _textBufferUndoManagerProvider;
             private ITextBufferUndoManager _undoManager;
 
@@ -153,6 +155,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
             {
                 _window = window;
                 _factory = factory;
+                _textBufferFactoryService = bufferFactory;
                 _textBufferUndoManagerProvider = textBufferUndoManagerProvider;
                 _rtfBuilderService = (IRtfBuilderService2)rtfBuilderService;
                 _intellisenseSessionStackMap = intellisenseSessionStackMap;
@@ -639,9 +642,44 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 {
                     return;
                 }
+                
+                var sourceSpans = _projectionBuffer.CurrentSnapshot.GetSourceSpans();
+                int insertionIndex;
+                switch (State) 
+                {
+                    case State.Starting:
+                    case State.Initializing:
+                        throw new InvalidOperationException(InteractiveWindowResources.NotInitialized);
+                    case State.Resetting:
+                    case State.ResettingAndReadingStandardInput:
+                        throw new InvalidOperationException(InteractiveWindowResources.IsResettings);
+                    case State.ExecutingInput:
+                        insertionIndex = sourceSpans.Count;
+                        break;
+                    case State.ExecutingInputAndReadingStandardInput:
+                    case State.WaitingForInput:
+                    case State.WaitingForInputAndReadingStandardInput:
+                        insertionIndex = IndexOfLastSpan(sourceSpans, ReplSpanKind.Prompt);
+                        if (insertionIndex == -1) 
+                        {
+                            insertionIndex = 0;
+                        }
+                
+                        break;
+                    default:
+                        throw new InvalidOperationException();
+                }
 
+                IContentType contentType;
+                if (!((IPropertyOwner)_window).Properties.TryGetProperty(typeof(IContentType), out contentType)) 
+                {
+                    contentType = _textBufferFactoryService.TextContentType;
+                }
 
-                var historyBuffer = _factory.CreateAndActivateBuffer(_window);
+                var historyBuffer = _textBufferFactoryService.CreateTextBuffer(contentType);
+                historyBuffer.Properties.AddProperty(typeof(IInteractiveEvaluator), Evaluator);
+                historyBuffer.Properties.AddProperty(typeof(InteractiveWindow), _window);
+
                 _buffer.Flush();
 
                 using (var edit = historyBuffer.CreateEdit(EditOptions.None, null, s_suppressPromptInjectionTag)) 
@@ -661,33 +699,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 var historySpan = new SnapshotSpan(historyBuffer.CurrentSnapshot, Span.FromBounds(0, end -_lineBreakString.Length));
                 _history.Add(historySpan);
 
-                var sourceSpans = _projectionBuffer.CurrentSnapshot.GetSourceSpans();
-                int insertionIndex;
-                switch (State) 
-                {
-                    case State.Starting:
-                    case State.Initializing:
-                        throw new InvalidOperationException(InteractiveWindowResources.NotInitialized);
-                    case State.Resetting:
-                    case State.ResettingAndReadingStandardInput:
-                        throw new InvalidOperationException(InteractiveWindowResources.IsResettings);
-                    case State.ExecutingInput:
-                        insertionIndex = sourceSpans.Count;
-                        break;
-                    case State.ExecutingInputAndReadingStandardInput:
-                    case State.WaitingForInput:
-                    case State.WaitingForInputAndReadingStandardInput:
-                        insertionIndex = IndexOfLastSpan(sourceSpans, ReplSpanKind.Prompt);
-                        break;
-                    default:
-                        throw new ArgumentOutOfRangeException();
-                }
-
-                if (insertionIndex == -1) 
-                {
-                    insertionIndex = 0;
-                }
-                
                 // If current output buffer span is empty, it is safe to add history span before it instead of creating a new output buffer span
                 if (_currentOutputProjectionSpan + 1 == insertionIndex && sourceSpans[_currentOutputProjectionSpan].IsEmpty) 
                 {
