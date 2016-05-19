@@ -39,6 +39,21 @@ namespace Roslyn.VisualStudio.Test.Utilities
             return _solution;
         }
 
+        public Solution OpenSolution(string path, bool saveExistingSolutionIfExists = false)
+        {
+            var dteSolution = IntegrationHelper.RetryRpcCall(() => _visualStudio.Dte.Solution);
+
+            if (IntegrationHelper.RetryRpcCall(() => dteSolution.IsOpen))
+            {
+                CloseSolution(saveExistingSolutionIfExists);
+            }
+
+            IntegrationHelper.RetryRpcCall(() => dteSolution.Open(path));
+            _solution = new Solution((Solution2)(dteSolution), path);
+
+            return _solution;
+        }
+
         public void CloseSolution(bool saveFirst = false) => IntegrationHelper.RetryRpcCall(() => _visualStudio.Dte.Solution.Close(saveFirst));
     }
 }

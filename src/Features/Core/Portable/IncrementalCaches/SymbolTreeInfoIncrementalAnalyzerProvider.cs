@@ -190,7 +190,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 _metadataPathToInfo = metadataPathToInfo;
             }
 
-            public override Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken)
+            public override Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 if (!document.SupportsSyntaxTree)
                 {
@@ -208,7 +208,7 @@ namespace Microsoft.CodeAnalysis.IncrementalCaches
                 return UpdateSymbolTreeInfoAsync(document.Project, cancellationToken);
             }
 
-            public override Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
+            public override Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
             {
                 return UpdateSymbolTreeInfoAsync(project, cancellationToken);
             }

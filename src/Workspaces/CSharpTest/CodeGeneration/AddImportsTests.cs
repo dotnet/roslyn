@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
@@ -337,7 +338,15 @@ namespace N
             // to Simplifier not reducing the namespace reference because it would 
             // become ambiguous, thus leaving an unused using directive
             await TestAsync(
-    @"
+@"namespace N { class C { } }
+
+class C 
+{
+   public N.C F;
+}",
+
+@"using N;
+
 namespace N { class C { } }
 
 class C 
@@ -345,23 +354,127 @@ class C
    public N.C F;
 }",
 
-    @"using N;
-
-namespace N { class C { } }
-
-class C 
-{
-   public N.C F;
-}",
-
-    @"
-namespace N { class C { } }
+@"namespace N { class C { } }
 
 class C 
 {
    public N.C F;
 }");
         }
+
+        [Fact]
+        [WorkItem(8797, "https://github.com/dotnet/roslyn/issues/8797")]
+        public async Task TestBannerTextRemainsAtTopOfDocumentWithoutExistingImports()
+        {
+            await TestAsync(
+@"// --------------------------------------------------------------------------------------------------------------------
+// <copyright file=""File.cs"" company=""MyOrgnaization"">
+// Copyright (C) MyOrgnaization 2016
+// </copyright>
+// --------------------------------------------------------------------------------------------------------------------
+class C 
+{
+   public System.Collections.Generic.List<int> F;
+}",
+
+@"// --------------------------------------------------------------------------------------------------------------------
+// <copyright file=""File.cs"" company=""MyOrgnaization"">
+// Copyright (C) MyOrgnaization 2016
+// </copyright>
+// --------------------------------------------------------------------------------------------------------------------
+using System.Collections.Generic;
+
+class C 
+{
+   public System.Collections.Generic.List<int> F;
+}",
+
+@"// --------------------------------------------------------------------------------------------------------------------
+// <copyright file=""File.cs"" company=""MyOrgnaization"">
+// Copyright (C) MyOrgnaization 2016
+// </copyright>
+// --------------------------------------------------------------------------------------------------------------------
+using System.Collections.Generic;
+
+class C 
+{
+   public List<int> F;
+}");
+        }
+
+        [Fact]
+        [WorkItem(8797, "https://github.com/dotnet/roslyn/issues/8797")]
+        public async Task TestBannerTextRemainsAtTopOfDocumentWithExistingImports()
+        {
+            await TestAsync(
+@"// --------------------------------------------------------------------------------------------------------------------
+// <copyright file=""File.cs"" company=""MyOrgnaization"">
+// Copyright (C) MyOrgnaization 2016
+// </copyright>
+// --------------------------------------------------------------------------------------------------------------------
+using ZZZ;
+
+class C 
+{
+   public System.Collections.Generic.List<int> F;
+}",
+
+@"// --------------------------------------------------------------------------------------------------------------------
+// <copyright file=""File.cs"" company=""MyOrgnaization"">
+// Copyright (C) MyOrgnaization 2016
+// </copyright>
+// --------------------------------------------------------------------------------------------------------------------
+using System.Collections.Generic;
+using ZZZ;
+
+class C 
+{
+   public System.Collections.Generic.List<int> F;
+}",
+
+@"// --------------------------------------------------------------------------------------------------------------------
+// <copyright file=""File.cs"" company=""MyOrgnaization"">
+// Copyright (C) MyOrgnaization 2016
+// </copyright>
+// --------------------------------------------------------------------------------------------------------------------
+using System.Collections.Generic;
+using ZZZ;
+
+class C 
+{
+   public List<int> F;
+}");
+        }
+
+        [Fact]
+        [WorkItem(8797, "https://github.com/dotnet/roslyn/issues/8797")]
+        public async Task TestLeadingWhitespaceLinesArePreserved()
+        {
+            await TestAsync(
+@"
+
+class C 
+{
+   public System.Collections.Generic.List<int> F;
+}",
+
+@"
+
+using System.Collections.Generic;
+
+class C 
+{
+   public System.Collections.Generic.List<int> F;
+}",
+
+@"
+
+using System.Collections.Generic;
+
+class C 
+{
+   public List<int> F;
+}");
+        }
     }
 }
-

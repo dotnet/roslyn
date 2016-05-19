@@ -461,6 +461,29 @@ namespace System.Xaml { public class A { } }
 public class Program { static void M() { MS.Internal.Xaml } }");
         }
 
+        [WorkItem(11071, "https://github.com/dotnet/roslyn/issues/11071")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
+        public async Task AmbiguousFixOrdering()
+        {
+            await TestAsync(
+@"using n1;
+using n2;
+
+[[|Inner|].C]
+class B { }
+
+namespace n1 { namespace Inner { } }
+namespace n2 { namespace Inner { class CAttribute { } } }",
+@"using n1;
+using n2;
+
+[n2.Inner.C]
+class B { }
+
+namespace n1 { namespace Inner { } }
+namespace n2 { namespace Inner { class CAttribute { } } }");
+        }
+
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)]
         public async Task TupleTest()
         {

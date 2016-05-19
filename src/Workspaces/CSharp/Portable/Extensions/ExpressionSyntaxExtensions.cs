@@ -189,7 +189,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsLeftSideOfDot(this ExpressionSyntax expression)
         {
-            return
+            if (expression == null)
+            {
+                return false;
+            }
+
+            return 
                 IsLeftSideOfQualifiedName(expression) ||
                 (expression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) && ((MemberAccessExpressionSyntax)expression.Parent).Expression == expression);
         }

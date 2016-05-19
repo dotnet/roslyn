@@ -177,9 +177,7 @@ namespace Roslyn.Utilities
                     return path;
 
                 default:
-                    // EDMAURER this is not using ExceptionUtilities.UnexpectedValue() because this file
-                    // is shared via linking with other code that doesn't have the ExceptionUtilities.
-                    throw new InvalidOperationException(string.Format("Unexpected PathKind {0}.", kind));
+                    throw ExceptionUtilities.UnexpectedValue(kind);
             }
         }
 

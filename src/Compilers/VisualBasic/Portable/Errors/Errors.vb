@@ -1605,6 +1605,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_PublicKeyContainerFailure = 36981
 
         ERR_InvalidAssemblyCulture = 36982
+        ERR_EncUpdateFailedMissingAttribute = 36983
 
         ERR_CantAwaitAsyncSub1 = 37001
         ERR_ResumableLambdaInExpressionTree = 37050

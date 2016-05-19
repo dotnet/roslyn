@@ -32,8 +32,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             var checkBoxStyle = new System.Windows.Style(typeof(CheckBox));
             checkBoxStyle.Setters.Add(new Setter(CheckBox.MarginProperty, new Thickness() { Bottom = 7 }));
-            groupBoxStyle.Setters.Add(new Setter(GroupBox.ForegroundProperty, new DynamicResourceExtension(SystemColors.WindowTextBrushKey)));
+            checkBoxStyle.Setters.Add(new Setter(CheckBox.ForegroundProperty, new DynamicResourceExtension(SystemColors.WindowTextBrushKey)));
             Resources.Add(typeof(CheckBox), checkBoxStyle);
+
+            var textBoxStyle = new System.Windows.Style(typeof(TextBox));
+            textBoxStyle.Setters.Add(new Setter(TextBox.MarginProperty, new Thickness() { Left = 7, Right = 7 }));
+            textBoxStyle.Setters.Add(new Setter(TextBox.ForegroundProperty, new DynamicResourceExtension(SystemColors.WindowTextBrushKey)));
+            Resources.Add(typeof(TextBox), textBoxStyle);
+        }
+
+        protected void AddBinding(BindingExpressionBase bindingExpression)
+        {
+            _bindingExpressions.Add(bindingExpression);
         }
 
         protected void BindToOption(CheckBox checkbox, Option<bool> optionKey)

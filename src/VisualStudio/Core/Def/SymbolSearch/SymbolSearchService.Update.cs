@@ -5,22 +5,21 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
+using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.Packaging;
+using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 using static System.FormattableString;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.Options;
-using System.Linq;
-using System.Collections.Immutable;
 
 namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
@@ -51,8 +50,6 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly CancellationToken _cancellationToken;
 
-        private readonly Workspace _workspace;
-
         private readonly ConcurrentDictionary<string, object> _sourceToUpdateSentinel =
             new ConcurrentDictionary<string, object>();
 
@@ -68,26 +65,16 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         private readonly string _localSettingsDirectory;
         private readonly Func<Exception, bool> _reportAndSwallowException;
 
-        public void Dispose()
-        {
-            // Cancel any existing work.
-            _cancellationTokenSource.Cancel();
-        }
-
         private void LogInfo(string text) => _logService.LogInfo(text);
 
         private void LogException(Exception e, string text) => _logService.LogException(e, text);
 
         private void OnOptionChanged(object sender, EventArgs e)
         {
-            var options = _workspace.Options;
-            if (!options.GetOption(AddImportOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.CSharp) &&
-                !options.GetOption(AddImportOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.VisualBasic) &&
-                !options.GetOption(AddImportOptions.SuggestForTypesInNuGetPackages, LanguageNames.CSharp) &&
-                !options.GetOption(AddImportOptions.SuggestForTypesInNuGetPackages, LanguageNames.VisualBasic))
+            // If we don't have any add-import features that would use these indices, then
+            // don't bother creating them.
+            if (!_registeredLanguageNames.Any(IsRegisteredForLanguage))
             {
-                // If we don't have any add-import features that would use these indices, then
-                // don't bother creating them.
                 return;
             }
 
@@ -103,6 +90,14 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 Task.Delay(TimeSpan.FromSeconds(10)).ContinueWith(_ =>
                     UpdateSourceInBackgroundAsync(source.Name), TaskScheduler.Default);
             }
+        }
+
+        private bool IsRegisteredForLanguage(string language)
+        {
+            var options = _workspace.Options;
+
+            return options.GetOption(AddImportOptions.SuggestForTypesInReferenceAssemblies, language) ||
+                   options.GetOption(AddImportOptions.SuggestForTypesInNuGetPackages, language);
         }
 
         // internal for testing purposes.
