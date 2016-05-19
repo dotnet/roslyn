@@ -1746,7 +1746,8 @@ public class C
                 Dim caretPosition = hostDocument.CursorPosition.Value
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
 
-                Dim completionList = Await GetCompletionListAsync(document, caretPosition, CompletionTrigger.Default)
+                Dim service = GetCompletionService(workspace)
+                Dim completionList = Await GetCompletionListAsync(service, document, caretPosition, CompletionTrigger.Default)
                 Assert.False(completionList.Items.Any(Function(c) c.DisplayText = "e"))
             End Using
         End Function

@@ -429,10 +429,10 @@ End Class]]></a>.Value.NormalizeLineEndings()
                 ' This verifies that the provider is asking for a speculative SemanticModel
                 ' by walking to the node the documentation is attached to. 
 
-                Dim provider = New CrefCompletionProvider()
                 Dim hostDocument = workspace.DocumentWithCursor
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
-                Dim completionList = Await GetCompletionListAsync(provider, document, hostDocument.CursorPosition.Value, CompletionTrigger.Default)
+                Dim service = GetCompletionService(workspace)
+                Dim completionList = Await GetCompletionListAsync(service, document, hostDocument.CursorPosition.Value, CompletionTrigger.Default)
             End Using
         End Function
 
