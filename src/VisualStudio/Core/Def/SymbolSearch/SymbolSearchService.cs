@@ -112,17 +112,20 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             _cancellationToken = _cancellationTokenSource.Token;
         }
 
-        protected override void ConnectToAdditionalEventSources()
+        protected override void EnableService()
         {
-            _installerService.PackageSourcesChanged += OnOptionChanged;
+            // When our service is enabled hook up to package source changes.
+            // We need to know when the list of sources have changed so we can
+            // kick off the work to process them.
+            _installerService.PackageSourcesChanged += OnPackageSourcesChanged;
         }
 
-        protected override void DisconnectFromAdditionalEventSources()
+        private void OnPackageSourcesChanged(object sender, EventArgs e)
         {
-            _installerService.PackageSourcesChanged -= OnOptionChanged;
+            StartWorking();
         }
 
-        protected override void StartWork()
+        protected override void StartWorking()
         {
             // Kick off a database update.  Wait a few seconds before starting so we don't
             // interfere too much with solution loading.
@@ -133,14 +136,13 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             var allSources = sources.Concat(new PackageSource(NugetOrgSource, source: null));
             foreach (var source in allSources)
             {
-                Task.Delay(TimeSpan.FromSeconds(10)).ContinueWith(_ =>
-                    UpdateSourceInBackgroundAsync(source.Name), TaskScheduler.Default);
+                Task.Run(() => UpdateSourceInBackgroundAsync(source.Name));
             }
         }
 
-        protected override void StopWork()
+        protected override void StopWorking()
         {
-            // Cancel any existing work.
+            _installerService.PackageSourcesChanged -= OnPackageSourcesChanged;
             _cancellationTokenSource.Cancel();
         }
 

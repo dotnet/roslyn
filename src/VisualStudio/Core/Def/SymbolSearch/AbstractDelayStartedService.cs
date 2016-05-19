@@ -22,6 +22,8 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         // Options that control if this service is enabled or not for a particular language.
         private readonly ImmutableArray<PerLanguageOption<bool>> _perLanguageOptions;
 
+        private bool _enabled = false;
+
         protected AbstractDelayStartedService(
             Workspace workspace,
             Option<bool> onOffOption,
@@ -32,49 +34,54 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             _perLanguageOptions = perLanguageOptions.ToImmutableArray();
         }
 
-        protected abstract void StartWork();
-        protected abstract void StopWork();
+        protected abstract void EnableService();
 
-        protected abstract void ConnectToAdditionalEventSources();
-        protected abstract void DisconnectFromAdditionalEventSources();
+        protected abstract void StartWorking();
+        protected abstract void StopWorking();
 
-        internal void Start(string languageName)
+        internal void Connect(string languageName)
         {
             this.AssertIsForeground();
+
+            var options = Workspace.Options;
+            if (!options.GetOption(_serviceOnOffOption))
+            {
+                // Feature is totally disabled.  Do nothing.
+                return;
+            }
 
             this.RegisteredLanguageNames.Add(languageName);
             if (this.RegisteredLanguageNames.Count == 1)
             {
-                // When the first language registers, start the service.
-
-                var options = Workspace.Options;
-                if (!options.GetOption(_serviceOnOffOption))
-                {
-                    // Feature is totally disabled.  Do nothing.
-                    return;
-                }
-
                 // Register to hear about option changing.
                 var optionsService = Workspace.Services.GetService<IOptionService>();
                 optionsService.OptionChanged += OnOptionChanged;
-
-                // Start the whole process once we're connected
-                ConnectToAdditionalEventSources();
             }
 
             // Kick things off.
             OnOptionChanged(this, EventArgs.Empty);
         }
 
-        protected void OnOptionChanged(object sender, EventArgs e)
+        private void OnOptionChanged(object sender, EventArgs e)
         {
+            this.AssertIsForeground();
+
             if (!RegisteredLanguageNames.Any(IsRegisteredForLanguage))
             {
                 // The feature is not enabled for any registered languages.
                 return;
             }
 
-            StartWork();
+            // The first time we see that we're registered for a language, enable the
+            // service.
+            if (!_enabled)
+            {
+                _enabled = true;
+                EnableService();
+            }
+
+            // Then tell it to start work.
+            StartWorking();
         }
 
         private bool IsRegisteredForLanguage(string language)
@@ -83,18 +90,28 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             return _perLanguageOptions.Any(o => options.GetOption(o, language));
         }
 
-        internal void Stop(string languageName)
+        internal void Disconnect(string languageName)
         {
+            this.AssertIsForeground();
+
+            var options = Workspace.Options;
+            if (!options.GetOption(_serviceOnOffOption))
+            {
+                // Feature is totally disabled.  Do nothing.
+                return;
+            }
+
             RegisteredLanguageNames.Remove(languageName);
             if (RegisteredLanguageNames.Count == 0)
             {
-                // once there are no more languages registered, we can actually stop this service.
+                if (_enabled)
+                {
+                    _enabled = false;
+                    StopWorking();
+                }
 
                 var optionsService = Workspace.Services.GetService<IOptionService>();
                 optionsService.OptionChanged -= OnOptionChanged;
-
-                DisconnectFromAdditionalEventSources();
-                StopWork();
             }
         }
     }
