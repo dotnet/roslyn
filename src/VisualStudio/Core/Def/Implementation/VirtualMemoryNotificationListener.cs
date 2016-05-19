@@ -2,6 +2,7 @@
 
 using System;
 using System.Composition;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
@@ -80,10 +81,14 @@ namespace Microsoft.VisualStudio.LanguageServices
 
                         _workspaceCacheService.FlushCaches();
 
-                        // turn off full solution analysis
+                        var userFullAnalysisOption = ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(_workspace, LanguageNames.CSharp) ||
+                                                     ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(_workspace, LanguageNames.VisualBasic);
+
+                        // turn off full solution analysis only if user option is on.
                         if ((long)wParam < MemoryThreshold &&
                             _workspace.Options.GetOption(InternalFeatureOnOffOptions.FullSolutionAnalysisMemoryMonitor) &&
-                            _workspace.Options.GetOption(RuntimeOptions.FullSolutionAnalysis))
+                            _workspace.Options.GetOption(RuntimeOptions.FullSolutionAnalysis) &&
+                            userFullAnalysisOption)
                         {
                             _workspace.Services.GetService<IOptionService>().SetOptions(_workspace.Options.WithChangedOption(RuntimeOptions.FullSolutionAnalysis, false));
 
@@ -91,12 +96,6 @@ namespace Microsoft.VisualStudio.LanguageServices
                             // no close info bar action
                             _workspace.Services.GetService<IErrorReportingService>().ShowErrorInfo(ServicesVSResources.FullSolutionAnalysisOff, () => { });
                         }
-
-                        // turn off low latency GC mode.
-                        // once we hit this, not hitting "Out of memory" exception is more important than typing being smooth all the time.
-                        // once it is turned off, user will hit time to time keystroke which responsive time is more than 50ms. in our own perf lab,
-                        // about 1-2% was over 50ms with this off when we first introduced this GC mode.
-                        GCManager.TurnOffLowLatencyMode();
 
                         break;
                     }
