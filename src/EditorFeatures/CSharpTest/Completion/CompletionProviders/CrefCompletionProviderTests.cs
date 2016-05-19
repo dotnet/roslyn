@@ -434,7 +434,8 @@ class C
                 var provider = new CrefCompletionProvider();
                 var hostDocument = workspace.DocumentWithCursor;
                 var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                var completionList = await GetCompletionListAsync(provider, document, hostDocument.CursorPosition.Value, CompletionTrigger.Default);
+                var service = GetCompletionService(workspace);
+                var completionList = await GetCompletionListAsync(service, document, hostDocument.CursorPosition.Value, CompletionTrigger.Default);
             }
         }
 
