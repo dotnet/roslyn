@@ -54,6 +54,21 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
         End Function
 
         <Fact>
+        Public Async Function TestExternalDiagnostics_SupportedId() As Task
+            Using workspace = Await TestWorkspace.CreateCSharpAsync(String.Empty)
+                Dim waiter = New Waiter()
+                Dim service = New TestDiagnosticAnalyzerService()
+                Dim source = New ExternalErrorDiagnosticUpdateSource(workspace, service, New MockDiagnosticUpdateSourceRegistrationService(), waiter)
+
+                Dim project = workspace.CurrentSolution.Projects.First()
+                source.OnSolutionBuild(Me, Shell.UIContextChangedEventArgs.From(True))
+
+                Assert.True(source.SupportedDiagnosticId(project.Id, "CS1002"))
+                Assert.False(source.SupportedDiagnosticId(project.Id, "CA1002"))
+            End Using
+        End Function
+
+        <Fact>
         Public Async Function TestExternalDiagnostics_DuplicatedError() As Task
             Using workspace = Await TestWorkspace.CreateCSharpAsync(String.Empty)
                 Dim waiter = New Waiter()
@@ -169,7 +184,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.Diagnostics
             End Sub
 
             Public Function GetDiagnosticDescriptors(projectOpt As Project) As ImmutableDictionary(Of String, ImmutableArray(Of DiagnosticDescriptor)) Implements IDiagnosticAnalyzerService.GetDiagnosticDescriptors
-                Return ImmutableDictionary(Of String, ImmutableArray(Of DiagnosticDescriptor)).Empty
+                Return ImmutableDictionary(Of String, ImmutableArray(Of DiagnosticDescriptor)).Empty.Add("reference", ImmutableArray.Create(Of DiagnosticDescriptor)(New DiagnosticDescriptor("CS1002", "test", "test", "test", DiagnosticSeverity.Warning, True)))
             End Function
 
             Public Function GetDiagnosticsForSpanAsync(document As Document, range As TextSpan, Optional includeSuppressedDiagnostics As Boolean = False, Optional cancellationToken As CancellationToken = Nothing) As Task(Of IEnumerable(Of DiagnosticData)) Implements IDiagnosticAnalyzerService.GetDiagnosticsForSpanAsync

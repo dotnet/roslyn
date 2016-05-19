@@ -50,8 +50,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
 
         private readonly Workspace _workspace;
 
-        public CSharpCompletionService(Workspace workspace)
-            : base(workspace)
+        public CSharpCompletionService(
+            Workspace workspace, ImmutableArray<CompletionProvider>? exclusiveProviders = null)
+            : base(workspace, exclusiveProviders)
         {
             _workspace = workspace;
         }

@@ -2323,6 +2323,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Attribute &apos;{0}&apos; is missing. Updating an async method or an iterator will prevent the debug session from continuing..
+        /// </summary>
+        internal static string UpdatingStateMachineMethodMissingAttribute {
+            get {
+                return ResourceManager.GetString("UpdatingStateMachineMethodMissingAttribute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Updating the alias of Declare Statement will prevent the debug session from continuing..
         /// </summary>
         internal static string UpdatingTheAliasOfDeclareStatement {

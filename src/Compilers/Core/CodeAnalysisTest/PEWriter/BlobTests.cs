@@ -183,8 +183,10 @@ namespace Microsoft.CodeAnalysis.UnitTests.PEWriter
             }
         }
 
+
+
         [Fact]
-        public void ToArray()
+        public void ToArray1()
         {
             var builder = new BlobBuilder(16);
 
@@ -220,6 +222,43 @@ namespace Microsoft.CodeAnalysis.UnitTests.PEWriter
             AssertEx.Equal(new byte[] { 0xcc, 0xbb, 0xaa }, builder.ToArray(14, 3));
 
             AssertEx.Equal(new byte[] { 0xdd, 0xcc, 0xbb, 0xaa }, builder.ToArray(13, 4));
+        }
+
+        [Fact]
+        public void ToArray2()
+        {
+            var builder = new BlobBuilder(16);
+
+            AssertEx.Equal(new byte[] { }, builder.ToArray(0, 0));
+
+            for (int i = 0; i < 34; i++)
+            {
+                builder.WriteByte((byte)i);
+            }
+
+            AssertEx.Equal(new byte[]
+            {
+                0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F,
+                0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F,
+                0x20, 0x21
+            }, builder.ToArray());
+
+            AssertEx.Equal(new byte[]
+            {
+                0x0E, 0x0F,
+                0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B, 0x1C, 0x1D, 0x1E, 0x1F,
+                0x20, 0x21
+            }, builder.ToArray(0x0e, 20));
+
+            AssertEx.Equal(new byte[] { 0x0E }, builder.ToArray(0x0e, 1));
+            AssertEx.Equal(new byte[] { 0x0E, 0x0F }, builder.ToArray(0x0e, 2));
+            AssertEx.Equal(new byte[] { 0x0E, 0x0F, 0x10 }, builder.ToArray(0x0e, 3));
+            AssertEx.Equal(new byte[] { 0x0E, 0x0F, 0x10, 0x11 }, builder.ToArray(0x0e, 4));
+
+            AssertEx.Equal(new byte[] { 0x1E }, builder.ToArray(0x1e, 1));
+            AssertEx.Equal(new byte[] { 0x1E, 0x1F }, builder.ToArray(0x1e, 2));
+            AssertEx.Equal(new byte[] { 0x1E, 0x1F, 0x20 }, builder.ToArray(0x1e, 3));
+            AssertEx.Equal(new byte[] { 0x1E, 0x1F, 0x20, 0x21 }, builder.ToArray(0x1e, 4));
         }
 
         [Fact]

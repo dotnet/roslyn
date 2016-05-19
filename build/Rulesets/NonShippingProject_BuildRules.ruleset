@@ -16,10 +16,14 @@
          We can fix all violations once we have a code fix with fix all, and then remove this suppression.
     -->
     <Rule Id="RS0014" Action="None" />
-
   </Rules>
 
   <Rules AnalyzerId="Microsoft.CodeAnalysis.Analyzers" RuleNamespace="Microsoft.CodeAnalysis.Analyzers">
     <Rule Id="RS1001" Action="None" />
+  </Rules>
+
+  <Rules AnalyzerId="System.Runtime.Analyzers" RuleNamespace="System.Runtime.Analyzers">
+    <!-- Do not use generic CodeAction.Create to create CodeAction - not useful for tests -->
+    <Rule Id="RS0005" Action="None" />
   </Rules>
 </RuleSet>

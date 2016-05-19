@@ -20,8 +20,10 @@ namespace Microsoft.CodeAnalysis.Completion
 {
     internal abstract partial class CommonCompletionService : CompletionServiceWithProviders
     {
-        protected CommonCompletionService(Workspace workspace)
-            : base(workspace)
+        protected CommonCompletionService(
+            Workspace workspace, 
+            ImmutableArray<CompletionProvider>? exclusiveProviders)
+            : base(workspace, exclusiveProviders)
         {
         }
 

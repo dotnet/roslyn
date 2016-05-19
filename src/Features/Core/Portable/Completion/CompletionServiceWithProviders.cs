@@ -20,15 +20,38 @@ namespace Microsoft.CodeAnalysis.Completion
     /// <summary>
     /// A subtype of <see cref="CompletionService"/> that aggregates completions from one or more <see cref="CompletionProvider"/>s.
     /// </summary>
-    public abstract class CompletionServiceWithProviders : CompletionService
+    public abstract class CompletionServiceWithProviders : CompletionService, IEqualityComparer<ImmutableHashSet<string>>
     {
         private static readonly Func<string, List<CompletionItem>> s_createList = _ => new List<CompletionItem>();
-        private IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> _importedProviders;
+
+        private readonly object _gate = new object();
+
+        private readonly Dictionary<string, CompletionProvider> _nameToProvider = new Dictionary<string, CompletionProvider>();
+        private readonly Dictionary<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>> _rolesToProviders;
+        private readonly Func<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>> _createRoleProviders;
+
         private readonly Workspace _workspace;
 
+        /// <summary>
+        /// Internal for testing purposes.
+        /// </summary>
+        internal readonly ImmutableArray<CompletionProvider>? ExclusiveProviders;
+
+        private IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> _importedProviders;
+
         protected CompletionServiceWithProviders(Workspace workspace)
+            : this(workspace, exclusiveProviders: null)
+        {
+        }
+
+        internal CompletionServiceWithProviders(
+            Workspace workspace,
+            ImmutableArray<CompletionProvider>? exclusiveProviders = null)
         {
             _workspace = workspace;
+            ExclusiveProviders = exclusiveProviders;
+            _rolesToProviders = new Dictionary<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>>(this);
+            _createRoleProviders = CreateRoleProviders;
         }
 
         public override CompletionRules GetRules()
@@ -64,45 +87,53 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         private ImmutableArray<CompletionProvider> _testProviders = ImmutableArray<CompletionProvider>.Empty;
+        private object p;
 
         internal void SetTestProviders(IEnumerable<CompletionProvider> testProviders)
         {
-            _testProviders = testProviders != null ? testProviders.ToImmutableArray() : ImmutableArray<CompletionProvider>.Empty;
-            _lazyNameToProviderMap = null;
+            lock (_gate)
+            {
+                _testProviders = testProviders != null ? testProviders.ToImmutableArray() : ImmutableArray<CompletionProvider>.Empty;
+                _rolesToProviders.Clear();
+                _nameToProvider.Clear();
+            }
         }
 
-        private class RoleProviders
+        private ImmutableArray<CompletionProvider> CreateRoleProviders(ImmutableHashSet<string> roles)
         {
-            public ImmutableArray<CompletionProvider> Providers;
+            var providers = GetAllProviders(roles);
+
+            foreach (var provider in providers)
+            {
+                _nameToProvider[provider.Name] = provider;
+            }
+
+            return providers;
         }
 
-        private readonly ConditionalWeakTable<ImmutableHashSet<string>, RoleProviders> _roleProviders
-            = new ConditionalWeakTable<ImmutableHashSet<string>, RoleProviders>();
+        private ImmutableArray<CompletionProvider> GetAllProviders(ImmutableHashSet<string> roles)
+        {
+            if (ExclusiveProviders.HasValue)
+            {
+                return ExclusiveProviders.Value;
+            }
+
+            var builtin = GetBuiltInProviders();
+            var imported = GetImportedProviders()
+                .Where(lz => lz.Metadata.Roles == null || lz.Metadata.Roles.Length == 0 || roles.Overlaps(lz.Metadata.Roles))
+                .Select(lz => lz.Value);
+
+            var providers = builtin.Concat(imported).Concat(_testProviders);
+            return providers.ToImmutableArray();
+        }
 
         protected ImmutableArray<CompletionProvider> GetProviders(ImmutableHashSet<string> roles)
         {
             roles = roles ?? ImmutableHashSet<string>.Empty;
 
-            RoleProviders providers;
-            if (!_roleProviders.TryGetValue(roles, out providers))
+            lock (_gate)
             {
-                providers = _roleProviders.GetValue(roles, _ =>
-                {
-                    var builtin = GetBuiltInProviders();
-                    var imported = GetImportedProviders()
-                        .Where(lz => lz.Metadata.Roles == null || lz.Metadata.Roles.Length == 0 || roles.Overlaps(lz.Metadata.Roles))
-                        .Select(lz => lz.Value);
-                    return new RoleProviders { Providers = builtin.Concat(imported).ToImmutableArray() };
-                });
-            }
-
-            if (_testProviders.Length > 0)
-            {
-                return providers.Providers.Concat(_testProviders);
-            }
-            else
-            {
-                return providers.Providers;
+                return _rolesToProviders.GetOrAdd(roles, _createRoleProviders);
             }
         }
 
@@ -118,47 +149,20 @@ namespace Microsoft.CodeAnalysis.Completion
             }
         }
 
-        private ImmutableDictionary<string, CompletionProvider> _lazyNameToProviderMap = null;
-        private ImmutableDictionary<string, CompletionProvider> NameToProviderMap
-        {
-            get
-            {
-                if (_lazyNameToProviderMap == null)
-                {
-                    Interlocked.CompareExchange(ref _lazyNameToProviderMap, CreateNameToProviderMap(), null);
-                }
-
-                return _lazyNameToProviderMap;
-            }
-        }
-
-        private ImmutableDictionary<string, CompletionProvider> CreateNameToProviderMap()
-        {
-            var map = ImmutableDictionary<string, CompletionProvider>.Empty;
-
-            foreach (var provider in GetBuiltInProviders().Concat(GetImportedProviders().Select(lz => lz.Value)).Concat(_testProviders))
-            {
-                if (!map.ContainsKey(provider.Name))
-                {
-                    map = map.Add(provider.Name, provider);
-                }
-            }
-
-            return map;
-        }
-
         internal protected CompletionProvider GetProvider(CompletionItem item)
         {
             string name;
-            CompletionProvider provider;
+            CompletionProvider provider = null;
 
-            if (item.Properties.TryGetValue("Provider", out name)
-                && this.NameToProviderMap.TryGetValue(name, out provider))
+            if (item.Properties.TryGetValue("Provider", out name))
             {
-                return provider;
+                lock (_gate)
+                {
+                    _nameToProvider.TryGetValue(name, out provider);
+                }
             }
 
-            return null;
+            return provider;
         }
 
         public override async Task<CompletionList> GetCompletionsAsync(
@@ -201,7 +205,9 @@ namespace Microsoft.CodeAnalysis.Completion
             var completionLists = new List<CompletionContext>();
             foreach (var provider in triggeredProviders)
             {
-                var completionList = await GetProviderCompletionsAsync(provider, document, caretPosition, defaultItemSpan, trigger, options, cancellationToken).ConfigureAwait(false);
+                var completionList = await GetContextAsync(
+                    provider, document, caretPosition, trigger, 
+                    options, defaultItemSpan, cancellationToken).ConfigureAwait(false);
                 if (completionList != null)
                 {
                     completionLists.Add(completionList);
@@ -214,7 +220,9 @@ namespace Microsoft.CodeAnalysis.Completion
 
             if (firstExclusiveList != null)
             {
-                return MergeAndPruneCompletionLists(SpecializedCollections.SingletonEnumerable(firstExclusiveList), defaultItemSpan);
+                return MergeAndPruneCompletionLists(
+                    SpecializedCollections.SingletonEnumerable(firstExclusiveList), defaultItemSpan,
+                    isExclusive: true);
             }
 
             // If no exclusive providers provided anything, then go through the remaining
@@ -234,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var nonUsedNonExclusiveLists = new List<CompletionContext>();
             foreach (var provider in nonUsedProviders)
             {
-                var completionList = await GetProviderCompletionsAsync(provider, document, caretPosition, defaultItemSpan, trigger, options, cancellationToken).ConfigureAwait(false);
+                var completionList = await GetContextAsync(provider, document, caretPosition, trigger, options, defaultItemSpan, cancellationToken).ConfigureAwait(false);
                 if (completionList != null && !completionList.IsExclusive)
                 {
                     nonUsedNonExclusiveLists.Add(completionList);
@@ -251,10 +259,11 @@ namespace Microsoft.CodeAnalysis.Completion
             // groups are properly ordered based on the original providers.
             allProvidersAndLists.Sort((p1, p2) => completionProviderToIndex[p1.Provider] - completionProviderToIndex[p2.Provider]);
 
-            return MergeAndPruneCompletionLists(allProvidersAndLists, defaultItemSpan);
+            return MergeAndPruneCompletionLists(allProvidersAndLists, defaultItemSpan, isExclusive: false);
         }
 
-        private CompletionList MergeAndPruneCompletionLists(IEnumerable<CompletionContext> completionLists, TextSpan contextSpan)
+        private CompletionList MergeAndPruneCompletionLists(
+            IEnumerable<CompletionContext> completionLists, TextSpan contextSpan, bool isExclusive)
         {
             var displayNameToItemsMap = new Dictionary<string, List<CompletionItem>>();
             CompletionItem suggestionModeItem = null;
@@ -282,7 +291,9 @@ namespace Microsoft.CodeAnalysis.Completion
             var totalItems = displayNameToItemsMap.Values.Flatten().ToList();
             totalItems.Sort();
 
-            return CompletionList.Create(contextSpan, totalItems.ToImmutableArray(), this.GetRules(), suggestionModeItem);
+            return CompletionList.Create(
+                contextSpan, totalItems.ToImmutableArray(), this.GetRules(), suggestionModeItem,
+                isExclusive);
         }
 
         private void AddToDisplayMap(
@@ -342,27 +353,44 @@ namespace Microsoft.CodeAnalysis.Completion
             return result;
         }
 
-        private static async Task<CompletionContext> GetProviderCompletionsAsync(
+        // Internal for testing purposes only.
+        internal async Task<CompletionContext> GetContextAsync(
             CompletionProvider provider,
             Document document,
             int position,
-            TextSpan defaultFilterSpan,
             CompletionTrigger triggerInfo,
             OptionSet options,
             CancellationToken cancellationToken)
         {
-            var context = new CompletionContext(provider, document, position, defaultFilterSpan, triggerInfo, options, cancellationToken);
+            return await GetContextAsync(
+                provider, document, position, triggerInfo, 
+                options, defaultSpan: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<CompletionContext> GetContextAsync(
+            CompletionProvider provider,
+            Document document,
+            int position,
+            CompletionTrigger triggerInfo,
+            OptionSet options,
+            TextSpan? defaultSpan,
+            CancellationToken cancellationToken)
+        {
+            options = options ?? document.Project.Solution.Workspace.Options;
+
+            if (defaultSpan == null)
+            {
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                defaultSpan = this.GetDefaultItemSpan(text, position);
+            }
+
+            var context = new CompletionContext(provider, document, position, defaultSpan.Value, triggerInfo, options, cancellationToken);
             await provider.ProvideCompletionsAsync(context).ConfigureAwait(false);
             return context;
         }
 
         public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (CommonCompletionItem.HasDescription(item))
-            {
-                return Task.FromResult(CommonCompletionItem.GetDescription(item));
-            }
-
             var provider = GetProvider(item);
             if (provider != null)
             {
@@ -386,7 +414,8 @@ namespace Microsoft.CodeAnalysis.Completion
             return providers.Any(p => p.ShouldTriggerCompletion(text, caretPosition, trigger, options));
         }
 
-        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
+        public override async Task<CompletionChange> GetChangeAsync(
+            Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
         {
             var provider = GetProvider(item);
             if (provider != null)
@@ -397,6 +426,40 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 return CompletionChange.Create(ImmutableArray.Create(new TextChange(item.Span, item.DisplayText)));
             }
+        }
+
+        bool IEqualityComparer<ImmutableHashSet<string>>.Equals(ImmutableHashSet<string> x, ImmutableHashSet<string> y)
+        {
+            if (x == y)
+            {
+                return true;
+            }
+
+            if (x.Count != y.Count)
+            {
+                return false;
+            }
+
+            foreach (var v in x)
+            {
+                if (!y.Contains(v))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        int IEqualityComparer<ImmutableHashSet<string>>.GetHashCode(ImmutableHashSet<string> obj)
+        {
+            var hash = 0;
+            foreach (var o in obj)
+            {
+                hash += o.GetHashCode();
+            }
+
+            return hash;
         }
     }
 }

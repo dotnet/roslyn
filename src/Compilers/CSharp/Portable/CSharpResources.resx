@@ -3833,6 +3833,9 @@ You should consider suppressing the warning only if you're sure that you don't w
   <data name="ERR_FixedLocalInLambda" xml:space="preserve">
     <value>Cannot use fixed local '{0}' inside an anonymous method, lambda expression, or query expression</value>
   </data>
+  <data name="ERR_EncUpdateFailedMissingAttribute" xml:space="preserve">
+    <value>Cannot update '{0}'; attribute '{1}' is missing.</value>
+  </data>
   <data name="ERR_ExpressionTreeContainsNamedArgument" xml:space="preserve">
     <value>An expression tree may not contain a named argument specification</value>
   </data>
