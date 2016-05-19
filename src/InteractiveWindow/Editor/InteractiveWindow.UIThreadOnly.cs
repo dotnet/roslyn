@@ -642,7 +642,9 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 {
                     return;
                 }
-                
+
+                _buffer.Flush();
+
                 var sourceSpans = _projectionBuffer.CurrentSnapshot.GetSourceSpans();
                 int insertionIndex;
                 switch (State) 
@@ -679,8 +681,6 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 var historyBuffer = _textBufferFactoryService.CreateTextBuffer(contentType);
                 historyBuffer.Properties.AddProperty(typeof(IInteractiveEvaluator), Evaluator);
                 historyBuffer.Properties.AddProperty(typeof(InteractiveWindow), _window);
-
-                _buffer.Flush();
 
                 using (var edit = historyBuffer.CreateEdit(EditOptions.None, null, s_suppressPromptInjectionTag)) 
                 {
