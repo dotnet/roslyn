@@ -107,7 +107,7 @@ namespace Microsoft.CodeAnalysis.Completion
             Optional<string> displayText = default(Optional<string>),
             Optional<string> filterText = default(Optional<string>),
             Optional<string> sortText = default(Optional<string>),
-            Optional<ImmutableDictionary<string, string>> properties = default(Optional<ImmutableDictionary<string,string>>),
+            Optional<ImmutableDictionary<string, string>> properties = default(Optional<ImmutableDictionary<string, string>>),
             Optional<ImmutableArray<string>> tags = default(Optional<ImmutableArray<string>>),
             Optional<CompletionItemRules> rules = default(Optional<CompletionItemRules>))
         {
@@ -194,6 +194,42 @@ namespace Microsoft.CodeAnalysis.Completion
         public CompletionItem WithTags(ImmutableArray<string> tags)
         {
             return With(tags: tags);
+        }
+
+
+        public CompletionItem WithDescription(string description)
+        {
+            var descriptionTags = ImmutableArray.Create(new TaggedText(TextTags.Text, description));
+
+            return WithDescription(descriptionTags);
+        }
+
+        public CompletionItem WithDescription(ImmutableArray<TaggedText> description)
+        {
+            var properties = Properties ?? ImmutableDictionary<string, string>.Empty;
+
+            var encoded = CommonCompletionUtilities.EncodeDescription(description);
+
+            properties = properties.Add(CommonCompletionUtilities.DescriptionKey, encoded);
+            return With(properties: properties);
+        }
+
+        public bool HasDescription()
+        {
+            return Properties.ContainsKey(CommonCompletionUtilities.DescriptionKey);
+        }
+
+        public CompletionDescription GetDescription()
+        {
+            string encoded;
+            if (!Properties.TryGetValue(CommonCompletionUtilities.DescriptionKey, out encoded))
+            {
+                return CompletionDescription.Empty;
+            }
+
+            var decoded = CommonCompletionUtilities.DecodeDescription(encoded);
+
+            return CompletionDescription.Create(decoded);
         }
 
         /// <summary>

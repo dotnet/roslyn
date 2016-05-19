@@ -1,14 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
@@ -50,7 +44,7 @@ namespace Microsoft.CodeAnalysis.Completion
             properties = properties ?? ImmutableDictionary<string, string>.Empty;
             if (!description.IsDefault && description.Length > 0)
             {
-                properties = properties.Add("Description", EncodeDescription(description));
+                properties = properties.Add(CommonCompletionUtilities.DescriptionKey, CommonCompletionUtilities.EncodeDescription(MapDescription(description)));
             }
 
             rules = rules ?? CompletionItemRules.Default;
@@ -67,57 +61,9 @@ namespace Microsoft.CodeAnalysis.Completion
                 rules: rules);
         }
 
-        public static bool HasDescription(CompletionItem item)
+        private static ImmutableArray<TaggedText> MapDescription(ImmutableArray<SymbolDisplayPart> description)
         {
-            return item.Properties.ContainsKey("Description");
+            return description.Select(d => new TaggedText(SymbolDisplayPartKindTags.GetTag(d.Kind), d.ToString())).ToImmutableArray();
         }
-
-        public static CompletionDescription GetDescription(CompletionItem item)
-        {
-            string encodedDescription;
-            if (item.Properties.TryGetValue("Description", out encodedDescription))
-            {
-                return DecodeDescription(encodedDescription);
-            }
-            else
-            {
-                return CompletionDescription.Empty;
-            }
-        }
-
-        private static char[] s_descriptionSeparators = new char[] { '|' };
-
-        private static string EncodeDescription(ImmutableArray<SymbolDisplayPart> description)
-        {
-            return EncodeDescription(description.Select(d => new TaggedText(SymbolDisplayPartKindTags.GetTag(d.Kind), d.ToString())).ToImmutableArray());
-        }
-
-        private static string EncodeDescription(ImmutableArray<TaggedText> description)
-        {
-            if (description.Length > 0)
-            {
-                return string.Join("|",
-                    description
-                        .SelectMany(d => new string[] { d.Tag, d.Text })
-                        .Select(t => t.Escape('\\', s_descriptionSeparators)));
-            }
-            else
-            {
-                return null;
-            }
-        }
-
-        private static CompletionDescription DecodeDescription(string encoded)
-        {
-            var parts = encoded.Split(s_descriptionSeparators).Select(t => t.Unescape('\\')).ToArray();
-
-            var builder = ImmutableArray<TaggedText>.Empty.ToBuilder();
-            for (int i = 0; i < parts.Length; i += 2)
-            {
-                builder.Add(new TaggedText(parts[i], parts[i + 1]));
-            }
-
-            return CompletionDescription.Create(builder.ToImmutable());
-        } 
     }
 }
