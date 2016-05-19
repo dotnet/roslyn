@@ -230,6 +230,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (ITaskItem[])_store[nameof(Resources)]; }
         }
 
+        public string RuntimeMetadataVersion
+        {
+            set { _store[nameof(RuntimeMetadataVersion)] = value; }
+            get { return (string)_store[nameof(RuntimeMetadataVersion)]; }
+        }
+
         public ITaskItem[] ResponseFiles
         {
             set { _store[nameof(ResponseFiles)] = value; }
@@ -691,6 +697,7 @@ namespace Microsoft.CodeAnalysis.BuildTasks
         {
             commandLine.AppendPlusOrMinusSwitch("/deterministic", _store, nameof(Deterministic));
             commandLine.AppendPlusOrMinusSwitch("/publicsign", _store, nameof(PublicSign));
+            commandLine.AppendSwitchIfNotNull("/runtimemetadataversion:", RuntimeMetadataVersion);
 
             AddFeatures(commandLine, Features);
         }
