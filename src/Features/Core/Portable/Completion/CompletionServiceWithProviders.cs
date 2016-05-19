@@ -32,11 +32,24 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private readonly Workspace _workspace;
 
+        /// <summary>
+        /// Internal for testing purposes.
+        /// </summary>
+        internal readonly ImmutableArray<CompletionProvider>? ExclusiveProviders;
+
         private IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> _importedProviders;
 
         protected CompletionServiceWithProviders(Workspace workspace)
+            : this(workspace, null)
+        {
+        }
+
+        internal CompletionServiceWithProviders(
+            Workspace workspace,
+            ImmutableArray<CompletionProvider>? exclusiveProviders = null)
         {
             _workspace = workspace;
+            ExclusiveProviders = exclusiveProviders;
             _rolesToProviders = new Dictionary<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>>(this);
             _createRoleProviders = CreateRoleProviders;
         }
@@ -74,6 +87,7 @@ namespace Microsoft.CodeAnalysis.Completion
         }
 
         private ImmutableArray<CompletionProvider> _testProviders = ImmutableArray<CompletionProvider>.Empty;
+        private object p;
 
         internal void SetTestProviders(IEnumerable<CompletionProvider> testProviders)
         {
@@ -87,18 +101,29 @@ namespace Microsoft.CodeAnalysis.Completion
 
         private ImmutableArray<CompletionProvider> CreateRoleProviders(ImmutableHashSet<string> roles)
         {
-            var builtin = GetBuiltInProviders();
-            var imported = GetImportedProviders()
-                .Where(lz => lz.Metadata.Roles == null || lz.Metadata.Roles.Length == 0 || roles.Overlaps(lz.Metadata.Roles))
-                .Select(lz => lz.Value);
-
-            var providers = builtin.Concat(imported).Concat(_testProviders);
+            var providers = GetAllProviders(roles);
 
             foreach (var provider in providers)
             {
                 _nameToProvider[provider.Name] = provider;
             }
 
+            return providers;
+        }
+
+        private ImmutableArray<CompletionProvider> GetAllProviders(ImmutableHashSet<string> roles)
+        {
+            if (ExclusiveProviders.HasValue)
+            {
+                return ExclusiveProviders.Value;
+            }
+
+            var builtin = GetBuiltInProviders();
+            var imported = GetImportedProviders()
+                .Where(lz => lz.Metadata.Roles == null || lz.Metadata.Roles.Length == 0 || roles.Overlaps(lz.Metadata.Roles))
+                .Select(lz => lz.Value);
+
+            var providers = builtin.Concat(imported).Concat(_testProviders);
             return providers.ToImmutableArray();
         }
 
@@ -193,7 +218,9 @@ namespace Microsoft.CodeAnalysis.Completion
 
             if (firstExclusiveList != null)
             {
-                return MergeAndPruneCompletionLists(SpecializedCollections.SingletonEnumerable(firstExclusiveList), defaultItemSpan);
+                return MergeAndPruneCompletionLists(
+                    SpecializedCollections.SingletonEnumerable(firstExclusiveList), defaultItemSpan,
+                    isExclusive: true);
             }
 
             // If no exclusive providers provided anything, then go through the remaining
@@ -230,10 +257,11 @@ namespace Microsoft.CodeAnalysis.Completion
             // groups are properly ordered based on the original providers.
             allProvidersAndLists.Sort((p1, p2) => completionProviderToIndex[p1.Provider] - completionProviderToIndex[p2.Provider]);
 
-            return MergeAndPruneCompletionLists(allProvidersAndLists, defaultItemSpan);
+            return MergeAndPruneCompletionLists(allProvidersAndLists, defaultItemSpan, isExclusive: false);
         }
 
-        private CompletionList MergeAndPruneCompletionLists(IEnumerable<CompletionContext> completionLists, TextSpan contextSpan)
+        private CompletionList MergeAndPruneCompletionLists(
+            IEnumerable<CompletionContext> completionLists, TextSpan contextSpan, bool isExclusive)
         {
             var displayNameToItemsMap = new Dictionary<string, List<CompletionItem>>();
             CompletionItem suggestionModeItem = null;
@@ -261,7 +289,8 @@ namespace Microsoft.CodeAnalysis.Completion
             var totalItems = displayNameToItemsMap.Values.Flatten().ToList();
             totalItems.Sort();
 
-            return CompletionList.Create(contextSpan, totalItems.ToImmutableArray(), this.GetRules(), suggestionModeItem);
+            return CompletionList.Create(
+                contextSpan, totalItems.ToImmutableArray(), this.GetRules(), suggestionModeItem);
         }
 
         private void AddToDisplayMap(
@@ -365,7 +394,8 @@ namespace Microsoft.CodeAnalysis.Completion
             return providers.Any(p => p.ShouldTriggerCompletion(text, caretPosition, trigger, options));
         }
 
-        public override async Task<CompletionChange> GetChangeAsync(Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
+        public override async Task<CompletionChange> GetChangeAsync(
+            Document document, CompletionItem item, char? commitKey, CancellationToken cancellationToken)
         {
             var provider = GetProvider(item);
             if (provider != null)

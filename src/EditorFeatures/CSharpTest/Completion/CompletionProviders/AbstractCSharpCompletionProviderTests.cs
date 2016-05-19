@@ -1,6 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
@@ -18,6 +20,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
     {
         protected AbstractCSharpCompletionProviderTests(CSharpTestWorkspaceFixture workspaceFixture) : base(workspaceFixture)
         {
+        }
+
+        internal override CompletionServiceWithProviders CreateCompletionService(
+            TestWorkspace workspace, ImmutableArray<CompletionProvider> exclusiveProviders)
+        {
+            return new CSharpCompletionService(workspace, exclusiveProviders);
         }
 
         protected override async Task VerifyWorkerAsync(string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence, bool experimental, int? glyph)
@@ -138,7 +146,8 @@ text;
                 var document = workspace.CurrentSolution.GetDocument(documentId);
                 var position = hostDocument.CursorPosition.Value;
 
-                var completionList = await GetCompletionListAsync(document, position, CompletionTrigger.Default);
+                var service = await GetCompletionServiceAsync();
+                var completionList = await GetCompletionListAsync(service, document, position, CompletionTrigger.Default);
                 var item = completionList.Items.First(i => i.DisplayText.StartsWith(textTypedSoFar));
 
                 var optionService = workspace.Services.GetService<IOptionService>();
@@ -166,7 +175,8 @@ text;
                 var options = workspace.Options.WithChangedOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.CSharp, triggerOnLetter);
                 var trigger = CompletionTrigger.CreateInsertionTrigger(text[position]);
 
-                var isTextualTriggerCharacterResult = CompletionProvider.ShouldTriggerCompletion(text, position + 1, trigger, options);
+                var service = await GetCompletionServiceAsync();
+                var isTextualTriggerCharacterResult = service.ShouldTriggerCompletion(text, position + 1, trigger, options: options);
 
                 if (expectedTriggerCharacter)
                 {
@@ -205,7 +215,8 @@ text;
                 var document = workspace.CurrentSolution.GetDocument(documentId);
                 var position = hostDocument.CursorPosition.Value;
 
-                var completionList = await GetCompletionListAsync(document, position, CompletionTrigger.Default);
+                var service = await GetCompletionServiceAsync();
+                var completionList = await GetCompletionListAsync(service, document, position, CompletionTrigger.Default);
                 var item = completionList.Items.First(i => i.DisplayText.StartsWith(textTypedSoFar));
 
                 var completionRules = CompletionHelper.GetHelper(document);

@@ -1,10 +1,12 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Completion
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
     Public MustInherit Class AbstractVisualBasicCompletionProviderTests
@@ -13,6 +15,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
             MyBase.New(workspaceFixture)
         End Sub
+
+        Friend Overrides Function CreateCompletionService(workspace As TestWorkspace, exclusiveProviders As ImmutableArray(Of CompletionProvider)) As CompletionServiceWithProviders
+            Return New VisualBasicCompletionService(workspace, exclusiveProviders)
+        End Function
 
         Protected Overrides Async Function VerifyWorkerAsync(code As String, position As Integer, expectedItemOrNull As String, expectedDescriptionOrNull As String, sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean, checkForAbsence As Boolean, experimental As Boolean, glyph As Integer?) As Threading.Tasks.Task
             ' Script/interactive support removed for now.
@@ -111,7 +117,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 Dim document = workspace.CurrentSolution.GetDocument(documentId)
                 Dim position = hostDocument.CursorPosition.Value
 
-                Dim completionList = Await GetCompletionListAsync(document, position, CompletionTrigger.Default)
+                Dim service = Await GetCompletionServiceAsync()
+                Dim completionList = Await GetCompletionListAsync(service, document, position, CompletionTrigger.Default)
                 Dim item = completionList.Items.First(Function(i) i.DisplayText.StartsWith(textTypedSoFar))
 
                 Dim helper = CompletionHelper.GetHelper(document)
@@ -131,7 +138,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 Dim document = workspace.CurrentSolution.GetDocument(documentId)
                 Dim position = hostDocument.CursorPosition.Value
 
-                Dim completionList = Await GetCompletionListAsync(document, position, CompletionTrigger.Default)
+                Dim service = Await GetCompletionServiceAsync()
+                Dim completionList = Await GetCompletionListAsync(service, document, position, CompletionTrigger.Default)
                 Dim item = completionList.Items.First()
 
                 Dim helper = CompletionHelper.GetHelper(document)
@@ -197,7 +205,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 Dim text = document.TextBuffer.CurrentSnapshot.AsText()
                 Dim options = workspace.Options.WithChangedOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.VisualBasic, triggerOnLetter)
                 Dim trigger = CompletionTrigger.CreateInsertionTrigger(text(position))
-                Dim isTextualTriggerCharacterResult = CompletionProvider.ShouldTriggerCompletion(text, position + 1, trigger, options)
+
+                Dim completionService = Await GetCompletionServiceAsync()
+                Dim isTextualTriggerCharacterResult = completionService.ShouldTriggerCompletion(
+                    text, position + 1, trigger, options:=options)
 
                 If expectedTriggerCharacter Then
                     Dim assertText = "'" & text.ToString(New TextSpan(position, 1)) & "' expected to be textual trigger character"

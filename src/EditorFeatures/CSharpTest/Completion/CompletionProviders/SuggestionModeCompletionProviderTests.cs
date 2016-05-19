@@ -580,7 +580,8 @@ class a
         private async Task CheckResultsAsync(Document document, int position, bool isBuilder)
         {
             var triggerInfo = CompletionTrigger.CreateInsertionTrigger('a');
-            var completionList = await GetCompletionListAsync(document, position, triggerInfo);
+            var service = await GetCompletionServiceAsync();
+            var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
 
             if (isBuilder)
             {

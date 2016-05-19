@@ -334,7 +334,8 @@ End Class
         Private Async Function CheckResultsAsync(document As Document, position As Integer, isBuilder As Boolean, triggerInfo As CompletionTrigger?, options As OptionSet) As Task
             triggerInfo = If(triggerInfo, CompletionTrigger.CreateInsertionTrigger("a"c))
 
-            Dim completionList = Await GetCompletionListAsync(document, position, triggerInfo.Value, options)
+            Dim service = Await GetCompletionServiceAsync()
+            Dim completionList = Await GetCompletionListAsync(service, document, position, triggerInfo.Value, options)
 
             If isBuilder Then
                 Assert.NotNull(completionList)
