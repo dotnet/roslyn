@@ -23,8 +23,16 @@ namespace Microsoft.CodeAnalysis.Completion
     public abstract class CompletionServiceWithProviders : CompletionService
     {
         private static readonly Func<string, List<CompletionItem>> s_createList = _ => new List<CompletionItem>();
-        private IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> _importedProviders;
+
+        private readonly object _gate = new object();
+
+        private readonly Dictionary<string, CompletionProvider> _nameToProvider = new Dictionary<string, CompletionProvider>();
+        private readonly Dictionary<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>> _rolesToProviders = new Dictionary<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>>();
+        private readonly Func<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>> _createRoleProviders;
+
         private readonly Workspace _workspace;
+
+        private IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> _importedProviders;
 
         protected CompletionServiceWithProviders(Workspace workspace)
         {
@@ -68,20 +76,15 @@ namespace Microsoft.CodeAnalysis.Completion
 
         internal void SetTestProviders(IEnumerable<CompletionProvider> testProviders)
         {
-            _testProviders = testProviders != null ? testProviders.ToImmutableArray() : ImmutableArray<CompletionProvider>.Empty;
+            lock (_gate)
+            {
+                _testProviders = testProviders != null ? testProviders.ToImmutableArray() : ImmutableArray<CompletionProvider>.Empty;
+                _rolesToProviders.Clear();
+                _nameToProvider.Clear();
+            }
         }
 
-        private class RoleProviders
-        {
-            public ImmutableArray<CompletionProvider> Providers;
-        }
-
-        private readonly ConditionalWeakTable<ImmutableHashSet<string>, RoleProviders> _roleProviders
-            = new ConditionalWeakTable<ImmutableHashSet<string>, RoleProviders>();
-
-        private readonly ConditionalWeakTable<ImmutableHashSet<string>, RoleProviders>.CreateValueCallback _createRoleProviders;
-
-        private RoleProviders CreateRoleProviders(ImmutableHashSet<string> roles)
+        private ImmutableArray<CompletionProvider> CreateRoleProviders(ImmutableHashSet<string> roles)
         {
             var builtin = GetBuiltInProviders();
             var imported = GetImportedProviders()
@@ -90,25 +93,22 @@ namespace Microsoft.CodeAnalysis.Completion
 
             var providers = builtin.Concat(imported).Concat(_testProviders);
 
-            lock (_gate)
+            foreach (var provider in providers)
             {
-                foreach (var provider in providers)
-                {
-                    _nameToProvider[provider.Name] = provider;
-                }
+                _nameToProvider[provider.Name] = provider;
             }
 
-            return new RoleProviders { Providers = providers.ToImmutableArray() };
+            return providers.ToImmutableArray();
         }
 
         protected ImmutableArray<CompletionProvider> GetProviders(ImmutableHashSet<string> roles)
         {
             roles = roles ?? ImmutableHashSet<string>.Empty;
-            RoleProviders providers;
 
-            return _roleProviders.TryGetValue(roles, out providers)
-                ? providers.Providers
-                : ImmutableArray<CompletionProvider>.Empty;
+            lock (_gate)
+            {
+                return _rolesToProviders.GetOrAdd(roles, _createRoleProviders);
+            }
         }
 
         protected virtual ImmutableArray<CompletionProvider> GetProviders(ImmutableHashSet<string> roles, CompletionTrigger trigger)
@@ -121,24 +121,6 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 return GetProviders(roles);
             }
-        }
-
-        private readonly object _gate = new object();
-        private readonly Dictionary<string, CompletionProvider> _nameToProvider = new Dictionary<string, CompletionProvider>();
-
-        private ImmutableDictionary<string, CompletionProvider> CreateNameToProviderMap()
-        {
-            var map = ImmutableDictionary<string, CompletionProvider>.Empty;
-
-            foreach (var provider in GetBuiltInProviders().Concat(GetImportedProviders().Select(lz => lz.Value)).Concat(_testProviders))
-            {
-                if (!map.ContainsKey(provider.Name))
-                {
-                    map = map.Add(provider.Name, provider);
-                }
-            }
-
-            return map;
         }
 
         internal protected CompletionProvider GetProvider(CompletionItem item)
