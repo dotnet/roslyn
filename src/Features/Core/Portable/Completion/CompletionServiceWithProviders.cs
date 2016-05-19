@@ -391,11 +391,6 @@ namespace Microsoft.CodeAnalysis.Completion
 
         public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (CommonCompletionItem.HasDescription(item))
-            {
-                return Task.FromResult(CommonCompletionItem.GetDescription(item));
-            }
-
             var provider = GetProvider(item);
             if (provider != null)
             {
