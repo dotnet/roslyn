@@ -431,7 +431,7 @@ End Class]]></a>.Value.NormalizeLineEndings()
 
                 Dim hostDocument = workspace.DocumentWithCursor
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
-                Dim service = Await GetCompletionServiceAsync()
+                Dim service = GetCompletionService(workspace)
                 Dim completionList = Await GetCompletionListAsync(service, document, hostDocument.CursorPosition.Value, CompletionTrigger.Default)
             End Using
         End Function

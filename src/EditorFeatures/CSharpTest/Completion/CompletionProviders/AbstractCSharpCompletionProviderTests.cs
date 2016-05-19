@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -10,7 +9,6 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Completion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
@@ -23,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         }
 
         internal override CompletionServiceWithProviders CreateCompletionService(
-            TestWorkspace workspace, ImmutableArray<CompletionProvider> exclusiveProviders)
+            Workspace workspace, ImmutableArray<CompletionProvider> exclusiveProviders)
         {
             return new CSharpCompletionService(workspace, exclusiveProviders);
         }
@@ -146,15 +144,14 @@ text;
                 var document = workspace.CurrentSolution.GetDocument(documentId);
                 var position = hostDocument.CursorPosition.Value;
 
-                var service = await GetCompletionServiceAsync();
+                workspace.Options = workspace.Options.WithChangedOption(
+                    CSharpCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord, sendThroughEnterEnabled);
+
+                var service = GetCompletionService(workspace);
                 var completionList = await GetCompletionListAsync(service, document, position, CompletionTrigger.Default);
                 var item = completionList.Items.First(i => i.DisplayText.StartsWith(textTypedSoFar));
 
-                var optionService = workspace.Services.GetService<IOptionService>();
-                var options = optionService.GetOptions().WithChangedOption(CSharpCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord, sendThroughEnterEnabled);
-                optionService.SetOptions(options);
-
-                var completionRules = CompletionHelper.GetHelper(document);
+                var completionRules = CompletionHelper.GetHelper(document, service);
                 Assert.Equal(expected, completionRules.SendEnterThroughToEditor(item, textTypedSoFar, workspace.Options));
             }
         }
@@ -175,7 +172,7 @@ text;
                 var options = workspace.Options.WithChangedOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.CSharp, triggerOnLetter);
                 var trigger = CompletionTrigger.CreateInsertionTrigger(text[position]);
 
-                var service = await GetCompletionServiceAsync();
+                var service = GetCompletionService(workspace);
                 var isTextualTriggerCharacterResult = service.ShouldTriggerCompletion(text, position + 1, trigger, options: options);
 
                 if (expectedTriggerCharacter)
@@ -215,11 +212,11 @@ text;
                 var document = workspace.CurrentSolution.GetDocument(documentId);
                 var position = hostDocument.CursorPosition.Value;
 
-                var service = await GetCompletionServiceAsync();
+                var service = GetCompletionService(workspace);
                 var completionList = await GetCompletionListAsync(service, document, position, CompletionTrigger.Default);
                 var item = completionList.Items.First(i => i.DisplayText.StartsWith(textTypedSoFar));
 
-                var completionRules = CompletionHelper.GetHelper(document);
+                var completionRules = CompletionHelper.GetHelper(document, service);
 
                 foreach (var ch in validChars)
                 {

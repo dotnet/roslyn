@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var description = await this.CompletionService.GetDescriptionAsync(document, this.Item, cancellationToken).ConfigureAwait(false);
             var parts = description.TaggedParts;
 
-            var change = await CompletionHelper.GetTextChangeAsync(document, this.Item, '\t').ConfigureAwait(false);
+            var change = await CompletionHelper.GetTextChangeAsync(this.CompletionService, document, this.Item, '\t').ConfigureAwait(false);
             var insertionText = change.NewText;
 
             var note = string.Empty;

@@ -643,7 +643,7 @@ End Interface
             Using workspace = Await TestWorkspace.CreateAsync(element)
                 Dim position = workspace.Documents.Single().CursorPosition.Value
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id)
-                Dim service = Await GetCompletionServiceAsync()
+                Dim service = GetCompletionService(workspace)
                 Dim completionList = Await GetCompletionListAsync(service, document, position, CompletionTrigger.Default)
                 AssertEx.Any(completionList.Items, Function(c) c.DisplayText = "Workcover")
             End Using

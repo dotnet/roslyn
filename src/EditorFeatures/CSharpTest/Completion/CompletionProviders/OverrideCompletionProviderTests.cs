@@ -2126,7 +2126,7 @@ End Class
                 var document = solution.GetDocument(documentId);
                 var triggerInfo = CompletionTrigger.Default;
 
-                var service = await GetCompletionServiceAsync();
+                var service = GetCompletionService(testWorkspace);
                 var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
                 var completionItem = completionList.Items.First(i => CompareItems(i.DisplayText, "Bar[int bay]"));
 
@@ -2386,7 +2386,7 @@ int bar;
                 var document = solution.GetDocument(documentId);
                 var triggerInfo = CompletionTrigger.Default;
 
-                var service = await GetCompletionServiceAsync();
+                var service = GetCompletionService(testWorkspace);
                 var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
                 var completionItem = completionList.Items.First(i => CompareItems(i.DisplayText, "Equals(object obj)"));
 
@@ -2445,7 +2445,7 @@ int bar;
                 var document = solution.GetDocument(documentId);
                 var triggerInfo = CompletionTrigger.Default;
 
-                var service = await GetCompletionServiceAsync();
+                var service = GetCompletionService(testWorkspace);
                 var completionList = await GetCompletionListAsync(service, document, cursorPosition, triggerInfo);
                 var completionItem = completionList.Items.First(i => CompareItems(i.DisplayText, "Equals(object obj)"));
 
@@ -2544,22 +2544,24 @@ namespace ConsoleApplication46
         override $$
     }
 }";
-            var workspace = await TestWorkspace.CreateAsync(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), text);
-            var provider = new OverrideCompletionProvider();
-            var testDocument = workspace.Documents.Single();
-            var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
+            using (var workspace = await TestWorkspace.CreateAsync(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), text))
+            {
+                var provider = new OverrideCompletionProvider();
+                var testDocument = workspace.Documents.Single();
+                var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
 
-            var service = await GetCompletionServiceAsync();
-            var completionList = await GetCompletionListAsync(service, document, testDocument.CursorPosition.Value, CompletionTrigger.Default);
+                var service = GetCompletionService(workspace);
+                var completionList = await GetCompletionListAsync(service, document, testDocument.CursorPosition.Value, CompletionTrigger.Default);
 
-            var oldTree = await document.GetSyntaxTreeAsync();
+                var oldTree = await document.GetSyntaxTreeAsync();
 
-            var commit = await provider.GetChangeAsync(document, completionList.Items.First(i => i.DisplayText == "ToString()"), ' ');
-            var changes = commit.TextChanges;
+                var commit = await provider.GetChangeAsync(document, completionList.Items.First(i => i.DisplayText == "ToString()"), ' ');
+                var changes = commit.TextChanges;
 
-            // If we left the trailing trivia of the close curly of Main alone,
-            // there should only be one change: the replacement of "override " with a method.
-            Assert.Equal(changes.Single().Span, TextSpan.FromBounds(136, 145));
+                // If we left the trailing trivia of the close curly of Main alone,
+                // there should only be one change: the replacement of "override " with a method.
+                Assert.Equal(changes.Single().Span, TextSpan.FromBounds(136, 145));
+            }
         }
     }
 }

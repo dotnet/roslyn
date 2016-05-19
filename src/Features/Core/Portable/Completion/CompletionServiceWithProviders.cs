@@ -205,7 +205,9 @@ namespace Microsoft.CodeAnalysis.Completion
             var completionLists = new List<CompletionContext>();
             foreach (var provider in triggeredProviders)
             {
-                var completionList = await GetProviderCompletionsAsync(provider, document, caretPosition, defaultItemSpan, trigger, options, cancellationToken).ConfigureAwait(false);
+                var completionList = await GetContextAsync(
+                    provider, document, caretPosition, trigger, 
+                    options, defaultItemSpan, cancellationToken).ConfigureAwait(false);
                 if (completionList != null)
                 {
                     completionLists.Add(completionList);
@@ -240,7 +242,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var nonUsedNonExclusiveLists = new List<CompletionContext>();
             foreach (var provider in nonUsedProviders)
             {
-                var completionList = await GetProviderCompletionsAsync(provider, document, caretPosition, defaultItemSpan, trigger, options, cancellationToken).ConfigureAwait(false);
+                var completionList = await GetContextAsync(provider, document, caretPosition, trigger, options, defaultItemSpan, cancellationToken).ConfigureAwait(false);
                 if (completionList != null && !completionList.IsExclusive)
                 {
                     nonUsedNonExclusiveLists.Add(completionList);
@@ -290,7 +292,8 @@ namespace Microsoft.CodeAnalysis.Completion
             totalItems.Sort();
 
             return CompletionList.Create(
-                contextSpan, totalItems.ToImmutableArray(), this.GetRules(), suggestionModeItem);
+                contextSpan, totalItems.ToImmutableArray(), this.GetRules(), suggestionModeItem,
+                isExclusive);
         }
 
         private void AddToDisplayMap(
@@ -350,16 +353,38 @@ namespace Microsoft.CodeAnalysis.Completion
             return result;
         }
 
-        private static async Task<CompletionContext> GetProviderCompletionsAsync(
+        // Internal for testing purposes only.
+        internal async Task<CompletionContext> GetContextAsync(
             CompletionProvider provider,
             Document document,
             int position,
-            TextSpan defaultFilterSpan,
             CompletionTrigger triggerInfo,
             OptionSet options,
             CancellationToken cancellationToken)
         {
-            var context = new CompletionContext(provider, document, position, defaultFilterSpan, triggerInfo, options, cancellationToken);
+            return await GetContextAsync(
+                provider, document, position, triggerInfo, 
+                options, defaultSpan: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+        }
+
+        private async Task<CompletionContext> GetContextAsync(
+            CompletionProvider provider,
+            Document document,
+            int position,
+            CompletionTrigger triggerInfo,
+            OptionSet options,
+            TextSpan? defaultSpan,
+            CancellationToken cancellationToken)
+        {
+            options = options ?? document.Project.Solution.Workspace.Options;
+
+            if (defaultSpan == null)
+            {
+                var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+                defaultSpan = this.GetDefaultItemSpan(text, position);
+            }
+
+            var context = new CompletionContext(provider, document, position, defaultSpan.Value, triggerInfo, options, cancellationToken);
             await provider.ProvideCompletionsAsync(context).ConfigureAwait(false);
             return context;
         }

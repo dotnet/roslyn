@@ -16,7 +16,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             MyBase.New(workspaceFixture)
         End Sub
 
-        Friend Overrides Function CreateCompletionService(workspace As TestWorkspace, exclusiveProviders As ImmutableArray(Of CompletionProvider)) As CompletionServiceWithProviders
+        Friend Overrides Function CreateCompletionService(workspace As Workspace, exclusiveProviders As ImmutableArray(Of CompletionProvider)) As CompletionServiceWithProviders
             Return New VisualBasicCompletionService(workspace, exclusiveProviders)
         End Function
 
@@ -79,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Await MyBase.VerifyWorkerAsync(code, position, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, experimental:=experimental, glyph:=glyph)
         End Function
 
-        Private Function VerifyAtEndOfFileAsync(code As String, position As Integer, expectedItemOrNull As String, expectedDescriptionOrNull As String, sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean, checkForAbsence As Boolean, glyph As Integer?, experimental As Boolean) As Threading.Tasks.Task
+        Protected Function VerifyAtEndOfFileAsync(code As String, position As Integer, expectedItemOrNull As String, expectedDescriptionOrNull As String, sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean, checkForAbsence As Boolean, glyph As Integer?, experimental As Boolean) As Threading.Tasks.Task
             Return VerifyAtEndOfFileAsync(code, position, String.Empty, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph, experimental)
         End Function
 
@@ -117,11 +117,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 Dim document = workspace.CurrentSolution.GetDocument(documentId)
                 Dim position = hostDocument.CursorPosition.Value
 
-                Dim service = Await GetCompletionServiceAsync()
+                Dim service = GetCompletionService(workspace)
                 Dim completionList = Await GetCompletionListAsync(service, document, position, CompletionTrigger.Default)
                 Dim item = completionList.Items.First(Function(i) i.DisplayText.StartsWith(textTypedSoFar))
 
-                Dim helper = CompletionHelper.GetHelper(document)
+                Dim helper = CompletionHelper.GetHelper(document, service)
                 Assert.Equal(expected, helper.SendEnterThroughToEditor(item, textTypedSoFar, workspace.Options))
             End Using
         End Function
@@ -138,11 +138,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 Dim document = workspace.CurrentSolution.GetDocument(documentId)
                 Dim position = hostDocument.CursorPosition.Value
 
-                Dim service = Await GetCompletionServiceAsync()
+                Dim service = GetCompletionService(workspace)
                 Dim completionList = Await GetCompletionListAsync(service, document, position, CompletionTrigger.Default)
                 Dim item = completionList.Items.First()
 
-                Dim helper = CompletionHelper.GetHelper(document)
+                Dim helper = CompletionHelper.GetHelper(document, service)
 
                 For Each ch In chars
                     Assert.True(helper.IsCommitCharacter(item, ch, textTypedSoFar), $"Expected '{ch}' to be a commit character")
@@ -206,7 +206,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 Dim options = workspace.Options.WithChangedOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.VisualBasic, triggerOnLetter)
                 Dim trigger = CompletionTrigger.CreateInsertionTrigger(text(position))
 
-                Dim completionService = Await GetCompletionServiceAsync()
+                Dim completionService = GetCompletionService(workspace)
                 Dim isTextualTriggerCharacterResult = completionService.ShouldTriggerCompletion(
                     text, position + 1, trigger, options:=options)
 
