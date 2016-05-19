@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
@@ -34,6 +35,67 @@ class C
 
             var comp = CompileAndVerify(source, expectedOutput: "1 hello", parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       40 (0x28)
+  .maxstack  3
+  .locals init (string V_0, //y
+                int V_1,
+                string V_2)
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  ldloca.s   V_1
+  IL_0007:  ldloca.s   V_2
+  IL_0009:  call       ""void C.Deconstruct(out int, out string)""
+  IL_000e:  ldloc.1
+  IL_000f:  conv.i8
+  IL_0010:  ldloc.2
+  IL_0011:  stloc.0
+  IL_0012:  box        ""long""
+  IL_0017:  ldstr      "" ""
+  IL_001c:  ldloc.0
+  IL_001d:  call       ""string string.Concat(object, object, object)""
+  IL_0022:  call       ""void System.Console.WriteLine(string)""
+  IL_0027:  ret
+}");
+        }
+
+        [Fact]
+        public void DeconstructIL()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x;
+        string y;
+
+        (x, y) = new C();
+    }
+
+    public void Deconstruct(out int a, out string b)
+    {
+        a = 1;
+        b = ""hello"";
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics();
+
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       15 (0xf)
+  .maxstack  3
+  .locals init (int V_0,
+                string V_1)
+  IL_0000:  newobj     ""C..ctor()""
+  IL_0005:  ldloca.s   V_0
+  IL_0007:  ldloca.s   V_1
+  IL_0009:  call       ""void C.Deconstruct(out int, out string)""
+  IL_000e:  ret
+}");
         }
 
         [Fact]
@@ -557,6 +619,254 @@ class C
                 // (6,24): error CS1525: Invalid expression term '.'
                 //         ((int, string)).ToString();
                 Diagnostic(ErrorCode.ERR_InvalidExprTerm, ".").WithArguments(".").WithLocation(6, 24)
+                );
+        }
+
+        [Fact]
+        public void RefReturningMethod()
+        {
+            string source = @"
+class C
+{
+    static int i = 0;
+
+    static void Main()
+    {
+        (M(), M()) = new C();
+        System.Console.WriteLine($""Final i is {i}"");
+    }
+
+    static ref int M()
+    {
+        System.Console.WriteLine($""M (previous i is {i})"");
+        return ref i;
+    }
+
+    void Deconstruct(out int x, out int y)
+    {
+        System.Console.WriteLine(""Deconstruct"");
+        x = 42;
+        y = 43;
+    }
+}
+";
+            var expected =
+@"M (previous i is 0)
+M (previous i is 0)
+Deconstruct
+Final i is 43
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular.WithTuplesFeature().WithRefsFeature());
+            comp.VerifyDiagnostics(
+                );
+        }
+
+        [Fact]
+        public void RefReturningProperty()
+        {
+            string source = @"
+class C
+{
+    static int i = 0;
+
+    static void Main()
+    {
+        (P, P) = new C();
+        System.Console.WriteLine($""Final i is {i}"");
+    }
+
+    static ref int P
+    {
+        get
+        {
+            System.Console.WriteLine($""P (previous i is {i})"");
+            return ref i;
+        }
+    }
+
+    void Deconstruct(out int x, out int y)
+    {
+        System.Console.WriteLine(""Deconstruct"");
+        x = 42;
+        y = 43;
+    }
+}
+";
+            var expected =
+@"P (previous i is 0)
+P (previous i is 0)
+Deconstruct
+Final i is 43
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular.WithTuplesFeature().WithRefsFeature());
+            comp.VerifyDiagnostics(
+                );
+        }
+
+        [Fact(Skip = "PROTOTYPE(tuples)")]
+        public void RefReturningMethod2()
+        {
+            string source = @"
+class C
+{
+    static int i;
+
+    static void Main()
+    {
+        (M(), M()) = new C();
+    }
+
+    static ref int M()
+    {
+        System.Console.WriteLine(""M"");
+        return ref i;
+    }
+
+    void Deconstruct(out int i, out int j)
+    {
+        i = 42;
+        j = 43;
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature().WithRefsFeature());
+            comp.VerifyDiagnostics();
+
+            // This error is wrong
+            // (4,16): warning CS0649: Field 'C.i' is never assigned to, and will always have its default value 0
+            //     static int i;
+            //Diagnostic(ErrorCode.WRN_UnassignedInternalField, "i").WithArguments("C.i", "0").WithLocation(4, 16)
+        }
+
+        [Fact(Skip = "PROTOTYPE(tuples)")]
+        public void RefReturningMethodFlow()
+        {
+            string source = @"
+struct C
+{
+    static C i;
+    static C P { get { System.Console.WriteLine(""getP""); return i; } set { System.Console.WriteLine(""setP""); i = value; } }
+
+    static void Main()
+    {
+        (M(), M()) = P;
+    }
+
+    static ref C M()
+    {
+        System.Console.WriteLine($""M (previous i is {i})"");
+        return ref i;
+    }
+
+    void Deconstruct(out int x, out int y)
+    {
+        System.Console.WriteLine(""Deconstruct"");
+        x = 42;
+        y = 43;
+    }
+
+    public static implicit operator C(int x)
+    {
+        System.Console.WriteLine(""conversion"");
+        return new C();
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature().WithRefsFeature());
+            comp.VerifyDiagnostics();
+
+
+            var expected =
+                @"";
+
+            // Should not crash!
+            var comp2 = CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular.WithTuplesFeature().WithRefsFeature());
+            comp2.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void UninitializedRight()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x;
+        (x, x) = x;
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature().WithRefsFeature());
+            comp.VerifyDiagnostics(
+                // (7,18): error CS8206: No Deconstruct instance or extension method was found for type 'int'.
+                //         (x, x) = x;
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "x").WithArguments("int").WithLocation(7, 18),
+                // (7,18): error CS0165: Use of unassigned local variable 'x'
+                //         (x, x) = x;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(7, 18)
+                );
+        }
+
+        [Fact]
+        public void Indexers()
+        {
+            string source = @"
+class C
+{
+    static SomeArray array;
+
+    static void Main()
+    {
+        int y;
+        (Foo()[Bar()], y) = new C();
+        System.Console.WriteLine($""Final array values[2] {array.values[2]}"");
+    }
+
+    static SomeArray Foo()
+    {
+        System.Console.WriteLine($""Foo"");
+        array = new SomeArray();
+        return array;
+    }
+
+    static int Bar()
+    {
+        System.Console.WriteLine($""Bar"");
+        return 2;
+    }
+
+    void Deconstruct(out int x, out int y)
+    {
+        System.Console.WriteLine(""Deconstruct"");
+        x = 101;
+        y = 102;
+    }
+}
+class SomeArray
+{
+    public int[] values;
+    public SomeArray() { values = new [] { 42, 43, 44 }; }
+    public int this[int index] {
+        get { System.Console.WriteLine($""indexGet (with value {values[index]})""); return values[index]; }
+        set { System.Console.WriteLine($""indexSet (with value {value})""); values[index] = value; }
+    }
+}
+";
+            var expected =
+@"Foo
+Bar
+Deconstruct
+indexSet (with value 101)
+Final array values[2] 101
+";
+            var comp = CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular.WithTuplesFeature().WithRefsFeature());
+            comp.VerifyDiagnostics(
                 );
         }
     }
