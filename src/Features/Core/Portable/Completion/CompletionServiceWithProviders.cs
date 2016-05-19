@@ -40,7 +40,7 @@ namespace Microsoft.CodeAnalysis.Completion
         private IEnumerable<Lazy<CompletionProvider, CompletionProviderMetadata>> _importedProviders;
 
         protected CompletionServiceWithProviders(Workspace workspace)
-            : this(workspace, null)
+            : this(workspace, exclusiveProviders: null)
         {
         }
 
