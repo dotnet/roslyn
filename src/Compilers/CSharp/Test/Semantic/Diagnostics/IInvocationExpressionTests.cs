@@ -205,7 +205,7 @@ class C
             var nodes = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
             Assert.Equal(nodes.Length, 4);
 
-            // M3(1, 2, 3)
+            // M2(1, 2, 3)
 
             Assert.Equal("M2(1, 2, 3)", nodes[0].ToString());
             IOperation operation = model.GetOperation(nodes[0]);
@@ -273,7 +273,7 @@ class C
             Assert.True(argumentValue.ConstantValue.HasValue);
             Assert.Equal(argumentValue.ConstantValue.Value, 3);
 
-            // M3(1)
+            // M2(1)
 
             Assert.Equal("M2(1)", nodes[1].ToString());
             operation = model.GetOperation(nodes[1]);
@@ -323,7 +323,7 @@ class C
             Assert.Equal(argumentArray.Initializer.Kind, OperationKind.ArrayInitializer);
             Assert.Equal(argumentArray.Initializer.ElementValues.Length, 0);
 
-            // M3()
+            // M2()
 
             Assert.Equal("M2()", nodes[2].ToString());
             operation = model.GetOperation(nodes[2]);
@@ -371,8 +371,6 @@ class C
             Assert.Equal(argumentArray.Initializer.ElementValues.Length, 0);
 
             // M2(1, new int[] { 2, 3 })
-
-            // M3(1, 2, 3)
 
             Assert.Equal("M2(1, new int[] { 2, 3 })", nodes[3].ToString());
             operation = model.GetOperation(nodes[3]);
