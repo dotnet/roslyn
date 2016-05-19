@@ -7734,7 +7734,7 @@ using System.Diagnostics; // Unused.
         [WorkItem(998069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/998069")]
         [WorkItem(998724, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/998724")]
         [WorkItem(1021115, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1021115")]
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/11368")]
         public void NoWarnAndWarnAsError_WarningDiagnostic()
         {
             // This assembly has a WarningDiagnosticAnalyzer type which should produce custom warning
