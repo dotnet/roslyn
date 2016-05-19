@@ -395,6 +395,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to More than one Deconstruct instance or extension method was found for type &apos;{0}&apos;..
+        /// </summary>
+        internal static string ERR_AmbiguousDeconstruct {
+            get {
+                return ResourceManager.GetString("ERR_AmbiguousDeconstruct", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot use ref or out parameter &apos;{0}&apos; inside an anonymous method, lambda expression, or query expression.
         /// </summary>
         internal static string ERR_AnonDelegateCantUse {
@@ -3082,6 +3091,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_DecConstError {
             get {
                 return ResourceManager.GetString("ERR_DecConstError", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The Deconstruct method for type &apos;{0}&apos; must have only out parameters..
+        /// </summary>
+        internal static string ERR_DeconstructRequiresOutParams {
+            get {
+                return ResourceManager.GetString("ERR_DeconstructRequiresOutParams", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to The Deconstruct method for type &apos;{0}&apos; doesn&apos;t have the number of parameters ({1}) needed for this deconstruction..
+        /// </summary>
+        internal static string ERR_DeconstructWrongParams {
+            get {
+                return ResourceManager.GetString("ERR_DeconstructWrongParams", resourceCulture);
             }
         }
         
@@ -5863,6 +5890,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_MissingDebugSwitch {
             get {
                 return ResourceManager.GetString("ERR_MissingDebugSwitch", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to No Deconstruct instance or extension method was found for type &apos;{0}&apos;..
+        /// </summary>
+        internal static string ERR_MissingDeconstruct {
+            get {
+                return ResourceManager.GetString("ERR_MissingDeconstruct", resourceCulture);
             }
         }
         

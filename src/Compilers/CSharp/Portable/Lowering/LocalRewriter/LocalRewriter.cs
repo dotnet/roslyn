@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -24,6 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool _sawAwait;
         private bool _sawAwaitInExceptionHandler;
         private readonly DiagnosticBag _diagnostics;
+
+        private Dictionary<BoundValuePlaceholderBase, BoundExpression> _placeholderReplacementMapDoNotUseDirectly;
 
         private LocalRewriter(
             CSharpCompilation compilation,
@@ -225,6 +228,63 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 _factory.CurrentMethod = oldContainingSymbol;
             }
+        }
+
+        public override BoundNode VisitLValuePlaceholder(BoundLValuePlaceholder node)
+        {
+            return PlaceholderReplacement(node);
+        }
+
+        public override BoundNode VisitRValuePlaceholder(BoundRValuePlaceholder node)
+        {
+            return PlaceholderReplacement(node);
+        }
+
+        /// <summary>
+        /// Returns substitution currently used by the rewriter for a placeholder node.
+        /// Each occurrence of the placeholder node is replaced with the node returned.
+        /// Throws if there is no substitution.
+        /// </summary>
+        private BoundExpression PlaceholderReplacement(BoundValuePlaceholderBase placeholder)
+        {
+            var value = _placeholderReplacementMapDoNotUseDirectly[placeholder];
+            AssertPlaceholderReplacement(placeholder, value);
+            return value;
+        }
+
+        [Conditional("DEBUG")]
+        private static void AssertPlaceholderReplacement(BoundValuePlaceholderBase placeholder, BoundExpression value)
+        {
+            Debug.Assert(value.Type.Equals(placeholder.Type, ignoreCustomModifiersAndArraySizesAndLowerBounds: true, ignoreDynamic: true));
+        }
+
+        /// <summary>
+        /// Sets substitution used by the rewriter for a placeholder node.
+        /// Each occurrence of the placeholder node is replaced with the node returned.
+        /// Throws if there is already a substitution.
+        /// </summary>
+        private void AddPlaceholderReplacement(BoundValuePlaceholderBase placeholder, BoundExpression value)
+        {
+            AssertPlaceholderReplacement(placeholder, value);
+
+            if ((object)_placeholderReplacementMapDoNotUseDirectly == null)
+            {
+                _placeholderReplacementMapDoNotUseDirectly = new Dictionary<BoundValuePlaceholderBase, BoundExpression>();
+            }
+
+            _placeholderReplacementMapDoNotUseDirectly.Add(placeholder, value);
+        }
+
+        /// <summary>
+        /// Removes substitution currently used by the rewriter for a placeholder node.
+        /// Asserts if there isn't already a substitution.
+        /// </summary>
+        private void RemovePlaceholderReplacement(BoundValuePlaceholderBase placeholder)
+        {
+            Debug.Assert((object)placeholder != null);
+            bool removed = _placeholderReplacementMapDoNotUseDirectly.Remove(placeholder);
+
+            Debug.Assert(removed);
         }
 
         public override BoundNode VisitBadExpression(BoundBadExpression node)

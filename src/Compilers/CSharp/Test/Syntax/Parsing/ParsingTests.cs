@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using System.Collections.Generic;
 using System.Diagnostics;
 using Xunit;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {

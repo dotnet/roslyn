@@ -1514,6 +1514,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
+        {
+            foreach (BoundExpression variable in node.LeftVariables)
+            {
+                VisitLvalue(variable);
+            }
+
+            VisitRvalue(node.Right);
+
+            return null;
+        }
+
         public override BoundNode VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
         {
             // TODO: should events be handled specially too?

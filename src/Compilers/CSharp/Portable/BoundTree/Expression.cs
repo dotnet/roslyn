@@ -33,6 +33,36 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument);
     }
 
+    internal sealed partial class BoundLValuePlaceholder : BoundValuePlaceholderBase, IPlaceholderExpression
+    {
+        protected override OperationKind ExpressionKind => OperationKind.PlaceholderExpression;
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitPlaceholderExpression(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitPlaceholderExpression(this, argument);
+        }
+    }
+
+    internal sealed partial class BoundRValuePlaceholder : BoundValuePlaceholderBase, IPlaceholderExpression
+    {
+        protected override OperationKind ExpressionKind => OperationKind.PlaceholderExpression;
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitPlaceholderExpression(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitPlaceholderExpression(this, argument);
+        }
+    }
+
     internal partial class BoundCall : IInvocationExpression
     {
         IMethodSymbol IInvocationExpression.TargetMethod => this.Method;
@@ -1001,6 +1031,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitAssignmentExpression(this, argument);
+        }
+    }
+
+    internal sealed partial class BoundDeconstructionAssignmentOperator : BoundExpression
+    {
+        protected override OperationKind ExpressionKind => OperationKind.None;
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitNoneOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 

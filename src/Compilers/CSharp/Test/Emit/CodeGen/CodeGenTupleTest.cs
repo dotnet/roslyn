@@ -9083,15 +9083,9 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics(
-                // (6,15): error CS1001: Identifier expected
+                // (6,9): error CS0201: Only assignment, call, increment, decrement, and new object expressions can be used as a statement
                 //         (x, x);
-                Diagnostic(ErrorCode.ERR_IdentifierExpected, ";").WithLocation(6, 15),
-                // (6,10): error CS0118: 'x' is a variable but is used like a type
-                //         (x, x);
-                Diagnostic(ErrorCode.ERR_BadSKknown, "x").WithArguments("x", "variable", "type").WithLocation(6, 10),
-                // (6,13): error CS0118: 'x' is a variable but is used like a type
-                //         (x, x);
-                Diagnostic(ErrorCode.ERR_BadSKknown, "x").WithArguments("x", "variable", "type").WithLocation(6, 13)
+                Diagnostic(ErrorCode.ERR_IllegalStatement, "(x, x)").WithLocation(6, 9)
                 );
         }
 

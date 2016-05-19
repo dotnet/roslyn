@@ -242,7 +242,7 @@
   </data>
   <data name="IDS_FeatureReplace" xml:space="preserve">
     <value>replaced members</value>
-  </data>  
+  </data>
   <data name="IDS_SK_METHOD" xml:space="preserve">
     <value>method</value>
   </data>
@@ -4871,5 +4871,17 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="IDS_FeatureTuples" xml:space="preserve">
     <value>tuples</value>
+  </data>
+  <data name="ERR_AmbiguousDeconstruct" xml:space="preserve">
+    <value>More than one Deconstruct instance or extension method was found for type '{0}'.</value>
+  </data>
+  <data name="ERR_DeconstructRequiresOutParams" xml:space="preserve">
+    <value>The Deconstruct method for type '{0}' must have only out parameters.</value>
+  </data>
+  <data name="ERR_DeconstructWrongParams" xml:space="preserve">
+    <value>The Deconstruct method for type '{0}' doesn't have the number of parameters ({1}) needed for this deconstruction.</value>
+  </data>
+  <data name="ERR_MissingDeconstruct" xml:space="preserve">
+    <value>No Deconstruct instance or extension method was found for type '{0}'.</value>
   </data>
 </root>
