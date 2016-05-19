@@ -20,14 +20,14 @@ namespace Microsoft.CodeAnalysis.Completion
     /// <summary>
     /// A subtype of <see cref="CompletionService"/> that aggregates completions from one or more <see cref="CompletionProvider"/>s.
     /// </summary>
-    public abstract class CompletionServiceWithProviders : CompletionService
+    public abstract class CompletionServiceWithProviders : CompletionService, IEqualityComparer<ImmutableHashSet<string>>
     {
         private static readonly Func<string, List<CompletionItem>> s_createList = _ => new List<CompletionItem>();
 
         private readonly object _gate = new object();
 
         private readonly Dictionary<string, CompletionProvider> _nameToProvider = new Dictionary<string, CompletionProvider>();
-        private readonly Dictionary<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>> _rolesToProviders = new Dictionary<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>>();
+        private readonly Dictionary<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>> _rolesToProviders;
         private readonly Func<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>> _createRoleProviders;
 
         private readonly Workspace _workspace;
@@ -37,6 +37,7 @@ namespace Microsoft.CodeAnalysis.Completion
         protected CompletionServiceWithProviders(Workspace workspace)
         {
             _workspace = workspace;
+            _rolesToProviders = new Dictionary<ImmutableHashSet<string>, ImmutableArray<CompletionProvider>>(this);
             _createRoleProviders = CreateRoleProviders;
         }
 
@@ -375,6 +376,40 @@ namespace Microsoft.CodeAnalysis.Completion
             {
                 return CompletionChange.Create(ImmutableArray.Create(new TextChange(item.Span, item.DisplayText)));
             }
+        }
+
+        bool IEqualityComparer<ImmutableHashSet<string>>.Equals(ImmutableHashSet<string> x, ImmutableHashSet<string> y)
+        {
+            if (x == y)
+            {
+                return true;
+            }
+
+            if (x.Count != y.Count)
+            {
+                return false;
+            }
+
+            foreach (var v in x)
+            {
+                if (!y.Contains(v))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        int IEqualityComparer<ImmutableHashSet<string>>.GetHashCode(ImmutableHashSet<string> obj)
+        {
+            var hash = 0;
+            foreach (var o in obj)
+            {
+                hash += o.GetHashCode();
+            }
+
+            return hash;
         }
     }
 }
