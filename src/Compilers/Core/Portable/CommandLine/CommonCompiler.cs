@@ -84,6 +84,11 @@ namespace Microsoft.CodeAnalysis
             return typeof(CommonCompiler).GetTypeInfo().Assembly.GetName().Version;
         }
 
+        internal string GetCultureName()
+        {
+            return Culture.Name;
+        }
+
         internal virtual Func<string, MetadataReferenceProperties, PortableExecutableReference> GetMetadataProvider()
         {
             return (path, properties) => MetadataReference.CreateFromFile(path, properties);
