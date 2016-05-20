@@ -1,15 +1,9 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports Microsoft.CodeAnalysis.Diagnostics
-Imports Microsoft.CodeAnalysis.UnitTests.Diagnostics
-Imports Microsoft.CodeAnalysis.UnitTests.Diagnostics.SystemLanguage
 Imports Microsoft.CodeAnalysis.Semantics
-Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
-Imports Roslyn.Test.Utilities
-Imports Xunit
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 
@@ -663,6 +657,180 @@ End Class
             Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32)
             Assert.True(argumentValue.ConstantValue.HasValue)
             Assert.Equal(argumentValue.ConstantValue.Value, 30)
+        End Sub
+
+        <Fact>
+        Public Sub DelegateInvocations()
+
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Sub M1()
+        Dim f As System.Func(Of Integer, Integer, Boolean) = Nothing
+        Dim b As Boolean = f(1, 2)
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of InvocationExpressionSyntax).ToArray()
+            Assert.Equal(nodes.Length, 1)
+
+            '  f(1, 2)
+
+            Assert.Equal("f(1, 2)", nodes(0).ToString())
+            Dim operation As IOperation = model.GetOperation(nodes(0))
+            Assert.Equal(operation.Kind, OperationKind.InvocationExpression)
+            Assert.False(operation.IsInvalid)
+            Dim invocation As IInvocationExpression = DirectCast(operation, IInvocationExpression)
+            Assert.False(invocation.ConstantValue.HasValue)
+            Assert.True(invocation.IsVirtual)
+            Assert.Equal(invocation.TargetMethod.Name, "Invoke")
+            Assert.Equal(invocation.Type.SpecialType, SpecialType.System_Boolean)
+            Dim arguments As ImmutableArray(Of IArgument) = invocation.ArgumentsInParameterOrder
+            Assert.Equal(arguments.Length, 2)
+
+            Dim evaluationOrderArguments As ImmutableArray(Of IArgument) = invocation.ArgumentsInEvaluationOrder
+            Assert.Equal(evaluationOrderArguments.Length, 2)
+
+            ' 1
+
+            Dim argument As IArgument = arguments(0)
+            Assert.True(argument Is evaluationOrderArguments(0))
+            Assert.False(argument.IsInvalid)
+            Assert.Null(argument.InConversion)
+            Assert.Null(argument.OutConversion)
+            Assert.Equal(argument.Parameter.Name, "arg1")
+            Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) Is argument)
+            Dim argumentValue As IOperation = argument.Value
+            Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression)
+            Assert.False(argumentValue.IsInvalid)
+            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32)
+            Assert.True(argumentValue.ConstantValue.HasValue)
+            Assert.Equal(argumentValue.ConstantValue.Value, 1)
+
+            ' 2
+
+            argument = arguments(1)
+            Assert.True(argument Is evaluationOrderArguments(1))
+            Assert.False(argument.IsInvalid)
+            Assert.Null(argument.InConversion)
+            Assert.Null(argument.OutConversion)
+            Assert.Equal(argument.Parameter.Name, "arg2")
+            Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) Is argument)
+            argumentValue = argument.Value
+            Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression)
+            Assert.False(argumentValue.IsInvalid)
+            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32)
+            Assert.True(argumentValue.ConstantValue.HasValue)
+            Assert.Equal(argumentValue.ConstantValue.Value, 2)
+        End Sub
+
+        <Fact>
+        Public Sub SimpleRefInvocations()
+
+            Dim source = <compilation>
+                             <file name="c.vb">
+                                 <![CDATA[
+Class C
+    Sub M1()
+        Dim x as Integer = 10
+        F(x, y, y)
+    End Sub
+
+    Property y As Integer
+        Get
+            Return 10
+        End Get
+        Set
+        End Set
+    End Property
+
+    Sub F(ByRef xx As Integer, ByRef yy As Integer, ByRef zz As Double)
+    End Sub
+End Class
+]]>
+                             </file>
+                         </compilation>
+
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(source, parseOptions:=TestOptions.RegularWithIOperationFeature)
+            Dim tree = comp.SyntaxTrees.Single()
+            Dim model = comp.GetSemanticModel(tree)
+            Dim nodes = tree.GetRoot().DescendantNodes().OfType(Of InvocationExpressionSyntax).ToArray()
+            Assert.Equal(nodes.Length, 1)
+
+            '  F(x, y, y)
+
+            Assert.Equal("F(x, y, y)", nodes(0).ToString())
+            Dim operation As IOperation = model.GetOperation(nodes(0))
+            Assert.Equal(operation.Kind, OperationKind.InvocationExpression)
+            Assert.False(operation.IsInvalid)
+            Dim invocation As IInvocationExpression = DirectCast(operation, IInvocationExpression)
+            Dim arguments As ImmutableArray(Of IArgument) = invocation.ArgumentsInParameterOrder
+            Assert.Equal(arguments.Length, 3)
+
+            Dim evaluationOrderArguments As ImmutableArray(Of IArgument) = invocation.ArgumentsInEvaluationOrder
+            Assert.Equal(evaluationOrderArguments.Length, 3)
+
+            ' x
+
+            Dim argument As IArgument = arguments(0)
+            Assert.True(argument Is evaluationOrderArguments(0))
+            Assert.False(argument.IsInvalid)
+            Assert.Null(argument.InConversion)
+            Assert.Null(argument.OutConversion)
+            Assert.Equal(argument.Parameter.Name, "xx")
+            Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) Is argument)
+            Dim argumentValue As IOperation = argument.Value
+            Assert.Equal(argumentValue.Kind, OperationKind.LocalReferenceExpression)
+            Assert.False(argumentValue.IsInvalid)
+            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32)
+            Assert.False(argumentValue.ConstantValue.HasValue)
+
+            ' y
+
+            argument = arguments(1)
+            Assert.True(argument Is evaluationOrderArguments(1))
+            Assert.False(argument.IsInvalid)
+            Assert.Null(argument.InConversion)
+            Assert.Null(argument.OutConversion)
+            Assert.Equal(argument.Parameter.Name, "yy")
+            Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) Is argument)
+            argumentValue = argument.Value
+            Assert.Equal(argumentValue.Kind, OperationKind.PropertyReferenceExpression)
+            Assert.False(argumentValue.IsInvalid)
+            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32)
+            Assert.False(argumentValue.ConstantValue.HasValue)
+
+            ' y
+
+            argument = arguments(2)
+            Assert.True(argument Is evaluationOrderArguments(2))
+            Assert.False(argument.IsInvalid)
+            Dim inConversion As IOperation = argument.InConversion
+            Assert.NotNull(inConversion)
+            Assert.Equal(inConversion.Kind, OperationKind.ConversionExpression)
+            Dim conversion As IConversionExpression = DirectCast(inConversion, IConversionExpression)
+            Assert.Equal(conversion.Type.SpecialType, SpecialType.System_Double)
+            Assert.Equal(conversion.Operand.Type.SpecialType, SpecialType.System_Int32)
+            Dim outConversion As IOperation = argument.OutConversion
+            Assert.NotNull(outConversion)
+            Assert.Equal(outConversion.Kind, OperationKind.ConversionExpression)
+            conversion = DirectCast(outConversion, IConversionExpression)
+            Assert.Equal(conversion.Type.SpecialType, SpecialType.System_Int32)
+            Assert.Equal(conversion.Operand.Type.SpecialType, SpecialType.System_Double)
+            Assert.Equal(argument.Parameter.Name, "zz")
+            Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) Is argument)
+            argumentValue = argument.Value
+            Assert.Equal(argumentValue.Kind, OperationKind.PropertyReferenceExpression)
+            Assert.False(argumentValue.IsInvalid)
+            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32)
+            Assert.False(argumentValue.ConstantValue.HasValue)
         End Sub
     End Class
 End Namespace

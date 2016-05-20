@@ -484,13 +484,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Public Overrides ReadOnly Property InConversion As IOperation
                 Get
-                    Return _argument.InConversion
+                    Dim conversion As BoundExpression = _argument.InConversion
+                    ' The bound trees can contain a simple placeholder as a conversion. Don't treat this as a conversion.
+                    If conversion IsNot Nothing AndAlso conversion.Kind <> BoundKind.ByRefArgumentPlaceholder Then
+                        Return conversion
+                    End If
+
+                    Return Nothing
                 End Get
             End Property
 
             Public Overrides ReadOnly Property OutConversion As IOperation
                 Get
-                    Return _argument.OutConversion
+                    Dim conversion As BoundExpression = _argument.OutConversion
+                    ' The bound trees can contain a simple placeholder as a conversion. Don't treat this as a conversion.
+                    If conversion IsNot Nothing AndAlso conversion.Kind <> BoundKind.RValuePlaceholder Then
+                        Return conversion
+                    End If
+
+                    Return Nothing
                 End Get
             End Property
 
