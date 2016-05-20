@@ -36,12 +36,23 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public CompletionItem SuggestionModeItem { get; }
 
-        private CompletionList(TextSpan defaultSpan, ImmutableArray<CompletionItem> items, CompletionRules rules, CompletionItem suggestionModeItem)
+        /// <summary>
+        /// For testing purposes only.
+        /// </summary>
+        internal bool IsExclusive { get; }
+
+        private CompletionList(
+            TextSpan defaultSpan,
+            ImmutableArray<CompletionItem> items,
+            CompletionRules rules,
+            CompletionItem suggestionModeItem,
+            bool isExclusive)
         {
             this.DefaultSpan = defaultSpan;
             this.Items = items.IsDefault ? ImmutableArray<CompletionItem>.Empty : items;
             this.Rules = rules ?? CompletionRules.Default;
             this.SuggestionModeItem = suggestionModeItem;
+            this.IsExclusive = isExclusive;
         }
 
         /// <summary>
@@ -58,7 +69,18 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionRules rules = null,
             CompletionItem suggestionModeItem = null)
         {
-            return new CompletionList(defaultSpan, FixItemSpans(items, defaultSpan), rules, suggestionModeItem);
+            return Create(defaultSpan, items, rules, suggestionModeItem, isExclusive: false);
+        }
+
+        internal static CompletionList Create(
+            TextSpan defaultSpan,
+            ImmutableArray<CompletionItem> items,
+            CompletionRules rules,
+            CompletionItem suggestionModeItem,
+            bool isExclusive)
+        {
+            return new CompletionList(
+                defaultSpan, FixItemSpans(items, defaultSpan), rules, suggestionModeItem, isExclusive);
         }
 
         private static ImmutableArray<CompletionItem> FixItemSpans(ImmutableArray<CompletionItem> items, TextSpan defaultSpan)
@@ -130,7 +152,8 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// The default <see cref="CompletionList"/> returned when no items are found to populate the list.
         /// </summary>
-        public static readonly CompletionList Empty 
-            = new CompletionList(default(TextSpan), default(ImmutableArray<CompletionItem>), CompletionRules.Default, null);
+        public static readonly CompletionList Empty = new CompletionList(
+            default(TextSpan), default(ImmutableArray<CompletionItem>), CompletionRules.Default,
+            suggestionModeItem: null, isExclusive: false);
     }
 }

@@ -27,7 +27,8 @@ namespace Microsoft.CodeAnalysis.Editor
             _rules = CompletionService.GetRules();
         }
 
-        public static CompletionHelper GetHelper(Workspace workspace, string language)
+        public static CompletionHelper GetHelper(
+            Workspace workspace, string language, CompletionService completionService)
         {
             var ls = workspace.Services.GetLanguageServices(language);
             if (ls != null)
@@ -35,10 +36,9 @@ namespace Microsoft.CodeAnalysis.Editor
                 var factory = ls.GetService<CompletionHelperFactory>();
                 if (factory != null)
                 {
-                    return factory.CreateCompletionHelper();
+                    return factory.CreateCompletionHelper(completionService);
                 }
 
-                var completionService = ls.GetService<CompletionService>();
                 if (completionService != null)
                 {
                     return new CompletionHelper(completionService);
@@ -48,9 +48,9 @@ namespace Microsoft.CodeAnalysis.Editor
             return null;
         }
 
-        public static CompletionHelper GetHelper(Document document)
+        public static CompletionHelper GetHelper(Document document, CompletionService service)
         {
-            return GetHelper(document.Project.Solution.Workspace, document.Project.Language);
+            return GetHelper(document.Project.Solution.Workspace, document.Project.Language, service);
         }
 
         public IReadOnlyList<TextSpan> GetHighlightedSpans(CompletionItem completionItem, string filterText)
@@ -444,9 +444,10 @@ namespace Microsoft.CodeAnalysis.Editor
             return item.Tags.Contains(CompletionTags.ObjectCreation);
         }
 
-        public static async Task<TextChange> GetTextChangeAsync(Document document, CompletionItem item, char? commitKey = null, CancellationToken cancellationToken = default(CancellationToken))
+        public static async Task<TextChange> GetTextChangeAsync(
+            CompletionService service, Document document, CompletionItem item, 
+            char? commitKey = null, CancellationToken cancellationToken = default(CancellationToken))
         {
-            var service = CompletionService.GetService(document);
             var change = await service.GetChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false);
 
             // normally the items that produce multiple changes are not expecting to trigger the behaviors that rely on looking at the text
