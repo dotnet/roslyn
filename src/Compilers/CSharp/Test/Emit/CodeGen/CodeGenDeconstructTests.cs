@@ -60,45 +60,6 @@ class C
         }
 
         [Fact]
-        public void DeconstructIL()
-        {
-            string source = @"
-class C
-{
-    static void Main()
-    {
-        int x;
-        string y;
-
-        (x, y) = new C();
-    }
-
-    public void Deconstruct(out int a, out string b)
-    {
-        a = 1;
-        b = ""hello"";
-    }
-}
-";
-
-            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
-            comp.VerifyDiagnostics();
-
-            comp.VerifyIL("C.Main", @"
-{
-  // Code size       15 (0xf)
-  .maxstack  3
-  .locals init (int V_0,
-                string V_1)
-  IL_0000:  newobj     ""C..ctor()""
-  IL_0005:  ldloca.s   V_0
-  IL_0007:  ldloca.s   V_1
-  IL_0009:  call       ""void C.Deconstruct(out int, out string)""
-  IL_000e:  ret
-}");
-        }
-
-        [Fact]
         public void DeconstructMethodMissing()
         {
             string source = @"
@@ -623,6 +584,7 @@ class C
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.RefLocalsReturns)]
         public void RefReturningMethod()
         {
             string source = @"
@@ -663,6 +625,7 @@ Final i is 43
         }
 
         [Fact]
+        [CompilerTrait(CompilerFeature.RefLocalsReturns)]
         public void RefReturningProperty()
         {
             string source = @"
@@ -706,6 +669,7 @@ Final i is 43
         }
 
         [Fact(Skip = "PROTOTYPE(tuples)")]
+        [CompilerTrait(CompilerFeature.RefLocalsReturns)]
         public void RefReturningMethod2()
         {
             string source = @"
@@ -742,6 +706,7 @@ class C
         }
 
         [Fact(Skip = "PROTOTYPE(tuples)")]
+        [CompilerTrait(CompilerFeature.RefLocalsReturns)]
         public void RefReturningMethodFlow()
         {
             string source = @"
@@ -802,7 +767,7 @@ class C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature().WithRefsFeature());
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics(
                 // (7,18): error CS8206: No Deconstruct instance or extension method was found for type 'int'.
                 //         (x, x) = x;
@@ -889,9 +854,9 @@ class C
                 // (7,9): error CS8210: Deconstruct assignment requires an expression with a type on the right-hand-side.
                 //         (x, x) = null;
                 Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "(x, x) = null").WithLocation(7, 9),
-                // (6,13): warning CS0168: The variable 'x' is declared but never used
-                //         int x;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(6, 13)
+                // (7,10): error CS0165: Use of unassigned local variable 'x'
+                //         (x, x) = null;
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(7, 10)
                 );
         }
 
@@ -1055,6 +1020,27 @@ class C
 ");
         }
 
+        [Fact]
+        public void DeconstructLongTupleWithNames()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        long x;
+        int y;
+
+        (x, x, x, x, x, x, x, x, x, y) = (a: 1, b: 2, c: 3, d: 4, e: 5, f: 6, g: 7, h: 8, i: 9, j: 10);
+        System.Console.WriteLine(x + "" "" + y);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "9 10", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics();
+        }
+
         [Fact(Skip = "PROTOTYPE(tuples)")]
         public void DeconstructLongTuple2()
         {
@@ -1144,6 +1130,183 @@ class C
                 //         (x, y) = (1, 2);
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "(1, 2)").WithArguments("(int, int)", "(byte, string)").WithLocation(9, 18)
                 );
+        }
+
+        [Fact]
+        public void DeconstructIntoProperties()
+        {
+            string source = @"
+class C
+{
+    static long x { set { System.Console.WriteLine($""setX {value}""); } }
+    static string y { get; set; }
+
+    static void Main()
+    {
+        (x, y) = new C();
+        System.Console.WriteLine(y);
+    }
+
+    public void Deconstruct(out int a, out string b)
+    {
+        a = 1;
+        b = ""hello"";
+    }
+}
+";
+            string expected =
+@"setX 1
+hello";
+            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DeconstructTupleIntoProperties()
+        {
+            string source = @"
+class C
+{
+    static long x { set { System.Console.WriteLine($""setX {value}""); } }
+    static string y { get; set; }
+
+    static void Main()
+    {
+        (x, y) = (1, ""hello"");
+        System.Console.WriteLine(y);
+    }
+}
+";
+            string expected =
+@"setX 1
+hello";
+            var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void Swap()
+        {
+            string source = @"
+class C
+{
+    static int x = 2;
+    static int y = 4;
+
+    static void Main()
+    {
+        Swap();
+        System.Console.WriteLine(x + "" "" + y);
+    }
+
+    static void Swap()
+    {
+        (x, y) = (y, x);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "4 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Swap", @"
+{
+  // Code size       37 (0x25)
+  .maxstack  2
+  IL_0000:  ldsfld     ""int C.y""
+  IL_0005:  ldsfld     ""int C.x""
+  IL_000a:  newobj     ""System.ValueTuple<int, int>..ctor(int, int)""
+  IL_000f:  dup
+  IL_0010:  ldfld      ""int System.ValueTuple<int, int>.Item1""
+  IL_0015:  stsfld     ""int C.x""
+  IL_001a:  ldfld      ""int System.ValueTuple<int, int>.Item2""
+  IL_001f:  stsfld     ""int C.y""
+  IL_0024:  ret
+}
+");
+        }
+
+
+        [Fact]
+        public void TupleWithUseSiteError()
+        {
+            string source = @"
+
+namespace System
+{
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+        }
+    }
+}
+class C
+{
+    static void Main()
+    {
+        int x;
+        int y;
+
+        (x, y) = (1, 2);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, assemblyName: "comp", parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics();
+            comp.VerifyEmitDiagnostics(
+                // (22,9): error CS8205: Member 'Item2' was not found on type 'ValueTuple<T1, T2>' from assembly 'comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "(x, y) = (1, 2)").WithArguments("Item2", "System.ValueTuple<T1, T2>", "comp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(22, 9)
+                );
+        }
+
+        [Fact]
+        public void CircularFlow()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (object i, object ii) x = (1,2);
+        object y;
+
+        (x.ii, y) = x;
+        System.Console.WriteLine(x + "" "" + y);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "(1, 1) 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [CompilerTrait(CompilerFeature.RefLocalsReturns)]
+        public void CircularFlow2()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        (object i, object ii) x = (1,2);
+        object y;
+
+        ref var a = ref x;
+
+        (a.ii, y) = x;
+        System.Console.WriteLine(x + "" "" + y);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "(1, 1) 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature().WithRefsFeature());
+            comp.VerifyDiagnostics();
         }
     }
 }

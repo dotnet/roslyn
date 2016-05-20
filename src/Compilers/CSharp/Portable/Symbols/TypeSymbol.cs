@@ -620,6 +620,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public virtual ImmutableArray<string> TupleElementNames => default(ImmutableArray<string>);
 
         /// <summary>
+        /// If this symbol represents a tuple type, get the fields for the tuple's elements.
+        /// </summary>
+        public virtual ImmutableArray<FieldSymbol> TupleElementFields => default(ImmutableArray<FieldSymbol>);
+
+        /// <summary>
         /// Is this type a managed type (false for everything but enum, pointer, and
         /// some struct types).
         /// </summary>

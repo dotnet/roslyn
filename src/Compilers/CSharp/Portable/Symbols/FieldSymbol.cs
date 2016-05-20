@@ -397,6 +397,19 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        /// <summary>
+        /// If this is a field of a tuple type,
+        /// id is an index of the element (zero-based).
+        /// Otherwise, a negative number.
+        /// </summary>
+        public virtual int TupleElementIndex
+        {
+            get
+            {
+                return -1;
+            }
+        }
+
         #region IFieldSymbol Members
 
         ISymbol IFieldSymbol.AssociatedSymbol

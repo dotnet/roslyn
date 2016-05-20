@@ -79,13 +79,19 @@ namespace Microsoft.CodeAnalysis.CSharp
             stores.Add(assignmentToTemp);
             temps.Add(savedTuple.LocalSymbol);
 
-            // list the tuple fields
+            // list the tuple fields accessors
             var fieldAccessorsBuilder = ArrayBuilder<BoundExpression>.GetInstance(numElements);
+            var fields = tupleType.TupleElementFields;
 
             for (int i = 0; i < numElements; i++)
             {
-                var fields = tupleType.GetMembers(TupleTypeSymbol.TupleMemberName(i + 1)).OfType<FieldSymbol>();
-                var field = fields.Single();
+                var field = fields[i];
+
+                DiagnosticInfo useSiteInfo = field.GetUseSiteDiagnostic();
+                if ((object)useSiteInfo != null && useSiteInfo.Severity == DiagnosticSeverity.Error)
+                {
+                    Symbol.ReportUseSiteDiagnostic(useSiteInfo, _diagnostics, syntax.Location);
+                }
                 var fieldAccess = MakeTupleFieldAccess(syntax, field, savedTuple, null, LookupResultKind.Empty, tupleElementTypes[i]);
                 fieldAccessorsBuilder.Add(fieldAccess);
             }

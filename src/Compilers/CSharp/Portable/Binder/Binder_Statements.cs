@@ -1754,7 +1754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (boundRHS.Type == null)
             {
                 Error(diagnostics, ErrorCode.ERR_DeconstructRequiresExpression, node);
-                return BadExpression(node, boundRHS);
+                return BadExpression(node, checkedVariables.Concat(boundRHS).ToArray());
             }
 
             return BindDeconstructWithDeconstruct(node, diagnostics, boundRHS, checkedVariables);
