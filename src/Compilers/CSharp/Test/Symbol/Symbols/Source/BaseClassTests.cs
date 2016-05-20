@@ -8,12 +8,12 @@ using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using Retargeting = Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting;
-using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -2175,6 +2175,96 @@ namespace CrashTest
     // using CrashTest.Crash<CrashTest.Class2>; 
     Diagnostic(ErrorCode.HDN_UnusedUsingDirective, "using CrashTest.Crash<CrashTest.Class2>;").WithLocation(2, 1)
                 );
+        }
+
+        [Fact]
+        [WorkItem(174789, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=174789")]
+        public void CycleTypeArgument()
+        {
+            var text =
+@"class A<T>
+{
+    internal class B { }
+}
+class Base
+{
+    protected class C { }
+    private class D { }
+}
+class Derived : Base
+{
+    class E : A<C>.B { }
+    class F : A<D>.B { }
+}";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+                // (13,17): error CS0122: 'Base.D' is inaccessible due to its protection level
+                //     class F : A<D>.B { }
+                Diagnostic(ErrorCode.ERR_BadAccess, "D").WithArguments("Base.D").WithLocation(13, 17));
+        }
+
+        [Fact]
+        [WorkItem(174789, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=174789")]
+        public void CycleArray()
+        {
+            var text =
+@"class A<T>
+{
+    internal class B { }
+}
+class Base
+{
+    protected class C { }
+    private class D { }
+}
+class Derived : Base
+{
+    class E : A<C[]>.B { }
+    class F : A<D[]>.B { }
+}";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+                // (13,17): error CS0122: 'Base.D' is inaccessible due to its protection level
+                //     class F : A<D>.B { }
+                Diagnostic(ErrorCode.ERR_BadAccess, "D").WithArguments("Base.D").WithLocation(13, 17));
+        }
+
+        [Fact]
+        [WorkItem(174789, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=174789")]
+        public void CyclePointer()
+        {
+            var text =
+@"class A<T>
+{
+    internal class B { }
+}
+class Base
+{
+    protected class C { }
+    private class D { }
+}
+class Derived : Base
+{
+    class E : A<C*>.B { }
+    class F : A<D*>.B { }
+}";
+            var comp = CreateCompilationWithMscorlib(text);
+            comp.VerifyDiagnostics(
+                // (13,17): error CS0122: 'Base.D' is inaccessible due to its protection level
+                //     class F : A<D*>.B { }
+                Diagnostic(ErrorCode.ERR_BadAccess, "D").WithArguments("Base.D").WithLocation(13, 17),
+                // (13,17): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Base.D')
+                //     class F : A<D*>.B { }
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "D*").WithArguments("Base.D").WithLocation(13, 17),
+                // (13,11): error CS0306: The type 'Base.D*' may not be used as a type argument
+                //     class F : A<D*>.B { }
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "F").WithArguments("Base.D*").WithLocation(13, 11),
+                // (12,17): error CS0208: Cannot take the address of, get the size of, or declare a pointer to a managed type ('Base.C')
+                //     class E : A<C*>.B { }
+                Diagnostic(ErrorCode.ERR_ManagedAddr, "C*").WithArguments("Base.C").WithLocation(12, 17),
+                // (12,11): error CS0306: The type 'Base.C*' may not be used as a type argument
+                //     class E : A<C*>.B { }
+                Diagnostic(ErrorCode.ERR_BadTypeArgument, "E").WithArguments("Base.C*").WithLocation(12, 11));
         }
     }
 }
