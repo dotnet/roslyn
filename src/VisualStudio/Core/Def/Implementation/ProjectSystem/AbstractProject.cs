@@ -581,10 +581,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         private void OnAnalyzerChanged(object sender, EventArgs e)
         {
-            VisualStudioAnalyzer analyzer = (VisualStudioAnalyzer)sender;
+            // Postpone handler's actions to prevent deadlock. This AnalyzeChanged event can
+            // be invoked while the FileChangeService lock is held, and VisualStudioAnalyzer's 
+            // efforts to listen to file changes can lead to a deadlock situation.
+            // Postponing the VisualStudioAnalyzer operations gives this thread the opportunity
+            // to release the lock.
+            Dispatcher.CurrentDispatcher.BeginInvoke(new Action(() => {
+                VisualStudioAnalyzer analyzer = (VisualStudioAnalyzer)sender;
 
-            RemoveAnalyzerAssembly(analyzer.FullPath);
-            AddAnalyzerAssembly(analyzer.FullPath);
+                RemoveAnalyzerAssembly(analyzer.FullPath);
+                AddAnalyzerAssembly(analyzer.FullPath);                
+            }));
         }
 
         // Internal for unit testing
