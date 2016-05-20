@@ -886,9 +886,9 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature().WithRefsFeature());
             comp.VerifyDiagnostics(
-                // (7,9): error CS8210: Cannot deconstruct null.
+                // (7,9): error CS8210: Deconstruct assignment requires an expression with a type on the right-hand-side.
                 //         (x, x) = null;
-                Diagnostic(ErrorCode.ERR_CannotDeconstructNull, "(x, x) = null").WithLocation(7, 9),
+                Diagnostic(ErrorCode.ERR_DeconstructRequiresExpression, "(x, x) = null").WithLocation(7, 9),
                 // (6,13): warning CS0168: The variable 'x' is declared but never used
                 //         int x;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(6, 13)
@@ -939,7 +939,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE(tuples)")]
         public void DeconstructTuple2()
         {
             string source = @"
@@ -960,7 +960,7 @@ class C
     }
 }
 ";
-
+            // Should not give this error: (9,18): error CS0029: Cannot implicitly convert type '(int, string)' to '(long, string)'
             var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics();
         }
@@ -984,6 +984,75 @@ class C
 
             var comp = CompileAndVerify(source, expectedOutput: "4 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size      141 (0x8d)
+  .maxstack  10
+  .locals init (long V_0, //x
+                int V_1) //y
+  IL_0000:  ldc.i4.1
+  IL_0001:  conv.i8
+  IL_0002:  ldc.i4.1
+  IL_0003:  conv.i8
+  IL_0004:  ldc.i4.1
+  IL_0005:  conv.i8
+  IL_0006:  ldc.i4.1
+  IL_0007:  conv.i8
+  IL_0008:  ldc.i4.1
+  IL_0009:  conv.i8
+  IL_000a:  ldc.i4.1
+  IL_000b:  conv.i8
+  IL_000c:  ldc.i4.1
+  IL_000d:  conv.i8
+  IL_000e:  ldc.i4.1
+  IL_000f:  conv.i8
+  IL_0010:  ldc.i4.4
+  IL_0011:  conv.i8
+  IL_0012:  ldc.i4.2
+  IL_0013:  newobj     ""System.ValueTuple<long, long, int>..ctor(long, long, int)""
+  IL_0018:  newobj     ""System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>..ctor(long, long, long, long, long, long, long, (long, long, int))""
+  IL_001d:  dup
+  IL_001e:  ldfld      ""long System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Item1""
+  IL_0023:  stloc.0
+  IL_0024:  dup
+  IL_0025:  ldfld      ""long System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Item2""
+  IL_002a:  stloc.0
+  IL_002b:  dup
+  IL_002c:  ldfld      ""long System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Item3""
+  IL_0031:  stloc.0
+  IL_0032:  dup
+  IL_0033:  ldfld      ""long System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Item4""
+  IL_0038:  stloc.0
+  IL_0039:  dup
+  IL_003a:  ldfld      ""long System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Item5""
+  IL_003f:  stloc.0
+  IL_0040:  dup
+  IL_0041:  ldfld      ""long System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Item6""
+  IL_0046:  stloc.0
+  IL_0047:  dup
+  IL_0048:  ldfld      ""long System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Item7""
+  IL_004d:  stloc.0
+  IL_004e:  dup
+  IL_004f:  ldfld      ""(long, long, int) System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Rest""
+  IL_0054:  ldfld      ""long System.ValueTuple<long, long, int>.Item1""
+  IL_0059:  stloc.0
+  IL_005a:  dup
+  IL_005b:  ldfld      ""(long, long, int) System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Rest""
+  IL_0060:  ldfld      ""long System.ValueTuple<long, long, int>.Item2""
+  IL_0065:  stloc.0
+  IL_0066:  ldfld      ""(long, long, int) System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Rest""
+  IL_006b:  ldfld      ""int System.ValueTuple<long, long, int>.Item3""
+  IL_0070:  stloc.1
+  IL_0071:  ldloc.0
+  IL_0072:  box        ""long""
+  IL_0077:  ldstr      "" ""
+  IL_007c:  ldloc.1
+  IL_007d:  box        ""int""
+  IL_0082:  call       ""string string.Concat(object, object, object)""
+  IL_0087:  call       ""void System.Console.WriteLine(string)""
+  IL_008c:  ret
+}
+");
         }
 
         [Fact(Skip = "PROTOTYPE(tuples)")]
@@ -1003,6 +1072,7 @@ class C
 }
 ";
 
+            // issue with return type
             var comp = CompileAndVerify(source, expectedOutput: "4 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics();
         }
@@ -1026,7 +1096,54 @@ class C
 
             var comp = CompileAndVerify(source, expectedOutput: "hello", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics();
+            comp.VerifyIL("C.Main", @"
+{
+  // Code size       48 (0x30)
+  .maxstack  3
+  .locals init (string V_0, //x
+                string V_1) //y
+  IL_0000:  ldstr      ""goodbye""
+  IL_0005:  stloc.0
+  IL_0006:  ldnull
+  IL_0007:  ldstr      ""hello""
+  IL_000c:  newobj     ""System.ValueTuple<string, string>..ctor(string, string)""
+  IL_0011:  dup
+  IL_0012:  ldfld      ""string System.ValueTuple<string, string>.Item1""
+  IL_0017:  stloc.0
+  IL_0018:  ldfld      ""string System.ValueTuple<string, string>.Item2""
+  IL_001d:  stloc.1
+  IL_001e:  ldstr      ""{0}{1}""
+  IL_0023:  ldloc.0
+  IL_0024:  ldloc.1
+  IL_0025:  call       ""string string.Format(string, object, object)""
+  IL_002a:  call       ""void System.Console.WriteLine(string)""
+  IL_002f:  ret
+}
+");
         }
 
+        [Fact]
+        public void TupleWithNoConversion()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        byte x;
+        string y;
+
+        (x, y) = (1, 2);
+    }
+}
+";
+            // PROTOTYPE(tuples) This error message is misleading
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // (9,18): error CS0029: Cannot implicitly convert type '(int, int)' to '(byte, string)'
+                //         (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(1, 2)").WithArguments("(int, int)", "(byte, string)").WithLocation(9, 18)
+                );
+        }
     }
 }

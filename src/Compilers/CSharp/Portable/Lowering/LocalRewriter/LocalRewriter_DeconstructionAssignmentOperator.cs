@@ -73,6 +73,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CSharpSyntaxNode syntax = node.Syntax;
 
+            // save the loweredRight as we need to access it multiple times 
+            BoundAssignmentOperator assignmentToTemp;
+            var savedTuple = _factory.StoreToTemp(loweredRight, out assignmentToTemp);
+            stores.Add(assignmentToTemp);
+            temps.Add(savedTuple.LocalSymbol);
+
             // list the tuple fields
             var fieldAccessorsBuilder = ArrayBuilder<BoundExpression>.GetInstance(numElements);
 
@@ -80,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var fields = tupleType.GetMembers(TupleTypeSymbol.TupleMemberName(i + 1)).OfType<FieldSymbol>();
                 var field = fields.Single();
-                var fieldAccess = MakeTupleFieldAccess(syntax, field, loweredRight, null, LookupResultKind.Empty, tupleElementTypes[i]);
+                var fieldAccess = MakeTupleFieldAccess(syntax, field, savedTuple, null, LookupResultKind.Empty, tupleElementTypes[i]);
                 fieldAccessorsBuilder.Add(fieldAccess);
             }
 
@@ -94,13 +100,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private ImmutableArray<BoundExpression> CallDeconstruct(BoundDeconstructionAssignmentOperator node, BoundExpression loweredRight, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> stores)
         {
-            Debug.Assert((object)node.DeconstructMember != null);
+            Debug.Assert((object)node.DeconstructMemberOpt != null);
 
             int numVariables = node.LeftVariables.Length;
             CSharpSyntaxNode syntax = node.Syntax;
 
             // prepare out parameters for Deconstruct
-            var deconstructParameters = node.DeconstructMember.Parameters;
+            var deconstructParameters = node.DeconstructMemberOpt.Parameters;
             var outParametersBuilder = ArrayBuilder<BoundExpression>.GetInstance(deconstructParameters.Length);
             Debug.Assert(deconstructParameters.Length == node.LeftVariables.Length);
 
@@ -122,7 +128,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var outParameters = outParametersBuilder.ToImmutableAndFree();
 
             // invoke Deconstruct
-            var invokeDeconstruct = MakeCall(syntax, loweredRight, node.DeconstructMember, outParameters, node.DeconstructMember.ReturnType);
+            var invokeDeconstruct = MakeCall(syntax, loweredRight, node.DeconstructMemberOpt, outParameters, node.DeconstructMemberOpt.ReturnType);
             stores.Add(invokeDeconstruct);
 
             return outParameters;

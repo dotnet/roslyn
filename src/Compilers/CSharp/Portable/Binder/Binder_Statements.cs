@@ -1745,7 +1745,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var checkedVariables = checkedVariablesBuilder.ToImmutableAndFree();
 
             // tuple literal such as `(1, 2)`, `(null, null)`, `(x.P, y.M())`
-            if (boundRHS is BoundTupleLiteral || ((object)boundRHS.Type != null && boundRHS.Type.IsTupleType))
+            if (boundRHS.Kind == BoundKind.TupleLiteral || ((object)boundRHS.Type != null && boundRHS.Type.IsTupleType))
             {
                 return BindDeconstructWithTuple(node, diagnostics, boundRHS, checkedVariables);
             }
@@ -1753,7 +1753,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // expression without type such as `null`
             if (boundRHS.Type == null)
             {
-                Error(diagnostics, ErrorCode.ERR_CannotDeconstructNull, node);
+                Error(diagnostics, ErrorCode.ERR_DeconstructRequiresExpression, node);
                 return BadExpression(node, new[] { boundRHS });
             }
 
@@ -1762,15 +1762,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindDeconstructWithTuple(AssignmentExpressionSyntax node, DiagnosticBag diagnostics, BoundExpression boundRHS, ImmutableArray<BoundExpression> checkedVariables)
         {
-            if ((object)boundRHS.Type == null)
-            {
-                // patch up the tuple literal so that it has a type, based on the LHS information
-                var lhsTypes = checkedVariables.SelectAsArray(v => v.Type);
-                TypeSymbol lhsAsTuple = TupleTypeSymbol.Create(locationOpt: null, elementTypes: lhsTypes, elementLocations: default(ImmutableArray<Location>), elementNames: default(ImmutableArray<string>), compilation: Compilation, diagnostics: diagnostics);
-                boundRHS = CreateConversion(boundRHS.Syntax, boundRHS, Conversion.ImplicitTuple, isCast: false, wasCompilerGenerated: true, destination: lhsAsTuple, diagnostics: diagnostics);
-            }
+            // patch up the tuple literal so that it has a type, based on the LHS information
+            var lhsTypes = checkedVariables.SelectAsArray(v => v.Type);
+            TypeSymbol lhsAsTuple = TupleTypeSymbol.Create(locationOpt: null, elementTypes: lhsTypes, elementLocations: default(ImmutableArray<Location>), elementNames: default(ImmutableArray<string>), compilation: Compilation, diagnostics: diagnostics);
+            var typedRHS = GenerateConversionForAssignment(lhsAsTuple, boundRHS, diagnostics);
 
-            ImmutableArray<TypeSymbol> tupleTypes = boundRHS.Type.TupleElementTypes;
+            ImmutableArray<TypeSymbol> tupleTypes = typedRHS.Type.TupleElementTypes;
 
             // figure out the pairwise conversions
             var assignmentsBuilder = ArrayBuilder<BoundDeconstructionAssignmentOperator.AssignmentInfo>.GetInstance(checkedVariables.Length);
@@ -1788,7 +1785,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var assignments = assignmentsBuilder.ToImmutableAndFree();
 
             TypeSymbol lastType = tupleTypes.Last();
-            return new BoundDeconstructionAssignmentOperator(node, checkedVariables, boundRHS, deconstructMember: null, assignments: assignments, type: lastType);
+            return new BoundDeconstructionAssignmentOperator(node, checkedVariables, typedRHS, deconstructMemberOpt: null, assignments: assignments, type: lastType);
         }
 
         private BoundExpression BindDeconstructWithDeconstruct(AssignmentExpressionSyntax node, DiagnosticBag diagnostics, BoundExpression boundRHS, ImmutableArray<BoundExpression> checkedVariables)
