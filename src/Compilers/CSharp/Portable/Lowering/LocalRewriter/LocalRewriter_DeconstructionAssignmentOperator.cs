@@ -102,7 +102,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert((object)node.DeconstructMemberOpt != null);
 
-            int numVariables = node.LeftVariables.Length;
             CSharpSyntaxNode syntax = node.Syntax;
 
             // prepare out parameters for Deconstruct
@@ -110,14 +109,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             var outParametersBuilder = ArrayBuilder<BoundExpression>.GetInstance(deconstructParameters.Length);
             Debug.Assert(deconstructParameters.Length == node.LeftVariables.Length);
 
-            for (int i = 0; i < numVariables; i++)
+            foreach (var deconstructParameter in deconstructParameters)
             {
-                var localSymbol = new SynthesizedLocal(_factory.CurrentMethod, deconstructParameters[i].Type, SynthesizedLocalKind.LoweringTemp);
+                var localSymbol = new SynthesizedLocal(_factory.CurrentMethod, deconstructParameter.Type, SynthesizedLocalKind.LoweringTemp);
 
                 var localBound = new BoundLocal(syntax,
                                                 localSymbol,
                                                 null,
-                                                deconstructParameters[i].Type
+                                                deconstructParameter.Type
                                                 )
                 { WasCompilerGenerated = true };
 

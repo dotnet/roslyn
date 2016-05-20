@@ -1734,9 +1734,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // bind the variables and check they can be assigned to
             var checkedVariablesBuilder = ArrayBuilder<BoundExpression>.GetInstance(numElements);
-            for (int i = 0; i < numElements; i++)
+            foreach (var argument in arguments)
             {
-                var boundVariable = BindExpression(arguments[i].Expression, diagnostics, invoked: false, indexed: false);
+                var boundVariable = BindExpression(argument.Expression, diagnostics, invoked: false, indexed: false);
                 var checkedVariable = CheckValue(boundVariable, BindValueKind.Assignment, diagnostics);
 
                 checkedVariablesBuilder.Add(checkedVariable);
@@ -1754,7 +1754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (boundRHS.Type == null)
             {
                 Error(diagnostics, ErrorCode.ERR_DeconstructRequiresExpression, node);
-                return BadExpression(node, new[] { boundRHS });
+                return BadExpression(node, boundRHS);
             }
 
             return BindDeconstructWithDeconstruct(node, diagnostics, boundRHS, checkedVariables);
@@ -1762,7 +1762,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression BindDeconstructWithTuple(AssignmentExpressionSyntax node, DiagnosticBag diagnostics, BoundExpression boundRHS, ImmutableArray<BoundExpression> checkedVariables)
         {
-            // patch up the tuple literal so that it has a type, based on the LHS information
+            // make a conversion for the tuple based on the LHS information (this also takes care of tuple literals without a natural type)
             var lhsTypes = checkedVariables.SelectAsArray(v => v.Type);
             TypeSymbol lhsAsTuple = TupleTypeSymbol.Create(locationOpt: null, elementTypes: lhsTypes, elementLocations: default(ImmutableArray<Location>), elementNames: default(ImmutableArray<string>), compilation: Compilation, diagnostics: diagnostics);
             var typedRHS = GenerateConversionForAssignment(lhsAsTuple, boundRHS, diagnostics);
@@ -1770,19 +1770,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TypeSymbol> tupleTypes = typedRHS.Type.TupleElementTypes;
 
             // figure out the pairwise conversions
-            var assignmentsBuilder = ArrayBuilder<BoundDeconstructionAssignmentOperator.AssignmentInfo>.GetInstance(checkedVariables.Length);
-
-            for (int i = 0; i < checkedVariables.Length; i++)
-            {
-                var leftPlaceholder = new BoundLValuePlaceholder(checkedVariables[i].Syntax, checkedVariables[i].Type) { WasCompilerGenerated = true };
-                var rightPlaceholder = new BoundRValuePlaceholder(node.Right, tupleTypes[i]) { WasCompilerGenerated = true };
-
-                // each assignment has a placeholder for a receiver and another for the source
-                BoundAssignmentOperator op = BindAssignment(node, leftPlaceholder, rightPlaceholder, diagnostics);
-                assignmentsBuilder.Add(new BoundDeconstructionAssignmentOperator.AssignmentInfo() { Assignment = op, LValuePlaceholder = leftPlaceholder, RValuePlaceholder = rightPlaceholder });
-            }
-
-            var assignments = assignmentsBuilder.ToImmutableAndFree();
+            var assignments = checkedVariables.SelectAsArray((variable, index, types) => MakeAssignmentInfo(variable, types[index], node, diagnostics), tupleTypes);
 
             TypeSymbol lastType = tupleTypes.Last();
             return new BoundDeconstructionAssignmentOperator(node, checkedVariables, typedRHS, deconstructMemberOpt: null, assignments: assignments, type: lastType);
@@ -1807,22 +1795,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             // figure out the pairwise conversions
-            var assignmentsBuilder = ArrayBuilder<BoundDeconstructionAssignmentOperator.AssignmentInfo>.GetInstance(checkedVariables.Length);
             var deconstructParameters = deconstructMethod.Parameters;
-            for (int i = 0; i < checkedVariables.Length; i++)
-            {
-                var leftPlaceholder = new BoundLValuePlaceholder(checkedVariables[i].Syntax, checkedVariables[i].Type) { WasCompilerGenerated = true };
-                var rightPlaceholder = new BoundRValuePlaceholder(node.Right, deconstructParameters[i].Type) { WasCompilerGenerated = true };
-
-                // each assignment has a placeholder for a receiver and another for the source
-                BoundAssignmentOperator op = BindAssignment(node, leftPlaceholder, rightPlaceholder, diagnostics);
-                assignmentsBuilder.Add(new BoundDeconstructionAssignmentOperator.AssignmentInfo() { Assignment = op, LValuePlaceholder = leftPlaceholder, RValuePlaceholder = rightPlaceholder });
-            }
-
-            var assignments = assignmentsBuilder.ToImmutableAndFree();
+            var assignments = checkedVariables.SelectAsArray((variable, index, parameters) => MakeAssignmentInfo(variable, parameters[index].Type, node, diagnostics), deconstructParameters);
 
             TypeSymbol lastType = deconstructParameters.Last().Type;
             return new BoundDeconstructionAssignmentOperator(node, checkedVariables, boundRHS, deconstructMethod, assignments, lastType);
+        }
+
+        /// <summary>
+        /// Figures out how to assign from sourceType into receivingVariable and bundles the information (leaving holes for the actual source and receiver) into an AssignmentInfo.
+        /// </summary>
+        private BoundDeconstructionAssignmentOperator.AssignmentInfo MakeAssignmentInfo(BoundExpression receivingVariable, TypeSymbol sourceType, AssignmentExpressionSyntax node, DiagnosticBag diagnostics)
+        {
+            var leftPlaceholder = new BoundLValuePlaceholder(receivingVariable.Syntax, receivingVariable.Type) { WasCompilerGenerated = true };
+            var rightPlaceholder = new BoundRValuePlaceholder(node.Right, sourceType) { WasCompilerGenerated = true };
+
+            // each assignment has a placeholder for a receiver and another for the source
+            BoundAssignmentOperator op = BindAssignment(node, leftPlaceholder, rightPlaceholder, diagnostics);
+
+            return new BoundDeconstructionAssignmentOperator.AssignmentInfo() { Assignment = op, LValuePlaceholder = leftPlaceholder, RValuePlaceholder = rightPlaceholder };
         }
 
         /// <summary>
