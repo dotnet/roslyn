@@ -29,7 +29,7 @@ while (true)
             lastBuild = File.ReadAllText(perfRunStatusPath);
         }
 
-        StartWatching(sourceFolder, destinationFolder, lastBuild, perfRunStatusPath);
+        FindBuildAndWaitForTestToComplete(sourceFolder, destinationFolder, lastBuild, perfRunStatusPath);
 
         // Wait for 10 minutes before looking for new build again
         Console.WriteLine($"Waiting for 10 minutes from {DateTime.Now} to look for new builds");
@@ -73,7 +73,7 @@ void CleanupSystem()
     }
 }
 
-void StartWatching(
+void FindBuildAndWaitForTestToComplete(
     string sourceFolder,
     string destinationFolder,
     string lastBuild,
