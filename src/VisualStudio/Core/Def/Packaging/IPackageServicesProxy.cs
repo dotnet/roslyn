@@ -9,11 +9,22 @@ using NuGet.VisualStudio;
 namespace Microsoft.VisualStudio.LanguageServices.Packaging
 {
     // Wrapper types to ensure we delay load the nuget libraries.
-    internal interface IPackageInstallerServicesProxy
+    internal interface IPackageServicesProxy
     {
+        event EventHandler SourcesChanged;
+
+        /// <summary>
+        /// This method just forwards along <see cref="IVsPackageSourceProvider.GetSources(bool, bool)"/>
+        /// </summary>
+        IEnumerable<KeyValuePair<string, string>> GetSources(bool includeUnOfficial, bool includeDisabled);
+
         IEnumerable<PackageMetadata> GetInstalledPackages(Project project);
 
         bool IsPackageInstalled(Project project, string id);
+
+        void InstallPackage(string source, Project project, string packageId, string version, bool ignoreDependencies);
+
+        void UninstallPackage(Project project, string packageId, bool removeDependencies);
     }
 
     internal class PackageMetadata
@@ -27,4 +38,5 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             VersionString = versionString;
         }
     }
+
 }

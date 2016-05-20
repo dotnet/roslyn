@@ -10,9 +10,15 @@ using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
+    /// <summary>
+    /// Base type for services that we want to delay running until certain criteria is met.
+    /// For example, we don't want to run the <see cref="SymbolSearchService"/> core codepath
+    /// if the user has not enabled the features that need it.  That helps us avoid loading
+    /// dlls unnecessarily and bloating the VS memory space.
+    /// </summary>
     internal abstract class AbstractDelayStartedService : ForegroundThreadAffinitizedObject
     {
-        protected readonly List<string> RegisteredLanguageNames = new List<string>();
+        private readonly List<string> _registeredLanguageNames = new List<string>();
 
         protected readonly Workspace Workspace;
 
@@ -50,8 +56,8 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 return;
             }
 
-            this.RegisteredLanguageNames.Add(languageName);
-            if (this.RegisteredLanguageNames.Count == 1)
+            this._registeredLanguageNames.Add(languageName);
+            if (this._registeredLanguageNames.Count == 1)
             {
                 // Register to hear about option changing.
                 var optionsService = Workspace.Services.GetService<IOptionService>();
@@ -66,7 +72,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         {
             this.AssertIsForeground();
 
-            if (!RegisteredLanguageNames.Any(IsRegisteredForLanguage))
+            if (!_registeredLanguageNames.Any(IsRegisteredForLanguage))
             {
                 // The feature is not enabled for any registered languages.
                 return;
@@ -101,8 +107,8 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 return;
             }
 
-            RegisteredLanguageNames.Remove(languageName);
-            if (RegisteredLanguageNames.Count == 0)
+            _registeredLanguageNames.Remove(languageName);
+            if (_registeredLanguageNames.Count == 0)
             {
                 if (_enabled)
                 {
