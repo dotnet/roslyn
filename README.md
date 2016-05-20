@@ -11,9 +11,8 @@
 ### Linux/Mac - Unit Tests
 ||Linux|Mac OSX|
 |:--:|:--:|:--:|
-|**master (1.3)**|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_master_lin_dbg_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_master_lin_dbg_unit32/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_master_mac_dbg_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_master_mac_dbg_unit32/)|
-|**future (2.0 Preview 2)**|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_future_lin_dbg_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_future_lin_dbg_unit32/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_future_mac_dbg_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_future_mac_dbg_unit32/)|
-|**hotfix**|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_hotfix_lin_dbg_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_hotfix_lin_dbg_unit32/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/roslyn_hotfix_mac_dbg_unit32/badge/icon)](http://dotnet-ci.cloudapp.net/job/roslyn_hotfix_mac_dbg_unit32/)|
+|**master (1.3)**|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/job/master/job/linux_debug/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/job/master/job/linux_debug/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/job/master/job/mac_debug/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/job/master/job/mac_debug/)|
+|**future (2.0 Preview 2)**|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/job/future/job/linux_debug/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/job/future/job/linux_debug/)|[![Build Status](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/job/future/job/mac_debug/badge/icon)](http://dotnet-ci.cloudapp.net/job/dotnet_roslyn/job/future/job/mac_debug/)|
 
 [//]: # (End current test results)
 
