@@ -2321,6 +2321,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot deconstruct null..
+        /// </summary>
+        internal static string ERR_CannotDeconstructNull {
+            get {
+                return ResourceManager.GetString("ERR_CannotDeconstructNull", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot pass null for friend assembly name.
         /// </summary>
         internal static string ERR_CannotPassNullForFriendAssembly {

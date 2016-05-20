@@ -869,5 +869,164 @@ Final array values[2] 101
             comp.VerifyDiagnostics(
                 );
         }
+
+        [Fact]
+        public void NullRight()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x;
+        (x, x) = null;
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature().WithRefsFeature());
+            comp.VerifyDiagnostics(
+                // (7,9): error CS8210: Cannot deconstruct null.
+                //         (x, x) = null;
+                Diagnostic(ErrorCode.ERR_CannotDeconstructNull, "(x, x) = null").WithLocation(7, 9),
+                // (6,13): warning CS0219: The variable 'x' is assigned but its value is never used
+                //         int x = 0;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 13)
+                );
+        }
+
+        [Fact]
+        public void VoidRight()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x;
+        (x, x) = M();
+    }
+    static void M() { }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature().WithRefsFeature());
+            comp.VerifyDiagnostics(
+                // (7,18): error CS8206: No Deconstruct instance or extension method was found for type 'void'.
+                //         (x, x) = M();
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "M()").WithArguments("void").WithLocation(7, 18)
+                );
+        }
+
+        [Fact]
+        public void DeconstructTuple()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        long x;
+        string y;
+
+        (x, y) = (1, ""hello"");
+        System.Console.WriteLine(x + "" "" + y);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DeconstructTuple2()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        long x;
+        string y;
+
+        (x, y) = M();
+        System.Console.WriteLine(x + "" "" + y);
+    }
+
+    static System.ValueTuple<int, string> M()
+    {
+        return (1, ""hello"");
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DeconstructLongTuple()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        long x;
+        int y;
+
+        (x, x, x, x, x, x, x, x, x, y) = (1, 1, 1, 1, 1, 1, 1, 1, 4, 2);
+        System.Console.WriteLine(x + "" "" + y);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "4 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact(Skip = "PROTOTYPE(tuples)")]
+        public void DeconstructLongTuple2()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        long x;
+        int y;
+
+        (x, x, x, x, x, x, x, x, x, y) = (1, 1, 1, 1, 1, 1, 1, 1, 4, (byte)2);
+        System.Console.WriteLine(x + "" "" + y);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "4 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DeconstructTypelessTuple()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        string x = ""goodbye"";
+        string y;
+
+        (x, y) = (null, ""hello"");
+        System.Console.WriteLine($""{x}{y}"");
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "hello", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics();
+        }
+
     }
 }
