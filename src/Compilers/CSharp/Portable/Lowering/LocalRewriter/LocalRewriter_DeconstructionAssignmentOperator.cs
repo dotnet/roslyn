@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ImmutableArray<BoundExpression> AccessTupleFields(BoundDeconstructionAssignmentOperator node, BoundExpression loweredRight, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> stores)
         {
-            var tupleType = TupleTypeSymbol.Create((NamedTypeSymbol)loweredRight.Type); // PROTOTYPE(tuples)
+            var tupleType = loweredRight.Type.IsTupleType ? loweredRight.Type : TupleTypeSymbol.Create((NamedTypeSymbol)loweredRight.Type);
             var tupleElementTypes = tupleType.TupleElementTypes;
 
             var numElements = tupleElementTypes.Length;

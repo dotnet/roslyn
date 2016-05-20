@@ -889,9 +889,9 @@ class C
                 // (7,9): error CS8210: Cannot deconstruct null.
                 //         (x, x) = null;
                 Diagnostic(ErrorCode.ERR_CannotDeconstructNull, "(x, x) = null").WithLocation(7, 9),
-                // (6,13): warning CS0219: The variable 'x' is assigned but its value is never used
-                //         int x = 0;
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(6, 13)
+                // (6,13): warning CS0168: The variable 'x' is declared but never used
+                //         int x;
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "x").WithArguments("x").WithLocation(6, 13)
                 );
         }
 

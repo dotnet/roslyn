@@ -1717,7 +1717,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// There are two kinds of deconstruction-assignments which this binding handles: tuple and non-tuple.
-        /// 
+        ///
         /// Returns a BoundDeconstructionAssignmentOperator
         ///     - with all the fields populated except deconstructMember, for the tuple case
         ///     - with all the fields populated, for a non-tuple case
@@ -1744,10 +1744,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var checkedVariables = checkedVariablesBuilder.ToImmutableAndFree();
 
-            // tuple with no natural type, such as `(null, 1)`
-            if (boundRHS is BoundTupleLiteral && (object)boundRHS.Type == null)
+            // tuple literal such as `(1, 2)`, `(null, null)`, `(x.P, y.M())`
+            if (boundRHS is BoundTupleLiteral || ((object)boundRHS.Type != null && boundRHS.Type.IsTupleType))
             {
-                //return BindDeconstructWithTypelessTuple(node, diagnostics, (BoundTupleLiteral)boundRHS, checkedVariables);
+                return BindDeconstructWithTuple(node, diagnostics, boundRHS, checkedVariables);
             }
 
             // expression without type such as `null`
@@ -1757,41 +1757,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BadExpression(node, new[] { boundRHS });
             }
 
-            // tuple with a natural type, such as `(1, 2)`
-            if (boundRHS.Type.IsTupleType)
-            {
-                return BindDeconstructWithTuple(node, diagnostics, boundRHS, checkedVariables);
-            }
-
             return BindDeconstructWithDeconstruct(node, diagnostics, boundRHS, checkedVariables);
-        }
-
-        private BoundExpression BindDeconstructWithTypelessTuple(AssignmentExpressionSyntax node, DiagnosticBag diagnostics, BoundTupleLiteral boundRHS, ImmutableArray<BoundExpression> checkedVariables)
-        {
-            // figure out the pairwise conversions
-            var assignmentsBuilder = ArrayBuilder<BoundDeconstructionAssignmentOperator.AssignmentInfo>.GetInstance(checkedVariables.Length);
-
-            for (int i = 0; i < checkedVariables.Length; i++)
-            {
-                var leftPlaceholder = new BoundLValuePlaceholder(checkedVariables[i].Syntax, checkedVariables[i].Type) { WasCompilerGenerated = true };
-
-                // PROTOTYPE(tuples): some elements in the tuple may have a natural type already
-
-                // each assignment has a placeholder for a receiver, but the source is taken from the tuple literal
-                BoundAssignmentOperator op = BindAssignment(node, leftPlaceholder, boundRHS.Arguments[i], diagnostics);
-                assignmentsBuilder.Add(new BoundDeconstructionAssignmentOperator.AssignmentInfo() { Assignment = op, LValuePlaceholder = leftPlaceholder, RValuePlaceholder = null });
-            }
-
-            var assignments = assignmentsBuilder.ToImmutableAndFree();
-
-            TypeSymbol lastType = boundRHS.Arguments.Last().Type; // PROTOTYPE(tuples)
-
-            // PROTOTYPE(tuples): need to fixup the tuple literal to give it a type from the LHS
-            return new BoundDeconstructionAssignmentOperator(node, checkedVariables, boundRHS, deconstructMember: null, assignments: assignments, type: lastType);
         }
 
         private BoundExpression BindDeconstructWithTuple(AssignmentExpressionSyntax node, DiagnosticBag diagnostics, BoundExpression boundRHS, ImmutableArray<BoundExpression> checkedVariables)
         {
+            if ((object)boundRHS.Type == null)
+            {
+                // patch up the tuple literal so that it has a type, based on the LHS information
+                var lhsTypes = checkedVariables.SelectAsArray(v => v.Type);
+                TypeSymbol lhsAsTuple = TupleTypeSymbol.Create(locationOpt: null, elementTypes: lhsTypes, elementLocations: default(ImmutableArray<Location>), elementNames: default(ImmutableArray<string>), compilation: Compilation, diagnostics: diagnostics);
+                boundRHS = CreateConversion(boundRHS.Syntax, boundRHS, Conversion.ImplicitTuple, isCast: false, wasCompilerGenerated: true, destination: lhsAsTuple, diagnostics: diagnostics);
+            }
+
             ImmutableArray<TypeSymbol> tupleTypes = boundRHS.Type.TupleElementTypes;
 
             // figure out the pairwise conversions
