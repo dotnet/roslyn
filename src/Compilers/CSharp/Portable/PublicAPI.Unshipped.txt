@@ -1,3 +1,0 @@
-Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.CSharpSyntaxTree() -> void
-Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.CSharpSyntaxVisitor() -> void
-Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.CSharpSyntaxVisitor() -> void

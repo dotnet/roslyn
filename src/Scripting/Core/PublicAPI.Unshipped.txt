@@ -1,2 +1,0 @@
-Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter.ObjectFormatter() -> void
-Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.PrintOptions() -> void

@@ -106,10 +106,13 @@ Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.Kind() -> Microsoft.CodeAnalysis.
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.CSharpSyntaxRewriter(bool visitIntoStructuredTrivia = false) -> void
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree
+Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.CSharpSyntaxTree() -> void
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.CloneNodeAsRoot<T>(T node) -> T
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.GetCompilationUnitRoot(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.CSharp.Syntax.CompilationUnitSyntax
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor
+Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.CSharpSyntaxVisitor() -> void
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>
+Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.CSharpSyntaxVisitor() -> void
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxWalker
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxWalker.CSharpSyntaxWalker(Microsoft.CodeAnalysis.SyntaxWalkerDepth depth = Microsoft.CodeAnalysis.SyntaxWalkerDepth.Node) -> void
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxWalker.Depth.get -> Microsoft.CodeAnalysis.SyntaxWalkerDepth

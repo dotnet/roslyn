@@ -1,10 +1,3 @@
-Microsoft.CodeAnalysis.AdditionalText.AdditionalText() -> void
-Microsoft.CodeAnalysis.ControlFlowAnalysis.ControlFlowAnalysis() -> void
-Microsoft.CodeAnalysis.CustomModifier.CustomModifier() -> void
-Microsoft.CodeAnalysis.DataFlowAnalysis.DataFlowAnalysis() -> void
-Microsoft.CodeAnalysis.Diagnostic.Diagnostic() -> void
-Microsoft.CodeAnalysis.DiagnosticFormatter.DiagnosticFormatter() -> void
-Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.AnalysisContext() -> void
 Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, params Microsoft.CodeAnalysis.OperationKind[] operationKinds) -> void
 Microsoft.CodeAnalysis.Diagnostics.AnalysisResult
 Microsoft.CodeAnalysis.Diagnostics.AnalysisResult.AnalyzerTelemetryInfo.get -> System.Collections.Immutable.ImmutableDictionary<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer, Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo>
@@ -17,7 +10,6 @@ Microsoft.CodeAnalysis.Diagnostics.AnalysisResult.SyntaxDiagnostics.get -> Syste
 Microsoft.CodeAnalysis.Diagnostics.CompilationStartAnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, params Microsoft.CodeAnalysis.OperationKind[] operationKinds) -> void
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalysisResultAsync(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer> analyzers, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Diagnostics.AnalysisResult>
 Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetAnalysisResultAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Diagnostics.AnalysisResult>
-Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer.DiagnosticAnalyzer() -> void
 Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext
 Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.CancellationToken.get -> System.Threading.CancellationToken
 Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation
@@ -56,8 +48,6 @@ Microsoft.CodeAnalysis.IOperation.Syntax.get -> Microsoft.CodeAnalysis.SyntaxNod
 Microsoft.CodeAnalysis.IOperation.Type.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.ISourceAssemblySymbol
 Microsoft.CodeAnalysis.ISourceAssemblySymbol.Compilation.get -> Microsoft.CodeAnalysis.Compilation
-Microsoft.CodeAnalysis.LocalizableString.LocalizableString() -> void
-Microsoft.CodeAnalysis.MetadataReferenceResolver.MetadataReferenceResolver() -> void
 Microsoft.CodeAnalysis.ModuleMetadata.GetMetadataReader() -> System.Reflection.Metadata.MetadataReader
 Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.OperationKind.AddressOfExpression = 515 -> Microsoft.CodeAnalysis.OperationKind
@@ -137,7 +127,6 @@ Microsoft.CodeAnalysis.OperationKind.YieldBreakStatement = 12 -> Microsoft.CodeA
 Microsoft.CodeAnalysis.OperationKind.YieldReturnStatement = 16 -> Microsoft.CodeAnalysis.OperationKind
 Microsoft.CodeAnalysis.PortableExecutableReference.GetMetadata() -> Microsoft.CodeAnalysis.Metadata
 Microsoft.CodeAnalysis.SemanticModel.GetOperation(Microsoft.CodeAnalysis.SyntaxNode node, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.IOperation
-Microsoft.CodeAnalysis.SemanticModel.SemanticModel() -> void
 Microsoft.CodeAnalysis.Semantics.ArgumentKind
 Microsoft.CodeAnalysis.Semantics.ArgumentKind.DefaultValue = 4 -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
 Microsoft.CodeAnalysis.Semantics.ArgumentKind.Named = 2 -> Microsoft.CodeAnalysis.Semantics.ArgumentKind
@@ -672,12 +661,6 @@ Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.UnsignedPostfixDecrement = 7
 Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.UnsignedPostfixIncrement = 771 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
 Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.UnsignedPrefixDecrement = 774 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
 Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.UnsignedPrefixIncrement = 773 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
-Microsoft.CodeAnalysis.SymbolVisitor.SymbolVisitor() -> void
-Microsoft.CodeAnalysis.SymbolVisitor<TResult>.SymbolVisitor() -> void
-Microsoft.CodeAnalysis.SyntaxReference.SyntaxReference() -> void
-Microsoft.CodeAnalysis.SyntaxTree.SyntaxTree() -> void
-Microsoft.CodeAnalysis.Text.SourceTextContainer.SourceTextContainer() -> void
-Microsoft.CodeAnalysis.Text.TextLineCollection.TextLineCollection() -> void
 abstract Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.OperationKind> operationKinds) -> void
 abstract Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.RegisterOperationBlockEndAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext> action) -> void
 abstract Microsoft.CodeAnalysis.SemanticModel.GetOperationCore(Microsoft.CodeAnalysis.SyntaxNode node, System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.IOperation

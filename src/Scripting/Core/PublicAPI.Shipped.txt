@@ -39,6 +39,7 @@ Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopyProvider.NeedsShadowC
 Microsoft.CodeAnalysis.Scripting.Hosting.MetadataShadowCopyProvider.SuppressShadowCopy(string originalPath) -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter
 Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter.FormatObject(object obj) -> string
+Microsoft.CodeAnalysis.Scripting.Hosting.ObjectFormatter.ObjectFormatter() -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions
 Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.Ellipsis.get -> string
 Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.Ellipsis.set -> void
@@ -50,6 +51,7 @@ Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.MemberDisplayFormat.get ->
 Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.MemberDisplayFormat.set -> void
 Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.NumberRadix.get -> int
 Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.NumberRadix.set -> void
+Microsoft.CodeAnalysis.Scripting.Hosting.PrintOptions.PrintOptions() -> void
 Microsoft.CodeAnalysis.Scripting.Script
 Microsoft.CodeAnalysis.Scripting.Script.Code.get -> string
 Microsoft.CodeAnalysis.Scripting.Script.Compile(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic>
