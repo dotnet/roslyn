@@ -147,7 +147,7 @@ set TMP=%TEMP%
   }
  
   def triggerPhraseOnly = true
-  def triggerPhraseExtra = ""
+  def triggerPhraseExtra = "determinism"
   Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto')
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
