@@ -11413,5 +11413,45 @@ class C
             Assert.Equal("System.Func<System.Int32>", model.GetTypeInfo(n5).ConvertedType.ToTestDisplayString());
             Assert.Equal(ConversionKind.AnonymousFunction, model.GetConversion(n5).Kind);
         }
+
+        [Fact]
+        public void CompileTupleLib()
+        {
+            string additionalSource = @"
+
+namespace System
+{
+    public class SR
+    {
+        public static string ArgumentException_ValueTupleIncorrectType { get { return """"; } }
+        public static string ArgumentException_ValueTupleLastArgumentNotAValueTuple { get { return """"; } }
+    }
+}
+namespace System.Diagnostics
+{
+    public static class Debug
+    {
+        public static void Assert(bool condition) { }
+        public static void Assert(bool condition, string message) { }
+    }
+}
+";
+            var tupleComp = CreateCompilationWithMscorlib(TestResources.NetFX.ValueTuple.tuplelib_cs + additionalSource, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            tupleComp.VerifyDiagnostics();
+
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var x = (1, 2);
+        System.Console.WriteLine(x.ToString());
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "(1, 2)", additionalRefs: new[] { tupleComp.ToMetadataReference() }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics();
+        }
     }
 }
