@@ -5,10 +5,13 @@ call "%VS140COMNTOOLS%VsDevCmd.bat"
 
 pushd %~dp0
 
-:: Fetch the signed master release binaries and copy it to open binaries release folder
-csi fetch_build.csx Master %~dp0..\..\..\..\Binaries\Release
-
 :: Start Test Automation from the binaries directory
 csi %~dp0..\..\..\..\Binaries\Release\Perf\infra\automation.csx --verbose
+
+:: Write the successful build number
+csi persist_successful_build.csx %1 %2
+
+:: Start Share Monitor
+start "Monitoring share" MonitorShareTask.bat %3
 
 popd
