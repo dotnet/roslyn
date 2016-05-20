@@ -583,4 +583,7 @@ Additional information: {1}</value>
     <value>Restore {0}</value>
     <comment>{0} is a parameter description</comment>
   </data>
+  <data name="FullSolutionAnalysisMovedToErrorList" xml:space="preserve">
+    <value>Note: Option 'Enable full solution analysis' has been moved to the Error List.</value>
+  </data>
 </root>

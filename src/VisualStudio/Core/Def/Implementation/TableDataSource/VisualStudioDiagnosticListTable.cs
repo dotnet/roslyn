@@ -190,7 +190,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         }
 
         // TODO: Remove the below temporary types 'IErrorList2' and 'AnalysisToggleButtonStateChangedEventArgs' when we move to new version of Microsoft.VisualStudio.Shell.XX.0.dll that has these types.
-        private interface IErrorList2
+        private interface IErrorList2 : IErrorList
         {
             bool AnalysisToggleState { get; set; }
             event EventHandler<AnalysisToggleStateChangedEventArgs> AnalysisToggleStateChanged;
