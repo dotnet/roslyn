@@ -65,7 +65,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         }
 
         internal static async Task<CompletionContext> GetCompletionListContextAsync(
-            CompletionService service,
             CompletionProvider provider,
             Document document,
             int position,
