@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports System.IO
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.InternalUtilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
@@ -46,20 +47,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Private Function ParseFile(consoleOutput As TextWriter,
-                                   parseOptions As VisualBasicParseOptions,
+        Private Function ParseFile(parseOptions As VisualBasicParseOptions,
                                    scriptParseOptions As VisualBasicParseOptions,
-                                   ByRef hadErrors As Boolean,
                                    file As CommandLineSourceFile,
-                                   errorLogger As ErrorLogger) As SyntaxTree
+                                   fileReadDiagnostics As ICollection(Of DiagnosticInfo)) As SyntaxTree
 
-            Dim fileReadDiagnostics As New List(Of DiagnosticInfo)()
             Dim content = ReadFileContent(file, fileReadDiagnostics)
 
             If content Is Nothing Then
-                ReportErrors(fileReadDiagnostics, consoleOutput, errorLogger)
-                fileReadDiagnostics.Clear()
-                hadErrors = True
                 Return Nothing
             End If
 
@@ -85,23 +80,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             Dim sourceFiles As ImmutableArray(Of CommandLineSourceFile) = Arguments.SourceFiles
             Dim trees(sourceFiles.Length - 1) As SyntaxTree
+            Dim fileReadDiagnostics = New ConcurrentBag(Of DiagnosticInfo)
 
             If Arguments.CompilationOptions.ConcurrentBuild Then
                 Parallel.For(0, sourceFiles.Length,
                    UICultureUtilities.WithCurrentUICulture(Of Integer)(
                         Sub(i As Integer)
                             ' NOTE: order of trees is important!!
-                            trees(i) = ParseFile(consoleOutput, parseOptions, scriptParseOptions, hadErrors, sourceFiles(i), errorLogger)
+                            trees(i) = ParseFile(parseOptions, scriptParseOptions, sourceFiles(i), fileReadDiagnostics)
                         End Sub))
             Else
                 For i = 0 To sourceFiles.Length - 1
                     ' NOTE: order of trees is important!!
-                    trees(i) = ParseFile(consoleOutput, parseOptions, scriptParseOptions, hadErrors, sourceFiles(i), errorLogger)
+                    trees(i) = ParseFile(parseOptions, scriptParseOptions, sourceFiles(i), fileReadDiagnostics)
                 Next
             End If
 
             ' If there were any errors while trying to read files, then exit.
-            If hadErrors Then
+            If Not fileReadDiagnostics.IsEmpty Then
+                ReportErrors(fileReadDiagnostics, consoleOutput, errorLogger)
                 Return Nothing
             End If
 

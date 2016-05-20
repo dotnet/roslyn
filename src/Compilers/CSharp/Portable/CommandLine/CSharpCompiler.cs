@@ -6,12 +6,12 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.InternalUtilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -38,18 +38,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             // case there are many script files.
             var scriptParseOptions = parseOptions.WithKind(SourceCodeKind.Script);
 
-            bool hadErrors = false;
-
             var sourceFiles = Arguments.SourceFiles;
             var trees = new SyntaxTree[sourceFiles.Length];
-            var normalizedFilePaths = new String[sourceFiles.Length];
+            var normalizedFilePaths = new string[sourceFiles.Length];
+            var fileReadDiagnostics = new ConcurrentBag<DiagnosticInfo>();
 
             if (Arguments.CompilationOptions.ConcurrentBuild)
             {
                 Parallel.For(0, sourceFiles.Length, UICultureUtilities.WithCurrentUICulture<int>(i =>
                 {
                     //NOTE: order of trees is important!!
-                    trees[i] = ParseFile(consoleOutput, parseOptions, scriptParseOptions, ref hadErrors, sourceFiles[i], errorLogger, out normalizedFilePaths[i]);
+                    trees[i] = ParseFile(parseOptions, scriptParseOptions, sourceFiles[i], fileReadDiagnostics, out normalizedFilePaths[i]);
                 }));
             }
             else
@@ -57,13 +56,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 for (int i = 0; i < sourceFiles.Length; i++)
                 {
                     //NOTE: order of trees is important!!
-                    trees[i] = ParseFile(consoleOutput, parseOptions, scriptParseOptions, ref hadErrors, sourceFiles[i], errorLogger, out normalizedFilePaths[i]);
+                    trees[i] = ParseFile(parseOptions, scriptParseOptions, sourceFiles[i], fileReadDiagnostics, out normalizedFilePaths[i]);
                 }
             }
 
             // If errors had been reported in ParseFile, while trying to read files, then we should simply exit.
-            if (hadErrors)
+            if (!fileReadDiagnostics.IsEmpty)
             {
+                ReportErrors(fileReadDiagnostics, consoleOutput, errorLogger);
                 return null;
             }
 
@@ -143,28 +143,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         private SyntaxTree ParseFile(
-            TextWriter consoleOutput,
             CSharpParseOptions parseOptions,
             CSharpParseOptions scriptParseOptions,
-            ref bool hadErrors,
             CommandLineSourceFile file,
-            ErrorLogger errorLogger,
+            ICollection<DiagnosticInfo> fileReadDiagnostics,
             out string normalizedFilePath)
         {
-            var fileReadDiagnostics = new List<DiagnosticInfo>();
             var content = ReadFileContent(file, fileReadDiagnostics, out normalizedFilePath);
 
-            if (content == null)
-            {
-                ReportErrors(fileReadDiagnostics, consoleOutput, errorLogger);
-                fileReadDiagnostics.Clear();
-                hadErrors = true;
-                return null;
-            }
-            else
-            {
-                return ParseFile(parseOptions, scriptParseOptions, content, file);
-            }
+            return content == null
+                ? null
+                : ParseFile(parseOptions, scriptParseOptions, content, file);
         }
 
         private static SyntaxTree ParseFile(
