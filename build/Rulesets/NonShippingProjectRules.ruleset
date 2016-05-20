@@ -15,5 +15,6 @@
     <!-- See above comment under CSharp -->
     <Rule Id="RS0003" Action="None" />
     <Rule Id="RS0007" Action="None" />
+    <Rule Id="RS0005" Action="None" />
   </Rules>
 </RuleSet>

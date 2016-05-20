@@ -91,8 +91,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             _packageInstallerService = Workspace.Services.GetService<IPackageInstallerService>() as PackageInstallerService;
             _symbolSearchService = Workspace.Services.GetService<ISymbolSearchService>() as SymbolSearchService;
 
-            _packageInstallerService?.Start();
-            _symbolSearchService?.Start(this.RoslynLanguageName);
+            _packageInstallerService?.Connect(this.RoslynLanguageName);
+            _symbolSearchService?.Connect(this.RoslynLanguageName);
         }
 
         protected abstract VisualStudioWorkspaceImpl CreateWorkspace();
@@ -125,8 +125,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
         protected override void Dispose(bool disposing)
         {
-            _packageInstallerService?.Stop();
-            _symbolSearchService?.Stop(this.RoslynLanguageName);
+            _packageInstallerService?.Disconnect(this.RoslynLanguageName);
+            _symbolSearchService?.Disconnect(this.RoslynLanguageName);
 
             if (_miscellaneousFilesWorkspace != null)
             {
