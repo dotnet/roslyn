@@ -237,9 +237,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return -1;
         }
 
-        private abstract class ArgumentBase : IArgument
+        private class Argument : IArgument
         {
-            public ArgumentBase(IParameterSymbol parameter, IOperation value)
+            public Argument(IParameterSymbol parameter, IOperation value)
             {
                 Debug.Assert(value != null);
 
@@ -273,14 +273,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             TResult IOperation.Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
             {
                 return visitor.VisitArgument(this, argument);
-            }
-        }
-
-        private sealed class Argument : ArgumentBase
-        {
-            public Argument(IParameterSymbol parameter, IOperation value)
-                : base(parameter, value)
-            {
             }
         }
     }
