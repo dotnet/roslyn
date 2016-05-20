@@ -164,11 +164,5 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                 Return BasicVSResources.Option_Suggest_imports_for_types_in_NuGet_packages
             End Get
         End Property
-
-        Public ReadOnly Property Label_FullSolutionAnalysisMovedToErrorList As String
-            Get
-                Return ServicesVSResources.FullSolutionAnalysisMovedToErrorList
-            End Get
-        End Property
     End Module
 End Namespace

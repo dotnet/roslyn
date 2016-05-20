@@ -28,7 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(RenameTrackingPreview, FeatureOnOffOptions.RenameTrackingPreview, LanguageNames.CSharp);
             BindToOption(DontPutOutOrRefOnStruct, ExtractMethodOptions.DontPutOutOrRefOnStruct, LanguageNames.CSharp);
             BindToOption(AllowMovingDeclaration, ExtractMethodOptions.AllowMovingDeclaration, LanguageNames.CSharp);
-            BindToFullSolutionAnalysisOption(ClosedFileDiagnostics, FullSolutionAnalysisMovedToErrorListLabel, LanguageNames.CSharp);
+            BindToFullSolutionAnalysisOption(ClosedFileDiagnostics, LanguageNames.CSharp);
         }
     }
 }

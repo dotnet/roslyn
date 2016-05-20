@@ -54,9 +54,6 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_ClosedFileDiagnostics}" />
                     <CheckBox x:Name="RenameTrackingPreview"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_RenameTrackingPreview}" />
-                    <Label x:Name="FullSolutionAnalysisMovedToErrorListLabel"
-                           Content="{x:Static local:AdvancedOptionPageStrings.Label_FullSolutionAnalysisMovedToErrorList}"
-                           Visibility="Collapsed"/>
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="ExtractMethodGroupBox"

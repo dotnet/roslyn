@@ -29,7 +29,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(NavigateToObjectBrowser, VisualStudioNavigationOptions.NavigateToObjectBrowser, LanguageNames.VisualBasic)
             BindToOption(DontPutOutOrRefOnStruct, ExtractMethodOptions.DontPutOutOrRefOnStruct, LanguageNames.VisualBasic)
             BindToOption(AllowMovingDeclaration, ExtractMethodOptions.AllowMovingDeclaration, LanguageNames.VisualBasic)
-            BindToFullSolutionAnalysisOption(ClosedFileDiagnostics, FullSolutionAnalysisMovedToErrorListLabel, LanguageNames.VisualBasic)
+            BindToFullSolutionAnalysisOption(ClosedFileDiagnostics, LanguageNames.VisualBasic)
         End Sub
     End Class
 End Namespace

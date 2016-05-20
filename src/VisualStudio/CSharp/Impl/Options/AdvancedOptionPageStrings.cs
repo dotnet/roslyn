@@ -104,11 +104,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             get { return CSharpVSResources.Option_PlaceSystemNamespaceFirst; }
         }
 
-        public static string Label_FullSolutionAnalysisMovedToErrorList
-        {
-            get { return ServicesVSResources.FullSolutionAnalysisMovedToErrorList; }
-        }
-
         public static string Option_Using_Directives =>
             CSharpVSResources.Option_Using_Directives;
 

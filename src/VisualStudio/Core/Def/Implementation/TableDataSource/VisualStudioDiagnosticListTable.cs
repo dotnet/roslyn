@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Options;
+using Microsoft.Internal.VisualStudio.Shell;
 using Microsoft.VisualStudio.LanguageServices.Implementation.TaskList;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -57,6 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 var errorList2 = _errorList as IErrorList2;
                 if (errorList2 != null)
                 {
+                    workspace.WorkspaceChanged += OnWorkspaceChanged;
                     errorList2.AnalysisToggleStateChanged += OnErrorListFullSolutionAnalysisToggled;
                     _optionService.OptionChanged += OnOptionChanged;
                 }                
@@ -146,6 +148,40 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             if (e.PropertyName == nameof(IErrorList.AreOtherErrorSourceEntriesShown))
             {
                 AddTableSourceIfNecessary(this.Workspace.CurrentSolution);
+            }
+        }
+
+        private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+        {
+            Contract.ThrowIfFalse(_errorList is IErrorList2);
+
+            switch (e.Kind)
+            {
+                case WorkspaceChangeKind.SolutionAdded:
+                case WorkspaceChangeKind.SolutionChanged:
+                case WorkspaceChangeKind.SolutionCleared:
+                case WorkspaceChangeKind.SolutionReloaded:
+                case WorkspaceChangeKind.SolutionRemoved:
+                case WorkspaceChangeKind.ProjectAdded:
+                case WorkspaceChangeKind.ProjectChanged:
+                case WorkspaceChangeKind.ProjectRemoved:
+                    // Set error list toggle state based on current analysis state for all languages for projects in current solution.
+                    var fullAnalysisState = _optionService.GetOption(RuntimeOptions.FullSolutionAnalysis);
+                    if (fullAnalysisState)
+                    {
+                        var langauges = e.NewSolution.Projects.Select(p => p.Language).Distinct();
+                        foreach (var language in langauges)
+                        {
+                            if (!ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(_optionService, language))
+                            {
+                                fullAnalysisState = false;
+                                break;
+                            }
+                        }
+                    }
+
+                    ((IErrorList2)_errorList).AnalysisToggleState = fullAnalysisState;
+                    return;
             }
         }
 
