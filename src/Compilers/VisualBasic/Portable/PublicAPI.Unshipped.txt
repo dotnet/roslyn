@@ -1,2 +1,30 @@
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VBnext = 2147483647 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
+Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
+Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature.ArrayLiterals = 6 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
+Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature.AsyncExpressions = 7 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
+Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature.AutoProperties = 0 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
+Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature.BinaryLiterals = 25 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
+Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature.CObjInAttributeArguments = 16 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
+Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature.CoContraVariance = 3 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
+Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature.CollectionInitializers = 4 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
+Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature.DigitSeparators = 24 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
+Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature.GlobalNamespace = 9 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
+Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite = 23 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
+Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter = 26 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
+Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature.InterpolatedStrings = 12 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
+Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature.Iterators = 8 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
+Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature.LineContinuation = 1 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
+Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature.LineContinuationComments = 17 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
+Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature.MultilineStringLiterals = 15 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
+Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature.NameOfExpressions = 11 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
+Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature.NullPropagatingOperator = 10 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
+Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature.PartialInterfaces = 22 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
+Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature.PartialModules = 21 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
+Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature.ReadonlyAutoProperties = 13 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
+Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature.RegionsEverywhere = 14 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
+Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature.StatementLambdas = 2 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
+Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature.SubLambdas = 5 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
+Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature.TypeOfIsNot = 18 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
+Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature.WarningDirectives = 20 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
+Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature.YearFirstDateLiterals = 19 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
 Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.New(languageVersion As Microsoft.CodeAnalysis.VisualBasic.LanguageVersion = Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VBnext, documentationMode As Microsoft.CodeAnalysis.DocumentationMode = Microsoft.CodeAnalysis.DocumentationMode.Parse, kind As Microsoft.CodeAnalysis.SourceCodeKind = Microsoft.CodeAnalysis.SourceCodeKind.Regular, preprocessorSymbols As System.Collections.Generic.IEnumerable(Of System.Collections.Generic.KeyValuePair(Of String, Object)) = Nothing) -> Void

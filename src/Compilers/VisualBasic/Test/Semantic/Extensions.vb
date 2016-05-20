@@ -7,6 +7,8 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FeatureExtensions
 
 ' This is deliberately declared in the global namespace so that it will always be discoverable (regardless of Imports).
 Friend Module Extensions
@@ -51,3 +53,22 @@ Friend Module Extensions
     End Function
 
 End Module
+
+Namespace Global.Roslyn.Test.Utilities.VisualBasic
+
+    Namespace Requires
+        Namespace Language
+            Public Class Feature
+                Inherits Global.Xunit.FactAttribute
+
+                Private ReadOnly Property theFeature As InternalSyntax.Feature
+
+                Public Sub New(theFeature As InternalSyntax.Feature)
+                    Me.theFeature = theFeature
+                    If theFeature.IsUnavailable Then Skip = "Language Feature " & theFeature.ToString & " is unavailable."
+                End Sub
+
+            End Class
+        End Namespace
+    End Namespace
+End Namespace
