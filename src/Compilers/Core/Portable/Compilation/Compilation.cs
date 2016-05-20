@@ -839,6 +839,20 @@ namespace Microsoft.CodeAnalysis
 
         protected abstract INamedTypeSymbol CommonCreateTupleTypeSymbol(ImmutableArray<ITypeSymbol> elementTypes, ImmutableArray<string> elementNames);
 
+        /// <summary>
+        /// Returns a new INamedTypeSymbol with the given underlying type and (optional) element names.
+        /// </summary>
+        /// <remarks>
+        /// Since VB doesn't support tuples yet, this call will fail in a VB compilation.
+        /// Also, the underlying type needs to be tuple-compatible.
+        /// </remarks>
+        public INamedTypeSymbol CreateTupleTypeSymbol(INamedTypeSymbol underlyingType, ImmutableArray<string> elementNames = default(ImmutableArray<string>))
+        {
+            return CommonCreateTupleTypeSymbol(underlyingType, elementNames);
+        }
+
+        protected abstract INamedTypeSymbol CommonCreateTupleTypeSymbol(INamedTypeSymbol underlyingType, ImmutableArray<string> elementNames);
+
         #endregion
 
         #region Diagnostics
