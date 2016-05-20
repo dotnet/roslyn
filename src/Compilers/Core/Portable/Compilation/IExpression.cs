@@ -11,6 +11,12 @@ namespace Microsoft.CodeAnalysis.Semantics
     public interface IHasArgumentsExpression : IOperation
     {
         /// <summary>
+        /// Arguments of the invocation, excluding the instance argument. Arguments are in the order that they will be evaluated,
+        /// and params/ParamArray arguments have been collected into arrays. Default values are supplied for
+        /// optional arguments missing in source.
+        /// </summary>
+        ImmutableArray<IArgument> ArgumentsInEvaluationOrder { get; }
+        /// <summary>
         /// Arguments of the invocation, excluding the instance argument. Arguments are in parameter order,
         /// and params/ParamArray arguments have been collected into arrays. Default values are supplied for
         /// optional arguments missing in source.
@@ -45,12 +51,6 @@ namespace Microsoft.CodeAnalysis.Semantics
         /// True if the invocation uses a virtual mechanism, and false otherwise.
         /// </summary>
         bool IsVirtual { get; }
-        /// <summary>
-        /// Arguments of the invocation, excluding the instance argument. Arguments are in the order that they will be evaluated,
-        /// and params/ParamArray arguments have been collected into arrays. Default values are supplied for
-        /// optional arguments missing in source.
-        /// </summary>
-        ImmutableArray<IArgument> ArgumentsInEvaluationOrder { get; }
     }
 
     /// <summary>

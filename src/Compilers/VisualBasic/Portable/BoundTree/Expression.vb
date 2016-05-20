@@ -297,9 +297,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return ArgumentMatchingParameter(Me.Arguments, parameter, Me.Method.Parameters)
         End Function
 
-        Private ReadOnly Property IInvocationExpression_ArgumentsInSourceOrder As ImmutableArray(Of IArgument) Implements IInvocationExpression.ArgumentsInEvaluationOrder
+        Private ReadOnly Property IHasArgumentsExpression_ArgumentsInSourceOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInEvaluationOrder
             Get
-                Return DeriveArguments(Me.Arguments, Me.Method.Parameters)
+                Return IHasArgumentsExpression_ArgumentsInParameterOrder
             End Get
         End Property
 
@@ -1172,6 +1172,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Private ReadOnly Property IHasArgumentsExpression_ArgumentsInEvaluationOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInEvaluationOrder
+            Get
+                Return IHasArgumentsExpression_ArgumentsInParameterOrder
+            End Get
+        End Property
+
         Private ReadOnly Property IHasArgumentsExpression_ArgumentsInParameterOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInParameterOrder
             Get
                 Debug.Assert(Me.ConstructorOpt IsNot Nothing OrElse Me.Arguments.IsEmpty())
@@ -1448,6 +1454,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly Property IPropertyReferenceExpression_Property As IPropertySymbol Implements IPropertyReferenceExpression.Property
             Get
                 Return Me.PropertySymbol
+            End Get
+        End Property
+
+        Private ReadOnly Property IHasArgumentsExpression_ArgumentsInEvaluationOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInEvaluationOrder
+            Get
+                Return IHasArgumentsExpression_ArgumentsInParameterOrder
             End Get
         End Property
 
