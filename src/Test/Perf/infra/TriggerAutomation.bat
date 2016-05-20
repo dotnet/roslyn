@@ -8,10 +8,4 @@ pushd %~dp0
 :: Start Test Automation from the binaries directory
 csi %~dp0..\..\..\..\Binaries\Release\Perf\infra\automation.csx --verbose
 
-:: Write the successful build number
-csi persist_successful_build.csx %1 %2
-
-:: Start Share Monitor
-start "Monitoring share" MonitorShareTask.bat %3
-
 popd
