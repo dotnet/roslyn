@@ -24,32 +24,34 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
             return results.Select(r => ConvertResult(containsDots, r));
         }
 
-        private static async Task<IEnumerable<ValueTuple<DeclaredSymbolInfo, Document, IEnumerable<PatternMatch>>>> FindNavigableDeclaredSymbolInfos(Project project, string pattern, CancellationToken cancellationToken)
+        private static async Task<IEnumerable<ValueTuple<DeclaredSymbolInfo, Document, IEnumerable<PatternMatch>>>> FindNavigableDeclaredSymbolInfos(
+            Project project, string pattern, CancellationToken cancellationToken)
         {
-            var patternMatcher = new PatternMatcher(pattern);
-
-            var result = new List<ValueTuple<DeclaredSymbolInfo, Document, IEnumerable<PatternMatch>>>();
-            foreach (var document in project.Documents)
+            using (var patternMatcher = new PatternMatcher(pattern, allowFuzzyMatching: true))
             {
-                cancellationToken.ThrowIfCancellationRequested();
-                var declarationInfo = await document.GetDeclarationInfoAsync(cancellationToken).ConfigureAwait(false);
-
-                foreach (var declaredSymbolInfo in declarationInfo.DeclaredSymbolInfos)
+                var result = new List<ValueTuple<DeclaredSymbolInfo, Document, IEnumerable<PatternMatch>>>();
+                foreach (var document in project.Documents)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    var patternMatches = patternMatcher.GetMatches(
-                        GetSearchName(declaredSymbolInfo),
-                        declaredSymbolInfo.FullyQualifiedContainerName,
-                        includeMatchSpans: false);
+                    var declarationInfo = await document.GetDeclarationInfoAsync(cancellationToken).ConfigureAwait(false);
 
-                    if (patternMatches != null)
+                    foreach (var declaredSymbolInfo in declarationInfo.DeclaredSymbolInfos)
                     {
-                        result.Add(ValueTuple.Create(declaredSymbolInfo, document, patternMatches));
+                        cancellationToken.ThrowIfCancellationRequested();
+                        var patternMatches = patternMatcher.GetMatches(
+                            GetSearchName(declaredSymbolInfo),
+                            declaredSymbolInfo.FullyQualifiedContainerName,
+                            includeMatchSpans: false);
+
+                        if (patternMatches != null)
+                        {
+                            result.Add(ValueTuple.Create(declaredSymbolInfo, document, patternMatches));
+                        }
                     }
                 }
-            }
 
-            return result;
+                return result;
+            }
         }
 
         private static string GetSearchName(DeclaredSymbolInfo declaredSymbolInfo)
@@ -65,7 +67,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
         }
 
 
-        private INavigateToSearchResult ConvertResult(bool containsDots, ValueTuple<DeclaredSymbolInfo, Document, IEnumerable<PatternMatch>> result)
+        private INavigateToSearchResult ConvertResult(
+            bool containsDots, ValueTuple<DeclaredSymbolInfo, Document, IEnumerable<PatternMatch>> result)
         {
             var declaredSymbolInfo = result.Item1;
             var document = result.Item2;
