@@ -7,7 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Roslyn.Utilities;
+using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
@@ -100,6 +100,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         protected void BindToFullSolutionAnalysisOption(CheckBox checkbox, string languageName)
         {
+            // Full solution analysis option has been moved to error list from Dev14 Update3.
+            // We only want to show the full solution analysis option in Tools Options, if we are running against prior VS bits.
+            if (VisualStudioDiagnosticListTable.ErrorListHasFullSolutionAnalysisButton())
+            {
+                checkbox.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            checkbox.Visibility = Visibility.Visible;
+                        
             Binding binding = new Binding()
             {
                 Source = new FullSolutionAnalysisOptionBinding(OptionService, languageName),
