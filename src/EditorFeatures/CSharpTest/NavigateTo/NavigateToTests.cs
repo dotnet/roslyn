@@ -893,9 +893,9 @@ class D
         {
             using (var workspace = await SetupWorkspaceAsync("class C { public void ToError() { } }"))
             {
-                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupClass, StandardGlyphItem.GlyphItemFriend);
+                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic);
                 var item = _aggregator.GetItems("ToEror").Single();
-                VerifyNavigateToResultItem(item, "ToError", MatchKind.Regular, NavigateToItemKind.Method);
+                VerifyNavigateToResultItem(item, "ToError", MatchKind.Regular, NavigateToItemKind.Method, displayName: "ToError()");
             }
         }
 
