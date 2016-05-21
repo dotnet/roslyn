@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editor.Navigation;
 using Microsoft.CodeAnalysis.FindSymbols;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 using Roslyn.Utilities;
@@ -18,10 +19,51 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
     {
         public async Task<IEnumerable<INavigateToSearchResult>> SearchProjectAsync(Project project, string searchPattern, CancellationToken cancellationToken)
         {
-            var results = await NavigateToSymbolFinder.FindNavigableDeclaredSymbolInfos(project, searchPattern, cancellationToken).ConfigureAwait(false);
+            var results = await FindNavigableDeclaredSymbolInfos(project, searchPattern, cancellationToken).ConfigureAwait(false);
             var containsDots = searchPattern.IndexOf('.') >= 0;
             return results.Select(r => ConvertResult(containsDots, r));
         }
+
+        private static async Task<IEnumerable<ValueTuple<DeclaredSymbolInfo, Document, IEnumerable<PatternMatch>>>> FindNavigableDeclaredSymbolInfos(Project project, string pattern, CancellationToken cancellationToken)
+        {
+            var patternMatcher = new PatternMatcher(pattern);
+
+            var result = new List<ValueTuple<DeclaredSymbolInfo, Document, IEnumerable<PatternMatch>>>();
+            foreach (var document in project.Documents)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                var declarationInfo = await document.GetDeclarationInfoAsync(cancellationToken).ConfigureAwait(false);
+
+                foreach (var declaredSymbolInfo in declarationInfo.DeclaredSymbolInfos)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    var patternMatches = patternMatcher.GetMatches(
+                        GetSearchName(declaredSymbolInfo),
+                        declaredSymbolInfo.FullyQualifiedContainerName,
+                        includeMatchSpans: false);
+
+                    if (patternMatches != null)
+                    {
+                        result.Add(ValueTuple.Create(declaredSymbolInfo, document, patternMatches));
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private static string GetSearchName(DeclaredSymbolInfo declaredSymbolInfo)
+        {
+            if (declaredSymbolInfo.Kind == DeclaredSymbolInfoKind.Indexer && declaredSymbolInfo.Name == WellKnownMemberNames.Indexer)
+            {
+                return "this";
+            }
+            else
+            {
+                return declaredSymbolInfo.Name;
+            }
+        }
+
 
         private INavigateToSearchResult ConvertResult(bool containsDots, ValueTuple<DeclaredSymbolInfo, Document, IEnumerable<PatternMatch>> result)
         {
