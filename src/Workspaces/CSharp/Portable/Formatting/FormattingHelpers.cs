@@ -321,6 +321,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 return usingStatement.CloseParenToken.Equals(token);
             }
 
+            var fixedStatement = statement as FixedStatementSyntax;
+            if (fixedStatement != null)
+            {
+                return fixedStatement.CloseParenToken.Equals(token);
+            }
+
             return false;
         }
 
@@ -386,6 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                    node is ForStatementSyntax ||
                    node is ForEachStatementSyntax ||
                    node is UsingStatementSyntax ||
+                   node is FixedStatementSyntax ||
                    node is LockStatementSyntax;
         }
 
