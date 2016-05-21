@@ -233,5 +233,21 @@ namespace Roslyn.VisualStudio.Test.Utilities.Interop
         public static extern short VkKeyScan(
             [In] char ch
         );
+
+        [DllImport("User32.dll", CallingConvention = CallingConvention.Winapi, EntryPoint = "GetKeyNameTextW", PreserveSig = true, SetLastError = true)]
+        public static extern int GetKeyNameText(
+            [In] long lParam,
+            [Out, MarshalAs(UnmanagedType.LPTStr)] StringBuilder lpString,
+            [In] int cchSize);
+
+        [DllImport("User32.dll", CallingConvention = CallingConvention.Winapi, EntryPoint = "MapVirtualKeyW", PreserveSig = true, SetLastError = false)]
+        public static extern uint MapVirtualKey(
+            [In] uint uCode,
+            [In] uint uMapType);
+
+        public const uint MAPVK_VK_TO_VSC = 0;
+        public const uint MAPVK_VSC_TO_VK = 1;
+        public const uint MAPVK_VK_TO_CHAR = 2;
+        public const uint MAPVK_VSC_TO_KV_EX = 3;
     }
 }

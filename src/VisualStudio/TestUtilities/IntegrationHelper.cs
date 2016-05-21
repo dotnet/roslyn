@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.Win32;
+using Roslyn.Utilities;
 using Roslyn.VisualStudio.Test.Utilities.Interop;
 
 using Process = System.Diagnostics.Process;
@@ -168,7 +169,8 @@ namespace Roslyn.VisualStudio.Test.Utilities
         {
             var topLevelWindows = new List<IntPtr>();
 
-            var enumFunc = new User32.WNDENUMPROC((hWnd, lParam) => {
+            var enumFunc = new User32.WNDENUMPROC((hWnd, lParam) =>
+            {
                 topLevelWindows.Add(hWnd);
                 return true;
             });
@@ -187,7 +189,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
         /// <summary>Kills the specified process if it is not <c>null</c> and has not already exited.</summary>
         public static void KillProcess(Process process)
         {
-            if ((process != null) && (!process.HasExited))
+            if (process != null && !process.HasExited)
             {
                 process.Kill();
             }
@@ -223,7 +225,8 @@ namespace Roslyn.VisualStudio.Test.Utilities
         public static T RetryRpcCall<T>(Func<T> action)
         {
             T returnValue = default(T);
-            RetryRpcCall(() => {
+            RetryRpcCall(() =>
+            {
                 returnValue = action();
             });
             return returnValue;
@@ -249,7 +252,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
                 threadInputsAttached = AttachThreadInput(currentThreadId, activeThreadId);
 
                 // Make the window a top-most window so it will appear above any existing top-most windows
-                User32.SetWindowPos(window, (IntPtr)(User32.HWND_TOPMOST), 0, 0, 0, 0, (User32.SWP_NOSIZE | User32.SWP_NOMOVE));
+                User32.SetWindowPos(window, (IntPtr)User32.HWND_TOPMOST, 0, 0, 0, 0, (User32.SWP_NOSIZE | User32.SWP_NOMOVE));
 
                 // Move the window into the foreground as it may not have been achieved by the 'SetWindowPos' call
                 var success = User32.SetForegroundWindow(window);
@@ -266,7 +269,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
                 User32.SetFocus(window);
 
                 // Remove the 'Top-Most' qualification from the window
-                User32.SetWindowPos(window, (IntPtr)(User32.HWND_NOTOPMOST), 0, 0, 0, 0, (User32.SWP_NOSIZE | User32.SWP_NOMOVE));
+                User32.SetWindowPos(window, (IntPtr)User32.HWND_NOTOPMOST, 0, 0, 0, 0, (User32.SWP_NOSIZE | User32.SWP_NOMOVE));
             }
             finally
             {
@@ -278,15 +281,207 @@ namespace Roslyn.VisualStudio.Test.Utilities
             }
         }
 
-        public static void SendInput(User32.INPUT[] input)
+        public static void SendInput(User32.INPUT[] inputs)
         {
-            var eventsInserted = User32.SendInput((uint)(input.Length), input, User32.SizeOf_INPUT);
+            // NOTE: This assumes that Visual Studio is the active foreground window.
+
+            LogKeyboardInputs(inputs);
+
+            var eventsInserted = User32.SendInput((uint)inputs.Length, inputs, User32.SizeOf_INPUT);
 
             if (eventsInserted == 0)
             {
                 var hresult = Marshal.GetHRForLastWin32Error();
                 throw new ExternalException("Sending input failed because input was blocked by another thread.", hresult);
             }
+        }
+
+        [Conditional("DEBUG")]
+        private static void LogKeyboardInputs(User32.INPUT[] inputs)
+        {
+            foreach (var input in inputs)
+            {
+                switch (input.Type)
+                {
+                    case User32.INPUT_KEYBOARD:
+                        LogKeyboardInput(input.ki);
+                        break;
+                    case User32.INPUT_MOUSE:
+                        Debug.WriteLine("UNEXPECTED: Encountered mouse input");
+                        break;
+                    case User32.INPUT_HARDWARE:
+                        Debug.WriteLine("UNEXPECTED: Encountered hardware input");
+                        break;
+                    default:
+                        Debug.WriteLine($"ERROR: Encountered illegal input type: {input.Type}");
+                        break;
+                }
+            }
+        }
+
+        [Conditional("DEBUG")]
+        private static void LogKeyboardInput(User32.KEYBDINPUT input)
+        {
+            var isExtendedKey = (input.dwFlags & User32.KEYEVENTF_EXTENDEDKEY) != 0;
+            var isKeyUp = (input.dwFlags & User32.KEYEVENTF_KEYUP) != 0;
+            var isUnicode = (input.dwFlags & User32.KEYEVENTF_UNICODE) != 0;
+            var isScanCode = (input.dwFlags & User32.KEYEVENTF_SCANCODE) != 0;
+
+            if (isUnicode && input.wVk != 0)
+            {
+                Debug.WriteLine("UNEXPECTED: if KEYEVENTF_UNICODE flag is specified then wVk must be 0.");
+                return;
+            }
+
+            var builder = SharedPools.Default<StringBuilder>().AllocateAndClear();
+
+            builder.Append("Send Key: ");
+
+            ushort ch;
+            if (isUnicode || isScanCode)
+            {
+                ch = input.wScan;
+            }
+            else
+            {
+                ch = (ushort)(User32.MapVirtualKey(input.wVk, User32.MAPVK_VK_TO_CHAR) & 0x0000ffff);
+            }
+
+            // Append code and printable character
+            builder.Append(ch.ToString("x4"));
+            builder.Append(' ');
+            AppendPrintableChar((char)ch, builder);
+
+            if (!isUnicode && !isScanCode)
+            {
+                AppendVirtualKey(input.wVk, builder);
+            }
+
+            // Append flags
+            if (input.dwFlags == 0)
+            {
+                builder.Append("[none]");
+            }
+            else
+            {
+                builder.Append('[');
+
+                if (isExtendedKey)
+                {
+                    AppendFlag("extended", builder);
+                }
+
+                if (isKeyUp)
+                {
+                    AppendFlag("key up", builder);
+                }
+
+                if (isUnicode)
+                {
+                    AppendFlag("unicode", builder);
+                }
+
+                if (isScanCode)
+                {
+                    AppendFlag("scan code", builder);
+                }
+
+                builder.Append(']');
+            }
+
+            Debug.WriteLine(builder.ToString());
+
+            SharedPools.Default<StringBuilder>().ClearAndFree(builder);
+        }
+
+        private static void AppendPrintableChar(char ch, StringBuilder builder)
+        {
+            string text = GetPrintableCharText(ch);
+
+            if (text != null)
+            {
+                builder.Append("'");
+                builder.Append(text);
+                builder.Append("' ");
+            }
+        }
+
+        private static string GetPrintableCharText(char ch)
+        {
+            switch (ch)
+            {
+                case '\r':
+                    return @"\r";
+                case '\n':
+                    return @"\n";
+                case '\t':
+                    return @"\t";
+                case '\f':
+                    return @"\f";
+                case '\v':
+                    return @"\v";
+                default:
+                    return !char.IsControl(ch)
+                        ? new string(ch, 1)
+                        : null;
+            }
+        }
+
+        private static void AppendVirtualKey(ushort virtualKey, StringBuilder builder)
+        {
+            switch (virtualKey)
+            {
+                case User32.VK_CONTROL:
+                    builder.Append("(VK_CONTROL) ");
+                    break;
+                case User32.VK_DELETE:
+                    builder.Append("(VK_DELETE) ");
+                    break;
+                case User32.VK_DOWN:
+                    builder.Append("(VK_DOWN) ");
+                    break;
+                case User32.VK_END:
+                    builder.Append("(VK_END) ");
+                    break;
+                case User32.VK_HOME:
+                    builder.Append("(VK_HOME) ");
+                    break;
+                case User32.VK_INSERT:
+                    builder.Append("(VK_INSERT) ");
+                    break;
+                case User32.VK_LEFT:
+                    builder.Append("(VK_LEFT) ");
+                    break;
+                case User32.VK_MENU:
+                    builder.Append("(VK_MENU) ");
+                    break;
+                case User32.VK_NEXT:
+                    builder.Append("(VK_NEXT) ");
+                    break;
+                case User32.VK_PRIOR:
+                    builder.Append("(VK_PRIOR) ");
+                    break;
+                case User32.VK_RIGHT:
+                    builder.Append("(VK_RIGHT) ");
+                    break;
+                case User32.VK_SHIFT:
+                    builder.Append("(VK_SHIFT) ");
+                    break;
+                case User32.VK_UP:
+                    builder.Append("(VK_UP) ");
+                    break;
+            }
+        }
+
+        [Conditional("DEBUG")]
+        private static void AppendFlag(string flagText, StringBuilder builder)
+        {
+            if (builder.Length > 0 && builder[builder.Length - 1] != '[')
+            {
+                builder.Append(", ");
+            }
+
+            builder.Append(flagText);
         }
 
         public static bool TryDeleteDirectoryRecursively(string path)
