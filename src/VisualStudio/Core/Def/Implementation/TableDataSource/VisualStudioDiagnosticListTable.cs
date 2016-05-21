@@ -5,6 +5,7 @@ using System.ComponentModel;
 using System.ComponentModel.Composition;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
@@ -53,14 +54,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
 
             if (ErrorListHasFullSolutionAnalysisButton())
             {
-                var errorList2 = _errorList as IErrorList2;
-                if (errorList2 != null)
-                {
-                    workspace.WorkspaceChanged += OnWorkspaceChanged;
-                    errorList2.AnalysisToggleStateChanged += OnErrorListFullSolutionAnalysisToggled;
-                    workspace.Services.GetService<IOptionService>().OptionChanged += OnOptionChanged;
-                }                
+                SetupErrorListFullSolutionAnalysis(workspace);
             }
+        }
+
+        [MethodImpl(MethodImplOptions.NoInlining)]
+        private void SetupErrorListFullSolutionAnalysis(Workspace workspace)
+        {
+            var errorList2 = _errorList as IErrorList2;
+            if (errorList2 != null)
+            {
+                workspace.WorkspaceChanged += OnWorkspaceChanged;
+                errorList2.AnalysisToggleStateChanged += OnErrorListFullSolutionAnalysisToggled;
+                workspace.Services.GetService<IOptionService>().OptionChanged += OnOptionChanged;
+            }                
+
         }
 
         private ITableDataSource GetCurrentDataSource()
