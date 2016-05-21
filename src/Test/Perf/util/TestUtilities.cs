@@ -1,19 +1,13 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.IO.Compression;
-using System.Linq;
-using System.Net;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Roslyn.Test.Performance.Utilities;
 
 namespace Roslyn.Test.Performance.Utilities
 {
-    public class TestUtilities
+    internal class TestUtilities
     {
         //
         // Directory Locating Functions
@@ -23,10 +17,10 @@ namespace Roslyn.Test.Performance.Utilities
         /// <summary>
         /// This method should be called *ONLY* by the csx scripts.
         /// This method *MUST NOT* be called from within the library itself. If this method is called within the library instead of csx scripts
-        /// then <param name="sourceFilePath"/> will be set to the path of the file when the library is actual built.
+        /// then <paramref name="sourceFilePath"/> will be set to the path of the file when the library is actual built.
         /// For Eg: If SomeLibarayFile.cs calls this method and if the library is built is some build machine where SomeLibarayFile.cs is saved at
         /// Y:/Project/SomeLibarayFile.cs then when the library is used in any machine where there is no Y: drive then we will see errors saying
-        /// invalid directory path. Also note that <param name="sourceFilePath"/> will be set to "Y:/Project/SomeLibarayFile.cs" and not set to
+        /// invalid directory path. Also note that <paramref name="sourceFilePath"/> will be set to "Y:/Project/SomeLibarayFile.cs" and not set to
         /// the path of the file from where the call to SomeLibarayFile.cs which in turn called <see cref="InitUtilitiesFromCsx(string)"/>
         /// </summary>
         public static void InitUtilitiesFromCsx([CallerFilePath] string sourceFilePath = "")
@@ -70,9 +64,9 @@ namespace Roslyn.Test.Performance.Utilities
             public bool Succeeded => !Failed;
         }
 
-        /// Shells out, and if the process fails, log the error
+        // Shells out, and if the process fails, log the error
         /// and quit the script.
-        /// NOTE: <param name="workingDirectory"/> should be set when called inside the library and not from csx. see <see cref="InitUtilitiesFromCsx(string)"/>
+        /// NOTE: <paramref name="workingDirectory"/> should be set when called inside the library and not from csx. see <see cref="InitUtilitiesFromCsx(string)"/>
         /// for more information
         public static void ShellOutVital(
                 string file,
@@ -90,7 +84,7 @@ namespace Roslyn.Test.Performance.Utilities
             }
         }
 
-        /// NOTE: <param name="workingDirectory"/> should be set when called inside the library and not from csx. see <see cref="InitUtilitiesFromCsx(string)"/>
+        /// NOTE: <paramref name="workingDirectory"/> should be set when called inside the library and not from csx. see <see cref="InitUtilitiesFromCsx(string)"/>
         /// for more information
         public static ProcessResult ShellOut(
                 string file,

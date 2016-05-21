@@ -538,8 +538,11 @@ Microsoft.CodeAnalysis.Semantics.LoopKind.None = 0 -> Microsoft.CodeAnalysis.Sem
 Microsoft.CodeAnalysis.Semantics.LoopKind.WhileUntil = 1 -> Microsoft.CodeAnalysis.Semantics.LoopKind
 Microsoft.CodeAnalysis.Semantics.OperationExtensions
 Microsoft.CodeAnalysis.Semantics.OperationVisitor
+Microsoft.CodeAnalysis.Semantics.OperationVisitor.OperationVisitor() -> void
 Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>
+Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.OperationVisitor() -> void
 Microsoft.CodeAnalysis.Semantics.OperationWalker
+Microsoft.CodeAnalysis.Semantics.OperationWalker.OperationWalker() -> void
 Microsoft.CodeAnalysis.Semantics.SimpleBinaryOperationKind
 Microsoft.CodeAnalysis.Semantics.SimpleBinaryOperationKind.Add = 1 -> Microsoft.CodeAnalysis.Semantics.SimpleBinaryOperationKind
 Microsoft.CodeAnalysis.Semantics.SimpleBinaryOperationKind.And = 10 -> Microsoft.CodeAnalysis.Semantics.SimpleBinaryOperationKind
