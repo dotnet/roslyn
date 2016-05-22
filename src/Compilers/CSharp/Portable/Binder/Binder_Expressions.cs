@@ -2023,6 +2023,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
+            if (argumentSyntax.Expression == null)
+            {
+                return true;
+            }
+
             switch (argumentSyntax.Expression.Kind())
             {
                 // The next 3 cases should never be allowed as they cannot be ref/out. Assuming a bug in legacy compiler.
@@ -2056,15 +2061,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Note: Some others should still be rejected when ref/out present. See RefMustBeObeyed.
             RefKind refKind = origRefKind == RefKind.None || RefMustBeObeyed(isDelegateCreation, argumentSyntax) ? origRefKind : RefKind.None;
 
+            BoundExpression boundArgument = BindArgumentValue(diagnostics, argumentSyntax, allowArglist, refKind);
+
             hadError |= BindArgumentAndName(
                 result,
                 diagnostics,
                 hadError,
                 argumentSyntax,
-                argumentSyntax.Expression,
+                boundArgument,
                 argumentSyntax.NameColon,
-                refKind,
-                allowArglist);
+                refKind);
 
             // check for ref/out property/indexer, only needed for 1 parameter version
             if (!hadError && isDelegateCreation && origRefKind != RefKind.None && result.Arguments.Count == 1)
@@ -2081,6 +2087,48 @@ namespace Microsoft.CodeAnalysis.CSharp
             return hadError;
         }
 
+        private BoundExpression BindArgumentValue(DiagnosticBag diagnostics, ArgumentSyntax argumentSyntax, bool allowArglist, RefKind refKind)
+        {
+            if (argumentSyntax.Expression != null)
+            {
+                return BindArgumentExpression(diagnostics, argumentSyntax.Expression, refKind, allowArglist);
+            }
+
+            var typeSyntax = argumentSyntax.Type;
+
+            bool isConst = false;
+            bool isVar;
+            AliasSymbol alias;
+            TypeSymbol declType = BindVariableType(argumentSyntax, diagnostics, typeSyntax, ref isConst, out isVar, out alias);
+
+            SourceLocalSymbol localSymbol = this.LookupLocal(argumentSyntax.Identifier);
+
+            // In error scenarios with misplaced code, it is possible we can't bind the local declaration.
+            // This occurs through the semantic model.  In that case concoct a plausible result.
+            if ((object)localSymbol == null)
+            {
+                localSymbol = SourceLocalSymbol.MakeLocal(
+                    ContainingMemberOrLambda,
+                    this,
+                    RefKind.None,
+                    typeSyntax,
+                    argumentSyntax.Identifier,
+                    LocalDeclarationKind.RegularVariable,
+                    initializer: null);
+            }
+            else
+            {
+                this.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
+            }
+
+            if (isVar)
+            {
+                // PROTOTYPE(outvar):
+                throw new NotImplementedException();
+            }
+
+            return new BoundLocal(argumentSyntax, localSymbol, constantValueOpt: null, type: declType);
+        }
 
         // Bind a named/positional argument.
         // Prevent cascading diagnostic by considering the previous
@@ -2090,25 +2138,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             DiagnosticBag diagnostics,
             bool hadError,
             CSharpSyntaxNode argumentSyntax,
-            ExpressionSyntax argumentExpression,
+            BoundExpression boundArgumentExpression,
             NameColonSyntax nameColonSyntax,
-            RefKind refKind,
-            bool allowArglist)
+            RefKind refKind)
         {
             Debug.Assert(argumentSyntax is ArgumentSyntax || argumentSyntax is AttributeArgumentSyntax);
-
-            BindValueKind valueKind = refKind == RefKind.None ? BindValueKind.RValue : BindValueKind.RefOrOut;
-
-            // Bind argument and verify argument matches rvalue or out param requirements.
-            BoundExpression argument;
-            if (allowArglist)
-            {
-                argument = this.BindValueAllowArgList(argumentExpression, diagnostics, valueKind);
-            }
-            else
-            {
-                argument = this.BindValue(argumentExpression, diagnostics, valueKind);
-            }
 
             bool hasRefKinds = result.RefKinds.Any();
             if (refKind != RefKind.None)
@@ -2171,7 +2205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         hadError = true;
                     }
 
-                    argument = ToBadExpression(argument);
+                    boundArgumentExpression = ToBadExpression(boundArgumentExpression);
                 }
 
                 result.Names.Add(nameColonSyntax.Name);
@@ -2186,14 +2220,34 @@ namespace Microsoft.CodeAnalysis.CSharp
                     hadError = true;
                 }
 
-                argument = ToBadExpression(argument);
+                boundArgumentExpression = ToBadExpression(boundArgumentExpression);
 
                 result.Names.Add(null);
             }
 
-            result.Arguments.Add(argument);
+            result.Arguments.Add(boundArgumentExpression);
 
             return hadError;
+        }
+
+        /// <summary>
+        /// Bind argument and verify argument matches rvalue or out param requirements.
+        /// </summary>
+        private BoundExpression BindArgumentExpression(DiagnosticBag diagnostics, ExpressionSyntax argumentExpression, RefKind refKind, bool allowArglist)
+        {
+            BindValueKind valueKind = refKind == RefKind.None ? BindValueKind.RValue : BindValueKind.RefOrOut;
+
+            BoundExpression argument;
+            if (allowArglist)
+            {
+                argument = this.BindValueAllowArgList(argumentExpression, diagnostics, valueKind);
+            }
+            else
+            {
+                argument = this.BindValue(argumentExpression, diagnostics, valueKind);
+            }
+
+            return argument;
         }
 
         private void CoerceArguments<TMember>(

@@ -78,5 +78,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         {
             return options.WithFeature("replace", "true");
         }
+
+        public static CSharpParseOptions WithOutVarFeature(this CSharpParseOptions options)
+        {
+            return options.WithFeature("outVar", "true");
+        }
     }
 }
