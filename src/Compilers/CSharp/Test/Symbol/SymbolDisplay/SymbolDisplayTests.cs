@@ -6,6 +6,7 @@ using System.Globalization;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
@@ -4465,6 +4466,36 @@ class C<T> { }";
             Assert.False(new FormattedSymbol(sA, new SymbolDisplayFormat()).Equals(new FormattedSymbol(sA, new SymbolDisplayFormat())));
 
             Assert.True(new FormattedSymbol(sA, f1).GetHashCode().Equals(new FormattedSymbol(sA, f1).GetHashCode()));
+        }
+
+        [WorkItem(5002, "https://github.com/dotnet/roslyn/issues/5002")]
+        [Fact]
+        public void AliasInSpeculativeSemanticModel()
+        {
+            var text =
+@"using A = N.M;
+namespace N.M
+{
+    class B
+    {
+    }
+}
+class C
+{
+    static void M()
+    {
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(text);
+            var tree = comp.SyntaxTrees.First();
+            var model = comp.GetSemanticModel(tree);
+            tree = CSharpSyntaxTree.ParseText(text);
+            var methodDecl = tree.GetCompilationUnitRoot().DescendantNodes().OfType<MethodDeclarationSyntax>().First();
+            int position = methodDecl.Body.SpanStart;
+            Assert.True(model.TryGetSpeculativeSemanticModelForMethodBody(position, methodDecl, out model));
+            var symbol = comp.GetMember<NamedTypeSymbol>("N.M.B");
+            var description = symbol.ToMinimalDisplayParts(model, position, SymbolDisplayFormat.MinimallyQualifiedFormat);
+            Verify(description, "A.B", SymbolDisplayPartKind.AliasName, SymbolDisplayPartKind.Punctuation, SymbolDisplayPartKind.ClassName);
         }
     }
 }
