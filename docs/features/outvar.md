@@ -10,21 +10,33 @@ argument_value
     ;
 ```
 
-A variable declared this way is called an *out variable*. An *out variable* is read-only and scoped to the enclosing statement. More specifically, the scope will be the same as for a *pattern-variable* introduced via pattern-matching.
-
-> **Note**: We may treat *out variables* as *pattern variables* in the semantic model.
-
+A variable declared this way is called an *out variable*. 
 You may use the contextual keyword `var` for the variable's type.
+The scope will be the same as for a *pattern-variable* introduced via pattern-matching.
+Out variables are disallowed within constructor initializers.
 
-> **Open Issue**: The specification for overload resolution needs to be modified to account for the inference of the type of an *out variable*s declared with `var`.
+According to Language Specification (section 7.6.7 Element access)
+The argument-list of an element-access is not allowed to contain ref or out arguments.
+However, due to backward compatibility, compiler overlooks this restriction during parsing
+and even ignores out/ref modifiers in element access during binding.
+We will enforce that language rule for out variables declarations at the syntax level.
 
-An *out variable* may not be referenced before the close parenthesis of the invocation in which it is defined:
+Within the scope of a local variable introduced by a local-variable-declaration, 
+it is a compile-time error to refer to that local variable in a textual position 
+that precedes its declaration. 
 
-```cs
-    M(out x, x = 3); // error
-```
+It is also an error to reference implicitly-typed (§8.5.1) out variable in the same argument list that immediately 
+contains its declaration. Technically, we could support some restricted scenarios (when it is used as another 
+argument in the same list), but their utility is very questionable. Otherwise, we are looking into getting into 
+a cycle trying to infer its type. 
+
+For the purposes of overload resolution (see sections 7.5.3.2 Better function member and 7.5.3.3 Better conversion from expression),
+neither conversion is considered better when corresponding argument is an implicitly-typed out variable declaration.
+Once overload resolution succeeds, the type of implicitly-typed out variable is set to be equal to the type of the 
+corresponding parameter in the signature of the best candidate.
 
 > **Note**: There is a discussion thread for this feature at https://github.com/dotnet/roslyn/issues/6183
+
 
 
 **ArgumentSyntax node is extended as follows to accommodate for the new syntax:**
@@ -51,15 +63,5 @@ Added new API
 ```
 
 
-**Open issues:**
-
-- Syntax model is still in flux.
-- Need to get confirmation from LDM that we really want to make these variables read-only. For now they are just regular, writable, variables. 
-- Need to get confirmation from LDM that we really want to disallow referencing out variables the declaring argument list. It seems nothing prevents us from allowing such references for explicitly typed variables. Allowing them for now. 
-
-
-**TODO:**
-
-[ ] Add tests for scope rules. Given that currently scoping rules match the rules for pattern variables, and implementation takes advantage of existing infrastructure added for pattern variables, the priority of adding these tests is low. We have pretty good suite of tests for pattern variables. 
-
-[ ] Need to get an approval for the new SemanticModel.GetDeclaredSymbol API.
+**Open issues and TODOs:**
+    Tracked at https://github.com/dotnet/roslyn/issues/11566.

@@ -165,6 +165,27 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            var contextKind = node.Identifier.
+                                   Parent. // ArgumentSyntax
+                                   Parent. // ArgumentListSyntax
+                                   Parent. // invocation/constructor initializer
+                                   Kind();
+
+            switch (contextKind)
+            {
+                case SyntaxKind.InvocationExpression:
+                case SyntaxKind.ObjectCreationExpression:
+                case SyntaxKind.ThisConstructorInitializer:
+                case SyntaxKind.BaseConstructorInitializer:
+                    break;
+                default:
+
+                    // It looks like we are deling with a syntax tree that has a shape that could never be
+                    // produced by the LanguageParser, including all error conditions. 
+                    // Out Variable declarations can only appear in an argument list of the syntax nodes mentioned above.
+                    throw ExceptionUtilities.UnexpectedValue(contextKind);
+            }
+
             _localsBuilder.Add(SourceLocalSymbol.MakeLocal(_binder.ContainingMemberOrLambda, _binder, RefKind.None, node.Type, node.Identifier, LocalDeclarationKind.RegularVariable));
         }
 

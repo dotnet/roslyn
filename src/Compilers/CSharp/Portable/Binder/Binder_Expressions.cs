@@ -1369,12 +1369,43 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         else
                         {
+                            SourceLocalSymbol sourceLocal;
+                            type = null;
+
+                            if (node.SyntaxTree == localSymbolLocation.SourceTree && (object)(sourceLocal = localSymbol as SourceLocalSymbol) != null &&
+                                sourceLocal.IdentifierToken.Parent?.Kind() == SyntaxKind.Argument)
+                            {
+                                var argument = (ArgumentSyntax)sourceLocal.IdentifierToken.Parent;
+
+                                if (argument.Identifier == sourceLocal.IdentifierToken &&
+                                    argument.Type.IsVar)
+                                {
+                                    // We are referring to an out variable which might need type inference.
+                                    // If it is in fact needs inference, it is illegal to reference it in the same argument list that immediately 
+                                    // contains its declaration. 
+                                    // Technically, we could support some restricted scenarios (when it is used as another argument in the same list), 
+                                    // but their utility is very questionable. Otherwise, we are looking into getting into a cycle trying to infer its type. 
+                                    if (node.SpanStart < ((ArgumentListSyntax)argument.Parent).CloseParenToken.SpanStart && 
+                                        sourceLocal.IsVar) // This check involves trying to bind 'var' as a real type, so keeping it last for performance.
+                                    {
+                                        Error(diagnostics, ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList, node, node);
+
+                                        // Treat this case as variable used before declaration, we might be able to infer type of the variable anyway and SemanticModel 
+                                        // will be able to return non-error type information for this node. 
+                                        type = new ExtendedErrorTypeSymbol(this.Compilation, name: "var", arity: 0, errorInfo: null, variableUsedBeforeDeclaration: true);
+                                    }
+                                }
+                            }
+
+                            if ((object)type == null)
+                            {
+                                type = localSymbol.Type;
+                            }
+
                             if (IsBadLocalOrParameterCapture(localSymbol, localSymbol.RefKind))
                             {
                                 Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUseLocal, node, localSymbol);
                             }
-
-                            type = localSymbol.Type;
                         }
 
                         return new BoundLocal(node, localSymbol, constantValueOpt, type, hasErrors: isError);
@@ -2121,10 +2152,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
             }
 
+            if (this.InConstructorInitializer)
+            {
+                Error(diagnostics, ErrorCode.ERR_OutVarInConstructorInitializer, argumentSyntax.Identifier);
+            }
+
             if (isVar)
             {
-                // PROTOTYPE(outvar):
-                throw new NotImplementedException();
+                return new OutVarLocalPendingInference(argumentSyntax, localSymbol);
+            }
+
+            if (this.ContainingMemberOrLambda.Kind == SymbolKind.Method
+                && ((MethodSymbol)this.ContainingMemberOrLambda).IsAsync
+                && declType.IsRestrictedType())
+            {
+                Error(diagnostics, ErrorCode.ERR_BadSpecialByRefLocal, argumentSyntax.Type, declType);
             }
 
             return new BoundLocal(argumentSyntax, localSymbol, constantValueOpt: null, type: declType);
@@ -2279,6 +2321,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     arguments[arg] = CreateConversion(argument.Syntax, argument, kind, false, type, diagnostics);
+                }
+                else if (argument.Kind == BoundKind.OutVarLocalPendingInference)
+                {
+                    TypeSymbol parameterType = GetCorrespondingParameterType(ref result, parameters, arg);
+                    bool hasErrors = false;
+
+                    if (this.ContainingMemberOrLambda.Kind == SymbolKind.Method
+                        && ((MethodSymbol)this.ContainingMemberOrLambda).IsAsync
+                        && parameterType.IsRestrictedType())
+                    {
+                        Error(diagnostics, ErrorCode.ERR_BadSpecialByRefLocal, ((ArgumentSyntax)argument.Syntax).Type, parameterType);
+                        hasErrors = true;
+                    }
+
+                    arguments[arg] = ((OutVarLocalPendingInference)argument).SetInferredType(parameterType, success: !hasErrors);
                 }
             }
         }

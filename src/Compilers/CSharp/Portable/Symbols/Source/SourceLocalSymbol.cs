@@ -93,9 +93,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             EqualsValueClauseSyntax initializer = null)
         {
             Debug.Assert(declarationKind != LocalDeclarationKind.ForEachIterationVariable);
-            return (initializer == null) ?
-                new SourceLocalSymbol(containingSymbol, binder, refKind, typeSyntax, identifierToken, declarationKind) :
-                new LocalWithInitializer(containingSymbol, binder, refKind, typeSyntax, identifierToken, initializer, declarationKind);
+            if (initializer == null)
+            {
+                if (identifierToken.Parent?.Kind() == SyntaxKind.Argument)
+                {
+                    var argument = (ArgumentSyntax)identifierToken.Parent;
+                    if (argument.Identifier == identifierToken && argument.Type.IsVar)
+                    {
+                        return new PossibleOutVarLocalSymbol(containingSymbol, binder, refKind, typeSyntax, identifierToken, declarationKind);
+                    }
+                }
+
+                return new SourceLocalSymbol(containingSymbol, binder, refKind, typeSyntax, identifierToken, declarationKind);
+            }
+
+            return new LocalWithInitializer(containingSymbol, binder, refKind, typeSyntax, identifierToken, initializer, declarationKind);
         }
 
         internal override bool IsImportedFromMetadata
@@ -508,6 +520,61 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Normally, it would not be safe to cast to a specific binder type.  However, we verified the type
                 // in the factory method call for this symbol.
                 return ((ForEachLoopBinder)this.binder).InferCollectionElementType(diagnostics, _collection);
+            }
+        }
+
+        /// <summary>
+        /// Symbol for an out variable local that might require type inference during overload resolution.
+        /// </summary>
+        private class PossibleOutVarLocalSymbol : SourceLocalSymbol
+        {
+            public PossibleOutVarLocalSymbol(
+                Symbol containingSymbol,
+                Binder binder,
+                RefKind refKind,
+                TypeSyntax typeSyntax,
+                SyntaxToken identifierToken,
+                LocalDeclarationKind declarationKind) 
+            : base(containingSymbol, binder, refKind, typeSyntax, identifierToken, declarationKind)
+            {
+                Debug.Assert(identifierToken.Parent.Kind() == SyntaxKind.Argument  && 
+                             ((ArgumentSyntax)identifierToken.Parent).Identifier == identifierToken);
+
+                Debug.Assert(identifierToken.Parent.Parent.Parent is ConstructorInitializerSyntax ?
+                                 binder.ScopeDesignator == identifierToken.Parent.Parent :
+                                 binder.ScopeDesignator.Contains(identifierToken.Parent.Parent.Parent));
+            }
+
+            protected override TypeSymbol InferTypeOfVarVariable(DiagnosticBag diagnostics)
+            {
+                // Try binding immediately enclosing invocation expression, this should force the inference.
+
+                CSharpSyntaxNode invocation = (CSharpSyntaxNode)IdentifierToken.
+                                                                Parent. // ArgumentSyntax
+                                                                Parent. // ArgumentListSyntax
+                                                                Parent; // invocation/constructor initializer
+
+                TypeSymbol result;
+
+                switch (invocation.Kind())
+                {
+                    case SyntaxKind.InvocationExpression:
+                    case SyntaxKind.ObjectCreationExpression:
+                        this.binder.BindExpression((ExpressionSyntax)invocation, diagnostics);
+                        result = this._type;
+                        Debug.Assert((object)result != null);
+                        return result;
+
+                    case SyntaxKind.ThisConstructorInitializer:
+                    case SyntaxKind.BaseConstructorInitializer:
+                        this.binder.BindConstructorInitializer(((ConstructorInitializerSyntax)invocation).ArgumentList, (MethodSymbol)this.binder.ContainingMember(), diagnostics);
+                        result = this._type;
+                        Debug.Assert((object)result != null);
+                        return result;
+
+                    default:
+                        throw ExceptionUtilities.UnexpectedValue(invocation.Kind());
+                }
             }
         }
     }

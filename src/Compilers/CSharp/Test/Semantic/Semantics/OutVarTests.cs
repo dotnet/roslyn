@@ -41,10 +41,17 @@ public class Cls
 }";
             var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
             compilation.VerifyDiagnostics(
-                // (6,29): error CS8058: Feature 'out var' is experimental and unsupported; use '/features:outVar' to enable.
+                // (6,29): error CS8058: Feature 'out variable declaration' is experimental and unsupported; use '/features:outVar' to enable.
                 //         Test2(Test1(out int x1), x1);
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "x1").WithArguments("out var", "outVar").WithLocation(6, 29)
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "x1").WithArguments("out variable declaration", "outVar").WithLocation(6, 29)
                 );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
         [Fact]
@@ -94,6 +101,11 @@ public class Cls
 
         private static void VerifyModelForOutVar(SemanticModel model, ArgumentSyntax decl, params IdentifierNameSyntax[] references)
         {
+            VerifyModelForOutVar(model, decl, false, references);
+        }
+
+        private static void VerifyModelForOutVar(SemanticModel model, ArgumentSyntax decl, bool isDelegateCreation, params IdentifierNameSyntax[] references)
+        {
             var symbol = model.GetDeclaredSymbol(decl);
             Assert.Equal(decl.Identifier.ValueText, symbol.Name);
             Assert.Equal(LocalDeclarationKind.RegularVariable, ((LocalSymbol)symbol).DeclarationKind);
@@ -101,34 +113,54 @@ public class Cls
             Assert.Same(symbol, model.LookupSymbols(decl.SpanStart, name: decl.Identifier.ValueText).Single());
             Assert.True(model.LookupNames(decl.SpanStart).Contains(decl.Identifier.ValueText));
 
+            var local = (SourceLocalSymbol)symbol;
+
+            if (decl.Type.IsVar && local.IsVar && local.Type.IsErrorType())
+            {
+                Assert.Null(model.GetSymbolInfo(decl.Type).Symbol);
+            }
+            else
+            {
+                Assert.Equal(local.Type, model.GetSymbolInfo(decl.Type).Symbol);
+            }
+
             foreach (var reference in references)
             {
                 Assert.Same(symbol, model.GetSymbolInfo(reference).Symbol);
                 Assert.Same(symbol, model.LookupSymbols(reference.SpanStart, name: decl.Identifier.ValueText).Single());
                 Assert.True(model.LookupNames(reference.SpanStart).Contains(decl.Identifier.ValueText));
+                Assert.Equal(local.Type, model.GetTypeInfo(reference).Type);
             }
 
-            var dataFlowParent = decl.Ancestors().OfType<ExpressionSyntax>().First();
-            var dataFlow = model.AnalyzeDataFlow(dataFlowParent);
+            if (!(decl.Parent.Parent is ConstructorInitializerSyntax))
+            {
+                var dataFlowParent = (ExpressionSyntax)decl.Parent.Parent;
+                var dataFlow = model.AnalyzeDataFlow(dataFlowParent);
 
-            Assert.True(dataFlow.Succeeded);
-            Assert.True(dataFlow.VariablesDeclared.Contains(symbol, ReferenceEqualityComparer.Instance));
-            Assert.True(dataFlow.AlwaysAssigned.Contains(symbol, ReferenceEqualityComparer.Instance));
-            Assert.True(dataFlow.WrittenInside.Contains(symbol, ReferenceEqualityComparer.Instance));
-            var flowsIn = FlowsIn(dataFlowParent, decl, references);
-            Assert.Equal(flowsIn,
-                         dataFlow.DataFlowsIn.Contains(symbol, ReferenceEqualityComparer.Instance));
-            Assert.Equal(flowsIn,
-                         dataFlow.ReadInside.Contains(symbol, ReferenceEqualityComparer.Instance));
+                Assert.True(dataFlow.Succeeded);
+                Assert.True(dataFlow.VariablesDeclared.Contains(symbol, ReferenceEqualityComparer.Instance));
 
-            var flowsOut = FlowsOut(dataFlowParent, references);
-            Assert.Equal(flowsOut, 
-                         dataFlow.DataFlowsOut.Contains(symbol, ReferenceEqualityComparer.Instance));
-            Assert.Equal(flowsOut,
-                         dataFlow.ReadOutside.Contains(symbol, ReferenceEqualityComparer.Instance));
+                if (!isDelegateCreation)
+                {
+                    Assert.True(dataFlow.AlwaysAssigned.Contains(symbol, ReferenceEqualityComparer.Instance));
+                    Assert.True(dataFlow.WrittenInside.Contains(symbol, ReferenceEqualityComparer.Instance));
 
-            Assert.Equal(WrittenOutside(dataFlowParent, references),
-                         dataFlow.WrittenOutside.Contains(symbol, ReferenceEqualityComparer.Instance));
+                    var flowsIn = FlowsIn(dataFlowParent, decl, references);
+                    Assert.Equal(flowsIn,
+                                 dataFlow.DataFlowsIn.Contains(symbol, ReferenceEqualityComparer.Instance));
+                    Assert.Equal(flowsIn,
+                                 dataFlow.ReadInside.Contains(symbol, ReferenceEqualityComparer.Instance));
+
+                    var flowsOut = FlowsOut(dataFlowParent, references);
+                    Assert.Equal(flowsOut,
+                                 dataFlow.DataFlowsOut.Contains(symbol, ReferenceEqualityComparer.Instance));
+                    Assert.Equal(flowsOut,
+                                 dataFlow.ReadOutside.Contains(symbol, ReferenceEqualityComparer.Instance));
+
+                    Assert.Equal(WrittenOutside(dataFlowParent, references),
+                                 dataFlow.WrittenOutside.Contains(symbol, ReferenceEqualityComparer.Instance));
+                }
+            }
         }
 
         private static bool FlowsIn(ExpressionSyntax dataFlowParent, ArgumentSyntax decl, IdentifierNameSyntax[] references)
@@ -566,6 +598,79 @@ public class Cls
         }
 
         [Fact]
+        public void Simple_10()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test2(Test1(out dynamic x1), x1);
+    }
+
+    static object Test1(out dynamic x)
+    {
+        x = 123;
+        return null;
+    }
+
+    static void Test2(object x, object y)
+    {
+        System.Console.WriteLine(y);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            references: new MetadataReference[] { CSharpRef, SystemCoreRef }, 
+                                                            options: TestOptions.ReleaseExe, 
+                                                            parseOptions: TestOptions.Regular.WithOutVarFeature());
+
+            CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void Simple_11()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test2(Test1(out int[] x1), x1);
+    }
+
+    static object Test1(out int[] x)
+    {
+        x = new [] {123};
+        return null;
+    }
+
+    static void Test2(object x, int[] y)
+    {
+        System.Console.WriteLine(y[0]);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular.WithOutVarFeature());
+
+            CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
         public void Scope_01()
         {
             var text = @"
@@ -602,6 +707,128 @@ public class Cls
                 // (6,13): warning CS0219: The variable 'x1' is assigned but its value is never used
                 //         int x1 = 0;
                 Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x1").WithArguments("x1").WithLocation(6, 13)
+                );
+        }
+
+        [Fact]
+        public void Scope_02()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test2(x1, 
+              Test1(out int x1));
+    }
+
+    static object Test1(out int x)
+    {
+        x = 1;
+        return null;
+    }
+
+    static void Test2(object y, object x)
+    {
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithOutVarFeature());
+
+            compilation.VerifyDiagnostics(
+                // (6,15): error CS0841: Cannot use local variable 'x1' before it is declared
+                //         Test2(x1, 
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(6, 15)
+                );
+        }
+
+        [Fact]
+        public void Scope_03()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test2(out x1, 
+              Test1(out int x1));
+    }
+
+    static object Test1(out int x)
+    {
+        x = 1;
+        return null;
+    }
+
+    static void Test2(out int y, object x)
+    {
+        y = 1;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithOutVarFeature());
+
+            compilation.VerifyDiagnostics(
+                // (6,19): error CS0841: Cannot use local variable 'x1' before it is declared
+                //         Test2(out x1, 
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(6, 19)
+                );
+        }
+
+        [Fact]
+        public void Scope_04()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test1(out int x1);
+        System.Console.WriteLine(x1);
+    }
+
+    static object Test1(out int x)
+    {
+        x = 1;
+        return null;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithOutVarFeature());
+
+            compilation.VerifyDiagnostics(
+                // (7,34): error CS0103: The name 'x1' does not exist in the current context
+                //         System.Console.WriteLine(x1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(7, 34)
+                );
+        }
+
+        [Fact]
+        public void Scope_05()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test2(out x1, 
+              Test1(out var x1));
+    }
+
+    static object Test1(out int x)
+    {
+        x = 1;
+        return null;
+    }
+
+    static void Test2(out int y, object x)
+    {
+        y = 1;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithOutVarFeature());
+
+            compilation.VerifyDiagnostics(
+                // (6,19): error CS0841: Cannot use local variable 'x1' before it is declared
+                //         Test2(out x1, 
+                Diagnostic(ErrorCode.ERR_VariableUsedBeforeDeclaration, "x1").WithArguments("x1").WithLocation(6, 19)
                 );
         }
 
@@ -669,6 +896,46 @@ public class Cls
             var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
             var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
             VerifyModelForOutVar(model, x1Decl, x1Ref);
+        }
+        
+        [Fact]
+        public void DataFlow_03()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test(out int x1);
+        var x2 = 1;
+    }
+
+    static void Test(out int x)
+    {
+        x = 1;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithOutVarFeature());
+
+            compilation.VerifyDiagnostics(
+                // (7,13): warning CS0219: The variable 'x2' is assigned but its value is never used
+                //         var x2 = 1;
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x2").WithArguments("x2").WithLocation(7, 13)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            VerifyModelForOutVar(model, x1Decl);
+
+            var x2Decl = tree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
+
+            var dataFlow = model.AnalyzeDataFlow(x2Decl);
+
+            Assert.True(dataFlow.Succeeded);
+            Assert.Equal("System.Int32 x2", dataFlow.VariablesDeclared.Single().ToTestDisplayString());
+            Assert.Equal("System.Int32 x1", dataFlow.WrittenOutside.Single().ToTestDisplayString());
         }
 
         [Fact]
@@ -809,67 +1076,1086 @@ public class Cls
             Assert.False(tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.Kind() != SyntaxKind.None).Any());
         }
 
-        [Fact(Skip = "Needs adjustment. + No 'var' support yet.")]
-        public void OutVar_01()
+        [Fact]
+        public void GetAliasInfo_01()
+        {
+            var text = @"
+using a = System.Int32;
+
+public class Cls
+{
+    public static void Main()
+    {
+        Test1(out a x1);
+    }
+
+    static object Test1(out int x)
+    {
+        x = 123;
+        return null;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithOutVarFeature());
+
+            CompileAndVerify(compilation, expectedOutput: @"").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            VerifyModelForOutVar(model, x1Decl);
+
+            Assert.Equal("a=System.Int32", model.GetAliasInfo(x1Decl.Type).ToTestDisplayString());
+        }
+
+        [Fact]
+        public void VarIsNotVar_01()
         {
             var text = @"
 public class Cls
 {
     public static void Main()
     {
-        Test1(out var y);
-        Print(y);
-        Test2(out (var z));
-        Print(z);
-        var notused = new Cls(out var u);
-        Print(u);
-
-        Test1(out checked(var v));
-        Print(v);
-        Test2(out unchecked(var w));
-        Print(w);
-
-        notused = new Cls(out (checked(unchecked((checked(unchecked(var a)))))));
-        Print(a);
+        Test2(Test1(out var x1), x1);
     }
 
-    static void Test1(out int x)
+    static object Test1(out var x)
     {
-        x = 123;
+        x = new var() {val = 123};
+        return null;
     }
 
-    static void Test2(out short x)
+    static void Test2(object x, var y)
     {
-        x = 1234;
+        System.Console.WriteLine(y.val);
     }
 
-    static void Print<T>(T val)
+    struct var
     {
-        System.Console.WriteLine(val);
-        System.Console.WriteLine(typeof(T));
-    }
-
-    Cls(out byte x)
-    {
-        x = 31;
+        public int val;
     }
 }";
-            var compilation = CreateCompilationWithMscorlib(text, options: TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithOutVarFeature());
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular.WithOutVarFeature());
 
-            CompileAndVerify(compilation, expectedOutput: @"123
-System.Int32
-1234
-System.Int16
-31
-System.Byte
-123
-System.Int32
-1234
-System.Int16
-31
-System.Byte").VerifyDiagnostics();
+            CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
 
-            //TestSemanticModelAPI(compilation);
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void VarIsNotVar_02()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test1(out var x1);
+    }
+
+    struct var
+    {
+        public int val;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular.WithOutVarFeature());
+
+            compilation.VerifyDiagnostics(
+                // (6,9): error CS0103: The name 'Test1' does not exist in the current context
+                //         Test1(out var x1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Test1").WithArguments("Test1").WithLocation(6, 9),
+                // (11,20): warning CS0649: Field 'Cls.var.val' is never assigned to, and will always have its default value 0
+                //         public int val;
+                Diagnostic(ErrorCode.WRN_UnassignedInternalField, "val").WithArguments("Cls.var.val", "0").WithLocation(11, 20)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            VerifyModelForOutVar(model, x1Decl);
+
+            Assert.Equal("Cls.var", ((LocalSymbol)model.GetDeclaredSymbol(x1Decl)).Type.ToTestDisplayString());
+        }
+
+        [Fact]
+        public void SimpleVar_01()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test2(Test1(out var x1), x1);
+    }
+
+    static object Test1(out int x)
+    {
+        x = 123;
+        return null;
+    }
+
+    static void Test2(object x, object y)
+    {
+        System.Console.WriteLine(y);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular.WithOutVarFeature());
+
+            CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+
+            Assert.Null(model.GetAliasInfo(x1Decl.Type));
+        }
+
+        [Fact]
+        public void SimpleVar_02()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test2(Test1(out var x1), x1);
+    }
+
+    static void Test2(object x, object y)
+    {
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular.WithOutVarFeature());
+
+            compilation.VerifyDiagnostics(
+                // (6,15): error CS0103: The name 'Test1' does not exist in the current context
+                //         Test2(Test1(out var x1), x1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "Test1").WithArguments("Test1").WithLocation(6, 15)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+
+            Assert.Null(model.GetAliasInfo(x1Decl.Type));
+        }
+
+        [Fact]
+        public void SimpleVar_03()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test1(out var x1, 
+                  out x1);
+    }
+
+    static object Test1(out int x, out int x2)
+    {
+        x = 123;
+        x2 = 124;
+        return null;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular.WithOutVarFeature());
+
+            compilation.VerifyDiagnostics(
+                // (7,23): error CS8927: Reference to an implicitly-typed out variable 'x1' is not permitted in the same argument list.
+                //                   out x1);
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList, "x1").WithArguments("x1").WithLocation(7, 23)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+
+            Assert.Null(model.GetAliasInfo(x1Decl.Type));
+            Assert.Equal("System.Int32 x1", model.GetDeclaredSymbol(x1Decl).ToTestDisplayString());
+        }
+
+        [Fact]
+        public void SimpleVar_04()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test1(out var x1, 
+              Test1(out x1,
+                    3));
+    }
+
+    static object Test1(out int x, int x2)
+    {
+        x = 123;
+        x2 = 124;
+        return null;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular.WithOutVarFeature());
+
+            compilation.VerifyDiagnostics(
+                // (7,25): error CS8927: Reference to an implicitly-typed out variable 'x1' is not permitted in the same argument list.
+                //               Test1(out x1,
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList, "x1").WithArguments("x1").WithLocation(7, 25)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+
+            Assert.Null(model.GetAliasInfo(x1Decl.Type));
+            Assert.Equal("System.Int32 x1", model.GetDeclaredSymbol(x1Decl).ToTestDisplayString());
+        }
+
+        [Fact]
+        public void SimpleVar_05()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test2(Test1(out var x1), x1);
+    }
+
+    static object Test1(ref int x)
+    {
+        x = 123;
+        return null;
+    }
+
+    static void Test2(object x, object y)
+    {
+        System.Console.WriteLine(y);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular.WithOutVarFeature());
+
+            compilation.VerifyDiagnostics(
+                // (6,21): error CS1620: Argument 1 must be passed with the 'ref' keyword
+                //         Test2(Test1(out var x1), x1);
+                Diagnostic(ErrorCode.ERR_BadArgRef, "out var x1").WithArguments("1", "ref").WithLocation(6, 21)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+
+            Assert.Null(model.GetAliasInfo(x1Decl.Type));
+            Assert.Equal("System.Int32 x1", model.GetDeclaredSymbol(x1Decl).ToTestDisplayString());
+        }
+
+        [Fact]
+        public void SimpleVar_06()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test2(Test1(out var x1), x1);
+    }
+
+    static object Test1(int x)
+    {
+        x = 123;
+        return null;
+    }
+
+    static void Test2(object x, object y)
+    {
+        System.Console.WriteLine(y);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular.WithOutVarFeature());
+
+            compilation.VerifyDiagnostics(
+                // (6,21): error CS1615: Argument 1 may not be passed with the 'out' keyword
+                //         Test2(Test1(out var x1), x1);
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "out var x1").WithArguments("1", "out").WithLocation(6, 21)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+
+            Assert.Null(model.GetAliasInfo(x1Decl.Type));
+            Assert.Equal("System.Int32 x1", model.GetDeclaredSymbol(x1Decl).ToTestDisplayString());
+        }
+        
+        [Fact]
+        public void SimpleVar_07()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        dynamic x = null;
+        Test2(x.Test1(out var x1), 
+              x1);
+    }
+
+    static void Test2(object x, object y)
+    {
+        System.Console.WriteLine(y);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular.WithOutVarFeature());
+
+            compilation.VerifyDiagnostics(
+                // (7,31): error CS8928: Cannot infer the type of implicitly-typed out variable.
+                //         Test2(x.Test1(out var x1), 
+                Diagnostic(ErrorCode.ERR_TypeInferenceFailedForImplicitlyTypedOutVariable, "x1").WithLocation(7, 31)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+
+            Assert.Null(model.GetAliasInfo(x1Decl.Type));
+            Assert.Equal("var x1", model.GetDeclaredSymbol(x1Decl).ToTestDisplayString());
+        }
+
+        [Fact]
+        public void SimpleVar_08()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test2(new Test1(out var x1), x1);
+    }
+
+    class Test1
+    {
+        public Test1(out int x)
+        {
+            x = 123;
+        }
+    }
+
+    static void Test2(object x, object y)
+    {
+        System.Console.WriteLine(y);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular.WithOutVarFeature());
+
+            CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void SimpleVar_09()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test2(new System.Action(out var x1), 
+              x1);
+    }
+
+    static void Test2(object x, object y)
+    {
+        System.Console.WriteLine(y);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular.WithOutVarFeature());
+
+            compilation.VerifyDiagnostics(
+                // (6,33): error CS0149: Method name expected
+                //         Test2(new System.Action(out var x1), 
+                Diagnostic(ErrorCode.ERR_MethodNameExpected, "out var x1").WithLocation(6, 33),
+                // (6,33): error CS0165: Use of unassigned local variable 'x1'
+                //         Test2(new System.Action(out var x1), 
+                Diagnostic(ErrorCode.ERR_UseDefViolation, "out var x1").WithArguments("x1").WithLocation(6, 33)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            VerifyModelForOutVar(model, x1Decl, true, x1Ref);
+
+            Assert.Null(model.GetAliasInfo(x1Decl.Type));
+            Assert.Equal("var x1", model.GetDeclaredSymbol(x1Decl).ToTestDisplayString());
+        }
+
+        [Fact]
+        public void SimpleVar_10()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+
+    public static object Test1(out int x)
+    {
+        x = 123;
+        return null;
+    }
+
+    class Test2
+    {
+        Test2(object x, object y)
+        {
+        }
+
+        Test2()
+        : this(Test1(out var x1), x1)
+        {}
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular.WithOutVarFeature());
+
+            compilation.VerifyDiagnostics(
+                // (21,30): error CS8929: Out variable declarations are not allowed within constructor initializers.
+                //         : this(Test1(out var x1), x1)
+                Diagnostic(ErrorCode.ERR_OutVarInConstructorInitializer, "x1").WithLocation(21, 30)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void SimpleVar_11()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+
+    public static object Test1(out int x)
+    {
+        x = 123;
+        return null;
+    }
+
+    class Test2
+    {
+        public Test2(object x, object y)
+        {
+        }
+    }
+    
+    class Test3 : Test2
+    {
+
+        Test3()
+        : base(Test1(out var x1), x1)
+        {}
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular.WithOutVarFeature());
+
+            compilation.VerifyDiagnostics(
+                // (25,30): error CS8929: Out variable declarations are not allowed within constructor initializers.
+                //         : base(Test1(out var x1), x1)
+                Diagnostic(ErrorCode.ERR_OutVarInConstructorInitializer, "x1").WithLocation(25, 30)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void SimpleVar_12()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+
+    class Test2
+    {
+        Test2(out int x)
+        {
+            x = 2;
+        }
+
+        Test2()
+        : this(out var x1)
+        {}
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular.WithOutVarFeature());
+
+            compilation.VerifyDiagnostics(
+                // (16,24): error CS8929: Out variable declarations are not allowed within constructor initializers.
+                //         : this(out var x1)
+                Diagnostic(ErrorCode.ERR_OutVarInConstructorInitializer, "x1").WithLocation(16, 24)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            VerifyModelForOutVar(model, x1Decl);
+        }
+
+        [Fact]
+        public void SimpleVar_13()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+    }
+
+    class Test2
+    {
+        public Test2(out int x)
+        {
+            x = 1;
+        }
+    }
+    
+    class Test3 : Test2
+    {
+
+        Test3()
+        : base(out var x1)
+        {}
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular.WithOutVarFeature());
+
+            compilation.VerifyDiagnostics(
+                // (20,24): error CS8929: Out variable declarations are not allowed within constructor initializers.
+                //         : base(out var x1)
+                Diagnostic(ErrorCode.ERR_OutVarInConstructorInitializer, "x1").WithLocation(20, 24)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            VerifyModelForOutVar(model, x1Decl);
+        }
+
+        [Fact]
+        public void SimpleVar_14()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test2(Test1(out var x1), x1);
+    }
+
+    static object Test1(out dynamic x)
+    {
+        x = 123;
+        return null;
+    }
+
+    static void Test2(object x, object y)
+    {
+        System.Console.WriteLine(y);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            references: new MetadataReference[] { CSharpRef, SystemCoreRef },
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular.WithOutVarFeature());
+
+            CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+
+            Assert.Null(model.GetAliasInfo(x1Decl.Type));
+            Assert.Equal("dynamic x1", model.GetDeclaredSymbol(x1Decl).ToTestDisplayString());
+        }
+
+        [Fact]
+        public void SimpleVar_15()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test2(new Test1(out var var), var);
+    }
+
+    class Test1
+    {
+        public Test1(out int x)
+        {
+            x = 123;
+        }
+    }
+
+    static void Test2(object x, object y)
+    {
+        System.Console.WriteLine(y);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular.WithOutVarFeature());
+
+            CompileAndVerify(compilation, expectedOutput: @"123").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var varDecl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "var").Single();
+            var varRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Skip(1).Single();
+            VerifyModelForOutVar(model, varDecl, varRef);
+        }
+
+        [Fact]
+        public void VarAndBetterness_01()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test1(out var x1, null);
+        Test2(out var x2, null);
+    }
+
+    static object Test1(out int x, object y)
+    {
+        x = 123;
+        System.Console.WriteLine(x);
+        return null;
+    }
+
+    static object Test1(out short x, string y)
+    {
+        x = 124;
+        System.Console.WriteLine(x);
+        return null;
+    }
+
+    static object Test2(out int x, string y)
+    {
+        x = 125;
+        System.Console.WriteLine(x);
+        return null;
+    }
+
+    static object Test2(out short x, object y)
+    {
+        x = 126;
+        System.Console.WriteLine(x);
+        return null;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular.WithOutVarFeature());
+
+            CompileAndVerify(compilation, expectedOutput:
+@"124
+125").VerifyDiagnostics();
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            VerifyModelForOutVar(model, x1Decl);
+
+            var x2Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x2").Single();
+            VerifyModelForOutVar(model, x2Decl);
+        }
+
+        [Fact]
+        public void VarAndBetterness_02()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test1(out var x1, null);
+    }
+
+    static object Test1(out int x, object y)
+    {
+        x = 123;
+        System.Console.WriteLine(x);
+        return null;
+    }
+
+    static object Test1(out short x, object y)
+    {
+        x = 124;
+        System.Console.WriteLine(x);
+        return null;
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular.WithOutVarFeature());
+
+            compilation.VerifyDiagnostics(
+                // (6,9): error CS0121: The call is ambiguous between the following methods or properties: 'Cls.Test1(out int, object)' and 'Cls.Test1(out short, object)'
+                //         Test1(out var x1, null);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Test1").WithArguments("Cls.Test1(out int, object)", "Cls.Test1(out short, object)").WithLocation(6, 9)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            VerifyModelForOutVar(model, x1Decl);
+        }
+
+        [Fact]
+        public void RestrictedTypes_01()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test2(Test1(out var x1), x1);
+    }
+
+    static object Test1(out System.ArgIterator x)
+    {
+        x = default(System.ArgIterator);
+        return null;
+    }
+
+    static void Test2(object x, System.ArgIterator y)
+    {
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular.WithOutVarFeature());
+
+            compilation.VerifyDiagnostics(
+                // (9,25): error CS1601: Cannot make reference to variable of type 'ArgIterator'
+                //     static object Test1(out System.ArgIterator x)
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out System.ArgIterator x").WithArguments("System.ArgIterator").WithLocation(9, 25)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void RestrictedTypes_02()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        Test2(Test1(out System.ArgIterator x1), x1);
+    }
+
+    static object Test1(out System.ArgIterator x)
+    {
+        x = default(System.ArgIterator);
+        return null;
+    }
+
+    static void Test2(object x, System.ArgIterator y)
+    {
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular.WithOutVarFeature());
+
+            compilation.VerifyDiagnostics(
+                // (9,25): error CS1601: Cannot make reference to variable of type 'ArgIterator'
+                //     static object Test1(out System.ArgIterator x)
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out System.ArgIterator x").WithArguments("System.ArgIterator").WithLocation(9, 25)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+        }
+
+        [Fact]
+        public void RestrictedTypes_03()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main() {}
+
+    async void Test()
+    {
+        Test2(Test1(out var x1), x1);
+    }
+
+    static object Test1(out System.ArgIterator x)
+    {
+        x = default(System.ArgIterator);
+        return null;
+    }
+
+    static void Test2(object x, System.ArgIterator y)
+    {
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular.WithOutVarFeature());
+
+            compilation.VerifyDiagnostics(
+                // (11,25): error CS1601: Cannot make reference to variable of type 'ArgIterator'
+                //     static object Test1(out System.ArgIterator x)
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out System.ArgIterator x").WithArguments("System.ArgIterator").WithLocation(11, 25),
+                // (8,25): error CS4012: Parameters or locals of type 'ArgIterator' cannot be declared in async methods or lambda expressions.
+                //         Test2(Test1(out var x1), x1);
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("System.ArgIterator").WithLocation(8, 25),
+                // (6,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async void Test()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Test").WithLocation(6, 16)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+        }
+        
+        [Fact]
+        public void RestrictedTypes_04()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main() {}
+
+    async void Test()
+    {
+        Test2(Test1(out System.ArgIterator x1), x1);
+        var x = default(System.ArgIterator);
+    }
+
+    static object Test1(out System.ArgIterator x)
+    {
+        x = default(System.ArgIterator);
+        return null;
+    }
+
+    static void Test2(object x, System.ArgIterator y)
+    {
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular.WithOutVarFeature());
+
+            compilation.VerifyDiagnostics(
+                // (12,25): error CS1601: Cannot make reference to variable of type 'ArgIterator'
+                //     static object Test1(out System.ArgIterator x)
+                Diagnostic(ErrorCode.ERR_MethodArgCantBeRefAny, "out System.ArgIterator x").WithArguments("System.ArgIterator").WithLocation(12, 25),
+                // (8,25): error CS4012: Parameters or locals of type 'ArgIterator' cannot be declared in async methods or lambda expressions.
+                //         Test2(Test1(out System.ArgIterator x1), x1);
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "System.ArgIterator").WithArguments("System.ArgIterator").WithLocation(8, 25),
+                // (9,9): error CS4012: Parameters or locals of type 'ArgIterator' cannot be declared in async methods or lambda expressions.
+                //         var x = default(System.ArgIterator);
+                Diagnostic(ErrorCode.ERR_BadSpecialByRefLocal, "var").WithArguments("System.ArgIterator").WithLocation(9, 9),
+                // (9,13): warning CS0219: The variable 'x' is assigned but its value is never used
+                //         var x = default(System.ArgIterator);
+                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "x").WithArguments("x").WithLocation(9, 13),
+                // (6,16): warning CS1998: This async method lacks 'await' operators and will run synchronously. Consider using the 'await' operator to await non-blocking API calls, or 'await Task.Run(...)' to do CPU-bound work on a background thread.
+                //     async void Test()
+                Diagnostic(ErrorCode.WRN_AsyncLacksAwaits, "Test").WithLocation(6, 16)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            var model = compilation.GetSemanticModel(tree);
+
+            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            VerifyModelForOutVar(model, x1Decl, x1Ref);
+        }
+        
+        [Fact]
+        public void ElementAccess_01()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        var x = new [] {1};
+        Test2(x[out var x1], x1);
+    }
+
+    static void Test2(object x, object y)
+    {
+        System.Console.WriteLine(y);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular.WithOutVarFeature());
+
+            compilation.VerifyDiagnostics(
+                // (7,25): error CS1003: Syntax error, ',' expected
+                //         Test2(x[out var x1], x1);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x1").WithArguments(",", "").WithLocation(7, 25),
+                // (7,21): error CS0103: The name 'var' does not exist in the current context
+                //         Test2(x[out var x1], x1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "var").WithArguments("var").WithLocation(7, 21),
+                // (7,25): error CS0103: The name 'x1' does not exist in the current context
+                //         Test2(x[out var x1], x1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(7, 25),
+                // (7,30): error CS0103: The name 'x1' does not exist in the current context
+                //         Test2(x[out var x1], x1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(7, 30)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            Assert.False(tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Any());
+        }
+
+        [Fact]
+        public void ElementAccess_02()
+        {
+            var text = @"
+public class Cls
+{
+    public static void Main()
+    {
+        var x = new [] {1};
+        Test2(x[out int x1], x1);
+    }
+
+    static void Test2(object x, object y)
+    {
+        System.Console.WriteLine(y);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(text,
+                                                            options: TestOptions.ReleaseExe,
+                                                            parseOptions: TestOptions.Regular.WithOutVarFeature());
+
+            compilation.VerifyDiagnostics(
+                // (7,21): error CS1525: Invalid expression term 'int'
+                //         Test2(x[out int x1], x1);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, "int").WithArguments("int").WithLocation(7, 21),
+                // (7,25): error CS1003: Syntax error, ',' expected
+                //         Test2(x[out int x1], x1);
+                Diagnostic(ErrorCode.ERR_SyntaxError, "x1").WithArguments(",", "").WithLocation(7, 25),
+                // (7,25): error CS0103: The name 'x1' does not exist in the current context
+                //         Test2(x[out int x1], x1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(7, 25),
+                // (7,30): error CS0103: The name 'x1' does not exist in the current context
+                //         Test2(x[out int x1], x1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "x1").WithArguments("x1").WithLocation(7, 30)
+                );
+
+            var tree = compilation.SyntaxTrees.Single();
+            Assert.False(tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Any());
         }
     }
 }
