@@ -501,12 +501,15 @@ namespace Microsoft.CodeAnalysis
                                             win32ResourceStreamOpt,
                                             diagnosticBag,
                                             cancellationToken);
-
-                                        if (success)
-                                        {
-                                            compilation.ReportUnusedImports(null, diagnosticBag, cancellationToken);
-                                        }
                                     }
+
+                                    // only report unused usings if we have success.
+                                    if (success)
+                                    {
+                                        compilation.ReportUnusedImports(null, diagnosticBag, cancellationToken);
+                                    }
+
+                                    compilation.CompleteTrees(null);
                                 }
                             }
 

@@ -1610,6 +1610,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
+            CompleteTrees(filterTree)
+        End Sub
+
+        Friend Overrides Sub CompleteTrees(filterTree As SyntaxTree)
             ' By definition, a tree Is complete when all of its compiler diagnostics have been reported.
             ' Since unused imports are the last thing we compute And report, a tree Is complete when
             ' the unused imports have been reported.
