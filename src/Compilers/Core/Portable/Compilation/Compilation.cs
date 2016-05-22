@@ -1480,7 +1480,12 @@ namespace Microsoft.CodeAnalysis
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken);
 
-        internal abstract void ReportUnusedImports(
+        /// <summary>
+        /// Reports all unused inports/usings so far (and thus it must be called as a last step of Emit)
+        /// Also signals the event queue, if any, that we are done compiling.
+        /// There should not be more compiling actions after this step.
+        /// </summary>
+        internal abstract void ReportUnusedImportsAndFinishCompiling(
             SyntaxTree filterTree,
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken);
@@ -1693,7 +1698,7 @@ namespace Microsoft.CodeAnalysis
 
                         if (success)
                         {
-                            ReportUnusedImports(null, diagnostics, cancellationToken);
+                            ReportUnusedImportsAndFinishCompiling(null, diagnostics, cancellationToken);
                         }
                     }
                 }

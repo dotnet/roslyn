@@ -501,12 +501,21 @@ namespace Microsoft.CodeAnalysis
                                             win32ResourceStreamOpt,
                                             diagnosticBag,
                                             cancellationToken);
-
-                                        if (success)
-                                        {
-                                            compilation.ReportUnusedImports(null, diagnosticBag, cancellationToken);
-                                        }
                                     }
+
+                                    var usingDiagnostics = DiagnosticBag.GetInstance();
+
+                                    // call ReportUnusedImports unconditionally
+                                    // since that also signals the event queue about completion of compiling.
+                                    compilation.ReportUnusedImportsAndFinishCompiling(null, usingDiagnostics, cancellationToken);
+
+                                    // only report unused usings if we have success.
+                                    if (success)
+                                    {
+                                        diagnosticBag.AddRange(usingDiagnostics);
+                                    }
+
+                                    usingDiagnostics.Free();
                                 }
                             }
 
