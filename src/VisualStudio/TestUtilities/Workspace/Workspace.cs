@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Reflection;
 using Roslyn.VisualStudio.Test.Utilities.Remoting;
 
 namespace Roslyn.VisualStudio.Test.Utilities
@@ -29,6 +28,16 @@ namespace Roslyn.VisualStudio.Test.Utilities
             {
                 _workspaceWrapper.UseSuggestionMode = value;
             }
+        }
+
+        public void WaitForAsyncOperations(string featuresToWaitFor, bool waitForWorkspaceFirst = true)
+        {
+            _workspaceWrapper.WaitForAsyncOperations(featuresToWaitFor, waitForWorkspaceFirst);
+        }
+
+        public void WaitForAllAsyncOperations()
+        {
+            _workspaceWrapper.WaitForAllAsyncOperations();
         }
     }
 }

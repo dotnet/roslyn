@@ -33,62 +33,63 @@ namespace Roslyn.VisualStudio.Test.Utilities
             _interactiveWindowWrapper = integrationService.Execute<InteractiveWindowWrapper>(typeof(InteractiveWindowWrapper), createMethodName);
         }
 
-        /// <summary>Gets the last output from the REPL.</summary>
-        public string LastReplOutput
+        /// <summary>
+        /// Gets the last output from the REPL.
+        /// </summary>
+        public string GetLastReplOutput()
         {
-            get
+            // TODO: This may be flaky if the last submission contains ReplPromptText
+
+            var replText = GetReplTextWithoutPrompt();
+            int lastPromptIndex = replText.LastIndexOf(ReplPromptText);
+
+            replText = replText.Substring(lastPromptIndex, (replText.Length - lastPromptIndex));
+            int lastSubmissionIndex = replText.LastIndexOf(ReplSubmissionText);
+
+            if (lastSubmissionIndex > 0)
             {
-                // TODO: This may be flaky if the last submission contains ReplPromptText
-
-                var replText = ReplTextWithoutPrompt;
-                int lastPromptIndex = replText.LastIndexOf(ReplPromptText);
-
-                replText = replText.Substring(lastPromptIndex, (replText.Length - lastPromptIndex));
-                int lastSubmissionIndex = replText.LastIndexOf(ReplSubmissionText);
-
-                if (lastSubmissionIndex > 0)
-                {
-                    replText = replText.Substring(lastSubmissionIndex, (replText.Length - lastSubmissionIndex));
-                }
-                else if (!replText.StartsWith(ReplPromptText))
-                {
-                    return replText;
-                }
-
-                int firstNewLineIndex = replText.IndexOf(Environment.NewLine);
-
-                if (firstNewLineIndex <= 0)
-                {
-                    return replText;
-                }
-
-                firstNewLineIndex += Environment.NewLine.Length;
-                return replText.Substring(firstNewLineIndex, (replText.Length - firstNewLineIndex));
+                replText = replText.Substring(lastSubmissionIndex, (replText.Length - lastSubmissionIndex));
             }
+            else if (!replText.StartsWith(ReplPromptText))
+            {
+                return replText;
+            }
+
+            int firstNewLineIndex = replText.IndexOf(Environment.NewLine);
+
+            if (firstNewLineIndex <= 0)
+            {
+                return replText;
+            }
+
+            firstNewLineIndex += Environment.NewLine.Length;
+            return replText.Substring(firstNewLineIndex, (replText.Length - firstNewLineIndex));
         }
 
-        /// <summary>Gets the contents of the REPL window.</summary>
-        public string ReplText
-            => _interactiveWindowWrapper.CurrentSnapshotText;
+        /// <summary>
+        /// Gets the contents of the REPL window.
+        /// </summary>
+        public string ReplText => _interactiveWindowWrapper.CurrentSnapshotText;
 
-        /// <summary>Gets the contents of the REPL window without the prompt text.</summary>
-        public string ReplTextWithoutPrompt
+        /// <summary>
+        /// Gets the contents of the REPL window without the prompt text.
+        /// </summary>
+        public string GetReplTextWithoutPrompt()
         {
-            get
+            var replText = ReplText;
+
+            // find last prompt and remove
+            int lastPromptIndex = replText.LastIndexOf(ReplPromptText);
+
+            if (lastPromptIndex > 0)
             {
-                var replText = ReplText;
-
-                // find last prompt and remove
-                int lastPromptIndex = replText.LastIndexOf(ReplPromptText);
-
-                if (lastPromptIndex > 0)
-                {
-                    replText = replText.Substring(0, lastPromptIndex);
-                }
-
-                // it's possible for the editor text to contain a trailing newline, remove it
-                return replText.EndsWith(Environment.NewLine) ? replText.Substring(0, (replText.Length - Environment.NewLine.Length)) : replText;
+                replText = replText.Substring(0, lastPromptIndex);
             }
+
+            // it's possible for the editor text to contain a trailing newline, remove it
+            return replText.EndsWith(Environment.NewLine)
+                ? replText.Substring(0, (replText.Length - Environment.NewLine.Length))
+                : replText;
         }
 
         public async Task ResetAsync(bool waitForPrompt = true)
@@ -121,7 +122,14 @@ namespace Roslyn.VisualStudio.Test.Utilities
             }
         }
 
+        public Task WaitForReplOutputAsync(string outputText)
+        {
+            return IntegrationHelper.WaitForResultAsync(() => ReplText.EndsWith(outputText + Environment.NewLine + ReplPromptText), expectedResult: true);
+        }
+
         public Task WaitForReplPromptAsync()
-            => IntegrationHelper.WaitForResultAsync(() => ReplText.EndsWith(ReplPromptText), expectedResult: true);
+        {
+            return IntegrationHelper.WaitForResultAsync(() => ReplText.EndsWith(ReplPromptText), expectedResult: true);
+        }
     }
 }

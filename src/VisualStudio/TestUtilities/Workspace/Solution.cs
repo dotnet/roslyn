@@ -12,7 +12,8 @@ namespace Roslyn.VisualStudio.Test.Utilities
     /// <summary>Provides a means of interacting with the current solution loaded by the host process.</summary>
     public class Solution
     {
-        private static readonly IDictionary<ProjectLanguage, string> ProjectLanguages = new Dictionary<ProjectLanguage, string> {
+        private static readonly IDictionary<ProjectLanguage, string> ProjectLanguages = new Dictionary<ProjectLanguage, string>
+        {
             [ProjectLanguage.CSharp] = "CSharp",
             [ProjectLanguage.VisualBasic] = "VisualBasic"
         };
@@ -36,8 +37,11 @@ namespace Roslyn.VisualStudio.Test.Utilities
             _dteSolution = dteSolution;
             _fileName = fileName;
 
-            _projectTemplates = new Dictionary<ProjectTemplate, string> {
-                [ProjectTemplate.ClassLibrary] = $@"Windows\{dteSolution.DTE.LocaleID}\ClassLibrary.zip",
+            var localeID = IntegrationHelper.RetryRpcCall(() => dteSolution.DTE.LocaleID);
+
+            _projectTemplates = new Dictionary<ProjectTemplate, string>
+            {
+                [ProjectTemplate.ClassLibrary] = $@"Windows\{localeID}\ClassLibrary.zip",
                 [ProjectTemplate.ConsoleApplication] = "ConsoleApplication.zip",
                 [ProjectTemplate.Website] = "EmptyWeb.zip",
                 [ProjectTemplate.WinFormsApplication] = "WindowsApplication.zip",
@@ -105,6 +109,11 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
         // TODO: Adjust language name based on whether we are using a web template
         private string GetProjectTemplatePath(ProjectTemplate projectTemplate, ProjectLanguage projectLanguage)
-            => IntegrationHelper.RetryRpcCall(() => _dteSolution.GetProjectTemplate(_projectTemplates[projectTemplate], ProjectLanguages[projectLanguage]));
+        {
+            return IntegrationHelper.RetryRpcCall(() =>
+            {
+                return _dteSolution.GetProjectTemplate(_projectTemplates[projectTemplate], ProjectLanguages[projectLanguage]);
+            });
+        }
     }
 }

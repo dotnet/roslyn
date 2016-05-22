@@ -53,22 +53,6 @@ namespace Roslyn.VisualStudio.Test.Utilities.Interop
         public const uint SWP_DEFERERASE = 0x2000;
         public const uint SWP_ASYNCWINDOWPOS = 0x4000;
 
-        public const ushort VK_SHIFT = 0x0010;
-        public const ushort VK_CONTROL = 0x0011;
-        public const ushort VK_MENU = 0x0012;
-
-        public const ushort VK_PRIOR = 0x0021;
-        public const ushort VK_NEXT = 0x0022;
-        public const ushort VK_END = 0x0023;
-        public const ushort VK_HOME = 0x0024;
-        public const ushort VK_LEFT = 0x0025;
-        public const ushort VK_UP = 0x0026;
-        public const ushort VK_RIGHT = 0x0027;
-        public const ushort VK_DOWN = 0x0028;
-
-        public const ushort VK_INSERT = 0x002D;
-        public const ushort VK_DELETE = 0x002E;
-
         public const uint WM_GETTEXT = 0x000D;
         public const uint WM_GETTEXTLENGTH = 0x000E;
 
@@ -229,16 +213,10 @@ namespace Roslyn.VisualStudio.Test.Utilities.Interop
             [In] uint uFlags
         );
 
-        [DllImport("User32.dll", CallingConvention = CallingConvention.Winapi, EntryPoint = "VkKeyScanW", PreserveSig = true, SetLastError = false)]
+        [DllImport("User32.dll", CallingConvention = CallingConvention.Winapi, EntryPoint = "VkKeyScanW", CharSet = CharSet.Unicode, PreserveSig = true, SetLastError = false)]
         public static extern short VkKeyScan(
             [In] char ch
         );
-
-        [DllImport("User32.dll", CallingConvention = CallingConvention.Winapi, EntryPoint = "GetKeyNameTextW", PreserveSig = true, SetLastError = true)]
-        public static extern int GetKeyNameText(
-            [In] long lParam,
-            [Out, MarshalAs(UnmanagedType.LPTStr)] StringBuilder lpString,
-            [In] int cchSize);
 
         [DllImport("User32.dll", CallingConvention = CallingConvention.Winapi, EntryPoint = "MapVirtualKeyW", PreserveSig = true, SetLastError = false)]
         public static extern uint MapVirtualKey(

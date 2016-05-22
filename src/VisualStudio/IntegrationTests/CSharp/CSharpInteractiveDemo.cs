@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Threading;
 using System.Threading.Tasks;
 using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.Test.Utilities;
@@ -33,28 +34,28 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
         public async Task BclMathCall()
         {
             await _interactiveWindow.SubmitTextToReplAsync("Math.Sin(1)").ConfigureAwait(continueOnCapturedContext: false);
-            Assert.Equal("0.8414709848078965", _interactiveWindow.LastReplOutput);
+            Assert.Equal("0.8414709848078965", _interactiveWindow.GetLastReplOutput());
         }
 
         [Fact]
         public async Task BclConsoleCall()
         {
             await _interactiveWindow.SubmitTextToReplAsync(@"Console.WriteLine(""Hello, World!"");").ConfigureAwait(continueOnCapturedContext: false);
-            Assert.Equal("Hello, World!", _interactiveWindow.LastReplOutput);
+            Assert.Equal("Hello, World!", _interactiveWindow.GetLastReplOutput());
         }
 
         [Fact]
         public async Task ForStatement()
         {
             await _interactiveWindow.SubmitTextToReplAsync("for (int i = 0; i < 10; i++) Console.WriteLine(i * i);").ConfigureAwait(continueOnCapturedContext: false);
-            Assert.EndsWith($"{81}", _interactiveWindow.LastReplOutput);
+            Assert.EndsWith($"{81}", _interactiveWindow.GetLastReplOutput());
         }
 
         [Fact]
         public async Task ForEachStatement()
         {
             await _interactiveWindow.SubmitTextToReplAsync(@"foreach (var f in System.IO.Directory.GetFiles(@""c:\windows"")) Console.WriteLine($""{f}"".ToLower());").ConfigureAwait(continueOnCapturedContext: false);
-            Assert.Contains(@"c:\windows\win.ini", _interactiveWindow.LastReplOutput);
+            Assert.Contains(@"c:\windows\win.ini", _interactiveWindow.GetLastReplOutput());
         }
 
         [Fact]
@@ -65,7 +66,7 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
     return x < 1 ? 1 : x * Fac(x - 1);
 }
 Fac(4)").ConfigureAwait(continueOnCapturedContext: false);
-            Assert.Equal($"{24}", _interactiveWindow.LastReplOutput);
+            Assert.Equal($"{24}", _interactiveWindow.GetLastReplOutput());
         }
 
         [Fact]
@@ -102,9 +103,10 @@ g.Children.Add(b);
 w.Content = g;");
 
             await _visualStudio.Instance.ClickAutomationElementAsync(testValue.ToString(), recursive: true);
-            await _interactiveWindow.WaitForReplPromptAsync();
 
-            Assert.Equal("Hello, World!", _interactiveWindow.LastReplOutput);
+            await _interactiveWindow.WaitForReplOutputAsync("Hello, World!");
+
+            Assert.Equal("Hello, World!", _interactiveWindow.GetLastReplOutput());
 
             await _interactiveWindow.SubmitTextToReplAsync("b = null; w.Close(); w = null;");
         }

@@ -337,24 +337,25 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
             builder.Append("Send Key: ");
 
-            ushort ch;
+            char ch;
             if (isUnicode || isScanCode)
             {
-                ch = input.wScan;
+                builder.Append(input.wScan.ToString("x4"));
+                ch = (char)input.wScan;
             }
             else
             {
-                ch = (ushort)(User32.MapVirtualKey(input.wVk, User32.MAPVK_VK_TO_CHAR) & 0x0000ffff);
+                builder.Append(input.wVk.ToString("x4"));
+                ch = (char)(User32.MapVirtualKey(input.wVk, User32.MAPVK_VK_TO_CHAR) & 0x0000ffff);
             }
 
             // Append code and printable character
-            builder.Append(ch.ToString("x4"));
             builder.Append(' ');
-            AppendPrintableChar((char)ch, builder);
+            AppendPrintableChar(ch, builder);
 
-            if (!isUnicode && !isScanCode)
+            if (!isUnicode && !isScanCode && input.wVk <= byte.MaxValue)
             {
-                AppendVirtualKey(input.wVk, builder);
+                AppendVirtualKey((byte)input.wVk, builder);
             }
 
             // Append flags
@@ -427,49 +428,13 @@ namespace Roslyn.VisualStudio.Test.Utilities
             }
         }
 
-        private static void AppendVirtualKey(ushort virtualKey, StringBuilder builder)
+        private static void AppendVirtualKey(byte virtualKey, StringBuilder builder)
         {
-            switch (virtualKey)
+            if (Enum.IsDefined(typeof(EditorWindow.VirtualKey), virtualKey))
             {
-                case User32.VK_CONTROL:
-                    builder.Append("(VK_CONTROL) ");
-                    break;
-                case User32.VK_DELETE:
-                    builder.Append("(VK_DELETE) ");
-                    break;
-                case User32.VK_DOWN:
-                    builder.Append("(VK_DOWN) ");
-                    break;
-                case User32.VK_END:
-                    builder.Append("(VK_END) ");
-                    break;
-                case User32.VK_HOME:
-                    builder.Append("(VK_HOME) ");
-                    break;
-                case User32.VK_INSERT:
-                    builder.Append("(VK_INSERT) ");
-                    break;
-                case User32.VK_LEFT:
-                    builder.Append("(VK_LEFT) ");
-                    break;
-                case User32.VK_MENU:
-                    builder.Append("(VK_MENU) ");
-                    break;
-                case User32.VK_NEXT:
-                    builder.Append("(VK_NEXT) ");
-                    break;
-                case User32.VK_PRIOR:
-                    builder.Append("(VK_PRIOR) ");
-                    break;
-                case User32.VK_RIGHT:
-                    builder.Append("(VK_RIGHT) ");
-                    break;
-                case User32.VK_SHIFT:
-                    builder.Append("(VK_SHIFT) ");
-                    break;
-                case User32.VK_UP:
-                    builder.Append("(VK_UP) ");
-                    break;
+                builder.Append('(');
+                builder.Append(Enum.GetName(typeof(EditorWindow.VirtualKey), virtualKey));
+                builder.Append(") ");
             }
         }
 

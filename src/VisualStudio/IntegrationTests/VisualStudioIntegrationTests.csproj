@@ -18,6 +18,7 @@
     <Compile Include="CSharp\CSharpAutomaticBraceCompletion.cs" />
     <Compile Include="CSharp\CSharpBuild.cs" />
     <Compile Include="CSharp\CSharpInteractiveDemo.cs" />
+    <Compile Include="EditorTestFixture.cs" />
     <Compile Include="SharedIntegrationHostFixture.cs" />
     <Compile Include="VisualBasic\BasicBuild.cs" />
   </ItemGroup>
@@ -31,6 +32,10 @@
     <ProjectReference Include="..\..\Dependencies\xUnit.net\xUnit.net.csproj">
       <Project>{8635cb8f-d210-41ed-b4ff-71502cdb475c}</Project>
       <Name>xUnit.net</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\EditorFeatures\TestUtilities\ServicesTestUtilities.csproj">
+      <Project>{76c6f005-c89d-4348-bb4a-39189ddbeb52}</Project>
+      <Name>ServicesTestUtilities</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
       <Project>{76c6f005-c89d-4348-bb4a-391898dbeb52}</Project>

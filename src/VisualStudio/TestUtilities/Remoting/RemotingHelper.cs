@@ -3,6 +3,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel.Composition.Hosting;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Windows;
@@ -19,7 +20,6 @@ using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.CSharp.Interactive;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Hosting.Diagnostics.Waiters;
@@ -35,26 +35,33 @@ namespace Roslyn.VisualStudio.Test.Utilities.Remoting
 
         private static readonly string[] SupportedLanguages = new string[] { LanguageNames.CSharp, LanguageNames.VisualBasic };
 
-        public static string ActiveTextViewContents
+        public static void ExecuteOnActiveView(Action<ITextView> action)
         {
-            get
+            InvokeOnUIThread(() =>
             {
-                return InvokeOnUIThread(ActiveTextView.TextSnapshot.GetText);
-            }
-
-            set
-            {
-                InvokeOnUIThread(() => {
-                    var textSnapshot = ActiveTextView.TextSnapshot;
-                    var replacementSpan = new SnapshotSpan(textSnapshot, 0, textSnapshot.Length);
-                    ActiveTextView.TextBuffer.Replace(replacementSpan, value);
-                });
-            }
+                var view = GetActiveTextView();
+                action(view);
+            });
         }
 
-        public static IWpfTextViewMargin GetTextViewMargin(string marginName) => InvokeOnUIThread(() => ActiveTextViewHost.GetTextViewMargin(marginName));
+        public static T ExecuteOnActiveView<T>(Func<ITextView, T> action)
+        {
+            return InvokeOnUIThread(() =>
+            {
+                var view = GetActiveTextView();
+                return action(view);
+            });
+        }
 
-        public static ReadOnlyCollection<ICompletionSession> ActiveTextViewCompletionSessions => CompletionBroker.GetSessions(ActiveTextView);
+        public static IWpfTextViewMargin GetTextViewMargin(string marginName)
+        {
+            return InvokeOnUIThread(() =>
+            {
+                return GetActiveTextViewHost().GetTextViewMargin(marginName);
+            });
+        }
+
+        public static ReadOnlyCollection<ICompletionSession> ActiveTextViewCompletionSessions => CompletionBroker.GetSessions(GetActiveTextView());
 
         public static IComponentModel ComponentModel => GetGlobalService<IComponentModel>(typeof(SComponentModel));
 
@@ -62,26 +69,26 @@ namespace Roslyn.VisualStudio.Test.Utilities.Remoting
 
         public static VisualStudioWorkspace VisualStudioWorkspace => ComponentModel.GetService<VisualStudioWorkspace>();
 
-        private static ITextView ActiveTextView => ActiveTextViewHost.TextView;
-
-        private static IWpfTextViewHost ActiveTextViewHost
+        private static ITextView GetActiveTextView()
         {
-            get
-            {
-                // The active text view might not have finished composing yet, waiting for the application to 'idle'
-                // means that it is done pumping messages (including WM_PAINT) and the window should return the correct text view
-                WaitForApplicationIdle();
+            return GetActiveTextViewHost().TextView;
+        }
 
-                var activeVsTextView = (IVsUserData)(VsTextManagerActiveView);
+        private static IWpfTextViewHost GetActiveTextViewHost()
+        {
+            // The active text view might not have finished composing yet, waiting for the application to 'idle'
+            // means that it is done pumping messages (including WM_PAINT) and the window should return the correct text view
+            WaitForApplicationIdle();
 
-                var wpfTextViewId = IWpfTextViewId;
-                object wpfTextViewHost = null;
+            var activeVsTextView = (IVsUserData)(VsTextManagerActiveView);
 
-                var hresult = activeVsTextView.GetData(ref wpfTextViewId, out wpfTextViewHost);
-                Marshal.ThrowExceptionForHR(hresult);
+            var wpfTextViewId = IWpfTextViewId;
+            object wpfTextViewHost = null;
 
-                return (IWpfTextViewHost)(wpfTextViewHost);
-            }
+            var hresult = activeVsTextView.GetData(ref wpfTextViewId, out wpfTextViewHost);
+            Marshal.ThrowExceptionForHR(hresult);
+
+            return (IWpfTextViewHost)(wpfTextViewHost);
         }
 
         private static ICompletionBroker CompletionBroker => ComponentModel.GetService<ICompletionBroker>();
@@ -119,19 +126,34 @@ namespace Roslyn.VisualStudio.Test.Utilities.Remoting
             }
         }
 
+        public static void ActivateMainWindow()
+        {
+            InvokeOnUIThread(() =>
+            {
+                var activeVisualStudioWindow = (IntPtr)IntegrationHelper.RetryRpcCall(() => DTE.ActiveWindow.HWnd);
+                Debug.WriteLine($"DTE.ActiveWindow.HWnd = {activeVisualStudioWindow}");
+
+                if (activeVisualStudioWindow == IntPtr.Zero)
+                {
+                    activeVisualStudioWindow = (IntPtr)IntegrationHelper.RetryRpcCall(() => DTE.MainWindow.HWnd);
+                    Debug.WriteLine($"DTE.MainWindow.HWnd = {activeVisualStudioWindow}");
+                }
+
+                IntegrationHelper.SetForegroundWindow(activeVisualStudioWindow);
+            });
+        }
+
         private static TestingOnly_WaitingService WaitingService => DefaultComponentModelExportProvider.GetExport<TestingOnly_WaitingService>().Value;
 
-        public static void ActivateMainWindow() => InvokeOnUIThread(() =>
+        public static void WaitForAsyncOperations(string featuresToWaitFor, bool waitForWorkspaceFirst = true)
         {
-            var activeVisualStudioWindow = (IntPtr)(IntegrationHelper.RetryRpcCall(() => DTE.ActiveWindow.HWnd));
+            WaitingService.WaitForAsyncOperations(featuresToWaitFor, waitForWorkspaceFirst);
+        }
 
-            if (activeVisualStudioWindow == IntPtr.Zero)
-            {
-                activeVisualStudioWindow = (IntPtr)(IntegrationHelper.RetryRpcCall(() => DTE.MainWindow.HWnd));
-            }
-
-            IntegrationHelper.SetForegroundWindow(activeVisualStudioWindow);
-        });
+        public static void WaitForAllAsyncOperations()
+        {
+            WaitingService.WaitForAllAsyncOperations();
+        }
 
         public static void CleanupWaitingService()
         {
@@ -151,15 +173,33 @@ namespace Roslyn.VisualStudio.Test.Utilities.Remoting
             VisualStudioWorkspace.TestHookPartialSolutionsDisabled = true;
         }
 
-        public static void WaitForSystemIdle() => CurrentApplicationDispatcher.Invoke(() => { }, DispatcherPriority.SystemIdle);
+        public static void WaitForSystemIdle()
+        {
+            CurrentApplicationDispatcher.Invoke(() => { }, DispatcherPriority.SystemIdle);
+        }
 
-        public static void WaitForApplicationIdle() => CurrentApplicationDispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
+        public static void WaitForApplicationIdle()
+        {
+            CurrentApplicationDispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
+        }
 
-        private static T GetGlobalService<T>(Type serviceType) => InvokeOnUIThread(() => (T)(GlobalServiceProvider.GetService(serviceType)));
+        private static T GetGlobalService<T>(Type serviceType)
+        {
+            return InvokeOnUIThread(() =>
+            {
+                return (T)(GlobalServiceProvider.GetService(serviceType));
+            });
+        }
 
-        public static void InvokeOnUIThread(Action action) => CurrentApplicationDispatcher.Invoke(action);
+        public static void InvokeOnUIThread(Action action)
+        {
+            CurrentApplicationDispatcher.Invoke(action);
+        }
 
-        public static T InvokeOnUIThread<T>(Func<T> action) => CurrentApplicationDispatcher.Invoke(action);
+        public static T InvokeOnUIThread<T>(Func<T> action)
+        {
+            return CurrentApplicationDispatcher.Invoke(action);
+        }
 
         private static void LoadRoslynPackage()
         {

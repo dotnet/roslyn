@@ -30,7 +30,7 @@ namespace Roslyn.VisualStudio.Basic.IntegrationTests
 
 End Module";
 
-            _visualStudio.Instance.EditorWindow.Text = editorText;
+            _visualStudio.Instance.EditorWindow.SetText(editorText);
 
             // TODO: Validate build works as expected
         }

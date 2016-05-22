@@ -1,28 +1,59 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.VisualStudio.Text;
 
 namespace Roslyn.VisualStudio.Test.Utilities.Remoting
 {
     internal class EditorWindowWrapper : MarshalByRefObject
     {
+        private EditorWindowWrapper() { }
+
         public static EditorWindowWrapper Create() => new EditorWindowWrapper();
 
-        private EditorWindowWrapper()
+        public string GetText()
         {
+            return RemotingHelper.ExecuteOnActiveView(view =>
+            {
+                return view.TextSnapshot.GetText();
+            });
         }
 
-        public string Contents
+        public void SetText(string text)
         {
-            get
+            RemotingHelper.ExecuteOnActiveView(view =>
             {
-                return RemotingHelper.ActiveTextViewContents;
-            }
+                var textSnapshot = view.TextSnapshot;
+                var replacementSpan = new SnapshotSpan(textSnapshot, 0, textSnapshot.Length);
+                view.TextBuffer.Replace(replacementSpan, text);
+            });
+        }
 
-            set
+        public string GetLineTextBeforeCaret()
+        {
+            return RemotingHelper.ExecuteOnActiveView(view =>
             {
-                RemotingHelper.ActiveTextViewContents = value;
-            }
+                var subjectBuffer = view.GetBufferContainingCaret();
+                var bufferPosition = view.Caret.Position.BufferPosition;
+                var line = bufferPosition.GetContainingLine();
+                var text = line.GetText();
+
+                return text.Substring(0, bufferPosition.Position - line.Start);
+            });
+        }
+
+        public string GetLineTextAfterCaret()
+        {
+            return RemotingHelper.ExecuteOnActiveView(view =>
+            {
+                var subjectBuffer = view.GetBufferContainingCaret();
+                var bufferPosition = view.Caret.Position.BufferPosition;
+                var line = bufferPosition.GetContainingLine();
+                var text = line.GetText();
+
+                return text.Substring(bufferPosition.Position - line.Start);
+            });
         }
     }
 }

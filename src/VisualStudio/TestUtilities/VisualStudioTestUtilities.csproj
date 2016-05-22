@@ -40,6 +40,7 @@
     <Compile Include="VisualStudioInstanceFactory.cs" />
     <Compile Include="Window\CSharpInteractiveWindow.cs" />
     <Compile Include="Window\EditorWindow.cs" />
+    <Compile Include="Window\EditorWindow_SendKeys.cs" />
     <Compile Include="Window\InteractiveWindow.cs" />
     <Compile Include="Workspace\Project.cs" />
     <Compile Include="Workspace\ProjectLanguage.cs" />

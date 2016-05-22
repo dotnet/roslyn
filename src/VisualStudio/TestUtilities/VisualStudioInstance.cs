@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Automation;
 using EnvDTE;
@@ -70,31 +71,46 @@ namespace Roslyn.VisualStudio.Test.Utilities
         internal IntegrationService IntegrationService => _integrationService;
 
         #region Automation Elements
+
         public async Task ClickAutomationElementAsync(string elementName, bool recursive = false)
         {
-            var automationElement = await LocateAutomationElementAsync(elementName, recursive).ConfigureAwait(continueOnCapturedContext: false);
+            var element = await FindAutomationElementAsync(elementName, recursive).ConfigureAwait(false);
 
-            object invokePattern = null;
-            if (automationElement.TryGetCurrentPattern(InvokePattern.Pattern, out invokePattern))
+            if (element != null)
             {
-                ((InvokePattern)(invokePattern)).Invoke();
+                var tcs = new TaskCompletionSource<object>();
+                Automation.AddAutomationEventHandler(InvokePattern.InvokedEvent, element, TreeScope.Element, (src, e) =>
+                {
+                    tcs.SetResult(null);
+                });
+
+                object invokePatternObj = null;
+                if (element.TryGetCurrentPattern(InvokePattern.Pattern, out invokePatternObj))
+                {
+                    var invokePattern = (InvokePattern)invokePatternObj;
+                    invokePattern.Invoke();
+                }
+
+                await tcs.Task;
             }
         }
 
-        private async Task<AutomationElement> LocateAutomationElementAsync(string elementName, bool recursive = false)
+        private async Task<AutomationElement> FindAutomationElementAsync(string elementName, bool recursive = false)
         {
-            AutomationElement automationElement = null;
-            var scope = (recursive ? TreeScope.Descendants : TreeScope.Children);
+            AutomationElement element = null;
+            var scope = recursive ? TreeScope.Descendants : TreeScope.Children;
             var condition = new PropertyCondition(AutomationElement.NameProperty, elementName);
 
-            await IntegrationHelper.WaitForResultAsync(() =>
-            {
-                automationElement = AutomationElement.RootElement.FindFirst(scope, condition);
-                return (automationElement != null);
-            }, expectedResult: true).ConfigureAwait(continueOnCapturedContext: false);
+            // TODO(Dustin): This is code is a bit terrifying. If anything goes wrong and the automation
+            // element can't be found, it'll continue to spin until the heat death of the universe.
+            await IntegrationHelper.WaitForResultAsync(
+                () => (element = AutomationElement.RootElement.FindFirst(scope, condition)) != null,
+                expectedResult: true)
+                .ConfigureAwait(false);
 
-            return automationElement;
+            return element;
         }
+
         #endregion
 
         #region Cleanup
@@ -155,9 +171,20 @@ namespace Roslyn.VisualStudio.Test.Utilities
             }
         }
 
-        private void CleanupWaitingService() => _integrationService.Execute(typeof(RemotingHelper), nameof(RemotingHelper.CleanupWaitingService));
+        private void CleanupWaitingService()
+        {
+            _integrationService.Execute(
+                type: typeof(RemotingHelper),
+                methodName: nameof(RemotingHelper.CleanupWaitingService));
+        }
 
-        private void CleanupWorkspace() => _integrationService.Execute(typeof(RemotingHelper), nameof(RemotingHelper.CleanupWorkspace));
+        private void CleanupWorkspace()
+        {
+            _integrationService.Execute(
+                type: typeof(RemotingHelper),
+                methodName: nameof(RemotingHelper.CleanupWorkspace));
+        }
+
         #endregion
 
         #region Close
