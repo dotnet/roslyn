@@ -1170,6 +1170,32 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         }
 
         [WpfFact]
+        public async Task AddToHistory_HistoryNavigation() 
+        {
+            await Task.Run(() => Window.WriteLine("a"));
+            Window.AddToHistory("b");
+            await Task.Run(() => Window.WriteLine("c"));
+            Window.AddToHistory("d");
+            await Task.Run(() => Window.WriteLine("e"));
+            Window.FlushOutput();
+            Window.Operations.TypeChar('f');
+
+            Assert.Equal("f", Window.CurrentLanguageBuffer.CurrentSnapshot.GetText());
+
+            Window.Operations.HistoryPrevious();
+            Assert.Equal("d", Window.CurrentLanguageBuffer.CurrentSnapshot.GetText());
+
+            Window.Operations.HistoryPrevious();
+            Assert.Equal("b", Window.CurrentLanguageBuffer.CurrentSnapshot.GetText());
+
+            Window.Operations.HistoryNext();
+            Assert.Equal("d", Window.CurrentLanguageBuffer.CurrentSnapshot.GetText());
+
+            Window.Operations.HistoryNext();
+            Assert.Equal("f", Window.CurrentLanguageBuffer.CurrentSnapshot.GetText());
+        }
+
+        [WpfFact]
         public void AddToHistory_HasInput()
         {
             var original = new InteractiveWindowTextSnapshot(_testHost);

@@ -669,7 +669,7 @@ namespace Microsoft.VisualStudio.InteractiveWindow
                 
                         break;
                     default:
-                        throw new InvalidOperationException();
+                        throw ExceptionUtilities.UnexpectedValue(State);
                 }
 
                 IContentType contentType;
