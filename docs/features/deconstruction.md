@@ -30,8 +30,9 @@ Treat deconstruction of a tuple into existing variables as a kind of assignment,
 
 
 ###Deconstruction-assignment (deconstruction into existing variables):
+
 This doesn't introduce any changes to the language grammar. We have an `assignment-expression` (also simply called `assignment` in the C# grammar) where the `unary-expression` (the left-hand-side) is a `tuple-literal`.
-In short, what this does is find a `Deconstruct` method on the expression on the right-hand-side of the assignment, invoke it, collect its `out` parameters and assign them to the variables on the left-hand-side.
+In short, what this does in the general case is find a `Deconstruct` method on the expression on the right-hand-side of the assignment, invoke it, collect its `out` parameters and assign them to the variables on the left-hand-side. And in the special case where the expression on the right-hand-side is a tuple (tuple literal or tuple type), then the elements of the tuple can be assigned to the variables on the left-hand-side without needing to call `Deconstruct`.
 
 The existing assignment binding currently checks if the variable on its left-hand-side can be assigned to and if the two sides are compatible.
 It will be updated to support deconstruction-assignment, ie. when the left-hand-side is a tuple-literal/tuple-expression:
@@ -40,39 +41,50 @@ It will be updated to support deconstruction-assignment, ie. when the left-hand-
 - Each item on the left needs to be assignable and needs to be compatible with corresponding position on the right (resulting from previous step).
 - Needs to handle nesting case such as `(x, (y, z)) = M();`, but note that the second item in the top-level group has no discernable type.
 
+The evaluation order can be summarized as: (1) all the side-effects on the left-hand-side, (2) all the Deconstruct invocations (if not tuple), (3) conversions (if needed), and (4) assignments.
+
 In the general case, the lowering for deconstruction-assignment would translate: `(expressionX, expressionY, expressionZ) = expressionRight` into:
 
 ```
+// do LHS side-effects
 tempX = &evaluate expressionX
 tempY = &evaluate expressionY
 tempZ = &evaluate expressionZ
 
-tempRight = evaluate right and evaluate Deconstruct in three parts
+// do Deconstruct
+evaluate right and evaluate Deconstruct in three parts (tempA, tempB and tempC)
 
-tempX = tempRight.A (including conversions)
-tempY = tempRight.B (including conversions)
-tempZ = tempRight.C (including conversions)
+// do conversions
+tempConvA = convert tempA
+tempConvB = convert tempB
+tempConvC = convert tempC
 
-“return/continue” with newTupleIncludingNames tempRight (so you can do get Item1 from the assignment)?
+// do assignments
+tempX = tempConvA
+tempY = tempConvB
+tempZ = tempConvC
 ```
 
 The evaluation order for nesting `(x, (y, z))` is:
 ```
+// do LHS side-effects
 tempX = &evaluate expressionX
-
-tempRight = evaluate right and evaluate Deconstruct
-
-tempX = tempRight.A (including conversions)
-tempLNested = tempRight.B (no conversions)
-
 tempY = &evaluate expressionY
 tempZ = &evaluate expressionZ
 
-tempRNest = evaluate Deconstruct on tempRight
+// do Deconstruct
+evaluate right and evaluate Deconstruct into two parts (tempA and tempNested)
+evaluate Deconstruct on tempNested intwo two parts (tempB and tempC)
 
-tempY = tempRNest.B (including conversions)
-tempZ = tempRNest.C (including conversions)
+// do conversions
+tempConvA = convert tempA
+tempConvB = convert tempB
+tempConvC = convert tempC
 
+// do assignments
+tempX = tempConvA
+tempY = tempConvB
+tempZ = tempConvC
 ```
 
 The evaluation order for the simplest cases (locals, fields, array indexers, or anything returning ref) without needing conversion:
@@ -84,12 +96,11 @@ evaluate Deconstruct passing the references directly in
 In the case where the expression on the right is a tuple, the evaluation order becomes:
 ```
 evaluate side-effect on the left-hand-side variables
-evaluate the right-hand-side and do a tuple conversion
+evaluate the right-hand-side and do a tuple conversion (using a fake tuple representing the types in the left-hand-side)
 assign element-wise from the right to the left
 ```
 
-Note that tuples (`System.ValueTuple`) don't need to invoke Deconstruct.
-But `System.Tuple` will rely on the Deconstruct mechanism.
+Note that tuples (`System.ValueTuple` and `System.Tuple`) don't need to invoke Deconstruct.
 
 
 ###Deconstruction-declaration (deconstruction into new variables):
