@@ -268,6 +268,33 @@ public class foo<T>
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task MethodParamRefName()
+        {
+            await VerifyItemsExistAsync(@"
+public class foo<T>
+{
+    
+    /// <summary>
+    /// $$
+    /// </summary>
+    public int bar<T>(T green) { }
+}", "typeparamref name=\"T\"", "paramref name=\"green\"");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ClassTypeParamRefName()
+        {
+            await VerifyItemsExistAsync(@"
+/// <summary>
+/// $$
+/// </summary>
+public class foo<T>
+{
+    public int bar<T>(T green) { }
+}", "typeparamref name=\"T\"");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task ClassTypeParam()
         {
             await VerifyItemsExistAsync(@"
