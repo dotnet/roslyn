@@ -64,6 +64,7 @@
     <Compile Include="CodeGen\ILEmitStyle.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalysisResult.cs" />
     <Compile Include="InternalUtilities\EmptyComparer.cs" />
+    <Compile Include="InternalUtilities\ConcurrentBag.cs" />
     <Compile Include="InternalUtilities\StringOrdinalComparer.cs" />
     <Compile Include="MetadataReference\AssemblyIdentityMap.cs" />
     <Compile Include="Compilation\OperationVisitor.cs" />
