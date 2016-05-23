@@ -23,12 +23,14 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
         public static readonly InvocationReasons ProjectParseOptionChanged =
             new InvocationReasons(
                 ImmutableHashSet.Create<string>(
+                                    PredefinedInvocationReasons.ProjectParseOptionsChanged,
                                     PredefinedInvocationReasons.SyntaxChanged,
                                     PredefinedInvocationReasons.SemanticChanged));
 
         public static readonly InvocationReasons ProjectConfigurationChanged =
             new InvocationReasons(
                 ImmutableHashSet.Create<string>(
+                                    PredefinedInvocationReasons.ProjectConfigurationChanged,
                                     PredefinedInvocationReasons.SyntaxChanged,
                                     PredefinedInvocationReasons.SemanticChanged));
 
