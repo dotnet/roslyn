@@ -1076,7 +1076,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Reenable.
+        ///   Looks up a localized string similar to Re-enable.
         /// </summary>
         internal static string Reenable {
             get {

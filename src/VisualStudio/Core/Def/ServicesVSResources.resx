@@ -584,7 +584,7 @@ Additional information: {1}</value>
     <comment>{0} is a parameter description</comment>
   </data>
   <data name="Reenable" xml:space="preserve">
-    <value>Reenable</value>
+    <value>Re-enable</value>
   </data>
   <data name="LearnMore" xml:space="preserve">
     <value>Learn more</value>
