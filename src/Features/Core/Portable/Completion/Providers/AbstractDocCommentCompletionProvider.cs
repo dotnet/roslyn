@@ -115,10 +115,14 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 .Select(t => GetItem(t, itemSpan));
         }
 
+        protected IEnumerable<string> NestedTagNames
+        {
+            get { return new[] { CTagName, CodeTagName, ParaTagName, ListTagName, ParamRefTagName, TypeParamRefTagName }; }
+        }
+
         protected IEnumerable<CompletionItem> GetNestedTags(TextSpan itemSpan)
         {
-            return new[] { CTagName, CodeTagName, ParaTagName, ListTagName, ParamRefTagName, TypeParamRefTagName }
-                .Select(t => GetItem(t, itemSpan));
+            return NestedTagNames.Select(t => GetItem(t, itemSpan));
         }
 
         protected IEnumerable<CompletionItem> GetTopLevelRepeatableItems(TextSpan itemSpan)
