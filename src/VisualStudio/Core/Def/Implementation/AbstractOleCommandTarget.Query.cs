@@ -23,6 +23,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
             Contract.ThrowIfFalse(commandCount == 1);
             Contract.ThrowIfFalse(prgCmds.Length == 1);
 
+            if (pguidCmdGroup == _asyncFindRefsCommandGroup &&
+                prgCmds[0].cmdID == _asyncFindRefsCommandId)
+            {
+                return QueryAsyncFindReferencesStatus(prgCmds);
+            }
+
             // TODO: We'll need to extend the command handler interfaces at some point when we have commands that
             // require enabling/disabling at some point.  For now, we just enable the few that we care about.
             if (pguidCmdGroup == VSConstants.VSStd2K)
@@ -317,6 +323,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
         }
 
         private int QueryFindReferencesStatus(OLECMD[] prgCmds)
+        {
+            prgCmds[0].cmdf = (uint)(OLECMDF.OLECMDF_ENABLED | OLECMDF.OLECMDF_SUPPORTED);
+            return VSConstants.S_OK;
+        }
+
+        private int QueryAsyncFindReferencesStatus(OLECMD[] prgCmds)
         {
             prgCmds[0].cmdf = (uint)(OLECMDF.OLECMDF_ENABLED | OLECMDF.OLECMDF_SUPPORTED);
             return VSConstants.S_OK;
