@@ -21,15 +21,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.QuickInfo
         Inherits AbstractSemanticQuickInfoProvider
 
         <ImportingConstructor>
-        Public Sub New(textBufferFactoryService As ITextBufferFactoryService,
-                       contentTypeRegistryService As IContentTypeRegistryService,
-                       projectionBufferFactoryService As IProjectionBufferFactoryService,
+        Public Sub New(projectionBufferFactoryService As IProjectionBufferFactoryService,
                        editorOptionsFactoryService As IEditorOptionsFactoryService,
                        textEditorFactoryService As ITextEditorFactoryService,
                        glyphService As IGlyphService,
                        typeMap As ClassificationTypeMap)
-            MyBase.New(textBufferFactoryService, contentTypeRegistryService, projectionBufferFactoryService,
-                       editorOptionsFactoryService, textEditorFactoryService, glyphService, typeMap)
+            MyBase.New(projectionBufferFactoryService, editorOptionsFactoryService,
+                       textEditorFactoryService, glyphService, typeMap)
         End Sub
 
         Protected Overrides Async Function BuildContentAsync(document As Document,

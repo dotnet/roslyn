@@ -17,15 +17,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.QuickInfo
     {
         [ImportingConstructor]
         public SemanticQuickInfoProvider(
-            ITextBufferFactoryService textBufferFactoryService,
-            IContentTypeRegistryService contentTypeRegistryService,
             IProjectionBufferFactoryService projectionBufferFactoryService,
             IEditorOptionsFactoryService editorOptionsFactoryService,
             ITextEditorFactoryService textEditorFactoryService,
             IGlyphService glyphService,
             ClassificationTypeMap typeMap)
-            : base(textBufferFactoryService, contentTypeRegistryService, projectionBufferFactoryService,
-                   editorOptionsFactoryService, textEditorFactoryService, glyphService, typeMap)
+            : base(projectionBufferFactoryService, editorOptionsFactoryService, 
+                  textEditorFactoryService, glyphService, typeMap)
         {
         }
 

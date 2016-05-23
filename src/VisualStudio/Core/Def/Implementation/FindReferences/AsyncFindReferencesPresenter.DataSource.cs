@@ -3,12 +3,17 @@ using System.Collections.Concurrent;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Navigation;
+using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Shell.TableManager;
+using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
 {
@@ -18,6 +23,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
         {
             private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
             private readonly ConcurrentBag<Subscription> _subscriptions = new ConcurrentBag<Subscription>();
+
+            private readonly ClassificationTypeMap _typeMap;
             private readonly IAsynchronousOperationListener _asyncListener;
 
             private readonly object _gate = new object();
@@ -25,8 +32,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
 
             private TableEntriesSnapshot _lastSnapshot;
 
-            public DataSource(IAsynchronousOperationListener asyncListener)
+            public DataSource(ClassificationTypeMap typeMap, IAsynchronousOperationListener asyncListener)
             {
+                _typeMap = typeMap;
                 _asyncListener = asyncListener;
             }
 
@@ -111,12 +119,28 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
             private async Task OnReferenceFoundAsync(
                 INavigableItem definition, INavigableItem reference, Guid projectGuid)
             {
-                var sourceText = await reference.Document.GetTextAsync(_cancellationTokenSource.Token).ConfigureAwait(false);
+                var cancellationToken = _cancellationTokenSource.Token;
+
+                var document = reference.Document;
+                var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+                var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+                var referenceSpan = reference.SourceSpan;
+                var sourceLine = sourceText.Lines.GetLineFromPosition(referenceSpan.Start);
+
+                var firstNonWhitespacePosition = sourceLine.GetFirstNonWhitespacePosition().Value;
+                var span = TextSpan.FromBounds(firstNonWhitespacePosition, sourceLine.End);
+
+                var classifiedLineParts = await Classifier.GetClassifiedSymbolDisplayPartsAsync(
+                    semanticModel, span, document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(false);
 
                 lock (_gate)
                 {
                     // Once we can make the new entry, add it to our list.
-                    _entries = _entries.Add(new TableEntry(definition, reference, projectGuid, sourceText));
+                    var entry = new TableEntry(
+                        definition, reference, projectGuid, 
+                        sourceText, classifiedLineParts, _typeMap);
+                    _entries = _entries.Add(entry);
                     CurrentVersionNumber++;
                 }
 

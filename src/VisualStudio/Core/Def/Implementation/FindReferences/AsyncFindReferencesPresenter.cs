@@ -18,15 +18,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
         private readonly IServiceProvider _serviceProvider;
         private readonly ITableManagerProvider _tableManagerProvider;
         private readonly IAsynchronousOperationListener _asyncListener;
+        private readonly ClassificationTypeMap _typeMap;
 
         [ImportingConstructor]
         public AsyncFindReferencesPresenter(
             Shell.SVsServiceProvider serviceProvider,
             ITableManagerProvider tableManagerProvider,
+            ClassificationTypeMap typeMap,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
             _serviceProvider = serviceProvider;
             _tableManagerProvider = tableManagerProvider;
+            _typeMap = typeMap;
             _asyncListener = new AggregateAsynchronousOperationListener(
                 asyncListeners, FeatureAttribute.ReferenceHighlighting);
         }
@@ -58,7 +61,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                 manager.RemoveSource(source);
             }
 
-            var dataSource = new DataSource(_asyncListener);
+            var dataSource = new DataSource(_typeMap, _asyncListener);
             manager.AddSource(dataSource);
 
             return dataSource;

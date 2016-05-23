@@ -13,19 +13,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.QuickInfo
     {
         // Internal for testing purposes.
         internal readonly IList<SymbolDisplayPart> ClassifiableContent;
-        private readonly ITextBufferFactoryService _textBufferFactoryService;
-        private readonly IContentTypeRegistryService _contentTypeRegistryService;
         private readonly ClassificationTypeMap _typeMap;
 
         public ClassifiableDeferredContent(
             IList<SymbolDisplayPart> content,
-            ITextBufferFactoryService textBufferFactoryService,
-            IContentTypeRegistryService contentTypeRegistryService,
             ClassificationTypeMap typeMap)
         {
             this.ClassifiableContent = content;
-            _textBufferFactoryService = textBufferFactoryService;
-            _contentTypeRegistryService = contentTypeRegistryService;
             _typeMap = typeMap;
         }
 

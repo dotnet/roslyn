@@ -277,8 +277,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.QuickInfo
         private IQuickInfoProvider CreateProvider(TestWorkspace workspace)
         {
             return new SyntacticQuickInfoProvider(
-                workspace.GetService<ITextBufferFactoryService>(),
-                workspace.GetService<IContentTypeRegistryService>(),
                 workspace.GetService<IProjectionBufferFactoryService>(),
                 workspace.GetService<IEditorOptionsFactoryService>(),
                 workspace.GetService<ITextEditorFactoryService>(),
