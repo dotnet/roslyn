@@ -70,6 +70,7 @@
     <Compile Include="Implementation\Interactive\VisualBasicResetInteractiveMenuCommand.cs" />
     <Compile Include="Implementation\Interop\CleanableWeakComHandleTable.cs" />
     <Compile Include="Implementation\LanguageService\AbstractLanguageService`2.IVsLanguageBlock.cs" />
+    <Compile Include="Implementation\LanguageService\AbstractPackage.cs" />
     <Compile Include="Implementation\Library\AbstractLibraryService.cs" />
     <Compile Include="Implementation\Library\ClassView\AbstractSyncClassViewCommandHandler.cs" />
     <Compile Include="Implementation\Library\FindResults\TreeItems\AbstractSourceTreeItem.cs" />
@@ -154,6 +155,8 @@
     <Compile Include="Implementation\Workspace\VisualStudioProjectCacheHostServiceFactory.cs" />
     <Compile Include="IRoslynTelemetrySetup.cs" />
     <Compile Include="Packaging\Interop\SVsRemoteControlService.cs" />
+    <Compile Include="Packaging\IPackageServicesProxy.cs" />
+    <Compile Include="SymbolSearch\AbstractDelayStartedService.cs" />
     <Compile Include="SymbolSearch\IAddReferenceDatabaseWrapper.cs" />
     <Compile Include="SymbolSearch\IDatabaseFactoryService.cs" />
     <Compile Include="SymbolSearch\IDelayService.cs" />

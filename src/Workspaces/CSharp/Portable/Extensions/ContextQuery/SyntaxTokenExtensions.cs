@@ -93,6 +93,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             // using (expr)
             //   |
 
+            // fixed (void* v = &expr)
+            //   |
+
             // lock (expr)
             //   |
 
@@ -170,7 +173,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                     parent.IsKind(SyntaxKind.WhileStatement) ||
                     parent.IsKind(SyntaxKind.IfStatement) ||
                     parent.IsKind(SyntaxKind.LockStatement) ||
-                    parent.IsKind(SyntaxKind.UsingStatement))
+                    parent.IsKind(SyntaxKind.UsingStatement) ||
+                    parent.IsKind(SyntaxKind.FixedStatement))
                 {
                     return true;
                 }

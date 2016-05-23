@@ -28,6 +28,7 @@
     <Compile Include="Collections\BoxesTest.cs" />
     <Compile Include="Collections\ByteSequenceComparerTests.cs" />
     <Compile Include="CryptoBlobParserTests.cs" />
+    <Compile Include="Diagnostics\CompilationWithAnalyzersTests.cs" />
     <Compile Include="Diagnostics\ErrorLoggerTests.cs" />
     <Compile Include="Diagnostics\AnalysisContextInfoTests.cs" />
     <Compile Include="Diagnostics\BoxingOperationAnalyzer.cs" />
@@ -95,7 +96,7 @@
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <NoWarn>1591;RS0007</NoWarn>
+    <NoWarn>1591</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>

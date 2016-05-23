@@ -3,8 +3,6 @@
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic
 
-#Disable Warning RS0007 ' Avoid zero-length array allocations. This is non-shipping test code.
-
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
     Partial Public Class VisualBasicNavigationBarTests
         <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545000")>

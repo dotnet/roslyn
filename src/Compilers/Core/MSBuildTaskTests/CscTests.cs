@@ -77,6 +77,20 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
+        public void RuntimeMetadataVersionFlag()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.RuntimeMetadataVersion = "v1234";
+            Assert.Equal("/out:test.exe /runtimemetadataversion:v1234 test.cs", csc.GenerateResponseFileContents());
+
+            csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.RuntimeMetadataVersion = null;
+            Assert.Equal("/out:test.exe test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
         public void TargetTypeDll()
         {
             var csc = new Csc();

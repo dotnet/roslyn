@@ -18,6 +18,8 @@ namespace RunTests
             public int AssemblyCount { get; set; }
             public int CacheCount { get; set; }
             public int ChunkCount { get; set; }
+            public string JenkinsUrl { get; set; }
+            public bool HasErrors { get; set; }
         }
     }
 }

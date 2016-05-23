@@ -538,8 +538,11 @@ Microsoft.CodeAnalysis.Semantics.LoopKind.None = 0 -> Microsoft.CodeAnalysis.Sem
 Microsoft.CodeAnalysis.Semantics.LoopKind.WhileUntil = 1 -> Microsoft.CodeAnalysis.Semantics.LoopKind
 Microsoft.CodeAnalysis.Semantics.OperationExtensions
 Microsoft.CodeAnalysis.Semantics.OperationVisitor
+Microsoft.CodeAnalysis.Semantics.OperationVisitor.OperationVisitor() -> void
 Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>
+Microsoft.CodeAnalysis.Semantics.OperationVisitor<TArgument, TResult>.OperationVisitor() -> void
 Microsoft.CodeAnalysis.Semantics.OperationWalker
+Microsoft.CodeAnalysis.Semantics.OperationWalker.OperationWalker() -> void
 Microsoft.CodeAnalysis.Semantics.SimpleBinaryOperationKind
 Microsoft.CodeAnalysis.Semantics.SimpleBinaryOperationKind.Add = 1 -> Microsoft.CodeAnalysis.Semantics.SimpleBinaryOperationKind
 Microsoft.CodeAnalysis.Semantics.SimpleBinaryOperationKind.And = 10 -> Microsoft.CodeAnalysis.Semantics.SimpleBinaryOperationKind
@@ -735,6 +738,7 @@ override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitVariableDeclarati
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitWhileUntilLoopStatement(Microsoft.CodeAnalysis.Semantics.IWhileUntilLoopStatement operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitWithStatement(Microsoft.CodeAnalysis.Semantics.IWithStatement operation) -> void
 override Microsoft.CodeAnalysis.Semantics.OperationWalker.VisitYieldBreakStatement(Microsoft.CodeAnalysis.Semantics.IReturnStatement operation) -> void
+static Microsoft.CodeAnalysis.Diagnostics.CompilationWithAnalyzers.GetEffectiveDiagnostics(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> diagnostics, Microsoft.CodeAnalysis.Compilation compilation) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.Diagnostic>
 static Microsoft.CodeAnalysis.Semantics.OperationExtensions.Descendants(this Microsoft.CodeAnalysis.IOperation operation) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.IOperation>
 static Microsoft.CodeAnalysis.Semantics.OperationExtensions.DescendantsAndSelf(this Microsoft.CodeAnalysis.IOperation operation) -> System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.IOperation>
 static Microsoft.CodeAnalysis.Semantics.OperationExtensions.GetRootOperation(this Microsoft.CodeAnalysis.ISymbol symbol, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.IOperation

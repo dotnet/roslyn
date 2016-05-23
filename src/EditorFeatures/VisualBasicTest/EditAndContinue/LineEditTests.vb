@@ -5,8 +5,6 @@ Imports Microsoft.CodeAnalysis.Differencing
 Imports Microsoft.CodeAnalysis.EditAndContinue
 Imports Microsoft.CodeAnalysis.Emit
 
-#Disable Warning RS0007 ' Avoid zero-length array allocations. This is non-shipping test code.
-
 Namespace Microsoft.CodeAnalysis.VisualBasic.EditAndContinue.UnitTests
     Public Class LineEditTests
         Inherits RudeEditTestBase

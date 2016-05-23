@@ -820,5 +820,35 @@ Assembly '{libBaseName}, Version=0.0.0.0' has already been loaded from '{fileBas
 «Gray»
 > ", runner.Console.Out.ToString());
         }
+
+        [Fact]
+        [WorkItem(6580, "https://github.com/dotnet/roslyn/issues/6580")]
+        public void PreservingDeclarationsOnException()
+        {
+            var runner = CreateRunner(input:
+@"int i = 100;
+int j = 20; throw new System.Exception(""Bang!""); int k = 3;
+i + j + k
+");
+            runner.RunInteractive();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+$@"Microsoft (R) Visual C# Interactive Compiler version {s_compilerVersion}
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+Type ""#help"" for more information.
+> int i = 100;
+> int j = 20; throw new System.Exception(""Bang!""); int k = 3;
+«Red»
+Bang!
+«Gray»
+> i + j + k
+120
+> ", runner.Console.Out.ToString());
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences(
+                @"Bang!",
+                runner.Console.Error.ToString());
+        }
     }
 }

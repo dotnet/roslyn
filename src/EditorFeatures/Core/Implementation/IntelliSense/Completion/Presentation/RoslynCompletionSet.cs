@@ -12,7 +12,6 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using VSCompletion = Microsoft.VisualStudio.Language.Intellisense.Completion;
-using Microsoft.CodeAnalysis.Snippets;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Presentation
 {
@@ -205,7 +204,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 var document = _subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document != null)
                 {
-                    _completionHelper = CompletionHelper.GetHelper(document);
+                    _completionHelper = CompletionHelper.GetHelper(document,
+                        document.Project.LanguageServices.GetService<CompletionService>());
                 }
             }
 

@@ -218,12 +218,14 @@ namespace RunTests
             {
                 Cache = dataStorage.Name,
                 ElapsedSeconds = (int)elapsed.TotalSeconds,
+                JenkinsUrl = Constants.JenkinsUrl,
                 IsJenkins = Constants.IsJenkinsRun,
                 Is32Bit = !options.Test64,
                 AssemblyCount = options.Assemblies.Count,
                 ChunkCount = partitionCount,
                 CacheCount = result.CacheCount,
-                Succeeded = result.Succeeded
+                Succeeded = result.Succeeded,
+                HasErrors = Logger.HasErrors
             };
 
             var request = new RestRequest("api/testData/run", Method.POST);
