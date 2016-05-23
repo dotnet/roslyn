@@ -27,35 +27,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             // First int:
             //
-            // |  |d|yy|xxxxxxxxxxxxxxxxxxxxxx|wwwwww|
+            // | |yy|xxxxxxxxxxxxxxxxxxxxxxx|wwwwww|
             //
             // w = special type.  6 bits.
-            // x = modifiers.  22 bits.
+            // x = modifiers.  23 bits.
             // y = IsManagedType.  2 bits.
-            // d = FieldDefinitionsNoted. 1 bit
             private const int SpecialTypeOffset = 0;
             private const int DeclarationModifiersOffset = 6;
-            private const int IsManagedTypeOffset = 27;
+            private const int IsManagedTypeOffset = 29;
 
             private const int SpecialTypeMask = 0x3F;
-            private const int DeclarationModifiersMask = 0x3FFFFF;
+            private const int DeclarationModifiersMask = 0x7FFFFF;
             private const int IsManagedTypeMask = 0x3;
-
-            private const int FieldDefinitionsNotedBit = 1 << 29;
 
             private int _flags;
 
             // More flags.
             //
-            // |                           |zzzz|f|
+            // |                          |zzzz|f|d|
             //
+            // d = FieldDefinitionsNoted. 1 bit.
             // f = FlattenedMembersIsSorted.  1 bit.
             // z = TypeKind. 4 bits.
-            private const int TypeKindOffset = 1;
+            private const int TypeKindOffset = 2;
 
             private const int TypeKindMask = 0xF;
 
-            private const int FlattenedMembersIsSortedBit = 1 << 0;
+
+            private const int FieldDefinitionsNotedBit = 1 << 0;
+            private const int FlattenedMembersIsSortedBit = 1 << 1;
 
             private int _flags2;
 
@@ -76,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public bool FieldDefinitionsNoted
             {
-                get { return (_flags & FieldDefinitionsNotedBit) != 0; }
+                get { return (_flags2 & FieldDefinitionsNotedBit) != 0; }
             }
 
             // True if "lazyMembersFlattened" is sorted.
@@ -123,7 +123,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             public void SetFieldDefinitionsNoted()
             {
-                ThreadSafeFlagOperations.Set(ref _flags, FieldDefinitionsNotedBit);
+                ThreadSafeFlagOperations.Set(ref _flags2, FieldDefinitionsNotedBit);
             }
 
             public void SetFlattenedMembersIsSorted()
