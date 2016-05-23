@@ -336,10 +336,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// or both are provided, only those extension methods that match are included.
         /// </summary>
         /// <param name="methods">Methods list</param>
+        /// <param name="extensionClassMethods">Methods from extension class members (as opposed to parameters marked with 'this')</param>
         /// <param name="nameOpt">Optional method name</param>
         /// <param name="arity">Method arity</param>
         /// <param name="options">Lookup options</param>
-        internal virtual void GetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string nameOpt, int arity, LookupOptions options)
+        internal virtual void GetExtensionMethods(ArrayBuilder<MethodSymbol> methods, ArrayBuilder<MethodSymbol> extensionClassMethods, string nameOpt, int arity, LookupOptions options)
         {
             var assembly = this.ContainingAssembly;
 
@@ -356,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var type in typesWithExtensionMethods)
             {
-                type.DoGetExtensionMethods(methods, nameOpt, arity, options);
+                type.DoGetExtensionMethods(methods, extensionClassMethods, nameOpt, arity, options);
             }
         }
 

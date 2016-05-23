@@ -1815,7 +1815,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         }
                         break;
                     case SymbolKind.NamedType:
-                        if (((NamedTypeSymbol)member).MightContainExtensionMethods)
+                        if (((NamedTypeSymbol)member).MightContainExtensionMethods || ((NamedTypeSymbol)member).ExtensionClassType != null)
                         {
                             return true;
                         }

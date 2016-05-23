@@ -4031,14 +4031,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 foreach (var scope in new ExtensionMethodScopes(binder))
                 {
                     var extensionMethods = ArrayBuilder<MethodSymbol>.GetInstance();
+                    var extensionClassMethods = ArrayBuilder<MethodSymbol>.GetInstance();
                     var otherBinder = scope.Binder;
                     otherBinder.GetCandidateExtensionMethods(scope.SearchUsingsNotNamespace,
                                                              extensionMethods,
+                                                             extensionClassMethods,
                                                              name,
                                                              arity,
                                                              options,
                                                              originalBinder: binder);
 
+                    // TODO(t-evhau, do not merge): use extensionClassMethods somehow
                     foreach (var method in extensionMethods)
                     {
                         HashSet<DiagnosticInfo> useSiteDiagnostics = null;
@@ -4052,6 +4055,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
 
                     extensionMethods.Free();
+                    extensionClassMethods.Free();
                 }
             }
 

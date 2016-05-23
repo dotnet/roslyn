@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsExtensionClass
         {
-            get { return _underlyingType.MightContainExtensionMethods; }
+            get { return _underlyingType.IsExtensionClass; }
         }
 
         public override bool MightContainExtensionMethods

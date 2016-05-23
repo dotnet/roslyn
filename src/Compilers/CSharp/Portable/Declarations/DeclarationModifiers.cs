@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         Async = 1 << 19,
         Replace = 1 << 20,
+
         Extension = 1 << 21,
 
         All = (1 << 22) - 1, // all modifiers

@@ -216,10 +216,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             return this.RetargetingTranslator.Retarget(underlying, RetargetOptions.RetargetPrimitiveTypesByName);
         }
 
-        internal override void GetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string nameOpt, int arity, LookupOptions options)
+        internal override void GetExtensionMethods(ArrayBuilder<MethodSymbol> methods, ArrayBuilder<MethodSymbol> extensionClassMethods, string nameOpt, int arity, LookupOptions options)
         {
             var underlyingMethods = ArrayBuilder<MethodSymbol>.GetInstance();
-            _underlyingNamespace.GetExtensionMethods(underlyingMethods, nameOpt, arity, options);
+            _underlyingNamespace.GetExtensionMethods(underlyingMethods, extensionClassMethods, nameOpt, arity, options);
             foreach (var underlyingMethod in underlyingMethods)
             {
                 methods.Add(this.RetargetingTranslator.Retarget(underlyingMethod));

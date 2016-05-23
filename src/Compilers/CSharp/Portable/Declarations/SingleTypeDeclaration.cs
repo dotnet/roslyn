@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return (_modifiers & DeclarationModifiers.Extension) != 0;
+                return (Modifiers & DeclarationModifiers.Extension) != 0;
             }
         }
 

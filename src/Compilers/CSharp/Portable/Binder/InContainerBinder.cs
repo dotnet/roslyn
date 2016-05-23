@@ -140,6 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal override void GetCandidateExtensionMethods(
             bool searchUsingsNotNamespace,
             ArrayBuilder<MethodSymbol> methods,
+            ArrayBuilder<MethodSymbol> extensionClassMethods,
             string name,
             int arity,
             LookupOptions options,
@@ -147,17 +148,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (searchUsingsNotNamespace)
             {
-                this.GetImports(basesBeingResolved: null).LookupExtensionMethodsInUsings(methods, name, arity, options, originalBinder);
+                this.GetImports(basesBeingResolved: null).LookupExtensionMethodsInUsings(methods, extensionClassMethods, name, arity, options, originalBinder);
             }
             else if (_container?.Kind == SymbolKind.Namespace)
             {
-                ((NamespaceSymbol)_container).GetExtensionMethods(methods, name, arity, options);
+                ((NamespaceSymbol)_container).GetExtensionMethods(methods, extensionClassMethods, name, arity, options);
             }
             else if (IsSubmissionClass)
             {
                 for (var submission = this.Compilation; submission != null; submission = submission.PreviousSubmission)
                 {
-                    submission.ScriptClass?.GetExtensionMethods(methods, name, arity, options);
+                    submission.ScriptClass?.GetExtensionMethods(methods, extensionClassMethods, name, arity, options);
                 }
             }
         }

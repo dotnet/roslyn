@@ -738,6 +738,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void LookupExtensionMethodsInUsings(
             ArrayBuilder<MethodSymbol> methods,
+            ArrayBuilder<MethodSymbol> extensionClassMethods,
             string name,
             int arity,
             LookupOptions options,
@@ -765,7 +766,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SymbolKind.Namespace:
                         {
                             var count = methods.Count;
-                            ((NamespaceSymbol)nsOrType.NamespaceOrType).GetExtensionMethods(methods, name, arity, options);
+                            ((NamespaceSymbol)nsOrType.NamespaceOrType).GetExtensionMethods(methods, extensionClassMethods, name, arity, options);
 
                             // If we found any extension methods, then consider this using as used.
                             if (methods.Count != count)
@@ -780,7 +781,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SymbolKind.NamedType:
                         {
                             var count = methods.Count;
-                            ((NamedTypeSymbol)nsOrType.NamespaceOrType).GetExtensionMethods(methods, name, arity, options);
+                            ((NamedTypeSymbol)nsOrType.NamespaceOrType).GetExtensionMethods(methods, extensionClassMethods, name, arity, options);
 
                             // If we found any extension methods, then consider this using as used.
                             if (methods.Count != count)

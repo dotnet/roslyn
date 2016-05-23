@@ -351,6 +351,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public TypeSymbol ExtensionClassType => IsExtensionClass ? BaseType : null;
+
         /// <summary>
         /// Returns true if this type might contain extension methods. If this property
         /// returns false, there are no extension methods in this type.
@@ -360,31 +362,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         public abstract bool MightContainExtensionMethods { get; }
 
-        internal void GetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string nameOpt, int arity, LookupOptions options)
+        internal void GetExtensionMethods(ArrayBuilder<MethodSymbol> methods, ArrayBuilder<MethodSymbol> extensionClassMethods, string nameOpt, int arity, LookupOptions options)
         {
             if (this.MightContainExtensionMethods)
             {
-                DoGetExtensionMethods(methods, nameOpt, arity, options);
+                DoGetExtensionMethods(methods, extensionClassMethods, nameOpt, arity, options);
             }
         }
 
-        internal void DoGetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string nameOpt, int arity, LookupOptions options)
+        internal void DoGetExtensionMethods(ArrayBuilder<MethodSymbol> methods, ArrayBuilder<MethodSymbol> extensionClassMethods, string nameOpt, int arity, LookupOptions options)
         {
             var members = nameOpt == null
                 ? this.GetMembersUnordered()
                 : this.GetSimpleNonTypeMembers(nameOpt);
 
+            var isExtensionClass = this.IsExtensionClass;
             foreach (var member in members)
             {
                 if (member.Kind == SymbolKind.Method)
                 {
                     var method = (MethodSymbol)member;
-                    if ((method.ContainingType.IsExtensionClass || method.IsExtensionMethod) &&
+                    if (method.IsExtensionMethod &&
                         ((options & LookupOptions.AllMethodsOnArityZero) != 0 || arity == method.Arity))
                     {
                         Debug.Assert(method.MethodKind != MethodKind.ReducedExtension);
                         methods.Add(method);
                     }
+
                 }
             }
         }
@@ -1304,7 +1308,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!IsUnboundGenericType &&
                 ContainingSymbol?.Kind == SymbolKind.Namespace &&
                 ContainingNamespace.ContainingNamespace?.IsGlobalNamespace == true &&
-                Name == TupleTypeSymbol.TupleTypeName && 
+                Name == TupleTypeSymbol.TupleTypeName &&
                 ContainingNamespace.Name == MetadataHelpers.SystemString)
             {
                 int arity = Arity;

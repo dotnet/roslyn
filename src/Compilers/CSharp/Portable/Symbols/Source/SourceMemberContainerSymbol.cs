@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             private const int IsManagedTypeOffset = 27;
 
             private const int SpecialTypeMask = 0x3F;
-            private const int DeclarationModifiersMask = 0x7FFFFF;
+            private const int DeclarationModifiersMask = 0x3FFFFF;
             private const int IsManagedTypeMask = 0x3;
 
             private const int FieldDefinitionsNotedBit = 1 << 29;
