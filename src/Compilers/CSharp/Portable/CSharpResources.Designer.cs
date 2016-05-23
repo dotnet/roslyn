@@ -1565,7 +1565,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Invalid operand for pattern match..
+        ///   Looks up a localized string similar to Invalid operand for pattern match; value required, but found &apos;{0}&apos;..
         /// </summary>
         internal static string ERR_BadIsPatternExpression {
             get {
@@ -3334,6 +3334,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_DllImportOnInvalidMethod {
             get {
                 return ResourceManager.GetString("ERR_DllImportOnInvalidMethod", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Error writing to XML documentation file: {0}.
+        /// </summary>
+        internal static string ERR_DocFileGen {
+            get {
+                return ResourceManager.GetString("ERR_DocFileGen", resourceCulture);
             }
         }
         
