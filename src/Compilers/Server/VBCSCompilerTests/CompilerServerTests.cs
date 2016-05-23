@@ -1300,31 +1300,6 @@ class Program
             }
         }
 
-        [Fact, WorkItem(1095079, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1095079")]
-        public async Task ServerRespectsAppConfig()
-        {
-            var exeConfigPath = Path.Combine(CompilerDirectory, CompilerServerExeName + ".config");
-            var doc = new XmlDocument();
-            using (XmlReader reader = XmlReader.Create(exeConfigPath, new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null }))
-            {
-                doc.Load(reader);
-            }
-            var root = doc.DocumentElement;
-
-            root.SelectSingleNode("appSettings/add/@value").Value = "1";
-            doc.Save(exeConfigPath);
-
-            var proc = StartProcess(CompilerServerExecutable, "");
-            await Task.Delay(TimeSpan.FromSeconds(3)).ConfigureAwait(false); // Give 2s leeway
-
-            var exited = proc.HasExited;
-            if (!exited)
-            {
-                Kill(proc);
-                Assert.True(false, "Compiler server did not exit in time");
-            }
-        }
-
         [Fact]
         public void BadKeepAlive1()
         {
