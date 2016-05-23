@@ -24,18 +24,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
             private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
             private readonly ConcurrentBag<Subscription> _subscriptions = new ConcurrentBag<Subscription>();
 
-            private readonly ClassificationTypeMap _typeMap;
-            private readonly IAsynchronousOperationListener _asyncListener;
+            private readonly AsyncFindReferencesPresenter _presenter;
 
             private readonly object _gate = new object();
             private ImmutableList<TableEntry> _entries = ImmutableList<TableEntry>.Empty;
 
             private TableEntriesSnapshot _lastSnapshot;
 
-            public DataSource(ClassificationTypeMap typeMap, IAsynchronousOperationListener asyncListener)
+            public DataSource(AsyncFindReferencesPresenter presenter)
             {
-                _typeMap = typeMap;
-                _asyncListener = asyncListener;
+                _presenter = presenter;
             }
 
             public override CancellationToken CancellationToken => _cancellationTokenSource.Token;
@@ -106,7 +104,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                     // that data, so instead we just fire off the async work to get the text
                     // and use it.  Because we're starting some async work, let the test harness
                     // know so that it doesn't verify results until this completes.
-                    using (var token = _asyncListener.BeginAsyncOperation(nameof(OnReferenceFound)))
+                    using (var token = _presenter._asyncListener.BeginAsyncOperation(nameof(OnReferenceFound)))
                     {
                         await OnReferenceFoundAsync(definition, reference, projectGuid.Value).ConfigureAwait(false);
                     }
@@ -131,6 +129,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                 var firstNonWhitespacePosition = sourceLine.GetFirstNonWhitespacePosition().Value;
                 var span = TextSpan.FromBounds(firstNonWhitespacePosition, sourceLine.End);
 
+                // TODO: highlight the actual reference span in some way.
                 var classifiedLineParts = await Classifier.GetClassifiedSymbolDisplayPartsAsync(
                     semanticModel, span, document.Project.Solution.Workspace, cancellationToken).ConfigureAwait(false);
 
@@ -138,8 +137,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.FindReferences
                 {
                     // Once we can make the new entry, add it to our list.
                     var entry = new TableEntry(
+                        _presenter,
                         definition, reference, projectGuid, 
-                        sourceText, classifiedLineParts, _typeMap);
+                        sourceText, classifiedLineParts);
                     _entries = _entries.Add(entry);
                     CurrentVersionNumber++;
                 }
