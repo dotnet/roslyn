@@ -430,7 +430,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to We have suspended some advanced features to improve performance..
+        ///   Looks up a localized string similar to Visual Studio suspended some advanced features to improve performance..
         /// </summary>
         internal static string FullSolutionAnalysisOff {
             get {

@@ -508,7 +508,7 @@ Use the dropdown to view and switch to other projects this file may belong to.</
     <value>Synchronizing with {0}...</value>
   </data>
   <data name="FullSolutionAnalysisOff" xml:space="preserve">
-    <value>We have suspended some advanced features to improve performance.</value>
+    <value>Visual Studio suspended some advanced features to improve performance.</value>
   </data>
   <data name="Installing_0" xml:space="preserve">
     <value>Installing '{0}'</value>
