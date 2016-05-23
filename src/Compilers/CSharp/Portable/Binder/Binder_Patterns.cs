@@ -221,12 +221,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     convertedCaseExpression = CreateConversion(operand, leftType.GetNullableUnderlyingType(), discardedDiagnostics);
                     discardedDiagnostics.Free();
                 }
-                else if (conversion.ConversionKind == ConversionKind.Boxing && operand.ConstantValue != null && convertedCaseExpression.ConstantValue == null)
+                else if ((conversion.ConversionKind == ConversionKind.Boxing || conversion.ConversionKind == ConversionKind.ImplicitReference)
+                    && operand.ConstantValue != null && convertedCaseExpression.ConstantValue == null)
                 {
-                    // A boxed constant is a special case because we prefer to compare to the pre-boxed
-                    // value by casting the input value to the type of the constant (that is, unboxing it)
-                    // and then testing the resulting value using primitives. That is much more efficient
-                    // than calling object.Equals(x, y).
+                    // A boxed constant (or string converted to object) is a special case because we prefer
+                    // to compare to the pre-converted value by casting the input value to the type of the constant
+                    // (that is, unboxing or downcasting it) and then testing the resulting value using primitives.
+                    // That is much more efficient than calling object.Equals(x, y), and we can share the downcasted
+                    // input value among many constant tests.
                     convertedCaseExpression = operand;
                 }
             }

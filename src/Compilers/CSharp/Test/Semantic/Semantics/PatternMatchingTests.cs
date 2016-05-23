@@ -10051,7 +10051,7 @@ class Program
             }
         }
 
-        [Fact(Skip = "PROTOYPE(typeswitch) this is the next work item")]
+        [Fact]
         public void MixedDecisionTree()
         {
             // Constant value "object" forms do not distinguish (int)1 from (short)1, so we end up
@@ -10103,7 +10103,7 @@ public class X
             case ""baz"":
                 Console.WriteLine(""baz""); break;
             default:
-                Console.WriteLine(""other"" + o); break;
+                Console.WriteLine(""other "" + o); break;
         }
     }
 }

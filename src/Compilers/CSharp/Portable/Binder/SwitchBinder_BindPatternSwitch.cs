@@ -57,20 +57,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             return FindMatchingSwitchLabel(s_defaultKey);
         }
 
-        private SourceLabelSymbol FindMatchingSwitchCaseLabel(ConstantValue constantValue, SyntaxNodeOrToken labelSyntax = default(SyntaxNodeOrToken))
+        private static object _nullKey = new object();
+        private static object KeyForConstant(ConstantValue constantValue)
+        {
+            Debug.Assert(constantValue != (object)null);
+            return constantValue.IsNull ? _nullKey : constantValue.Value;
+        }
+
+        private SourceLabelSymbol FindMatchingSwitchCaseLabel(ConstantValue constantValue, CSharpSyntaxNode labelSyntax)
         {
             // SwitchLabelsMap: Dictionary for the switch case/default labels.
             // Case labels with a non-null constant value are indexed on their ConstantValue.
             // Invalid case labels with null constant value are indexed on the labelName.
 
             object key;
-            if (constantValue != null)
+            if (constantValue != (object)null)
             {
-                key = constantValue;
+                key = KeyForConstant(constantValue);
             }
             else
             {
-                key = labelSyntax.ToString();
+                key = labelSyntax;
             }
 
             return FindMatchingSwitchLabel(key);
@@ -128,10 +135,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     object key;
                     var constantValue = label.SwitchCaseLabelConstant;
-                    if (constantValue != null)
+                    if (constantValue != (object)null)
                     {
                         // Case labels with a non-null constant value are indexed on their ConstantValue.
-                        key = constantValue;
+                        key = KeyForConstant(constantValue);
                     }
                     else if (labelKind == SyntaxKind.DefaultSwitchLabel)
                     {
@@ -210,9 +217,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var pattern = sectionBinder.BindConstantPattern(
                             node, boundSwitchExpression, switchExpressionIsNull, boundSwitchExpression.Type, caseLabelSyntax.Value, node.HasErrors, diagnostics, out wasExpression, wasSwitchCase: true);
                         bool hasErrors = pattern.HasErrors;
-                        if (!hasErrors && pattern.ConstantValue != null && this.FindMatchingSwitchCaseLabel(pattern.ConstantValue) != label)
+                        var constantValue = pattern.ConstantValue;
+                        if (!hasErrors && constantValue != (object)null && this.FindMatchingSwitchCaseLabel(constantValue, caseLabelSyntax) != label)
                         {
-                            diagnostics.Add(ErrorCode.ERR_DuplicateCaseLabel, node.Location, pattern.ConstantValue?.Value ?? label.Name);
+                            diagnostics.Add(ErrorCode.ERR_DuplicateCaseLabel, node.Location, pattern.ConstantValue.GetValueToDisplay() ?? label.Name);
                             hasErrors = true;
                         }
                         return new BoundPatternSwitchLabel(node, label, pattern, null, hasErrors);
