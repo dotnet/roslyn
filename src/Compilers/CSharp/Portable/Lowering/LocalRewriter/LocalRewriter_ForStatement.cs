@@ -150,7 +150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             statementBuilder.Add(new BoundLabelStatement(syntax, breakLabel));
 
             var statements = statementBuilder.ToImmutableAndFree();
-            return new BoundBlock(syntax, outerLocals, statements, hasErrors);
+            return new BoundBlock(syntax, outerLocals, ImmutableArray<LocalFunctionSymbol>.Empty, statements, hasErrors);
         }
     }
 }

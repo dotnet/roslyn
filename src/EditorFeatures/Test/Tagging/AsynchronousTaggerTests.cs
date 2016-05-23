@@ -123,13 +123,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Tagging
             return new TestTaggerEventSource();
         }
 
-        private static Mock<IOptionService> CreateFeatureOptionsMock()
-        {
-            var featureOptions = new Mock<IOptionService>(MockBehavior.Strict);
-            featureOptions.Setup(s => s.GetOption(EditorComponentOnOffOptions.Tagger)).Returns(true);
-            return featureOptions;
-        }
-
         private sealed class TaggerOperationListener : AsynchronousOperationListener
         {
         }

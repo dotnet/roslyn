@@ -333,7 +333,7 @@ class C
                 EvalResult("Raw View", null, "", "new PB<A<string>>((new C()).b).PG, raw", DkmEvaluationResultFlags.Expandable | DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Data));
             moreChildren = GetChildren(moreChildren[1]);
             Verify(moreChildren,
-                EvalResult("F", "\"A\"", "string", "new PB<A<string>>((new C()).b).PG.F", DkmEvaluationResultFlags.RawString | DkmEvaluationResultFlags.ReadOnly));
+                EvalResult("F", "\"A\"", "string", "(new PB<A<string>>((new C()).b).PG).F", DkmEvaluationResultFlags.RawString | DkmEvaluationResultFlags.ReadOnly));
         }
 
         [Fact]

@@ -27,13 +27,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             return value.EvalFlags.Includes(DkmEvaluationResultFlags.ExceptionThrown);
         }
 
-        internal static string GetExceptionMessage(this DkmClrValue value, string fullNameWithoutFormatSpecifiers, Formatter formatter)
+        internal static string GetExceptionMessage(this DkmClrValue value, DkmInspectionContext inspectionContext, string fullNameWithoutFormatSpecifiers)
         {
-            bool unused;
-            return string.Format(
-                Resources.ExceptionThrown,
-                fullNameWithoutFormatSpecifiers,
-                formatter.GetTypeName(new TypeAndCustomInfo(value.Type), escapeKeywordIdentifiers: false, sawInvalidIdentifier: out unused));
+            var typeName = inspectionContext.GetTypeName(value.Type, null, Formatter.NoFormatSpecifiers);
+            return string.Format(Resources.ExceptionThrown, fullNameWithoutFormatSpecifiers, typeName);
         }
 
         internal static DkmClrValue GetMemberValue(this DkmClrValue value, MemberAndDeclarationInfo member, DkmInspectionContext inspectionContext)

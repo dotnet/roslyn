@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -102,6 +103,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public override bool IsVararg
         {
             get { return false; }
+        }
+
+        internal override RefKind RefKind
+        {
+            get { return RefKind.None; }
         }
 
         public override bool IsVirtual

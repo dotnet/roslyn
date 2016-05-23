@@ -1,14 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.Collections;
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.RuntimeMembers;
+using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.RuntimeMembers;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -384,9 +385,127 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return BindTypeArgument((TypeSyntax)syntax, diagnostics, basesBeingResolved);
                     }
 
+                case SyntaxKind.TupleType:
+                    {
+                        return BindTupleType((TupleTypeSyntax)syntax, diagnostics);
+                    }
+
                 default:
                     throw ExceptionUtilities.UnexpectedValue(syntax.Kind());
             }
+        }
+
+        private TypeSymbol BindTupleType(TupleTypeSyntax syntax, DiagnosticBag diagnostics)
+        {
+            int numElements = syntax.Elements.Count;
+            var types = ArrayBuilder<TypeSymbol>.GetInstance(numElements);
+            var locations = ArrayBuilder<Location>.GetInstance(numElements);
+            ArrayBuilder<string> elementNames = null;
+
+            // set of names already used
+            var uniqueFieldNames = PooledHashSet<string>.GetInstance();
+            int countOfExplicitNames = 0;
+
+            for (int i = 0; i < numElements; i++)
+            {
+                var argumentSyntax = syntax.Elements[i];
+
+                var argumentType = BindType(argumentSyntax.Type, diagnostics);
+                types.Add(argumentType);
+
+                if (argumentType.IsRestrictedType())
+                {
+                    Error(diagnostics, ErrorCode.ERR_FieldCantBeRefAny, argumentSyntax, argumentType);
+                }
+
+                string name =  null;
+                IdentifierNameSyntax nameSyntax = argumentSyntax.Name;
+
+                if (nameSyntax != null)
+                {
+                    name = nameSyntax.Identifier.ValueText;
+
+                    // validate name if we have one
+                    countOfExplicitNames++;
+                    CheckTupleMemberName(name, i, nameSyntax, diagnostics, uniqueFieldNames);
+                    locations.Add(nameSyntax.Location);
+                }
+                else
+                {
+                    locations.Add(argumentSyntax.Location);
+                }
+
+                CollectTupleFieldMemberNames(name, i + 1, numElements, ref elementNames);
+            }
+
+            uniqueFieldNames.Free();
+
+            if (countOfExplicitNames != 0 && countOfExplicitNames != numElements)
+            {
+                Error(diagnostics, ErrorCode.ERR_TupleExplicitNamesOnAllMembersOrNone, syntax);
+            }
+
+            ImmutableArray<TypeSymbol> typesArray = types.ToImmutableAndFree();
+            ImmutableArray<Location> locationsArray = locations.ToImmutableAndFree();
+
+            if (typesArray.Length < 2)
+            {
+                return new ExtendedErrorTypeSymbol(this.Compilation.Assembly.GlobalNamespace, LookupResultKind.NotCreatable, diagnostics.Add(ErrorCode.ERR_TupleTooFewElements, syntax.Location));
+            }
+
+            return TupleTypeSymbol.Create(syntax.Location,
+                                            typesArray,
+                                            locationsArray,
+                                            elementNames == null ?
+                                                default(ImmutableArray<string>) :
+                                                elementNames.ToImmutableAndFree(),
+                                            this.Compilation,
+                                            syntax,
+                                            diagnostics);
+        }
+
+        private static void CollectTupleFieldMemberNames(string name, int position, int tupleSize, ref ArrayBuilder<string> elementNames)
+        {
+            // add the name to the list
+            // names would typically all be there or none at all
+            // but in case we need to handle this in error cases
+            if (elementNames != null)
+            {
+                elementNames.Add(name ?? TupleTypeSymbol.TupleMemberName(position));
+            }
+            else
+            {
+                if (name != null)
+                {
+                    elementNames = ArrayBuilder<string>.GetInstance(tupleSize);
+                    for (int j = 1; j < position; j++)
+                    {
+                        elementNames.Add(TupleTypeSymbol.TupleMemberName(j));
+                    }
+                    elementNames.Add(name);
+                }
+            }
+        }
+
+        private static bool CheckTupleMemberName(string name, int position, CSharpSyntaxNode syntax, DiagnosticBag diagnostics, PooledHashSet<string> uniqueFieldNames)
+        {
+            int reserved = TupleTypeSymbol.IsElementNameReserved(name);
+            if (reserved == 0)
+            {
+                Error(diagnostics, ErrorCode.ERR_TupleReservedMemberNameAnyPosition, syntax, name);
+                return false;
+            }
+            else if (reserved > 0 && reserved != position + 1)
+            {
+                Error(diagnostics, ErrorCode.ERR_TupleReservedMemberName, syntax, name, reserved);
+                return false;
+            }
+            else if (!uniqueFieldNames.Add(name))
+            {
+                Error(diagnostics, ErrorCode.ERR_TupleDuplicateMemberName, syntax);
+                return false;
+            }
+            return true;
         }
 
         private Symbol BindPredefinedTypeSymbol(PredefinedTypeSyntax node, DiagnosticBag diagnostics)
@@ -889,6 +1008,28 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(members.Count > 0);
 
+            if (!hasErrors)
+            {
+                // The common case is that if that members contains a local function symbol,
+                // there is only one element. Still do a foreach for potential error cases.
+                foreach (var member in members)
+                {
+                    if (!(member is LocalFunctionSymbol))
+                    {
+                        continue;
+                    }
+                    Debug.Assert(members.Count == 1 && member.Locations.Length == 1);
+                    var localSymbolLocation = member.Locations[0];
+                    bool usedBeforeDecl =
+                        syntax.SyntaxTree == localSymbolLocation.SourceTree &&
+                        syntax.SpanStart < localSymbolLocation.SourceSpan.Start;
+                    if (usedBeforeDecl)
+                    {
+                        Error(diagnostics, ErrorCode.ERR_VariableUsedBeforeDeclaration, syntax, syntax);
+                    }
+                }
+            }
+
             switch (members[0].Kind)
             {
                 case SymbolKind.Method:
@@ -933,6 +1074,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 type.CheckConstraints(this.Conversions, typeSyntax, typeArgumentsSyntax, this.Compilation, basesBeingResolved, diagnostics);
             }
+
+            type = (NamedTypeSymbol)TupleTypeSymbol.TransformToTupleIfCompatible(type);
 
             return type;
         }
@@ -1927,14 +2070,22 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static void CheckFeatureAvailability(Location location, MessageID feature, DiagnosticBag diagnostics)
         {
             var options = (CSharpParseOptions)location.SourceTree.Options;
-            if (feature.RequiredFeature() != null)
+            if (options.IsFeatureEnabled(feature))
+            {
+                return;
+            }
+
+            string requiredFeature = feature.RequiredFeature();
+            if (requiredFeature != null)
             {
                 if (!options.IsFeatureEnabled(feature))
                 {
-                    diagnostics.Add(ErrorCode.ERR_FeatureIsExperimental, location, feature.Localize());
+                    diagnostics.Add(ErrorCode.ERR_FeatureIsExperimental, location, feature.Localize(), requiredFeature);
                 }
+
                 return;
             }
+
             LanguageVersion availableVersion = options.LanguageVersion;
             LanguageVersion requiredVersion = feature.RequiredVersion();
             if (requiredVersion > availableVersion)

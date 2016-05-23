@@ -3297,6 +3297,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Cannot update &apos;{0}&apos;; attribute &apos;{1}&apos; is missing..
+        '''</summary>
+        Friend ReadOnly Property ERR_EncUpdateFailedMissingAttribute() As String
+            Get
+                Return ResourceManager.GetString("ERR_EncUpdateFailedMissingAttribute", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &apos;End Class&apos; must be preceded by a matching &apos;Class&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_EndClassNoClass() As String
@@ -11641,6 +11650,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to binary literals.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_BinaryLiterals() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_BinaryLiterals", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to CObj in attribute arguments.
         '''</summary>
         Friend ReadOnly Property FEATURE_CObjInAttributeArguments() As String
@@ -11664,6 +11682,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property FEATURE_CollectionInitializers() As String
             Get
                 Return ResourceManager.GetString("FEATURE_CollectionInitializers", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to digit separators.
+        '''</summary>
+        Friend ReadOnly Property FEATURE_DigitSeparators() As String
+            Get
+                Return ResourceManager.GetString("FEATURE_DigitSeparators", resourceCulture)
             End Get
         End Property
         
@@ -12231,6 +12258,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property TreesMustHaveRootNode() As String
             Get
                 Return ResourceManager.GetString("TreesMustHaveRootNode", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Tuples are not supported in VB..
+        '''</summary>
+        Friend ReadOnly Property TuplesNotSupported() As String
+            Get
+                Return ResourceManager.GetString("TuplesNotSupported", resourceCulture)
             End Get
         End Property
         

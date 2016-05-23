@@ -4,6 +4,9 @@ using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using System.Threading.Tasks;
 using Xunit;
+using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Simplification;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.EventHookup
 {
@@ -923,5 +926,43 @@ class TestClass_T1_S1_4 : Scenarios.DelegateTest_Generics_NonGenericClass
                 testState.AssertCodeIs(expectedCode);
             }
         }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.EventHookup)]
+        public async Task EventHookupWithQualifiedMethodAccess()
+        {
+            var markup = @"
+class C
+{
+    event System.Action MyEvent;
+    void M()
+    {
+        MyEvent +$$
+    }
+}";
+            using (var testState = EventHookupTestState.CreateTestState(markup, QualifyMethodAccess))
+            {
+                testState.SendTypeChar('=');
+                testState.SendTab();
+                await testState.WaitForAsynchronousOperationsAsync();
+
+                var expectedCode = @"
+class C
+{
+    event System.Action MyEvent;
+    void M()
+    {
+        MyEvent += this.C_MyEvent;
+    }
+
+    private void C_MyEvent()
+    {
+        throw new System.NotImplementedException();
+    }
+}";
+                testState.AssertCodeIs(expectedCode);
+            }
+        }
+
+        private IDictionary<OptionKey, object> QualifyMethodAccess => new Dictionary<OptionKey, object>() { { new OptionKey(SimplificationOptions.QualifyMethodAccess, LanguageNames.CSharp), true } };
     }
 }

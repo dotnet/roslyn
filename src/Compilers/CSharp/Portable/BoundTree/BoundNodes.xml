@@ -26,6 +26,7 @@
   <ValueType Name="BinaryOperatorKind"/>
   <ValueType Name="LookupResultKind"/>
   <ValueType Name="NoOpStatementFlavor"/>
+  <ValueType Name="RefKind"/>
   <ValueType Name="BoundTypeOrValueData"/>
 
   <AbstractNode Name="BoundInitializer" Base="BoundNode"/>
@@ -581,6 +582,7 @@
   -->
   <Node Name="BoundBlock" Base="BoundStatementList">
     <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
+    <Field Name="LocalFunctions" Type="ImmutableArray&lt;LocalFunctionSymbol&gt;"/>
   </Node>
 
   <!--
@@ -623,6 +625,15 @@
   </Node>
  
   <!-- 
+  Bound node that represents a local function declaration:
+    void Foo() { }
+  -->
+  <Node Name="BoundLocalFunctionStatement" Base="BoundStatement">
+    <Field Name="Symbol" Type="LocalFunctionSymbol"/>
+    <Field Name="Body" Type="BoundBlock" Null="allow"/>
+  </Node>
+ 
+  <!-- 
   A node specially to represent the idea of 
   "compute this side effects while discarding results, and then compute this value"
   
@@ -652,6 +663,7 @@
   </Node>
 
   <Node Name="BoundReturnStatement" Base="BoundStatement">
+    <Field Name="RefKind" Type="RefKind"/>
     <Field Name="ExpressionOpt" Type="BoundExpression" Null="allow"/>
   </Node>
 
@@ -671,11 +683,12 @@
 
   <Node Name="BoundSwitchStatement" Base="BoundStatement">
     <Field Name="LoweredPreambleOpt" Type="BoundStatement" Null="allow"/>
-    <Field Name="BoundExpression" Type="BoundExpression"/>
+    <Field Name="Expression" Type="BoundExpression"/>
     <Field Name="ConstantTargetOpt" Type="LabelSymbol" Null= "allow"/>
     
     <!-- Locals declared immediately within the switch block. -->
     <Field Name="InnerLocals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
+    <Field Name="InnerLocalFunctions" Type="ImmutableArray&lt;LocalFunctionSymbol&gt;"/>
     <Field Name="SwitchSections" Type="ImmutableArray&lt;BoundSwitchSection&gt;"/>    
     <Field Name="BreakLabel" Type="GeneratedLabelSymbol"/>
     <!-- Well-known member populated during lowering -->
@@ -683,7 +696,7 @@
   </Node>
 
   <Node Name="BoundSwitchSection" Base="BoundStatementList">
-    <Field Name="BoundSwitchLabels" Type="ImmutableArray&lt;BoundSwitchLabel&gt;"/>
+    <Field Name="SwitchLabels" Type="ImmutableArray&lt;BoundSwitchLabel&gt;"/>
   </Node>
 
   <Node Name="BoundSwitchLabel" Base="BoundNode">
@@ -699,7 +712,28 @@
     <Field Name="Label" Type="GeneratedLabelSymbol" />
   </Node>
 
+  <Node Name="BoundPatternSwitchStatement" Base="BoundStatement">
+    <Field Name="Expression" Type="BoundExpression"/>
+
+    <!-- Locals declared immediately within the switch block. -->
+    <Field Name="InnerLocals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
+    <Field Name="InnerLocalFunctions" Type="ImmutableArray&lt;LocalFunctionSymbol&gt;"/>
+    <Field Name="PatternSwitchSections" Type="ImmutableArray&lt;BoundPatternSwitchSection&gt;"/>
+    <Field Name="BreakLabel" Type="GeneratedLabelSymbol"/>
+  </Node>
+
+  <Node Name="BoundPatternSwitchSection" Base="BoundStatementList">
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
+    <Field Name="PatternSwitchLabels" Type="ImmutableArray&lt;BoundPatternSwitchLabel&gt;"/>
+  </Node>
+
+  <Node Name="BoundPatternSwitchLabel" Base="BoundNode">
+    <Field Name="Pattern" Type="BoundPattern"/>
+    <Field Name="Guard" Type="BoundExpression" Null="allow"/>
+  </Node>
+
   <Node Name="BoundIfStatement" Base="BoundStatement">
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
     <Field Name="Condition" Type="BoundExpression"/>
     <Field Name="Consequence" Type="BoundStatement"/>
     <Field Name="AlternativeOpt" Type="BoundStatement" Null="allow"/>
@@ -806,13 +840,14 @@
 
   <Node Name="BoundCatchBlock" Base="BoundNode">
     <!-- 
-    Local symbol owned by the catch block. 
-    Null if the catch syntax doesn't declare a local variable.
+    Local symbols owned by the catch block. 
+    Empty if the catch syntax doesn't declare a local variable.
     
-    In the initial bound tree this is the exception variable (if present).
-    After the node is lowered it might be another variable or null.
+    In the initial bound tree the first variable is the exception variable (if present).
+    After the node is lowered the exception variable might become a field and will be removed from 
+    the array, otherwise it will stay at the first position.
     -->
-    <Field Name="LocalOpt" Type="LocalSymbol" Null="allow"/>
+    <Field Name="Locals" Type="ImmutableArray&lt;LocalSymbol&gt;"/>
 
     <!--
     Refers to the location where the exception object is stored. 
@@ -1107,6 +1142,42 @@
     <Field Name="InitializerExpressionOpt" Type="BoundExpression" Null="allow"/>
   </Node>
   
+
+  <!-- 
+  Tuple literals can exist in two forms - literal and converted literal.
+  This is the base node for both forms.
+  -->
+  <AbstractNode Name="BoundTupleExpression" Base="BoundExpression">
+    <Field Name="Arguments" Type="ImmutableArray&lt;BoundExpression&gt;"/>
+  </AbstractNode>
+
+  <!-- 
+  Tuple literals can convert to the target type.
+  Once converted to a target type, they cannot be target-typed again. 
+  The tuple literal is one which has not been converted to a target type.
+  -->
+  <Node Name="BoundTupleLiteral" Base="BoundTupleExpression">
+    <!-- 
+    It is possible for a tuple to not have a type in a literal form
+    Ex: 
+     (a: 1, b: (c: 1, d: null))  does not have a natural type, because "null" does not have one
+    -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="allow"/>
+    <Field Name="ArgumentNamesOpt" Type="ImmutableArray&lt;string&gt;" Null="allow"/>
+  </Node>
+
+  <!-- 
+  Tuple literals can convert to the target type.
+  Once converted to a target type, they cannot be target-typed again. 
+  The Converted tuple literal is one which has been already converted to a target type.
+  Converted tuple literal always has a type.
+  -->
+  <Node Name="BoundConvertedTupleLiteral" Base="BoundTupleExpression">
+    <!-- Converted tuple must have a type -->
+    <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
+    <!-- Natural type is preserved for the purpose of semantic model. Can be null -->
+    <Field Name="NaturalTypeOpt" Type="TypeSymbol" Null="allow"/>
+  </Node>
   
   <Node Name="BoundDynamicObjectCreationExpression" Base="BoundExpression">
     <!-- Non-null type is required for this node kind -->
@@ -1368,4 +1439,24 @@
     <Field Name="Format" Type="BoundExpression" Null="allow"/>
   </Node>
   
+  <Node Name="BoundIsPatternExpression" Base="BoundExpression">
+    <Field Name="Expression" Type="BoundExpression" Null="disallow"/>
+    <Field Name="Pattern" Type="BoundPattern" Null="disallow"/>
+  </Node>
+
+  <AbstractNode Name="BoundPattern" Base="BoundNode"/>
+
+  <Node Name="BoundDeclarationPattern" Base="BoundPattern">
+    <Field Name="LocalSymbol" Type="LocalSymbol" Null="disallow"/>
+    <Field Name="DeclaredType" Type="BoundTypeExpression" Null="allow"/>
+    <Field Name="IsVar" Type="bool"/>
+  </Node>
+
+  <Node Name="BoundConstantPattern" Base="BoundPattern">
+    <Field Name="Value" Type="BoundExpression"/>
+  </Node>
+
+  <Node Name="BoundWildcardPattern" Base="BoundPattern">
+  </Node>
+
 </Tree>

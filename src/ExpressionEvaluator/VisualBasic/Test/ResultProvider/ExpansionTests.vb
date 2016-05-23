@@ -402,7 +402,7 @@ End Class"
                 EvalResult("Shared members", Nothing, "", "A", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class))
             children = GetChildren(children(children.Length - 1))
             Verify(children,
-                EvalResult("[>]", "Nothing", "Object", fullName:=Nothing),
+                EvalResult(">", "Nothing", "Object", fullName:=Nothing),
                 EvalResult("><", "Nothing", "Object", fullName:=Nothing))
 
             type = assembly.GetType("B")
@@ -419,7 +419,7 @@ End Class"
                 EvalResult("Shared members", Nothing, "", "B", DkmEvaluationResultFlags.Expandable Or DkmEvaluationResultFlags.ReadOnly, DkmEvaluationResultCategory.Class))
             children = GetChildren(children(children.Length - 1))
             Verify(children,
-                EvalResult("[>]", "Nothing", "Object", fullName:=Nothing, flags:=DkmEvaluationResultFlags.ReadOnly),
+                EvalResult(">", "Nothing", "Object", fullName:=Nothing, flags:=DkmEvaluationResultFlags.ReadOnly),
                 EvalResult("><", "Nothing", "Object", fullName:=Nothing, flags:=DkmEvaluationResultFlags.ReadOnly))
         End Sub
 

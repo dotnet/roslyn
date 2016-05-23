@@ -6,6 +6,7 @@ using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.SignatureHelp.Presentation;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -351,13 +352,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.SignatureHelp
         {
             using (var testWorkspace = await TestWorkspace.CreateAsync(xmlString))
             {
-                var optionsService = testWorkspace.Services.GetService<IOptionService>();
                 var cursorPosition = testWorkspace.Documents.First(d => d.Name == "SourceDocument").CursorPosition.Value;
                 var documentId = testWorkspace.Documents.First(d => d.Name == "SourceDocument").Id;
                 var document = testWorkspace.CurrentSolution.GetDocument(documentId);
                 var code = (await document.GetTextAsync()).ToString();
 
-                optionsService.SetOptions(optionsService.GetOptions().WithChangedOption(Microsoft.CodeAnalysis.Completion.CompletionOptions.HideAdvancedMembers, document.Project.Language, hideAdvancedMembers));
+                testWorkspace.Options = testWorkspace.Options.WithChangedOption(CompletionOptions.HideAdvancedMembers, document.Project.Language, hideAdvancedMembers);
 
                 IList<TextSpan> textSpans = null;
 

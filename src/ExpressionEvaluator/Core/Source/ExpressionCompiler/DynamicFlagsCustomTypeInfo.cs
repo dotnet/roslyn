@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         /// <remarks>
         /// Not guaranteed to add the same number of flags as would
-        /// appear in a <see cref="System.Runtime.CompilerServices.DynamicAttribute"/>.
+        /// appear in a System.Runtime.CompilerServices.DynamicAttribute.
         /// It may have more (for padding) or fewer (for compactness) falses.
         /// It is, however, guaranteed to include the last true.
         /// </remarks>

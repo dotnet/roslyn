@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.ImplementInterface;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
@@ -2688,6 +2689,42 @@ public class Holder
 @"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Issue2785 < T > : [|IList < object >|] { private static List < object > innerList = new List < object > ( ) ; } ",
 @"using System ; using System . Collections ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Issue2785 < T > : IList < object > { private static List < object > innerList = new List < object > ( ) ; public object this [ int index ] { get { return ( ( IList < object > ) innerList ) [ index ] ; } set { ( ( IList < object > ) innerList ) [ index ] = value ; } } public int Count { get { return ( ( IList < object > ) innerList ) . Count ; } } public bool IsReadOnly { get { return ( ( IList < object > ) innerList ) . IsReadOnly ; } } public void Add ( object item ) { ( ( IList < object > ) innerList ) . Add ( item ) ; } public void Clear ( ) { ( ( IList < object > ) innerList ) . Clear ( ) ; } public bool Contains ( object item ) { return ( ( IList < object > ) innerList ) . Contains ( item ) ; } public void CopyTo ( object [ ] array , int arrayIndex ) { ( ( IList < object > ) innerList ) . CopyTo ( array , arrayIndex ) ; } public IEnumerator < object > GetEnumerator ( ) { return ( ( IList < object > ) innerList ) . GetEnumerator ( ) ; } public int IndexOf ( object item ) { return ( ( IList < object > ) innerList ) . IndexOf ( item ) ; } public void Insert ( int index , object item ) { ( ( IList < object > ) innerList ) . Insert ( index , item ) ; } public bool Remove ( object item ) { return ( ( IList < object > ) innerList ) . Remove ( item ) ; } public void RemoveAt ( int index ) { ( ( IList < object > ) innerList ) . RemoveAt ( index ) ; } IEnumerator IEnumerable . GetEnumerator ( ) { return ( ( IList < object > ) innerList ) . GetEnumerator ( ) ; } } ",
 index: 1);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        public async Task LongTuple()
+        {
+            await TestAsync(
+@"interface IInterface { (int, string, int, string, int, string, int, string) Method1 ((int, string, int, string, int, string, int, string) y) ; } class Class : [|IInterface|] { (int, string) x; } ",
+@"using System; interface IInterface { (int, string, int, string, int, string, int, string) Method1 ((int, string, int, string, int, string, int, string) y) ; } class Class : IInterface { (int, string) x; public (int, string, int, string, int, string, int, string) Method1 ((int, string, int, string, int, string, int, string) y) { throw new NotImplementedException ( ) ; } } ",
+parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task LongTupleWithNames()
+        {
+            await TestAsync(
+@"interface IInterface { (int a, string b, int c, string d, int e, string f, int g, string h) Method1 ((int a, string b, int c, string d, int e, string f, int g, string h) y) ; } class Class : [|IInterface|] { (int, string) x; } ",
+@"using System; interface IInterface { (int a, string b, int c, string d, int e, string f, int g, string h) Method1 ((int a, string b, int c, string d, int e, string f, int g, string h) y) ; } class Class : IInterface { (int, string) x; public (int a, string b, int c, string d, int e, string f, int g, string h) Method1 ((int a, string b, int c, string d, int e, string f, int g, string h) y) { throw new NotImplementedException ( ) ; } } ",
+parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task GenericWithTuple()
+        {
+            await TestAsync(
+@"interface IInterface<TA, TB> { (TA, TB) Method1 ((TA, TB) y) ; } class Class : [|IInterface<(int, string), int>|] { (int, string) x; } ",
+@"using System; interface IInterface<TA, TB> { (TA, TB) Method1 ((TA, TB) y) ; } class Class : IInterface<(int, string), int> { (int, string) x; public ((int, string), int) Method1 (((int, string), int) y) { throw new NotImplementedException ( ) ; } } ",
+parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsImplementInterface)]
+        public async Task GenericWithTupleWithNamess()
+        {
+            await TestAsync(
+@"interface IInterface<TA, TB> { (TA a, TB b) Method1 ((TA a, TB b) y) ; } class Class : [|IInterface<(int, string), int>|] { (int, string) x; } ",
+@"using System; interface IInterface<TA, TB> { (TA a, TB b) Method1 ((TA a, TB b) y) ; } class Class : IInterface<(int, string), int> { (int, string) x; public ((int, string) a, int b) Method1 (((int, string) a, int b) y) { throw new NotImplementedException ( ) ; } } ",
+parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
         }
     }
 }

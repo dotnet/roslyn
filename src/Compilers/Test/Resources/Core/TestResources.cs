@@ -166,6 +166,15 @@ namespace TestResources.NetFX
         private static byte[] s_minasync;
         public static byte[] minasync => ResourceLoader.GetOrCreateResource(ref s_minasync, "NetFX.Minimal.minasync.dll");
     }
+
+    public static class ValueTuple
+    {
+        private static byte[] s_tuplelib;
+        public static byte[] tuplelib => ResourceLoader.GetOrCreateResource(ref s_tuplelib, "NetFX.ValueTuple.System.ValueTuple.dll");
+
+        private static string s_tuplelib_cs;
+        public static string tuplelib_cs => ResourceLoader.GetOrCreateResource(ref s_tuplelib_cs, "NetFX.ValueTuple.ValueTuple.cs");
+    }
 }
 
 namespace TestResources

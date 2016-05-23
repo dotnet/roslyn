@@ -2126,10 +2126,11 @@ End Class
                 var document = solution.GetDocument(documentId);
                 var triggerInfo = CompletionTrigger.Default;
 
-                var completionList = await GetCompletionListAsync(document, position, triggerInfo);
+                var service = GetCompletionService(testWorkspace);
+                var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
                 var completionItem = completionList.Items.First(i => CompareItems(i.DisplayText, "Bar[int bay]"));
 
-                var customCommitCompletionProvider = CompletionProvider as ICustomCommitCompletionProvider;
+                var customCommitCompletionProvider = service.ExclusiveProviders?[0] as ICustomCommitCompletionProvider;
                 if (customCommitCompletionProvider != null)
                 {
                     var textView = testWorkspace.GetTestDocument(documentId).GetTextView();
@@ -2385,10 +2386,11 @@ int bar;
                 var document = solution.GetDocument(documentId);
                 var triggerInfo = CompletionTrigger.Default;
 
-                var completionList = await GetCompletionListAsync(document, position, triggerInfo);
+                var service = GetCompletionService(testWorkspace);
+                var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
                 var completionItem = completionList.Items.First(i => CompareItems(i.DisplayText, "Equals(object obj)"));
 
-                var customCommitCompletionProvider = CompletionProvider as ICustomCommitCompletionProvider;
+                var customCommitCompletionProvider = service.ExclusiveProviders?[0] as ICustomCommitCompletionProvider;
                 if (customCommitCompletionProvider != null)
                 {
                     var textView = testWorkspace.GetTestDocument(documentId).GetTextView();
@@ -2443,10 +2445,11 @@ int bar;
                 var document = solution.GetDocument(documentId);
                 var triggerInfo = CompletionTrigger.Default;
 
-                var completionList = await GetCompletionListAsync(document, cursorPosition, triggerInfo);
+                var service = GetCompletionService(testWorkspace);
+                var completionList = await GetCompletionListAsync(service, document, cursorPosition, triggerInfo);
                 var completionItem = completionList.Items.First(i => CompareItems(i.DisplayText, "Equals(object obj)"));
 
-                var customCommitCompletionProvider = CompletionProvider as ICustomCommitCompletionProvider;
+                var customCommitCompletionProvider = service.ExclusiveProviders?[0] as ICustomCommitCompletionProvider;
                 if (customCommitCompletionProvider != null)
                 {
                     var textView = testWorkspace.GetTestDocument(documentId).GetTextView();
@@ -2541,20 +2544,24 @@ namespace ConsoleApplication46
         override $$
     }
 }";
-            var workspace = await TestWorkspace.CreateAsync(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), text);
-            var provider = new OverrideCompletionProvider();
-            var testDocument = workspace.Documents.Single();
-            var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
-            var completionList = await GetCompletionListAsync(provider, document, testDocument.CursorPosition.Value, CompletionTrigger.Default);
+            using (var workspace = await TestWorkspace.CreateAsync(LanguageNames.CSharp, new CSharpCompilationOptions(OutputKind.ConsoleApplication), new CSharpParseOptions(), text))
+            {
+                var provider = new OverrideCompletionProvider();
+                var testDocument = workspace.Documents.Single();
+                var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
 
-            var oldTree = await document.GetSyntaxTreeAsync();
+                var service = GetCompletionService(workspace);
+                var completionList = await GetCompletionListAsync(service, document, testDocument.CursorPosition.Value, CompletionTrigger.Default);
 
-            var commit = await provider.GetChangeAsync(document, completionList.Items.First(i => i.DisplayText == "ToString()"), ' ');
-            var changes = commit.TextChanges;
+                var oldTree = await document.GetSyntaxTreeAsync();
 
-            // If we left the trailing trivia of the close curly of Main alone,
-            // there should only be one change: the replacement of "override " with a method.
-            Assert.Equal(changes.Single().Span, TextSpan.FromBounds(136, 145));
+                var commit = await provider.GetChangeAsync(document, completionList.Items.First(i => i.DisplayText == "ToString()"), ' ');
+                var changes = commit.TextChanges;
+
+                // If we left the trailing trivia of the close curly of Main alone,
+                // there should only be one change: the replacement of "override " with a method.
+                Assert.Equal(changes.Single().Span, TextSpan.FromBounds(136, 145));
+            }
         }
     }
 }

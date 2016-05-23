@@ -1,11 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Roslyn.Utilities;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -180,6 +177,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (existingWaiters != null)
                 {
+                    // we have waiters and we have data.
+                    // allow some extra time to drain the queue before cancelling
+                    // but do not wait for too long.
+                    SpinWait.SpinUntil(() =>
+                    {
+                        lock (SyncObject)
+                        {
+                            return _data.Count == 0;
+                        }
+                    },
+                    10000);
+
+                    // cancel waiters.
+                    // NOTE: this could result in losing diagnostics
+                    //       see https://github.com/dotnet/roslyn/issues/11470
                     foreach (var tcs in existingWaiters)
                     {
                         tcs.SetCanceled();

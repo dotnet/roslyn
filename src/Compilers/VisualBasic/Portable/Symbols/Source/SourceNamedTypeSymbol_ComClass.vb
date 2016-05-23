@@ -988,7 +988,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                             ImmutableArray.Create(
                                 New TypedConstant(_comClass.GetSpecialType(SpecialType.System_Int16),
                                                         TypedConstantKind.Primitive,
-                                                        CShort(ComInterfaceType.InterfaceIsIDispatch)))))
+                                                        CShort(Cci.Constants.ComInterfaceType_InterfaceIsIDispatch)))))
                     End If
 
                     AddSynthesizedAttribute(attributes, compilation.TrySynthesizeAttribute(
@@ -1241,6 +1241,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
                     Get
                         Return _parameters
+                    End Get
+                End Property
+
+                Public Overrides ReadOnly Property ReturnsByRef As Boolean
+                    Get
+                        Return ClonedFrom.ReturnsByRef
                     End Get
                 End Property
 
@@ -1767,6 +1773,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Public Overrides ReadOnly Property SetMethod As MethodSymbol
                     Get
                         Return _setter
+                    End Get
+                End Property
+
+                Public Overrides ReadOnly Property ReturnsByRef As Boolean
+                    Get
+                        Return _clonedFrom.ReturnsByRef
                     End Get
                 End Property
 

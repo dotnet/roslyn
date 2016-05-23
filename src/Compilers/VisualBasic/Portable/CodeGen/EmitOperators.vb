@@ -3,6 +3,7 @@
 Imports System.Reflection.Metadata
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports ILOpCode = Microsoft.CodeAnalysis.CodeGen.ILOpCode
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGen
 

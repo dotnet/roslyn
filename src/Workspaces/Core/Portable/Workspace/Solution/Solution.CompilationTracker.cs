@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis
                     }
                 }
 
-                // The user is asking for an in progress snap.  We don't want to create it and then a
+                // The user is asking for an in progress snap.  We don't want to create it and then
                 // have the compilation immediately disappear.  So we force it to stay around with a ConstantValueSource.
                 // As a policy, all partial-state projects are said to have incomplete references, since the state has no guarantees.
                 return new CompilationTracker(inProgressProject,
@@ -786,7 +786,6 @@ namespace Microsoft.CodeAnalysis
                 {
                     using (Logger.LogBlock(FunctionId.Workspace_SkeletonAssembly_GetMetadataOnlyImage, cancellationToken))
                     {
-                        var projectId = this.ProjectState.Id;
                         var version = await this.GetDependentSemanticVersionAsync(solution, cancellationToken).ConfigureAwait(false);
 
                         // get or build compilation up to declaration state. this compilation will be used to provide live xml doc comment

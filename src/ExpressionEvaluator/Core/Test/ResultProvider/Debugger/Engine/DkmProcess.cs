@@ -31,4 +31,8 @@ namespace Microsoft.VisualStudio.Debugger
             return null; // Value isn't required for testing
         }
     }
+
+    public class DkmThread
+    {
+    }
 }

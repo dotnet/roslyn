@@ -1,14 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Snippets;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
@@ -36,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var description = await this.CompletionService.GetDescriptionAsync(document, this.Item, cancellationToken).ConfigureAwait(false);
             var parts = description.TaggedParts;
 
-            var change = await CompletionHelper.GetTextChangeAsync(document, this.Item, '\t').ConfigureAwait(false);
+            var change = await CompletionHelper.GetTextChangeAsync(this.CompletionService, document, this.Item, '\t').ConfigureAwait(false);
             var insertionText = change.NewText;
 
             var note = string.Empty;

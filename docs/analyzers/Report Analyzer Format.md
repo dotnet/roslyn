@@ -6,7 +6,7 @@ the command line to report additional analyzer information, such as execution ti
 The output contains the total wall clock time spent in executing the analyzers and
 the relative execution times per-analyzer.
 Note that the elapsed time may be less than analyzer execution time because
-analyzers can run concurrently. One should use this data only for comparitive analysis to
+analyzers can run concurrently. One should use this data only for comparative analysis to
 identify any outlier analyzer which takes signinficantly more time than other analyzers.
 
 

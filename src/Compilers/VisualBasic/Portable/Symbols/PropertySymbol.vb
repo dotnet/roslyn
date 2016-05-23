@@ -42,6 +42,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         ''' <summary>
+        ''' Source: Returns False; properties from source cannot return by reference.
+        ''' Metadata: Returns whether or not this property returns by reference.
+        ''' </summary>
+        Public MustOverride ReadOnly Property ReturnsByRef As Boolean
+
+        ''' <summary>
         ''' Gets the type of the property. 
         ''' </summary>
         Public MustOverride ReadOnly Property Type As TypeSymbol
@@ -325,6 +331,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Debug.Assert(IsDefinition)
 
+            ' Check returns by ref.
+            If Me.ReturnsByRef Then
+                Return ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedProperty1, CustomSymbolDisplayFormatter.ShortErrorName(Me))
+            End If
+
             ' Check return type.
             Dim errorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromType(Me.Type)
 
@@ -454,6 +465,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IPropertySymbol_SetMethod As IMethodSymbol Implements IPropertySymbol.SetMethod
             Get
                 Return Me.SetMethod
+            End Get
+        End Property
+
+        Private ReadOnly Property IPropertySymbol_ReturnsByRef As Boolean Implements IPropertySymbol.ReturnsByRef
+            Get
+                Return Me.ReturnsByRef
             End Get
         End Property
 

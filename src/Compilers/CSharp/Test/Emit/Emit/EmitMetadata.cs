@@ -2172,7 +2172,7 @@ class Program
         [Fact]
         public unsafe void PEHeaders1()
         {
-            var options = EmitOptions.Default.WithFileAlignment(8192);
+            var options = EmitOptions.Default.WithFileAlignment(0x2000);
             var syntax = SyntaxFactory.ParseSyntaxTree(@"class C {}", TestOptions.Regular);
 
             var peStream = CreateCompilationWithMscorlib(

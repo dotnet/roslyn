@@ -172,6 +172,7 @@ namespace Microsoft.CodeAnalysis
             return null;
         }
 
+        /// <exception cref="IOException"></exception>
         internal override Stream CreateInputStream()
         {
             var path = PortableShim.Path.GetTempFileName();

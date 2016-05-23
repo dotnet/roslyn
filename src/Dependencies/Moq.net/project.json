@@ -4,6 +4,6 @@
      "Moq": "4.2.1402.2112"
   },
   "frameworks": {
-    ".NETFramework,Version=v4.5": { }
+    ".NETFramework,Version=v4.6": { }
   }
 }

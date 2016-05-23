@@ -94,6 +94,8 @@ namespace Microsoft.CodeAnalysis
         /// <summary>Indicates an <see cref="IFixedStatement"/>.</summary>
         FixedStatement = 0x30,
 
+        LocalFunctionStatement = 0x31,
+
         // Statements that occur only in Visual Basic.
 
         /// <summary>Indicates an <see cref="IStopStatement"/>.</summary>

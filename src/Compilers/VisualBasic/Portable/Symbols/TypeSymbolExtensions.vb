@@ -124,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             ' library. It should be acceptable just to check the name of the type to avoid adding
             ' this type into WellKnownTypes and passing compilation into this method.
             ' Note, the comparison should be case-sensitive, similar to metadata resolution.
-            Const [namespace] As String = "System"
+            Const [namespace] As String = MetadataHelpers.SystemString
             Const name As String = "DBNull"
 
             If type.SpecialType = SpecialType.None AndAlso
