@@ -887,6 +887,18 @@ class D
             }
         }
 
+        [WorkItem(11474, "https://github.com/dotnet/roslyn/pull/11474")]
+        [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
+        public async Task FindFuzzy1()
+        {
+            using (var workspace = await SetupWorkspaceAsync("class C { public void ToError() { } }"))
+            {
+                SetupVerifiableGlyph(StandardGlyphGroup.GlyphGroupMethod, StandardGlyphItem.GlyphItemPublic);
+                var item = _aggregator.GetItems("ToEror").Single();
+                VerifyNavigateToResultItem(item, "ToError", MatchKind.Regular, NavigateToItemKind.Method, displayName: "ToError()");
+            }
+        }
+
         private void VerifyNavigateToResultItems(List<NavigateToItem> expecteditems, IEnumerable<NavigateToItem> items)
         {
             expecteditems = expecteditems.OrderBy(i => i.Name).ToList();
