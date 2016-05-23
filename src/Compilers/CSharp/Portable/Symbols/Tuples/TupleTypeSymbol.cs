@@ -668,7 +668,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// Returns the symbols for all the tuple fields (in order and cached).
+        /// Get the fields for the tuple's elements (in order and cached).
         /// </summary>
         public override ImmutableArray<FieldSymbol> TupleElementFields
         {
@@ -676,23 +676,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 if (_lazyFields.IsDefault)
                 {
-                    ImmutableInterlocked.InterlockedInitialize(ref _lazyFields, CreateFields());
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyFields, CollectTupleElementFields());
                 }
 
                 return _lazyFields;
             }
         }
 
-        private ImmutableArray<FieldSymbol> CreateFields()
+        private ImmutableArray<FieldSymbol> CollectTupleElementFields()
         {
             var builder = ArrayBuilder<FieldSymbol>.GetInstance(_elementTypes.Length);
-            var fields = GetMembers().OfType<FieldSymbol>();
+            builder.SetItem(_elementTypes.Length - 1, null);
+            var members = GetMembers().Where(m => m.Kind == SymbolKind.Field);
 
-            foreach (var field in fields)
+            foreach (var member in members)
             {
-                if (field.IsTupleField && field.TupleElementIndex >= 0)
+                var field = (FieldSymbol)member;
+                int index = field.TupleElementIndex;
+                if (index >= 0)
                 {
-                    builder.SetItem(field.TupleElementIndex, field);
+                    Debug.Assert((object)builder[index] == null);
+                    builder[index] = field;
                 }
             }
 

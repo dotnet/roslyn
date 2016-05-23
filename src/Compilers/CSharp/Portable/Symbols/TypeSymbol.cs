@@ -621,6 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         /// <summary>
         /// If this symbol represents a tuple type, get the fields for the tuple's elements.
+        /// Otherwise, returns default.
         /// </summary>
         public virtual ImmutableArray<FieldSymbol> TupleElementFields => default(ImmutableArray<FieldSymbol>);
 

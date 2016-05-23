@@ -398,8 +398,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
-        /// If this is a field of a tuple type,
-        /// id is an index of the element (zero-based).
+        /// If this is a field representing a tuple element,
+        /// returns the index of the element (zero-based).
         /// Otherwise, a negative number.
         /// </summary>
         public virtual int TupleElementIndex
