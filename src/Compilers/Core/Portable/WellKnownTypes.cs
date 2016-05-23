@@ -548,7 +548,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 else if (typeId == WellKnownType.Last)
                 {
-                    typeIdName = "System.ValueTuple`8";
+                    typeIdName = "Microsoft.CodeAnalysis.Runtime.Instrumentation";
                 }
                 else if (typeId == WellKnownType.ExtSentinel)
                 {
