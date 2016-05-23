@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (Debugger.IsLogging())
             {
-                Debugger.Log(0, null, o != null ? o.ToString() : null);
+                Debugger.Log(0, null, o?.ToString());
             }
         }
 
@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (Debugger.IsLogging())
             {
-                Debugger.Log(0, category, o != null ? o.ToString() : null);
+                Debugger.Log(0, category, o?.ToString());
             }
         }
 
@@ -60,7 +60,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (Debugger.IsLogging())
             {
-                Debugger.Log(0, null, (o != null ? o.ToString() : null) + Environment.NewLine);
+                Debugger.Log(0, null, o?.ToString() + Environment.NewLine);
             }
         }
 
@@ -68,7 +68,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (Debugger.IsLogging())
             {
-                Debugger.Log(0, category, (o != null ? o.ToString() : null) + Environment.NewLine);
+                Debugger.Log(0, category, o?.ToString() + Environment.NewLine);
             }
         }
 
