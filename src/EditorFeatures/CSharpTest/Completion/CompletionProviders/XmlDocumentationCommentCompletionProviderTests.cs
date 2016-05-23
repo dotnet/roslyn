@@ -81,7 +81,7 @@ public class foo
 {
     /// <summary> $$ </summary>
     public void bar() { }
-}", "c", "code", "list", "para", "paramref", "typeparamref");
+}", "c", "code", "list", "para");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -1036,7 +1036,7 @@ public class foo<T>
 /// </summary>
 ";
 
-            await VerifyItemsExistAsync(text, "!--", "![CDATA[", "c", "code", "list", "para", "paramref", "seealso", "see", "typeparamref");
+            await VerifyItemsExistAsync(text, "!--", "![CDATA[", "c", "code", "list", "para", "seealso", "see");
         }
 
         [WorkItem(734825, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/734825")]
