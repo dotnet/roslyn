@@ -1,7 +1,8 @@
 // Groovy Script: http://www.groovy-lang.org/syntax.html
 // Jenkins DSL: https://github.com/jenkinsci/job-dsl-plugin/wiki
 
-import jobs.generation.*;
+import jobs.generation.Utilities;
+import jobs.generation.ArchivalSettings;
 
 // The input project name (e.g. dotnet/corefx)
 def projectName = GithubProject
