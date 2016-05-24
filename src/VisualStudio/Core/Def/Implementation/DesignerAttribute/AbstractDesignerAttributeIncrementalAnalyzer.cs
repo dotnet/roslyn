@@ -293,9 +293,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             {
                 this.TextVersion = textVersion;
                 this.SemanticVersion = semanticVersion;
-
-                // designerAttributeArgumentOpt with no value means, we can't figure out what designer attribute should be.
-                // it can happen if we couldn't figure out base type due to some error.
                 this.DesignerAttributeArgument = designerAttributeArgument;
             }
         }
