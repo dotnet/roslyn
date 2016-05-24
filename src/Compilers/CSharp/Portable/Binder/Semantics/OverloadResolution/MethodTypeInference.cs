@@ -645,7 +645,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //      then T becomes int and U becomes string
             if (target.Kind != SymbolKind.NamedType)
             {
-                // tuples can only cast to tuples or tuple underlying types.
+                // tuples can only match to tuples or tuple underlying types.
                 return;
             }
 
@@ -827,7 +827,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (formalType.Kind != SymbolKind.NamedType)
             {
-                // tuples can only cast to tuples or tuple underlying types.
+                // tuples can only match to tuples or tuple underlying types.
                 return;
             }
 
@@ -1604,26 +1604,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             //       that is ok, because we are inferring type parameters used in the matching elements, 
             //       This is not the situation where entire tuple type used to infer a single type param
 
-            bool hasTuples = false;
-            if (source.IsTupleType)
-            {
-                source = source.TupleUnderlyingType;
-                hasTuples = true;
-            }
+            var sourceTypes = source.TupleElementTypes;
+            var targetTypes = target.TupleElementTypes;
 
-            if (target.IsTupleType)
-            {
-                target = target.TupleUnderlyingType;
-                hasTuples = true;
-            }
-
-            if (!hasTuples || (object)source.OriginalDefinition != target.OriginalDefinition)
+            if (sourceTypes.IsDefaultOrEmpty || 
+                targetTypes.IsDefaultOrEmpty || 
+                sourceTypes.Length != targetTypes.Length)
             {
                 return false;
             }
 
-            // NOTE: inference from tuple type is exact since tuples are non-variant.
-            ExactTypeArgumentInference((NamedTypeSymbol)source, (NamedTypeSymbol)target, ref useSiteDiagnostics);
+            for (int i = 0; i < sourceTypes.Length; i++)
+            {
+                ExactInference(sourceTypes[i], targetTypes[i], ref useSiteDiagnostics);
+            }
+
             return true;
         }
 
@@ -1752,7 +1747,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     return;
             // }
 
-            if (ExactTupleInference(source, target, ref useSiteDiagnostics))
+            if (LowerBoundTupleInference(source, target, ref useSiteDiagnostics))
             {
                 return;
             }
@@ -1865,6 +1860,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             LowerBoundInference(source.GetNullableUnderlyingType(), target.GetNullableUnderlyingType(), ref useSiteDiagnostics);
+            return true;
+        }
+
+        private bool LowerBoundTupleInference(TypeSymbol source, TypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            Debug.Assert((object)source != null);
+            Debug.Assert((object)target != null);
+
+            // NOTE: we are losing tuple element names when unwrapping tuple types to underlying types.
+            //       that is ok, because we are inferring type parameters used in the matching elements, 
+            //       This is not the situation where entire tuple type used to infer a single type param
+
+            var sourceTypes = source.TupleElementTypes;
+            var targetTypes = target.TupleElementTypes;
+
+            if (sourceTypes.IsDefaultOrEmpty ||
+                targetTypes.IsDefaultOrEmpty ||
+                sourceTypes.Length != targetTypes.Length)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < sourceTypes.Length; i++)
+            {
+                LowerBoundInference(sourceTypes[i], targetTypes[i], ref useSiteDiagnostics);
+            }
+
             return true;
         }
 
@@ -2110,15 +2132,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: * Otherwise, if V is nullable type V1? and U is nullable type U1?
             // SPEC:   then an exact inference is made from U1 to V1.
 
-            if (ExactNullableInference(source, target, ref useSiteDiagnostics))
-            {
-                return;
-            }
+            Debug.Assert(source.IsReferenceType);
+            //if (ExactNullableInference(source, target, ref useSiteDiagnostics))
+            //{
+            //    return;
+            //}
 
-            if (ExactTupleInference(source, target, ref useSiteDiagnostics))
-            {
-                return;
-            }
+            //if (ExactTupleInference(source, target, ref useSiteDiagnostics))
+            //{
+            //    return;
+            //}
 
             // SPEC: * Otherwise... cases for constructed types
 

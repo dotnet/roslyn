@@ -29,9 +29,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// For instance, for a long tuple we'll generate:
         /// creationExpression(ctor=largestCtor, args=firstArgs+(nested creationExpression for remainder, with smaller ctor and next few args))
         /// </summary>
-        private BoundNode RewriteTupleCreationExpression(BoundTupleExpression node, ImmutableArray<BoundExpression> rewrittenArguments)
+        private BoundExpression RewriteTupleCreationExpression(BoundTupleExpression node, ImmutableArray<BoundExpression> rewrittenArguments)
         {
-            NamedTypeSymbol underlyingTupleType = node.Type.TupleUnderlyingType;
+            return MakeTupleCreationExpression(node.Syntax, (TupleTypeSymbol)node.Type, rewrittenArguments) ?? node;
+        }
+
+        private BoundExpression MakeTupleCreationExpression(CSharpSyntaxNode syntax, TupleTypeSymbol type, ImmutableArray<BoundExpression> rewrittenArguments)
+        {
+            NamedTypeSymbol underlyingTupleType = type.TupleUnderlyingType;
 
             ArrayBuilder<NamedTypeSymbol> underlyingTupleTypeChain = ArrayBuilder<NamedTypeSymbol>.GetInstance();
             TupleTypeSymbol.GetUnderlyingTypeChain(underlyingTupleType, underlyingTupleTypeChain);
@@ -46,14 +51,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var smallestCtor = (MethodSymbol)TupleTypeSymbol.GetWellKnownMemberInType(smallestType.OriginalDefinition,
                                                                                             TupleTypeSymbol.GetTupleCtor(smallestType.Arity),
                                                                                             _diagnostics,
-                                                                                            node.Syntax);
+                                                                                            syntax);
                 if ((object)smallestCtor == null)
                 {
-                    return node;
+                    return null;
                 }
 
                 MethodSymbol smallestConstructor = smallestCtor.AsMember(smallestType);
-                BoundObjectCreationExpression currentCreation = new BoundObjectCreationExpression(node.Syntax, smallestConstructor, smallestCtorArguments);
+                BoundObjectCreationExpression currentCreation = new BoundObjectCreationExpression(syntax, smallestConstructor, smallestCtorArguments);
 
                 if (underlyingTupleTypeChain.Count > 0)
                 {
@@ -61,10 +66,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var tuple8Ctor = (MethodSymbol)TupleTypeSymbol.GetWellKnownMemberInType(tuple8Type.OriginalDefinition,
                                                                                             TupleTypeSymbol.GetTupleCtor(TupleTypeSymbol.RestPosition),
                                                                                             _diagnostics,
-                                                                                            node.Syntax);
+                                                                                            syntax);
                     if ((object)tuple8Ctor == null)
                     {
-                        return node;
+                        return null;
                     }
 
                     // make successively larger creation expressions containing the previous one
@@ -76,10 +81,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                                       .Add(currentCreation);
 
                         MethodSymbol constructor = tuple8Ctor.AsMember(underlyingTupleTypeChain.Pop());
-                        currentCreation = new BoundObjectCreationExpression(node.Syntax, constructor, ctorArguments);
+                        currentCreation = new BoundObjectCreationExpression(syntax, constructor, ctorArguments);
                     }
                     while (underlyingTupleTypeChain.Count > 0);
                 }
+
+                currentCreation = currentCreation.Update(
+                    currentCreation.Constructor, 
+                    currentCreation.Arguments, 
+                    currentCreation.ArgumentNamesOpt, 
+                    currentCreation.ArgumentRefKindsOpt, 
+                    currentCreation.Expanded, 
+                    currentCreation.ArgsToParamsOpt, 
+                    currentCreation.ConstantValue, 
+                    currentCreation.InitializerExpressionOpt, 
+                    type);
 
                 return currentCreation;
             }
@@ -88,5 +104,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 underlyingTupleTypeChain.Free();
             }
         }
+
     }
 }

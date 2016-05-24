@@ -1939,7 +1939,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (targetType.Kind != SymbolKind.NamedType)
             {
-                // tuples can only cast to tuples or tuple underlying types.
+                // tuples can only match to tuples or tuple underlying types and either is a named type
                 return false;
             }
 

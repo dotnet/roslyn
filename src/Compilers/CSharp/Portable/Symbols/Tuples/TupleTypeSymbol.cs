@@ -39,6 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly ImmutableArray<TypeSymbol> _elementTypes;
 
         private ImmutableArray<Symbol> _lazyMembers;
+        private ImmutableArray<FieldSymbol> _lazyFields;
         private SmallDictionary<Symbol, Symbol> _lazyUnderlyingDefinitionToMemberMap;
 
         internal const int RestPosition = 8; // The Rest field is in 8th position
@@ -684,6 +685,47 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 return _elementNames;
             }
+        }
+
+        /// <summary>
+        /// Get the fields for the tuple's elements (in order and cached).
+        /// </summary>
+        public ImmutableArray<FieldSymbol> TupleElementFields
+        {
+            get
+            {
+                if (_lazyFields.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedInitialize(ref _lazyFields, CollectTupleElementFields());
+                }
+
+                return _lazyFields;
+            }
+        }
+
+        private ImmutableArray<FieldSymbol> CollectTupleElementFields()
+        {
+            var builder = ArrayBuilder<FieldSymbol>.GetInstance(_elementTypes.Length, null);
+
+            foreach (var member in GetMembers())
+            {
+                if (member.Kind != SymbolKind.Field)
+                {
+                    continue;
+                }
+
+                var field = (TupleFieldSymbol)member;
+                int index = field.TupleFieldId;
+                if (index >= 0)
+                {
+                    Debug.Assert((object)builder[index] == null);
+                    builder[index] = field;
+                }
+            }
+
+            Debug.Assert(builder.All(symbol => (object)symbol != null));
+
+            return builder.ToImmutableAndFree();
         }
 
         /// <summary>

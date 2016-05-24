@@ -149,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.TupleLiteral:
-                    kind = ClassifyImplicitTupleConversion(sourceExpression, destination, ref useSiteDiagnostics);
+                    kind = ClassifyImplicitTupleLiteralConversion(sourceExpression, destination, ref useSiteDiagnostics);
                     if (kind != ConversionKind.NoConversion)
                     {
                         return new Conversion(kind);
@@ -305,11 +305,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ConversionKind.NoConversion;
         }
 
-        private ConversionKind ClassifyImplicitTupleConversion(BoundExpression source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private ConversionKind ClassifyImplicitTupleLiteralConversion(BoundExpression source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            if (HasImplicitTupleConversion(source, destination, ref useSiteDiagnostics))
+            if (HasImplicitTupleLiteralConversion(source, destination, ref useSiteDiagnostics))
             {
-                return ConversionKind.ImplicitTuple;
+                return ConversionKind.ImplicitTupleLiteral;
             }
 
             // strip nullable from the destination
@@ -320,7 +320,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var nt = (NamedTypeSymbol)destination;
                 if (nt.OriginalDefinition.GetSpecialTypeSafe() == SpecialType.System_Nullable_T &&
-                    HasImplicitTupleConversion(source, nt.TypeArgumentsNoUseSiteDiagnostics[0], ref useSiteDiagnostics))
+                    HasImplicitTupleLiteralConversion(source, nt.TypeArgumentsNoUseSiteDiagnostics[0], ref useSiteDiagnostics))
                 {
                     return ConversionKind.ImplicitNullable;
                 }
@@ -698,7 +698,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return conversion;
         }
 
-        protected override bool HasImplicitTupleConversion(BoundExpression source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        protected override bool HasImplicitTupleLiteralConversion(BoundExpression source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             if (source.Kind != BoundKind.TupleLiteral)
             {

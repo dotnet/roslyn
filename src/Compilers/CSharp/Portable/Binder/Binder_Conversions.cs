@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CreateAnonymousFunctionConversion(syntax, source, conversion, isCast, destination, diagnostics);
             }
 
-            if (conversion.IsTuple || 
+            if (conversion.IsTupleLiteral || 
                 (conversion.Kind == ConversionKind.ImplicitNullable && source.Kind == BoundKind.TupleLiteral))
             {
                 return CreateTupleConversion(syntax, (BoundTupleLiteral)source, conversion, isCast, destination, diagnostics);
@@ -335,7 +335,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We have a successful tuple conversion; rather than producing a separate conversion node 
             // which is a conversion on top of a tuple literal, tuple conversion is an element-wise conversion of arguments.
 
-            Debug.Assert(conversion.Kind == ConversionKind.ImplicitTuple || conversion.Kind == ConversionKind.ImplicitNullable);
+            Debug.Assert(conversion.Kind == ConversionKind.ImplicitTupleLiteral || conversion.Kind == ConversionKind.ImplicitNullable);
             Debug.Assert((conversion.Kind == ConversionKind.ImplicitNullable) == destination.IsNullableType());
 
             TypeSymbol destinationWithoutNullable = conversion.Kind == ConversionKind.ImplicitNullable ?
