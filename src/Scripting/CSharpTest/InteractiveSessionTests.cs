@@ -19,8 +19,6 @@ using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-#pragma warning disable RS0003 // Do not directly await a Task
-
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
 {
     using static TestCompilationFactory;

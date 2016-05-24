@@ -8557,6 +8557,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Option &apos;{0}&apos; must be an absolute path..
+        '''</summary>
+        Friend ReadOnly Property ERR_OptionMustBeAbsolutePath() As String
+            Get
+                Return ResourceManager.GetString("ERR_OptionMustBeAbsolutePath", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &apos;Option&apos; statements must precede any declarations or &apos;Imports&apos; statements..
         '''</summary>
         Friend ReadOnly Property ERR_OptionStmtWrongOrder() As String

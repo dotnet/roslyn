@@ -134,6 +134,11 @@ namespace Roslyn.Test.Utilities
             get { throw new NotImplementedException(); }
         }
 
+        public override int ERR_OptionMustBeAbsolutePath
+        {
+            get { throw new NotImplementedException(); }
+        }
+
         public override int ERR_CantReadResource
         {
             get { throw new NotImplementedException(); }

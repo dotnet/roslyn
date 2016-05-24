@@ -330,9 +330,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             private void OnSolutionAdded(Solution solution)
             {
-                // first make sure full solution analysis is on.
-                _optionService.SetOptions(solution.Workspace.Options.WithChangedOption(RuntimeOptions.FullSolutionAnalysis, true));
-
                 var asyncToken = _listener.BeginAsyncOperation("OnSolutionAdded");
                 _eventProcessingQueue.ScheduleTask(() =>
                 {

@@ -502,10 +502,8 @@ namespace Microsoft.CodeAnalysis
             {
                 if (CryptoKeyFile != null && !PathUtilities.IsAbsolute(CryptoKeyFile))
                 {
-                    // TODO(https://github.com/dotnet/roslyn/issues/9153):
-                    // Produce better diagnostic message for passing a key file with a relative path
-                    builder.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_BadCompilationOptionValue,
-                        Location.None, nameof(CryptoKeyFile), CryptoKeyFile));
+                    builder.Add(messageProvider.CreateDiagnostic(messageProvider.ERR_OptionMustBeAbsolutePath,
+                        Location.None, nameof(CryptoKeyFile)));
                 }
 
                 if (CryptoKeyContainer != null)

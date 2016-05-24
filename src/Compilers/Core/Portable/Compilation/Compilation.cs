@@ -2049,6 +2049,12 @@ namespace Microsoft.CodeAnalysis
                     {
                         Options.StrongNameProvider.SignAssembly(StrongNameKeys, signingInputStream, peStream);
                     }
+                    catch (DesktopStrongNameProvider.ClrStrongNameMissingException)
+                    {
+                        diagnostics.Add(StrongNameKeys.GetError(StrongNameKeys.KeyFilePath, StrongNameKeys.KeyContainer,
+                            new CodeAnalysisResourcesLocalizableErrorArgument(nameof(CodeAnalysisResources.AssemblySigningNotSupported)), MessageProvider));
+                        return false;
+                    }
                     catch (IOException ex)
                     {
                         diagnostics.Add(StrongNameKeys.GetError(StrongNameKeys.KeyFilePath, StrongNameKeys.KeyContainer, ex.Message, MessageProvider));
