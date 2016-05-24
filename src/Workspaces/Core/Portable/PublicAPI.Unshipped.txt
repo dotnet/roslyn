@@ -1,12 +1,12 @@
-Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AddSwitchSections(Microsoft.CodeAnalysis.SyntaxNode switchStatement, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> switchSections) -> Microsoft.CodeAnalysis.SyntaxNode
-abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.GetSwitchSections(Microsoft.CodeAnalysis.SyntaxNode switchStatement) -> System.Collections.Generic.IReadOnlyList<Microsoft.CodeAnalysis.SyntaxNode>
-abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.InsertSwitchSections(Microsoft.CodeAnalysis.SyntaxNode switchStatement, int index, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> switchSections) -> Microsoft.CodeAnalysis.SyntaxNode
-static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.TryParse(string value, out Microsoft.CodeAnalysis.Editing.DeclarationModifiers modifiers) -> bool
-Microsoft.CodeAnalysis.Workspace.UpdateGeneratedDocumentsIfNecessary(Microsoft.CodeAnalysis.ProjectId projectId) -> void
 Microsoft.CodeAnalysis.Document.Options.get -> Microsoft.CodeAnalysis.Options.DocumentOptionSet
+Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AddSwitchSections(Microsoft.CodeAnalysis.SyntaxNode switchStatement, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> switchSections) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Options.DocumentOptionSet
 Microsoft.CodeAnalysis.Options.DocumentOptionSet.GetOption<T>(Microsoft.CodeAnalysis.Options.PerLanguageOption<T> option) -> T
+Microsoft.CodeAnalysis.Options.OptionSet.OptionSet() -> void
 Microsoft.CodeAnalysis.Solution.Options.get -> Microsoft.CodeAnalysis.Options.OptionSet
+Microsoft.CodeAnalysis.Workspace.UpdateGeneratedDocumentsIfNecessary(Microsoft.CodeAnalysis.ProjectId projectId) -> void
+abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.GetSwitchSections(Microsoft.CodeAnalysis.SyntaxNode switchStatement) -> System.Collections.Generic.IReadOnlyList<Microsoft.CodeAnalysis.SyntaxNode>
+abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.InsertSwitchSections(Microsoft.CodeAnalysis.SyntaxNode switchStatement, int index, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> switchSections) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.NameOfExpression(Microsoft.CodeAnalysis.SyntaxNode expression) -> Microsoft.CodeAnalysis.SyntaxNode
 override Microsoft.CodeAnalysis.Options.DocumentOptionSet.GetOption(Microsoft.CodeAnalysis.Options.OptionKey optionKey) -> object
 override Microsoft.CodeAnalysis.Options.DocumentOptionSet.GetOption<T>(Microsoft.CodeAnalysis.Options.Option<T> option) -> T
@@ -14,6 +14,7 @@ override Microsoft.CodeAnalysis.Options.DocumentOptionSet.GetOption<T>(Microsoft
 override Microsoft.CodeAnalysis.Options.DocumentOptionSet.WithChangedOption(Microsoft.CodeAnalysis.Options.OptionKey optionAndLanguage, object value) -> Microsoft.CodeAnalysis.Options.OptionSet
 override Microsoft.CodeAnalysis.Options.DocumentOptionSet.WithChangedOption<T>(Microsoft.CodeAnalysis.Options.Option<T> option, T value) -> Microsoft.CodeAnalysis.Options.OptionSet
 override Microsoft.CodeAnalysis.Options.DocumentOptionSet.WithChangedOption<T>(Microsoft.CodeAnalysis.Options.PerLanguageOption<T> option, string language, T value) -> Microsoft.CodeAnalysis.Options.OptionSet
+static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.TryParse(string value, out Microsoft.CodeAnalysis.Editing.DeclarationModifiers modifiers) -> bool
 static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.NamingPreferences.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<string>
 static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.QualifyEventAccess.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>
 static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.QualifyFieldAccess.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>

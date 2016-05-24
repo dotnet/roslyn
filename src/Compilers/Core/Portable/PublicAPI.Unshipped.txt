@@ -672,10 +672,12 @@ Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.UnsignedPostfixIncrement = 7
 Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.UnsignedPrefixDecrement = 774 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
 Microsoft.CodeAnalysis.Semantics.UnaryOperationKind.UnsignedPrefixIncrement = 773 -> Microsoft.CodeAnalysis.Semantics.UnaryOperationKind
 Microsoft.CodeAnalysis.SourceGenerator
+Microsoft.CodeAnalysis.SourceGenerator.SourceGenerator() -> void
 Microsoft.CodeAnalysis.SourceGeneratorAttribute
 Microsoft.CodeAnalysis.SourceGeneratorAttribute.Languages.get -> string[]
 Microsoft.CodeAnalysis.SourceGeneratorAttribute.SourceGeneratorAttribute(string firstLanguage, params string[] additionalLanguages) -> void
 Microsoft.CodeAnalysis.SourceGeneratorContext
+Microsoft.CodeAnalysis.SourceGeneratorContext.SourceGeneratorContext() -> void
 Microsoft.CodeAnalysis.SourceGeneratorExtensions
 abstract Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.GetSourceGenerators(string language) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.SourceGenerator>
 abstract Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.OperationKind> operationKinds) -> void

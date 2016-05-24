@@ -204,7 +204,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 var languages = workspace.CurrentSolution.Projects.Select(p => p.Language).Distinct();
                 foreach (var language in languages)
                 {
-                    if (!ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(workspace, language))
+                    if (!ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(workspace.Options, language))
                     {
                         fullAnalysisState = false;
                         break;
