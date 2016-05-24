@@ -180,6 +180,7 @@ namespace Microsoft.CodeAnalysis
         // signing:
         public abstract int ERR_PublicKeyFileFailure { get; }
         public abstract int ERR_PublicKeyContainerFailure { get; }
+        public abstract int ERR_OptionMustBeAbsolutePath { get; }
 
         // resources:
         public abstract int ERR_CantReadResource { get; }

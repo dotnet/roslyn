@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
         private EmitBaseline _pendingBaseline;
         private Project _projectBeingEmitted;
 
-        private ImmutableArray<DocumentId> _documentsWithEmitError;
+        private ImmutableArray<DocumentId> _documentsWithEmitError = ImmutableArray<DocumentId>.Empty;
 
         /// <summary>
         /// Initialized when the project switches to debug state.
@@ -251,11 +251,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                         var descriptor = new DiagnosticDescriptor("Metadata", "Metadata", ServicesVSResources.ErrorWhileReading, DiagnosticCategory.EditAndContinue, DiagnosticSeverity.Error, isEnabledByDefault: true, customTags: DiagnosticCustomTags.EditAndContinue);
 
-                        _diagnosticProvider.ReportDiagnostics(_encService.DebuggingSession, EditAndContinueDiagnosticUpdateSource.DebuggerErrorId, _vsProject.Id, _encService.DebuggingSession.InitialSolution,
-                            new[]
-                            {
-                                Diagnostic.Create(descriptor, Location.None, outputPath, e.Message)
-                            });
+                        _diagnosticProvider.ReportDiagnostics(
+                            new EncErrorId(_encService.DebuggingSession, EditAndContinueDiagnosticUpdateSource.DebuggerErrorId),
+                            _encService.DebuggingSession.InitialSolution,
+                            _vsProject.Id,
+                            new[] { Diagnostic.Create(descriptor, Location.None, outputPath, e.Message) });
                     }
                 }
                 else
@@ -322,7 +322,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 else
                 {
                     // an error might have been reported:
-                    _diagnosticProvider.ClearDiagnostics(_encService.DebuggingSession, _vsProject.Workspace, EditAndContinueDiagnosticUpdateSource.DebuggerErrorId, _vsProject.Id, documentId: null);
+                    var errorId = new EncErrorId(_encService.DebuggingSession, EditAndContinueDiagnosticUpdateSource.DebuggerErrorId);
+                    _diagnosticProvider.ClearDiagnostics(errorId, _vsProject.Workspace.CurrentSolution, _vsProject.Id, documentIdOpt: null);
                 }
 
                 _activeMethods = null;
@@ -908,8 +909,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     Debug.Assert(s_breakStateProjectCount >= 0);
 
                     _changesApplied = false;
-                    _diagnosticProvider.ClearDiagnostics(_encService.DebuggingSession, _vsProject.Workspace, EditAndContinueDiagnosticUpdateSource.EmitErrorId, _vsProject.Id, _documentsWithEmitError);
-                    _documentsWithEmitError = default(ImmutableArray<DocumentId>);
+
+                    _diagnosticProvider.ClearDiagnostics(
+                        new EncErrorId(_encService.DebuggingSession, EditAndContinueDiagnosticUpdateSource.EmitErrorId), 
+                        _vsProject.Workspace.CurrentSolution,
+                        _vsProject.Id, 
+                        _documentsWithEmitError);
+
+                    _documentsWithEmitError = ImmutableArray<DocumentId>.Empty;
                 }
 
                 // HResult ignored by the debugger
@@ -971,25 +978,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     delta = emitTask.Result;
                 }
 
+                var errorId = new EncErrorId(_encService.DebuggingSession, EditAndContinueDiagnosticUpdateSource.EmitErrorId);
+                
                 // Clear diagnostics, in case the project was built before and failed due to errors.
-                _diagnosticProvider.ClearDiagnostics(_encService.DebuggingSession, _vsProject.Workspace, EditAndContinueDiagnosticUpdateSource.EmitErrorId, _vsProject.Id, _documentsWithEmitError);
+                _diagnosticProvider.ClearDiagnostics(errorId, _projectBeingEmitted.Solution, _vsProject.Id, _documentsWithEmitError);
 
                 if (!delta.EmitResult.Success)
                 {
                     var errors = delta.EmitResult.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error);
-                    _documentsWithEmitError = _diagnosticProvider.ReportDiagnostics(
-                        _encService.DebuggingSession,
-                        EditAndContinueDiagnosticUpdateSource.EmitErrorId,
-                        _vsProject.Id,
-                        _projectBeingEmitted.Solution,
-                        errors);
-
+                    _documentsWithEmitError = _diagnosticProvider.ReportDiagnostics(errorId, _projectBeingEmitted.Solution, _vsProject.Id, errors);
                     _encService.EditSession.LogEmitProjectDeltaErrors(errors.Select(e => e.Id));
 
                     return VSConstants.E_FAIL;
                 }
 
-                _documentsWithEmitError = default(ImmutableArray<DocumentId>);
+                _documentsWithEmitError = ImmutableArray<DocumentId>.Empty;
                 SetFileUpdates(updater, delta.LineEdits);
 
                 updater.SetDeltaIL(delta.IL.Value, (uint)delta.IL.Value.Length);
