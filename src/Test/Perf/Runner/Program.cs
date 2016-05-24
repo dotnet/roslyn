@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.IO;
 using Roslyn.Test.Performance.Utilities;
 using static Roslyn.Test.Performance.Utilities.TestUtilities;
 using static Roslyn.Test.Performance.Runner.Tools;
+using static Roslyn.Test.Performance.Runner.Benchview.Report;
 using Roslyn.Test.Performance.Runner;
 
 namespace Runner
@@ -14,7 +16,13 @@ namespace Runner
         static void Main(string[] args)
         {
             AsyncMain(args).GetAwaiter().GetResult();
+
+            if (args.Contains("--report-benchview"))
+            {
+                UploadBenchviewReport();
+            }
         }
+
         static async Task AsyncMain(string[] args)
         {
 
@@ -24,7 +32,7 @@ namespace Runner
 
             // Print message at startup
             Log("Starting Performance Test Run");
-            Log("hash: " + StdoutFrom("git", "show --format=\"%h\" HEAD --").Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.None)[0]);
+            Log("hash: " + FirstLine(StdoutFrom("git", "show --format=\"%h\" HEAD --")));
             Log("time: " + DateTime.Now.ToString());
 
             var testInstances = new List<PerfTest>();

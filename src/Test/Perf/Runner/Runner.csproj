@@ -49,10 +49,11 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Benchview\Report.cs" />
     <Compile Include="Program.cs" />
-    <Compile Include="ScenarioGenerator.cs" />
+    <Compile Include="CPC-Consumption\ScenarioGenerator.cs" />
     <Compile Include="Tools.cs" />
-    <Compile Include="TraceManager.cs" />
+    <Compile Include="CPC-Consumption\TraceManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\src\Scripting\Core\Scripting.csproj">
