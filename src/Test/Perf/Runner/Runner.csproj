@@ -54,6 +54,7 @@
     <Compile Include="CPC-Consumption\ScenarioGenerator.cs" />
     <Compile Include="Tools.cs" />
     <Compile Include="CPC-Consumption\TraceManager.cs" />
+    <Compile Include="Trace-Backup\TraceBackup.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\..\..\src\Scripting\Core\Scripting.csproj">

@@ -6,7 +6,8 @@ using System.IO;
 using Roslyn.Test.Performance.Utilities;
 using static Roslyn.Test.Performance.Utilities.TestUtilities;
 using static Roslyn.Test.Performance.Runner.Tools;
-using static Roslyn.Test.Performance.Runner.Benchview.Report;
+using static Roslyn.Test.Performance.Runner.Benchview;
+using static Roslyn.Test.Performance.Runner.TraceBackup;
 using Roslyn.Test.Performance.Runner;
 
 namespace Runner
@@ -19,7 +20,14 @@ namespace Runner
 
             if (args.Contains("--report-benchview"))
             {
+                Log("Uploading results to benchview");
                 UploadBenchviewReport();
+            }
+
+            if (!args.Contains("--no-trace-upload"))
+            {
+                Log("Uploading traces");
+                UploadTraces();
             }
         }
 

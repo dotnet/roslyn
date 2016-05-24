@@ -6,11 +6,13 @@ using System.Xml;
 using static Roslyn.Test.Performance.Utilities.TestUtilities;
 using static Roslyn.Test.Performance.Runner.Tools;
 
-namespace Roslyn.Test.Performance.Runner.Benchview
+namespace Roslyn.Test.Performance.Runner
 {
-    public class Report
+    public class Benchview 
     {
-        public static String CPCDirectoryPath = Environment.ExpandEnvironmentVariables(@"%SYSTEMDRIVE%\CPC");
+        public static readonly string CPCDirectoryPath = Environment.ExpandEnvironmentVariables(@"%SYSTEMDRIVE%\CPC");
+        private const string BenchviewPath = @"\\vcbench-srv4\benchview\uploads\vibench";
+
         public static void UploadBenchviewReport()
         {
             // Convert the produced consumptionTempResults.xml file to consumptionTempResults.csv file
@@ -22,8 +24,9 @@ namespace Roslyn.Test.Performance.Runner.Benchview
                 var elapsedTimeViBenchJsonFilePath = GetViBenchJsonFromCsv(elapsedTimeCsvFilePath, null, null);
                 string jsonFileName = Path.GetFileName(elapsedTimeViBenchJsonFilePath);
 
-                Log("Copy the json file to the share");
-                File.Copy(elapsedTimeViBenchJsonFilePath, $@"\\vcbench-srv4\benchview\uploads\vibench\{jsonFileName}");
+                Log("Copying the json file to the share");
+                File.Copy(elapsedTimeViBenchJsonFilePath, Path.Combine(BenchviewPath, jsonFileName));
+                Log("Done Copying");
             }
             else
             {
