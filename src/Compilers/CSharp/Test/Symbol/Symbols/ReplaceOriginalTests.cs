@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols
         {
             return CreateCompilationWithMscorlib(text, options: options, parseOptions: TestOptions.Regular.WithReplaceFeature());
         }
-
         
         [WorkItem(11123, "https://github.com/dotnet/roslyn/issues/11123")]
         [Fact]
@@ -57,7 +56,6 @@ partial struct S
             compilation.VerifyDiagnostics();
         }
 
-        
         [Fact]
         public void ExpressionBodiedMembers()
         {
@@ -83,7 +81,6 @@ partial struct S
   IL_0008:  ret
 }");
         }
-
         
         [Fact]
         public void Fields()
@@ -124,7 +121,6 @@ partial struct S
                 Diagnostic(ErrorCode.WRN_UnreferencedField, "F").WithArguments("C.F").WithLocation(3, 19));
         }
 
-        
         [Fact]
         public void Types()
         {
@@ -149,7 +145,6 @@ class B
                 //     replace class C { }
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "C").WithArguments("B", "C").WithLocation(7, 19));
         }
-
         
         [Fact]
         public void Interface()
@@ -177,7 +172,6 @@ class B
                 //     replace object P { get; }
                 Diagnostic(ErrorCode.ERR_DuplicateNameInClass, "P").WithArguments("I", "P").WithLocation(6, 20));
         }
-
         
         [Fact]
         public void Accessors()
@@ -202,7 +196,6 @@ class C
                 //     event EventHandler E { replace add { } remove { } }
                 Diagnostic(ErrorCode.ERR_AddOrRemoveExpected, "replace").WithLocation(6, 28));
         }
-
         
         [Fact]
         public void Constructors()
@@ -241,7 +234,6 @@ struct S
                 //     replace internal S(object o) { }
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "S").WithArguments(".ctor", "S").WithLocation(11, 22));
         }
-
         
         [Fact]
         public void DefaultConstructors()
@@ -267,7 +259,6 @@ struct S
                 //     replace public S() { }
                 Diagnostic(ErrorCode.ERR_StructsCantContainDefaultConstructor, "S").WithLocation(7, 20));
         }
-
         
         [Fact]
         public void ImplicitConstructors()
@@ -290,7 +281,6 @@ struct S
                 //     replace public C() { }
                 Diagnostic(ErrorCode.ERR_BadMemberFlag, "C").WithArguments("replace").WithLocation(7, 20));
         }
-
         
         [Fact]
         public void Destructors()
@@ -310,7 +300,6 @@ struct S
                 //     replace ~C() { }
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "C").WithArguments("~C", "C").WithLocation(4, 14));
         }
-
         
         [Fact]
         public void FinalizeMethod()
@@ -331,7 +320,6 @@ struct S
                 Diagnostic(ErrorCode.ERR_OverrideFinalizeDeprecated, "Finalize").WithLocation(4, 37));
         }
 
-        
         [WorkItem(11122, "https://github.com/dotnet/roslyn/issues/11122")]
         [Fact]
         public void ExplicitImplementation()
@@ -382,7 +370,6 @@ class C : I
                 //         set { original[index] = value; }
                 Diagnostic(ErrorCode.ERR_NoOriginalMember, "original").WithArguments("C.this[int]").WithLocation(22, 15));
         }
-
         
         [Fact]
         public void MultipleReplaces()
@@ -448,7 +435,6 @@ class C
                 //     event EventHandler E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(20, 24));
         }
-
         
         [WorkItem(11124, "https://github.com/dotnet/roslyn/issues/11124")]
         [Fact]
@@ -511,7 +497,6 @@ class C
             }
         }
 
-        
         [WorkItem(11125, "https://github.com/dotnet/roslyn/issues/11125")]
         [Fact]
         public void DifferentSignatures()
@@ -544,7 +529,6 @@ class C
             var compilation = CreateCompilationWithMscorlib(source);
             compilation.VerifyDiagnostics(); 
         }
-
         
         [WorkItem(11126, "https://github.com/dotnet/roslyn/issues/11126")]
         [Fact]
@@ -562,7 +546,6 @@ class C
             compilation.VerifyDiagnostics();
         }
 
-        
         [WorkItem(11127, "https://github.com/dotnet/roslyn/issues/11127")]
         [Fact]
         public void Abstract()
@@ -578,7 +561,6 @@ class C
             var compilation = CreateCompilationWithMscorlib(source);
             compilation.VerifyDiagnostics(); 
         }
-
         
         [Fact]
         public void Virtual()
@@ -654,7 +636,6 @@ class C
                 }
             }
         }
-
         
         [Fact]
         public void Overridden()
@@ -684,7 +665,6 @@ class B : A
   IL_0006:  ret
 }");
         }
-
         
         [Fact]
         public void Attributes()
@@ -703,7 +683,6 @@ class C
             compilation.VerifyDiagnostics();
         }
 
-        
         [WorkItem(11129, "https://github.com/dotnet/roslyn/issues/11129")]
         [Fact]
         public void DifferentAttributes()
@@ -726,7 +705,6 @@ class C
             compilation.VerifyDiagnostics(); 
         }
 
-        
         [WorkItem(11130, "https://github.com/dotnet/roslyn/issues/11130")]
         [Fact]
         public void Modifiers()
@@ -734,7 +712,6 @@ class C
             // Test extern, partial, unsafe, async
         }
 
-        
         [Fact]
         public void MissingSet()
         {
@@ -750,7 +727,6 @@ class C
                 //     replace object P { get { original = null; return null; } }
                 Diagnostic(ErrorCode.ERR_AssgReadonlyProp, "original").WithArguments("C.P").WithLocation(4, 30));
         }
-
         
         [Fact]
         public void MissingGet()
@@ -767,7 +743,6 @@ class C
                 //     replace int P { set { original += value; } }
                 Diagnostic(ErrorCode.ERR_PropertyLacksGet, "original").WithArguments("C.P").WithLocation(4, 27));
         }
-
         
         [Fact]
         public void OriginalAsDelegate()
@@ -790,7 +765,6 @@ class C
             compilation.VerifyDiagnostics();
         }
 
-        
         [Fact]
         public void OriginalInLambda()
         {
@@ -820,7 +794,6 @@ class C
             compilation.VerifyDiagnostics();
             CompileAndVerify(compilation, expectedOutput: @"21");
         }
-
         
         [WorkItem(11131, "https://github.com/dotnet/roslyn/issues/11131")]
         [Fact]
@@ -837,7 +810,6 @@ class C
             var compilation = CreateCompilationWithMscorlib(source);
             compilation.VerifyDiagnostics();
         }
-
         
         [WorkItem(11131, "https://github.com/dotnet/roslyn/issues/11131")]
         [Fact]
@@ -854,7 +826,6 @@ class C
             var compilation = CreateCompilationWithMscorlib(source);
             compilation.VerifyDiagnostics(); 
         }
-
         
         [WorkItem(11131, "https://github.com/dotnet/roslyn/issues/11131")]
         [Fact]
@@ -871,7 +842,6 @@ class C
             var compilation = CreateCompilationWithMscorlib(source);
             compilation.VerifyDiagnostics(); 
         }
-
         
         [Fact]
         public void ReplaceWithAutoProperty()
@@ -892,7 +862,6 @@ class C
             compilation.VerifyDiagnostics();
         }
 
-        
         [Fact]
         public void ReplaceWithFieldLikeEvent()
         {
@@ -917,7 +886,6 @@ class C
                 //     replace event EventHandler E;
                 Diagnostic(ErrorCode.WRN_UnreferencedEvent, "E").WithArguments("C.E").WithLocation(6, 32));
         }
-
         
         [Fact]
         public void ParamsArray()
@@ -942,7 +910,6 @@ class C
         /// Replaced generic method. Original reference
         /// must use type arguments from replace method.
         /// </summary>
-        
         [Fact]
         public void GenericMethod()
         {
@@ -955,7 +922,6 @@ class C
             var compilation = CreateCompilationWithMscorlib(source);
             compilation.VerifyDiagnostics();
         }
-
         
         [Fact]
         public void OriginalMethodDifferentTypeArguments()
@@ -979,7 +945,6 @@ class C
                 Diagnostic(ErrorCode.ERR_BadArgType, "2").WithArguments("2", "int", "U").WithLocation(9, 21));
         }
 
-        
         [WorkItem(11132, "https://github.com/dotnet/roslyn/issues/11132")]
         [Fact]
         public void OriginalMethodExplicitTypeArguments()
@@ -1011,7 +976,6 @@ class C
                 //         original<T>(default(T));
                 Diagnostic(ErrorCode.ERR_IllegalStatement, "original<T>(default(T))").WithLocation(8, 9));
         }
-
         
         [Fact]
         public void PartialReplace()
@@ -1063,7 +1027,6 @@ class C
                 Diagnostic(ErrorCode.ERR_MemberAlreadyExists, "M4").WithArguments("M4", "C").WithLocation(18, 26));
         }
 
-        
         [WorkItem(11117, "https://github.com/dotnet/roslyn/issues/11117")]
         [Fact]
         public void ReplacePartial()
@@ -1103,7 +1066,52 @@ class C
                 Diagnostic(ErrorCode.ERR_NoOriginalMember, "original").WithArguments("C.M2()").WithLocation(13, 9));
         }
 
-        
+        [Fact]
+        public void MethodNamedReplace()
+        {
+            var source =
+@"using System;
+class C
+{
+    void replace(bool b)
+    {
+        Console.Write(1);
+    }
+    replace void replace(bool b)
+    {
+        Console.Write(2);
+        original(b);
+        if (b)
+        {
+            replace(false);
+        }
+    }
+    static void Main()
+    {
+        (new C()).replace(true);
+    }
+}";
+            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+            compilation.VerifyDiagnostics();
+            var verifier = CompileAndVerify(compilation, expectedOutput: @"2121");
+            VerifyIL(verifier, GetMethodByName(verifier.TestData, "C", "replace"),
+@"{
+  // Code size       24 (0x18)
+  .maxstack  2
+  IL_0000:  ldc.i4.2
+  IL_0001:  call       ""void System.Console.Write(int)""
+  IL_0006:  ldarg.0
+  IL_0007:  ldarg.1
+  IL_0008:  call       ""void C.<replace>v__0(bool)""
+  IL_000d:  ldarg.1
+  IL_000e:  brfalse.s  IL_0017
+  IL_0010:  ldarg.0
+  IL_0011:  ldc.i4.0
+  IL_0012:  call       ""void C.replace(bool)""
+  IL_0017:  ret
+}");
+        }
+
         [Fact]
         public void MethodNamedOriginal()
         {
@@ -1154,7 +1162,6 @@ class C
 }");
         }
 
-        
         [Fact]
         public void EntryPoint()
         {
@@ -1200,14 +1207,12 @@ class C
 }");
         }
 
-        
         [WorkItem(11134, "https://github.com/dotnet/roslyn/issues/11134")]
         [Fact]
         public void UseSiteDiagnostics()
         {
             // Can we test useSiteDiagnostics in BindInvocationExpression?
         }
-
         
         [Fact]
         public void LookupReplace()
