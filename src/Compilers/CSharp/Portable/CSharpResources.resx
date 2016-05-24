@@ -4884,4 +4884,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_MissingDeconstruct" xml:space="preserve">
     <value>No Deconstruct instance or extension method was found for type '{0}'.</value>
   </data>
+  <data name="ERR_DeconstructRequiresExpression" xml:space="preserve">
+    <value>Deconstruct assignment requires an expression with a type on the right-hand-side.</value>
+  </data>
 </root>

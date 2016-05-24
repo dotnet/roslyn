@@ -397,7 +397,7 @@
     <Field Name="LeftVariables" Type="ImmutableArray&lt;BoundExpression&gt;"/>
 
     <Field Name="Right" Type="BoundExpression"/>
-    <Field Name="DeconstructMember" Type="MethodSymbol" Null="disallow"/>
+    <Field Name="DeconstructMemberOpt" Type="MethodSymbol" Null="allow"/>
 
     <!-- The assignments have placeholders for the left and right part of the assignment -->
     <Field Name="Assignments" Type="ImmutableArray&lt;BoundDeconstructionAssignmentOperator.AssignmentInfo&gt;" Null="NotApplicable" SkipInVisitor="true"/>

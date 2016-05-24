@@ -3095,6 +3095,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Deconstruct assignment requires an expression with a type on the right-hand-side..
+        /// </summary>
+        internal static string ERR_DeconstructRequiresExpression {
+            get {
+                return ResourceManager.GetString("ERR_DeconstructRequiresExpression", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to The Deconstruct method for type &apos;{0}&apos; must have only out parameters..
         /// </summary>
         internal static string ERR_DeconstructRequiresOutParams {

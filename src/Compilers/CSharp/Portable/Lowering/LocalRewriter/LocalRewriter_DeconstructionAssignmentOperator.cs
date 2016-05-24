@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -9,9 +12,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
         {
-            CSharpSyntaxNode syntax = node.Syntax;
-            int numVariables = node.LeftVariables.Length;
-
             var temps = ArrayBuilder<LocalSymbol>.GetInstance();
             var stores = ArrayBuilder<BoundExpression>.GetInstance();
 
@@ -24,40 +24,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             BoundExpression loweredRight = VisitExpression(node.Right);
+            ImmutableArray<BoundExpression> rhsValues;
 
-            // prepare out parameters for Deconstruct
-            var deconstructParameters = node.DeconstructMember.Parameters;
-            var outParametersBuilder = ArrayBuilder<BoundExpression>.GetInstance(deconstructParameters.Length);
-            Debug.Assert(deconstructParameters.Length == node.LeftVariables.Length);
-
-            for (int i = 0; i < numVariables; i++)
+            // get or make right-hand-side values
+            if (node.Right.Type.IsTupleType)
             {
-                var localSymbol = new SynthesizedLocal(_factory.CurrentMethod, deconstructParameters[i].Type, SynthesizedLocalKind.LoweringTemp);
-
-                var localBound = new BoundLocal(syntax,
-                                                localSymbol,
-                                                null,
-                                                deconstructParameters[i].Type
-                                                ) { WasCompilerGenerated = true };
-
-                temps.Add(localSymbol);
-                outParametersBuilder.Add(localBound);
+                rhsValues = AccessTupleFields(node, loweredRight, temps, stores);
+            }
+            else
+            {
+                rhsValues = CallDeconstruct(node, loweredRight, temps, stores);
             }
 
-            var outParameters = outParametersBuilder.ToImmutableAndFree();
-
-            // invoke Deconstruct
-            var invokeDeconstruct = MakeCall(syntax, loweredRight, node.DeconstructMember, outParameters, node.DeconstructMember.ReturnType);
-            stores.Add(invokeDeconstruct);
-
-            // assign from out temps to lhs receivers
-            for (int i = 0; i < numVariables; i++)
+            // assign from rhs values to lhs receivers
+            int numAssignments = node.Assignments.Length;
+            for (int i = 0; i < numAssignments; i++)
             {
                 // lower the assignment and replace the placeholders for source and target in the process
                 var assignmentInfo = node.Assignments[i];
 
                 AddPlaceholderReplacement(assignmentInfo.LValuePlaceholder, lhsReceivers[i]);
-                AddPlaceholderReplacement(assignmentInfo.RValuePlaceholder, outParameters[i]);
+                AddPlaceholderReplacement(assignmentInfo.RValuePlaceholder, rhsValues[i]);
 
                 var assignment = VisitExpression(assignmentInfo.Assignment);
 
@@ -74,6 +61,82 @@ namespace Microsoft.CodeAnalysis.CSharp
             lhsReceivers.Free();
 
             return result;
+        }
+
+        private ImmutableArray<BoundExpression> AccessTupleFields(BoundDeconstructionAssignmentOperator node, BoundExpression loweredRight, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> stores)
+        {
+            var tupleType = loweredRight.Type.IsTupleType ? loweredRight.Type : TupleTypeSymbol.Create((NamedTypeSymbol)loweredRight.Type);
+            var tupleElementTypes = tupleType.TupleElementTypes;
+
+            var numElements = tupleElementTypes.Length;
+            Debug.Assert(numElements == node.LeftVariables.Length);
+
+            CSharpSyntaxNode syntax = node.Syntax;
+
+            // save the loweredRight as we need to access it multiple times 
+            BoundAssignmentOperator assignmentToTemp;
+            var savedTuple = _factory.StoreToTemp(loweredRight, out assignmentToTemp);
+            stores.Add(assignmentToTemp);
+            temps.Add(savedTuple.LocalSymbol);
+
+            // list the tuple fields accessors
+            var fieldAccessorsBuilder = ArrayBuilder<BoundExpression>.GetInstance(numElements);
+            var fields = tupleType.TupleElementFields;
+
+            for (int i = 0; i < numElements; i++)
+            {
+                var field = fields[i];
+
+                DiagnosticInfo useSiteInfo = field.GetUseSiteDiagnostic();
+                if ((object)useSiteInfo != null && useSiteInfo.Severity == DiagnosticSeverity.Error)
+                {
+                    Symbol.ReportUseSiteDiagnostic(useSiteInfo, _diagnostics, syntax.Location);
+                }
+                var fieldAccess = MakeTupleFieldAccess(syntax, field, savedTuple, null, LookupResultKind.Empty, tupleElementTypes[i]);
+                fieldAccessorsBuilder.Add(fieldAccess);
+            }
+
+            return fieldAccessorsBuilder.ToImmutableAndFree();
+        }
+
+        /// <summary>
+        /// Prepares local variables to be used in Deconstruct call
+        /// Adds a invocation of Deconstruct with those as out parameters onto the 'stores' sequence
+        /// Returns the expressions for those out parameters
+        /// </summary>
+        private ImmutableArray<BoundExpression> CallDeconstruct(BoundDeconstructionAssignmentOperator node, BoundExpression loweredRight, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> stores)
+        {
+            Debug.Assert((object)node.DeconstructMemberOpt != null);
+
+            CSharpSyntaxNode syntax = node.Syntax;
+
+            // prepare out parameters for Deconstruct
+            var deconstructParameters = node.DeconstructMemberOpt.Parameters;
+            var outParametersBuilder = ArrayBuilder<BoundExpression>.GetInstance(deconstructParameters.Length);
+            Debug.Assert(deconstructParameters.Length == node.LeftVariables.Length);
+
+            foreach (var deconstructParameter in deconstructParameters)
+            {
+                var localSymbol = new SynthesizedLocal(_factory.CurrentMethod, deconstructParameter.Type, SynthesizedLocalKind.LoweringTemp);
+
+                var localBound = new BoundLocal(syntax,
+                                                localSymbol,
+                                                null,
+                                                deconstructParameter.Type
+                                                )
+                { WasCompilerGenerated = true };
+
+                temps.Add(localSymbol);
+                outParametersBuilder.Add(localBound);
+            }
+
+            var outParameters = outParametersBuilder.ToImmutableAndFree();
+
+            // invoke Deconstruct
+            var invokeDeconstruct = MakeCall(syntax, loweredRight, node.DeconstructMemberOpt, outParameters, node.DeconstructMemberOpt.ReturnType);
+            stores.Add(invokeDeconstruct);
+
+            return outParameters;
         }
     }
 }
