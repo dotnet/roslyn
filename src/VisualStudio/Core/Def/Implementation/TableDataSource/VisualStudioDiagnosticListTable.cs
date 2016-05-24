@@ -64,6 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             var errorList2 = _errorList as IErrorList2;
             if (errorList2 != null)
             {
+                InitializeFullSolutionAnalysisState(workspace, errorList2);
                 workspace.WorkspaceChanged += OnWorkspaceChanged;
                 errorList2.AnalysisToggleStateChanged += OnErrorListFullSolutionAnalysisToggled;
                 workspace.Services.GetService<IOptionService>().OptionChanged += OnOptionChanged;
@@ -193,6 +194,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 .WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.CSharp, e.NewState)
                 .WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, LanguageNames.VisualBasic, e.NewState)
                 .WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, TypeScriptLanguageName, e.NewState);
+        }
+
+        private static void InitializeFullSolutionAnalysisState(Workspace workspace, IErrorList2 errorList2)
+        {
+            // Initialize the error list toggle state based on full solution analysis state for all supported languages.
+            var fullAnalysisState = workspace.Options.GetOption(RuntimeOptions.FullSolutionAnalysis) && 
+                ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(workspace, LanguageNames.CSharp) &&
+                ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(workspace, LanguageNames.VisualBasic) &&
+                ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(workspace, TypeScriptLanguageName);
+            errorList2.AnalysisToggleState = fullAnalysisState;
         }
 
         private static void SetFullSolutionAnalysisState(Workspace workspace, IErrorList2 errorList2)
