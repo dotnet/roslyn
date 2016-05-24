@@ -515,6 +515,7 @@ public class D
 
             var ilReference = CompileIL(ilsource);
             CompileAndVerify(cssource, expectedOutput: "0", additionalRefs: new[] { ilReference });
+            // The native compiler would produce a working exe, but that exe would fail at runtime
         }
 
         [Fact]

@@ -480,6 +480,72 @@ End Class
 
         <WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>
         <Fact()>
+        Public Sub LoadingDateTimeConstantWithBadValueOnField()
+            Dim ilSource = <![CDATA[
+.class public auto ansi C
+       extends [mscorlib]System.Object
+{
+  .field private static initonly valuetype [mscorlib]System.DateTime f
+  .custom instance void [mscorlib]System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = ( 01 00 ff ff ff ff ff ff ff ff 00 00 )
+  .method public specialname rtspecialname
+          instance void  .ctor() cil managed
+  {
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  ret
+  } // end of method C::.ctor
+
+  .method public instance void  Method() cil managed
+  {
+    // Code size       29 (0x1d)
+    .maxstack  2
+    .locals init (valuetype [mscorlib]System.DateTime V_0,
+             valuetype [mscorlib]System.DateTime V_1,
+             valuetype [mscorlib]System.DateTime V_2,
+             valuetype [mscorlib]System.DateTime V_3,
+             valuetype [mscorlib]System.DateTime V_4,
+             valuetype [mscorlib]System.DateTime V_5,
+             valuetype [mscorlib]System.DateTime V_6,
+             valuetype [mscorlib]System.DateTime V_7,
+             valuetype [mscorlib]System.DateTime V_8,
+             valuetype [mscorlib]System.DateTime V_9,
+             valuetype [mscorlib]System.DateTime V_10,
+             valuetype [mscorlib]System.DateTime V_11,
+             valuetype [mscorlib]System.DateTime V_12)
+    IL_0000:  ldc.i8     0x8a037f6423e7380
+    IL_0009:  newobj     instance void [mscorlib]System.DateTime::.ctor(int64)
+    IL_000e:  stloc.s    V_12
+    IL_0010:  ldloca.s   V_12
+    IL_0012:  call       instance int64 [mscorlib]System.DateTime::get_Ticks()
+    IL_0017:  call       void [mscorlib]System.Console::WriteLine(int64)
+    IL_001c:  ret
+  } // end of method C::Method
+
+} // end of class C
+                ]]>
+
+            Dim source =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Public Class D
+    Shared Sub Main()
+        Dim test = New C()
+        test.Method()
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>
+
+            Dim ilReference = CompileIL(ilSource.Value)
+            CompileAndVerify(source, expectedOutput:="621558279390000000", additionalRefs:={ilReference})
+            ' This behavior hasn't changed from native VB compiler
+        End Sub
+
+        <WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>
+        <Fact()>
         Public Sub LoadingDateTimeConstantWithBadValue()
             Dim ilSource = <![CDATA[
 .class public auto ansi beforefieldinit C
@@ -530,6 +596,7 @@ End Class
 
             Dim ilReference = CompileIL(ilSource.Value)
             CompileAndVerify(source, expectedOutput:="0", additionalRefs:={ilReference})
+            ' The native compiler would produce a working exe, but that exe would fail at runtime
         End Sub
 
         <WorkItem(531121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531121")>
