@@ -38,7 +38,7 @@ namespace RunTests.Cache
             }
             catch (Exception ex)
             {
-                Logger.Log($"Exception adding web cached result:  {ex}");
+                Logger.LogError(ex, "Exception uploading cached test result");
             }
         }
 
@@ -74,7 +74,7 @@ namespace RunTests.Cache
             }
             catch (Exception ex)
             {
-                Logger.Log($"Exception retrieving cached test result {checksum}: {ex}");
+                Logger.LogError(ex, $"Exception downloading cached test result for {checksum}");
                 return null;
             }
         }
@@ -137,7 +137,7 @@ namespace RunTests.Cache
             }
             catch (Exception ex)
             {
-                Logger.Log($"Exception reading test numbers: {ex}");
+                Logger.LogError(ex, $"Error reading test numbers");
                 return null;
             }
         }
