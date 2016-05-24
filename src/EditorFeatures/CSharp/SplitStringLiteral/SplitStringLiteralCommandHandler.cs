@@ -64,136 +64,196 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 return false;
             }
 
-            if (!token.IsKind(SyntaxKind.StringLiteralToken))
+            var splitter = StringSplitter.Create(document, position, syntaxTree, root, sourceText, token, useTabs, tabSize, cancellationToken);
+            if (splitter == null)
             {
                 return false;
             }
 
-            if (token.IsVerbatimStringLiteral() ||
-                token.Kind() == SyntaxKind.InterpolatedVerbatimStringStartToken)
-            {
-                // Don't do anything special for @""  strings.  
-                return false;
-            }
-
-            var tokenQuoteLength = GetTokenStart(token.Text);
-            var tokenStart = token.SpanStart + tokenQuoteLength;
-            if (position < tokenStart)
-            {
-                return false;
-            }
-
-            // TODO(cyrusn): Should we not do anything when the string literal contains errors in it?
-
-            var indentation = await DetermineIndentationAsync(
-                document, root, sourceText, position, token, cancellationToken).ConfigureAwait(false);
-            if (indentation == null)
-            {
-                return false;
-            }
-
-            var indentString = indentation.Value.CreateIndentationString(useTabs, tabSize);
-            var newDocument = await SplitStringAsync(
-                document, root, sourceText, position, token, indentString, cancellationToken).ConfigureAwait(false);
-            var workspace = document.Project.Solution.Workspace;
-            workspace.TryApplyChanges(newDocument.Project.Solution);
-
-            return true;
+            return await splitter.TrySplitAsync().ConfigureAwait(false);
         }
 
-        private async Task<int?> DetermineIndentationAsync(
-            Document document,
-            SyntaxNode root,
-            SourceText sourceText,
-            int position,
-            SyntaxToken token,
-            CancellationToken cancellationToken)
+        private abstract class StringSplitter
         {
-            var newDocument = await SplitStringAsync(
-                document, root, sourceText, position, token, indentString: null, cancellationToken: cancellationToken).ConfigureAwait(false);
+            protected readonly Document Document;
+            protected readonly int Position;
+            protected readonly SourceText SourceText;
+            protected readonly SyntaxTree SyntaxTree;
+            protected readonly SyntaxNode Root;
+            protected readonly SyntaxToken Token;
+            protected readonly int TabSize;
+            protected readonly bool UseTabs;
+            protected readonly CancellationToken CancellationToken;
 
-            var indentationService = newDocument.GetLanguageService<IIndentationService>();
-            var currentLine = sourceText.Lines.GetLineFromPosition(position);
-            var indentation = await indentationService.GetDesiredIndentationAsync(
-                newDocument, currentLine.LineNumber + 1, cancellationToken).ConfigureAwait(false);
-
-            if (indentation == null)
+            public StringSplitter(Document document, int position, SyntaxTree syntaxTree, SyntaxNode root, SourceText sourceText, SyntaxToken token, bool useTabs, int tabSize, CancellationToken cancellationToken)
             {
+                Document = document;
+                Position = position;
+                SyntaxTree = syntaxTree;
+                Root = root;
+                SourceText = sourceText;
+                Token = token;
+                UseTabs = useTabs;
+                TabSize = tabSize;
+                CancellationToken = cancellationToken;
+            }
+
+            public static StringSplitter Create(
+                Document document, int position, SyntaxTree syntaxTree, SyntaxNode root, SourceText sourceText, SyntaxToken token, bool useTabs, int tabSize, CancellationToken cancellationToken)
+            {
+                if (token.IsKind(SyntaxKind.StringLiteralToken))
+                {
+                    return new SimpleStringSplitter(document, position, syntaxTree, root, sourceText, token, useTabs, tabSize, cancellationToken);
+                }
+                else if (token.IsKind(SyntaxKind.InterpolatedStringTextToken))
+                {
+                    return new InterpolatedStringSplitter(document, position, syntaxTree, root, sourceText, token, useTabs, tabSize, cancellationToken);
+                }
+
                 return null;
             }
 
-            var newSourceText = await newDocument.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var baseLine = newSourceText.Lines.GetLineFromPosition(indentation.Value.BasePosition);
-            var baseOffsetInLine = indentation.Value.BasePosition - baseLine.Start;
+            public abstract Task<bool> TrySplitAsync();
 
-            var indent = baseOffsetInLine + indentation.Value.Offset;
-
-            return indent;
+            protected int GetTokenStart(string tokenText)
+            {
+                return tokenText[0] == '$' ? 2 : 1;
+            }
         }
 
-        private async Task<Document> SplitStringAsync(
-            Document document,
-            SyntaxNode root,
-            SourceText sourceText,
-            int position,
-            SyntaxToken token,
-            string indentString,
-            CancellationToken cancellationToken)
+        private class SimpleStringSplitter : StringSplitter
         {
-            var parent = token.Parent;
-            var splitString = CreateSplitString(sourceText, token, position, indentString).WithAdditionalAnnotations(Formatter.Annotation);
-            var newRoot = root.ReplaceNode(parent, splitString);
+            public SimpleStringSplitter(Document document, int position, SyntaxTree syntaxTree, SyntaxNode root, SourceText sourceText, SyntaxToken token, bool useTabs, int tabSize, CancellationToken cancellationToken)
+                : base(document, position, syntaxTree, root, sourceText, token, useTabs, tabSize, cancellationToken)
+            {
+            }
 
-            var document1 = document.WithSyntaxRoot(newRoot);
-            var document2 = await Formatter.FormatAsync(document1, cancellationToken: cancellationToken).ConfigureAwait(false);
+            public override async Task<bool> TrySplitAsync()
+            {
+                if (Token.IsVerbatimStringLiteral())
+                {
+                    // Don't split @"" strings.  They already support directly embedding newlines.
+                    return false;
+                }
 
-            return document2;
+                var tokenQuoteLength = GetTokenStart(Token.Text);
+                var tokenStart = Token.SpanStart + tokenQuoteLength;
+                if (Position < tokenStart)
+                {
+                    return false;
+                }
+
+                // TODO(cyrusn): Should we not do anything when the string literal contains errors in it?
+
+                var indentation = await DetermineIndentationAsync().ConfigureAwait(false);
+                if (indentation == null)
+                {
+                    return false;
+                }
+
+                var indentString = indentation.Value.CreateIndentationString(UseTabs, TabSize);
+                var newDocument = await SplitStringAsync(indentString).ConfigureAwait(false);
+                var workspace = Document.Project.Solution.Workspace;
+                workspace.TryApplyChanges(newDocument.Project.Solution);
+
+                return true;
+
+            }
+
+            private async Task<int?> DetermineIndentationAsync()
+            {
+                var newDocument = await SplitStringAsync(indentString: null).ConfigureAwait(false);
+
+                var indentationService = newDocument.GetLanguageService<IIndentationService>();
+                var currentLine = SourceText.Lines.GetLineFromPosition(Position);
+                var indentation = await indentationService.GetDesiredIndentationAsync(
+                    newDocument, currentLine.LineNumber + 1, CancellationToken).ConfigureAwait(false);
+
+                if (indentation == null)
+                {
+                    return null;
+                }
+
+                var newSourceText = await newDocument.GetTextAsync(CancellationToken).ConfigureAwait(false);
+                var baseLine = newSourceText.Lines.GetLineFromPosition(indentation.Value.BasePosition);
+                var baseOffsetInLine = indentation.Value.BasePosition - baseLine.Start;
+
+                var indent = baseOffsetInLine + indentation.Value.Offset;
+
+                return indent;
+            }
+
+            private async Task<Document> SplitStringAsync(string indentString)
+            {
+                var parent = Token.Parent;
+                var splitString = CreateSplitString(indentString).WithAdditionalAnnotations(Formatter.Annotation);
+                var newRoot = Root.ReplaceNode(parent, splitString);
+
+                var document1 = Document.WithSyntaxRoot(newRoot);
+                var document2 = await Formatter.FormatAsync(document1, cancellationToken: CancellationToken).ConfigureAwait(false);
+
+                return document2;
+            }
+
+            private SyntaxNode CreateSplitString(string indentString)
+            {
+                // TODO(cyrusn): Deal with the positoin being after a \ character
+                var prefix = SourceText.GetSubText(TextSpan.FromBounds(Token.SpanStart, Position)).ToString();
+                var suffix = SourceText.GetSubText(TextSpan.FromBounds(Position, Token.Span.End)).ToString();
+
+                var tokenStart = GetTokenStart(Token.Text);
+
+                var firstToken = SyntaxFactory.Token(
+                    Token.LeadingTrivia,
+                    Token.Kind(),
+                    text: prefix + '"',
+                    valueText: "",
+                    trailing: SyntaxFactory.TriviaList(SyntaxFactory.ElasticSpace));
+
+                var plusToken = SyntaxFactory.Token(SyntaxKind.PlusToken).WithTrailingTrivia(
+                    SyntaxFactory.TriviaList(SyntaxFactory.ElasticCarriageReturnLineFeed));
+
+                var secondToken = SyntaxFactory.Token(
+                    GetSecondTokenLeadingTrivia(indentString),
+                    Token.Kind(),
+                    text: Token.Text.Substring(0, tokenStart) + suffix,
+                    valueText: "",
+                    trailing: Token.TrailingTrivia);
+
+                var firstExpression = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, firstToken);
+                var secondExpression = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, secondToken);
+
+                return SyntaxFactory.BinaryExpression(
+                    SyntaxKind.AddExpression,
+                    firstExpression, plusToken, secondExpression);
+            }
+
+            private static SyntaxTriviaList GetSecondTokenLeadingTrivia(string indentString)
+            {
+                return indentString == null
+                    ? default(SyntaxTriviaList)
+                    : SyntaxFactory.TriviaList(SyntaxFactory.Whitespace(indentString));
+            }
         }
 
-        private SyntaxNode CreateSplitString(
-            SourceText text, SyntaxToken stringToken, int position, string indentString)
+        private class InterpolatedStringSplitter : StringSplitter
         {
-            // TODO(cyrusn): Deal with the positoin being after a \ character
-            var prefix = text.GetSubText(TextSpan.FromBounds(stringToken.SpanStart, position)).ToString();
-            var suffix = text.GetSubText(TextSpan.FromBounds(position, stringToken.Span.End)).ToString();
+            public InterpolatedStringSplitter(Document document, int position, SyntaxTree syntaxTree, SyntaxNode root, SourceText sourceText, SyntaxToken token, bool useTabs, int tabSize, CancellationToken cancellationToken) : base(document, position, syntaxTree, root, sourceText, token, useTabs, tabSize, cancellationToken)
+            {
+            }
 
-            var tokenStart = GetTokenStart(stringToken.Text);
+            public override async Task<bool> TrySplitAsync()
+            {
+                var interpolatedString = (InterpolatedStringExpressionSyntax)Token.Parent;
+                if (interpolatedString.StringStartToken.Kind() == SyntaxKind.InterpolatedVerbatimStringStartToken)
+                {
+                    // Don't offer on $@"" strings.  They support newlines directly in their content.
+                    return false;
+                }
 
-            var firstToken = SyntaxFactory.Token(
-                stringToken.LeadingTrivia,
-                stringToken.Kind(),
-                text: prefix + '"',
-                valueText: "",
-                trailing: SyntaxFactory.TriviaList(SyntaxFactory.ElasticSpace));
 
-            var plusToken = SyntaxFactory.Token(SyntaxKind.PlusToken).WithTrailingTrivia(
-                SyntaxFactory.TriviaList(SyntaxFactory.ElasticCarriageReturnLineFeed));
-
-            var secondToken = SyntaxFactory.Token(
-                GetSecondTokenLeadingTrivia(text, indentString),
-                stringToken.Kind(),
-                text: stringToken.Text.Substring(0, tokenStart) + suffix,
-                valueText: "",
-                trailing: stringToken.TrailingTrivia);
-
-            return SyntaxFactory.BinaryExpression(
-                SyntaxKind.AddExpression,
-                SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, firstToken),
-                plusToken,
-                SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, secondToken));
+            }
         }
 
-        private static SyntaxTriviaList GetSecondTokenLeadingTrivia(
-            SourceText text, string indentString)
-        {
-            return indentString == null
-                ? default(SyntaxTriviaList)
-                : SyntaxFactory.TriviaList(SyntaxFactory.Whitespace(indentString));
-        }
-
-        private int GetTokenStart(string tokenText)
-        {
-            return tokenText[0] == '$' ? 2 : 1;
-        }
     }
 }
