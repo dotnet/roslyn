@@ -5412,6 +5412,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
+        // Note: Can return methods of kind ExpandedExtensionClass.
+        // Overload resolution still has to choose between old-style extension methods and extension class methods, and we can't mix instance and static styles.
         private MethodGroupResolution BindExtensionMethod(
             CSharpSyntaxNode expression,
             string methodName,
@@ -5439,6 +5441,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         for (int i = methodGroup.Methods.Count - 1; i >= 0; i--)
                         {
+                            // TODO(t-evhau): I think this (the extension class) is wrong. For example, type constraints might not match on the reciever.
+                            if (methodGroup.Methods[i].IsInExtensionClass) continue;
                             if ((object)methodGroup.Methods[i].ReduceExtensionMethod(left.Type) == null) methodGroup.Methods.RemoveAt(i);
                         }
                     }

@@ -4112,6 +4112,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to An extension method cannot be defined in an extension class..
+        /// </summary>
+        internal static string ERR_ExtensionMethodInExtensionClass {
+            get {
+                return ResourceManager.GetString("ERR_ExtensionMethodInExtensionClass", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Extension methods must be defined in a top level static class; {0} is a nested class.
         /// </summary>
         internal static string ERR_ExtensionMethodsDecl {

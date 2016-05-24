@@ -268,6 +268,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                         includeType = true;
                         Debug.Assert(containingType != null);
                     }
+                    else if (symbol.MethodKind == MethodKind.ExpandedExtensionClass)
+                    {
+                        // TODO(t-evhau): Is this right?
+                        containingType = symbol.Parameters[0].Type;
+                        includeType = true;
+                        Debug.Assert(containingType != null);
+                    }
                     else
                     {
                         containingType = symbol.ContainingType;
@@ -298,6 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case MethodKind.DelegateInvoke:
                 case MethodKind.ReducedExtension:
                 case MethodKind.LocalFunction:
+                case MethodKind.ExpandedExtensionClass:
                     //containing type will be the delegate type, name will be Invoke
                     builder.Add(CreatePart(SymbolDisplayPartKind.MethodName, symbol, symbol.Name));
                     break;

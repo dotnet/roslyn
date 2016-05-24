@@ -501,6 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             case MethodKind.Ordinary:
                             case MethodKind.LocalFunction:
                             case MethodKind.ReducedExtension:
+                            case MethodKind.ExpandedExtensionClass:
                                 break;
                             case MethodKind.Destructor:
                                 // You wouldn't think that destructors would be referenceable by name, but
@@ -561,6 +562,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case MethodKind.LocalFunction:
                         case MethodKind.DelegateInvoke:
                         case MethodKind.Destructor: // See comment in CanBeReferencedByName.
+                        case MethodKind.ExpandedExtensionClass:
                             return true;
                         case MethodKind.PropertyGet:
                         case MethodKind.PropertySet:

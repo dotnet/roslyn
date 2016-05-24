@@ -1393,5 +1393,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PredefinedTypeMemberNotFoundInAssembly = 8205,
 
         ERR_ExtensionBadAbstractSealedStatic = 8206,
+        ERR_ExtensionMethodInExtensionClass = 8207,
     }
 }

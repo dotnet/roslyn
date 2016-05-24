@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         private static readonly CSharpParseOptions parseOptions = TestOptions.Regular.WithExtensionEverythingFeature();
 
+        // TODO(t-evhau): Test extending struct/interface/other odd types
+
         [Fact]
         public void SuccessTest()
         {
@@ -26,9 +28,9 @@ class Bar
 {
 }
 
-extension class Foo
+extension class Foo : Bar
 {
-    public static void Ext(Bar one)
+    public void Ext()
     {
         System.Console.WriteLine(""Hello, world!"");
     }
@@ -47,20 +49,30 @@ class Program
             comp.VerifyDiagnostics();
             CompileAndVerify(source: text,
                 parseOptions: parseOptions,
-                additionalRefs: new[] { SystemCoreRef }, expectedOutput: "");
+                additionalRefs: new[] { SystemCoreRef }, expectedOutput: "Hello, world!");
         }
 
         [Fact]
-        public void DiagnosticTest()
+        public void ExtensionMethodInExtensionClass()
         {
             var text = @"
-partial extension class Foo {
+class Base
+{
+}
+
+extension class Ext : Base {
+    public static void ExtMethod(this Base param)
+    {
+    }
 }
 ";
 
-            var comp = CreateCompilationWithMscorlibAndSystemCore(text);
+            var comp = CreateCompilationWithMscorlibAndSystemCore(text, parseOptions: parseOptions);
             comp.VerifyDiagnostics(
-                );
+                // (7,24): error CS8207: An extension method cannot be defined in an extension class.
+                //     public static void ExtMethod(this Base param)
+                Diagnostic(ErrorCode.ERR_ExtensionMethodInExtensionClass, "ExtMethod").WithLocation(7, 24)
+            );
         }
     }
 }

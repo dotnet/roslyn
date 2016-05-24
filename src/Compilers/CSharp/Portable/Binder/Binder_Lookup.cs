@@ -378,10 +378,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private void LookupExtensionMethodsInSingleBinder(ExtensionMethodScope scope, LookupResult result, string name, int arity, LookupOptions options, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             var methods = ArrayBuilder<MethodSymbol>.GetInstance();
-            var extensionClassMethods = ArrayBuilder<MethodSymbol>.GetInstance();
             var binder = scope.Binder;
-            binder.GetCandidateExtensionMethods(scope.SearchUsingsNotNamespace, methods, extensionClassMethods, name, arity, options, this);
+            binder.GetCandidateExtensionMethods(scope.SearchUsingsNotNamespace, methods, name, arity, options, this);
 
+            // TODO(t-evhau, do not merge): This might have some behavior that needs to be changed for extension classes.
             foreach (var method in methods)
             {
                 SingleLookupResult resultOfThisMember = this.CheckViability(method, arity, options, null, diagnose: true, useSiteDiagnostics: ref useSiteDiagnostics);
@@ -651,7 +651,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal virtual void GetCandidateExtensionMethods(
             bool searchUsingsNotNamespace,
             ArrayBuilder<MethodSymbol> methods,
-            ArrayBuilder<MethodSymbol> extensionClassMethods,
             string name,
             int arity,
             LookupOptions options,

@@ -176,7 +176,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (IsExtensionMethod)
             {
                 var parameter0Type = this.Parameters[0].Type;
-                if (!parameter0Type.IsValidExtensionParameterType())
+                if (this.IsInExtensionClass)
+                {
+                    // TODO(t-evhau): figure out what the priority of this error is relative to the others in this if-else chain
+                    // (only one diagnostic is reported, so figure out what's most important - or maybe report multiple)
+                    diagnostics.Add(ErrorCode.ERR_ExtensionMethodInExtensionClass, location);
+                }
+                else if (!parameter0Type.IsValidExtensionParameterType())
                 {
                     // Duplicate Dev10 behavior by selecting the parameter type.
                     var parameterSyntax = syntax.ParameterList.Parameters[0];

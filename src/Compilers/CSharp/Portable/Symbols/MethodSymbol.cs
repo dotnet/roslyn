@@ -83,6 +83,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract bool IsExtensionMethod { get; }
 
         /// <summary>
+        /// Returns true if this method is in an extension class
+        /// </summary>
+        public bool IsInExtensionClass
+        {
+            get
+            {
+                return this.ContainingType?.IsExtensionClass ?? false;
+            }
+        }
+
+        /// <summary>
         /// True if this symbol has a special name (metadata flag SpecialName is set).
         /// </summary>
         internal abstract bool HasSpecialName { get; }
@@ -674,6 +685,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// If this is an extension class method, returns an expanded extension
+        /// method symbol representing the method. Otherwise, returns null.
+        /// </summary>
+        public MethodSymbol ExpandExtensionClassMethod()
+        {
+            return (this.IsInExtensionClass && this.MethodKind != MethodKind.ExpandedExtensionClass) ? ExpandedExtensionClassMethodSymbol.Create(this) : null;
+        }
+
+        /// <summary>
         /// If this method is a reduced extension method, returns the extension method that
         /// should be used at call site during ILGen. Otherwise, returns null.
         /// </summary>
@@ -1009,6 +1029,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return MethodKind.StaticConstructor;
                     case MethodKind.LocalFunction:
                         return MethodKind.LocalFunction;
+                    case MethodKind.ExpandedExtensionClass:
+                        return MethodKind.ExpandedExtensionClass;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(this.MethodKind);
                 }

@@ -351,6 +351,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        // TODO(t-evhau): BaseType is wrong here. We should directly compute/store the exteded type,
+        // since the semantics of what's valid there are very different than base types.
         public TypeSymbol ExtensionClassType => IsExtensionClass ? BaseType : null;
 
         /// <summary>
@@ -362,15 +364,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </remarks>
         public abstract bool MightContainExtensionMethods { get; }
 
-        internal void GetExtensionMethods(ArrayBuilder<MethodSymbol> methods, ArrayBuilder<MethodSymbol> extensionClassMethods, string nameOpt, int arity, LookupOptions options)
+        internal void GetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string nameOpt, int arity, LookupOptions options)
         {
             if (this.MightContainExtensionMethods)
             {
-                DoGetExtensionMethods(methods, extensionClassMethods, nameOpt, arity, options);
+                DoGetExtensionMethods(methods, nameOpt, arity, options);
             }
         }
 
-        internal void DoGetExtensionMethods(ArrayBuilder<MethodSymbol> methods, ArrayBuilder<MethodSymbol> extensionClassMethods, string nameOpt, int arity, LookupOptions options)
+        internal void DoGetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string nameOpt, int arity, LookupOptions options)
         {
             var members = nameOpt == null
                 ? this.GetMembersUnordered()
@@ -382,13 +384,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 if (member.Kind == SymbolKind.Method)
                 {
                     var method = (MethodSymbol)member;
-                    if (method.IsExtensionMethod &&
-                        ((options & LookupOptions.AllMethodsOnArityZero) != 0 || arity == method.Arity))
+                    if ((options & LookupOptions.AllMethodsOnArityZero) != 0 || arity == method.Arity)
                     {
-                        Debug.Assert(method.MethodKind != MethodKind.ReducedExtension);
-                        methods.Add(method);
+                        if (method.IsExtensionMethod)
+                        {
+                            Debug.Assert(method.MethodKind != MethodKind.ReducedExtension);
+                            methods.Add(method);
+                        }
+                        if (isExtensionClass)
+                        {
+                            Debug.Assert(method.MethodKind != MethodKind.ExpandedExtensionClass);
+                            // TODO(t-evhau): This assumes source methods. What about loaded symbols from disk?
+                            // TODO(t-evhau): Cache this? Might need same symbol for all references to this method.
+                            var expanded = method.ExpandExtensionClassMethod();
+                            Debug.Assert(expanded != null);
+                            methods.Add(expanded);
+                        }
                     }
-
                 }
             }
         }
