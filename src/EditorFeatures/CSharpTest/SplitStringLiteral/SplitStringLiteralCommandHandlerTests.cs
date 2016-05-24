@@ -14,13 +14,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
     public class SplitStringLiteralCommandHandlerTests
     {
         private async Task TestWorkerAsync(
-            string inputMarkup, string expectedOutputMarkup, bool replaceSingleQuoteWithDouble, Action callback)
+            string inputMarkup, string expectedOutputMarkup, Action callback)
         {
-            if (replaceSingleQuoteWithDouble)
-            {
-                inputMarkup = inputMarkup.Replace('\'', '"');
-            }
-
             using (var workspace = await TestWorkspace.CreateCSharpAsync(inputMarkup))
             {
                 var document = workspace.Documents.Single();
@@ -34,11 +29,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
 
                 if (expectedOutputMarkup != null)
                 {
-                    if (replaceSingleQuoteWithDouble)
-                    {
-                        expectedOutputMarkup = expectedOutputMarkup.Replace('\'', '"');
-                    }
-
                     string expectedOutput;
                     int expectedCursorPosition;
                     MarkupTestFile.GetPosition(expectedOutputMarkup, out expectedOutput, out expectedCursorPosition);
@@ -49,22 +39,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             }
         }
 
-        private Task TestHandledAsync(string inputMarkup, string expectedOutputMarkup, bool replaceSingleQuoteWithDouble = true)
+        private Task TestHandledAsync(string inputMarkup, string expectedOutputMarkup)
         {
             return TestWorkerAsync(
                 inputMarkup, expectedOutputMarkup,
-                replaceSingleQuoteWithDouble,
                 callback: () =>
                 {
                     Assert.True(false, "Should not reach here.");
                 });
         }
 
-        private async Task TestNotHandledAsync(string inputMarkup, bool replaceSingleQuoteWithDouble = true)
+        private async Task TestNotHandledAsync(string inputMarkup)
         {
             var notHandled = false;
             await TestWorkerAsync(
-                inputMarkup, null, replaceSingleQuoteWithDouble,
+                inputMarkup, null,
                 callback: () =>
                 {
                     notHandled = true;
@@ -79,7 +68,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             await TestNotHandledAsync(
 @"class C {
     void M() {
-        var v = $$'';
+        var v = $$"""";
     }
 }");
         }
@@ -90,7 +79,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             await TestNotHandledAsync(
 @"class C {
     void M() {
-        var v = $$$'';
+        var v = $$$"""";
     }
 }");
         }
@@ -101,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             await TestNotHandledAsync(
 @"class C {
     void M() {
-        var v = ''$$;
+        var v = """"$$;
     }
 }");
         }
@@ -112,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             await TestNotHandledAsync(
 @"class C {
     void M() {
-        var v = $''$$;
+        var v = $""""$$;
     }
 }");
         }
@@ -123,7 +112,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             await TestNotHandledAsync(
 @"class C {
     void M() {
-        var v = @'a$$b';
+        var v = @""a$$b"";
     }
 }");
         }
@@ -134,7 +123,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             await TestNotHandledAsync(
 @"class C {
     void M() {
-        var v = $@'a$$b';
+        var v = $@""a$$b"";
     }
 }");
         }
@@ -145,13 +134,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             await TestHandledAsync(
 @"class C {
     void M() {
-        var v = '$$';
+        var v = ""$$"";
     }
 }",
 @"class C {
     void M() {
-        var v = '' +
-            '$$';
+        var v = """" +
+            ""$$"";
     }
 }");
         }
@@ -162,13 +151,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             await TestHandledAsync(
 @"class C {
     void M() {
-        var v = $'$$';
+        var v = $""$$"";
     }
 }",
 @"class C {
     void M() {
-        var v = $'' +
-            $'$$';
+        var v = $"""" +
+            $""$$"";
     }
 }");
         }
@@ -179,13 +168,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             await TestHandledAsync(
 @"class C {
     void M() {
-        var v = 'now is $$the time';
+        var v = ""now is $$the time"";
     }
 }",
 @"class C {
     void M() {
-        var v = 'now is ' +
-            '$$the time';
+        var v = ""now is "" +
+            ""$$the time"";
     }
 }");
         }
@@ -196,13 +185,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             await TestHandledAsync(
 @"class C {
     void M() {
-        var v = $'now is $$the { 1 + 2 } time for { 3 + 4 } all good men';
+        var v = $""now is $$the { 1 + 2 } time for { 3 + 4 } all good men"";
     }
 }",
 @"class C {
     void M() {
-        var v = $'now is ' +
-            $'$$the { 1 + 2 } time for { 3 + 4 } all good men';
+        var v = $""now is "" +
+            $""$$the { 1 + 2 } time for { 3 + 4 } all good men"";
     }
 }");
         }
@@ -213,13 +202,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             await TestHandledAsync(
 @"class C {
     void M() {
-        var v = $'now is the $${ 1 + 2 } time for { 3 + 4 } all good men';
+        var v = $""now is the $${ 1 + 2 } time for { 3 + 4 } all good men"";
     }
 }",
 @"class C {
     void M() {
-        var v = $'now is the ' +
-            $'$${ 1 + 2 } time for { 3 + 4 } all good men';
+        var v = $""now is the "" +
+            $""$${ 1 + 2 } time for { 3 + 4 } all good men"";
     }
 }");
         }
@@ -230,13 +219,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             await TestHandledAsync(
 @"class C {
     void M() {
-        var v = $'now is the { 1 + 2 }$$ time for { 3 + 4 } all good men';
+        var v = $""now is the { 1 + 2 }$$ time for { 3 + 4 } all good men"";
     }
 }",
 @"class C {
     void M() {
-        var v = $'now is the { 1 + 2 }' +
-            $'$$ time for { 3 + 4 } all good men';
+        var v = $""now is the { 1 + 2 }"" +
+            $""$$ time for { 3 + 4 } all good men"";
     }
 }");
         }
@@ -247,7 +236,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             await TestNotHandledAsync(
 @"class C {
     void M() {
-        var v = $'now is the {$$ 1 + 2 } time for { 3 + 4 } all good men';
+        var v = $""now is the {$$ 1 + 2 } time for { 3 + 4 } all good men"";
     }
 }");
         }
@@ -258,7 +247,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SplitStringLiteral
             await TestNotHandledAsync(
 @"class C {
     void M() {
-        var v = $'now is the { 1 + 2 $$} time for { 3 + 4 } all good men';
+        var v = $""now is the { 1 + 2 $$} time for { 3 + 4 } all good men"";
     }
 }");
         }
