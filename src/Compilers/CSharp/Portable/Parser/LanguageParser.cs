@@ -2465,6 +2465,7 @@ tryAgain:
                 if (GetModifier(this.CurrentToken) != SyntaxModifier.None &&
                     this.CurrentToken.ContextualKind != SyntaxKind.PartialKeyword &&
                     this.CurrentToken.ContextualKind != SyntaxKind.AsyncKeyword &&
+                    this.CurrentToken.ContextualKind != SyntaxKind.ReplaceKeyword &&
                     IsComplete(type))
                 {
                     var misplacedModifier = this.CurrentToken;
@@ -2586,8 +2587,8 @@ parse_member_name:;
             }
         }
 
-        // if the modifiers do not contain async and the type is the identifier "async", then
-        // add async to the modifiers and assign a new type from the identifierOrThisOpt and the
+        // if the modifiers do not contain async or replace and the type is the identifier "async" or "replace", then
+        // add that identifier to the modifiers and assign a new type from the identifierOrThisOpt and the
         // type parameter list
         private bool ReconsiderTypeAsAsyncModifier(
             ref SyntaxListBuilder modifiers,
@@ -2596,11 +2597,18 @@ parse_member_name:;
             SyntaxToken identifierOrThisOpt,
             TypeParameterListSyntax typeParameterListOpt)
         {
-            if (modifiers.Any(SyntaxKind.AsyncKeyword)) return false;
             if (type.Kind != SyntaxKind.IdentifierName) return false;
-            if ((((IdentifierNameSyntax)type).Identifier).ContextualKind != SyntaxKind.AsyncKeyword) return false;
             if (identifierOrThisOpt.Kind != SyntaxKind.IdentifierToken) return false;
-            modifiers.Add(ConvertToKeyword(((IdentifierNameSyntax)type).Identifier));
+
+            var identifier = ((IdentifierNameSyntax)type).Identifier;
+            var contextualKind = identifier.ContextualKind;
+            if ((contextualKind != SyntaxKind.AsyncKeyword && contextualKind != SyntaxKind.ReplaceKeyword) ||
+                modifiers.Any(contextualKind))
+            {
+                return false;
+            }
+
+            modifiers.Add(ConvertToKeyword(identifier));
             SimpleNameSyntax newType = typeParameterListOpt == null
                 ? (SimpleNameSyntax)_syntaxFactory.IdentifierName(identifierOrThisOpt)
                 : _syntaxFactory.GenericName(identifierOrThisOpt, TypeArgumentFromTypeParameters(typeParameterListOpt));
