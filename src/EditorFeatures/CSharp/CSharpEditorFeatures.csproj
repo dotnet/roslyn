@@ -194,6 +194,9 @@
     <Compile Include="RenameTracking\CSharpRenameTrackingCodeFixProvider.cs" />
     <Compile Include="RenameTracking\CSharpRenameTrackingLanguageHeuristicsService.cs" />
     <Compile Include="SplitStringLiteral\SplitStringLiteralCommandHandler.cs" />
+    <Compile Include="SplitStringLiteral\SplitStringLiteralCommandHandler.InterpolatedStringSplitter.cs" />
+    <Compile Include="SplitStringLiteral\SplitStringLiteralCommandHandler.SimpleStringSplitter.cs" />
+    <Compile Include="SplitStringLiteral\SplitStringLiteralCommandHandler.StringSplitter.cs" />
     <Compile Include="TextStructureNavigation\TextStructureNavigatorProvider.cs" />
     <Compile Include="TodoComment\CSharpTodoCommentIncrementalAnalyzerProvider.cs" />
     <Compile Include="UseAutoProperty\UseAutoPropertyAnalyzer.cs" />
