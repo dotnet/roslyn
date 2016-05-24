@@ -28,35 +28,19 @@ class C
     }
 
     void M2(int a, int b) { }
-    double M3(double d) { return d; }
+    static double M3(double d) { return d; }
 }";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature);
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
-            Assert.Equal(nodes.Length, 3);
+            SemanticModel model;
+            InvocationExpressionSyntax[] nodes = GetInvocations(source, 3, out model);
 
             // M2(1, 2)
 
-            Assert.Equal("M2(1, 2)", nodes[0].ToString());
-            IOperation operation = model.GetOperation(nodes[0]);
-            Assert.Equal(operation.Kind, OperationKind.InvocationExpression);
-            Assert.False(operation.IsInvalid);
-            IInvocationExpression invocation = (IInvocationExpression)operation;
-            Assert.False(invocation.ConstantValue.HasValue);
-            Assert.False(invocation.IsVirtual);
-            Assert.Equal(invocation.TargetMethod.Name, "M2");
-            Assert.Equal(invocation.Type.SpecialType, SpecialType.System_Void);
-            Assert.NotNull(invocation.Instance);
-            Assert.Equal(invocation.Instance.Kind, OperationKind.InstanceReferenceExpression);
-            IInstanceReferenceExpression instanceReference = (IInstanceReferenceExpression)invocation.Instance;
-            Assert.False(instanceReference.IsInvalid);
-            Assert.Equal(instanceReference.InstanceReferenceKind, InstanceReferenceKind.Implicit);
-            Assert.Equal(instanceReference.Type.Name, "C");
+            IInvocationExpression invocation = CheckInvocation(nodes[0], model, "M2(1, 2)", "M2", SpecialType.System_Void);
+            CheckInstanceReference(invocation.Instance, InstanceReferenceKind.Implicit, "C");
+            
             ImmutableArray<IArgument> arguments = invocation.ArgumentsInParameterOrder;
             Assert.Equal(arguments.Length, 2);
-
             ImmutableArray<IArgument> evaluationOrderArguments = invocation.ArgumentsInEvaluationOrder;
             Assert.Equal(evaluationOrderArguments.Length, 2);
 
@@ -64,53 +48,21 @@ class C
 
             IArgument argument = arguments[0];
             Assert.True(argument == evaluationOrderArguments[0]);
-            Assert.False(argument.IsInvalid);
-            Assert.Null(argument.InConversion);
-            Assert.Null(argument.OutConversion);
-            Assert.Equal(argument.Parameter.Name, "a");
-            Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) == argument);
-            IOperation argumentValue = argument.Value;
-            Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression);
-            Assert.False(argumentValue.IsInvalid);
-            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32);
-            Assert.True(argumentValue.ConstantValue.HasValue);
-            Assert.Equal(argumentValue.ConstantValue.Value, 1);
+            CheckConstantArgument(invocation, argument, "a", 1);
 
             // 2
 
             argument = arguments[1];
             Assert.True(argument == evaluationOrderArguments[1]);
-            Assert.False(argument.IsInvalid);
-            Assert.Null(argument.InConversion);
-            Assert.Null(argument.OutConversion);
-            Assert.Equal(argument.Parameter.Name, "b");
-            Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) == argument);
-            argumentValue = argument.Value;
-            Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression);
-            Assert.False(argumentValue.IsInvalid);
-            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32);
-            Assert.True(argumentValue.ConstantValue.HasValue);
-            Assert.Equal(argumentValue.ConstantValue.Value, 2);
+            CheckConstantArgument(invocation, argument, "b", 2);
 
             // local.M2(b: 2, a: 1)
 
-            Assert.Equal("local.M2(b: 2, a: 1)", nodes[1].ToString());
-            operation = model.GetOperation(nodes[1]);
-            Assert.Equal(operation.Kind, OperationKind.InvocationExpression);
-            Assert.False(operation.IsInvalid);
-            invocation = (IInvocationExpression)operation;
-            Assert.False(invocation.ConstantValue.HasValue);
-            Assert.False(invocation.IsVirtual);
-            Assert.Equal(invocation.TargetMethod.Name, "M2");
-            Assert.NotNull(invocation.Instance);
-            Assert.Equal(invocation.Instance.Kind, OperationKind.LocalReferenceExpression);
-            ILocalReferenceExpression localReference = (ILocalReferenceExpression)invocation.Instance;
-            Assert.False(localReference.IsInvalid);
-            Assert.Equal(localReference.Local.Name, "local");
-            Assert.Equal(localReference.Type.Name, "C");
+            invocation = CheckInvocation(nodes[1], model, "local.M2(b: 2, a: 1)", "M2", SpecialType.System_Void);
+            CheckLocalReference(invocation.Instance, "local", "C");
+
             arguments = invocation.ArgumentsInParameterOrder;
             Assert.Equal(arguments.Length, 2);
-
             evaluationOrderArguments = invocation.ArgumentsInEvaluationOrder;
             Assert.Equal(evaluationOrderArguments.Length, 2);
 
@@ -118,46 +70,21 @@ class C
 
             argument = arguments[0];
             Assert.True(argument == evaluationOrderArguments[1]);
-            Assert.False(argument.IsInvalid);
-            Assert.Null(argument.InConversion);
-            Assert.Null(argument.OutConversion);
-            Assert.Equal(argument.Parameter.Name, "a");
-            Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) == argument);
-            argumentValue = argument.Value;
-            Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression);
-            Assert.False(argumentValue.IsInvalid);
-            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32);
-            Assert.True(argumentValue.ConstantValue.HasValue);
-            Assert.Equal(argumentValue.ConstantValue.Value, 1);
+            CheckConstantArgument(invocation, argument, "a", 1);
 
             // b: 2
 
             argument = arguments[1];
             Assert.True(argument == evaluationOrderArguments[0]);
-            Assert.False(argument.IsInvalid);
-            Assert.Null(argument.InConversion);
-            Assert.Null(argument.OutConversion);
-            Assert.Equal(argument.Parameter.Name, "b");
-            Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) == argument);
-            argumentValue = argument.Value;
-            Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression);
-            Assert.False(argumentValue.IsInvalid);
-            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32);
-            Assert.True(argumentValue.ConstantValue.HasValue);
-            Assert.Equal(argumentValue.ConstantValue.Value, 2);
+            CheckConstantArgument(invocation, argument, "b", 2);
 
             // M3(x)
 
-            Assert.Equal("M3(x)", nodes[2].ToString());
-            operation = model.GetOperation(nodes[2]);
-            Assert.Equal(operation.Kind, OperationKind.InvocationExpression);
-            Assert.False(operation.IsInvalid);
-            invocation = (IInvocationExpression)operation;
-            Assert.Equal(invocation.Type.SpecialType, SpecialType.System_Double);
-            Assert.Equal(invocation.TargetMethod.Name, "M3");
+            invocation = CheckInvocation(nodes[2], model, "M3(x)", "M3", SpecialType.System_Double);
+            Assert.Null(invocation.Instance);
+
             arguments = invocation.ArgumentsInParameterOrder;
             Assert.Equal(arguments.Length, 1);
-
             evaluationOrderArguments = invocation.ArgumentsInEvaluationOrder;
             Assert.Equal(evaluationOrderArguments.Length, 1);
 
@@ -165,20 +92,11 @@ class C
 
             argument = arguments[0];
             Assert.True(argument == evaluationOrderArguments[0]);
-            Assert.False(argument.IsInvalid);
-            Assert.Null(argument.InConversion);
-            Assert.Null(argument.OutConversion);
-            Assert.Equal(argument.Parameter.Name, "d");
-            Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) == argument);
-            argumentValue = argument.Value;
+            IOperation argumentValue = CheckArgument(invocation, argument, "d");
+
             Assert.Equal(argumentValue.Kind, OperationKind.ConversionExpression);
-            Assert.False(argumentValue.IsInvalid);
             Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Double);
-            IConversionExpression conversion = (IConversionExpression)argumentValue;
-            argumentValue = ((IConversionExpression)argumentValue).Operand;
-            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32);
-            Assert.Equal(argumentValue.Kind, OperationKind.LocalReferenceExpression);
-            Assert.Equal(((ILocalReferenceExpression)argumentValue).Local.Name, "x");
+            CheckLocalReference(((IConversionExpression)argumentValue).Operand, "x", "Int32");
         }
 
         [Fact]
@@ -198,26 +116,16 @@ class C
     static void M2(int a, params int[] c) { }
 }";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature);
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
-            Assert.Equal(nodes.Length, 4);
+            SemanticModel model;
+            InvocationExpressionSyntax[] nodes = GetInvocations(source, 4, out model);
 
             // M2(1, 2, 3)
 
-            Assert.Equal("M2(1, 2, 3)", nodes[0].ToString());
-            IOperation operation = model.GetOperation(nodes[0]);
-            Assert.Equal(operation.Kind, OperationKind.InvocationExpression);
-            Assert.False(operation.IsInvalid);
-            IInvocationExpression invocation = (IInvocationExpression)operation;
-            Assert.False(invocation.ConstantValue.HasValue);
-            Assert.False(invocation.IsVirtual);
-            Assert.Equal(invocation.TargetMethod.Name, "M2");
+            IInvocationExpression invocation = CheckInvocation(nodes[0], model, "M2(1, 2, 3)", "M2", SpecialType.System_Void);
             Assert.Null(invocation.Instance);
+
             ImmutableArray<IArgument> arguments = invocation.ArgumentsInParameterOrder;
             Assert.Equal(arguments.Length, 2);
-
             ImmutableArray<IArgument> evaluationOrderArguments = invocation.ArgumentsInEvaluationOrder;
             Assert.Equal(evaluationOrderArguments.Length, 2);
 
@@ -225,67 +133,22 @@ class C
 
             IArgument argument = arguments[0];
             Assert.True(argument == evaluationOrderArguments[0]);
-            Assert.False(argument.IsInvalid);
-            Assert.Null(argument.InConversion);
-            Assert.Null(argument.OutConversion);
-            Assert.Equal(argument.Parameter.Name, "a");
-            IOperation argumentValue = argument.Value;
-            Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression);
-            Assert.False(argumentValue.IsInvalid);
-            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32);
-            Assert.True(argumentValue.ConstantValue.HasValue);
-            Assert.Equal(argumentValue.ConstantValue.Value, 1);
+            CheckConstantArgument(invocation, argument, "a", 1);
 
             // 2, 3
 
             argument = arguments[1];
             Assert.True(argument == evaluationOrderArguments[1]);
-            Assert.False(argument.IsInvalid);
-            Assert.Null(argument.InConversion);
-            Assert.Null(argument.OutConversion);
-            Assert.Equal(argument.Parameter.Name, "c");
-            argumentValue = argument.Value;
-            Assert.Equal(argumentValue.Kind, OperationKind.ArrayCreationExpression);
-            Assert.False(argumentValue.IsInvalid);
-            Assert.Equal(argumentValue.Type.TypeKind, TypeKind.Array);
-            Assert.Equal(((ArrayTypeSymbol)argumentValue.Type).ElementType.SpecialType, SpecialType.System_Int32);
-            Assert.False(argumentValue.ConstantValue.HasValue);
-            IArrayCreationExpression argumentArray = (IArrayCreationExpression)argumentValue;
-            Assert.Equal(argumentArray.Initializer.Kind, OperationKind.ArrayInitializer);
-            Assert.Equal(argumentArray.Initializer.ElementValues.Length, 2);
-
-            // 2
-
-            argumentValue = argumentArray.Initializer.ElementValues[0];
-            Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression);
-            Assert.False(argumentValue.IsInvalid);
-            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32);
-            Assert.True(argumentValue.ConstantValue.HasValue);
-            Assert.Equal(argumentValue.ConstantValue.Value, 2);
-
-            // 3
-
-            argumentValue = argumentArray.Initializer.ElementValues[1];
-            Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression);
-            Assert.False(argumentValue.IsInvalid);
-            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32);
-            Assert.True(argumentValue.ConstantValue.HasValue);
-            Assert.Equal(argumentValue.ConstantValue.Value, 3);
+            IOperation argumentValue = CheckArgument(invocation, argument, "c");
+            CheckArrayCreation(argumentValue, 2, 3);
 
             // M2(1)
 
-            Assert.Equal("M2(1)", nodes[1].ToString());
-            operation = model.GetOperation(nodes[1]);
-            Assert.Equal(operation.Kind, OperationKind.InvocationExpression);
-            Assert.False(operation.IsInvalid);
-            invocation = (IInvocationExpression)operation;
-            Assert.False(invocation.ConstantValue.HasValue);
-            Assert.False(invocation.IsVirtual);
-            Assert.Equal(invocation.TargetMethod.Name, "M2");
+            invocation = CheckInvocation(nodes[1], model, "M2(1)", "M2", SpecialType.System_Void);
             Assert.Null(invocation.Instance);
+
             arguments = invocation.ArgumentsInParameterOrder;
             Assert.Equal(arguments.Length, 2);
-
             evaluationOrderArguments = invocation.ArgumentsInEvaluationOrder;
             Assert.Equal(evaluationOrderArguments.Length, 2);
 
@@ -293,49 +156,22 @@ class C
 
             argument = arguments[0];
             Assert.True(argument == evaluationOrderArguments[0]);
-            Assert.False(argument.IsInvalid);
-            Assert.Null(argument.InConversion);
-            Assert.Null(argument.OutConversion);
-            Assert.Equal(argument.Parameter.Name, "a");
-            argumentValue = argument.Value;
-            Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression);
-            Assert.False(argumentValue.IsInvalid);
-            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32);
-            Assert.True(argumentValue.ConstantValue.HasValue);
-            Assert.Equal(argumentValue.ConstantValue.Value, 1);
+            CheckConstantArgument(invocation, argument, "a", 1);
 
             // ()
 
             argument = arguments[1];
             Assert.True(argument == evaluationOrderArguments[1]);
-            Assert.False(argument.IsInvalid);
-            Assert.Null(argument.InConversion);
-            Assert.Null(argument.OutConversion);
-            Assert.Equal(argument.Parameter.Name, "c");
-            argumentValue = argument.Value;
-            Assert.Equal(argumentValue.Kind, OperationKind.ArrayCreationExpression);
-            Assert.False(argumentValue.IsInvalid);
-            Assert.Equal(argumentValue.Type.TypeKind, TypeKind.Array);
-            Assert.Equal(((ArrayTypeSymbol)argumentValue.Type).ElementType.SpecialType, SpecialType.System_Int32);
-            Assert.False(argumentValue.ConstantValue.HasValue);
-            argumentArray = (IArrayCreationExpression)argumentValue;
-            Assert.Equal(argumentArray.Initializer.Kind, OperationKind.ArrayInitializer);
-            Assert.Equal(argumentArray.Initializer.ElementValues.Length, 0);
+            argumentValue = CheckArgument(invocation, argument, "c");
+            CheckArrayCreation(argumentValue);
 
             // M2()
 
-            Assert.Equal("M2()", nodes[2].ToString());
-            operation = model.GetOperation(nodes[2]);
-            Assert.Equal(operation.Kind, OperationKind.InvocationExpression);
-            Assert.True(operation.IsInvalid);
-            invocation = (IInvocationExpression)operation;
-            Assert.False(invocation.ConstantValue.HasValue);
-            Assert.False(invocation.IsVirtual);
-            Assert.Equal(invocation.TargetMethod.Name, "M2");
+            invocation = CheckInvocation(nodes[2], model, "M2()", "M2", SpecialType.System_Void, isInvalid: true);
             Assert.Null(invocation.Instance);
+            
             arguments = invocation.ArgumentsInParameterOrder;
             Assert.Equal(arguments.Length, 2);
-
             evaluationOrderArguments = invocation.ArgumentsInEvaluationOrder;
             Assert.Equal(evaluationOrderArguments.Length, 2);
 
@@ -343,11 +179,7 @@ class C
 
             argument = arguments[0];
             Assert.True(argument == evaluationOrderArguments[0]);
-            Assert.True(argument.IsInvalid);
-            Assert.Null(argument.InConversion);
-            Assert.Null(argument.OutConversion);
-            Assert.Equal(argument.Parameter.Name, "a");
-            argumentValue = argument.Value;
+            argumentValue = CheckArgument(invocation, argument, "a", isInvalid: true);
             Assert.Equal(argumentValue.Kind, OperationKind.InvalidExpression);
             Assert.True(argumentValue.IsInvalid);
 
@@ -355,34 +187,16 @@ class C
 
             argument = arguments[1];
             Assert.True(argument == evaluationOrderArguments[1]);
-            Assert.False(argument.IsInvalid);
-            Assert.Null(argument.InConversion);
-            Assert.Null(argument.OutConversion);
-            Assert.Equal(argument.Parameter.Name, "c");
-            argumentValue = argument.Value;
-            Assert.Equal(argumentValue.Kind, OperationKind.ArrayCreationExpression);
-            Assert.False(argumentValue.IsInvalid);
-            Assert.Equal(argumentValue.Type.TypeKind, TypeKind.Array);
-            Assert.Equal(((ArrayTypeSymbol)argumentValue.Type).ElementType.SpecialType, SpecialType.System_Int32);
-            Assert.False(argumentValue.ConstantValue.HasValue);
-            argumentArray = (IArrayCreationExpression)argumentValue;
-            Assert.Equal(argumentArray.Initializer.Kind, OperationKind.ArrayInitializer);
-            Assert.Equal(argumentArray.Initializer.ElementValues.Length, 0);
+            argumentValue = CheckArgument(invocation, argument, "c");
+            CheckArrayCreation(argumentValue);
 
             // M2(1, new int[] { 2, 3 })
 
-            Assert.Equal("M2(1, new int[] { 2, 3 })", nodes[3].ToString());
-            operation = model.GetOperation(nodes[3]);
-            Assert.Equal(operation.Kind, OperationKind.InvocationExpression);
-            Assert.False(operation.IsInvalid);
-            invocation = (IInvocationExpression)operation;
-            Assert.False(invocation.ConstantValue.HasValue);
-            Assert.False(invocation.IsVirtual);
-            Assert.Equal(invocation.TargetMethod.Name, "M2");
+            invocation = CheckInvocation(nodes[3], model, "M2(1, new int[] { 2, 3 })", "M2", SpecialType.System_Void);
             Assert.Null(invocation.Instance);
+
             arguments = invocation.ArgumentsInParameterOrder;
             Assert.Equal(arguments.Length, 2);
-
             evaluationOrderArguments = invocation.ArgumentsInEvaluationOrder;
             Assert.Equal(evaluationOrderArguments.Length, 2);
 
@@ -390,52 +204,14 @@ class C
 
             argument = arguments[0];
             Assert.True(argument == evaluationOrderArguments[0]);
-            Assert.False(argument.IsInvalid);
-            Assert.Null(argument.InConversion);
-            Assert.Null(argument.OutConversion);
-            Assert.Equal(argument.Parameter.Name, "a");
-            argumentValue = argument.Value;
-            Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression);
-            Assert.False(argumentValue.IsInvalid);
-            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32);
-            Assert.True(argumentValue.ConstantValue.HasValue);
-            Assert.Equal(argumentValue.ConstantValue.Value, 1);
+            CheckConstantArgument(invocation, argument, "a", 1);
 
             // new int [] { 2, 3 }
 
             argument = arguments[1];
             Assert.True(argument == evaluationOrderArguments[1]);
-            Assert.False(argument.IsInvalid);
-            Assert.Null(argument.InConversion);
-            Assert.Null(argument.OutConversion);
-            Assert.Equal(argument.Parameter.Name, "c");
-            argumentValue = argument.Value;
-            Assert.Equal(argumentValue.Kind, OperationKind.ArrayCreationExpression);
-            Assert.False(argumentValue.IsInvalid);
-            Assert.Equal(argumentValue.Type.TypeKind, TypeKind.Array);
-            Assert.Equal(((ArrayTypeSymbol)argumentValue.Type).ElementType.SpecialType, SpecialType.System_Int32);
-            Assert.False(argumentValue.ConstantValue.HasValue);
-            argumentArray = (IArrayCreationExpression)argumentValue;
-            Assert.Equal(argumentArray.Initializer.Kind, OperationKind.ArrayInitializer);
-            Assert.Equal(argumentArray.Initializer.ElementValues.Length, 2);
-
-            // 2
-
-            argumentValue = argumentArray.Initializer.ElementValues[0];
-            Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression);
-            Assert.False(argumentValue.IsInvalid);
-            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32);
-            Assert.True(argumentValue.ConstantValue.HasValue);
-            Assert.Equal(argumentValue.ConstantValue.Value, 2);
-
-            // 3
-
-            argumentValue = argumentArray.Initializer.ElementValues[1];
-            Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression);
-            Assert.False(argumentValue.IsInvalid);
-            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32);
-            Assert.True(argumentValue.ConstantValue.HasValue);
-            Assert.Equal(argumentValue.ConstantValue.Value, 3);
+            argumentValue = CheckArgument(invocation, argument, "c");
+            CheckArrayCreation(argumentValue, 2, 3);
         }
 
         [Fact]
@@ -459,56 +235,23 @@ class Derived : Base
     public override void M2() { }
 }";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature);
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
-            Assert.Equal(nodes.Length, 3);
+            SemanticModel model;
+            InvocationExpressionSyntax[] nodes = GetInvocations(source, 3, out model);
 
             // M2()
 
-            Assert.Equal("M2()", nodes[0].ToString());
-            IOperation operation = model.GetOperation(nodes[0]);
-            Assert.Equal(operation.Kind, OperationKind.InvocationExpression);
-            Assert.False(operation.IsInvalid);
-            IInvocationExpression invocation = (IInvocationExpression)operation;
-            Assert.True(invocation.IsVirtual);
-            Assert.Equal(invocation.TargetMethod.Name, "M2");
-            Assert.NotNull(invocation.Instance);
-            Assert.Equal(invocation.Instance.Kind, OperationKind.InstanceReferenceExpression);
-            IInstanceReferenceExpression instanceReference = (IInstanceReferenceExpression)invocation.Instance;
-            Assert.Equal(instanceReference.InstanceReferenceKind, InstanceReferenceKind.Implicit);
-            Assert.Equal(instanceReference.Type.Name, "Derived");
+            IInvocationExpression invocation = CheckInvocation(nodes[0], model, "M2()", "M2", SpecialType.System_Void, isVirtual: true);
+            CheckInstanceReference(invocation.Instance, InstanceReferenceKind.Implicit, "Derived");
 
             // this.M2()
 
-            Assert.Equal("this.M2()", nodes[1].ToString());
-            operation = model.GetOperation(nodes[1]);
-            Assert.Equal(operation.Kind, OperationKind.InvocationExpression);
-            Assert.False(operation.IsInvalid);
-            invocation = (IInvocationExpression)operation;
-            Assert.True(invocation.IsVirtual);
-            Assert.Equal(invocation.TargetMethod.Name, "M2");
-            Assert.NotNull(invocation.Instance);
-            Assert.Equal(invocation.Instance.Kind, OperationKind.InstanceReferenceExpression);
-            instanceReference = (IInstanceReferenceExpression)invocation.Instance;
-            Assert.Equal(instanceReference.InstanceReferenceKind, InstanceReferenceKind.Explicit);
-            Assert.Equal(instanceReference.Type.Name, "Derived");
+            invocation = CheckInvocation(nodes[1], model, "this.M2()", "M2", SpecialType.System_Void, isVirtual: true);
+            CheckInstanceReference(invocation.Instance, InstanceReferenceKind.Explicit, "Derived");
 
             // base.M2()
 
-            Assert.Equal("base.M2()", nodes[2].ToString());
-            operation = model.GetOperation(nodes[2]);
-            Assert.Equal(operation.Kind, OperationKind.InvocationExpression);
-            Assert.False(operation.IsInvalid);
-            invocation = (IInvocationExpression)operation;
-            Assert.False(invocation.IsVirtual);
-            Assert.Equal(invocation.TargetMethod.Name, "M2");
-            Assert.NotNull(invocation.Instance);
-            Assert.Equal(invocation.Instance.Kind, OperationKind.InstanceReferenceExpression);
-            instanceReference = (IInstanceReferenceExpression)invocation.Instance;
-            Assert.Equal(instanceReference.InstanceReferenceKind, InstanceReferenceKind.BaseClass);
-            Assert.Equal(instanceReference.Type.Name, "Base");
+            invocation = CheckInvocation(nodes[2], model, "base.M2()", "M2", SpecialType.System_Void, isVirtual: false);
+            CheckInstanceReference(invocation.Instance, InstanceReferenceKind.BaseClass, "Base");
         }
 
         [Fact]
@@ -526,89 +269,44 @@ class C
     void M2(int a = 10, int b = 20, int c = 30) { }
 }";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature);
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
-            Assert.Equal(nodes.Length, 2);
+            SemanticModel model;
+            InvocationExpressionSyntax[] nodes = GetInvocations(source, 2, out model);
 
             //  M2(1, c: 3)
 
-            Assert.Equal("M2(1, c: 3)", nodes[0].ToString());
-            IOperation operation = model.GetOperation(nodes[0]);
-            Assert.Equal(operation.Kind, OperationKind.InvocationExpression);
-            Assert.False(operation.IsInvalid);
-            IInvocationExpression invocation = (IInvocationExpression)operation;
-            Assert.False(invocation.ConstantValue.HasValue);
-            Assert.False(invocation.IsVirtual);
-            Assert.Equal(invocation.TargetMethod.Name, "M2");
+            IInvocationExpression invocation = CheckInvocation(nodes[0], model, "M2(1, c: 3)", "M2", SpecialType.System_Void);
+            CheckInstanceReference(invocation.Instance, InstanceReferenceKind.Implicit, "C");
+
             ImmutableArray<IArgument> arguments = invocation.ArgumentsInParameterOrder;
             Assert.Equal(arguments.Length, 3);
-
             ImmutableArray<IArgument> evaluationOrderArguments = invocation.ArgumentsInEvaluationOrder;
             Assert.Equal(evaluationOrderArguments.Length, 3);
-
+            
             // 1
 
             IArgument argument = arguments[0];
             Assert.True(argument == evaluationOrderArguments[0]);
-            Assert.False(argument.IsInvalid);
-            Assert.Null(argument.InConversion);
-            Assert.Null(argument.OutConversion);
-            Assert.Equal(argument.Parameter.Name, "a");
-            Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) == argument);
-            IOperation argumentValue = argument.Value;
-            Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression);
-            Assert.False(argumentValue.IsInvalid);
-            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32);
-            Assert.True(argumentValue.ConstantValue.HasValue);
-            Assert.Equal(argumentValue.ConstantValue.Value, 1);
+            CheckConstantArgument(invocation, argument, "a", 1);
 
             // 20
 
             argument = arguments[1];
             Assert.True(argument == evaluationOrderArguments[2]);
-            Assert.False(argument.IsInvalid);
-            Assert.Null(argument.InConversion);
-            Assert.Null(argument.OutConversion);
-            Assert.Equal(argument.Parameter.Name, "b");
-            Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) == argument);
-            argumentValue = argument.Value;
-            Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression);
-            Assert.False(argumentValue.IsInvalid);
-            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32);
-            Assert.True(argumentValue.ConstantValue.HasValue);
-            Assert.Equal(argumentValue.ConstantValue.Value, 20);
+            CheckConstantArgument(invocation, argument, "b", 20);
 
             // c: 3
 
             argument = arguments[2];
             Assert.True(argument == evaluationOrderArguments[1]);
-            Assert.False(argument.IsInvalid);
-            Assert.Null(argument.InConversion);
-            Assert.Null(argument.OutConversion);
-            Assert.Equal(argument.Parameter.Name, "c");
-            Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) == argument);
-            argumentValue = argument.Value;
-            Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression);
-            Assert.False(argumentValue.IsInvalid);
-            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32);
-            Assert.True(argumentValue.ConstantValue.HasValue);
-            Assert.Equal(argumentValue.ConstantValue.Value, 3);
+            CheckConstantArgument(invocation, argument, "c", 3);
 
             //  M2(b: 2)
 
-            Assert.Equal("M2(b: 2)", nodes[1].ToString());
-            operation = model.GetOperation(nodes[1]);
-            Assert.Equal(operation.Kind, OperationKind.InvocationExpression);
-            Assert.False(operation.IsInvalid);
-            invocation = (IInvocationExpression)operation;
-            Assert.False(invocation.ConstantValue.HasValue);
-            Assert.False(invocation.IsVirtual);
-            Assert.Equal(invocation.TargetMethod.Name, "M2");
+            invocation = CheckInvocation(nodes[1], model, "M2(b: 2)", "M2", SpecialType.System_Void);
+            CheckInstanceReference(invocation.Instance, InstanceReferenceKind.Implicit, "C");
+
             arguments = invocation.ArgumentsInParameterOrder;
             Assert.Equal(arguments.Length, 3);
-
             evaluationOrderArguments = invocation.ArgumentsInEvaluationOrder;
             Assert.Equal(evaluationOrderArguments.Length, 3);
 
@@ -616,49 +314,19 @@ class C
 
             argument = arguments[0];
             Assert.True(argument == evaluationOrderArguments[1]);
-            Assert.False(argument.IsInvalid);
-            Assert.Null(argument.InConversion);
-            Assert.Null(argument.OutConversion);
-            Assert.Equal(argument.Parameter.Name, "a");
-            Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) == argument);
-            argumentValue = argument.Value;
-            Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression);
-            Assert.False(argumentValue.IsInvalid);
-            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32);
-            Assert.True(argumentValue.ConstantValue.HasValue);
-            Assert.Equal(argumentValue.ConstantValue.Value, 10);
+            CheckConstantArgument(invocation, argument, "a", 10);
 
             // b: 2
 
             argument = arguments[1];
             Assert.True(argument == evaluationOrderArguments[0]);
-            Assert.False(argument.IsInvalid);
-            Assert.Null(argument.InConversion);
-            Assert.Null(argument.OutConversion);
-            Assert.Equal(argument.Parameter.Name, "b");
-            Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) == argument);
-            argumentValue = argument.Value;
-            Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression);
-            Assert.False(argumentValue.IsInvalid);
-            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32);
-            Assert.True(argumentValue.ConstantValue.HasValue);
-            Assert.Equal(argumentValue.ConstantValue.Value, 2);
+            CheckConstantArgument(invocation, argument, "b", 2);
 
             // 30
 
             argument = arguments[2];
             Assert.True(argument == evaluationOrderArguments[2]);
-            Assert.False(argument.IsInvalid);
-            Assert.Null(argument.InConversion);
-            Assert.Null(argument.OutConversion);
-            Assert.Equal(argument.Parameter.Name, "c");
-            Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) == argument);
-            argumentValue = argument.Value;
-            Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression);
-            Assert.False(argumentValue.IsInvalid);
-            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32);
-            Assert.True(argumentValue.ConstantValue.HasValue);
-            Assert.Equal(argumentValue.ConstantValue.Value, 30);
+            CheckConstantArgument(invocation, argument, "c", 30);
         }
 
         [Fact]
@@ -674,26 +342,15 @@ class C
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature);
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
-            Assert.Equal(nodes.Length, 1);
+            SemanticModel model;
+            InvocationExpressionSyntax[] nodes = GetInvocations(source, 1, out model);
 
             //  f(1, 2)
 
-            Assert.Equal("f(1, 2)", nodes[0].ToString());
-            IOperation operation = model.GetOperation(nodes[0]);
-            Assert.Equal(operation.Kind, OperationKind.InvocationExpression);
-            Assert.False(operation.IsInvalid);
-            IInvocationExpression invocation = (IInvocationExpression)operation;
-            Assert.False(invocation.ConstantValue.HasValue);
-            Assert.True(invocation.IsVirtual);
-            Assert.Equal(invocation.TargetMethod.Name, "Invoke");
-            Assert.Equal(invocation.Type.SpecialType, SpecialType.System_Boolean);
+            IInvocationExpression invocation = CheckInvocation(nodes[0], model, "f(1, 2)", "Invoke", SpecialType.System_Boolean, isVirtual: true);
+           
             ImmutableArray<IArgument> arguments = invocation.ArgumentsInParameterOrder;
             Assert.Equal(arguments.Length, 2);
-
             ImmutableArray<IArgument> evaluationOrderArguments = invocation.ArgumentsInEvaluationOrder;
             Assert.Equal(evaluationOrderArguments.Length, 2);
 
@@ -701,33 +358,13 @@ class C
 
             IArgument argument = arguments[0];
             Assert.True(argument == evaluationOrderArguments[0]);
-            Assert.False(argument.IsInvalid);
-            Assert.Null(argument.InConversion);
-            Assert.Null(argument.OutConversion);
-            Assert.Equal(argument.Parameter.Name, "arg1");
-            Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) == argument);
-            IOperation argumentValue = argument.Value;
-            Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression);
-            Assert.False(argumentValue.IsInvalid);
-            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32);
-            Assert.True(argumentValue.ConstantValue.HasValue);
-            Assert.Equal(argumentValue.ConstantValue.Value, 1);
+            CheckConstantArgument(invocation, argument, "arg1", 1);
 
             // 2
 
             argument = arguments[1];
             Assert.True(argument == evaluationOrderArguments[1]);
-            Assert.False(argument.IsInvalid);
-            Assert.Null(argument.InConversion);
-            Assert.Null(argument.OutConversion);
-            Assert.Equal(argument.Parameter.Name, "arg2");
-            Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) == argument);
-            argumentValue = argument.Value;
-            Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression);
-            Assert.False(argumentValue.IsInvalid);
-            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32);
-            Assert.True(argumentValue.ConstantValue.HasValue);
-            Assert.Equal(argumentValue.ConstantValue.Value, 2);
+            CheckConstantArgument(invocation, argument, "arg2", 2);
         }
 
 
@@ -747,22 +384,15 @@ class C
     void F(ref int xx, out int yy) { yy = 12; }
 }";
 
-            var comp = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature);
-            var tree = comp.SyntaxTrees.Single();
-            var model = comp.GetSemanticModel(tree);
-            var nodes = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
-            Assert.Equal(nodes.Length, 1);
+            SemanticModel model;
+            InvocationExpressionSyntax[] nodes = GetInvocations(source, 1, out model);
 
             //  F(ref x, out y)
 
-            Assert.Equal("F(ref x, out y)", nodes[0].ToString());
-            IOperation operation = model.GetOperation(nodes[0]);
-            Assert.Equal(operation.Kind, OperationKind.InvocationExpression);
-            Assert.False(operation.IsInvalid);
-            IInvocationExpression invocation = (IInvocationExpression)operation;
+            IInvocationExpression invocation = CheckInvocation(nodes[0], model, "F(ref x, out y)", "F", SpecialType.System_Void);
+
             ImmutableArray<IArgument> arguments = invocation.ArgumentsInParameterOrder;
             Assert.Equal(arguments.Length, 2);
-
             ImmutableArray<IArgument> evaluationOrderArguments = invocation.ArgumentsInEvaluationOrder;
             Assert.Equal(evaluationOrderArguments.Length, 2);
 
@@ -770,31 +400,105 @@ class C
 
             IArgument argument = arguments[0];
             Assert.True(argument == evaluationOrderArguments[0]);
-            Assert.False(argument.IsInvalid);
-            Assert.Null(argument.InConversion);
-            Assert.Null(argument.OutConversion);
-            Assert.Equal(argument.Parameter.Name, "xx");
-            Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) == argument);
-            IOperation argumentValue = argument.Value;
-            Assert.Equal(argumentValue.Kind, OperationKind.LocalReferenceExpression);
-            Assert.False(argumentValue.IsInvalid);
-            Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32);
-            Assert.False(argumentValue.ConstantValue.HasValue);
+            IOperation argumentValue = CheckArgument(invocation, argument, "xx");
+            CheckLocalReference(argumentValue, "x", "Int32");
 
             // ref y
 
             argument = arguments[1];
             Assert.True(argument == evaluationOrderArguments[1]);
-            Assert.False(argument.IsInvalid);
+            argumentValue = CheckArgument(invocation, argument, "yy");
+            CheckLocalReference(argumentValue, "y", "Int32");
+        }
+
+        private static InvocationExpressionSyntax[] GetInvocations(string source, int invocationsCount, out SemanticModel model)
+        {
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature);
+            var tree = compilation.SyntaxTrees.Single();
+            model = compilation.GetSemanticModel(tree);
+            var nodes = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
+            Assert.Equal(invocationsCount, nodes.Length);
+
+            return nodes;
+        }
+
+        private static IInvocationExpression CheckInvocation(InvocationExpressionSyntax node, SemanticModel model, string expressionText, string methodName, SpecialType resultType, bool isInvalid = false, bool isVirtual = false)
+        {
+            Assert.Equal(expressionText, node.ToString());
+            IOperation operation = model.GetOperation(node);
+            Assert.Equal(operation.Kind, OperationKind.InvocationExpression);
+            Assert.Equal(isInvalid, operation.IsInvalid);
+            IInvocationExpression invocation = (IInvocationExpression)operation;
+            Assert.False(invocation.ConstantValue.HasValue);
+            Assert.Equal(isVirtual, invocation.IsVirtual);
+            Assert.Equal(methodName, invocation.TargetMethod.Name);
+            Assert.Equal(resultType, invocation.Type.SpecialType);
+
+            return invocation;
+        }
+
+        private static IOperation CheckArgument(IInvocationExpression invocation, IArgument argument, string parameterName, bool isInvalid = false)
+        {
+            Assert.Equal(isInvalid, argument.IsInvalid);
             Assert.Null(argument.InConversion);
             Assert.Null(argument.OutConversion);
-            Assert.Equal(argument.Parameter.Name, "yy");
+            Assert.Equal(parameterName, argument.Parameter.Name);
             Assert.True(invocation.GetArgumentMatchingParameter(argument.Parameter) == argument);
-            argumentValue = argument.Value;
-            Assert.Equal(argumentValue.Kind, OperationKind.LocalReferenceExpression);
-            Assert.False(argumentValue.IsInvalid);
+            IOperation argumentValue = argument.Value;
+            Assert.Equal(isInvalid, argumentValue.IsInvalid);
+
+            return argumentValue;
+        }
+
+        private static void CheckConstantArgument(IInvocationExpression invocation, IArgument argument, string parameterName, int argumentConstantValue)
+        {
+            IOperation argumentValue = CheckArgument(invocation, argument, parameterName);
+            Assert.Equal(argumentValue.Kind, OperationKind.LiteralExpression);
             Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32);
-            Assert.False(argumentValue.ConstantValue.HasValue);
+            Assert.True(argumentValue.ConstantValue.HasValue);
+            Assert.Equal(argumentConstantValue, argumentValue.ConstantValue.Value);
+        }
+
+        private static void CheckInstanceReference(IOperation invocationInstance, InstanceReferenceKind instanceKind, string instanceType)
+        {
+            Assert.NotNull(invocationInstance);
+            Assert.Equal(invocationInstance.Kind, OperationKind.InstanceReferenceExpression);
+            IInstanceReferenceExpression instanceReference = (IInstanceReferenceExpression)invocationInstance;
+            Assert.False(instanceReference.IsInvalid);
+            Assert.Equal(instanceKind, instanceReference.InstanceReferenceKind);
+            Assert.Equal(instanceType, instanceReference.Type.Name);
+        }
+
+        private static void CheckLocalReference(IOperation reference, string localName, string localType)
+        {
+            Assert.NotNull(reference);
+            Assert.Equal(reference.Kind, OperationKind.LocalReferenceExpression);
+            ILocalReferenceExpression localReference = (ILocalReferenceExpression)reference;
+            Assert.False(localReference.IsInvalid);
+            Assert.Equal(localName, localReference.Local.Name);
+            Assert.Equal(localType, localReference.Type.Name);
+        }
+
+        private static void CheckArrayCreation(IOperation value, params int[] elements)
+        {
+            Assert.Equal(value.Kind, OperationKind.ArrayCreationExpression);
+            Assert.Equal(value.Type.TypeKind, TypeKind.Array);
+            Assert.Equal(((ArrayTypeSymbol)value.Type).ElementType.SpecialType, SpecialType.System_Int32);
+            Assert.False(value.ConstantValue.HasValue);
+            IArrayCreationExpression argumentArray = (IArrayCreationExpression)value;
+            Assert.Equal(argumentArray.Initializer.Kind, OperationKind.ArrayInitializer);
+            ImmutableArray<IOperation> elementValues = argumentArray.Initializer.ElementValues;
+            Assert.Equal(elementValues.Length, elements.Length);
+
+            for (int index = 0; index < elements.Length; index++)
+            {
+                IOperation elementValue = elementValues[index];
+                Assert.Equal(elementValue.Kind, OperationKind.LiteralExpression);
+                Assert.False(elementValue.IsInvalid);
+                Assert.Equal(elementValue.Type.SpecialType, SpecialType.System_Int32);
+                Assert.True(elementValue.ConstantValue.HasValue);
+                Assert.Equal(elementValue.ConstantValue.Value, elements[index]);
+            }
         }
     }
 }

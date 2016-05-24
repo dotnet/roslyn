@@ -297,7 +297,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return ArgumentMatchingParameter(Me.Arguments, parameter, Me.Method.Parameters)
         End Function
 
-        Private ReadOnly Property IHasArgumentsExpression_ArgumentsInSourceOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInEvaluationOrder
+        Private ReadOnly Property IHasArgumentsExpression_ArgumentsInEvaluationOrder As ImmutableArray(Of IArgument) Implements IHasArgumentsExpression.ArgumentsInEvaluationOrder
             Get
                 Return IHasArgumentsExpression_ArgumentsInParameterOrder
             End Get
@@ -311,10 +311,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IInvocationExpression_IsVirtual As Boolean Implements IInvocationExpression.IsVirtual
             Get
-                Dim method As IMethodSymbol = Me.Method
-                Return method IsNot Nothing AndAlso Me.ReceiverOpt IsNot Nothing AndAlso (method.IsVirtual OrElse method.IsAbstract OrElse method.IsOverride) AndAlso Not Me.ReceiverOpt.SuppressVirtualCalls
+                Return IsVirtualReference(Me.Method, Me.ReceiverOpt)
             End Get
         End Property
+
+        Friend Shared Function IsVirtualReference(method As Symbols.MethodSymbol, receiver As BoundExpression) As Boolean
+            Return method IsNot Nothing AndAlso receiver IsNot Nothing AndAlso (method.IsOverridable OrElse method.IsMustOverride OrElse method.IsOverrides) AndAlso Not receiver.SuppressVirtualCalls
+        End Function
 
         Private ReadOnly Property IInvocationExpression_TargetMethod As IMethodSymbol Implements IInvocationExpression.TargetMethod
             Get
@@ -1539,8 +1542,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IMethodBindingExpression_IsVirtual As Boolean Implements IMethodBindingExpression.IsVirtual
             Get
-                Dim method As IMethodSymbol = Me.Method
-                Return method IsNot Nothing AndAlso Me.ReceiverOpt IsNot Nothing AndAlso (method.IsVirtual OrElse method.IsAbstract OrElse method.IsOverride) AndAlso Not Me.ReceiverOpt.SuppressVirtualCalls
+                Return BoundCall.IsVirtualReference(Me.Method, Me.ReceiverOpt)
             End Get
         End Property
 
