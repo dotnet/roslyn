@@ -34,22 +34,41 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 
         public bool ExecuteCommandWorker(ReturnKeyCommandArgs args)
         {
-            var caret = args.TextView.GetCaretPoint(args.SubjectBuffer);
+            var textView = args.TextView;
+            var subjectBuffer = args.SubjectBuffer;
+            var caret = textView.GetCaretPoint(subjectBuffer);
+
             if (caret != null)
             {
-                var snapshot = args.SubjectBuffer.CurrentSnapshot;
-                var document = snapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
 
                 if (document != null)
                 {
-                    return SplitStringLiteralAsync(args.SubjectBuffer, document, caret.Value.Position, CancellationToken.None).GetAwaiter().GetResult();
+                    var cursorPosition = SplitStringLiteralAsync(
+                        subjectBuffer, document, caret.Value.Position, CancellationToken.None).GetAwaiter().GetResult();
+
+                    if (cursorPosition != null)
+                    {
+                        var snapshotPoint = new SnapshotPoint(
+                            subjectBuffer.CurrentSnapshot, cursorPosition.Value);
+                        var newCaretPoint = textView.BufferGraph.MapUpToBuffer(
+                            snapshotPoint, PointTrackingMode.Negative, PositionAffinity.Predecessor,
+                            textView.TextBuffer);
+
+                        if (newCaretPoint != null)
+                        {
+                            textView.Caret.MoveTo(newCaretPoint.Value);
+                        }
+
+                        return true;
+                    }
                 }
             }
 
             return false;
         }
 
-        private async Task<bool> SplitStringLiteralAsync(
+        private async Task<int?> SplitStringLiteralAsync(
             ITextBuffer subjectBuffer, Document document, int position, CancellationToken cancellationToken)
         {
             var useTabs = subjectBuffer.GetOption(FormattingOptions.UseTabs);
@@ -62,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             var splitter = StringSplitter.Create(document, position, syntaxTree, root, sourceText, useTabs, tabSize, cancellationToken);
             if (splitter == null)
             {
-                return false;
+                return null;
             }
 
             return await splitter.TrySplitAsync().ConfigureAwait(false);
@@ -70,6 +89,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 
         private abstract class StringSplitter
         {
+            protected static readonly SyntaxAnnotation RightNodeAnnotation = new SyntaxAnnotation();
+
             protected readonly Document Document;
             protected readonly int CursorPosition;
             protected readonly SourceText SourceText;
@@ -106,7 +127,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                         cancellationToken);
                 }
 
-                var interpolatedStringExpression = TryGetInterpolatedStringExpression(token);
+                var interpolatedStringExpression = TryGetInterpolatedStringExpression(token, position);
                 if (interpolatedStringExpression != null)
                 {
                     return new InterpolatedStringSplitter(
@@ -118,11 +139,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 return null;
             }
 
-            private static InterpolatedStringExpressionSyntax TryGetInterpolatedStringExpression(SyntaxToken token)
+            private static InterpolatedStringExpressionSyntax TryGetInterpolatedStringExpression(
+                SyntaxToken token, int position)
             {
                 if (token.IsKind(SyntaxKind.InterpolatedStringTextToken) || 
                     token.IsKind(SyntaxKind.InterpolatedStringEndToken) ||
-                    IsInterpolationOpenBrace(token))
+                    IsInterpolationOpenBrace(token, position))
                 {
                     return token.GetAncestor<InterpolatedStringExpressionSyntax>();
                 }
@@ -130,10 +152,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 return null;
             }
 
-            private static bool IsInterpolationOpenBrace(SyntaxToken token)
+            private static bool IsInterpolationOpenBrace(SyntaxToken token, int position)
             {
-                return token.Kind() == SyntaxKind.OpenBraceToken && token.Parent.IsKind(SyntaxKind.Interpolation);
+                return token.Kind() == SyntaxKind.OpenBraceToken && 
+                    token.Parent.IsKind(SyntaxKind.Interpolation) &&
+                    position == token.SpanStart;
             }
+
+            protected abstract int StringOpenQuoteLength();
 
             protected abstract bool CheckToken();
 
@@ -141,40 +167,40 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 
             protected abstract BinaryExpressionSyntax CreateSplitString(string indentString);
 
-            public Task<bool> TrySplitAsync()
+            public async Task<int?> TrySplitAsync()
             {
                 if (!CheckToken())
                 {
-                    return SpecializedTasks.False;
+                    return null;
                 }
 
-                return TrySplitWorkerAsync();
+                return await TrySplitWorkerAsync().ConfigureAwait(false);
             }
 
-            private async Task<bool> TrySplitWorkerAsync()
+            private async Task<int?> TrySplitWorkerAsync()
             {
                 var indentation = await DetermineIndentationAsync().ConfigureAwait(false);
                 if (indentation == null)
                 {
-                    return false;
+                    return null;
                 }
 
                 var indentString = indentation.Value.CreateIndentationString(UseTabs, TabSize);
-                var newDocument = await SplitStringAsync(indentString).ConfigureAwait(false);
+
+                var newDocumentAndCaretPosition = SplitString(indentString);
+                var newDocument = newDocumentAndCaretPosition.Item1;
+                var finalCaretPosition = newDocumentAndCaretPosition.Item2;
+
                 var workspace = Document.Project.Solution.Workspace;
                 workspace.TryApplyChanges(newDocument.Project.Solution);
 
-                return true;
-            }
-
-            protected int GetTokenStart(string tokenText)
-            {
-                return tokenText[0] == '$' ? 2 : 1;
+                return finalCaretPosition;
             }
 
             protected async Task<int?> DetermineIndentationAsync()
             {
-                var newDocument = await SplitStringAsync(indentString: null).ConfigureAwait(false);
+                var newDocumentAndCaretPosition = SplitString(indentString: null);
+                var newDocument = newDocumentAndCaretPosition.Item1;
 
                 var indentationService = newDocument.GetLanguageService<IIndentationService>();
                 var currentLine = SourceText.Lines.GetLineFromPosition(CursorPosition);
@@ -197,19 +223,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 
             protected static SyntaxToken GetPlusToken()
             {
-                return SyntaxFactory.Token(SyntaxKind.PlusToken).WithTrailingTrivia(
-                                    SyntaxFactory.TriviaList(SyntaxFactory.ElasticCarriageReturnLineFeed));
+                return SyntaxFactory.Token(
+                    default(SyntaxTriviaList),
+                    SyntaxKind.PlusToken,
+                    SyntaxFactory.TriviaList(SyntaxFactory.ElasticCarriageReturnLineFeed));
             }
 
-            private async Task<Document> SplitStringAsync(string indentString)
+            private Tuple<Document, int> SplitString(string indentString)
             {
-                var splitString = CreateSplitString(indentString).WithAdditionalAnnotations(Formatter.Annotation);
+                var splitString = CreateSplitString(indentString);
+
                 var newRoot = Root.ReplaceNode(GetNodeToReplace(), splitString);
+                var rightExpression = newRoot.GetAnnotatedNodes(RightNodeAnnotation).Single();
 
-                var document1 = Document.WithSyntaxRoot(newRoot);
-                var document2 = await Formatter.FormatAsync(document1, cancellationToken: CancellationToken).ConfigureAwait(false);
-
-                return document2;
+                var newDocument = Document.WithSyntaxRoot(newRoot);
+                return Tuple.Create(newDocument, rightExpression.Span.Start + StringOpenQuoteLength());
             }
 
             protected static SyntaxTriviaList GetLeadingIndentationTrivia(string indentString)
@@ -222,6 +250,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 
         private class SimpleStringSplitter : StringSplitter
         {
+            private const char QuoteCharacter = '"';
             private readonly SyntaxToken _token;
 
             public SimpleStringSplitter(Document document, int position, SyntaxTree syntaxTree, SyntaxNode root, SourceText sourceText, SyntaxToken token, bool useTabs, int tabSize, CancellationToken cancellationToken)
@@ -243,13 +272,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                     return false;
                 }
 
-                var tokenQuoteLength = GetTokenStart(_token.Text);
-                var tokenStart = _token.SpanStart + tokenQuoteLength;
-                if (CursorPosition < tokenStart)
-                {
-                    return false;
-                }
-
                 return true;
             }
 
@@ -261,19 +283,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 var prefix = SourceText.GetSubText(TextSpan.FromBounds(_token.SpanStart, CursorPosition)).ToString();
                 var suffix = SourceText.GetSubText(TextSpan.FromBounds(CursorPosition, _token.Span.End)).ToString();
 
-                var tokenStart = GetTokenStart(_token.Text);
-
                 var firstToken = SyntaxFactory.Token(
                     _token.LeadingTrivia,
                     _token.Kind(),
-                    text: prefix + '"',
+                    text: prefix + QuoteCharacter,
                     valueText: "",
                     trailing: SyntaxFactory.TriviaList(SyntaxFactory.ElasticSpace));
 
                 var secondToken = SyntaxFactory.Token(
                     GetLeadingIndentationTrivia(indentString),
                     _token.Kind(),
-                    text: _token.Text.Substring(0, tokenStart) + suffix,
+                    text: QuoteCharacter + suffix,
                     valueText: "",
                     trailing: _token.TrailingTrivia);
 
@@ -282,8 +302,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 
                 return SyntaxFactory.BinaryExpression(
                     SyntaxKind.AddExpression,
-                    leftExpression, GetPlusToken(), rightExpression);
+                    leftExpression,
+                    GetPlusToken(), 
+                    rightExpression.WithAdditionalAnnotations(RightNodeAnnotation));
             }
+
+            protected override int StringOpenQuoteLength() => "\"".Length;
         }
 
         private class InterpolatedStringSplitter : StringSplitter
@@ -348,7 +372,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 var leftExpression = SyntaxFactory.InterpolatedStringExpression(
                     _interpolatedStringExpression.StringStartToken,
                     SyntaxFactory.List(beforeSplitContents),
-                    SyntaxFactory.Token(SyntaxKind.InterpolatedStringEndToken));
+                    SyntaxFactory.Token(SyntaxKind.InterpolatedStringEndToken)
+                                 .WithTrailingTrivia(SyntaxFactory.ElasticSpace));
 
                 var rightExpressionFirstToken = SyntaxFactory.Token(
                     GetLeadingIndentationTrivia(indentString),
@@ -362,7 +387,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 
                 return SyntaxFactory.BinaryExpression(
                     SyntaxKind.AddExpression,
-                    leftExpression, GetPlusToken(), rightExpression);
+                    leftExpression,
+                    GetPlusToken(),
+                    rightExpression.WithAdditionalAnnotations(RightNodeAnnotation));
             }
 
             private InterpolatedStringTextSyntax CreateInterpolatedStringText(int start, int end)
@@ -376,6 +403,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                         valueText: "",
                         trailing: default(SyntaxTriviaList)));
             }
+
+            protected override int StringOpenQuoteLength() => "$\"".Length;
         }
     }
 }
