@@ -9,6 +9,22 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
 {
     internal static class TextLineExtensions
     {
+        public static int? GetLastNonWhitespacePosition(this TextLine line)
+        {
+            int startPosition = line.Start;
+            var text = line.ToString();
+
+            for (int i = text.Length - 1; i >= 0; i--)
+            {
+                if (!char.IsWhiteSpace(text[i]))
+                {
+                    return startPosition + i;
+                }
+            }
+
+            return null;
+        }
+
         /// <summary>
         /// Returns the first non-whitespace position on the given line, or null if 
         /// the line is empty or contains only whitespace.
