@@ -933,6 +933,7 @@
     <BoundTreeDefinition Include="BoundTree\BoundNodes.xml">
       <SubType>Designer</SubType>
     </BoundTreeDefinition>
+    <Compile Include="$(IntermediateOutputPath)Syntax.xml.Generated.vb" />
     <Compile Include="$(IntermediateOutputPath)ErrorFacts.Generated.vb" />
     <Compile Include="Symbols\SymbolVisitor.vb" />
     <Compile Include="Symbols\SymbolVisitor`1.vb" />
