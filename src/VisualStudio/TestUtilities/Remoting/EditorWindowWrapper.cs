@@ -10,7 +10,10 @@ namespace Roslyn.VisualStudio.Test.Utilities.Remoting
     {
         private EditorWindowWrapper() { }
 
-        public static EditorWindowWrapper Create() => new EditorWindowWrapper();
+        public static EditorWindowWrapper Create()
+        {
+            return new EditorWindowWrapper();
+        }
 
         public string GetText()
         {
@@ -53,6 +56,17 @@ namespace Roslyn.VisualStudio.Test.Utilities.Remoting
                 var text = line.GetText();
 
                 return text.Substring(bufferPosition.Position - line.Start);
+            });
+        }
+
+        public void MoveCaret(int position)
+        {
+            RemotingHelper.ExecuteOnActiveView(view =>
+            {
+                var subjectBuffer = view.GetBufferContainingCaret();
+                var point = new SnapshotPoint(subjectBuffer.CurrentSnapshot, position);
+
+                view.Caret.MoveTo(point);
             });
         }
     }

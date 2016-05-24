@@ -1,8 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Reflection;
-using EnvDTE;
 using Roslyn.VisualStudio.Test.Utilities.Remoting;
 
 namespace Roslyn.VisualStudio.Test.Utilities
@@ -32,7 +30,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
         public string GetLineTextBeforeCaret() => _editorWindowWrapper.GetLineTextBeforeCaret();
         public string GetLineTextAfterCaret() => _editorWindowWrapper.GetLineTextAfterCaret();
 
-        private TextSelection TextSelection => (TextSelection)(IntegrationHelper.RetryRpcCall(() => _visualStudioInstance.Dte.ActiveDocument.Selection));
+        public void MoveCaret(int position) => _editorWindowWrapper.MoveCaret(position);
 
         public void Activate()
         {
@@ -41,32 +39,5 @@ namespace Roslyn.VisualStudio.Test.Utilities
                 _visualStudioInstance.Dte.ActiveDocument.Activate();
             });
         }
-
-        public void ClearTextSelection() => TextSelection?.Cancel();
-
-        public void Find(string expectedText)
-        {
-            Activate();
-            ClearTextSelection();
-
-            var dteFind = IntegrationHelper.RetryRpcCall(() => _visualStudioInstance.Dte.Find);
-
-            dteFind.Action = vsFindAction.vsFindActionFind;
-            dteFind.FindWhat = expectedText;
-            dteFind.MatchCase = true;
-            dteFind.MatchInHiddenText = true;
-            dteFind.MatchWholeWord = true;
-            dteFind.PatternSyntax = vsFindPatternSyntax.vsFindPatternSyntaxLiteral;
-            dteFind.Target = vsFindTarget.vsFindTargetCurrentDocument;
-
-            var findResult = IntegrationHelper.RetryRpcCall(() => dteFind.Execute());
-
-            if (findResult != vsFindResult.vsFindResultFound)
-            {
-                throw new Exception($"The specified text was not found. ExpectedText: '{expectedText}'; ActualText: '{GetText()}'");
-            }
-        }
-
-        public void PlaceCursor(string marker) => Find(marker);
     }
 }

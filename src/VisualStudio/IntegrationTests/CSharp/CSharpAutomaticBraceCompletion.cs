@@ -19,13 +19,11 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task Braces_InsertionAndTabCompleting()
         {
-            EditorWindow.SetText(@"class C {
+            SetUpEditor(@"class C {
     void Foo() {
-        // Marker
+        $$
     }
 }");
-
-            EditorWindow.PlaceCursor("// Marker");
 
             await EditorWindow.TypeTextAsync("if (true) {");
 
@@ -41,13 +39,11 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task Braces_Overtyping()
         {
-            EditorWindow.SetText(@"class C {
+            SetUpEditor(@"class C {
     void Foo() {
-        // Marker
+        $$
     }
 }");
-
-            EditorWindow.PlaceCursor("// Marker");
 
             await EditorWindow.TypeTextAsync("if (true) {");
             await EditorWindow.TypeTextAsync("}");
@@ -59,13 +55,11 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task Braces_OnReturnNoFormattingOnlyIndentationBeforeCloseBrace()
         {
-            EditorWindow.SetText(@"class C {
+            SetUpEditor(@"class C {
     void Foo() {
-        // Marker
+        $$
     }
 }");
-
-            EditorWindow.PlaceCursor("// Marker");
 
             await EditorWindow.TypeTextAsync("if (true) {");
             EditorWindow.SendKey(EditorWindow.VirtualKey.Enter);
@@ -78,13 +72,11 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task Braces_OnReturnOvertypingTheClosingBrace()
         {
-            EditorWindow.SetText(@"class C {
+            SetUpEditor(@"class C {
     void Foo() {
-        // Marker
+        $$
     }
 }");
-
-            EditorWindow.PlaceCursor("// Marker");
 
             await EditorWindow.TypeTextAsync("if (true) {");
             EditorWindow.SendKey(EditorWindow.VirtualKey.Enter);
@@ -104,7 +96,7 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task Braces_OnReturnWithNonWhitespaceSpanInside()
         {
-            EditorWindow.SetText(string.Empty);
+            SetUpEditor("$$");
 
             await EditorWindow.TypeTextAsync("class A { int i;");
             EditorWindow.SendKey(EditorWindow.VirtualKey.Enter);
@@ -119,11 +111,9 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task Paren_InsertionAndTabCompleting()
         {
-            EditorWindow.SetText(@"class C {
-    //Marker
+            SetUpEditor(@"class C {
+    $$
 }");
-
-            EditorWindow.PlaceCursor("//Marker");
 
             await EditorWindow.TypeTextAsync("void Foo(");
 
@@ -140,11 +130,9 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task Paren_Overtyping()
         {
-            EditorWindow.SetText(@"class C {
-    //Marker
+            SetUpEditor(@"class C {
+    $$
 }");
-
-            EditorWindow.PlaceCursor("//Marker");
 
             await EditorWindow.TypeTextAsync("void Foo(");
             EditorWindow.SendKey(EditorWindow.VirtualKey.Escape);
@@ -157,11 +145,9 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task SquareBracket_Insertion()
         {
-            EditorWindow.SetText(@"class C {
-    //Marker
+            SetUpEditor(@"class C {
+    $$
 }");
-
-            EditorWindow.PlaceCursor("//Marker");
 
             await EditorWindow.TypeTextAsync("int [");
 
@@ -172,11 +158,9 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task SquareBracket_Overtyping()
         {
-            EditorWindow.SetText(@"class C {
-    //Marker
+            SetUpEditor(@"class C {
+    $$
 }");
-
-            EditorWindow.PlaceCursor("//Marker");
 
             await EditorWindow.TypeTextAsync("int [");
             await EditorWindow.TypeTextAsync("]");
@@ -188,11 +172,9 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task DoubleQuote_InsertionAndTabCompletion()
         {
-            EditorWindow.SetText(@"class C {
-    //Marker
+            SetUpEditor(@"class C {
+    $$
 }");
-
-            EditorWindow.PlaceCursor("//Marker");
 
             await EditorWindow.TypeTextAsync("string str = \"");
             EditorWindow.SendKey(EditorWindow.VirtualKey.Tab);
@@ -204,11 +186,9 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task DoubleQuote_InsertionAndOvertyping()
         {
-            EditorWindow.SetText(@"class C {
-    //Marker
+            SetUpEditor(@"class C {
+    $$
 }");
-
-            EditorWindow.PlaceCursor("//Marker");
 
             await EditorWindow.TypeTextAsync("string str = \"Hi Roslyn!");
             await EditorWindow.TypeTextAsync("\"");
@@ -220,12 +200,10 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task AngleBracket_PossibleGenerics_InsertionAndCompletion()
         {
-            EditorWindow.SetText(@"class C {
+            SetUpEditor(@"class C {
     //field
-    //Marker
+    $$
 }");
-
-            EditorWindow.PlaceCursor("//Marker");
 
             await EditorWindow.TypeTextAsync("System.Action<");
             WaitForAllAsyncOperations();
@@ -234,12 +212,10 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
             Assert.Equal("    System.Action<>", EditorWindow.GetLineTextBeforeCaret());
             Assert.Equal(string.Empty, EditorWindow.GetLineTextAfterCaret());
 
-            EditorWindow.SetText(@"class C {
+            SetUpEditor(@"class C {
     //method decl
-    //Marker
+    $$
 }");
-
-            EditorWindow.PlaceCursor("//Marker");
 
             await EditorWindow.TypeTextAsync("void GenericMethod<");
             WaitForAllAsyncOperations();
@@ -248,36 +224,30 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
             Assert.Equal("    void GenericMethod<>", EditorWindow.GetLineTextBeforeCaret());
             Assert.Equal(string.Empty, EditorWindow.GetLineTextAfterCaret());
 
-            EditorWindow.SetText(@"class C {
+            SetUpEditor(@"class C {
     //delegate
-    //Marker
+    $$
 }");
-
-            EditorWindow.PlaceCursor("//Marker");
 
             await EditorWindow.TypeTextAsync("delegate void Del<");
 
             Assert.Equal("    delegate void Del<", EditorWindow.GetLineTextBeforeCaret());
             Assert.Equal(">", EditorWindow.GetLineTextAfterCaret());
 
-            EditorWindow.SetText(@"
+            SetUpEditor(@"
 //using directive
-//Marker
+$$
 ");
-
-            EditorWindow.PlaceCursor("//Marker");
 
             await EditorWindow.TypeTextAsync("using ActionOfT = System.Action<");
 
             Assert.Equal("using ActionOfT = System.Action<", EditorWindow.GetLineTextBeforeCaret());
             Assert.Equal(">", EditorWindow.GetLineTextAfterCaret());
 
-            EditorWindow.SetText(@"
+            SetUpEditor(@"
 //class
-//Marker
+$$
 ");
-
-            EditorWindow.PlaceCursor("//Marker");
 
             await EditorWindow.TypeTextAsync("class GenericClass<");
             WaitForAllAsyncOperations();
@@ -290,11 +260,9 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task SingleQuote_InsertionAndCompletion()
         {
-            EditorWindow.SetText(@"class C {
-    //Marker
+            SetUpEditor(@"class C {
+    $$
 }");
-
-            EditorWindow.PlaceCursor("//Marker");
 
             await EditorWindow.TypeTextAsync("char c = '");
             Assert.Equal("    char c = '", EditorWindow.GetLineTextBeforeCaret());
@@ -313,16 +281,14 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public async Task Nested_AllKinds()
         {
-            EditorWindow.SetText(@"class Bar<U>
+            SetUpEditor(@"class Bar<U>
 {
     T Foo<T>(T t) { return t; }
     void M()
     {
-        //Marker
+        $$
     }
 }");
-
-            EditorWindow.PlaceCursor("//Marker");
 
             await EditorWindow.TypeTextAsync("var arr=new object[,]{{Foo(0");
             EditorWindow.SendKey(EditorWindow.VirtualKey.Tab);

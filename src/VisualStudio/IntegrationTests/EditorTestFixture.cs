@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.Test.Utilities;
 
 namespace Roslyn.VisualStudio.IntegrationTests
@@ -39,6 +40,16 @@ namespace Roslyn.VisualStudio.IntegrationTests
         public void WaitForAllAsyncOperations()
         {
             _workspace.WaitForAllAsyncOperations();
+        }
+
+        public void SetUpEditor(string markupCode)
+        {
+            string code;
+            int caretPosition;
+            MarkupTestFile.GetPosition(markupCode, out code, out caretPosition);
+
+            EditorWindow.SetText(code);
+            EditorWindow.MoveCaret(caretPosition);
         }
     }
 }
