@@ -32,14 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var sourceText = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-            var textSnapshot = sourceText.FindCorrespondingEditorTextSnapshot();
-            if (textSnapshot == null)
-            {
-                // text snapshot doesn't exit. return null
-                return null;
-            }
-
-            var lineToBeIndented = textSnapshot.GetLineFromLineNumber(lineNumber);
+            var lineToBeIndented = sourceText.Lines[lineNumber];
 
             var formattingRules = GetFormattingRules(document, lineToBeIndented.Start);
 
@@ -53,9 +46,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
             return indenter.GetDesiredIndentation();
         }
 
-        protected abstract Task<AbstractIndenter> GetIndenterAsync(Document document, ITextSnapshotLine lineToBeIndented, IEnumerable<IFormattingRule> formattingRules, OptionSet optionSet, CancellationToken cancellationToken);
+        protected abstract Task<AbstractIndenter> GetIndenterAsync(
+            Document document, TextLine lineToBeIndented, IEnumerable<IFormattingRule> formattingRules, OptionSet optionSet, CancellationToken cancellationToken);
 
         protected abstract bool ShouldUseSmartTokenFormatterInsteadOfIndenter(
-            IEnumerable<IFormattingRule> formattingRules, SyntaxNode root, ITextSnapshotLine line, OptionSet optionSet, CancellationToken cancellationToken);
+            IEnumerable<IFormattingRule> formattingRules, SyntaxNode root, TextLine line, OptionSet optionSet, CancellationToken cancellationToken);
     }
 }
