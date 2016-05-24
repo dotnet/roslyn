@@ -736,7 +736,7 @@ End Class
 ]]>
     </file>
 </compilation>, OutputKind.DynamicallyLinkedLibrary)
-        CompilationUtils.AssertTheseDiagnostics(other)
+        other.VerifyEmitDiagnostics()
         Assert.Equal("1.2.3garbage", DirectCast(other.Assembly, SourceAssemblySymbol).InformationalVersion)
     End Sub
 
