@@ -1046,7 +1046,16 @@ namespace Microsoft.CodeAnalysis
             AttributeInfo info = FindLastTargetAttribute(token, AttributeDescription.DateTimeConstantAttribute);
             if (info.HasValue && TryExtractLongValueFromAttribute(info.Handle, out value))
             {
-                defaultValue = ConstantValue.Create(new DateTime(value));
+                // if value is outside this range, DateTime would throw when constructed
+                if (value < DateTime.MinValue.Ticks || value > DateTime.MaxValue.Ticks)
+                {
+                    defaultValue = ConstantValue.Bad;
+                }
+                else
+                {
+                    defaultValue = ConstantValue.Create(new DateTime(value));
+                }
+
                 return true;
             }
 

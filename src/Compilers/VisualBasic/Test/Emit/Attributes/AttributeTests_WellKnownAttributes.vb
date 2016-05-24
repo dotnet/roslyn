@@ -1,9 +1,5 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
-Imports Roslyn.Test.Utilities
 Imports System.Collections.Immutable
 Imports System.Reflection
 Imports System.Reflection.Metadata
@@ -11,6 +7,10 @@ Imports System.Reflection.Metadata.Ecma335
 Imports System.Runtime.InteropServices
 Imports System.Text
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
+Imports Roslyn.Test.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class AttributeTests_WellKnownAttributes
@@ -476,6 +476,60 @@ End Class
                 End Sub
 
             CompileAndVerify(source, symbolValidator:=symValidator)
+        End Sub
+
+        <WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>
+        <Fact()>
+        Public Sub LoadingDateTimeConstantWithBadValue()
+            Dim ilSource = <![CDATA[
+.class public auto ansi beforefieldinit C
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig instance valuetype [mscorlib]System.DateTime
+          Method([opt] valuetype [mscorlib]System.DateTime p) cil managed
+  {
+    .param [1]
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = ( 01 00 FF FF FF FF FF FF FF FF 00 00 )
+    // Code size       7 (0x7)
+    .maxstack  1
+    .locals init (valuetype [mscorlib]System.DateTime V_0)
+    IL_0000:  nop
+    IL_0001:  ldarg.1
+    IL_0002:  stloc.0
+    IL_0003:  br.s       IL_0005
+
+    IL_0005:  ldloc.0
+    IL_0006:  ret
+  } // end of method C::Method
+
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor() cil managed
+  {
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  ret
+  } // end of method C::.ctor
+
+} // end of class C
+                ]]>
+
+            Dim source =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Public Class D
+
+    Shared Sub Main()
+        System.Console.WriteLine(New C().Method().Ticks)
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>
+
+            Dim ilReference = CompileIL(ilSource.Value)
+            CompileAndVerify(source, expectedOutput:="0", additionalRefs:={ilReference})
         End Sub
 
         <WorkItem(531121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531121")>

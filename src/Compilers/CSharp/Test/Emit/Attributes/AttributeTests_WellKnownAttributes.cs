@@ -465,6 +465,58 @@ public class Bar
             comp.VerifyDiagnostics();
         }
 
+        [Fact, WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")]
+        public void LoadingDateTimeConstantWithBadValue()
+        {
+            var ilsource = @"
+.class public auto ansi beforefieldinit C
+       extends [mscorlib]System.Object
+{
+  .method public hidebysig instance valuetype [mscorlib]System.DateTime
+          Method([opt] valuetype [mscorlib]System.DateTime p) cil managed
+  {
+    .param [1]
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = ( 01 00 FF FF FF FF FF FF FF FF 00 00 )
+    // Code size       7 (0x7)
+    .maxstack  1
+    .locals init (valuetype [mscorlib]System.DateTime V_0)
+    IL_0000:  nop
+    IL_0001:  ldarg.1
+    IL_0002:  stloc.0
+    IL_0003:  br.s       IL_0005
+
+    IL_0005:  ldloc.0
+    IL_0006:  ret
+  } // end of method C::Method
+
+  .method public hidebysig specialname rtspecialname
+          instance void  .ctor() cil managed
+  {
+    // Code size       7 (0x7)
+    .maxstack  8
+    IL_0000:  ldarg.0
+    IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
+    IL_0006:  ret
+  } // end of method C::.ctor
+
+} // end of class C
+
+";
+
+            var cssource = @"
+public class D
+{
+    public static void Main()
+    {
+        System.Console.WriteLine(new C().Method().Ticks);
+    }
+}
+";
+
+            var ilReference = CompileIL(ilsource);
+            CompileAndVerify(cssource, expectedOutput: "0", additionalRefs: new[] { ilReference });
+        }
+
         [Fact]
         public void TestDecimalConstantAttribute()
         {
