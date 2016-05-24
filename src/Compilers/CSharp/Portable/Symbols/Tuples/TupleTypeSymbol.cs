@@ -685,12 +685,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private ImmutableArray<FieldSymbol> CollectTupleElementFields()
         {
-            var builder = ArrayBuilder<FieldSymbol>.GetInstance(_elementTypes.Length);
-            builder.SetItem(_elementTypes.Length - 1, null);
-            var members = GetMembers().Where(m => m.Kind == SymbolKind.Field);
+            var builder = ArrayBuilder<FieldSymbol>.GetInstance(_elementTypes.Length, null);
 
-            foreach (var member in members)
+            foreach (var member in GetMembers())
             {
+                if (member.Kind != SymbolKind.Field)
+                {
+                    continue;
+                }
+
                 var field = (FieldSymbol)member;
                 int index = field.TupleElementIndex;
                 if (index >= 0)
