@@ -610,6 +610,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Split string literals on _enter.
+        /// </summary>
+        internal static string Option_Split_string_literals_on_enter {
+            get {
+                return ResourceManager.GetString("Option_Split_string_literals_on_enter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Suggest usings for types in _NuGet packages.
         /// </summary>
         internal static string Option_Suggest_usings_for_types_in_NuGet_packages {

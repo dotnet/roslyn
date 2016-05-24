@@ -197,6 +197,7 @@
     <Compile Include="SplitStringLiteral\SplitStringLiteralCommandHandler.InterpolatedStringSplitter.cs" />
     <Compile Include="SplitStringLiteral\SplitStringLiteralCommandHandler.SimpleStringSplitter.cs" />
     <Compile Include="SplitStringLiteral\SplitStringLiteralCommandHandler.StringSplitter.cs" />
+    <Compile Include="SplitStringLiteral\SplitStringLiteralOptions.cs" />
     <Compile Include="TextStructureNavigation\TextStructureNavigatorProvider.cs" />
     <Compile Include="TodoComment\CSharpTodoCommentIncrementalAnalyzerProvider.cs" />
     <Compile Include="UseAutoProperty\UseAutoPropertyAnalyzer.cs" />

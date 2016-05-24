@@ -52,23 +52,29 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 
             if (document != null)
             {
-                var cursorPosition = SplitStringLiteralAsync(
-                    subjectBuffer, document, caret.Value.Position, CancellationToken.None).GetAwaiter().GetResult();
+                var enabled = document.Project.Solution.Workspace.Options.GetOption(
+                    SplitStringLiteralOptions.Enabled, LanguageNames.CSharp);
 
-                if (cursorPosition != null)
+                if (enabled)
                 {
-                    var snapshotPoint = new SnapshotPoint(
-                        subjectBuffer.CurrentSnapshot, cursorPosition.Value);
-                    var newCaretPoint = textView.BufferGraph.MapUpToBuffer(
-                        snapshotPoint, PointTrackingMode.Negative, PositionAffinity.Predecessor,
-                        textView.TextBuffer);
+                    var cursorPosition = SplitStringLiteralAsync(
+                        subjectBuffer, document, caret.Value.Position, CancellationToken.None).GetAwaiter().GetResult();
 
-                    if (newCaretPoint != null)
+                    if (cursorPosition != null)
                     {
-                        textView.Caret.MoveTo(newCaretPoint.Value);
-                    }
+                        var snapshotPoint = new SnapshotPoint(
+                            subjectBuffer.CurrentSnapshot, cursorPosition.Value);
+                        var newCaretPoint = textView.BufferGraph.MapUpToBuffer(
+                            snapshotPoint, PointTrackingMode.Negative, PositionAffinity.Predecessor,
+                            textView.TextBuffer);
 
-                    return true;
+                        if (newCaretPoint != null)
+                        {
+                            textView.Caret.MoveTo(newCaretPoint.Value);
+                        }
+
+                        return true;
+                    }
                 }
             }
 
