@@ -9,6 +9,8 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Binder
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
+'Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FeatureExtensions
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
@@ -154,10 +156,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim defaultSyntax = parameterSyntax.[Default]
             If defaultSyntax Is Nothing Then
-                Return Nothing
+                If InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter.IsUnavailable Then
+                    Return Nothing
+                End If
             End If
 
-            Dim binder As Binder = BinderBuilder.CreateBinderForParameterDefaultValue(DirectCast(ContainingModule, SourceModuleSymbol),
+                Dim binder As Binder = BinderBuilder.CreateBinderForParameterDefaultValue(DirectCast(ContainingModule, SourceModuleSymbol),
                                                                                       _syntaxRef.SyntaxTree,
                                                                                       Me,
                                                                                       parameterSyntax)
