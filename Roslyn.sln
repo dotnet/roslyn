@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+# Visual Studio 15
+VisualStudioVersion = 15.0.25123.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CodeAnalysisTest", "src\Compilers\Core\CodeAnalysisTest\CodeAnalysisTest.csproj", "{A4C99B85-765C-4C65-9C2A-BB609AAB09E6}"
 EndProject
@@ -359,7 +359,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Moq.net", "src\Dependencies
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Composition", "src\Dependencies\Composition\Composition.csproj", "{A57DDFE5-AB0E-4371-98E5-11B9218DF11C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PerformanceTesting", "src\Test\PerformanceTesting.csproj", "{DA0D2A70-A2F9-4654-A99A-3227EDF54FF1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "src\Test\Tests.csproj", "{DA0D2A70-A2F9-4654-A99A-3227EDF54FF1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Roslyn", "src\Deployment\Roslyn.csproj", "{600AF682-E097-407B-AD85-EE3CED37E680}"
 EndProject
@@ -407,16 +407,16 @@ Global
 		src\ExpressionEvaluator\Core\Source\ResultProvider\ResultProvider.projitems*{fa0e905d-ec46-466d-b7b2-3b5557f9428c}*SharedItemsImports = 4
 		src\Compilers\Core\SharedCollections\SharedCollections.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
 		src\Compilers\Core\AnalyzerDriver\AnalyzerDriver.projitems*{1ee8cad3-55f9-4d91-96b2-084641da9a6c}*SharedItemsImports = 4
-		src\Compilers\Core\MSBuildTask\Shared\MSBuildTask.Shared.projitems*{7ad4fe65-9a30-41a6-8004-aa8f89bcb7f3}*SharedItemsImports = 4
 		src\Compilers\Core\CommandLine\CommandLine.projitems*{7ad4fe65-9a30-41a6-8004-aa8f89bcb7f3}*SharedItemsImports = 4
+		src\Compilers\Core\MSBuildTask\Shared\MSBuildTask.Shared.projitems*{7ad4fe65-9a30-41a6-8004-aa8f89bcb7f3}*SharedItemsImports = 4
 		src\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems*{3973b09a-4fbf-44a5-8359-3d22ceb71f71}*SharedItemsImports = 4
 		src\ExpressionEvaluator\Core\Source\ResultProvider\ResultProvider.projitems*{bedc5a4a-809e-4017-9cfd-6c8d4e1847f0}*SharedItemsImports = 4
 		src\Compilers\CSharp\CSharpAnalyzerDriver\CSharpAnalyzerDriver.projitems*{b501a547-c911-4a05-ac6e-274a50dff30e}*SharedItemsImports = 4
 		src\Compilers\VisualBasic\BasicAnalyzerDriver\BasicAnalyzerDriver.projitems*{2523d0e6-df32-4a3e-8ae0-a19bffae2ef6}*SharedItemsImports = 4
 		src\Compilers\Core\CommandLine\CommandLine.projitems*{4b45ca0c-03a0-400f-b454-3d4bcb16af38}*SharedItemsImports = 4
 		src\Compilers\Core\SharedCollections\SharedCollections.projitems*{c1930979-c824-496b-a630-70f5369a636f}*SharedItemsImports = 13
-		src\Compilers\Core\MSBuildTask\Shared\MSBuildTask.Shared.projitems*{d874349c-8bb3-4bdc-8535-2d52ccca1198}*SharedItemsImports = 4
 		src\Compilers\Core\CommandLine\CommandLine.projitems*{d874349c-8bb3-4bdc-8535-2d52ccca1198}*SharedItemsImports = 4
+		src\Compilers\Core\MSBuildTask\Shared\MSBuildTask.Shared.projitems*{d874349c-8bb3-4bdc-8535-2d52ccca1198}*SharedItemsImports = 4
 		src\Compilers\Core\CommandLine\CommandLine.projitems*{e3cd2895-76a8-4d11-a316-ea67cb5ea42c}*SharedItemsImports = 4
 	EndGlobalSection
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
