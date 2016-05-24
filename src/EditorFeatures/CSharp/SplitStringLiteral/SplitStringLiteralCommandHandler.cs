@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
@@ -40,28 +41,55 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 
             if (caret != null)
             {
-                var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-
-                if (document != null)
+                // Quick check.  If the line doesn't contain a quote in it before the caret,
+                // then no point in doing any more expensive synchronous work.
+                var line = subjectBuffer.CurrentSnapshot.GetLineFromPosition(caret.Value);
+                if (LineContainsQuote(line, caret.Value))
                 {
-                    var cursorPosition = SplitStringLiteralAsync(
-                        subjectBuffer, document, caret.Value.Position, CancellationToken.None).GetAwaiter().GetResult();
+                    return SplitString(textView, subjectBuffer, caret);
+                }
+            }
 
-                    if (cursorPosition != null)
+            return false;
+        }
+
+        private bool SplitString(ITextView textView, ITextBuffer subjectBuffer, SnapshotPoint? caret)
+        {
+            var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+
+            if (document != null)
+            {
+                var cursorPosition = SplitStringLiteralAsync(
+                    subjectBuffer, document, caret.Value.Position, CancellationToken.None).GetAwaiter().GetResult();
+
+                if (cursorPosition != null)
+                {
+                    var snapshotPoint = new SnapshotPoint(
+                        subjectBuffer.CurrentSnapshot, cursorPosition.Value);
+                    var newCaretPoint = textView.BufferGraph.MapUpToBuffer(
+                        snapshotPoint, PointTrackingMode.Negative, PositionAffinity.Predecessor,
+                        textView.TextBuffer);
+
+                    if (newCaretPoint != null)
                     {
-                        var snapshotPoint = new SnapshotPoint(
-                            subjectBuffer.CurrentSnapshot, cursorPosition.Value);
-                        var newCaretPoint = textView.BufferGraph.MapUpToBuffer(
-                            snapshotPoint, PointTrackingMode.Negative, PositionAffinity.Predecessor,
-                            textView.TextBuffer);
-
-                        if (newCaretPoint != null)
-                        {
-                            textView.Caret.MoveTo(newCaretPoint.Value);
-                        }
-
-                        return true;
+                        textView.Caret.MoveTo(newCaretPoint.Value);
                     }
+
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private bool LineContainsQuote(ITextSnapshotLine line, int caretPosition)
+        {
+            var snapshot = line.Snapshot;
+            for (int i = line.Start; i <= caretPosition; i++)
+            {
+                if (snapshot[i] == '"')
+                {
+                    return true;
                 }
             }
 
