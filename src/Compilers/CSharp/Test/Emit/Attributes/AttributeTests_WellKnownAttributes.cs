@@ -9,6 +9,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Runtime.InteropServices;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -414,6 +415,54 @@ class C
 
             // Verify attributes from source and then load metadata to see attributes are written correctly.
             CompileAndVerify(text, additionalRefs: new[] { SystemRef }, sourceSymbolValidator: attributeValidator);
+        }
+
+        [Fact]
+        [WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")]
+        public void DateTimeConstantAttribute()
+        {
+            #region "Source"
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+public class Bar
+{
+    public void Method([DateTimeConstant(-1)]DateTime p1) { }
+}
+";
+            #endregion
+
+            // The native C# compiler emits this:
+            // .param[1]
+            // .custom instance void[mscorlib] System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = (
+            //         01 00 ff ff ff ff ff ff ff ff 00 00
+            // )
+            Action<IModuleSymbol> verifier = (module) =>
+                {
+                    var bar = (NamedTypeSymbol)((ModuleSymbol)module).GlobalNamespace.GetMember("Bar");
+                    var method = (MethodSymbol)bar.GetMember("Method");
+                    var parameters = method.GetParameters();
+                    var theParameter = (PEParameterSymbol)parameters[0];
+                    var peModule = (PEModuleSymbol)module;
+
+                    Assert.Equal(ParameterAttributes.None, theParameter.Flags);
+
+                    // let's find the attribute in the PE metadata
+                    var attributeInfo = PEModule.FindTargetAttribute(peModule.Module.MetadataReader, theParameter.Handle, AttributeDescription.DateTimeConstantAttribute);
+                    Assert.True(attributeInfo.HasValue);
+
+                    long attributeValue;
+                    Assert.True(peModule.Module.TryExtractLongValueFromAttribute(attributeInfo.Handle, out attributeValue));
+                    Assert.Equal(-1L, attributeValue); // check the attribute is constructed with a -1
+
+                    // check .param has no value
+                    var constantHandle = peModule.Module.MetadataReader.GetParameter(theParameter.Handle).GetDefaultValue();
+                    Assert.True(constantHandle.IsNil);
+                };
+
+            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemRef }, symbolValidator: verifier);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -3176,7 +3225,7 @@ public class MainClass
 
             // the resulting code does not need to verify
             // This is consistent with Dev10 behavior
-            CompileAndVerify(source, options: TestOptions.ReleaseDll, verify:false, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator);
+            CompileAndVerify(source, options: TestOptions.ReleaseDll, verify: false, sourceSymbolValidator: sourceValidator, symbolValidator: metadataValidator);
         }
 
         [Fact, WorkItem(544507, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544507")]

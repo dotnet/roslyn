@@ -10,6 +10,7 @@ Imports System.Reflection.Metadata
 Imports System.Reflection.Metadata.Ecma335
 Imports System.Runtime.InteropServices
 Imports System.Text
+Imports Microsoft.CodeAnalysis
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class AttributeTests_WellKnownAttributes
@@ -431,6 +432,50 @@ End Class
 
             ' Verify attributes from source .
             CompileAndVerify(source, sourceSymbolValidator:=attributeValidator)
+        End Sub
+
+        <WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>
+        <Fact()>
+        Public Sub DateTimeConstantAttribute()
+            Dim source =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+
+Public Class Bar
+    Sub Method(<DateTimeConstant(-1)> p1 As DateTime)
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>
+
+            Dim symValidator As Action(Of ModuleSymbol) =
+                Sub(peModule)
+
+                    Dim bar = peModule.GlobalNamespace.GetMember(Of NamedTypeSymbol)("Bar")
+                    Dim method = bar.GetMember(Of MethodSymbol)("Method")
+                    Dim parameters = method.Parameters
+                    Dim theParameter = DirectCast(parameters(0), PEParameterSymbol)
+                    Dim peModuleSymbol = DirectCast(peModule, PEModuleSymbol)
+
+                    Assert.Equal(ParameterAttributes.None, theParameter.ParamFlags)
+
+                    ' let's find the attribute in the PE metadata
+                    Dim attributeInfo = CodeAnalysis.PEModule.FindTargetAttribute(peModuleSymbol.Module.MetadataReader, theParameter.Handle, AttributeDescription.DateTimeConstantAttribute)
+                    Assert.True(attributeInfo.HasValue)
+
+                    Dim attributeValue As Long
+                    Assert.True(peModuleSymbol.Module.TryExtractLongValueFromAttribute(attributeInfo.Handle, attributeValue))
+                    Assert.Equal(-1L, attributeValue)
+
+                    ' check .param has no value
+                    Dim constantHandle = peModuleSymbol.Module.MetadataReader.GetParameter(theParameter.Handle).GetDefaultValue()
+                    Assert.True(constantHandle.IsNil)
+                End Sub
+
+            CompileAndVerify(source, symbolValidator:=symValidator)
         End Sub
 
         <WorkItem(531121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/531121")>
