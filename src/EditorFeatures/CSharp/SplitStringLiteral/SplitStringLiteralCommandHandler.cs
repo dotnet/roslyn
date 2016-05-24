@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 {
@@ -58,13 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
             var sourceText = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
-            var token = root.FindToken(position);
-            if (position <= token.SpanStart || position >= token.Span.End)
-            {
-                return false;
-            }
-
-            var splitter = StringSplitter.Create(document, position, syntaxTree, root, sourceText, token, useTabs, tabSize, cancellationToken);
+            var splitter = StringSplitter.Create(document, position, syntaxTree, root, sourceText, useTabs, tabSize, cancellationToken);
             if (splitter == null)
             {
                 return false;
@@ -76,75 +71,88 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
         private abstract class StringSplitter
         {
             protected readonly Document Document;
-            protected readonly int Position;
+            protected readonly int CursorPosition;
             protected readonly SourceText SourceText;
             protected readonly SyntaxTree SyntaxTree;
             protected readonly SyntaxNode Root;
-            protected readonly SyntaxToken Token;
             protected readonly int TabSize;
             protected readonly bool UseTabs;
             protected readonly CancellationToken CancellationToken;
 
-            public StringSplitter(Document document, int position, SyntaxTree syntaxTree, SyntaxNode root, SourceText sourceText, SyntaxToken token, bool useTabs, int tabSize, CancellationToken cancellationToken)
+            public StringSplitter(Document document, int position, SyntaxTree syntaxTree, SyntaxNode root, SourceText sourceText, bool useTabs, int tabSize, CancellationToken cancellationToken)
             {
                 Document = document;
-                Position = position;
+                CursorPosition = position;
                 SyntaxTree = syntaxTree;
                 Root = root;
                 SourceText = sourceText;
-                Token = token;
                 UseTabs = useTabs;
                 TabSize = tabSize;
                 CancellationToken = cancellationToken;
             }
 
             public static StringSplitter Create(
-                Document document, int position, SyntaxTree syntaxTree, SyntaxNode root, SourceText sourceText, SyntaxToken token, bool useTabs, int tabSize, CancellationToken cancellationToken)
+                Document document, int position,
+                SyntaxTree syntaxTree, SyntaxNode root, SourceText sourceText, 
+                bool useTabs, int tabSize, CancellationToken cancellationToken)
             {
+                var token = root.FindToken(position);
+
                 if (token.IsKind(SyntaxKind.StringLiteralToken))
                 {
-                    return new SimpleStringSplitter(document, position, syntaxTree, root, sourceText, token, useTabs, tabSize, cancellationToken);
+                    return new SimpleStringSplitter(
+                        document, position, syntaxTree, root, 
+                        sourceText, token, useTabs, tabSize,
+                        cancellationToken);
                 }
-                else if (token.IsKind(SyntaxKind.InterpolatedStringTextToken))
+
+                var interpolatedStringExpression = TryGetInterpolatedStringExpression(token);
+                if (interpolatedStringExpression != null)
                 {
-                    return new InterpolatedStringSplitter(document, position, syntaxTree, root, sourceText, token, useTabs, tabSize, cancellationToken);
+                    return new InterpolatedStringSplitter(
+                        document, position, syntaxTree, root, 
+                        sourceText, interpolatedStringExpression,
+                        useTabs, tabSize, cancellationToken);
                 }
 
                 return null;
             }
 
-            public abstract Task<bool> TrySplitAsync();
-
-            protected int GetTokenStart(string tokenText)
+            private static InterpolatedStringExpressionSyntax TryGetInterpolatedStringExpression(SyntaxToken token)
             {
-                return tokenText[0] == '$' ? 2 : 1;
-            }
-        }
-
-        private class SimpleStringSplitter : StringSplitter
-        {
-            public SimpleStringSplitter(Document document, int position, SyntaxTree syntaxTree, SyntaxNode root, SourceText sourceText, SyntaxToken token, bool useTabs, int tabSize, CancellationToken cancellationToken)
-                : base(document, position, syntaxTree, root, sourceText, token, useTabs, tabSize, cancellationToken)
-            {
-            }
-
-            public override async Task<bool> TrySplitAsync()
-            {
-                if (Token.IsVerbatimStringLiteral())
+                if (token.IsKind(SyntaxKind.InterpolatedStringTextToken) || 
+                    token.IsKind(SyntaxKind.InterpolatedStringEndToken) ||
+                    IsInterpolationOpenBrace(token))
                 {
-                    // Don't split @"" strings.  They already support directly embedding newlines.
-                    return false;
+                    return token.GetAncestor<InterpolatedStringExpressionSyntax>();
                 }
 
-                var tokenQuoteLength = GetTokenStart(Token.Text);
-                var tokenStart = Token.SpanStart + tokenQuoteLength;
-                if (Position < tokenStart)
+                return null;
+            }
+
+            private static bool IsInterpolationOpenBrace(SyntaxToken token)
+            {
+                return token.Kind() == SyntaxKind.OpenBraceToken && token.Parent.IsKind(SyntaxKind.Interpolation);
+            }
+
+            protected abstract bool CheckToken();
+
+            protected abstract SyntaxNode GetNodeToReplace();
+
+            protected abstract BinaryExpressionSyntax CreateSplitString(string indentString);
+
+            public Task<bool> TrySplitAsync()
+            {
+                if (!CheckToken())
                 {
-                    return false;
+                    return SpecializedTasks.False;
                 }
 
-                // TODO(cyrusn): Should we not do anything when the string literal contains errors in it?
+                return TrySplitWorkerAsync();
+            }
 
+            private async Task<bool> TrySplitWorkerAsync()
+            {
                 var indentation = await DetermineIndentationAsync().ConfigureAwait(false);
                 if (indentation == null)
                 {
@@ -157,15 +165,19 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 workspace.TryApplyChanges(newDocument.Project.Solution);
 
                 return true;
-
             }
 
-            private async Task<int?> DetermineIndentationAsync()
+            protected int GetTokenStart(string tokenText)
+            {
+                return tokenText[0] == '$' ? 2 : 1;
+            }
+
+            protected async Task<int?> DetermineIndentationAsync()
             {
                 var newDocument = await SplitStringAsync(indentString: null).ConfigureAwait(false);
 
                 var indentationService = newDocument.GetLanguageService<IIndentationService>();
-                var currentLine = SourceText.Lines.GetLineFromPosition(Position);
+                var currentLine = SourceText.Lines.GetLineFromPosition(CursorPosition);
                 var indentation = await indentationService.GetDesiredIndentationAsync(
                     newDocument, currentLine.LineNumber + 1, CancellationToken).ConfigureAwait(false);
 
@@ -183,11 +195,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 return indent;
             }
 
+            protected static SyntaxToken GetPlusToken()
+            {
+                return SyntaxFactory.Token(SyntaxKind.PlusToken).WithTrailingTrivia(
+                                    SyntaxFactory.TriviaList(SyntaxFactory.ElasticCarriageReturnLineFeed));
+            }
+
             private async Task<Document> SplitStringAsync(string indentString)
             {
-                var parent = Token.Parent;
                 var splitString = CreateSplitString(indentString).WithAdditionalAnnotations(Formatter.Annotation);
-                var newRoot = Root.ReplaceNode(parent, splitString);
+                var newRoot = Root.ReplaceNode(GetNodeToReplace(), splitString);
 
                 var document1 = Document.WithSyntaxRoot(newRoot);
                 var document2 = await Formatter.FormatAsync(document1, cancellationToken: CancellationToken).ConfigureAwait(false);
@@ -195,40 +212,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 return document2;
             }
 
-            private SyntaxNode CreateSplitString(string indentString)
-            {
-                // TODO(cyrusn): Deal with the positoin being after a \ character
-                var prefix = SourceText.GetSubText(TextSpan.FromBounds(Token.SpanStart, Position)).ToString();
-                var suffix = SourceText.GetSubText(TextSpan.FromBounds(Position, Token.Span.End)).ToString();
-
-                var tokenStart = GetTokenStart(Token.Text);
-
-                var firstToken = SyntaxFactory.Token(
-                    Token.LeadingTrivia,
-                    Token.Kind(),
-                    text: prefix + '"',
-                    valueText: "",
-                    trailing: SyntaxFactory.TriviaList(SyntaxFactory.ElasticSpace));
-
-                var plusToken = SyntaxFactory.Token(SyntaxKind.PlusToken).WithTrailingTrivia(
-                    SyntaxFactory.TriviaList(SyntaxFactory.ElasticCarriageReturnLineFeed));
-
-                var secondToken = SyntaxFactory.Token(
-                    GetSecondTokenLeadingTrivia(indentString),
-                    Token.Kind(),
-                    text: Token.Text.Substring(0, tokenStart) + suffix,
-                    valueText: "",
-                    trailing: Token.TrailingTrivia);
-
-                var firstExpression = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, firstToken);
-                var secondExpression = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, secondToken);
-
-                return SyntaxFactory.BinaryExpression(
-                    SyntaxKind.AddExpression,
-                    firstExpression, plusToken, secondExpression);
-            }
-
-            private static SyntaxTriviaList GetSecondTokenLeadingTrivia(string indentString)
+            protected static SyntaxTriviaList GetLeadingIndentationTrivia(string indentString)
             {
                 return indentString == null
                     ? default(SyntaxTriviaList)
@@ -236,24 +220,162 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             }
         }
 
-        private class InterpolatedStringSplitter : StringSplitter
+        private class SimpleStringSplitter : StringSplitter
         {
-            public InterpolatedStringSplitter(Document document, int position, SyntaxTree syntaxTree, SyntaxNode root, SourceText sourceText, SyntaxToken token, bool useTabs, int tabSize, CancellationToken cancellationToken) : base(document, position, syntaxTree, root, sourceText, token, useTabs, tabSize, cancellationToken)
+            private readonly SyntaxToken _token;
+
+            public SimpleStringSplitter(Document document, int position, SyntaxTree syntaxTree, SyntaxNode root, SourceText sourceText, SyntaxToken token, bool useTabs, int tabSize, CancellationToken cancellationToken)
+                : base(document, position, syntaxTree, root, sourceText, useTabs, tabSize, cancellationToken)
             {
+                _token = token;
             }
 
-            public override async Task<bool> TrySplitAsync()
+            protected override bool CheckToken()
             {
-                var interpolatedString = (InterpolatedStringExpressionSyntax)Token.Parent;
-                if (interpolatedString.StringStartToken.Kind() == SyntaxKind.InterpolatedVerbatimStringStartToken)
+                if (CursorPosition <= _token.SpanStart || CursorPosition >= _token.Span.End)
+                {
+                    return false;
+                }
+
+                if (_token.IsVerbatimStringLiteral())
+                {
+                    // Don't split @"" strings.  They already support directly embedding newlines.
+                    return false;
+                }
+
+                var tokenQuoteLength = GetTokenStart(_token.Text);
+                var tokenStart = _token.SpanStart + tokenQuoteLength;
+                if (CursorPosition < tokenStart)
+                {
+                    return false;
+                }
+
+                return true;
+            }
+
+            protected override SyntaxNode GetNodeToReplace() => _token.Parent;
+
+            protected override BinaryExpressionSyntax CreateSplitString(string indentString)
+            {
+                // TODO(cyrusn): Deal with the positoin being after a \ character
+                var prefix = SourceText.GetSubText(TextSpan.FromBounds(_token.SpanStart, CursorPosition)).ToString();
+                var suffix = SourceText.GetSubText(TextSpan.FromBounds(CursorPosition, _token.Span.End)).ToString();
+
+                var tokenStart = GetTokenStart(_token.Text);
+
+                var firstToken = SyntaxFactory.Token(
+                    _token.LeadingTrivia,
+                    _token.Kind(),
+                    text: prefix + '"',
+                    valueText: "",
+                    trailing: SyntaxFactory.TriviaList(SyntaxFactory.ElasticSpace));
+
+                var secondToken = SyntaxFactory.Token(
+                    GetLeadingIndentationTrivia(indentString),
+                    _token.Kind(),
+                    text: _token.Text.Substring(0, tokenStart) + suffix,
+                    valueText: "",
+                    trailing: _token.TrailingTrivia);
+
+                var leftExpression = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, firstToken);
+                var rightExpression = SyntaxFactory.LiteralExpression(SyntaxKind.StringLiteralExpression, secondToken);
+
+                return SyntaxFactory.BinaryExpression(
+                    SyntaxKind.AddExpression,
+                    leftExpression, GetPlusToken(), rightExpression);
+            }
+        }
+
+        private class InterpolatedStringSplitter : StringSplitter
+        {
+            private readonly InterpolatedStringExpressionSyntax _interpolatedStringExpression;
+
+            public InterpolatedStringSplitter(
+                Document document, int position,
+                SyntaxTree syntaxTree, SyntaxNode root, SourceText sourceText,
+                InterpolatedStringExpressionSyntax interpolatedStringExpression,
+                bool useTabs, int tabSize, CancellationToken cancellationToken) 
+                : base(document, position, syntaxTree, root, sourceText, useTabs, tabSize, cancellationToken)
+            {
+                _interpolatedStringExpression = interpolatedStringExpression;
+            }
+
+            protected override SyntaxNode GetNodeToReplace() => _interpolatedStringExpression;
+
+            protected override bool CheckToken()
+            {
+                if (_interpolatedStringExpression.StringStartToken.Kind() == SyntaxKind.InterpolatedVerbatimStringStartToken)
                 {
                     // Don't offer on $@"" strings.  They support newlines directly in their content.
                     return false;
                 }
 
+                return true;
+            }
 
+            protected override BinaryExpressionSyntax CreateSplitString(string indentString)
+            {
+                // var v = $" a b c { expr2 } e f g h { expr2 } i j k"
+                //
+                // var v = $" a b c { expr1 } e f " +
+                //     $"g h { expr2 } i j k"
+
+                var contents = _interpolatedStringExpression.Contents.ToList();
+
+                var beforeSplitContents = new List<InterpolatedStringContentSyntax>();
+                var afterSplitContents = new List<InterpolatedStringContentSyntax>();
+
+                foreach (var content in contents)
+                {
+                    if (content.Span.End <= CursorPosition)
+                    {
+                        // Content is entirely before the cursor.  Nothing needs to be done to it.
+                        beforeSplitContents.Add(content);
+                    }
+                    else if (content.Span.Start >= CursorPosition)
+                    {
+                        // Content is entirely after the cursor.  Nothing needs to be done to it.
+                        afterSplitContents.Add(content);
+                    }
+                    else
+                    {
+                        // Content crosses the cursor.  Need to split it.
+                        beforeSplitContents.Add(CreateInterpolatedStringText(content.SpanStart, CursorPosition));
+                        afterSplitContents.Insert(0, CreateInterpolatedStringText(CursorPosition, content.Span.End));
+                    }
+                }
+
+                var leftExpression = SyntaxFactory.InterpolatedStringExpression(
+                    _interpolatedStringExpression.StringStartToken,
+                    SyntaxFactory.List(beforeSplitContents),
+                    SyntaxFactory.Token(SyntaxKind.InterpolatedStringEndToken));
+
+                var rightExpressionFirstToken = SyntaxFactory.Token(
+                    GetLeadingIndentationTrivia(indentString),
+                    SyntaxKind.InterpolatedStringStartToken,
+                    trailing: default(SyntaxTriviaList));
+
+                var rightExpression = SyntaxFactory.InterpolatedStringExpression(
+                    rightExpressionFirstToken,
+                    SyntaxFactory.List(afterSplitContents),
+                    _interpolatedStringExpression.StringEndToken);
+
+                return SyntaxFactory.BinaryExpression(
+                    SyntaxKind.AddExpression,
+                    leftExpression, GetPlusToken(), rightExpression);
+            }
+
+            private InterpolatedStringTextSyntax CreateInterpolatedStringText(int start, int end)
+            {
+                var content = SourceText.ToString(TextSpan.FromBounds(start, end));
+                return SyntaxFactory.InterpolatedStringText(
+                    SyntaxFactory.Token(
+                        leading: default(SyntaxTriviaList),
+                        kind: SyntaxKind.InterpolatedStringTextToken,
+                        text: content,
+                        valueText: "",
+                        trailing: default(SyntaxTriviaList)));
             }
         }
-
     }
 }
