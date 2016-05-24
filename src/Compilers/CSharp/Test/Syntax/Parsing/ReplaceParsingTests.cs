@@ -4,15 +4,15 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
+using Roslyn.Test.Utilities;
 using System.Linq;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     [CompilerTrait(CompilerFeature.SourceGenerators)]
-    public class ReplaceParsingTests:  CSharpTestBase
+    public class ReplaceParsingTests : CSharpTestBase
     {
-        
         [Fact]
         public void ReplaceClass()
         {
@@ -23,7 +23,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 type.Modifiers.ToDeclarationModifiers(),
                 DeclarationModifiers.Abstract | DeclarationModifiers.Override | DeclarationModifiers.Replace);
         }
-
         
         [Fact]
         public void ReplaceMethod()
@@ -39,7 +38,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 method.Modifiers.ToDeclarationModifiers(),
                 DeclarationModifiers.Virtual | DeclarationModifiers.Protected | DeclarationModifiers.Replace);
         }
-
         
         [Fact]
         public void ReplaceMethodNoFeature()
@@ -52,7 +50,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             );
         }
 
-        
         [Fact]
         public void OriginalExpression()
         {
@@ -63,7 +60,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var opKind = SyntaxFacts.GetInstanceExpression(SyntaxKind.OriginalKeyword);
             Assert.Equal(SyntaxKind.None, opKind);
         }
-
         
         [Fact]
         public void OriginalNoReplace()
@@ -76,7 +72,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             OriginalInMember("class C { object P => original; }", inReplace: false);
             OriginalInMember("class C { object this[int index] => original[index]; }", inReplace: false);
         }
-
         
         [Fact]
         public void OriginalInReplace()
@@ -99,6 +94,14 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var expr = token.Parent;
             var expectedKind = inReplace ? SyntaxKind.OriginalExpression : SyntaxKind.IdentifierName;
             Assert.Equal(expectedKind, expr.Kind());
+        }
+
+        [Fact]
+        [WorkItem(11503, "https://github.com/dotnet/roslyn/issues/11503")]
+        public void MethodCalledReplace()
+        {
+            var root = SyntaxFactory.ParseCompilationUnit("class C { public static object replace() { } }", options: TestOptions.Regular.WithReplaceFeature());
+            root.Errors().Verify();
         }
     }
 }
