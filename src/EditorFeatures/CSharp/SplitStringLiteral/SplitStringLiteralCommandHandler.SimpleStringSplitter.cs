@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 
             protected override SyntaxNode GetNodeToReplace() => _token.Parent;
 
-            protected override BinaryExpressionSyntax CreateSplitString(string indentString)
+            protected override BinaryExpressionSyntax CreateSplitString()
             {
                 // TODO(cyrusn): Deal with the positoin being after a \ character
                 var prefix = SourceText.GetSubText(TextSpan.FromBounds(_token.SpanStart, CursorPosition)).ToString();
@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                     trailing: SyntaxFactory.TriviaList(SyntaxFactory.ElasticSpace));
 
                 var secondToken = SyntaxFactory.Token(
-                    GetLeadingIndentationTrivia(indentString),
+                    default(SyntaxTriviaList),
                     _token.Kind(),
                     text: QuoteCharacter + suffix,
                     valueText: "",

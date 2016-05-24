@@ -36,13 +36,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 return true;
             }
 
-            protected override BinaryExpressionSyntax CreateSplitString(string indentString)
+            protected override BinaryExpressionSyntax CreateSplitString()
             {
-                // var v = $" a b c { expr2 } e f g h { expr2 } i j k"
-                //
-                // var v = $" a b c { expr1 } e f " +
-                //     $"g h { expr2 } i j k"
-
                 var contents = _interpolatedStringExpression.Contents.ToList();
 
                 var beforeSplitContents = new List<InterpolatedStringContentSyntax>();
@@ -74,13 +69,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                     SyntaxFactory.Token(SyntaxKind.InterpolatedStringEndToken)
                                  .WithTrailingTrivia(SyntaxFactory.ElasticSpace));
 
-                var rightExpressionFirstToken = SyntaxFactory.Token(
-                    GetLeadingIndentationTrivia(indentString),
-                    SyntaxKind.InterpolatedStringStartToken,
-                    trailing: default(SyntaxTriviaList));
 
                 var rightExpression = SyntaxFactory.InterpolatedStringExpression(
-                    rightExpressionFirstToken,
+                    SyntaxFactory.Token(SyntaxKind.InterpolatedStringStartToken),
                     SyntaxFactory.List(afterSplitContents),
                     _interpolatedStringExpression.StringEndToken);
 

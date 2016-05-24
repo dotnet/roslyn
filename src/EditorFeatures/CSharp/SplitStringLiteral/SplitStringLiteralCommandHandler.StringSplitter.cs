@@ -90,7 +90,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 
             protected abstract SyntaxNode GetNodeToReplace();
 
-            protected abstract BinaryExpressionSyntax CreateSplitString(string indentString);
+            protected abstract BinaryExpressionSyntax CreateSplitString();
 
             public async Task<int?> TrySplitAsync()
             {
@@ -104,15 +104,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 
             private async Task<int?> TrySplitWorkerAsync()
             {
-                var indentation = await DetermineIndentationAsync().ConfigureAwait(false);
-                if (indentation == null)
+                var newDocumentAndCaretPosition = await SplitStringAsync().ConfigureAwait(false);
+                if (newDocumentAndCaretPosition == null)
                 {
                     return null;
                 }
 
-                var indentString = indentation.Value.CreateIndentationString(UseTabs, TabSize);
-
-                var newDocumentAndCaretPosition = SplitString(indentString);
                 var newDocument = newDocumentAndCaretPosition.Item1;
                 var finalCaretPosition = newDocumentAndCaretPosition.Item2;
 
@@ -120,30 +117,6 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                 workspace.TryApplyChanges(newDocument.Project.Solution);
 
                 return finalCaretPosition;
-            }
-
-            protected async Task<int?> DetermineIndentationAsync()
-            {
-                var newDocumentAndCaretPosition = SplitString(indentString: null);
-                var newDocument = newDocumentAndCaretPosition.Item1;
-
-                var indentationService = newDocument.GetLanguageService<IIndentationService>();
-                var currentLine = SourceText.Lines.GetLineFromPosition(CursorPosition);
-                var indentation = await indentationService.GetDesiredIndentationAsync(
-                    newDocument, currentLine.LineNumber + 1, CancellationToken).ConfigureAwait(false);
-
-                if (indentation == null)
-                {
-                    return null;
-                }
-
-                var newSourceText = await newDocument.GetTextAsync(CancellationToken).ConfigureAwait(false);
-                var baseLine = newSourceText.Lines.GetLineFromPosition(indentation.Value.BasePosition);
-                var baseOffsetInLine = indentation.Value.BasePosition - baseLine.Start;
-
-                var indent = baseOffsetInLine + indentation.Value.Offset;
-
-                return indent;
             }
 
             protected static SyntaxToken GetPlusToken()
@@ -154,22 +127,48 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
                     SyntaxFactory.TriviaList(SyntaxFactory.ElasticCarriageReturnLineFeed));
             }
 
-            private Tuple<Document, int> SplitString(string indentString)
+            private async Task<Tuple<Document, int>> SplitStringAsync()
             {
-                var splitString = CreateSplitString(indentString);
+                var splitString = CreateSplitString();
 
-                var newRoot = Root.ReplaceNode(GetNodeToReplace(), splitString);
+                var nodeToReplace = GetNodeToReplace();
+                var newRoot = Root.ReplaceNode(nodeToReplace, splitString);
                 var rightExpression = newRoot.GetAnnotatedNodes(RightNodeAnnotation).Single();
 
-                var newDocument = Document.WithSyntaxRoot(newRoot);
-                return Tuple.Create(newDocument, rightExpression.Span.Start + StringOpenQuoteLength());
+                var indentString = await GetIndentStringAsync(newRoot).ConfigureAwait(false);
+                if (indentString == null)
+                {
+                    return null;
+                }
+
+                var newRightExpression = rightExpression.WithLeadingTrivia(SyntaxFactory.ElasticWhitespace(indentString));
+                var newRoot2 = newRoot.ReplaceNode(rightExpression, newRightExpression);
+                var newDocument2 = Document.WithSyntaxRoot(newRoot2);
+
+                return Tuple.Create(newDocument2, rightExpression.Span.Start + indentString.Length + StringOpenQuoteLength());
             }
 
-            protected static SyntaxTriviaList GetLeadingIndentationTrivia(string indentString)
+            private async Task<string> GetIndentStringAsync(SyntaxNode newRoot)
             {
-                return indentString == null
-                    ? default(SyntaxTriviaList)
-                    : SyntaxFactory.TriviaList(SyntaxFactory.Whitespace(indentString));
+                var newDocument = Document.WithSyntaxRoot(newRoot);
+
+                var indentationService = newDocument.GetLanguageService<IIndentationService>();
+                var originalLineNumber = SourceText.Lines.GetLineFromPosition(CursorPosition).LineNumber;
+                var desiredIndentation = await indentationService.GetDesiredIndentationAsync(
+                    newDocument, originalLineNumber + 1, CancellationToken).ConfigureAwait(false);
+
+                if (desiredIndentation == null)
+                {
+                    return null;
+                }
+
+                var newSourceText = await newDocument.GetTextAsync(CancellationToken).ConfigureAwait(false);
+                var baseLine = newSourceText.Lines.GetLineFromPosition(desiredIndentation.Value.BasePosition);
+                var baseOffsetInLine = desiredIndentation.Value.BasePosition - baseLine.Start;
+
+                var indent = baseOffsetInLine + desiredIndentation.Value.Offset;
+                var indentString = indent.CreateIndentationString(UseTabs, TabSize);
+                return indentString;
             }
         }
     }
