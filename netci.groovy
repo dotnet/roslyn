@@ -42,9 +42,21 @@ static String generateTriggerPhrase(String jobName, String opsysName, String tri
 }
 
 static void addRoslynJob(def myJob, String jobName, String branchName, Boolean isPr, String triggerPhraseExtra, Boolean triggerPhraseOnly = false) {
-  def includePattern = "Binaries/**/*.pdb,Binaries/**/*.xml,Binaries/**/*.log,Binaries/**/*.dmp,Binaries/**/*.zip,Binaries/**/*.png,Binaries/**/*.xml"
-  def excludePattern = "Binaries/Obj/**,Binaries/Bootstrap/**,Binaries/**/nuget*.zip"
-  Utilities.addArchival(myJob, includePattern, excludePattern)
+  def archiveSettings = new ArchivalSettings()
+  archiveSettings.addFiles('Binaries/**/*.pdb')
+  archiveSettings.addFiles('Binaries/**/*.xml')
+  archiveSettings.addFiles('Binaries/**/*.log')
+  archiveSettings.addFiles('Binaries/**/*.dmp')
+  archiveSettings.addFiles('Binaries/**/*.zip')
+  archiveSettings.addFiles('Binaries/**/*.png')
+  archiveSettings.addFiles('Binaries/**/*.xml')
+  archiveSettings.excludeFiles('Binaries/Obj/**')
+  archiveSettings.excludeFiles('Binaries/Bootstrap/**')
+  archiveSettings.excludeFiles('Binaries/**/nuget*.zip')
+  // Only archive if failed/aborted
+  archiveSettings.setArchiveOnFailure()
+  archiveSettings.setFailIfNothingArchived()
+  Utilities.addArchival(myJob, archiveSettings)
 
   // Create the standard job.  This will setup parameter, SCM, timeout, etc ...
   def projectName = 'dotnet/roslyn'
