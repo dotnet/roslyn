@@ -545,7 +545,7 @@ C.Method() -> void
 public class C
 {
     // ok - single overload with optional params, 2 overloads have no public API entries.
-    public void Method1(int p1, int p2, int p1 = 0) { }
+    public void Method1(int p1, int p2, int p3 = 0) { }
     public void Method1() { }
     public void Method1(int p1, int p2) { }
     public void Method1(char p1, params int[] p2) { }
@@ -618,14 +618,14 @@ C.Method6<T>(int p1 = 0) -> T
 public class C
 {
     // ok - single overload with optional params has most parameters.
-    public void Method1(int p1, int p2, int p1 = 0) { }
+    public void Method1(int p1, int p2, int p3 = 0) { }
     public void Method1() { }
     public void Method1(int p1, int p2) { }
     public void Method1(char p1, params int[] p2) { }
 
     // ok - multiple overloads with optional params violating most params requirement, but only one is public.
     public void Method2(int p1 = 0) { }
-    internal void Method2(int p1, char p1 = '0') { }
+    internal void Method2(int p1, char p2 = '0') { }
     private void Method2(string p1 = null) { }
 
     // ok - multiple overloads with optional params violating most params requirement, but all are shipped.
@@ -665,7 +665,7 @@ C.C() -> void
 C.Method1() -> void
 C.Method1(char p1, params int[] p2) -> void
 C.Method1(int p1, int p2) -> void
-C.Method1(int p1, int p2, int p1 = 0) -> void
+C.Method1(int p1, int p2, int p3 = 0) -> void
 C.Method2(int p1 = 0) -> void
 C.Method4(char p1, int p2) -> void
 C.Method4(int p1 = 0) -> void
@@ -905,7 +905,7 @@ public class C
     private C() { }
     public CC<int> Field;
     private C3.C4 Field2;
-    private C3.C4 Method(C3.C4 p1) { }
+    private C3.C4 Method(C3.C4 p1) { throw new System.NotImplementedException(); }
 
     public class CC<T>
     {

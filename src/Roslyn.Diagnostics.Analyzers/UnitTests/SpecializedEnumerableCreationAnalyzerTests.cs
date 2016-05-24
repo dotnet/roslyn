@@ -208,7 +208,7 @@ Imports System.Collections.Generic
 
 Class C
     Function M1() As IEnumerable(Of Integer)
-        Return New Integer(1) {1}
+        Return New Integer(0) {1}
     End Function
     Function M2() As IEnumerable(Of Integer)
         Return {1}
@@ -267,7 +267,7 @@ Imports System.Collections.Generic
 
 Class C
     Function M1() As IEnumerable(Of Integer)
-        Return New Integer(2) {1, 2}
+        Return New Integer(1) {1, 2}
     End Function
     Function M2() As IEnumerable(Of Integer)
         Return {1, 2}
