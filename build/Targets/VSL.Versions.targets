@@ -77,9 +77,7 @@
 
   <!-- NuGet version -->
   <PropertyGroup>
-    <!-- Only set when building RTM with no dependencies on pre-release packages
     <NuGetReleaseVersion>$(RoslynSemanticVersion)</NuGetReleaseVersion>
-    -->
     <NuGetPreReleaseVersion>$(RoslynSemanticVersion)-beta3</NuGetPreReleaseVersion>
     <NuGetPerBuildPreReleaseVersion>$(NuGetPreReleaseVersion)-$(BuildNumberPart1.Trim())-$(BuildNumberPart2.Trim())</NuGetPerBuildPreReleaseVersion>
 

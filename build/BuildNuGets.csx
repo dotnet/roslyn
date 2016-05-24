@@ -3,9 +3,10 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.CompilerServices;
-using System.Linq;
+using System.Text;
 using System.Xml.Linq;
 
 string usage = @"usage: BuildNuGets.csx <binaries-dir> <build-version> <output-directory>";
@@ -27,6 +28,7 @@ string ScriptRoot([CallerFilePath]string path = "") => Path.GetDirectoryName(pat
 // utilities will consider the '\"' as an escape sequence for the end quote
 var BinDir = Path.GetFullPath(Args[0]).TrimEnd('\\');
 var BuildVersion = Args[1].Trim();
+var BuildingReleaseNugets = IsReleaseVersion(BuildVersion);
 var NuspecDirPath = Path.Combine(SolutionRoot, "src/NuGet");
 var OutDir = Path.GetFullPath(Args[2]).TrimEnd('\\');
 
@@ -115,6 +117,7 @@ var PreReleaseOnlyPackages = new HashSet<string>
     "Microsoft.CodeAnalysis.VisualBasic.Scripting",
     "Microsoft.Net.Compilers.netcore",
     "Microsoft.Net.CSharp.Interactive.netcore",
+    "Microsoft.CodeAnalysis.Test.Resources.Proprietary",
 };
 
 // Create an empty directory to be used in NuGet pack
@@ -122,11 +125,10 @@ var emptyDir = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
 var dirInfo = Directory.CreateDirectory(emptyDir);
 File.Create(Path.Combine(emptyDir, "_._")).Close();
 
-int PackFiles(string[] packageNames, string licenseUrl)
+int PackFiles(string[] nuspecFiles, string licenseUrl)
 {
     int exit = 0;
-
-    foreach (var file in packageNames.Select(f => Path.Combine(NuspecDirPath, f + ".nuspec")))
+    foreach (var file in nuspecFiles)
     {
         var nugetArgs = $@"pack {file} " +
             $"-BasePath \"{BinDir}\" " +
@@ -168,16 +170,22 @@ XElement MakePackageElement(string packageName, string version)
     return new XElement("package", new XAttribute("id", packageName), new XAttribute("version", version));
 }
 
-IEnumerable<XElement> MakeRoslynPackageElements(bool isRelease)
+string[] GetRoslynPackageNames()
 {
-    var packageNames = RedistPackageNames.Concat(NonRedistPackageNames);
+    var packageNames = RedistPackageNames.Concat(NonRedistPackageNames).Concat(TestPackageNames);
 
-    if (isRelease)
+    if (BuildingReleaseNugets)
     {
         packageNames = packageNames.Where(pn => !PreReleaseOnlyPackages.Contains(pn));
     }
 
-    return packageNames.Select(packageName => MakePackageElement(packageName, BuildVersion));
+    return packageNames.ToArray();
+}
+
+IEnumerable<XElement> MakeRoslynPackageElements(out string[] roslynPackageNames)
+{
+    roslynPackageNames = GetRoslynPackageNames();
+    return roslynPackageNames.Select(packageName => MakePackageElement(packageName, BuildVersion));
 }
 
 void GeneratePublishingConfig(string fileName, IEnumerable<XElement> packages)
@@ -187,44 +195,116 @@ void GeneratePublishingConfig(string fileName, IEnumerable<XElement> packages)
 }
 
 // Currently we publish some of the Roslyn dependencies. Remove this once they are moved to a separate repo.
-IEnumerable<XElement> MakePackageElementsForPublishedDependencies(bool isRelease)
+IEnumerable<XElement> MakePackageElementsForPublishedDependencies()
 {
-    if (MicrosoftDiaSymReaderVersion != null && isRelease == IsReleaseVersion(MicrosoftDiaSymReaderVersion))
+    if (MicrosoftDiaSymReaderVersion != null && BuildingReleaseNugets == IsReleaseVersion(MicrosoftDiaSymReaderVersion))
     {
         yield return MakePackageElement("Microsoft.DiaSymReader", MicrosoftDiaSymReaderVersion);
     }
 
-    if (MicrosoftDiaSymReaderPortablePdbVersion != null && isRelease == IsReleaseVersion(MicrosoftDiaSymReaderPortablePdbVersion))
+    if (MicrosoftDiaSymReaderPortablePdbVersion != null && BuildingReleaseNugets == IsReleaseVersion(MicrosoftDiaSymReaderPortablePdbVersion))
     {
         yield return MakePackageElement("Microsoft.DiaSymReader.PortablePdb", MicrosoftDiaSymReaderPortablePdbVersion);
     }
 }
 
-void GeneratePublishingConfig()
+void GeneratePublishingConfig(out string[] roslynPackageNames)
 {
-    if (IsReleaseVersion(BuildVersion))
+    var packages = MakeRoslynPackageElements(out roslynPackageNames).Concat(MakePackageElementsForPublishedDependencies());
+    if (BuildingReleaseNugets)
     {
         // nuget:
-        var packages = MakeRoslynPackageElements(isRelease: true).Concat(MakePackageElementsForPublishedDependencies(isRelease: true));
         GeneratePublishingConfig("nuget_org-packages.config", packages);
     }
     else
     {
         // myget:
-        var packages = MakeRoslynPackageElements(isRelease: false).Concat(MakePackageElementsForPublishedDependencies(isRelease: false));
         GeneratePublishingConfig("myget_org-packages.config", packages);
     }
 }
 
 bool IsReleaseVersion(string version) => !version.Contains('-');
 
+bool IsPreReleaseDependency(string dependencyName, string dependencyVersion, List<string> warnings, string nuspecFile = null)
+{
+    if (!string.IsNullOrWhiteSpace(dependencyName) && !string.IsNullOrWhiteSpace(dependencyVersion) && !IsReleaseVersion(dependencyVersion))
+    {
+        var message = $"warning: Detected dependency on prerelease version {dependencyVersion} of {dependencyName}";
+        if (nuspecFile == null)
+        {
+            warnings.Add(message);
+        }
+        else
+        {
+            warnings.Add($"{nuspecFile}: {message}");
+        }
+
+        return true;
+    }
+
+    return false;
+}
+
+XName NuspecDependencyElementName = (XNamespace)@"http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd" + "dependency";
+bool HasPreReleaseDependencies(string nuspecFile, List<string> warnings)
+{
+    var hasPreReleaseDependencies = false;
+    var nuspecDocument = XDocument.Load(nuspecFile);
+    foreach (var dependency in nuspecDocument.Descendants(NuspecDependencyElementName))
+    {
+        if (IsPreReleaseDependency(dependency.Attribute("id").Value, dependency.Attribute("version").Value, warnings, nuspecFile))
+        {
+            hasPreReleaseDependencies = true;
+        }
+    }
+
+    return hasPreReleaseDependencies;
+}
+
+bool HasPreReleaseDependencies(string[] nuspecFiles, out List<string> warnings)
+{
+    warnings = new List<string>();
+    var hasPreReleaseDependencies = false;
+    if (IsPreReleaseDependency("System.Collections.Immutable", SystemCollectionsImmutableVersion, warnings) ||
+        IsPreReleaseDependency("System.Reflection.Metadata", SystemReflectionMetadataVersion, warnings) ||
+        IsPreReleaseDependency("Microsoft.CodeAnalysis.Analyzers", CodeAnalysisAnalyzersVersion, warnings) ||
+        IsPreReleaseDependency("Microsoft.DiaSymReader", MicrosoftDiaSymReaderVersion, warnings) ||
+        IsPreReleaseDependency("Microsoft.DiaSymReader.PortablePdb", MicrosoftDiaSymReaderPortablePdbVersion, warnings))
+    {
+        hasPreReleaseDependencies = true;
+    }
+
+    foreach (var nuspecFile in nuspecFiles)
+    {
+        if (HasPreReleaseDependencies(nuspecFile, warnings))
+        {
+            hasPreReleaseDependencies = true;
+        }
+    }
+
+    return hasPreReleaseDependencies;
+}
+
 Directory.CreateDirectory(OutDir);
 
-GeneratePublishingConfig();
+string[] roslynPackageNames;
+GeneratePublishingConfig(out roslynPackageNames);
 
-int exit = PackFiles(RedistPackageNames, LicenseUrlRedist);
-if (exit == 0) exit = PackFiles(NonRedistPackageNames, LicenseUrlNonRedist);
-if (exit == 0) exit = PackFiles(TestPackageNames, LicenseUrlTest);
+string[] roslynNuspecFiles = roslynPackageNames.Select(f => Path.Combine(NuspecDirPath, f + ".nuspec")).ToArray();
+if (BuildingReleaseNugets)
+{
+    List<string> warnings;
+    if (HasPreReleaseDependencies(roslynNuspecFiles, out warnings))
+    {
+        // If we are building release nugets and if any packages have dependencies on prerelease packages
+        // then print a warning and skip building release nugets.
+        Console.WriteLine("warning: Skipping generation of release nugets since prerelease dependencies were detected");
+        File.WriteAllLines(Path.Combine(OutDir, "warnings.log"), warnings);
+        Environment.Exit(0);
+    }
+}
+
+int exit = PackFiles(roslynNuspecFiles, LicenseUrlRedist);
 
 try
 {
