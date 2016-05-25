@@ -1,4 +1,5 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+using System;
 using System.Linq;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -12,9 +13,9 @@ using Roslyn.Test.Performance.Runner;
 
 namespace Runner
 {
-    class Program
+    public static class Program
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             AsyncMain(args).GetAwaiter().GetResult();
 
@@ -31,7 +32,7 @@ namespace Runner
             }
         }
 
-        static async Task AsyncMain(string[] args)
+        private static async Task AsyncMain(string[] args)
         {
 
             RuntimeSettings.isRunnerAttached = true;

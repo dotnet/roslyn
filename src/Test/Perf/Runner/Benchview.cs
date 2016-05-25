@@ -1,4 +1,5 @@
-﻿using Roslyn.Test.Performance.Utilities;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+using Roslyn.Test.Performance.Utilities;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,10 +9,10 @@ using static Roslyn.Test.Performance.Runner.Tools;
 
 namespace Roslyn.Test.Performance.Runner
 {
-    public class Benchview 
+    public static class Benchview 
     {
         public static readonly string CPCDirectoryPath = Environment.ExpandEnvironmentVariables(@"%SYSTEMDRIVE%\CPC");
-        private const string BenchviewPath = @"\\vcbench-srv4\benchview\uploads\vibench";
+        private const string s_BenchviewPath = @"\\vcbench-srv4\benchview\uploads\vibench";
 
         public static void UploadBenchviewReport()
         {
@@ -25,7 +26,7 @@ namespace Roslyn.Test.Performance.Runner
                 string jsonFileName = Path.GetFileName(elapsedTimeViBenchJsonFilePath);
 
                 Log("Copying the json file to the share");
-                File.Copy(elapsedTimeViBenchJsonFilePath, Path.Combine(BenchviewPath, jsonFileName));
+                File.Copy(elapsedTimeViBenchJsonFilePath, Path.Combine(s_BenchviewPath, jsonFileName));
                 Log("Done Copying");
             }
             else
@@ -36,7 +37,7 @@ namespace Roslyn.Test.Performance.Runner
 
         /// Takes a consumptionTempResults file and converts to csv file
         /// Each info contains the {ScenarioName, Metric Key, Metric value}
-        static bool ConvertConsumptionToCsv(string source, string destination, string requiredMetricKey)
+        private static bool ConvertConsumptionToCsv(string source, string destination, string requiredMetricKey)
         {
             Log("Entering ConvertConsumptionToCsv");
             if (!File.Exists(source))
@@ -95,7 +96,7 @@ namespace Roslyn.Test.Performance.Runner
         }
 
         /// Gets a csv file with metrics and converts them to ViBench supported JSON file
-        static string GetViBenchJsonFromCsv(string compilerTimeCsvFilePath, string execTimeCsvFilePath, string fileSizeCsvFilePath)
+        private static string GetViBenchJsonFromCsv(string compilerTimeCsvFilePath, string execTimeCsvFilePath, string fileSizeCsvFilePath)
         {
             RuntimeSettings.logger.Log("Convert the csv to JSON using ViBench tool");
             string branch = StdoutFrom("git", "rev-parse --abbrev-ref HEAD");

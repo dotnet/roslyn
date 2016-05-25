@@ -1,9 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.IO;
-using System.Xml;
-using Roslyn.Test.Performance.Utilities;
 using System.Threading.Tasks;
 using static Roslyn.Test.Performance.Utilities.TestUtilities;
 using Microsoft.CodeAnalysis.Scripting;
@@ -12,7 +10,7 @@ using Microsoft.CodeAnalysis.CSharp.Scripting;
 
 namespace Roslyn.Test.Performance.Runner
 {
-    public class Tools
+    public static class Tools
     {
         /// Runs the script at fileName and returns a task containing the
         /// state of the script.

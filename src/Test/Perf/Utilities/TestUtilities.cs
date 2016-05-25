@@ -1,7 +1,7 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+using System;
 using System.Diagnostics;
 using System.IO;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -15,7 +15,7 @@ namespace Roslyn.Test.Performance.Utilities
         public static bool isRunnerAttached = false;
     }
 
-    public class TestUtilities
+    public static class TestUtilities
     {
         public static bool IsRunFromRunner()
         {
@@ -153,17 +153,17 @@ namespace Roslyn.Test.Performance.Utilities
             return result.StdOut.Trim();
         }
 
-        /// Logs a message.
-        ///
-        /// The actual implementation of this method may change depending on
-        /// if the script is being run standalone or through the test runner.
+        // Logs a message.
+        //
+        // The actual implementation of this method may change depending on
+        // if the script is being run standalone or through the test runner.
         public static void Log(string info)
         {
             RuntimeSettings.logger.Log(info);
             RuntimeSettings.logger.Flush();
         }
 
-        /// Logs the result of a finished process
+        // Logs the result of a finished process
         public static void LogProcessResult(ProcessResult result)
         {
             RuntimeSettings.logger.Log(String.Format("The process \"{0}\" {1} with code {2}",
