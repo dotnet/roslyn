@@ -64,7 +64,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             var errorList2 = _errorList as IErrorList2;
             if (errorList2 != null)
             {
-                workspace.WorkspaceChanged += OnWorkspaceChanged;
+                InitializeFullSolutionAnalysisState(workspace, errorList2);
                 errorList2.AnalysisToggleStateChanged += OnErrorListFullSolutionAnalysisToggled;
                 workspace.Services.GetService<IOptionService>().OptionChanged += OnOptionChanged;
             }                
@@ -157,32 +157,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
             }
         }
 
-        private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
-        {
-            Contract.ThrowIfFalse(_errorList is IErrorList2);
-
-            switch (e.Kind)
-            {
-                case WorkspaceChangeKind.SolutionAdded:
-                case WorkspaceChangeKind.SolutionChanged:
-                case WorkspaceChangeKind.SolutionCleared:
-                case WorkspaceChangeKind.SolutionReloaded:
-                case WorkspaceChangeKind.SolutionRemoved:
-                case WorkspaceChangeKind.ProjectAdded:
-                case WorkspaceChangeKind.ProjectChanged:
-                case WorkspaceChangeKind.ProjectRemoved:
-                    SetFullSolutionAnalysisState(Workspace, _errorList as IErrorList2);
-                    return;
-            }
-        }
-
         private void OnOptionChanged(object sender, OptionChangedEventArgs e)
         {
             Contract.ThrowIfFalse(_errorList is IErrorList2);
 
             if (e.Option == RuntimeOptions.FullSolutionAnalysis || e.Option == ServiceFeatureOnOffOptions.ClosedFileDiagnostic)
             {
-                SetFullSolutionAnalysisState(Workspace, _errorList as IErrorList2);
+                var analysisDisabled = !(bool)e.Value;
+                if (analysisDisabled)
+                {
+                    ((IErrorList2)_errorList).AnalysisToggleState = false;
+                }
             }
         }
 
@@ -195,23 +180,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                 .WithChangedOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, TypeScriptLanguageName, e.NewState);
         }
 
-        private static void SetFullSolutionAnalysisState(Workspace workspace, IErrorList2 errorList2)
+        private static void InitializeFullSolutionAnalysisState(Workspace workspace, IErrorList2 errorList2)
         {
-            // Set error list toggle state based on current analysis state for all languages for projects in current solution.
-            var fullAnalysisState = workspace.Options.GetOption(RuntimeOptions.FullSolutionAnalysis);
-            if (fullAnalysisState)
-            {
-                var languages = workspace.CurrentSolution.Projects.Select(p => p.Language).Distinct();
-                foreach (var language in languages)
-                {
-                    if (!ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(workspace.Options, language))
-                    {
-                        fullAnalysisState = false;
-                        break;
-                    }
-                }
-            }
-
+            // Initialize the error list toggle state based on full solution analysis state for all supported languages.
+            var fullAnalysisState = workspace.Options.GetOption(RuntimeOptions.FullSolutionAnalysis) && 
+                ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(workspace, LanguageNames.CSharp) &&
+                ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(workspace, LanguageNames.VisualBasic) &&
+                ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(workspace, TypeScriptLanguageName);
             errorList2.AnalysisToggleState = fullAnalysisState;
         }
 
