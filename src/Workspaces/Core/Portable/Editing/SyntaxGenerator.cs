@@ -1117,6 +1117,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract SyntaxNode AddInterfaceType(SyntaxNode declaration, SyntaxNode interfaceType);
 
+        internal abstract SyntaxNode AsInterfaceMember(SyntaxNode member);
+
         #endregion
 
         #region Remove, Replace, Insert

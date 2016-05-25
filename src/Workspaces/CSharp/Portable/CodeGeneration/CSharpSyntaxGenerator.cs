@@ -701,7 +701,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 : default(SyntaxList<MemberDeclarationSyntax>);
         }
 
-        private SyntaxNode AsInterfaceMember(SyntaxNode m)
+        internal override SyntaxNode AsInterfaceMember(SyntaxNode m)
         {
             return Isolate(m, member =>
             {

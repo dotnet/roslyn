@@ -1232,7 +1232,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             End If
         End Function
 
-        Private Function AsInterfaceMember(node As SyntaxNode) As StatementSyntax
+        Friend Overrides Function AsInterfaceMember(node As SyntaxNode) As SyntaxNode
             Select Case node.Kind
                 Case SyntaxKind.FunctionBlock,
                      SyntaxKind.SubBlock

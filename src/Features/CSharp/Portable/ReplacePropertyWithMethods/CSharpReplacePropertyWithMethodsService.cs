@@ -51,9 +51,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                 return;
             }
 
-            var methods = ConvertPropertyToMembers(semanticModel, editor.Generator, property, propertyDeclaration);
+            var members = ConvertPropertyToMembers(semanticModel, editor.Generator, property, propertyDeclaration);
 
-            editor.InsertAfter(propertyDeclaration, methods);
+            if (property.ContainingType.TypeKind == TypeKind.Interface)
+            {
+                members = members.OfType<MethodDeclarationSyntax>()
+                                 .Select(editor.Generator.AsInterfaceMember).ToList();
+            }
+
+            editor.InsertAfter(propertyDeclaration, members);
             editor.RemoveNode(propertyDeclaration);
         }
 
@@ -87,7 +93,10 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             return method;
         }
 
-        private static SyntaxNode GetGetMethod(SyntaxGenerator generator, PropertyDeclarationSyntax propertyDeclaration, IMethodSymbol getMethod)
+        private static SyntaxNode GetGetMethod(
+            SyntaxGenerator generator, 
+            PropertyDeclarationSyntax propertyDeclaration,
+            IMethodSymbol getMethod)
         {
             var statements = new List<SyntaxNode>();
             if (propertyDeclaration.ExpressionBody != null)

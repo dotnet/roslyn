@@ -295,6 +295,18 @@ class D
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestInterfaceProperty()
+        {
+            await TestAsync(
+@"interface I {
+    int [||]Prop { get; }
+}",
+@"interface I {
+    int GetProp();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
         public async Task TestAutoProperty1()
         {
             await TestAsync(
