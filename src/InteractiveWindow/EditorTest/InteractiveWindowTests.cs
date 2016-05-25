@@ -2,6 +2,9 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Collections.ObjectModel;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -9,6 +12,8 @@ using System.Threading.Tasks;
 using System.Windows;
 using Microsoft.VisualStudio.InteractiveWindow.Commands;
 using Microsoft.VisualStudio.Text;
+using Microsoft.VisualStudio.Text.Projection;
+using Microsoft.VisualStudio.Utilities;
 using Moq;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -345,6 +350,12 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
         public async Task CallAddInputOnNonUIThread()
         {
             await TaskRun(() => Window.AddInput("1")).ConfigureAwait(true);
+        }
+
+        [WpfFact]
+        public async Task CallAddToHistoryOnNonUIThread()
+        {
+            await TaskRun(() => Window.AddToHistory("1")).ConfigureAwait(true);
         }
 
         /// <remarks>
@@ -1109,6 +1120,105 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
             AssertEx.Equal(submissions, actualSubmissions);
         }
 
+        [WpfFact]
+        public void AddToHistory_EmptyLine() 
+        {
+            var original = new InteractiveWindowTextSnapshot(_testHost);
+            Window.AddToHistory("");
+
+            var actual = new InteractiveWindowTextSnapshot(_testHost);
+            InteractiveWindowTextSnapshot.AssertEqual(original, actual);
+        }
+
+        [WpfFact]
+        public void AddToHistory_NewLine() 
+        {
+            var original = new InteractiveWindowTextSnapshot(_testHost);
+            Window.AddToHistory(Environment.NewLine);
+
+            var actual = new InteractiveWindowTextSnapshot(_testHost);
+            var expected = original
+                .InsertBeforeLastPrompt(_testHost.Evaluator.GetPrompt(), ReplSpanKind.Prompt)
+                .InsertBeforeLastPrompt(Environment.NewLine, ReplSpanKind.Input);
+
+            InteractiveWindowTextSnapshot.AssertEqual(expected, actual);
+        }
+
+        [WpfFact]
+        public async Task AddToHistory_BetweenWrites() 
+        {
+            var original = new InteractiveWindowTextSnapshot(_testHost);
+
+            await Task.Run(() => Window.WriteLine("a"));
+            await Task.Run(() => Window.WriteLine("b"));
+
+            Window.AddToHistory("c");
+
+            await Task.Run(() => Window.WriteLine("d"));
+            await Task.Run(() => Window.WriteLine("e"));
+
+            Window.FlushOutput();
+
+            var actual = new InteractiveWindowTextSnapshot(_testHost);
+            var expected = original
+                .InsertBeforeLastPrompt($"a{Environment.NewLine}b{Environment.NewLine}", ReplSpanKind.Output)
+                .InsertBeforeLastPrompt(_testHost.Evaluator.GetPrompt(), ReplSpanKind.Prompt)
+                .InsertBeforeLastPrompt($"c{Environment.NewLine}", ReplSpanKind.Input)
+                .InsertBeforeLastPrompt($"d{Environment.NewLine}e{Environment.NewLine}", ReplSpanKind.Output);
+
+            InteractiveWindowTextSnapshot.AssertEqual(expected, actual);
+        }
+
+        [WpfFact]
+        public async Task AddToHistory_HistoryNavigation() 
+        {
+            await Task.Run(() => Window.WriteLine("a"));
+            Window.AddToHistory("b");
+            await Task.Run(() => Window.WriteLine("c"));
+            Window.AddToHistory("d");
+            await Task.Run(() => Window.WriteLine("e"));
+            Window.FlushOutput();
+            Window.Operations.TypeChar('f');
+
+            Assert.Equal("f", Window.CurrentLanguageBuffer.CurrentSnapshot.GetText());
+
+            Window.Operations.HistoryPrevious();
+            Assert.Equal("d", Window.CurrentLanguageBuffer.CurrentSnapshot.GetText());
+
+            Window.Operations.HistoryPrevious();
+            Assert.Equal("b", Window.CurrentLanguageBuffer.CurrentSnapshot.GetText());
+
+            Window.Operations.HistoryNext();
+            Assert.Equal("d", Window.CurrentLanguageBuffer.CurrentSnapshot.GetText());
+
+            Window.Operations.HistoryNext();
+            Assert.Equal("f", Window.CurrentLanguageBuffer.CurrentSnapshot.GetText());
+        }
+
+        [WpfFact]
+        public void AddToHistory_HasInput()
+        {
+            var original = new InteractiveWindowTextSnapshot(_testHost);
+
+            Window.Operations.TypeChar('a');
+            Window.Operations.TypeChar('b');
+            Window.AddToHistory("c");
+            Window.Operations.TypeChar('d');
+            Window.Operations.TypeChar('e');
+            Window.AddToHistory("f");
+
+            var actual = new InteractiveWindowTextSnapshot(_testHost);
+            var expected = original
+                .InsertBeforeLastPrompt(_testHost.Evaluator.GetPrompt(), ReplSpanKind.Prompt)
+                .InsertBeforeLastPrompt($"c{Environment.NewLine}", ReplSpanKind.Input)
+                .InsertBeforeLastPrompt(_testHost.Evaluator.GetPrompt(), ReplSpanKind.Prompt)
+                .InsertBeforeLastPrompt($"f{Environment.NewLine}", ReplSpanKind.Input)
+                .AddToTheEnd($"abde", ReplSpanKind.Input);
+
+            InteractiveWindowTextSnapshot.AssertEqual(expected, actual);
+        }
+
+
         [WorkItem(6397, "https://github.com/dotnet/roslyn/issues/6397")]
         [WpfFact]
         public void TypeCharWithUndoRedo()
@@ -1200,6 +1310,145 @@ namespace Microsoft.VisualStudio.InteractiveWindow.UnitTests
                 }
                 return edit.Apply();
             }
+        }
+
+        private class InteractiveWindowTextSnapshot 
+        {
+            private readonly ImmutableArray<SpanWithKind> _spans;
+            private readonly string _fullText;
+
+            public InteractiveWindowTextSnapshot(InteractiveWindowTestHost host)
+            {
+                var bufferFactory = host.ExportProvider.GetExportedValue<ITextBufferFactoryService>();
+                var projectionSnapshot = ((IProjectionBuffer) host.Window.TextView.TextBuffer).CurrentSnapshot;
+
+                _fullText = projectionSnapshot.GetText();
+                _spans = projectionSnapshot.GetSourceSpans()
+                    .SelectMany(ss => GetSpanWithKind(ss, projectionSnapshot, host.Window, bufferFactory.InertContentType))
+                    .OrderBy(s => s.Start)
+                    .ToImmutableArray();
+            }
+
+            private InteractiveWindowTextSnapshot(string fullText, ImmutableArray<SpanWithKind> spans) 
+            {
+                _fullText = fullText;
+                _spans = spans;
+            }
+
+            public InteractiveWindowTextSnapshot AddToTheEnd(string text, ReplSpanKind kind) 
+            {
+                var startIndex = _fullText.Length;
+                var fullText = _fullText + text;
+                var spans = _spans.Add(new SpanWithKind(startIndex, text.Length, kind));
+
+                return new InteractiveWindowTextSnapshot(fullText, spans);
+            }
+
+            public InteractiveWindowTextSnapshot InsertBeforeLastPrompt(string text, ReplSpanKind kind) 
+            {
+                var startIndex = _spans.LastOrDefault(s => s.Kind == ReplSpanKind.Prompt).Start;
+                return Insert(text, startIndex, kind);
+            }
+
+            private InteractiveWindowTextSnapshot Insert(string text, int startIndex, ReplSpanKind kind) 
+            {
+                var length = text.Length;
+                var spansBuilder = ImmutableArray.CreateBuilder<SpanWithKind>(_spans.Length + 1);
+
+                var fullText = _fullText.Insert(startIndex, text);
+                foreach (var span in _spans) 
+                {
+                    if (span.Start < startIndex) 
+                    {
+                        spansBuilder.Add(span);
+                    }
+                    else if (span.Start == startIndex) 
+                    {
+                        spansBuilder.Add(new SpanWithKind(startIndex, length, kind));
+                        spansBuilder.Add(new SpanWithKind(span.Start + length, span.Length, span.Kind));
+                    }
+                    else 
+                    {
+                        spansBuilder.Add(new SpanWithKind(span.Start + length, span.Length, span.Kind));
+                    }
+                }
+
+                return new InteractiveWindowTextSnapshot(fullText, spansBuilder.ToImmutable());
+            }
+
+            public static void AssertEqual(InteractiveWindowTextSnapshot expected, InteractiveWindowTextSnapshot actual) 
+            {
+                Assert.Equal(expected._fullText, actual._fullText);
+                Assert.Equal<SpanWithKind>(expected._spans, actual._spans);
+            }
+
+            private static IEnumerable<SpanWithKind> GetSpanWithKind(SnapshotSpan snapshotSpan, IProjectionSnapshot projectionSnapshot, IInteractiveWindow window, IContentType inertContentType) 
+            {
+                var spans = projectionSnapshot.MapFromSourceSnapshot(snapshotSpan);
+                var spanKind = GetSpanKind(snapshotSpan, window, inertContentType);
+                return spans.Where(s => s.Length > 0).Select(span => new SpanWithKind(span.Start, span.Length, spanKind));
+            }
+
+            private static ReplSpanKind GetSpanKind(SnapshotSpan span, IInteractiveWindow window, IContentType inertContentType) 
+            {
+                var textBuffer = span.Snapshot.TextBuffer;
+
+                if (textBuffer == window.OutputBuffer) 
+                {
+                    return ReplSpanKind.Output;
+                }
+
+                if (textBuffer.ContentType == inertContentType) 
+                {
+                    return ReplSpanKind.Prompt;
+                }
+
+                return ReplSpanKind.Input;
+            }
+
+            [DebuggerDisplay("{Start}, {Length}, {Kind}")]
+            private struct SpanWithKind : IEquatable<SpanWithKind> 
+            {
+                public int Start { get; }
+                public int Length { get; }
+                public ReplSpanKind Kind { get; }
+
+                public SpanWithKind(int start, int length, ReplSpanKind kind) 
+                {
+                    Start = start;
+                    Length = length;
+                    Kind = kind;
+                }
+
+                public bool Equals(SpanWithKind other) 
+                {
+                    return Start == other.Start && Length == other.Length && Kind == other.Kind;
+                }
+
+                public override bool Equals(object obj) 
+                {
+                    return obj is SpanWithKind && Equals((SpanWithKind)obj);
+                }
+
+                public override int GetHashCode() 
+                {
+                    unchecked 
+                    {
+                        var hashCode = Start;
+                        hashCode = (hashCode*397) ^ Length;
+                        hashCode = (hashCode*397) ^ (int) Kind;
+                        return hashCode;
+                    }
+                }
+            }
+        }
+    }
+
+    internal static class WindowExtensions 
+    {
+        internal static void AddToHistory(this IInteractiveWindow window, string input)
+        {
+            ((IInteractiveWindow2)window).AddToHistory(input);
         }
     }
 

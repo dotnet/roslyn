@@ -133,6 +133,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 foreach (var project in inOrderToPush)
                 {
                     project.StartPushingToWorkspaceHosts();
+                    project.UpdateGeneratedFiles();
                     _pushedProjects.Add(project);
 
                     foreach (var document in project.GetCurrentDocuments())
@@ -142,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                             this.Host.OnDocumentOpened(
                                 document.Id,
                                 document.GetOpenTextBuffer(),
-                                isCurrentContext: document.Project.Hierarchy == LinkedFileUtilities.GetContextHierarchy(document, _tracker._runningDocumentTable));
+                                isCurrentContext: LinkedFileUtilities.IsCurrentContextHierarchy(document, _tracker._runningDocumentTable));
                         }
                     }
                 }

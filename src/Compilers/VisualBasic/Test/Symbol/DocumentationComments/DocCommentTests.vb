@@ -7367,7 +7367,7 @@ End Class
                     "Function System.Int32.Parse(s As System.String, style As System.Globalization.NumberStyles, provider As System.IFormatProvider) As System.Int32")
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/8807")>
         Public Sub Include_XPathNotFound_WRN_XMLDocInvalidXMLFragment()
             Dim xmlText = <root/>
             Dim xmlFile = Temp.CreateFile(extension:=".xml").WriteAllText(xmlText.ToString)
@@ -7413,7 +7413,7 @@ AssemblyName
         End Sub
 
         <WorkItem(684184, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/684184")>
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/8807")>
         Public Sub Bug684184()
             Dim xmlText =
 <docs>
@@ -7458,7 +7458,7 @@ AssemblyName
             stringMapper:=Function(o) StringReplace(o, AsXmlCommentText(xmlFile), "**FILE**"), ensureEnglishUICulture:=True)
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/8807")>
         Public Sub Include_FileNotFound_WRN_XMLDocBadFormedXML()
             Dim xmlText = <root/>
             Dim xmlFile = Temp.CreateFile(extension:=".xml").WriteAllText(xmlText.ToString)
@@ -7503,7 +7503,7 @@ AssemblyName
             stringMapper:=Function(o) StringReplace(o, AsXmlCommentText(xmlFile), "**FILE**"), ensureEnglishUICulture:=True)
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/8807")>
         Public Sub Include_IOError_WRN_XMLDocBadFormedXML()
             Dim xmlText = <root>
                               <target>Included</target>
@@ -7554,7 +7554,7 @@ AssemblyName
             End Using
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/8807")>
         Public Sub Include_XmlError_WRN_XMLDocBadFormedXML()
             Dim xmlText =
             <![CDATA[
@@ -7604,7 +7604,7 @@ AssemblyName
                 stringMapper:=Function(o) StringReplace(o, AsXmlCommentText(xmlFile), "**FILE**"), ensureEnglishUICulture:=True)
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/8807")>
         Public Sub Include_XDocument_WRN_XMLDocInvalidXMLFragment()
             Dim xmlText =
             <![CDATA[
@@ -7716,7 +7716,7 @@ AssemblyName
                 stringMapper:=Function(o) StringReplace(o, AsXmlCommentText(xmlFile), "**FILE**"), ensureEnglishUICulture:=True)
         End Sub
 
-        <Fact>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/8807")>
         Public Sub Include_XPathError_WRN_XMLDocBadFormedXML()
             Dim xmlText =
             <![CDATA[

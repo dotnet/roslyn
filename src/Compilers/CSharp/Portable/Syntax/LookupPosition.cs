@@ -234,6 +234,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         }
 
         /// <remarks>
+        /// Used to determine whether it would be appropriate to use the binder for the switch section (if any).
+        /// Not used to determine whether the position is syntactically within the statement.
+        /// </remarks>
+        internal static bool IsInSwitchSectionScope(int position, SwitchSectionSyntax section)
+        {
+            Debug.Assert(section != null);
+            return section.Span.Contains(position);
+        }
+
+        /// <remarks>
         /// Used to determine whether it would be appropriate to use the binder for the statement (if any).
         /// Not used to determine whether the position is syntactically within the statement.
         /// </remarks>
@@ -255,7 +265,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
             return IsBetweenTokens(position, filterClause.OpenParenToken, filterClause.CloseParenToken);
         }
 
-        private static SyntaxToken GetFirstIncludedToken(StatementSyntax statement, bool inRecursiveCall = false)
+        private static SyntaxToken GetFirstIncludedToken(StatementSyntax statement)
         {
             Debug.Assert(statement != null);
             switch (statement.Kind())
@@ -279,24 +289,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.FixedStatement:
                     return ((FixedStatementSyntax)statement).FixedKeyword;
                 case SyntaxKind.ForEachStatement:
-                    // NB: iteration variable is only in scope in body.
-                    ForEachStatementSyntax forEachSyntax = (ForEachStatementSyntax)statement;
-                    if (inRecursiveCall)
-                    {
-                        return forEachSyntax.ForEachKeyword;
-                    }
-                    return GetFirstIncludedToken(forEachSyntax.Statement, inRecursiveCall: true);
+                    return ((ForEachStatementSyntax)statement).OpenParenToken.GetNextToken();
                 case SyntaxKind.ForStatement:
-                    // Section 8.8.3 of the spec says that the scope of the loop variable starts at 
-                    // its declaration.  If it's not there, then the scope we are interested in is
-                    // the loop body.
-                    ForStatementSyntax forSyntax = (ForStatementSyntax)statement;
-                    if (inRecursiveCall)
-                    {
-                        return forSyntax.ForKeyword;
-                    }
-                    VariableDeclarationSyntax declOpt = forSyntax.Declaration;
-                    return declOpt == null ? GetFirstIncludedToken(forSyntax.Statement, inRecursiveCall: true) : declOpt.GetFirstToken();
+                    return ((ForStatementSyntax)statement).OpenParenToken.GetNextToken();
                 case SyntaxKind.GotoDefaultStatement:
                 case SyntaxKind.GotoCaseStatement:
                 case SyntaxKind.GotoStatement:
@@ -310,7 +305,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.ReturnStatement:
                     return ((ReturnStatementSyntax)statement).ReturnKeyword;
                 case SyntaxKind.SwitchStatement:
-                    return ((SwitchStatementSyntax)statement).OpenBraceToken;
+                    return ((SwitchStatementSyntax)statement).Expression.GetFirstToken();
                 case SyntaxKind.ThrowStatement:
                     return ((ThrowStatementSyntax)statement).ThrowKeyword;
                 case SyntaxKind.TryStatement:
@@ -324,6 +319,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.YieldReturnStatement:
                 case SyntaxKind.YieldBreakStatement:
                     return ((YieldStatementSyntax)statement).YieldKeyword;
+                case SyntaxKind.LocalFunctionStatement:
+                    return statement.GetFirstToken();
                 default:
                     throw ExceptionUtilities.UnexpectedValue(statement.Kind());
             }
@@ -399,6 +396,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
                 case SyntaxKind.YieldReturnStatement:
                 case SyntaxKind.YieldBreakStatement:
                     return ((YieldStatementSyntax)statement).SemicolonToken;
+                case SyntaxKind.LocalFunctionStatement:
+                    LocalFunctionStatementSyntax localFunctionStmt = (LocalFunctionStatementSyntax)statement;
+                    if (localFunctionStmt.Body != null)
+                        return GetFirstExcludedToken(localFunctionStmt.Body);
+                    if (localFunctionStmt.SemicolonToken != null)
+                        return localFunctionStmt.SemicolonToken;
+                    return localFunctionStmt.ParameterList.GetLastToken();
                 default:
                     throw ExceptionUtilities.UnexpectedValue(statement.Kind());
             }

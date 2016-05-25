@@ -84,20 +84,5 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
             return FatalError.Report(exception);
         }
-
-        internal delegate bool NonFatalExceptionHandler(Exception exception, string implementationName);
-
-        internal static bool ReportNonFatalException(Exception exception, NonFatalExceptionHandler handler)
-        {
-            if (CrashIfFailFastEnabled(exception))
-            {
-                throw ExceptionUtilities.Unreachable;
-            }
-
-            // Ignore the return value, because we always want to continue after reporting the Exception.
-            handler(exception, nameof(ExpressionEvaluatorFatalError));
-
-            return true;
-        }
     }
 }

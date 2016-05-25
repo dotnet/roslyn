@@ -13,9 +13,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
 {
     internal sealed class CSharpInteractiveCompiler : CSharpCompiler
     {
-        internal CSharpInteractiveCompiler(string responseFile, string baseDirectory, string sdkDirectoryOpt, string[] args, IAnalyzerAssemblyLoader analyzerLoader)
+        internal CSharpInteractiveCompiler(string responseFile, string baseDirectory, string sdkDirectoryOpt, string clientDirectory, string[] args, IAnalyzerAssemblyLoader analyzerLoader)
             // Unlike C# compiler we do not use LIB environment variable. It's only supported for historical reasons.
-            : base(CSharpCommandLineParser.ScriptRunner, responseFile, args, AppContext.BaseDirectory, baseDirectory, sdkDirectoryOpt, null, analyzerLoader)
+            : base(CSharpCommandLineParser.ScriptRunner, responseFile, args, clientDirectory, baseDirectory, sdkDirectoryOpt, null, analyzerLoader)
         {
         }
 

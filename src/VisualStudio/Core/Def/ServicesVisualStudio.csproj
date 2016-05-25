@@ -70,6 +70,7 @@
     <Compile Include="Implementation\Interactive\VisualBasicResetInteractiveMenuCommand.cs" />
     <Compile Include="Implementation\Interop\CleanableWeakComHandleTable.cs" />
     <Compile Include="Implementation\LanguageService\AbstractLanguageService`2.IVsLanguageBlock.cs" />
+    <Compile Include="Implementation\LanguageService\AbstractPackage.cs" />
     <Compile Include="Implementation\Library\AbstractLibraryService.cs" />
     <Compile Include="Implementation\Library\ClassView\AbstractSyncClassViewCommandHandler.cs" />
     <Compile Include="Implementation\Library\FindResults\TreeItems\AbstractSourceTreeItem.cs" />
@@ -154,6 +155,8 @@
     <Compile Include="Implementation\Workspace\VisualStudioProjectCacheHostServiceFactory.cs" />
     <Compile Include="IRoslynTelemetrySetup.cs" />
     <Compile Include="Packaging\Interop\SVsRemoteControlService.cs" />
+    <Compile Include="Packaging\IPackageServicesProxy.cs" />
+    <Compile Include="SymbolSearch\AbstractDelayStartedService.cs" />
     <Compile Include="SymbolSearch\IAddReferenceDatabaseWrapper.cs" />
     <Compile Include="SymbolSearch\IDatabaseFactoryService.cs" />
     <Compile Include="SymbolSearch\IDelayService.cs" />
@@ -190,9 +193,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup Label="Linked Files">
-    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\ComStreamWrapper.cs">
-      <Link>InternalUtilities\ComStreamWrapper.cs</Link>
-    </Compile>
     <Compile Include="..\..\..\Test\PdbUtilities\Shared\SymUnmanagedReaderExtensions.cs">
       <Link>Shared\SymUnmanagedReaderExtensions.cs</Link>
     </Compile>
@@ -256,6 +256,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.SolutionExplorer" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Telemetry" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalDependencyServices" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.CSharp.Repl" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
@@ -269,7 +270,9 @@
     <InternalsVisibleToTest Include="Microsoft.VisualStudio.ErrorList.UnitTests" />
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
     <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.Alm.Shared.CodeAnalysisClient" />
+    <InternalsVisibleToTypeScript Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" />
     <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.LanguageServices.TypeScript" />
+    <InternalsVisibleToTypeScript Include="Roslyn.Services.Editor.TypeScript.UnitTests" />
     <InternalsVisibleToTypeScript Include="ManagedSourceCodeAnalysis" />
     <InternalsVisibleToTypeScript Include="CodeAnalysis" />
     <InternalsVisibleToTypeScript Include="StanCore" />
@@ -299,6 +302,7 @@
     <Reference Include="System.Core" />
     <Reference Include="System.Design" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
@@ -733,6 +737,9 @@
       <ResourceName>Menus.ctmenu</ResourceName>
       <SubType>Designer</SubType>
     </VSCTCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Implementation\Options\Style\" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />

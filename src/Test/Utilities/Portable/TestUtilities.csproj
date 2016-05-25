@@ -119,8 +119,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommonTestBase.cs" />
+    <Compile Include="ConditionalFactAttribute.cs" />
     <Compile Include="CoreCLRRuntimeEnvironment.cs" />
     <Compile Include="Exceptions.cs" />
+    <Compile Include="CompilerTraitAttribute.cs" />
     <Compile Include="ICompilationVerifier.cs" />
     <Compile Include="MetadataSignatureUnitTestHelper.cs" />
     <Compile Include="ModuleData.cs" />

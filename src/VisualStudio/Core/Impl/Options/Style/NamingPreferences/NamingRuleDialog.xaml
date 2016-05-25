@@ -1,0 +1,141 @@
+﻿<vs:DialogWindow x:Uid="NamingStyle"
+             x:Class="Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.NamingPreferences.NamingRuleDialog"
+             x:ClassModifier="internal"
+             x:Name="dialog"
+             xmlns:vs="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.14.0"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:imaging="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.Imaging"
+             xmlns:imagecatalog="clr-namespace:Microsoft.VisualStudio.Imaging;assembly=Microsoft.VisualStudio.ImageCatalog"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:s="clr-namespace:Microsoft.VisualStudio.PlatformUI;assembly=Microsoft.VisualStudio.Shell.14.0"
+             mc:Ignorable="d" 
+             d:DesignHeight="240" d:DesignWidth="480"
+             Height="240" Width="480"
+             MinHeight="240" MinWidth="480"
+             Title="{Binding ElementName=dialog, Path=DialogTitle}"
+             HasHelpButton="False"
+             FocusManager.FocusedElement="{Binding ElementName=NamingRuleTitle}"
+             ResizeMode="CanResizeWithGrip"
+             ShowInTaskbar="False"
+             HasDialogFrame="True"
+             WindowStartupLocation="CenterOwner">
+    <Window.Resources>
+        <Style TargetType="ListBoxItem">
+            <Setter Property="IsTabStop" 
+                    Value="False" />
+        </Style>
+        <Thickness x:Key="labelPadding">0, 5, 0, 2</Thickness>
+        <Thickness x:Key="okCancelButtonPadding">9,2,9,2</Thickness>
+        <Thickness x:Key="selectDeselectButtonPadding">9,2,9,2</Thickness>
+        <Thickness x:Key="textboxPadding">2</Thickness>
+    </Window.Resources>
+    <Grid Margin="6,6,11,11">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" MinWidth="50"/>
+            <ColumnDefinition MinWidth="250" Width="*"/>
+            <ColumnDefinition Width="Auto"/>
+            <ColumnDefinition Width="Auto"/>
+        </Grid.ColumnDefinitions>
+
+        <!-- Row 0 -->
+        <Label Grid.Row="0" Grid.Column="0" Content="{Binding ElementName=dialog, Path=NameLabelText}"/>
+        <TextBox x:Name="NamingRuleTitle" Text="{Binding Title, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" Grid.Row="0" Grid.Column="1" Grid.ColumnSpan="3" VerticalContentAlignment="Center"/>
+
+        <!-- Row 1 -->
+        <Label Grid.Row="1" Grid.Column="0" Margin="0 5 0 0" Content="{Binding ElementName=dialog, Path=SymbolSpecificationLabelText}"/>
+        <ComboBox ItemsSource="{Binding Path=SymbolSpecificationList}"
+                DisplayMemberPath="SymbolSpecName"
+                VerticalContentAlignment="Center"
+                SelectedIndex="{Binding Path=SelectedSymbolSpecificationIndex}" 
+                Grid.Row="1" Grid.Column="1" Margin="0 5 0 0"/>
+        <Button Click="CreateSymbolSpecification" Margin="9 5 0 0" Grid.Row="1" Grid.Column="2" Height="24" Width="24">
+            <imaging:CrispImage Height="16" 
+                                Width="16" 
+                                Moniker="{x:Static imagecatalog:KnownMonikers.Add}"/>
+        </Button>
+        <Button Click="ConfigureSymbolSpecifications" Margin="9 5 0 0" Grid.Row="1" Grid.Column="3" Height="24" Width="24">
+            <imaging:CrispImage Height="16" 
+                                Width="16" 
+                                Moniker="{x:Static imagecatalog:KnownMonikers.Settings}"/>
+        </Button>
+
+        <!-- Row 2 -->
+        <Label Grid.Row="2" Grid.Column="0" Margin="0 5 0 0" Content="{Binding ElementName=dialog, Path=NamingStyleLabelText}"/>
+        <ComboBox ItemsSource="{Binding Path=NamingStyleList}"
+                DisplayMemberPath="NamingConventionName"
+                VerticalContentAlignment="Center"
+                SelectedIndex="{Binding Path=NamingStyleIndex}" 
+                Grid.Row="2" Grid.Column="1" Margin="0 5 0 0"/>
+        <Button Click="CreateNamingStyle" Margin="9 5 0 0" Grid.Row="2" Grid.Column="2" Height="24" Width="24">
+            <imaging:CrispImage Height="16" 
+                                Width="16" 
+                                Moniker="{x:Static imagecatalog:KnownMonikers.Add}"/>
+        </Button>
+        <Button Click="ConfigureNamingStyles" Margin="9 5 0 0" Grid.Row="2" Grid.Column="3" Height="24" Width="24">
+            <imaging:CrispImage Height="16" 
+                                Width="16" 
+                                Moniker="{x:Static imagecatalog:KnownMonikers.Settings}"/>
+        </Button>
+
+        <!-- Row 3 -->
+        <Label Grid.Row="3" Grid.Column="0" Margin="0 5 0 0" Content="{Binding ElementName=dialog, Path=ParentRuleLabelText}"/>
+        <ComboBox ItemsSource="{Binding Path=ParentRuleList}"
+                DisplayMemberPath="Title"
+                VerticalContentAlignment="Center"
+                SelectedIndex="{Binding Path=ParentRuleIndex}" 
+                Grid.Row="3" Grid.Column="1" Margin="0 5 0 0"/>
+
+        <!-- Row 4 -->
+        <Label Grid.Row="4" Grid.Column="0" Margin="0 5 0 0" Content="{Binding ElementName=dialog, Path=EnforcementLevelsLabelText}"/>
+        <ComboBox ItemsSource="{Binding Path=EnforcementLevelsList}"
+                VerticalContentAlignment="Center"
+                SelectedIndex="{Binding Path=EnforcementLevelIndex}"
+                Grid.Row="4" Grid.Column="1" Margin="0 5 0 0">
+            <ComboBox.ItemTemplate>
+                <DataTemplate>
+                    <StackPanel Orientation="Horizontal">
+                        <imaging:CrispImage Moniker="{Binding Moniker}" />
+                        <TextBlock Text="{Binding Name}" Margin="5 0 0 0" />
+                    </StackPanel>
+                </DataTemplate>
+            </ComboBox.ItemTemplate>
+        </ComboBox>
+
+        <!-- Row 5 empty for expandability -->
+        
+        <!-- Row 6 -->
+        <StackPanel Grid.Row="6" 
+                    Grid.ColumnSpan="4"
+                    HorizontalAlignment="Right" 
+                    Margin="0, 11, 0, 0"
+                    Orientation="Horizontal">
+            <Button x:Uid="OkButton"
+                    Content="{Binding ElementName=dialog, Path=OK}" 
+                    Click="OK_Click"
+                    Margin="0, 0, 0, 0" 
+                    Padding="{StaticResource ResourceKey=okCancelButtonPadding}"
+                    IsDefault="True"
+                    MinWidth="73"
+                    MinHeight="21"/>
+            <Button x:Uid="CancelButton" 
+                    Click="Cancel_Click"
+                    Content="{Binding ElementName=dialog, Path=Cancel}" 
+                    Margin="7, 0, 0, 0" 
+                    Padding="{StaticResource ResourceKey=okCancelButtonPadding}"
+                    IsCancel="True"
+                    MinWidth="73"
+                    MinHeight="21"/>
+        </StackPanel>
+    </Grid>
+</vs:DialogWindow>

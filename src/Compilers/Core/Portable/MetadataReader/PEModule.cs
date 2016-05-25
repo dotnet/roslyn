@@ -1192,8 +1192,8 @@ namespace Microsoft.CodeAnalysis
         {
             switch (comInterfaceType)
             {
-                case (int)ComInterfaceType.InterfaceIsDual:
-                case (int)ComInterfaceType.InterfaceIsIDispatch:
+                case (int)Cci.Constants.ComInterfaceType_InterfaceIsDual:
+                case (int)Cci.Constants.ComInterfaceType_InterfaceIsIDispatch:
                 case (int)ComInterfaceType.InterfaceIsIInspectable:
                 case (int)ComInterfaceType.InterfaceIsIUnknown:
                     return true;
@@ -2464,7 +2464,7 @@ namespace Microsoft.CodeAnalysis
 
                 string moduleName = GetModuleRefNameOrThrow(methodImport.Module);
                 string entryPointName = MetadataReader.GetString(methodImport.Name);
-                Cci.PInvokeAttributes flags = (Cci.PInvokeAttributes)methodImport.Attributes;
+                MethodImportAttributes flags = (MethodImportAttributes)methodImport.Attributes;
 
                 return new DllImportData(moduleName, entryPointName, flags);
             }

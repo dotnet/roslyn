@@ -816,6 +816,34 @@ class TestClass
 
             #endregion
 
+            #region Patterns
+
+            [WorkItem(9244, "https://github.com/dotnet/roslyn/issues/9244")]
+            [Fact]
+            public async Task PatternIsDisabled()
+            {
+                var code = @"
+using System;
+class Program
+{
+    static void Main()
+    {
+        object o = null;
+        if (o is Program [|p|])
+        {
+
+        }
+    }
+}
+
+";
+
+                var patterns = MessageID.IDS_FeaturePatternMatching.RequiredFeature();
+                await ExpectExtractMethodToFailAsync(code, features: new[] { patterns });
+            }
+
+            #endregion
+
             [WorkItem(11155, "DevDiv_Projects/Roslyn")]
             [Fact, Trait(Traits.Feature, Traits.Features.ExtractMethod)]
             public async Task AnonymousTypeMember1()

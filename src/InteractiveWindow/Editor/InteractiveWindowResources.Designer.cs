@@ -304,6 +304,15 @@ namespace Microsoft.VisualStudio.InteractiveWindow {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to The interactive window is resettings..
+        /// </summary>
+        internal static string IsResettings {
+            get {
+                return ResourceManager.GetString("IsResettings", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Keyboard shortcuts:.
         /// </summary>
         internal static string KeyboardShortcuts {

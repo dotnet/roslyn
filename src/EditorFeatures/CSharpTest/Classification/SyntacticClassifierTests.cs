@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -3648,6 +3649,72 @@ void M()
                 Identifier("await"),
                 Punctuation.Semicolon,
                 Punctuation.CloseCurly);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TupleDeclaration()
+        {
+            await TestInMethodAsync("(int, string) x",
+                TestOptions.Regular.WithTuplesFeature(),
+                Options.Script.WithTuplesFeature(),
+                Punctuation.OpenParen,
+                Keyword("int"),
+                Punctuation.Comma,
+                Keyword("string"),
+                Punctuation.CloseParen,
+                Identifier("x"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TupleDeclarationWithNames()
+        {
+            await TestInMethodAsync("(int a, string b) x",
+                TestOptions.Regular.WithTuplesFeature(),
+                Options.Script.WithTuplesFeature(),
+                Punctuation.OpenParen,
+                Keyword("int"),
+                Identifier("a"),
+                Punctuation.Comma,
+                Keyword("string"),
+                Identifier("b"),
+                Punctuation.CloseParen,
+                Identifier("x"));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TupleLiteral()
+        {
+            await TestInMethodAsync("var values = (1, 2)",
+                TestOptions.Regular.WithTuplesFeature(),
+                Options.Script.WithTuplesFeature(),
+                Keyword("var"),
+                Identifier("values"),
+                Operators.Equals,
+                Punctuation.OpenParen,
+                Number("1"),
+                Punctuation.Comma,
+                Number("2"),
+                Punctuation.CloseParen);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task TupleLiteralWithNames()
+        {
+            await TestInMethodAsync("var values = (a: 1, b: 2)",
+                TestOptions.Regular.WithTuplesFeature(),
+                Options.Script.WithTuplesFeature(),
+                Keyword("var"),
+                Identifier("values"),
+                Operators.Equals,
+                Punctuation.OpenParen,
+                Identifier("a"),
+                Punctuation.Colon,
+                Number("1"),
+                Punctuation.Comma,
+                Identifier("b"),
+                Punctuation.Colon,
+                Number("2"),
+                Punctuation.CloseParen);
         }
     }
 }

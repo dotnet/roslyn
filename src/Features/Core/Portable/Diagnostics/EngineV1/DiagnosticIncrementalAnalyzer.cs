@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Options;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Versions;
 using Roslyn.Utilities;
@@ -143,7 +144,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         private bool CheckOptions(Project project, bool forceAnalysis)
         {
             var workspace = project.Solution.Workspace;
-            if (ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(workspace, project.Language) &&
+            if (ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(project) &&
                 workspace.Options.GetOption(RuntimeOptions.FullSolutionAnalysis))
             {
                 return true;
@@ -169,7 +170,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
             Func<Exception, bool> analyzerExceptionFilter = ex =>
             {
-                if (project.Solution.Workspace.Options.GetOption(InternalDiagnosticsOptions.CrashOnAnalyzerException))
+                if (project.Solution.Options.GetOption(InternalDiagnosticsOptions.CrashOnAnalyzerException))
                 {
                     // if option is on, crash the host to get crash dump.
                     FatalError.ReportUnlessCanceled(ex);
@@ -198,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             return new CompilationWithAnalyzers(compilation, filteredAnalyzers, analysisOptions);
         }
 
-        public override async Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
+        public override async Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
         {
             await AnalyzeSyntaxAsync(document, diagnosticIds: null, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
@@ -257,7 +258,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
         }
 
-        public override async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken)
+        public override async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
         {
             await AnalyzeDocumentAsync(document, bodyOpt, diagnosticIds: null, cancellationToken: cancellationToken).ConfigureAwait(false);
         }
@@ -398,7 +399,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
         }
 
-        public override async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
+        public override async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
         {
             await AnalyzeProjectAsync(project, cancellationToken).ConfigureAwait(false);
         }

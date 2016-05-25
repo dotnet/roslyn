@@ -54,6 +54,8 @@
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_ClosedFileDiagnostics}" />
                     <CheckBox x:Name="RenameTrackingPreview"
                               Content="{x:Static local:AdvancedOptionPageStrings.Option_RenameTrackingPreview}" />
+                    <CheckBox x:Name="Split_string_literals_on_enter"
+                              Content="{x:Static local:AdvancedOptionPageStrings.Option_Split_string_literals_on_enter}" />
                 </StackPanel>
             </GroupBox>
             <GroupBox x:Uid="ExtractMethodGroupBox"

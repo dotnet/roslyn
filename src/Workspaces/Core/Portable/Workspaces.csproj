@@ -287,6 +287,9 @@
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
+    <InternalsVisibleToTypeScript Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" />
+    <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.LanguageServices.TypeScript" />
+    <InternalsVisibleToTypeScript Include="Roslyn.Services.Editor.TypeScript.UnitTests" />
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
@@ -352,6 +355,8 @@
     <Compile Include="SolutionCrawler\IIncrementalAnalyzer.cs" />
     <Compile Include="SolutionCrawler\IIncrementalAnalyzerProvider.cs" />
     <Compile Include="SolutionCrawler\IncrementalAnalyzerProviderMetadata.cs" />
+    <Compile Include="SolutionCrawler\InvocationReasons.cs" />
+    <Compile Include="SolutionCrawler\InvocationReasons_Constants.cs" />
     <Compile Include="SolutionCrawler\ISolutionCrawlerRegistrationService.cs" />
     <Compile Include="Diagnostics\IWorkspaceVenusSpanMappingService.cs" />
     <Compile Include="Diagnostics\WellKnownDiagnosticPropertyNames.cs" />
@@ -413,7 +418,10 @@
     <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo_Metadata.cs" />
     <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo_Source.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingLogger.cs" />
+    <Compile Include="Options\DocumentOptionSet.cs" />
+    <Compile Include="Options\OptionSet.cs" />
     <Compile Include="Packaging\IPackageInstallerService.cs" />
+    <Compile Include="SolutionCrawler\PredefinedInvocationReasons.cs" />
     <Compile Include="SymbolSearch\ISymbolSearchService.cs" />
     <Compile Include="FindSymbols\SymbolTree\ISymbolTreeInfoCacheService.cs" />
     <Compile Include="FindSymbols\FindReferences\MetadataUnifyingEquivalenceComparer.cs" />
@@ -421,6 +429,7 @@
     <Compile Include="Shared\Utilities\IProgressTracker.cs" />
     <Compile Include="SolutionCrawler\NullSolutionCrawlerRegisterationService.cs" />
     <Compile Include="SolutionCrawler\WellKnownSolutionCrawlerAnalyzers.cs" />
+    <Compile Include="SymbolId\SymbolKey.TupleTypeSymbolKey.cs" />
     <Compile Include="Utilities\ArraySlice.cs" />
     <Compile Include="Utilities\BKTree.cs" />
     <Compile Include="FindSymbols\SyntaxTree\AbstractSyntaxTreeInfo.cs" />
@@ -460,6 +469,7 @@
     <Compile Include="Utilities\BKTree.Serialization.cs" />
     <Compile Include="Utilities\ForegroundThreadDataKind.cs" />
     <Compile Include="Utilities\IReadOnlyDictionaryExtensions.cs" />
+    <Compile Include="Utilities\IReadOnlyListExtensions.cs" />
     <Compile Include="Utilities\SpellChecker.cs" />
     <Compile Include="Utilities\StringEscapeEncoder.cs" />
     <Compile Include="Utilities\ValuesSources\CachedWeakValueSource.cs" />
@@ -671,7 +681,7 @@
     <Compile Include="Options\OptionChangedEventArgs.cs" />
     <Compile Include="Options\OptionKey.cs" />
     <Compile Include="Options\OptionService.cs" />
-    <Compile Include="Options\OptionSet.cs" />
+    <Compile Include="Options\WorkspaceOptionSet.cs" />
     <Compile Include="Options\OptionsServiceFactory.cs" />
     <Compile Include="Options\PerLanguageOption.cs" />
     <Compile Include="Options\Providers\ExportOptionProviderAttribute.cs" />
@@ -807,7 +817,7 @@
     <Compile Include="Simplification\AliasAnnotation.cs" />
     <Compile Include="Simplification\ISimplificationService.cs" />
     <Compile Include="Simplification\SimplificationHelpers.cs" />
-    <Compile Include="Simplification\SimplificationOption.cs" />
+    <Compile Include="Simplification\SimplificationOptions.cs" />
     <Compile Include="Simplification\Simplifier.cs" />
     <Compile Include="Simplification\SpecialTypeAnnotation.cs" />
     <Compile Include="Simplification\SymbolAnnotation.cs" />

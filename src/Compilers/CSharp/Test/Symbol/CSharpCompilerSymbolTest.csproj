@@ -13,7 +13,7 @@
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.Symbol.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Compilers.CSharp.Symbol.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Dependencies\xUnit.net\xUnit.net.csproj">
@@ -148,6 +148,7 @@
     <Compile Include="Symbols\MockSymbolTests.cs" />
     <Compile Include="Symbols\NamespaceExtentTests.cs" />
     <Compile Include="Symbols\OverriddenOrHiddenMembersTests.cs" />
+    <Compile Include="Symbols\ReplaceOriginalTests.cs" />
     <Compile Include="Symbols\Retargeting\NoPia.cs" />
     <Compile Include="Symbols\Retargeting\RetargetCustomAttributes.cs" />
     <Compile Include="Symbols\Retargeting\RetargetCustomModifiers.cs" />

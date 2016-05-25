@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
 using System.Linq;
@@ -1395,7 +1396,7 @@ class C<T> where T : C<T> { }
         public void TestGenericMethodParameters()
         {
             var text = @"
-class C { 
+class C {
     void M<in T, out U, V>() { } }
 ";
 
@@ -1427,7 +1428,7 @@ class C {
         public void TestGenericMethodParametersAndVariance()
         {
             var text = @"
-class C { 
+class C {
     void M<in T, out U, V>() { } }
 ";
 
@@ -2861,7 +2862,18 @@ class C1 {
             string expectedText,
             params SymbolDisplayPartKind[] expectedKinds)
         {
-            var comp = CreateCompilationWithMscorlib(source);
+            TestSymbolDescription(source, findSymbol, format, null, expectedText, expectedKinds);
+        }
+
+        private static void TestSymbolDescription(
+            string source,
+            Func<NamespaceSymbol, Symbol> findSymbol,
+            SymbolDisplayFormat format,
+            CSharpParseOptions parseOptions,
+            string expectedText,
+            params SymbolDisplayPartKind[] expectedKinds)
+        {
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: parseOptions);
             var global = comp.GlobalNamespace;
             var symbol = findSymbol(global);
             var description = symbol.ToDisplayParts(format);
@@ -4267,25 +4279,25 @@ enum E2 // Identical to E1, but has [Flags]
 .class public auto ansi sealed DTest
        extends [mscorlib]System.MulticastDelegate
 {
-  .method public hidebysig specialname rtspecialname 
+  .method public hidebysig specialname rtspecialname
           instance void  .ctor(object 'object',
                                native int 'method') runtime managed
   {
   } // end of method DTest::.ctor
 
-  .method public hidebysig newslot virtual 
+  .method public hidebysig newslot virtual
           instance void  Invoke() runtime managed
   {
   } // end of method DTest::Invoke
 
-  .method public hidebysig newslot virtual 
-          instance class [mscorlib]System.IAsyncResult 
+  .method public hidebysig newslot virtual
+          instance class [mscorlib]System.IAsyncResult
           BeginInvoke(class [mscorlib]System.AsyncCallback callback,
                       object 'object') runtime managed
   {
   } // end of method DTest::BeginInvoke
 
-  .method public hidebysig newslot virtual 
+  .method public hidebysig newslot virtual
           instance void  EndInvoke(class [mscorlib]System.IAsyncResult result) runtime managed
   {
   } // end of method DTest::EndInvoke
@@ -4294,31 +4306,31 @@ enum E2 // Identical to E1, but has [Flags]
 
 .class interface public abstract auto ansi ITest
 {
-  .method public hidebysig newslot abstract virtual 
+  .method public hidebysig newslot abstract virtual
           instance void  M1() cil managed
   {
   } // end of method ITest::M1
 
-  .method public hidebysig newslot specialname abstract virtual 
+  .method public hidebysig newslot specialname abstract virtual
           instance int32  get_P1() cil managed
   {
   } // end of method ITest::get_P1
 
-  .method public hidebysig newslot specialname abstract virtual 
+  .method public hidebysig newslot specialname abstract virtual
           instance void  set_P1(int32 'value') cil managed
   {
   } // end of method ITest::set_P1
 
-  .method public hidebysig newslot specialname abstract virtual 
+  .method public hidebysig newslot specialname abstract virtual
           instance void  add_E1(class DTest 'value') cil managed
   {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
   } // end of method ITest::add_E1
 
-  .method public hidebysig newslot specialname abstract virtual 
+  .method public hidebysig newslot specialname abstract virtual
           instance void  remove_E1(class DTest 'value') cil managed
   {
-    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 ) 
+    .custom instance void [mscorlib]System.Runtime.CompilerServices.CompilerGeneratedAttribute::.ctor() = ( 01 00 00 00 )
   } // end of method ITest::remove_E1
 
   .event DTest E1
@@ -4337,7 +4349,7 @@ enum E2 // Identical to E1, but has [Flags]
        extends [mscorlib]System.Object
        implements ITest
 {
-  .method public hidebysig newslot specialname virtual final 
+  .method public hidebysig newslot specialname virtual final
           instance int32  get_P1() cil managed
   {
     .override ITest::get_P1
@@ -4348,7 +4360,7 @@ enum E2 // Identical to E1, but has [Flags]
     IL_0006:  throw
   } // end of method CTest::ITest.get_P1
 
-  .method public hidebysig newslot specialname virtual final 
+  .method public hidebysig newslot specialname virtual final
           instance void  set_P1(int32 'value') cil managed
   {
     .override ITest::set_P1
@@ -4359,7 +4371,7 @@ enum E2 // Identical to E1, but has [Flags]
     IL_0006:  throw
   } // end of method CTest::ITest.set_P1
 
-  .method public hidebysig newslot specialname virtual final 
+  .method public hidebysig newslot specialname virtual final
           instance void  add_E1(class DTest 'value') cil managed
   {
     .override ITest::add_E1
@@ -4370,7 +4382,7 @@ enum E2 // Identical to E1, but has [Flags]
     IL_0006:  throw
   } // end of method CTest::ITest.add_E1
 
-  .method public hidebysig newslot specialname virtual final 
+  .method public hidebysig newslot specialname virtual final
           instance void  remove_E1(class DTest 'value') cil managed
   {
     .override ITest::remove_E1
@@ -4381,7 +4393,7 @@ enum E2 // Identical to E1, but has [Flags]
     IL_0006:  throw
   } // end of method CTest::ITest.remove_E1
 
-  .method public hidebysig newslot virtual final 
+  .method public hidebysig newslot virtual final
           instance void  M1() cil managed
   {
     .override ITest::M1
@@ -4392,7 +4404,7 @@ enum E2 // Identical to E1, but has [Flags]
     IL_0006:  throw
   } // end of method CTest::ITest.M1
 
-  .method public hidebysig specialname rtspecialname 
+  .method public hidebysig specialname rtspecialname
           instance void  .ctor() cil managed
   {
     // Code size       8 (0x8)
@@ -4465,6 +4477,710 @@ class C<T> { }";
             Assert.False(new FormattedSymbol(sA, new SymbolDisplayFormat()).Equals(new FormattedSymbol(sA, new SymbolDisplayFormat())));
 
             Assert.True(new FormattedSymbol(sA, f1).GetHashCode().Equals(new FormattedSymbol(sA, f1).GetHashCode()));
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Tuples)]
+        public void Tuple()
+        {
+            var text = @"
+public class C
+{
+    public (int, string) f;
+}
+";
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                global.
+                GetTypeMembers("C").Single().
+                GetMembers("f").Single();
+
+            var format = new SymbolDisplayFormat(memberOptions: SymbolDisplayMemberOptions.IncludeType);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                TestOptions.Regular.WithTuplesFeature(),
+                "(Int32, String) f",
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.StructName, // Int32
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName, // String
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.FieldName);
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Tuples)]
+        public void TupleWithNames()
+        {
+            var text = @"
+public class C
+{
+    public (int x, string y) f;
+}
+";
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                global.
+                GetTypeMembers("C").Single().
+                GetMembers("f").Single();
+
+            var format = new SymbolDisplayFormat(memberOptions: SymbolDisplayMemberOptions.IncludeType);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                TestOptions.Regular.WithTuplesFeature(),
+                "(Int32 x, String y) f",
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.StructName, // Int32
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.FieldName, // x
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.ClassName, // String
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.FieldName, // y
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.FieldName);
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Tuples)]
+        public void LongTupleWithSpecialTypes()
+        {
+            var text = @"
+public class C
+{
+    public (int, string, bool, byte, long, ulong, short, ushort) f;
+}
+";
+
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                global.
+                GetTypeMembers("C").Single().
+                GetMembers("f").Single();
+
+            var format = new SymbolDisplayFormat(memberOptions: SymbolDisplayMemberOptions.IncludeType,
+                                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                TestOptions.Regular.WithTuplesFeature(),
+                "(int, string, bool, byte, long, ulong, short, ushort) f",
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword, // int
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword, // string
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword, // bool
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword, // byte
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword, // long
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword, // ulong
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword, // short
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword, // ushort
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.FieldName);
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Tuples)]
+        public void TupleProperty()
+        {
+            var text = @"
+class C
+{
+   (int Item1, string Item2) P { get; set; }
+}
+";
+            Func<NamespaceSymbol, Symbol> findSymbol = global =>
+                global.
+                GetTypeMembers("C").Single().
+                GetMembers("P").Single();
+
+            var format = new SymbolDisplayFormat(memberOptions: SymbolDisplayMemberOptions.IncludeType,
+                                miscellaneousOptions: SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
+
+            TestSymbolDescription(
+                text,
+                findSymbol,
+                format,
+                TestOptions.Regular.WithTuplesFeature(),
+                "(int Item1, string Item2) P",
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword, // int
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.FieldName, // Item1
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword, // string
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.FieldName, // Item2
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.PropertyName);
+        }
+
+        /// <summary>
+        /// This is a type symbol that claims to be a tuple symbol, but is not TupleTypeSymbol. Yet, it can still be displayed.
+        /// </summary>
+        private class FakeTupleTypeSymbol : INamedTypeSymbol
+        {
+            public bool IsTupleType => true;
+
+            public ImmutableArray<string> TupleElementNames { get; set; }
+
+            public ImmutableArray<ITypeSymbol> TupleElementTypes { get; set; }
+
+            public INamedTypeSymbol TupleUnderlyingType { get; set; }
+
+            public ImmutableArray<SymbolDisplayPart> ToDisplayParts(SymbolDisplayFormat format = null)
+            {
+                return SymbolDisplay.ToDisplayParts(this, format);
+            }
+
+            public void Accept(SymbolVisitor visitor)
+            {
+                visitor.VisitNamedType(this);
+            }
+
+            public SpecialType SpecialType => SpecialType.None;
+
+            public INamedTypeSymbol OriginalDefinition => this;
+
+            public bool IsAnonymousType => false;
+
+            #region FakeTupleTypeSymbol generated
+            public ImmutableArray<INamedTypeSymbol> AllInterfaces
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public int Arity
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public ISymbol AssociatedSymbol
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public INamedTypeSymbol BaseType
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public bool CanBeReferencedByName
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public INamedTypeSymbol ConstructedFrom
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public ImmutableArray<IMethodSymbol> Constructors
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public IAssemblySymbol ContainingAssembly
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public IModuleSymbol ContainingModule
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public INamespaceSymbol ContainingNamespace
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public ISymbol ContainingSymbol
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public INamedTypeSymbol ContainingType
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public Accessibility DeclaredAccessibility
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public IMethodSymbol DelegateInvokeMethod
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public INamedTypeSymbol EnumUnderlyingType
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public bool HasUnsupportedMetadata
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public ImmutableArray<IMethodSymbol> InstanceConstructors
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public ImmutableArray<INamedTypeSymbol> Interfaces
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public bool IsAbstract
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public bool IsDefinition
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public bool IsExtern
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public bool IsGenericType
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public bool IsImplicitClass
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public bool IsImplicitlyDeclared
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public bool IsNamespace
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public bool IsOverride
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public bool IsReferenceType
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public bool IsScriptClass
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public bool IsSealed
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public bool IsStatic
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public bool IsType
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public bool IsUnboundGenericType
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public bool IsValueType
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public bool IsVirtual
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public SymbolKind Kind
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public string Language
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public ImmutableArray<Location> Locations
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public IEnumerable<string> MemberNames
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public string MetadataName
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public bool MightContainExtensionMethods
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public string Name
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public ImmutableArray<IMethodSymbol> StaticConstructors
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public ImmutableArray<ITypeSymbol> TypeArguments
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public TypeKind TypeKind
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public ImmutableArray<ITypeParameterSymbol> TypeParameters
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            ITypeSymbol ITypeSymbol.OriginalDefinition
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            IEnumerable<string> INamedTypeSymbol.MemberNames
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            ISymbol ISymbol.OriginalDefinition
+            {
+                get
+                {
+                    throw new NotImplementedException();
+                }
+            }
+
+            public TResult Accept<TResult>(SymbolVisitor<TResult> visitor)
+            {
+                throw new NotImplementedException();
+            }
+
+            public INamedTypeSymbol Construct(params ITypeSymbol[] typeArguments)
+            {
+                throw new NotImplementedException();
+            }
+
+            public INamedTypeSymbol ConstructUnboundGenericType()
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool Equals(ISymbol other)
+            {
+                throw new NotImplementedException();
+            }
+
+            public ISymbol FindImplementationForInterfaceMember(ISymbol interfaceMember)
+            {
+                throw new NotImplementedException();
+            }
+
+            public ImmutableArray<AttributeData> GetAttributes()
+            {
+                throw new NotImplementedException();
+            }
+
+            public string GetDocumentationCommentId()
+            {
+                throw new NotImplementedException();
+            }
+
+            public string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
+            {
+                throw new NotImplementedException();
+            }
+
+            public ImmutableArray<ISymbol> GetMembers()
+            {
+                throw new NotImplementedException();
+            }
+
+            public ImmutableArray<ISymbol> GetMembers(string name)
+            {
+                throw new NotImplementedException();
+            }
+
+            public ImmutableArray<INamedTypeSymbol> GetTypeMembers()
+            {
+                throw new NotImplementedException();
+            }
+
+            public ImmutableArray<INamedTypeSymbol> GetTypeMembers(string name)
+            {
+                throw new NotImplementedException();
+            }
+
+            public ImmutableArray<INamedTypeSymbol> GetTypeMembers(string name, int arity)
+            {
+                throw new NotImplementedException();
+            }
+
+            public string ToDisplayString(SymbolDisplayFormat format = null)
+            {
+                throw new NotImplementedException();
+            }
+
+            public ImmutableArray<SymbolDisplayPart> ToMinimalDisplayParts(SemanticModel semanticModel, int position, SymbolDisplayFormat format = null)
+            {
+                throw new NotImplementedException();
+            }
+
+            public string ToMinimalDisplayString(SemanticModel semanticModel, int position, SymbolDisplayFormat format = null)
+            {
+                throw new NotImplementedException();
+            }
+            #endregion
+        }
+
+        [Fact, CompilerTrait(CompilerFeature.Tuples)]
+        public void DisplayFakeTupleTypeSymbol()
+        {
+            var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef });
+            ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
+            ITypeSymbol stringType = comp.GetSpecialType(SpecialType.System_String);
+
+            var symbolWithNames = new FakeTupleTypeSymbol();
+            symbolWithNames.TupleElementTypes = ImmutableArray.Create(intType, stringType);
+            symbolWithNames.TupleElementNames = ImmutableArray.Create("Alice", "Bob");
+            symbolWithNames.TupleUnderlyingType = ((INamedTypeSymbol)comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2)).Construct(intType, stringType);
+
+            var descriptionWithNames = symbolWithNames.ToDisplayParts();
+
+            Verify(descriptionWithNames,
+                "(int Alice, string Bob)",
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword, // int
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.FieldName, // Alice
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword, // string
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.FieldName, // Bob
+                SymbolDisplayPartKind.Punctuation);
+
+            var symbolWithoutNames = new FakeTupleTypeSymbol();
+            symbolWithoutNames.TupleElementTypes = ImmutableArray.Create(intType, stringType);
+            symbolWithoutNames.TupleUnderlyingType = symbolWithNames.TupleUnderlyingType;
+
+            var descriptionWithoutNames = symbolWithoutNames.ToDisplayParts();
+
+            Verify(descriptionWithoutNames,
+                "(int, string)",
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Keyword, // int
+                SymbolDisplayPartKind.Punctuation,
+                SymbolDisplayPartKind.Space,
+                SymbolDisplayPartKind.Keyword, // string
+                SymbolDisplayPartKind.Punctuation);
         }
     }
 }

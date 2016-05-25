@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Diagnostics;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
 
@@ -26,7 +25,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal override void GetRows(
             ResultProvider resultProvider,
-            ArrayBuilder<EvalResultDataItem> rows,
+            ArrayBuilder<EvalResult> rows,
             DkmInspectionContext inspectionContext,
             EvalResultDataItem parent,
             DkmClrValue value,
@@ -46,14 +45,14 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                         var emptyMember = memberValue.Type.GetMemberByName("Empty");
                         memberValue = memberValue.GetMemberValue(emptyMember, inspectionContext);
                     }
-                    var row = new EvalResultDataItem(Resources.ErrorName, (string)memberValue.HostObjectValue);
+                    var row = new EvalResult(Resources.ErrorName, (string)memberValue.HostObjectValue, inspectionContext);
                     rows.Add(row);
                 }
                 index++;
             }
             else
             {
-                parent = MemberExpansion.CreateMemberDataItem(
+                var other = MemberExpansion.CreateMemberDataItem(
                     resultProvider,
                     inspectionContext,
                     _member,
@@ -61,10 +60,10 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                     parent,
                     _dynamicFlagsMap,
                     ExpansionFlags.IncludeBaseMembers | ExpansionFlags.IncludeResultsView);
-                var expansion = parent.Expansion;
+                var expansion = other.Expansion;
                 if (expansion != null)
                 {
-                    expansion.GetRows(resultProvider, rows, inspectionContext, parent, parent.Value, startIndex, count, visitAll, ref index);
+                    expansion.GetRows(resultProvider, rows, inspectionContext, other.ToDataItem(), other.Value, startIndex, count, visitAll, ref index);
                 }
             }
         }

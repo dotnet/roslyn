@@ -288,7 +288,7 @@ End Class]]>
         <Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
         <Trait(Traits.Feature, Traits.Features.CodeActionsFixAllOccurrences)>
         Public Async Function TestFixAllInSolution_RemoveMe() As Task
-            Dim fixAllActionId = SimplifyTypeNamesCodeFixProvider.GetCodeActionId(IDEDiagnosticIds.SimplifyThisOrMeDiagnosticId, Nothing)
+            Dim fixAllActionId = SimplifyTypeNamesCodeFixProvider.GetCodeActionId(IDEDiagnosticIds.RemoveQualificationDiagnosticId, Nothing)
 
             Dim input = <Workspace>
                             <Project Language="Visual Basic" AssemblyName="Assembly1" CommonReferences="true">

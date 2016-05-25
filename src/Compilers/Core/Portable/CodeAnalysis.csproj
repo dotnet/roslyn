@@ -51,6 +51,38 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GlobalSuppressions.cs" />
+    <Compile Include="InternalUtilities\IncrementalHash.cs" />
+    <Compile Include="System\Reflection\Blob.cs" />
+    <Compile Include="System\Reflection\BlobWriter.cs" />
+    <Compile Include="System\Reflection\BlobWriterImpl.cs" />
+    <Compile Include="System\Reflection\BlobBuilder.cs" />
+    <Compile Include="System\Reflection\BlobBuilder.Enumerators.cs" />
+    <Compile Include="System\Reflection\Metadata\Ecma335\Blobs\BranchBuilder.cs" />
+    <Compile Include="System\Reflection\Metadata\Ecma335\Blobs\ExceptionRegionEncoder.cs" />
+    <Compile Include="System\Reflection\Metadata\Ecma335\Blobs\InstructionEncoder.cs" />
+    <Compile Include="System\Reflection\Metadata\Ecma335\Blobs\LabelHandle.cs" />
+    <Compile Include="System\Reflection\Metadata\Ecma335\CodedIndex.cs" />
+    <Compile Include="System\Reflection\Metadata\ILOpCodeExtensions.cs" />
+    <Compile Include="System\Reflection\Metadata\ImageFormatLimitationException.cs" />
+    <Compile Include="System\Reflection\Metadata\Ecma335\MetadataSerializer.cs" />
+    <Compile Include="System\Reflection\Metadata\Ecma335\MetadataBuilder.Tables.cs" />
+    <Compile Include="System\Reflection\Metadata\Ecma335\Blobs\BlobEncoders.cs" />
+    <Compile Include="System\Reflection\Metadata\Ecma335\Blobs\MethodBodyEncoder.cs" />
+    <Compile Include="System\Reflection\Metadata\Ecma335\MetadataSizes.cs" />
+    <Compile Include="System\Reflection\Metadata\Ecma335\MetadataBuilder.Heaps.cs" />
+    <Compile Include="System\Reflection\Metadata\ILOpCode.cs" />
+    <Compile Include="System\Reflection\Metadata\Internal\HeapSizeFlag.cs" />
+    <Compile Include="System\Reflection\Metadata\Internal\MetadataWriterUtilities.cs" />
+    <Compile Include="System\Reflection\PortableExecutable\ContentId.cs" />
+    <Compile Include="System\Reflection\PortableExecutable\ManagedPEBuilder.cs" />
+    <Compile Include="System\Reflection\PortableExecutable\ManagedTextSection.cs" />
+    <Compile Include="System\Reflection\PortableExecutable\PEBuilder.cs" />
+    <Compile Include="System\Reflection\PortableExecutable\PEDirectoriesBuilder.cs" />
+    <Compile Include="System\Reflection\PortableExecutable\PESectionLocation.cs" />
+    <Compile Include="System\Reflection\Internal\Utilities\BlobUtilities.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <Compile Include="..\..\Shared\CoreClrShim.cs">
       <Link>CoreClrShim.cs</Link>
     </Compile>
@@ -80,18 +112,20 @@
     <Compile Include="DiagnosticAnalyzer\SuppressMessageInfo.cs" />
     <Compile Include="Diagnostic\SuppressionInfo.cs" />
     <Compile Include="InternalUtilities\JsonWriter.cs" />
+    <Compile Include="InternalUtilities\IncrementalHashExtensions.cs" />
     <Compile Include="InternalUtilities\SetWithInsertionOrder.cs" />
     <Compile Include="InternalUtilities\StackGuard.cs" />
     <Compile Include="InternalUtilities\StreamExtensions.cs" />
+    <Compile Include="PEWriter\NativeResourceWriter.cs" />
     <Compile Include="RealParser.cs" />
     <Compile Include="ReferenceManager\MergedAliases.cs" />
+    <Compile Include="SourceGenerator\SourceGeneratorExtensions.cs" />
     <Compile Include="StrongName\CryptoBlobParser.cs" />
     <Compile Include="Symbols\ISourceAssemblySymbol.cs" />
     <Compile Include="Symbols\IAssemblySymbolInternal.cs" />
     <Compile Include="Syntax\SyntaxTreeComparer.cs" />
     <Compile Include="Syntax\ICompilationUnitSyntax.cs" />
     <Compile Include="Syntax\ISkippedTokensTriviaSyntax.cs" />
-    <Compile Include="System\Reflection\Metadata\ILOpCode.cs" />
     <Compile Include="Text\LargeTextWriter.cs" />
     <Compile Include="Text\SourceTextComparer.cs" />
     <Compile Include="Text\SourceTextWriter.cs" />
@@ -345,7 +379,6 @@
     <Compile Include="InternalUtilities\ArrayExtensions.cs" />
     <Compile Include="InternalUtilities\BitArithmeticUtilities.cs" />
     <Compile Include="InternalUtilities\FatalError.cs" />
-    <Compile Include="InternalUtilities\ComStreamWrapper.cs" />
     <Compile Include="InternalUtilities\ConcurrentDictionaryExtensions.cs" />
     <Compile Include="InternalUtilities\ConcurrentLruCache.cs" />
     <Compile Include="InternalUtilities\ConcurrentSet.cs" />
@@ -443,13 +476,6 @@
     <Compile Include="FileSystem\PathUtilities.cs" />
     <Compile Include="FileSystem\FileUtilities.cs" />
     <Compile Include="FileSystem\RelativePathResolver.cs" />
-    <Compile Include="PEWriter\Blob.cs" />
-    <Compile Include="PEWriter\BlobWriter.cs" />
-    <Compile Include="PEWriter\BlobWriterImpl.cs" />
-    <Compile Include="PEWriter\BlobUtilities.cs" />
-    <Compile Include="PEWriter\CoffHeader.cs" />
-    <Compile Include="PEWriter\ContentId.cs" />
-    <Compile Include="PEWriter\MetadataHeapsBuilder.cs" />
     <Compile Include="PEWriter\ITypeReferenceExtensions.cs" />
     <Compile Include="PEWriter\MetadataWriter.PortablePdb.cs" />
     <Compile Include="PEWriter\NoPiaReferenceIndexer.cs" />
@@ -469,7 +495,6 @@
     <Compile Include="SymbolDisplay\ObjectDisplayOptions.cs" />
     <Compile Include="Optional.cs" />
     <Compile Include="OutputKind.cs" />
-    <Compile Include="PEWriter\CorHeader.cs" />
     <Compile Include="PEWriter\Constants.cs" />
     <Compile Include="PEWriter\Core.cs" />
     <Compile Include="PEWriter\CustomDebugInfoConstants.cs" />
@@ -489,21 +514,17 @@
     <Compile Include="PEWriter\ManagedResource.cs" />
     <Compile Include="PEWriter\MemberRefComparer.cs" />
     <Compile Include="PEWriter\Members.cs" />
-    <Compile Include="PEWriter\BlobBuilder.cs" />
-    <Compile Include="PEWriter\MetadataSizes.cs" />
     <Compile Include="PEWriter\MetadataVisitor.cs" />
     <Compile Include="PEWriter\MethodSpecComparer.cs" />
     <Compile Include="PEWriter\Miscellaneous.cs" />
     <Compile Include="PEWriter\ModifiedTypeReference.cs" />
     <Compile Include="PEWriter\IImportScope.cs" />
-    <Compile Include="PEWriter\NtHeader.cs" />
     <Compile Include="NativePdbWriter\PdbMetadataWrapper.cs" />
     <Compile Include="NativePdbWriter\PdbWriter.cs" />
     <Compile Include="PEWriter\PeWriter.cs" />
     <Compile Include="PEWriter\ReferenceIndexer.cs" />
     <Compile Include="PEWriter\ReturnValueParameter.cs" />
     <Compile Include="PEWriter\RootModuleType.cs" />
-    <Compile Include="PEWriter\SectionHeader.cs" />
     <Compile Include="PEWriter\SequencePoint.cs" />
     <Compile Include="PEWriter\TypeLibTypeFlags.cs" />
     <Compile Include="PEWriter\Types.cs" />
@@ -538,6 +559,9 @@
     <Compile Include="Serialization\SimpleRecordingObjectBinder.cs" />
     <Compile Include="SignatureComparer.cs" />
     <Compile Include="SourceCodeKind.cs" />
+    <Compile Include="SourceGenerator\SourceGenerator.cs" />
+    <Compile Include="SourceGenerator\SourceGeneratorAttribute.cs" />
+    <Compile Include="SourceGenerator\SourceGeneratorContext.cs" />
     <Compile Include="SpecialMember.cs" />
     <Compile Include="SpecialMembers.cs" />
     <Compile Include="SpecialType.cs" />
@@ -779,7 +803,6 @@
     <None Include="..\CodeAnalysisRules.ruleset">
       <SubType>Designer</SubType>
     </None>
-    <Compile Include="PEWriter\BlobBuilder.Enumerators.cs" />
     <None Include="project.json" />
     <None Include="RuleSet\RuleSetSchema.xsd">
       <SubType>Designer</SubType>

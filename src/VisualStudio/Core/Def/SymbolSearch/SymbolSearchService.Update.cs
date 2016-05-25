@@ -5,17 +5,14 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.IO.Compression;
-using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Xml;
 using System.Xml.Linq;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.Packaging;
-using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
@@ -69,32 +66,6 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
         private void LogException(Exception e, string text) => _logService.LogException(e, text);
 
-        private void OnOptionChanged(object sender, EventArgs e)
-        {
-            var options = _workspace.Options;
-            if (!options.GetOption(AddImportOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.CSharp) &&
-                !options.GetOption(AddImportOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.VisualBasic) &&
-                !options.GetOption(AddImportOptions.SuggestForTypesInNuGetPackages, LanguageNames.CSharp) &&
-                !options.GetOption(AddImportOptions.SuggestForTypesInNuGetPackages, LanguageNames.VisualBasic))
-            {
-                // If we don't have any add-import features that would use these indices, then
-                // don't bother creating them.
-                return;
-            }
-
-            // Kick off a database update.  Wait a few seconds before starting so we don't
-            // interfere too much with solution loading.
-            var sources = _installerService.PackageSources;
-
-            // Always pull down the nuget.org index.  It contains the MS reference assembly index
-            // inside of it.
-            var allSources = sources.Concat(new PackageSource(NugetOrgSource, source: null));
-            foreach (var source in allSources)
-            {
-                Task.Delay(TimeSpan.FromSeconds(10)).ContinueWith(_ =>
-                    UpdateSourceInBackgroundAsync(source.Name), TaskScheduler.Default);
-            }
-        }
 
         // internal for testing purposes.
         internal Task UpdateSourceInBackgroundAsync(string source)

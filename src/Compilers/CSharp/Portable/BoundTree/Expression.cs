@@ -5,11 +5,8 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Runtime.CompilerServices;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Semantics;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -44,10 +41,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         IOperation IInvocationExpression.Instance => ((object)this.Method == null || this.Method.IsStatic) ? null : this.ReceiverOpt;
 
-        bool IInvocationExpression.IsVirtual => (object)this.Method != null && this.ReceiverOpt != null && (this.Method.IsVirtual || this.Method.IsAbstract || this.Method.IsOverride) && !this.ReceiverOpt.SuppressVirtualCalls;
+        bool IInvocationExpression.IsVirtual =>
+            (object)this.Method != null &&
+            this.ReceiverOpt != null &&
+            (this.Method.IsVirtual || this.Method.IsAbstract || this.Method.IsOverride) &&
+            (object)this.Method.ReplacedBy == null &&
+            !this.ReceiverOpt.SuppressVirtualCalls;
 
         ImmutableArray<IArgument> IHasArgumentsExpression.ArgumentsInEvaluationOrder => DeriveArgumentsInEvaluationOrder(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Method.Parameters, this.Syntax);
-                
+
         ImmutableArray<IArgument> IHasArgumentsExpression.ArgumentsInParameterOrder => DeriveArgumentsInParameterOrder(this.Arguments, this.ArgumentNamesOpt, this.ArgsToParamsOpt, this.ArgumentRefKindsOpt, this.Method.Parameters, this.Syntax);
 
         IArgument IHasArgumentsExpression.GetArgumentMatchingParameter(IParameterSymbol parameter)
@@ -86,10 +88,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return arguments.ToImmutableAndFree();
-        }
+                    }
 
         internal static ImmutableArray<IArgument> DeriveArgumentsInEvaluationOrder(ImmutableArray<BoundExpression> boundArguments, ImmutableArray<string> argumentNames, ImmutableArray<int> argumentsToParameters, ImmutableArray<RefKind> argumentRefKinds, ImmutableArray<Symbols.ParameterSymbol> parameters, SyntaxNode invocationSyntax)
-        {
+                    {
             HashSet<int> matchedParameters = new HashSet<int>();
             ArrayBuilder<IArgument> evaluationOrderArguments = ArrayBuilder<IArgument>.GetInstance(parameters.Length);
             for (int argumentIndex = 0; argumentIndex < boundArguments.Length; argumentIndex++)
@@ -101,12 +103,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if ((uint)parameterIndex < parameters.Length && parameters[parameterIndex].IsParams)
                 {
                     break;
+                    }
                 }
-            }
 
             // Include implicit arguments after the explicit arguments.
             foreach (Symbols.ParameterSymbol parameter in parameters)
-            {
+                {
                 if (!matchedParameters.Contains(parameter.Ordinal))
                 {
                     evaluationOrderArguments.Add(DeriveArgument(parameter.Ordinal, -1, boundArguments, argumentNames, argumentRefKinds, parameters, invocationSyntax));
@@ -128,24 +130,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return omittedArguments.GetOrAdd(
                     parameters[parameterIndex],
                     (parameter) =>
-                    {
+                {
                         // No argument has been supplied for the parameter at `parameterIndex`:
                         // 1. `argumentIndex == -1' when the arguments are specified out of parameter order, and no argument is provided for the parameter corresponding to `parameters[parameterIndex]`.
                         // 2. `argumentIndex >= boundArguments.Length` when the arguments are specified in parameter order, and no argument is provided at `parameterIndex`.
 
                         // Check for a parameter with a default value.
                         if (parameter.HasExplicitDefaultValue)
-                        {
+                    {
                             return new Argument(parameter, new Literal(parameter.ExplicitDefaultConstantValue, parameter.Type, invocationSyntax));
-                        }
+                    }
 
                         // Check for an omitted argument that becomes an empty params array.
                         if (parameter.IsParams)
                         {
                             return new Argument(parameter, CreateParamArray(parameter, boundArguments, argumentIndex, invocationSyntax));
-                        }
+                }
 
-                        // There is no supplied argument and there is no params parameter. Any action is suspect at this point.
+                // There is no supplied argument and there is no params parameter. Any action is suspect at this point.
                         return new Argument(parameter, new InvalidExpression(invocationSyntax));
                     });
             }
@@ -196,11 +198,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // If there are no matching arguments, then the argument index is negative.
                 if (firstArgumentElementIndex >= 0)
                 {
-                    ArrayBuilder<IOperation> builder = ArrayBuilder<IOperation>.GetInstance(boundArguments.Length - firstArgumentElementIndex);
-                    for (int index = firstArgumentElementIndex; index < boundArguments.Length; index++)
-                    {
-                        builder.Add(boundArguments[index]);
-                    }
+                ArrayBuilder<IOperation> builder = ArrayBuilder<IOperation>.GetInstance(boundArguments.Length - firstArgumentElementIndex);
+                for (int index = firstArgumentElementIndex; index < boundArguments.Length; index++)
+                {
+                    builder.Add(boundArguments[index]);
+                }
                     paramArrayArguments = builder.ToImmutableAndFree();
                 }
                 else
@@ -218,8 +220,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static IArgument ArgumentMatchingParameter(ImmutableArray<BoundExpression> arguments, ImmutableArray<int> argumentsToParameters, ImmutableArray<string> argumentNames, ImmutableArray<RefKind> argumentRefKinds, ISymbol targetMethod, ImmutableArray<Symbols.ParameterSymbol> parameters, IParameterSymbol parameter, SyntaxNode invocationSyntax)
         {
             int argumentIndex = ArgumentIndexMatchingParameter(arguments, argumentsToParameters, targetMethod, parameter);
-            return DeriveArgument(parameter.Ordinal, argumentIndex, arguments, argumentNames, argumentRefKinds, parameters, invocationSyntax);
-        }
+                return DeriveArgument(parameter.Ordinal, argumentIndex, arguments, argumentNames, argumentRefKinds, parameters, invocationSyntax);
+            }
 
         private static int ArgumentIndexMatchingParameter(ImmutableArray<BoundExpression> arguments, ImmutableArray<int> argumentsToParameters, ISymbol targetMethod, IParameterSymbol parameter)
         {
@@ -426,7 +428,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        bool IMethodBindingExpression.IsVirtual => (object)this.MethodOpt != null && (this.MethodOpt.IsVirtual || this.MethodOpt.IsAbstract || this.MethodOpt.IsOverride) && !this.SuppressVirtualCalls;
+        bool IMethodBindingExpression.IsVirtual =>
+            (object)this.MethodOpt != null &&
+            (this.MethodOpt.IsVirtual || this.MethodOpt.IsAbstract || this.MethodOpt.IsOverride) &&
+            (object)this.MethodOpt.ReplacedBy == null &&
+            !this.SuppressVirtualCalls;
 
         ISymbol IMemberReferenceExpression.Member => this.MethodOpt;
 
@@ -479,6 +485,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
             return visitor.VisitLiteralExpression(this, argument);
+        }
+    }
+
+    internal partial class BoundTupleExpression 
+    {
+        protected override OperationKind ExpressionKind => OperationKind.None;
+
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitNoneOperation(this);
+    }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNoneOperation(this, argument);
         }
     }
 
@@ -679,6 +700,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case CSharp.ConversionKind.ImplicitDynamic:
                     case CSharp.ConversionKind.ExplicitEnumeration:
                     case CSharp.ConversionKind.ImplicitEnumeration:
+                    case CSharp.ConversionKind.ImplicitTuple:
                     case CSharp.ConversionKind.ExplicitNullable:
                     case CSharp.ConversionKind.ImplicitNullable:
                     case CSharp.ConversionKind.ExplicitNumeric:
@@ -708,14 +730,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         // Consider introducing a different bound node type for method group conversions. These aren't truly conversions, but represent selection of a particular method.
         protected override OperationKind ExpressionKind => this.ConversionKind == ConversionKind.MethodGroup ? OperationKind.MethodBindingExpression : OperationKind.ConversionExpression;
 
-        IMethodSymbol IMethodBindingExpression.Method => this.ConversionKind == ConversionKind.MethodGroup ? this.SymbolOpt as IMethodSymbol : null;
+        IMethodSymbol IMethodBindingExpression.Method => this.ConversionKind == ConversionKind.MethodGroup ? this.SymbolOpt : null;
 
         bool IMethodBindingExpression.IsVirtual
         {
             get
             {
-                IMethodSymbol method = ((IMethodBindingExpression)this).Method;
-                return (object)method != null && (method.IsAbstract || method.IsOverride || method.IsVirtual) && !this.SuppressVirtualCalls;
+                var method = this.SymbolOpt;
+                return (object)method != null &&
+                    (method.IsAbstract || method.IsOverride || method.IsVirtual) &&
+                    (object)method.ReplacedBy == null &&
+                    !this.SuppressVirtualCalls;
             }
         }
 
@@ -2745,4 +2770,23 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BinaryOperationKind.Invalid;
         }
     }
+
+    partial class BoundIsPatternExpression
+    {
+        public override void Accept(OperationVisitor visitor)
+        {
+            // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
+            visitor.VisitNoneOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
+            return visitor.VisitNoneOperation(this, argument);
+    }
+
+        // TODO: implement IOperation for pattern-matching constructs (https://github.com/dotnet/roslyn/issues/8699)
+        protected override OperationKind ExpressionKind => OperationKind.None;
+    }
+
 }

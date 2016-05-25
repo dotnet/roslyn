@@ -117,6 +117,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public MustOverride ReadOnly Property IsIterator As Boolean
 
         ''' <summary>
+        ''' Source: Returns False; methods from source cannot return by reference.
+        ''' Metadata: Returns whether or not this method returns by reference.
+        ''' </summary>
+        Public MustOverride ReadOnly Property ReturnsByRef As Boolean
+
+        ''' <summary>
         ''' Gets the return type of the method. If the method is a Sub, returns
         ''' the same type symbol as is returned by Compilation.VoidType.
         ''' </summary>
@@ -570,6 +576,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Debug.Assert(IsDefinition)
 
+            ' Check returns by ref.
+            If Me.ReturnsByRef Then
+                Return ErrorFactory.ErrorInfo(ERRID.ERR_UnsupportedMethod1, CustomSymbolDisplayFormatter.ShortErrorName(Me))
+            End If
+
             ' Check return type.
             Dim errorInfo As DiagnosticInfo = DeriveUseSiteErrorInfoFromType(Me.ReturnType)
 
@@ -890,6 +901,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private ReadOnly Property IMethodSymbol_ReturnsVoid As Boolean Implements IMethodSymbol.ReturnsVoid
             Get
                 Return Me.IsSub
+            End Get
+        End Property
+
+        Private ReadOnly Property IMethodSymbol_ReturnsByRef As Boolean Implements IMethodSymbol.ReturnsByRef
+            Get
+                Return Me.ReturnsByRef
             End Get
         End Property
 

@@ -53,6 +53,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return true; }
             }
 
+            internal override RefKind RefKind
+            {
+                get { return RefKind.None; }
+            }
+
             public override TypeSymbol ReturnType
             {
                 get { return this.Manager.System_Void; }

@@ -45,8 +45,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                     Return
                 End If
 
-                Dim optionService = document.Project.Solution.Workspace.Services.GetService(Of IOptionService)()
-                If Not (isExplicitFormat OrElse optionService.GetOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic)) Then
+                If Not (isExplicitFormat OrElse document.Options.GetOption(FeatureOnOffOptions.PrettyListing)) Then
                     Return
                 End If
 
@@ -120,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
             Return New SimpleCodeCleanupProvider(PredefinedCodeCleanupProviderNames.Format,
                                                  Function(doc, spans, c) FormatAsync(doc, spans, rules, c),
-                                                 Function(r, spans, w, c) Format(r, spans, w, rules, c))
+                                                 Function(r, spans, w, c) Format(r, spans, w, document.Options, rules, c))
         End Function
 
         Private Async Function FormatAsync(document As Document, spans As IEnumerable(Of TextSpan), rules As IEnumerable(Of IFormattingRule), cancellationToken As CancellationToken) As Task(Of Document)
@@ -129,19 +128,19 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
 
             If document.TryGetText(oldText) Then
                 Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-                Dim newText = oldText.WithChanges(Formatter.GetFormattedTextChanges(root, spans, document.Project.Solution.Workspace, options:=Nothing, rules:=rules, cancellationToken:=cancellationToken))
+                Dim newText = oldText.WithChanges(Formatter.GetFormattedTextChanges(root, spans, document.Project.Solution.Workspace, document.Options, rules, cancellationToken))
                 Return document.WithText(newText)
             End If
 
-            Return Await Formatter.FormatAsync(document, spans, options:=Nothing, rules:=rules, cancellationToken:=cancellationToken).ConfigureAwait(False)
+            Return Await Formatter.FormatAsync(document, spans, document.Options, rules, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Private Function Format(root As SyntaxNode, spans As IEnumerable(Of TextSpan), workspace As Workspace, rules As IEnumerable(Of IFormattingRule), cancellationToken As CancellationToken) As SyntaxNode
+        Private Function Format(root As SyntaxNode, spans As IEnumerable(Of TextSpan), workspace As Workspace, options As OptionSet, rules As IEnumerable(Of IFormattingRule), cancellationToken As CancellationToken) As SyntaxNode
             ' if old text already exist, use fast path for formatting
             Dim oldText As SourceText = Nothing
 
             If root.SyntaxTree IsNot Nothing AndAlso root.SyntaxTree.TryGetText(oldText) Then
-                Dim changes = Formatter.GetFormattedTextChanges(root, spans, workspace, options:=Nothing, rules:=rules, cancellationToken:=cancellationToken)
+                Dim changes = Formatter.GetFormattedTextChanges(root, spans, workspace, options, rules, cancellationToken)
 
                 ' no change 
                 If changes.Count = 0 Then
@@ -151,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
                 Return root.SyntaxTree.WithChangedText(oldText.WithChanges(changes)).GetRoot(cancellationToken)
             End If
 
-            Return Formatter.Format(root, spans, workspace, options:=Nothing, rules:=rules, cancellationToken:=cancellationToken)
+            Return Formatter.Format(root, spans, workspace, options, rules, cancellationToken)
         End Function
 
         Private Function GetFormattingRules(
@@ -229,13 +228,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.LineCommit
             Dim token = vbTree.GetRoot(cancellationToken).FindToken(Math.Min(endPosition, syntaxTree.GetRoot(cancellationToken).FullSpan.End))
 
             Dim node = token.Parent
-            Dim optionSet = document.Project.Solution.Workspace.Options
 
             ' collect all indent operation
             Dim operations = New List(Of IndentBlockOperation)()
             While node IsNot Nothing
                 operations.AddRange(FormattingOperations.GetIndentBlockOperations(
-                                    Formatter.GetDefaultFormattingRules(document), node, lastToken:=Nothing, optionSet:=optionSet))
+                                    Formatter.GetDefaultFormattingRules(document), node, lastToken:=Nothing, optionSet:=document.Options))
                 node = node.Parent
             End While
 

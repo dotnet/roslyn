@@ -21,18 +21,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
 {
     /// <summary>
     /// This service is created on the UI thread during package initialization, but it must not
-    /// block the initialization process. If the expansion manager is an IExpansionManager,
-    /// then we can use the asynchronous population mechanism it provides. Otherwise, getting
-    /// snippet information from the <see cref="IVsExpansionManager"/> must be done synchronously
-    /// through on the UI thread, which we do after package initialization at a lower priority.
+    /// block the initialization process.
     /// </summary>
-    /// <remarks>
-    /// IExpansionManager was introduced in Visual Studio 2015 Update 1, but
-    /// will be enabled by default for the first time in Visual Studio 2015 Update 2. However,
-    /// the platform still supports returning the <see cref="IVsExpansionManager"/> if a major
-    /// problem in the IExpansionManager is discovered, so we must continue 
-    /// supporting the fallback.
-    /// </remarks>
     internal abstract class AbstractSnippetInfoService : ForegroundThreadAffinitizedObject, ISnippetInfoService, IVsExpansionEvents
     {
         private readonly Guid _languageGuidForSnippets;
@@ -123,64 +113,69 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Snippets
         {
             Debug.Assert(_expansionManager != null);
 
-            // Ideally we'd fork execution here based on whether the expansion manager is an
-            // IExpansionManager or not. Unfortunately, we cannot mention that type by name until
-            // the Roslyn build machines are upgraded to Visual Studio 2015 Update 1. We therefore
-            // need to try using IExpansionManager dynamically, from a background thread. If that
-            // fails, then we come back to the UI thread for using IVsExpansionManager instead.
+            // If the expansion manager is an IExpansionManager, then we can use the asynchronous
+            // population mechanism it provides. Otherwise, getting snippet information from the
+            // IVsExpansionManager must be done synchronously on the UI thread.
+
+            // IExpansionManager was introduced in Visual Studio 2015 Update 1, but will be enabled
+            // by default for the first time in Visual Studio 2015 Update 2. However, the platform
+            // still supports returning the IVsExpansionManager if a major problem in the 
+            // IExpansionManager is discovered, so we must continue supporting the fallback.            
 
             var token = _waiter.BeginAsyncOperation(GetType().Name + ".Start");
 
-            Task.Factory.StartNew(async () => await PopulateSnippetCacheOnBackgroundWithForegroundFallback().ConfigureAwait(false),
-                            CancellationToken.None,
-                            TaskCreationOptions.None,
-                            TaskScheduler.Default).CompletesAsyncOperation(token);
+            var asyncExpansionManager = _expansionManager as IExpansionManager;
+            if (asyncExpansionManager != null)
+            {
+                // Call the asynchronous IExpansionManager API from a background thread
+                Task.Factory.StartNew(async () => await PopulateSnippetCacheAsync(asyncExpansionManager).ConfigureAwait(false),
+                                CancellationToken.None,
+                                TaskCreationOptions.None,
+                                TaskScheduler.Default).CompletesAsyncOperation(token);
+
+            }
+            else
+            {
+                // Call the synchronous IVsExpansionManager API from the UI thread
+                Task.Factory.StartNew(() => PopulateSnippetCacheOnForeground(_expansionManager),
+                                CancellationToken.None,
+                                TaskCreationOptions.None,
+                                ForegroundTaskScheduler).CompletesAsyncOperation(token);                
+            }
         }
 
-        private async Task PopulateSnippetCacheOnBackgroundWithForegroundFallback()
+        private async Task PopulateSnippetCacheAsync(IExpansionManager expansionManager)
         {
             AssertIsBackground();
 
-            try
-            {
-                IVsExpansionEnumeration expansionEnumerator = await ((dynamic)_expansionManager).EnumerateExpansionsAsync(
-                    _languageGuidForSnippets,
-                    0, // shortCutOnly
-                    Array.Empty<string>(), // types
-                    0, // countTypes
-                    1, // includeNULLTypes
-                    1 // includeDulicates: Allows snippets with the same title but different shortcuts
-                    ).ConfigureAwait(false);
+            var expansionEnumerator = await expansionManager.EnumerateExpansionsAsync(
+                _languageGuidForSnippets,
+                0, // shortCutOnly
+                Array.Empty<string>(), // types
+                0, // countTypes
+                1, // includeNULLTypes
+                1 // includeDulicates: Allows snippets with the same title but different shortcuts
+                ).ConfigureAwait(false);
 
-                // The rest of the process requires being on the UI thread, see the explanation on 
-                // PopulateSnippetCacheFromExpansionEnumeration for details
-                await Task.Factory.StartNew(() => PopulateSnippetCacheFromExpansionEnumeration(expansionEnumerator),
-                    CancellationToken.None,
-                    TaskCreationOptions.None,
-                    ForegroundTaskScheduler).ConfigureAwait(false);
-            }
-            catch (RuntimeBinderException)
-            {
-                // The IExpansionManager.EnumerateExpansionsAsync could not be found. Use 
-                // IVsExpansionManager.EnumerateExpansions instead, but from the UI thread.
-                await Task.Factory.StartNew(() => PopulateSnippetCacheOnForeground(),
-                            CancellationToken.None,
-                            TaskCreationOptions.None,
-                            ForegroundTaskScheduler).ConfigureAwait(false);
-            }
+            // The rest of the process requires being on the UI thread, see the explanation on
+            // PopulateSnippetCacheFromExpansionEnumeration for details
+            await Task.Factory.StartNew(() => PopulateSnippetCacheFromExpansionEnumeration(expansionEnumerator),
+                CancellationToken.None,
+                TaskCreationOptions.None,
+                ForegroundTaskScheduler).ConfigureAwait(false);
         }
 
         /// <remarks>
         /// Changes to the <see cref="IVsExpansionManager.EnumerateExpansions"/> invocation
         /// should also be made to the IExpansionManager.EnumerateExpansionsAsync
-        /// invocation in <see cref="PopulateSnippetCacheOnBackgroundWithForegroundFallback"/>.
+        /// invocation in <see cref="PopulateSnippetCacheAsync(IExpansionManager)"/>.
         /// </remarks>
-        private void PopulateSnippetCacheOnForeground()
+        private void PopulateSnippetCacheOnForeground(IVsExpansionManager expansionManager)
         {
             AssertIsForeground();
 
             IVsExpansionEnumeration expansionEnumerator = null;
-            _expansionManager.EnumerateExpansions(
+            expansionManager.EnumerateExpansions(
                 _languageGuidForSnippets,
                 fShortCutOnly: 0,
                 bstrTypes: null,
