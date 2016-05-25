@@ -4447,7 +4447,7 @@ End Class
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
 
             diff1.EmitResult.Diagnostics.Verify(
-                Diagnostic(ERRID.ERR_ModuleEmitFailure).WithArguments(compilation0.SourceModule.Name))
+                Diagnostic(ERRID.ERR_EncUpdateFailedMissingAttribute).WithArguments("Public Function F() As IEnumerable(Of Integer)", "System.Runtime.CompilerServices.IteratorStateMachineAttribute"))
         End Sub
 
         <Fact, WorkItem(9119, "https://github.com/dotnet/roslyn/issues/9119")>
@@ -4501,8 +4501,8 @@ End Class
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables:=True)))
 
             diff1.EmitResult.Diagnostics.Verify(
-                Diagnostic(ERRID.ERR_ModuleEmitFailure).WithArguments(compilation0.SourceModule.Name),
-                Diagnostic(ERRID.ERR_ModuleEmitFailure).WithArguments(compilation0.SourceModule.Name))
+                Diagnostic(ERRID.ERR_EncUpdateFailedMissingAttribute).WithArguments("Public Function F() As Task(Of Integer)", "System.Runtime.CompilerServices.AsyncStateMachineAttribute"),
+                Diagnostic(ERRID.ERR_EncUpdateFailedMissingAttribute).WithArguments("Public Function F() As Task(Of Integer)", "System.Runtime.CompilerServices.AsyncStateMachineAttribute"))
         End Sub
     End Class
 End Namespace

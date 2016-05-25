@@ -225,11 +225,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                     var symbolToMatch = symbolInfoToMatch.Symbol;
                     var symbolToMatchCompilation = model.Compilation;
 
-                    if (DependentTypeFinder.OriginalSymbolsMatch(searchSymbol, symbolInfoToMatch.Symbol, solution, null, symbolToMatchCompilation, cancellationToken))
+                    if (SymbolFinder.OriginalSymbolsMatch(searchSymbol, symbolInfoToMatch.Symbol, solution, null, symbolToMatchCompilation, cancellationToken))
                     {
                         return ValueTuple.Create(true, CandidateReason.None);
                     }
-                    else if (symbolInfoToMatch.CandidateSymbols.Any(s => DependentTypeFinder.OriginalSymbolsMatch(searchSymbol, s, solution, null, symbolToMatchCompilation, cancellationToken)))
+                    else if (symbolInfoToMatch.CandidateSymbols.Any(s => SymbolFinder.OriginalSymbolsMatch(searchSymbol, s, solution, null, symbolToMatchCompilation, cancellationToken)))
                     {
                         return ValueTuple.Create(true, symbolInfoToMatch.CandidateReason);
                     }

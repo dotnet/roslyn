@@ -64,7 +64,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public abstract void RegisterSemanticModelAction(Action<SemanticModelAnalysisContext> action);
 
         /// <summary>
-        /// Register an action to be executed at completion of semantic analysis of an <see cref="ISymbol"/> with an appropriate Kind.>
+        /// Register an action to be executed at completion of semantic analysis of an <see cref="ISymbol"/> with an appropriate Kind.
         /// A symbol action reports <see cref="Diagnostic"/>s about <see cref="ISymbol"/>s.
         /// </summary>
         /// <param name="action">Action to be executed for an <see cref="ISymbol"/>.</param>
@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Register an action to be executed at completion of semantic analysis of an <see cref="ISymbol"/> with an appropriate Kind.>
+        /// Register an action to be executed at completion of semantic analysis of an <see cref="ISymbol"/> with an appropriate Kind.
         /// A symbol action reports <see cref="Diagnostic"/>s about <see cref="ISymbol"/>s.
         /// </summary>
         /// <param name="action">Action to be executed for an <see cref="ISymbol"/>.</param>
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public abstract void RegisterSemanticModelAction(Action<SemanticModelAnalysisContext> action);
 
         /// <summary>
-        /// Register an action to be executed at completion of semantic analysis of an <see cref="ISymbol"/> with an appropriate Kind.>
+        /// Register an action to be executed at completion of semantic analysis of an <see cref="ISymbol"/> with an appropriate Kind.
         /// A symbol action reports <see cref="Diagnostic"/>s about <see cref="ISymbol"/>s.
         /// </summary>
         /// <param name="action">Action to be executed for an <see cref="ISymbol"/>.</param>
@@ -329,7 +329,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         /// <summary>
-        /// Register an action to be executed at completion of semantic analysis of an <see cref="ISymbol"/> with an appropriate Kind.>
+        /// Register an action to be executed at completion of semantic analysis of an <see cref="ISymbol"/> with an appropriate Kind.
         /// A symbol action reports <see cref="Diagnostic"/>s about <see cref="ISymbol"/>s.
         /// </summary>
         /// <param name="action">Action to be executed for an <see cref="ISymbol"/>.</param>

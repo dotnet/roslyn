@@ -1832,15 +1832,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (node.Kind == BoundKind.TupleLiteral)
             {
-                if ((object)node.Type != null)
-                {
-                    // expression has a natural type and 
-                    // did not have identity conversion to the target (since we are here), 
-                    // no point trying element-wise match - we know that will fail.
-                    return false;
-                }
-
-                // recurse into tuple constituent arguments
+                // Recurse into tuple constituent arguments.
+                // Even if the tuple literal has a natural type and conversion 
+                // from that type is not identity, we still have to do this 
+                // because we might be converting to a tuple type backed by
+                // different definition of ValueTuple type.
                 return ExpressionMatchExactly((BoundTupleLiteral)node, t, ref useSiteDiagnostics);
             }
 
@@ -1949,8 +1945,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             var destination = (NamedTypeSymbol)targetType;
-
-            Debug.Assert((object)tupleSource.Type == null, "should not need to dig into elements if tuple has natural type");
             var sourceArguments = tupleSource.Arguments;
 
             // check if the type is actually compatible type for a tuple of given cardinality

@@ -13,6 +13,7 @@ using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Completion;
 using Microsoft.CodeAnalysis.CSharp.Formatting;
+using Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.ExtractMethod;
 using Microsoft.CodeAnalysis.Formatting;
@@ -27,6 +28,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
     [ExportLanguageSpecificOptionSerializer(
         LanguageNames.CSharp,
         OrganizerOptions.FeatureName,
+        SplitStringLiteralOptions.FeatureName,
         AddImportOptions.FeatureName,
         CompletionOptions.FeatureName,
         CSharpCompletionOptions.FeatureName,
@@ -81,6 +83,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                 {
                     typeof(OrganizerOptions),
                     typeof(AddImportOptions),
+                    typeof(SplitStringLiteralOptions),
                     typeof(CSharpCompletionOptions),
                     typeof(SimplificationOptions),
                     typeof(CSharpCodeStyleOptions),
@@ -90,10 +93,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                 };
 
             var bindingFlags = BindingFlags.Public | BindingFlags.Static;
-            result.AddRange(AbstractSettingsManagerOptionSerializer.GetOptionInfoFromTypeFields(types, bindingFlags, this.GetOptionInfo));
+            result.AddRange(GetOptionInfoFromTypeFields(types, bindingFlags, this.GetOptionInfo));
 
             types = new[] { typeof(FeatureOnOffOptions) };
-            result.AddRange(AbstractSettingsManagerOptionSerializer.GetOptionInfoFromTypeFields(types, bindingFlags, this.GetOptionInfoForOnOffOptions, this.ShouldIncludeOnOffOption));
+            result.AddRange(GetOptionInfoFromTypeFields(types, bindingFlags, this.GetOptionInfoForOnOffOptions, this.ShouldIncludeOnOffOption));
 
             return result.ToImmutable();
         }
