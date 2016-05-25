@@ -461,7 +461,100 @@ public class Bar
                     Assert.True(constantHandle.IsNil);
                 };
 
-            var comp = CompileAndVerify(source, additionalRefs: new[] { SystemRef }, symbolValidator: verifier);
+            var comp = CompileAndVerify(source, symbolValidator: verifier);
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")]
+        public void DateTimeConstantAttributeReferencedViaCompilationRef()
+        {
+            #region "Source"
+            var source1 = @"
+using System;
+using System.Runtime.CompilerServices;
+
+public class Bar
+{
+    public void Method([DateTimeConstant(-1)]DateTime p1) { }
+}
+";
+
+            var source2 = @"
+public class Consumer
+{
+    public static void M()
+    {
+        new Bar().Method();
+    }
+}
+";
+            #endregion
+
+            var libComp = CreateCompilationWithMscorlib(source1);
+            var libCompRef = new CSharpCompilationReference(libComp);
+
+            var comp2 = CreateCompilationWithMscorlib(source2, new[] { libCompRef });
+            comp2.VerifyDiagnostics(
+                // (6,19): error CS7036: There is no argument given that corresponds to the required formal parameter 'p1' of 'Bar.Method(DateTime)'
+                //         new Bar().Method();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Method").WithArguments("p1", "Bar.Method(System.DateTime)").WithLocation(6, 19)
+                );
+
+            var libAssemblyRef = libComp.EmitToImageReference();
+            var comp3 = CreateCompilationWithMscorlib(source2, new[] { libAssemblyRef });
+            comp3.VerifyDiagnostics(
+                // (6,19): error CS7036: There is no argument given that corresponds to the required formal parameter 'p1' of 'Bar.Method(DateTime)'
+                //         new Bar().Method();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Method").WithArguments("p1", "Bar.Method(System.DateTime)").WithLocation(6, 19)
+                );
+        }
+
+        [Fact]
+        [WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")]
+        public void DateTimeConstantAttributeWithDefaultValue()
+        {
+            #region "Source"
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+public class Bar
+{
+    public void M1([DateTimeConstant(-1)] DateTime x = default(DateTime)) { }
+}
+";
+            #endregion
+
+            // The native C# compiler emits this:
+            // .method public hidebysig instance void M1([opt] valuetype[mscorlib] System.DateTime x) cil managed
+            // {
+            // .param [1] = nullref
+            // .custom instance void[mscorlib] System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = ( 01 00 FF FF FF FF FF FF FF FF 00 00 )
+            Action<IModuleSymbol> verifier = (module) =>
+            {
+                var bar = (NamedTypeSymbol)((ModuleSymbol)module).GlobalNamespace.GetMember("Bar");
+                var method = (MethodSymbol)bar.GetMember("M1");
+                var parameters = method.GetParameters();
+                var theParameter = (PEParameterSymbol)parameters[0];
+                var peModule = (PEModuleSymbol)module;
+
+                Assert.Equal(ParameterAttributes.Optional | ParameterAttributes.HasDefault, theParameter.Flags);
+
+                // let's find the attribute in the PE metadata
+                var attributeInfo = PEModule.FindTargetAttribute(peModule.Module.MetadataReader, theParameter.Handle, AttributeDescription.DateTimeConstantAttribute);
+                Assert.True(attributeInfo.HasValue);
+
+                long attributeValue;
+                Assert.True(peModule.Module.TryExtractLongValueFromAttribute(attributeInfo.Handle, out attributeValue));
+                Assert.Equal(-1L, attributeValue); // check the attribute is constructed with a -1
+
+                // check .param has no value
+                var constantValue = peModule.Module.GetParamDefaultValue(theParameter.Handle);
+                Assert.Equal(ConstantValue.Null, constantValue);
+            };
+
+            var comp = CompileAndVerify(source, symbolValidator: verifier);
             comp.VerifyDiagnostics();
         }
 
