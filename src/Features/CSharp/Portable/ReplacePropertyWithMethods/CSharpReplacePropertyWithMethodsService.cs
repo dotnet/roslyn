@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             var setInvocation = GetSetInvocationExpression(
                 nameToken, binaryExpression);
 
-            editor.ReplaceNode(expression, setInvocation);
+            editor.ReplaceNode(expression.Parent, setInvocation);
         }
 
         private static void ReplaceWithGetInvocation(
