@@ -68,7 +68,7 @@
     </BuildNumberPart2>
 
     <NuGetReleaseVersion>$(RoslynSemanticVersion)</NuGetReleaseVersion>
-    <NuGetPreReleaseVersion>$(RoslynSemanticVersion)-beta1</NuGetPreReleaseVersion>
+    <NuGetPreReleaseVersion>$(RoslynSemanticVersion)-rc1</NuGetPreReleaseVersion>
     <NuGetPerBuildPreReleaseVersion Condition="'$(BuildNumberSuffix)' != ''">$(NuGetPreReleaseVersion)-$(BuildNumberPart1.Trim())-$(BuildNumberPart2.Trim())</NuGetPerBuildPreReleaseVersion>
   </PropertyGroup>
   
