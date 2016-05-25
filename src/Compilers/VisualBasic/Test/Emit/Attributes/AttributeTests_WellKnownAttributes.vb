@@ -480,6 +480,107 @@ End Class
 
         <WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>
         <Fact()>
+        Public Sub DateTimeConstantAttributeWithDefaultValue()
+            Dim source =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+
+Public Class Bar
+    Public Function Method(<DateTimeConstant(-1)> Optional p1 As DateTime = # 8/23/1970 3:45:39AM #) As DateTime
+        Return p1
+    End Function
+    Public Shared Sub Main()
+        Console.WriteLine(New Bar().Method().Ticks)
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>
+
+            ' The native VB compiler emits this:
+            ' .method public instance void  Method([opt] valuetype [mscorlib]System.DateTime p1) cil managed
+            ' {
+            ' .param [1]
+            ' .custom instance void [mscorlib]System.Runtime.CompilerServices.DateTimeConstantAttribute:: .ctor(Int64) = (1 00 80 73 3E 42 F6 37 A0 08 00 00 )
+            ' .custom instance void [mscorlib]System.Runtime.CompilerServices.DateTimeConstantAttribute:: .ctor(Int64) = (1 00 FF FF FF FF FF FF FF FF 00 00 )
+            Dim symValidator As Action(Of ModuleSymbol) =
+                Sub(peModule)
+
+                    Dim bar = peModule.GlobalNamespace.GetMember(Of NamedTypeSymbol)("Bar")
+                    Dim method = bar.GetMember(Of MethodSymbol)("Method")
+                    Dim parameters = method.Parameters
+                    Dim theParameter = DirectCast(parameters(0), PEParameterSymbol)
+                    Dim peModuleSymbol = DirectCast(peModule, PEModuleSymbol)
+
+                    Assert.Equal(ParameterAttributes.Optional, theParameter.ParamFlags)
+
+                    ' let's find the attribute in the PE metadata
+                    Dim attributeInfo = CodeAnalysis.PEModule.FindTargetAttribute(peModuleSymbol.Module.MetadataReader, theParameter.Handle, AttributeDescription.DateTimeConstantAttribute)
+                    Assert.True(attributeInfo.HasValue)
+
+                    Dim attributeValue As Long
+                    Assert.True(peModuleSymbol.Module.TryExtractLongValueFromAttribute(attributeInfo.Handle, attributeValue))
+                    Assert.Equal(621558279390000000, attributeValue)
+
+                    ' check .param has no value
+                    Dim constantHandle = peModuleSymbol.Module.MetadataReader.GetParameter(theParameter.Handle).GetDefaultValue()
+                    Assert.True(constantHandle.IsNil)
+                End Sub
+
+            ' This is the same output as the native VB compiler
+            CompileAndVerify(source, expectedOutput:="621558279390000000", symbolValidator:=symValidator)
+        End Sub
+
+
+        <WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>
+        <Fact()>
+        Public Sub DateTimeConstantAttributeReferencedViaRef()
+            Dim source1 =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+
+Public Class Bar
+    Public Sub Method(<DateTimeConstant(-1)> p1 As DateTime)
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>
+
+            Dim source2 =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Public Class Consumer
+    Public Shared Sub Main()
+        Dim test = New Bar()
+        test.Method()
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>
+
+            Dim libComp = CreateCompilationWithMscorlib(source1)
+            Dim libCompRef = New VisualBasicCompilationReference(libComp)
+
+            Dim comp2 = CreateCompilationWithMscorlib(source2, references:={libCompRef})
+            comp2.VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_OmittedArgument2, "Method").WithArguments("p1", "Public Sub Method(p1 As Date)").WithLocation(4, 14)
+                )
+
+            Dim libAssemblyRef = libComp.EmitToImageReference()
+            Dim comp3 = CreateCompilationWithMscorlib(source2, references:={libAssemblyRef})
+            comp3.VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_OmittedArgument2, "Method").WithArguments("p1", "Public Sub Method(p1 As Date)").WithLocation(4, 14)
+                )
+        End Sub
+
+        <WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>
+        <Fact()>
         Public Sub LoadingDateTimeConstantWithBadValueOnField()
             Dim ilSource = <![CDATA[
 .class public auto ansi C
@@ -501,23 +602,11 @@ End Class
   {
     // Code size       29 (0x1d)
     .maxstack  2
-    .locals init (valuetype [mscorlib]System.DateTime V_0,
-             valuetype [mscorlib]System.DateTime V_1,
-             valuetype [mscorlib]System.DateTime V_2,
-             valuetype [mscorlib]System.DateTime V_3,
-             valuetype [mscorlib]System.DateTime V_4,
-             valuetype [mscorlib]System.DateTime V_5,
-             valuetype [mscorlib]System.DateTime V_6,
-             valuetype [mscorlib]System.DateTime V_7,
-             valuetype [mscorlib]System.DateTime V_8,
-             valuetype [mscorlib]System.DateTime V_9,
-             valuetype [mscorlib]System.DateTime V_10,
-             valuetype [mscorlib]System.DateTime V_11,
-             valuetype [mscorlib]System.DateTime V_12)
+    .locals init (valuetype [mscorlib]System.DateTime V_0)
     IL_0000:  ldc.i8     0x8a037f6423e7380
     IL_0009:  newobj     instance void [mscorlib]System.DateTime::.ctor(int64)
-    IL_000e:  stloc.s    V_12
-    IL_0010:  ldloca.s   V_12
+    IL_000e:  stloc.s    V_0
+    IL_0010:  ldloca.s   V_0
     IL_0012:  call       instance int64 [mscorlib]System.DateTime::get_Ticks()
     IL_0017:  call       void [mscorlib]System.Console::WriteLine(int64)
     IL_001c:  ret

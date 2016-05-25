@@ -467,7 +467,7 @@ public class Bar
 
         [Fact]
         [WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")]
-        public void DateTimeConstantAttributeReferencedViaCompilationRef()
+        public void DateTimeConstantAttributeReferencedViaRef()
         {
             #region "Source"
             var source1 = @"
@@ -521,7 +521,11 @@ using System.Runtime.CompilerServices;
 
 public class Bar
 {
-    public void M1([DateTimeConstant(-1)] DateTime x = default(DateTime)) { }
+    public DateTime M1([DateTimeConstant(-1)] DateTime x = default(DateTime)) { return x; }
+    public static void Main()
+    {
+        Console.WriteLine(new Bar().M1().Ticks);
+    }
 }
 ";
             #endregion
@@ -554,7 +558,7 @@ public class Bar
                 Assert.Equal(ConstantValue.Null, constantValue);
             };
 
-            var comp = CompileAndVerify(source, symbolValidator: verifier);
+            var comp = CompileAndVerify(source, expectedOutput: "0", symbolValidator: verifier);
             comp.VerifyDiagnostics();
         }
 
