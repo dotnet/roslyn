@@ -198,5 +198,17 @@ class D
     private int GetProp() { return this.GetProp() + 1; }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestRecursiveSet()
+        {
+            await TestAsync(
+@"class C {
+    int [||]Prop { set { this.Prop = value + 1; } } 
+}",
+@"class C {
+    private void SetProp(int value) { this.SetProp(value + 1); }
+}");
+        }
     }
 }
