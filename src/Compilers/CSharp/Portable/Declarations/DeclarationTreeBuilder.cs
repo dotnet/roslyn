@@ -221,9 +221,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasExterns = node.Externs.Any();
             NameSyntax name = node.Name;
             CSharpSyntaxNode currentNode = node;
-            while (name is QualifiedNameSyntax)
+            QualifiedNameSyntax dotted;
+            while ((dotted = name as QualifiedNameSyntax) != null)
             {
-                var dotted = name as QualifiedNameSyntax;
                 var ns = SingleNamespaceDeclaration.Create(
                     name: dotted.Right.Identifier.ValueText,
                     hasUsings: hasUsings,

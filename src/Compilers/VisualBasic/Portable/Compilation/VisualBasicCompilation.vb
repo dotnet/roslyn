@@ -2673,7 +2673,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim result = New HashSet(Of ISymbol)()
                 Dim spine = New List(Of MergedNamespaceOrTypeDeclaration)()
 
-                AppendSymbolsWithName(spine, Me._compilation.Declarations.MergedRoot, predicate, filter, result, cancellationToken)
+                Dim mergedRoot = DirectCast(_compilation.SourceModule.GlobalNamespace, SourceNamespaceSymbol).MergedDeclaration
+                AppendSymbolsWithName(spine, mergedRoot, predicate, filter, result, cancellationToken)
 
                 Return result
             End Function

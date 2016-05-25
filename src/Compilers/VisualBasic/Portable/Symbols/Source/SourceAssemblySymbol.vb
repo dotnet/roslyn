@@ -461,8 +461,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Function GetAttributeDeclarations() As ImmutableArray(Of SyntaxList(Of AttributeListSyntax))
             Dim attributeBlocks = ArrayBuilder(Of SyntaxList(Of AttributeListSyntax)).GetInstance()
+            Dim declarations = DirectCast(SourceModule.GlobalNamespace, SourceNamespaceSymbol).MergedDeclaration.Declarations
 
-            For Each rootNs In DeclaringCompilation.Declarations.AllRootNamespaces
+            For Each rootNs As RootSingleNamespaceDeclaration In declarations
                 If rootNs.HasAssemblyAttributes Then
                     Dim compilationUnitSyntax = DirectCast(rootNs.Location.SourceTree.GetRoot(), CompilationUnitSyntax)
                     Dim attributeStatements = compilationUnitSyntax.Attributes

@@ -718,5 +718,37 @@ class C
             CheckLambdaDeclaringSyntax<SimpleLambdaExpressionSyntax>(comp, tree, "/*2*/");
             CheckLambdaDeclaringSyntax<AnonymousMethodExpressionSyntax>(comp, tree, "/*3*/");
         }
+
+        /// <summary>
+        /// Symbol location order should be preserved when trees
+        /// are replaced in the compilation.
+        /// </summary>
+        [WorkItem(11015, "https://github.com/dotnet/roslyn/issues/11015")]
+        [Fact]
+        public void PreserveLocationOrderOnReplaceSyntaxTree()
+        {
+            var source0 = Parse("namespace N { partial class C { void F0() { } } }");
+            var source1 = Parse("namespace N { partial class C { void F1() { } } }");
+            var source2 = Parse("namespace N { struct S { } }");
+            var source3 = Parse("namespace N { partial class C { void F3() { } } }");
+            var comp0 = CreateCompilationWithMscorlib(new[] { source0, source1, source2, source3 });
+            comp0.VerifyDiagnostics();
+            Assert.Equal(new[] { source0, source1, source2, source3 }, comp0.SyntaxTrees);
+
+            // Location order of partial class should match Compilation.SyntaxTrees order.
+            var locations = comp0.GetMember<NamedTypeSymbol>("N.C").Locations;
+            Assert.Equal(new[] { source0, source1, source3 }, locations.Select(l => l.SourceTree));
+
+            // RemoveSyntaxTrees, AddSyntaxTrees will re-order locations.
+            var source4 = Parse("namespace N { partial class C { void F4() { } } }");
+            var comp1 = comp0.RemoveSyntaxTrees(source1).AddSyntaxTrees(source4);
+            locations = comp1.GetMember<NamedTypeSymbol>("N.C").Locations;
+            Assert.Equal(new[] { source0, source3, source4 }, locations.Select(l => l.SourceTree));
+
+            // ReplaceSyntaxTree should preserve location order.
+            var comp2 = comp0.ReplaceSyntaxTree(source1, source4);
+            locations = comp2.GetMember<NamedTypeSymbol>("N.C").Locations;
+            Assert.Equal(new[] { source0, source4, source3 }, locations.Select(l => l.SourceTree));
+        }
     }
 }

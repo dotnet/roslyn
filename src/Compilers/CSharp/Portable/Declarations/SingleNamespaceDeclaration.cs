@@ -1,5 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
+using System.Collections.Generic;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -65,6 +67,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 return new SingleNamespaceDeclarationEx(name, hasUsings, hasExternAliases, syntaxReference, nameLocation, children);
+            }
+        }
+
+        internal sealed class LocationComparer : IComparer<SingleNamespaceDeclaration>
+        {
+            private readonly CSharpCompilation _compilation;
+
+            internal LocationComparer(CSharpCompilation compilation)
+            {
+                _compilation = compilation;
+            }
+
+            public int Compare(SingleNamespaceDeclaration x, SingleNamespaceDeclaration y)
+            {
+                return _compilation.CompareSourceLocations(x.Location, y.Location);
             }
         }
     }

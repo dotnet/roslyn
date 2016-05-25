@@ -43,8 +43,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Private _lazyContainsExplicitDefinitionOfNoPiaLocalTypes As ThreeState = ThreeState.Unknown
 
-        Private _locations As ImmutableArray(Of Location)
-
         ' holds diagnostics not related to source code 
         ' in any particular source file, for each stage.
         Private ReadOnly _diagnosticBagDeclare As New DiagnosticBag()
@@ -172,13 +170,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides ReadOnly Property GlobalNamespace As NamespaceSymbol
             Get
                 If _lazyGlobalNamespace Is Nothing Then
-                    Dim globalNS = New SourceNamespaceSymbol(_declarationTable.MergedRoot, Nothing, Me)
-                    Interlocked.CompareExchange(_lazyGlobalNamespace, globalNS, Nothing)
+                    Interlocked.CompareExchange(_lazyGlobalNamespace, MakeGlobalNamespace(), Nothing)
                 End If
 
                 Return _lazyGlobalNamespace
             End Get
         End Property
+
+        Private Function MakeGlobalNamespace() As SourceNamespaceSymbol
+            Dim declarations = _declarationTable.MergedRoot.Declarations
+            Dim builder = ArrayBuilder(Of SingleNamespaceDeclaration).GetInstance(declarations.Length)
+            builder.AddRange(declarations)
+            ' Sort the root namespace declarations to match the order of DeclaringCompilation.SyntaxTrees.
+            builder.Sort(New SingleNamespaceDeclaration.LocationComparer(DeclaringCompilation))
+            Dim mergedRoot = MergedNamespaceDeclaration.Create(builder.ToImmutableAndFree())
+            Return New SourceNamespaceSymbol(mergedRoot, Nothing, Me)
+        End Function
 
         ' Get the "root" or default namespace that all source types are declared inside. This may be the global namespace
         ' or may be another namespace. This is a non-merged, source only namespace.
@@ -192,13 +199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Public Overrides ReadOnly Property Locations As ImmutableArray(Of Location)
             Get
-                If _locations.IsDefault Then
-                    Dim locs = _declarationTable.AllRootNamespaces().SelectAsArray(Function(n) n.Location)
-
-                    ImmutableInterlocked.InterlockedCompareExchange(_locations, locs, Nothing)
-                End If
-
-                Return _locations
+                Return GlobalNamespace.Locations
             End Get
         End Property
 

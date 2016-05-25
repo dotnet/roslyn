@@ -108,10 +108,12 @@ end namespace
 
         Dim mr = table.MergedRoot
         Assert.NotNull(mr)
+        Assert.True(mr.Declarations.IsEmpty)
+        Assert.True(table.TypeNames.IsEmpty())
 
         table = table.AddRootDeclaration(Lazy(decl1))
 
-        Assert.Same(decl1, table.AllRootNamespaces().Single())
+        Assert.Equal(table.MergedRoot.Declarations, {decl1})
 
         mr = table.MergedRoot
 
@@ -142,9 +144,7 @@ end namespace
         Assert.Equal("D", d.Name)
 
         table = table.AddRootDeclaration(Lazy(decl2))
-        Assert.Equal(2, table.AllRootNamespaces().Length)
-        Assert.True(table.AllRootNamespaces().Contains(decl1))
-        Assert.True(table.AllRootNamespaces().Contains(decl2))
+        Assert.Equal(table.MergedRoot.Declarations, {decl1, decl2})
 
         mr = table.MergedRoot
 
