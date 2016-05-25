@@ -253,5 +253,17 @@ class D
     void M() { var v = this.GetProp(); }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestComputedProp()
+        {
+            await TestAsync(
+@"class C {
+    int [||]Prop => 1;
+}",
+@"class C {
+    private int GetProp() { return 1; }
+}");
+        }
     }
 }

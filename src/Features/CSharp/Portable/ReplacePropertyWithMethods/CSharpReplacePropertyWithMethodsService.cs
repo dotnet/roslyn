@@ -61,35 +61,52 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             SemanticModel semanticModel, SyntaxGenerator generator, IPropertySymbol property, PropertyDeclarationSyntax propertyDeclaration)
         {
             var result = new List<SyntaxNode>();
-            if (property.GetMethod != null)
+
+            var getMethod = property.GetMethod;
+            if (getMethod != null)
             {
-                var getAccessorDeclaration = propertyDeclaration.AccessorList.Accessors.First(a => a.Kind() == SyntaxKind.GetAccessorDeclaration);
-                result.Add(ConvertGetAccessorToMethod(
-                    semanticModel, generator, property.GetMethod, getAccessorDeclaration));
+                result.Add(GetGetMethod(generator, propertyDeclaration, getMethod));
             }
 
-            if (property.SetMethod != null)
+            var setMethod = property.SetMethod;
+            if (setMethod != null)
             {
-                var setAccessorDeclaration = propertyDeclaration.AccessorList.Accessors.First(a => a.Kind() == SyntaxKind.SetAccessorDeclaration);
-                result.Add(ConvertSetAccessorToMethod(
-                    semanticModel, generator, property.SetMethod, setAccessorDeclaration));
+                result.Add(GetSetMethod(generator, propertyDeclaration, setMethod));
             }
 
             return result;
         }
 
-        private SyntaxNode ConvertGetAccessorToMethod(
-            SemanticModel semanticModel, SyntaxGenerator generator, IMethodSymbol getMethod, AccessorDeclarationSyntax getAccessorDeclaration)
+        private static SyntaxNode GetSetMethod(SyntaxGenerator generator, PropertyDeclarationSyntax propertyDeclaration, IMethodSymbol setMethod)
         {
-            return generator.MethodDeclaration(
-                getMethod, "Get" + getMethod.AssociatedSymbol.Name, getAccessorDeclaration.Body?.Statements);
+            var setAccessorDeclaration = propertyDeclaration.AccessorList.Accessors.FirstOrDefault(
+                a => a.Kind() == SyntaxKind.SetAccessorDeclaration);
+
+            var method = generator.MethodDeclaration(
+                setMethod, "Set" + setMethod.AssociatedSymbol.Name, setAccessorDeclaration?.Body?.Statements);
+            return method;
         }
 
-        private SyntaxNode ConvertSetAccessorToMethod(
-            SemanticModel semanticModel, SyntaxGenerator generator, IMethodSymbol setMethod, AccessorDeclarationSyntax setAccessorDeclaration)
+        private static SyntaxNode GetGetMethod(SyntaxGenerator generator, PropertyDeclarationSyntax propertyDeclaration, IMethodSymbol getMethod)
         {
-            return generator.MethodDeclaration(
-                setMethod, "Set" + setMethod.AssociatedSymbol.Name, setAccessorDeclaration.Body?.Statements);
+            var statements = new List<SyntaxNode>();
+            if (propertyDeclaration.ExpressionBody != null)
+            {
+                statements.Add(generator.ReturnStatement(propertyDeclaration.ExpressionBody.Expression));
+            }
+            else
+            {
+                var getAccessorDeclaration = propertyDeclaration.AccessorList?.Accessors.FirstOrDefault(
+                    a => a.Kind() == SyntaxKind.GetAccessorDeclaration);
+                if (getAccessorDeclaration?.Body != null)
+                {
+                    statements.AddRange(getAccessorDeclaration.Body.Statements);
+                }
+            }
+
+            var methodDeclaration = generator.MethodDeclaration(
+                getMethod, "Get" + getMethod.AssociatedSymbol.Name, statements);
+            return methodDeclaration;
         }
 
         public void ReplaceReference(SyntaxEditor editor, SyntaxToken nameToken)
