@@ -19,7 +19,6 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Extensions\DteExtensions.cs" />
-    <Compile Include="Extensions\IntegrationServiceExtensions.cs" />
     <Compile Include="IntegrationHelper.cs" />
     <Compile Include="Interop\Kernel32.cs" />
     <Compile Include="Remoting\EditorWindowWrapper.cs" />

@@ -33,6 +33,12 @@ namespace Roslyn.VisualStudio.Test.Utilities
         }
 
         public static Task WaitForCommandAvailabilityAsync(this DTE dte, string command)
-            => IntegrationHelper.WaitForResultAsync(() => IntegrationHelper.RetryRpcCall(() => dte.Commands.Item(command).IsAvailable), expectedResult: true);
+        {
+            return IntegrationHelper.WaitForResultAsync(() =>
+            {
+                return IntegrationHelper.RetryRpcCall(() => dte.Commands.Item(command).IsAvailable);
+            },
+            expectedResult: true);
+        }
     }
 }

@@ -21,7 +21,9 @@ using Process = System.Diagnostics.Process;
 
 namespace Roslyn.VisualStudio.Test.Utilities
 {
-    /// <summary>Provides some helper functions used by the other classes in the project.</summary>
+    /// <summary>
+    /// Provides some helper functions used by the other classes in the project.
+    /// </summary>
     internal static class IntegrationHelper
     {
         public static bool AttachThreadInput(uint idAttach, uint idAttachTo)
@@ -519,7 +521,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
             }
             while (dte == null);
 
-            return (DTE)(dte);
+            return (DTE)dte;
         }
 
         public static void UnblockInput()

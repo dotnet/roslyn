@@ -23,7 +23,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
         /// <summary>Creates and loads a new solution in the host process, optionally saving the existing solution if one exists.</summary>
         public Solution CreateSolution(string solutionName, bool saveExistingSolutionIfExists = false)
         {
-            var dteSolution = IntegrationHelper.RetryRpcCall(() => _visualStudio.Dte.Solution);
+            var dteSolution = IntegrationHelper.RetryRpcCall(() => _visualStudio.DTE.Solution);
 
             if (IntegrationHelper.RetryRpcCall(() => dteSolution.IsOpen))
             {
@@ -41,7 +41,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
         public Solution OpenSolution(string path, bool saveExistingSolutionIfExists = false)
         {
-            var dteSolution = IntegrationHelper.RetryRpcCall(() => _visualStudio.Dte.Solution);
+            var dteSolution = IntegrationHelper.RetryRpcCall(() => _visualStudio.DTE.Solution);
 
             if (IntegrationHelper.RetryRpcCall(() => dteSolution.IsOpen))
             {
@@ -54,6 +54,6 @@ namespace Roslyn.VisualStudio.Test.Utilities
             return _solution;
         }
 
-        public void CloseSolution(bool saveFirst = false) => IntegrationHelper.RetryRpcCall(() => _visualStudio.Dte.Solution.Close(saveFirst));
+        public void CloseSolution(bool saveFirst = false) => IntegrationHelper.RetryRpcCall(() => _visualStudio.DTE.Solution.Close(saveFirst));
     }
 }

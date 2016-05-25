@@ -25,12 +25,11 @@ namespace Roslyn.VisualStudio.Test.Utilities
             // We have to show the window at least once to ensure the interactive service is loaded.
             ShowAsync(waitForPrompt: false).GetAwaiter().GetResult();
 
-            var dteWindow = IntegrationHelper.WaitForNotNullAsync(() => _visualStudioInstance.Dte.LocateWindow(dteWindowTitle)).GetAwaiter().GetResult();
+            var dteWindow = IntegrationHelper.WaitForNotNullAsync(() => _visualStudioInstance.DTE.LocateWindow(dteWindowTitle)).GetAwaiter().GetResult();
             IntegrationHelper.RetryRpcCall(() => dteWindow.Close());
 
             // Return a wrapper to the actual interactive window service that exists in the host process
-            var integrationService = _visualStudioInstance.IntegrationService;
-            _interactiveWindowWrapper = integrationService.Execute<InteractiveWindowWrapper>(typeof(InteractiveWindowWrapper), createMethodName);
+            _interactiveWindowWrapper = _visualStudioInstance.ExecuteInHostProcess<InteractiveWindowWrapper>(typeof(InteractiveWindowWrapper), createMethodName);
         }
 
         /// <summary>
@@ -94,7 +93,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
         public async Task ResetAsync(bool waitForPrompt = true)
         {
-            await _visualStudioInstance.Dte.ExecuteCommandAsync(DteReplResetCommand).ConfigureAwait(continueOnCapturedContext: false);
+            await _visualStudioInstance.DTE.ExecuteCommandAsync(DteReplResetCommand).ConfigureAwait(continueOnCapturedContext: false);
 
             if (waitForPrompt)
             {
@@ -104,7 +103,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
         public async Task ShowAsync(bool waitForPrompt = true)
         {
-            await _visualStudioInstance.Dte.ExecuteCommandAsync(_dteViewCommand).ConfigureAwait(continueOnCapturedContext: false);
+            await _visualStudioInstance.DTE.ExecuteCommandAsync(_dteViewCommand).ConfigureAwait(continueOnCapturedContext: false);
 
             if (waitForPrompt)
             {

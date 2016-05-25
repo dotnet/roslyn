@@ -98,7 +98,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
                 inputBlocked = IntegrationHelper.BlockInput();
                 foregroundWindow = IntegrationHelper.GetForegroundWindow();
 
-                _visualStudioInstance.IntegrationService.Execute(
+                _visualStudioInstance.ExecuteInHostProcess(
                     type: typeof(RemotingHelper),
                     methodName: nameof(RemotingHelper.ActivateMainWindow));
 

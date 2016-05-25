@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.IO;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Automation;
 using EnvDTE;
@@ -17,8 +16,9 @@ namespace Roslyn.VisualStudio.Test.Utilities
 {
     public class VisualStudioInstance
     {
+        public DTE DTE { get; }
+
         private readonly Process _hostProcess;
-        private readonly DTE _dte;
         private readonly IntegrationService _integrationService;
         private readonly IpcClientChannel _integrationServiceChannel;
 
@@ -28,24 +28,24 @@ namespace Roslyn.VisualStudio.Test.Utilities
         private readonly Lazy<SolutionExplorer> _solutionExplorer;
         private readonly Lazy<Workspace> _workspace;
 
-        public VisualStudioInstance(Process process, DTE dte)
+        public VisualStudioInstance(Process hostProcess, DTE dte)
         {
-            _hostProcess = process;
-            _dte = dte;
+            _hostProcess = hostProcess;
+            this.DTE = dte;
 
-            dte.ExecuteCommandAsync(VisualStudioCommandNames.VsStartServiceCommand).GetAwaiter().GetResult();
+            this.DTE.ExecuteCommandAsync(VisualStudioCommandNames.VsStartServiceCommand).GetAwaiter().GetResult();
 
             _integrationServiceChannel = new IpcClientChannel($"IPC channel client for {_hostProcess.Id}", sinkProvider: null);
             ChannelServices.RegisterChannel(_integrationServiceChannel, ensureSecurity: true);
 
             // Connect to a 'well defined, shouldn't conflict' IPC channel
-            var serviceUri = string.Format($"ipc://{IntegrationService.PortNameFormatString}", _hostProcess.Id);
-            _integrationService = (IntegrationService)(Activator.GetObject(typeof(IntegrationService), $"{serviceUri}/{typeof(IntegrationService).FullName}"));
-            _integrationService.Uri = serviceUri;
+            _integrationService = IntegrationService.GetInstanceFromHostProcess(hostProcess);
 
             // There is a lot of VS initialization code that goes on, so we want to wait for that to 'settle' before
             // we start executing any actual code.
-            _integrationService.Execute(typeof(RemotingHelper), nameof(RemotingHelper.WaitForSystemIdle));
+            ExecuteInHostProcess(
+                type: typeof(RemotingHelper),
+                methodName: nameof(RemotingHelper.WaitForSystemIdle));
 
             _csharpInteractiveWindow = new Lazy<CSharpInteractiveWindow>(() => new CSharpInteractiveWindow(this));
             _editorWindow = new Lazy<EditorWindow>(() => new EditorWindow(this));
@@ -56,7 +56,27 @@ namespace Roslyn.VisualStudio.Test.Utilities
             Cleanup();
         }
 
-        public DTE Dte => _dte;
+        public void ExecuteInHostProcess(Type type, string methodName)
+        {
+            var result = _integrationService.Execute(type.Assembly.Location, type.FullName, methodName);
+
+            if (result != null)
+            {
+                throw new InvalidOperationException("The specified call was not expected to return a value.");
+            }
+        }
+
+        public T ExecuteInHostProcess<T>(Type type, string methodName)
+        {
+            var objectUri = _integrationService.Execute(type.Assembly.Location, type.FullName, methodName);
+
+            if (objectUri == null)
+            {
+                throw new InvalidOperationException("The specified call was expected to return a value.");
+            }
+
+            return (T)Activator.GetObject(typeof(T), $"{_integrationService.BaseUri}/{objectUri}");
+        }
 
         public bool IsRunning => !_hostProcess.HasExited;
 
@@ -67,10 +87,6 @@ namespace Roslyn.VisualStudio.Test.Utilities
         public SolutionExplorer SolutionExplorer => _solutionExplorer.Value;
 
         public Workspace Workspace => _workspace.Value;
-
-        internal IntegrationService IntegrationService => _integrationService;
-
-        #region Automation Elements
 
         public async Task ClickAutomationElementAsync(string elementName, bool recursive = false)
         {
@@ -111,9 +127,6 @@ namespace Roslyn.VisualStudio.Test.Utilities
             return element;
         }
 
-        #endregion
-
-        #region Cleanup
         public void Cleanup()
         {
             CleanupOpenSolution();
@@ -124,15 +137,15 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
         private void CleanupInteractiveWindow()
         {
-            var csharpInteractiveWindow = _dte.LocateWindow(CSharpInteractiveWindow.DteWindowTitle);
+            var csharpInteractiveWindow = this.DTE.LocateWindow(CSharpInteractiveWindow.DteWindowTitle);
             IntegrationHelper.RetryRpcCall(() => csharpInteractiveWindow?.Close());
         }
 
         private void CleanupOpenSolution()
         {
-            IntegrationHelper.RetryRpcCall(() => _dte.Documents.CloseAll(vsSaveChanges.vsSaveChangesNo));
+            IntegrationHelper.RetryRpcCall(() => this.DTE.Documents.CloseAll(vsSaveChanges.vsSaveChangesNo));
 
-            var dteSolution = IntegrationHelper.RetryRpcCall(() => _dte.Solution);
+            var dteSolution = IntegrationHelper.RetryRpcCall(() => this.DTE.Solution);
 
             if (dteSolution != null)
             {
@@ -173,27 +186,25 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
         private void CleanupWaitingService()
         {
-            _integrationService.Execute(
+            ExecuteInHostProcess(
                 type: typeof(RemotingHelper),
                 methodName: nameof(RemotingHelper.CleanupWaitingService));
         }
 
         private void CleanupWorkspace()
         {
-            _integrationService.Execute(
+            ExecuteInHostProcess(
                 type: typeof(RemotingHelper),
                 methodName: nameof(RemotingHelper.CleanupWorkspace));
         }
 
-        #endregion
-
-        #region Close
         public void Close()
         {
             if (!IsRunning)
             {
                 return;
             }
+
             Cleanup();
 
             CloseRemotingService();
@@ -202,7 +213,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
         private void CloseHostProcess()
         {
-            IntegrationHelper.RetryRpcCall(() => _dte.Quit());
+            IntegrationHelper.RetryRpcCall(() => this.DTE.Quit());
 
             IntegrationHelper.KillProcess(_hostProcess);
         }
@@ -211,9 +222,9 @@ namespace Roslyn.VisualStudio.Test.Utilities
         {
             try
             {
-                if ((IntegrationHelper.RetryRpcCall(() => _dte?.Commands.Item(VisualStudioCommandNames.VsStopServiceCommand).IsAvailable).GetValueOrDefault()))
+                if ((IntegrationHelper.RetryRpcCall(() => this.DTE?.Commands.Item(VisualStudioCommandNames.VsStopServiceCommand).IsAvailable).GetValueOrDefault()))
                 {
-                    _dte.ExecuteCommandAsync(VisualStudioCommandNames.VsStopServiceCommand).GetAwaiter().GetResult();
+                    this.DTE.ExecuteCommandAsync(VisualStudioCommandNames.VsStopServiceCommand).GetAwaiter().GetResult();
                 }
             }
             finally
@@ -224,6 +235,5 @@ namespace Roslyn.VisualStudio.Test.Utilities
                 }
             }
         }
-        #endregion
     }
 }

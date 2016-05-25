@@ -13,8 +13,9 @@ namespace Roslyn.VisualStudio.Test.Utilities
         {
             _visualStudioInstance = visualStudioInstance;
 
-            var integrationService = _visualStudioInstance.IntegrationService;
-            _workspaceWrapper = integrationService.Execute<WorkspaceWrapper>(typeof(WorkspaceWrapper), nameof(WorkspaceWrapper.Create));
+            _workspaceWrapper = _visualStudioInstance.ExecuteInHostProcess<WorkspaceWrapper>(
+                type: typeof(WorkspaceWrapper),
+                methodName: nameof(WorkspaceWrapper.Create));
         }
 
         public bool UseSuggestionMode

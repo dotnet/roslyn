@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Reflection;
 using Roslyn.VisualStudio.Test.Utilities.Remoting;
 
 namespace Roslyn.VisualStudio.Test.Utilities
@@ -18,10 +17,9 @@ namespace Roslyn.VisualStudio.Test.Utilities
             _visualStudioInstance = visualStudioInstance;
 
             // Create MarshalByRefObject that can be used to execute code in the VS process.
-            _editorWindowWrapper = _visualStudioInstance.IntegrationService.Execute<EditorWindowWrapper>(
+            _editorWindowWrapper = _visualStudioInstance.ExecuteInHostProcess<EditorWindowWrapper>(
                 type: typeof(EditorWindowWrapper),
-                methodName: nameof(EditorWindowWrapper.Create),
-                bindingFlags: BindingFlags.Public | BindingFlags.Static);
+                methodName: nameof(EditorWindowWrapper.Create));
         }
 
         public string GetText() => _editorWindowWrapper.GetText();
@@ -37,7 +35,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
         {
             IntegrationHelper.RetryRpcCall(() =>
             {
-                _visualStudioInstance.Dte.ActiveDocument.Activate();
+                _visualStudioInstance.DTE.ActiveDocument.Activate();
             });
         }
     }
