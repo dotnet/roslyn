@@ -399,18 +399,19 @@ expectedOutput:=<![CDATA[
 </compilation>
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, parseOptions:=MyParseOptions)
             CompileAndVerify(source,
-     expectedOutput:=<![CDATA[
-        10
-        ]]>).VerifyIL("m.main", <![CDATA[
-        {
-          // Code size       13 (0xd)
-          .maxstack  1
-          IL_0000:  ldc.i4.s   10
-          IL_0002:  newobj     "Sub Integer?..ctor(Integer)"
-          IL_0007:  call       "Sub m.X(Integer?)"
-          IL_000c:  ret
-        }
-        ]]>)
+     expectedOutput:=
+"
+10
+").VerifyIL("m.main",
+"{
+  // Code size       13 (0xd)
+  .maxstack  1
+  IL_0000:  ldc.i4.s   10
+  IL_0002:  newobj     ""Sub Integer?..ctor(Integer)""
+  IL_0007:  call       ""Sub m.X(Integer?)""
+  IL_000c:  ret
+}
+")
         End Sub
 
         <WorkItem(544515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544515")>
@@ -438,18 +439,18 @@ expectedOutput:=<![CDATA[
             CompileAndVerify(source,
      expectedOutput:=<![CDATA[
         False
-        ]]>).VerifyIL("m.main", <![CDATA[
-        {
-          // Code size       15 (0xf)
-          .maxstack  1
-          .locals init (Integer? V_0)
-          IL_0000:  ldloca.s   V_0
-          IL_0002:  initobj    "Integer?"
-          IL_0008:  ldloc.0
-          IL_0009:  call       "Sub m.X(Integer?)"
-          IL_000e:  ret
-        }
-        ]]>)
+        ]]>).VerifyIL("m.main", "
+{
+  // Code size       15 (0xf)
+  .maxstack  1
+  .locals init (Integer? V_0)
+  IL_0000:  ldloca.s   V_0
+  IL_0002:  initobj    ""Integer?""
+  IL_0008:  ldloc.0
+  IL_0009:  call       ""Sub m.X(Integer?)""
+  IL_000e:    ret
+}
+")
         End Sub
 
         <WorkItem(544603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544603")>
@@ -626,12 +627,12 @@ expectedOutput:=<![CDATA[
             ]]></file>
 </compilation>
 
-            CompileAndVerify(compilation, parseOptions:=MyParseOptions, expectedOutput:=<![CDATA[
-        x = 0
-        x = 0
-        x = nothing
-        x = nothing
-        ]]>).VerifyDiagnostics()
+            CompileAndVerify(compilation, parseOptions:=MyParseOptions, expectedOutput:="
+x = 0
+x = 0
+x = nothing
+x = nothing
+").VerifyDiagnostics()
         End Sub
 
         <WorkItem(543187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543187")>
@@ -716,16 +717,16 @@ expectedOutput:=<![CDATA[
 
             Dim metadataRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
 
-            CompileAndVerify(source, additionalRefs:={metadataRef}, expectedOutput:=<![CDATA[
-        1
-        System.Reflection.Missing
-        3
-        System.Runtime.InteropServices.DispatchWrapper
-        5
-        System.Runtime.InteropServices.UnknownWrapper
-        7
-        System.Runtime.InteropServices.DispatchWrapper
-        ]]>).VerifyDiagnostics()
+            CompileAndVerify(source, additionalRefs:={metadataRef}, expectedOutput:="
+1
+System.Reflection.Missing
+3
+System.Runtime.InteropServices.DispatchWrapper
+5
+System.Runtime.InteropServices.UnknownWrapper
+7
+System.Runtime.InteropServices.DispatchWrapper
+").VerifyDiagnostics()
         End Sub
 
         <WorkItem(543187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543187")>
@@ -853,16 +854,16 @@ expectedOutput:=<![CDATA[
             ]]></file>
 </compilation>
 
-            Dim expected = <![CDATA[
-        1
-        2
-        3
-        4
-        5
-        6
-        System.Runtime.InteropServices.DispatchWrapper
-        System.Runtime.InteropServices.DispatchWrapper
-        ]]>
+            Dim expected = "
+1
+2
+3
+4
+5
+6
+System.Runtime.InteropServices.DispatchWrapper
+System.Runtime.InteropServices.DispatchWrapper
+"
 
             Dim metadataRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
             CompileAndVerify(source, parseOptions:=MyParseOptions, additionalRefs:={metadataRef}, expectedOutput:=expected).VerifyDiagnostics()
@@ -929,11 +930,11 @@ expectedOutput:=<![CDATA[
 
             libRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
 
-            CompileAndVerify(source, parseOptions:=MyParseOptions, additionalRefs:=New MetadataReference() {libRef}, expectedOutput:=<![CDATA[
-        System.Reflection.Missing
-        nothing
-        0
-        ]]>).VerifyDiagnostics()
+            CompileAndVerify(source, parseOptions:=MyParseOptions, additionalRefs:=New MetadataReference() {libRef}, expectedOutput:=
+"System.Reflection.Missing
+nothing
+0
+").VerifyDiagnostics()
         End Sub
 
         <WorkItem(545405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545405")>
@@ -993,32 +994,36 @@ expectedOutput:=<![CDATA[
 </compilation>
             Dim libRef As MetadataReference = libComp.ToMetadataReference()
 
-            CompileAndVerify(source, parseOptions:=MyParseOptions, additionalRefs:=New MetadataReference() {libRef}, expectedOutput:=<![CDATA[
-        True
-        5
-        a
-        10
-        ]]>).VerifyDiagnostics()
+            CompileAndVerify(source, parseOptions:=MyParseOptions, additionalRefs:=New MetadataReference() {libRef}, expectedOutput:="
+True
+5
+a
+10
+").VerifyDiagnostics()
 
             libRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
 
-            CompileAndVerify(source, parseOptions:=MyParseOptions, additionalRefs:=New MetadataReference() {libRef}, expectedOutput:=<![CDATA[
-        False
-        0
-        0
-        0
-        ]]>).VerifyDiagnostics()
+            CompileAndVerify(source,
+                             parseOptions:=MyParseOptions,
+                             additionalRefs:=New MetadataReference() {libRef},
+                             expectedOutput:="
+False
+0
+0
+0
+").VerifyDiagnostics()
 
             CompileAndVerify(source,
                              parseOptions:=MyParseOptions,
                              additionalRefs:=New MetadataReference() {libRef},
                              options:=New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, optionCompareText:=True),
-                             expectedOutput:=<![CDATA[
-        True
-        1
-        1
-        1
-        ]]>).VerifyDiagnostics()
+                             expectedOutput:=
+"
+True
+1
+1
+1
+").VerifyDiagnostics()
         End Sub
 
         <WorkItem(545686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545686")>
@@ -1498,10 +1503,10 @@ expectedOutput:=<![CDATA[
             AssertTheseDiagnostics(compilation,
 <expected>
         BC30521: Overload resolution failed because no accessible 'Overloaded' is most specific for these arguments:
-            'Public Sub Overloaded([number As Integer = -1])': Not most specific.
-            'Public Sub Overloaded([number As String = "0"])': Not most specific.
-                t1.Overloaded()
-                   ~~~~~~~~~~
+          'Public Sub Overloaded([number As Integer = -1])': Not most specific.
+          'Public Sub Overloaded([number As String = "0"])': Not most specific.
+              t1.Overloaded()
+                 ~~~~~~~~~~
         </expected>)
         End Sub
 
@@ -1886,7 +1891,7 @@ expectedOutput:=<![CDATA[
         End Sub
 
         <WorkItem(1040287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040287")>
-        <Fact()>
+        <Requires.Language.Feature(ImplicitDefaultValueOnOptionalParameter)>
         Public Sub CallerInfo6()
             Dim source =
 <compilation>
@@ -1954,10 +1959,10 @@ expectedOutput:=<![CDATA[
                 options:=TestOptions.ReleaseExe, parseOptions:=MyParseOptions,
                 additionalRefs:={reference1})
             CompileAndVerify(compilation2,
-            <![CDATA[
-        9
-        12
-        ]]>)
+            <![CDATA[ 9
+  12
+
+]]>)
         End Sub
 
         <Requires.Language.Feature(ImplicitDefaultValueOnOptionalParameter)>
@@ -2133,10 +2138,10 @@ expectedOutput:=<![CDATA[
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, parseOptions:=MyParseOptions)
             comp.AssertNoDiagnostics()
             CompileAndVerify(source,
-     expectedOutput:=<![CDATA[
-        2
-        a
-        ]]>)
+     expectedOutput:=
+"2
+a
+")
             Dim prog As NamedTypeSymbol = comp.GetTypeByMetadataName("Program")
             Dim Bug623122 = DirectCast(prog.GetMembers("Bug623122").Single, MethodSymbol)
             Dim Bug619347 = DirectCast(prog.GetMembers("Bug619347").Single, MethodSymbol)
@@ -2190,7 +2195,7 @@ expectedOutput:=<![CDATA[
 
                     Assert.False(parameters(0).IsOptional)
                     Assert.False(parameters(0).HasExplicitDefaultValue)
-                    'Assert.Throws(Of InvalidOperationException)(Function() parameters(0).ExplicitDefaultValue)
+                    Assert.Null(parameters(0).ExplicitDefaultValue)
                     Assert.Null(parameters(0).ExplicitDefaultConstantValue)
                     Assert.Equal(0, parameters(0).GetAttributes().Length)
 
@@ -2210,50 +2215,50 @@ expectedOutput:=<![CDATA[
 
                     Assert.False(parameters(4).IsOptional)
                     Assert.False(parameters(4).HasExplicitDefaultValue)
-                    'Assert.Throws(Of InvalidOperationException)(Function() parameters(4).ExplicitDefaultValue)
+                    Assert.Null(parameters(4).ExplicitDefaultValue)
                     Assert.Null(parameters(4).ExplicitDefaultConstantValue)
                     Assert.Equal(1, parameters(4).GetAttributes().Length)
 
                     Assert.False(parameters(5).IsOptional)
                     Assert.False(parameters(5).HasExplicitDefaultValue)
-                    'Assert.Throws(Of InvalidOperationException)(Function() parameters(5).ExplicitDefaultValue)
+                    Assert.Null(parameters(5).ExplicitDefaultValue)
                     Assert.Null(parameters(5).ExplicitDefaultConstantValue)
                     Assert.Equal(1, parameters(5).GetAttributes().Length)
 
                     If isFromSource Then
                         Assert.False(parameters(3).IsOptional)
                         Assert.False(parameters(3).HasExplicitDefaultValue)
-                        'Assert.Throws(Of InvalidOperationException)(Function() parameters(3).ExplicitDefaultValue)
+                        Assert.Null(parameters(3).ExplicitDefaultValue)
                         Assert.Null(parameters(3).ExplicitDefaultConstantValue)
                         Assert.Equal(1, parameters(3).GetAttributes().Length)
 
                         Assert.False(parameters(6).IsOptional)
                         Assert.False(parameters(6).HasExplicitDefaultValue)
-                        'Assert.Throws(Of InvalidOperationException)(Function() parameters(6).ExplicitDefaultValue)
+                        Assert.Null(parameters(6).ExplicitDefaultValue)
                         Assert.Null(parameters(6).ExplicitDefaultConstantValue)
                         Assert.Equal(2, parameters(6).GetAttributes().Length)
 
                         Assert.False(parameters(7).IsOptional)
                         Assert.False(parameters(7).HasExplicitDefaultValue)
-                        'Assert.Throws(Of InvalidOperationException)(Function() parameters(7).ExplicitDefaultValue)
+                        Assert.Null(parameters(7).ExplicitDefaultValue)
                         Assert.Null(parameters(7).ExplicitDefaultConstantValue)
                         Assert.Equal(2, parameters(7).GetAttributes().Length)
                     Else
                         Assert.True(parameters(3).IsOptional)
                         Assert.False(parameters(3).HasExplicitDefaultValue)
-                        'Assert.Throws(Of InvalidOperationException)(Function() parameters(3).ExplicitDefaultValue)
+                        Assert.Null(parameters(3).ExplicitDefaultValue)
                         Assert.Null(parameters(3).ExplicitDefaultConstantValue)
                         Assert.Equal(0, parameters(3).GetAttributes().Length)
 
                         Assert.True(parameters(6).IsOptional)
                         Assert.False(parameters(6).HasExplicitDefaultValue)
-                        'Assert.Throws(Of InvalidOperationException)(Function() parameters(6).ExplicitDefaultValue)
+                        Assert.Null(parameters(6).ExplicitDefaultValue)
                         Assert.Null(parameters(6).ExplicitDefaultConstantValue)
                         Assert.Equal(1, parameters(6).GetAttributes().Length) ' DefaultParameterValue
 
                         Assert.True(parameters(7).IsOptional)
                         Assert.False(parameters(7).HasExplicitDefaultValue)
-                        'Assert.Throws(Of InvalidOperationException)(Function() parameters(7).ExplicitDefaultValue)
+                        Assert.Null(parameters(7).ExplicitDefaultValue)
                         Assert.Null(parameters(7).ExplicitDefaultConstantValue)
                         Assert.Equal(1, parameters(7).GetAttributes().Length) ' DefaultParameterValue
                     End If
@@ -2302,45 +2307,45 @@ expectedOutput:=<![CDATA[
                     Assert.False(parameters(0).IsOptional)
                     Assert.False(parameters(0).HasExplicitDefaultValue)
                     Assert.Null(parameters(0).ExplicitDefaultConstantValue)
-                    'Assert.Throws(Of InvalidOperationException)(Function() parameters(0).ExplicitDefaultValue)
+                    Assert.Null(parameters(0).ExplicitDefaultValue)
                     Assert.Equal(0, parameters(0).GetAttributes().Length)
 
                     Assert.True(parameters(1).IsOptional)
                     Assert.False(parameters(1).HasExplicitDefaultValue)
                     Assert.Null(parameters(1).ExplicitDefaultValue)
-                    'Assert.Equal(ConstantValue.Null, parameters(1).ExplicitDefaultConstantValue)
+                    Assert.Null(parameters(1).ExplicitDefaultConstantValue)
                     Assert.Equal(0, parameters(1).GetAttributes().Length)
 
                     ' 2 - see below
 
                     Assert.False(parameters(3).IsOptional)
                     Assert.False(parameters(3).HasExplicitDefaultValue)
-                    'Assert.Throws(Of InvalidOperationException)(Function() parameters(3).ExplicitDefaultValue)
+                    Assert.Null(parameters(3).ExplicitDefaultValue)
                     Assert.Null(parameters(3).ExplicitDefaultConstantValue)
                     Assert.Equal(1, parameters(3).GetAttributes().Length)
 
                     If isFromSource Then
                         Assert.False(parameters(2).IsOptional)
                         Assert.False(parameters(2).HasExplicitDefaultValue)
-                        'Assert.Throws(Of InvalidOperationException)(Function() parameters(2).ExplicitDefaultValue)
+                        Assert.Null(parameters(2).ExplicitDefaultValue)
                         Assert.Null(parameters(2).ExplicitDefaultConstantValue)
                         Assert.Equal(1, parameters(2).GetAttributes().Length)
 
                         Assert.False(parameters(4).IsOptional)
                         Assert.False(parameters(4).HasExplicitDefaultValue)
-                        'Assert.Throws(Of InvalidOperationException)(Function() parameters(4).ExplicitDefaultValue)
+                        Assert.Null(parameters(4).ExplicitDefaultValue)
                         Assert.Null(parameters(4).ExplicitDefaultConstantValue)
                         Assert.Equal(2, parameters(4).GetAttributes().Length)
                     Else
                         Assert.True(parameters(2).IsOptional)
                         Assert.False(parameters(2).HasExplicitDefaultValue)
-                        'Assert.Throws(Of InvalidOperationException)(Function() parameters(2).ExplicitDefaultValue)
+                        Assert.Null(parameters(2).ExplicitDefaultValue)
                         Assert.Null(parameters(2).ExplicitDefaultConstantValue)
                         Assert.Equal(0, parameters(2).GetAttributes().Length)
 
                         Assert.True(parameters(4).IsOptional)
                         Assert.False(parameters(4).HasExplicitDefaultValue)
-                        'Assert.Throws(Of InvalidOperationException)(Function() parameters(4).ExplicitDefaultValue)
+                        Assert.Null(parameters(4).ExplicitDefaultValue)
                         Assert.Null(parameters(4).ExplicitDefaultConstantValue)
                         Assert.Equal(1, parameters(4).GetAttributes().Length) ' DefaultParameterValue
                     End If
@@ -2362,7 +2367,7 @@ expectedOutput:=<![CDATA[
         Public Class C
             Public Sub M0(p As String)
             End Sub
-            Public Sub M1(Optional p As String) ' default of type
+            Public Sub M1a(Optional p As String) ' default of type
             End Sub
             Public Sub M1(Optional p As String = Nothing) ' default of type
             End Sub
@@ -2392,7 +2397,7 @@ expectedOutput:=<![CDATA[
 
                     Assert.False(parameters(0).IsOptional)
                     Assert.False(parameters(0).HasExplicitDefaultValue)
-                    'Assert.Throws(Of InvalidOperationException)(Function() parameters(0).ExplicitDefaultValue)
+                    Assert.Null(parameters(0).ExplicitDefaultValue)
                     Assert.Null(parameters(0).ExplicitDefaultConstantValue)
                     Assert.Equal(0, parameters(0).GetAttributes().Length)
 
@@ -2418,50 +2423,50 @@ expectedOutput:=<![CDATA[
 
                     Assert.False(parameters(5).IsOptional)
                     Assert.False(parameters(5).HasExplicitDefaultValue)
-                    'Assert.Throws(Of InvalidOperationException)(Function() parameters(5).ExplicitDefaultValue)
+                    Assert.Null(parameters(5).ExplicitDefaultValue)
                     Assert.Null(parameters(5).ExplicitDefaultConstantValue) ' not imported for non-optional parameter
                     Assert.Equal(1, parameters(5).GetAttributes().Length)
 
                     Assert.False(parameters(6).IsOptional)
                     Assert.False(parameters(6).HasExplicitDefaultValue)
-                    '     Assert.Throws(Of InvalidOperationException)(Function() parameters(6).ExplicitDefaultValue)
+                    Assert.Null(parameters(6).ExplicitDefaultValue)
                     Assert.Null(parameters(6).ExplicitDefaultConstantValue) ' not imported for non-optional parameter
                     Assert.Equal(1, parameters(6).GetAttributes().Length)
 
                     If isFromSource Then
                         Assert.False(parameters(4).IsOptional)
                         Assert.False(parameters(4).HasExplicitDefaultValue)
-                        '    Assert.Throws(Of InvalidOperationException)(Function() parameters(4).ExplicitDefaultValue)
+                        Assert.Null(parameters(4).ExplicitDefaultValue)
                         Assert.Null(parameters(4).ExplicitDefaultConstantValue)
                         Assert.Equal(1, parameters(4).GetAttributes().Length)
 
                         Assert.False(parameters(7).IsOptional)
                         Assert.False(parameters(7).HasExplicitDefaultValue)
-                        '    Assert.Throws(Of InvalidOperationException)(Function() parameters(7).ExplicitDefaultValue)
+                        Assert.Null(parameters(7).ExplicitDefaultValue)
                         Assert.Null(parameters(7).ExplicitDefaultConstantValue)
                         Assert.Equal(2, parameters(7).GetAttributes().Length)
 
                         Assert.False(parameters(8).IsOptional)
                         Assert.False(parameters(8).HasExplicitDefaultValue)
-                        'Assert.Throws(Of InvalidOperationException)(Function() parameters(8).ExplicitDefaultValue)
+                        Assert.Null(parameters(8).ExplicitDefaultValue)
                         Assert.Null(parameters(8).ExplicitDefaultConstantValue)
                         Assert.Equal(2, parameters(8).GetAttributes().Length)
                     Else
                         Assert.True(parameters(4).IsOptional)
                         Assert.False(parameters(4).HasExplicitDefaultValue)
-                        '    Assert.Throws(Of InvalidOperationException)(Function() parameters(4).ExplicitDefaultValue)
+                        Assert.Null(parameters(4).ExplicitDefaultValue)
                         Assert.Null(parameters(4).ExplicitDefaultConstantValue)
                         Assert.Equal(0, parameters(4).GetAttributes().Length)
 
                         Assert.True(parameters(7).IsOptional)
                         Assert.False(parameters(7).HasExplicitDefaultValue)
-                        '    Assert.Throws(Of InvalidOperationException)(Function() parameters(7).ExplicitDefaultValue)
+                        Assert.Null(parameters(7).ExplicitDefaultValue)
                         Assert.Null(parameters(7).ExplicitDefaultConstantValue)
                         Assert.Equal(1, parameters(7).GetAttributes().Length)
 
                         Assert.True(parameters(8).IsOptional)
                         Assert.False(parameters(8).HasExplicitDefaultValue)
-                        '     Assert.Throws(Of InvalidOperationException)(Function() parameters(8).ExplicitDefaultValue)
+                        Assert.Null(parameters(8).ExplicitDefaultValue)
                         Assert.Null(parameters(8).ExplicitDefaultConstantValue)
                         Assert.Equal(1, parameters(8).GetAttributes().Length)
                     End If
@@ -2523,14 +2528,14 @@ End Class
 
                     Assert.False(parameters(0).IsOptional)
                     Assert.False(parameters(0).HasExplicitDefaultValue)
-                    'Assert.Throws(Of InvalidOperationException)(Function() parameters(0).ExplicitDefaultValue)
+                    Assert.Null(parameters(0).ExplicitDefaultValue)
                     Assert.Null(parameters(0).ExplicitDefaultConstantValue)
                     Assert.Equal(0, parameters(0).GetAttributes().Length)
 
                     Assert.True(parameters(1).IsOptional)
                     Assert.False(parameters(1).HasExplicitDefaultValue)
-                    'Assert.Equal(decimalZero, parameters(1).ExplicitDefaultValue)
-                    Assert.Equal(Nothing, parameters(1).ExplicitDefaultConstantValue)
+                    Assert.Null(parameters(1).ExplicitDefaultValue)
+                    Assert.Null(parameters(1).ExplicitDefaultConstantValue)
                     Assert.Equal(0, parameters(1).GetAttributes().Length)
 
                     Assert.True(parameters(2).IsOptional)
@@ -2543,13 +2548,13 @@ End Class
 
                     Assert.False(parameters(4).IsOptional)
                     Assert.False(parameters(4).HasExplicitDefaultValue)
-                    'Assert.Throws(Of InvalidOperationException)(Function() parameters(4).ExplicitDefaultValue)
+                    Assert.Null(parameters(4).ExplicitDefaultValue)
                     Assert.Null(parameters(4).ExplicitDefaultConstantValue)
                     Assert.Equal(1, parameters(4).GetAttributes().Length) ' DefaultParameterValue
 
                     Assert.False(parameters(5).IsOptional)
                     Assert.False(parameters(5).HasExplicitDefaultValue)
-                    'Assert.Throws(Of InvalidOperationException)(Function() parameters(5).ExplicitDefaultValue)
+                    Assert.Null(parameters(5).ExplicitDefaultValue)
                     Assert.Null(parameters(5).ExplicitDefaultConstantValue)
                     Assert.Equal(1, parameters(5).GetAttributes().Length) ' DefaultParameterValue
 
@@ -2559,62 +2564,62 @@ End Class
 
                     Assert.False(parameters(8).IsOptional)
                     Assert.False(parameters(8).HasExplicitDefaultValue)
-                    '  Assert.Throws(Of InvalidOperationException)(Function() parameters(8).ExplicitDefaultValue)
+                    Assert.Null(parameters(8).ExplicitDefaultValue)
                     Assert.Null(parameters(8).ExplicitDefaultConstantValue) ' not imported for non-optional parameter
                     Assert.Equal(1, parameters(8).GetAttributes().Length) ' DecimalConstantAttribute
 
                     Assert.False(parameters(9).IsOptional)
                     Assert.False(parameters(9).HasExplicitDefaultValue)
-                    '   Assert.Throws(Of InvalidOperationException)(Function() parameters(9).ExplicitDefaultValue)
+                    Assert.Null(parameters(9).ExplicitDefaultValue)
                     Assert.Null(parameters(9).ExplicitDefaultConstantValue) ' not imported for non-optional parameter
                     Assert.Equal(1, parameters(9).GetAttributes().Length) ' DecimalConstantAttribute
 
                     If isFromSource Then
                         Assert.False(parameters(3).IsOptional)
                         Assert.False(parameters(3).HasExplicitDefaultValue)
-                        '   Assert.Throws(Of InvalidOperationException)(Function() parameters(3).ExplicitDefaultValue)
+                        Assert.Null(parameters(3).ExplicitDefaultValue)
                         Assert.Null(parameters(3).ExplicitDefaultConstantValue)
                         Assert.Equal(1, parameters(3).GetAttributes().Length)
 
                         Assert.False(parameters(6).IsOptional)
                         Assert.False(parameters(6).HasExplicitDefaultValue)
-                        '    Assert.Throws(Of InvalidOperationException)(Function() parameters(6).ExplicitDefaultValue)
+                        Assert.Null(parameters(6).ExplicitDefaultValue)
                         Assert.Null(parameters(6).ExplicitDefaultConstantValue)
                         Assert.Equal(2, parameters(6).GetAttributes().Length)
 
                         Assert.False(parameters(7).IsOptional)
                         Assert.False(parameters(7).HasExplicitDefaultValue)
-                        '     Assert.Throws(Of InvalidOperationException)(Function() parameters(7).ExplicitDefaultValue)
+                        Assert.Null(parameters(7).ExplicitDefaultValue)
                         Assert.Null(parameters(7).ExplicitDefaultConstantValue)
                         Assert.Equal(2, parameters(7).GetAttributes().Length)
 
                         Assert.False(parameters(10).IsOptional)
                         Assert.False(parameters(10).HasExplicitDefaultValue)
-                        '   Assert.Throws(Of InvalidOperationException)(Function() parameters(10).ExplicitDefaultValue)
+                        Assert.Null(parameters(10).ExplicitDefaultValue)
                         Assert.Null(parameters(10).ExplicitDefaultConstantValue)
                         Assert.Equal(2, parameters(10).GetAttributes().Length)
 
                         Assert.False(parameters(11).IsOptional)
                         Assert.False(parameters(11).HasExplicitDefaultValue)
-                        '    Assert.Throws(Of InvalidOperationException)(Function() parameters(11).ExplicitDefaultValue)
+                        Assert.Null(parameters(11).ExplicitDefaultValue)
                         Assert.Null(parameters(11).ExplicitDefaultConstantValue)
                         Assert.Equal(2, parameters(11).GetAttributes().Length)
                     Else
                         Assert.True(parameters(3).IsOptional)
                         Assert.False(parameters(3).HasExplicitDefaultValue)
-                        '    Assert.Throws(Of InvalidOperationException)(Function() parameters(3).ExplicitDefaultValue)
+                        Assert.Null(parameters(3).ExplicitDefaultValue)
                         Assert.Null(parameters(3).ExplicitDefaultConstantValue)
                         Assert.Equal(0, parameters(3).GetAttributes().Length)
 
                         Assert.True(parameters(6).IsOptional)
                         Assert.False(parameters(6).HasExplicitDefaultValue)
-                        '     Assert.Throws(Of InvalidOperationException)(Function() parameters(6).ExplicitDefaultValue)
+                        Assert.Null(parameters(6).ExplicitDefaultValue)
                         Assert.Null(parameters(6).ExplicitDefaultConstantValue)
                         Assert.Equal(1, parameters(6).GetAttributes().Length) ' DefaultParameterValue
 
                         Assert.True(parameters(7).IsOptional)
                         Assert.False(parameters(7).HasExplicitDefaultValue)
-                        'Assert.Throws(Of InvalidOperationException)(Function() parameters(7).ExplicitDefaultValue)
+                        Assert.Null(parameters(7).ExplicitDefaultValue)
                         Assert.Null(parameters(7).ExplicitDefaultConstantValue)
                         Assert.Equal(1, parameters(7).GetAttributes().Length) ' DefaultParameterValue
 
@@ -2685,7 +2690,7 @@ End Class
 
                     Assert.False(parameters(0).IsOptional)
                     Assert.False(parameters(0).HasExplicitDefaultValue)
-                    '   Assert.Throws(Of InvalidOperationException)(Function() parameters(0).ExplicitDefaultValue)
+                    Assert.Null(parameters(0).ExplicitDefaultValue)
                     Assert.Null(parameters(0).ExplicitDefaultConstantValue)
                     Assert.Equal(0, parameters(0).GetAttributes().Length)
 
@@ -2705,7 +2710,7 @@ End Class
 
                     Assert.False(parameters(4).IsOptional)
                     Assert.False(parameters(4).HasExplicitDefaultValue)
-                    '       Assert.Throws(Of InvalidOperationException)(Function() parameters(4).ExplicitDefaultValue)
+                    Assert.Null(parameters(4).ExplicitDefaultValue)
                     Assert.Null(parameters(4).ExplicitDefaultConstantValue) ' not imported for non-optional parameter
                     Assert.Equal(1, parameters(4).GetAttributes().Length) ' DefaultParameterValue
 
@@ -2713,50 +2718,50 @@ End Class
 
                     Assert.False(parameters(6).IsOptional)
                     Assert.False(parameters(6).HasExplicitDefaultValue)
-                    '      Assert.Throws(Of InvalidOperationException)(Function() parameters(6).ExplicitDefaultValue)
+                    Assert.Null(parameters(6).ExplicitDefaultValue)
                     Assert.Null(parameters(6).ExplicitDefaultConstantValue) ' not imported for non-optional parameter
                     Assert.Equal(1, parameters(6).GetAttributes().Length) ' DateTimeConstant
 
                     Assert.False(parameters(7).IsOptional)
                     Assert.False(parameters(7).HasExplicitDefaultValue)
-                    '     Assert.Throws(Of InvalidOperationException)(Function() parameters(7).ExplicitDefaultValue)
+                    Assert.Null(parameters(7).ExplicitDefaultValue)
                     Assert.Null(parameters(7).ExplicitDefaultConstantValue) ' not imported for non-optional parameter
                     Assert.Equal(1, parameters(7).GetAttributes().Length) ' DateTimeConstant
 
                     If isFromSource Then
                         Assert.False(parameters(3).IsOptional)
                         Assert.False(parameters(3).HasExplicitDefaultValue)
-                        '         Assert.Throws(Of InvalidOperationException)(Function() parameters(3).ExplicitDefaultValue)
+                        Assert.Null(parameters(3).ExplicitDefaultValue)
                         Assert.Null(parameters(3).ExplicitDefaultConstantValue)
                         Assert.Equal(1, parameters(3).GetAttributes().Length)
 
                         Assert.False(parameters(5).IsOptional)
                         Assert.False(parameters(5).HasExplicitDefaultValue)
-                        '      Assert.Throws(Of InvalidOperationException)(Function() parameters(5).ExplicitDefaultValue)
+                        Assert.Null(parameters(5).ExplicitDefaultValue)
                         Assert.Null(parameters(5).ExplicitDefaultConstantValue)
                         Assert.Equal(2, parameters(5).GetAttributes().Length)
 
                         Assert.False(parameters(8).IsOptional)
                         Assert.False(parameters(8).HasExplicitDefaultValue)
-                        '      Assert.Throws(Of InvalidOperationException)(Function() parameters(8).ExplicitDefaultValue)
+                        Assert.Null(parameters(8).ExplicitDefaultValue)
                         Assert.Null(parameters(8).ExplicitDefaultConstantValue)
                         Assert.Equal(2, parameters(8).GetAttributes().Length)
 
                         Assert.False(parameters(9).IsOptional)
                         Assert.False(parameters(9).HasExplicitDefaultValue)
-                        '      Assert.Throws(Of InvalidOperationException)(Function() parameters(9).ExplicitDefaultValue)
+                        Assert.Null(parameters(9).ExplicitDefaultValue)
                         Assert.Null(parameters(9).ExplicitDefaultConstantValue)
                         Assert.Equal(2, parameters(9).GetAttributes().Length)
                     Else
                         Assert.True(parameters(3).IsOptional)
                         Assert.False(parameters(3).HasExplicitDefaultValue)
-                        '   Assert.Throws(Of InvalidOperationException)(Function() parameters(3).ExplicitDefaultValue)
+                        Assert.Null(parameters(3).ExplicitDefaultValue)
                         Assert.Null(parameters(3).ExplicitDefaultConstantValue)
                         Assert.Equal(0, parameters(3).GetAttributes().Length)
 
                         Assert.True(parameters(5).IsOptional)
                         Assert.False(parameters(5).HasExplicitDefaultValue)
-                        '   Assert.Throws(Of InvalidOperationException)(Function() parameters(5).ExplicitDefaultValue)
+                        Assert.Null(parameters(5).ExplicitDefaultValue)
                         Assert.Null(parameters(5).ExplicitDefaultConstantValue)
                         Assert.Equal(1, parameters(5).GetAttributes().Length) ' DefaultParameterValue
 
@@ -2777,5 +2782,8 @@ End Class
             CompileAndVerify(source, {MscorlibRef, SystemRef}, sourceSymbolValidator:=validator(True), symbolValidator:=validator(False), parseOptions:=MyParseOptions)
         End Sub
 
+        Protected Overrides Sub Finalize()
+            MyBase.Finalize()
+        End Sub
     End Class
 End Namespace

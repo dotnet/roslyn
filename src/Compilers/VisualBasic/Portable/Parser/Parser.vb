@@ -4615,7 +4615,7 @@ checkNullable:
                 value = ParseExpressionCore()
 
             ElseIf modifiers.Any AndAlso modifiers.Any(SyntaxKind.OptionalKeyword) Then
-                If CheckFeatureAvailability(Feature.ImplicitDefaultValueOnOptionalParameter) = False Then
+                If Feature.ImplicitDefaultValueOnOptionalParameter.IsUnavailable Then
                     equals = ReportSyntaxError(InternalSyntaxFactory.MissingPunctuation(SyntaxKind.EqualsToken), ERRID.ERR_ObsoleteOptionalWithoutValue)
                     value = ParseExpressionCore()
                 End If
