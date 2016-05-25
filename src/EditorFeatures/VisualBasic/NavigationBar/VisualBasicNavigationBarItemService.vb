@@ -269,7 +269,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.NavigationBar
                 Return Not p.IsWithEvents
             End If
 
-            Return symbol.Kind = SymbolKind.Event
+            If symbol.Kind = SymbolKind.Event Then
+                Return True
+            End If
+
+            If symbol.Kind = SymbolKind.Field AndAlso Not symbol.IsImplicitlyDeclared Then
+                Return True
+            End If
+
+            Return False
         End Function
 
         ''' <summary>
