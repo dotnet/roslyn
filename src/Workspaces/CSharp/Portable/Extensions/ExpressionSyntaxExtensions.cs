@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsAttributeNamedArgumentIdentifier(this ExpressionSyntax expression)
         {
-            var nameEquals = expression.Parent as NameEqualsSyntax;
+            var nameEquals = expression?.Parent as NameEqualsSyntax;
             return nameEquals.IsParentKind(SyntaxKind.AttributeArgument);
         }
 
