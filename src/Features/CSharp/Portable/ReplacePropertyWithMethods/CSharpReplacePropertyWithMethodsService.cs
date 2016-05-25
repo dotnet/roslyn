@@ -51,13 +51,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                 return;
             }
 
-            var methods = ConvertPropertyToMethods(semanticModel, editor.Generator, property, propertyDeclaration);
+            var methods = ConvertPropertyToMembers(semanticModel, editor.Generator, property, propertyDeclaration);
 
             editor.InsertAfter(propertyDeclaration, methods);
             editor.RemoveNode(propertyDeclaration);
         }
 
-        private List<SyntaxNode> ConvertPropertyToMethods(
+        private List<SyntaxNode> ConvertPropertyToMembers(
             SemanticModel semanticModel, SyntaxGenerator generator, IPropertySymbol property, PropertyDeclarationSyntax propertyDeclaration)
         {
             var result = new List<SyntaxNode>();

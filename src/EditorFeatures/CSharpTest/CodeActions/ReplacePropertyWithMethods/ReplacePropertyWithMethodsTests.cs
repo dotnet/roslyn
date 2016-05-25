@@ -293,5 +293,18 @@ class D
     public void M() { var v = new { P = this.GetProp() } }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestAutoProperty1()
+        {
+            await TestAsync(
+@"class C {
+    public int [||]Prop { get; }
+}",
+@"class C {
+    private readonly int _prop;
+    public int GetProp() { return _prop; }
+}");
+        }
     }
 }
