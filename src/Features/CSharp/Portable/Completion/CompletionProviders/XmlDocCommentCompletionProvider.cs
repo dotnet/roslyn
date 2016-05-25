@@ -77,23 +77,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     items.AddRange(NestedTagNames.Where(name => name != ParamRefTagName && name != TypeParamRefTagName)
                                                  .Select(name => GetItem(name, span)));
 
-                    // Add a ParamRefTag for each available parameter
-                    var symbol = declaredSymbol as IMethodSymbol;
-                    if (symbol != null)
+                    if (declaredSymbol != null)
                     {
-                        var parameters = symbol.GetParameters().Select(p => p.Name).ToSet();
-                        items.AddRange(parameters.Select(p => CreateCompletionItem(span, FormatParameter(ParamRefTagName, p))));
-                    }
+                        // Add a ParamRefTag for each available parameter
+                        var parameters = declaredSymbol.GetParameters();
+                        items.AddRange(parameters.Select(p => CreateCompletionItem(span, FormatParameter(ParamRefTagName, p.Name))));
 
-                    // Add a TypeParamRefTag for each available type parameter
-                    var typeParameters = (declaredSymbol as INamedTypeSymbol)?.TypeParameters.Select(t => t.Name).ToSet();
-                    if (typeParameters == null)
-                    {
-                        typeParameters = (declaredSymbol as IMethodSymbol)?.TypeParameters.Select(t => t.Name).ToSet();
-                    }
-                    if (typeParameters != null)
-                    {
-                        items.AddRange(typeParameters.Select(t => CreateCompletionItem(span, FormatParameter(TypeParamRefTagName, t))));
+                        // Add a TypeParamRefTag for each available type parameter
+                        var typeParameters = declaredSymbol.GetTypeParameters();
+                        items.AddRange(typeParameters.Select(t => CreateCompletionItem(span, FormatParameter(TypeParamRefTagName, t.Name))));
                     }
                 }
 
