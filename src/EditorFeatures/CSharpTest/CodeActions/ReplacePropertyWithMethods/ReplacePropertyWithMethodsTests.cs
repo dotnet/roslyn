@@ -32,5 +32,33 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
 @"class C { public int [||]Prop { get { return 0; } } }",
 @"class C { public int GetProp() { return 0; } }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestAnonyousType1()
+        {
+            await TestAsync(
+@"class C {
+    public int [||]Prop { get { return 0; } } 
+    public void M() { var v = new { P = this.Prop } }
+}",
+@"class C {
+    public int GetProp() { return 0; } 
+    public void M() { var v = new { P = this.GetProp() } }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestAnonyousType2()
+        {
+            await TestAsync(
+@"class C {
+    public int [||]Prop { get { return 0; } } 
+    public void M() { var v = new { this.Prop } }
+}",
+@"class C {
+    public int GetProp() { return 0; } 
+    public void M() { var v = new { Prop = this.GetProp() } }
+}");
+        }
     }
 }
