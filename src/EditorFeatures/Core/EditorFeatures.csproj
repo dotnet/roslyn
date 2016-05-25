@@ -556,7 +556,6 @@
     <Compile Include="Implementation\NavigateTo\NavigateToItemProvider.NavigateToItemDisplay.cs" />
     <Compile Include="Implementation\NavigateTo\NavigateToItemProvider.Searcher.cs" />
     <Compile Include="Implementation\NavigateTo\NavigateToItemProviderFactory.cs" />
-    <Compile Include="Implementation\NavigateTo\NavigateToSymbolFinder.cs" />
     <Compile Include="Implementation\NavigationBar\NavigationBarController.cs" />
     <Compile Include="Implementation\NavigationBar\NavigationBarController_ModelComputation.cs" />
     <Compile Include="Implementation\NavigationBar\NavigationBarControllerFactoryService.cs" />

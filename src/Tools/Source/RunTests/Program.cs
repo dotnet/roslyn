@@ -12,10 +12,11 @@ using RunTests.Cache;
 using Newtonsoft.Json.Linq;
 using RestSharp;
 using System.Collections.Immutable;
+using Newtonsoft.Json;
 
 namespace RunTests
 {
-    internal sealed class Program
+    internal sealed partial class Program
     {
         internal const int ExitSuccess = 0;
         internal const int ExitFailure = 1;
@@ -213,24 +214,23 @@ namespace RunTests
 
         private static async Task SendRunStats(Options options, IDataStorage dataStorage, TimeSpan elapsed, RunAllResult result, int partitionCount, CancellationToken cancellationToken)
         {
-            var obj = new JObject();
-            obj["Cache"] = dataStorage.Name;
-            obj["ElapsedSeconds"] = (int)elapsed.TotalSeconds;
-            obj["IsJenkins"] = Constants.IsJenkinsRun;
-            obj["Is32Bit"] = !options.Test64;
-            obj["AssemblyCount"] = options.Assemblies.Count;
-            obj["CacheCount"] = result.CacheCount;
-            obj["ChunkCount"] = partitionCount;
-            obj["PartitionCount"] = partitionCount;
-            obj["Succeeded"] = result.Succeeded;
+            var testRunData = new TestRunData()
+            {
+                Cache = dataStorage.Name,
+                ElapsedSeconds = (int)elapsed.TotalSeconds,
+                JenkinsUrl = Constants.JenkinsUrl,
+                IsJenkins = Constants.IsJenkinsRun,
+                Is32Bit = !options.Test64,
+                AssemblyCount = options.Assemblies.Count,
+                ChunkCount = partitionCount,
+                CacheCount = result.CacheCount,
+                Succeeded = result.Succeeded,
+                HasErrors = Logger.HasErrors
+            };
 
-            // During the transition from ellapsed to elapsed the client needs to provide both 
-            // spellings for the server.
-            obj["EllapsedSeconds"] = (int)elapsed.TotalSeconds;
-
-            var request = new RestRequest("api/testrun", Method.POST);
+            var request = new RestRequest("api/testData/run", Method.POST);
             request.RequestFormat = DataFormat.Json;
-            request.AddParameter("text/json", obj.ToString(), ParameterType.RequestBody);
+            request.AddParameter("text/json", JsonConvert.SerializeObject(testRunData), ParameterType.RequestBody);
 
             try
             {

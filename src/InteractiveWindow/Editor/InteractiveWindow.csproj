@@ -61,6 +61,7 @@
     <Compile Include="Commands\IInteractiveWindowCommandsFactory.cs" />
     <Compile Include="IInteractiveEvaluator.cs" />
     <Compile Include="IInteractiveWindow.cs" />
+    <Compile Include="IInteractiveWindow2.cs" />
     <Compile Include="IInteractiveWindowEditorFactoryService.cs" />
     <Compile Include="IInteractiveWindowFactoryService.cs" />
     <Compile Include="IInteractiveWindowOperations.cs" />

@@ -1174,6 +1174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // ERR_NameIllegallyOverrides3 = 7040, // Not used anymore due to 'Single Meaning' relaxation changes
         ERR_ResourceFileNameNotUnique = 7041,
         ERR_DllImportOnGenericMethod = 7042,
+        ERR_EncUpdateFailedMissingAttribute = 7043,
 
         ERR_ParameterNotValidForType = 7045,
         ERR_AttributeParameterRequired1 = 7046,
@@ -1322,10 +1323,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PublicSignButNoKey = 8102,
         ERR_TooManyUserStrings = 8103,
         ERR_PeWritingFailure = 8104,
-        ERR_ReturnTypesDontMatch = 8105,
-        ERR_DynamicLocalFunctionParamsParameter = 8106,
-        ERR_CantInferVoid = 8107,
-        ERR_ExpressionTreeContainsLocalFunction = 8108,
+        WRN_AttributeIgnoredWhenPublicSigning = 8105,
+        ERR_OptionMustBeAbsolutePath = 8106,
+        ERR_ReturnTypesDontMatch = 8107,
+        ERR_DynamicLocalFunctionParamsParameter = 8108,
+        ERR_CantInferVoid = 8109,
+        ERR_ExpressionTreeContainsLocalFunction = 8110,
 
         // gap here
 

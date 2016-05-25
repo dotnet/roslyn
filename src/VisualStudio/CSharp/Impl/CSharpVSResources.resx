@@ -462,4 +462,7 @@
   <data name="PredefinedTypesGroupTitle" xml:space="preserve">
     <value>predefined type preferences:</value>
   </data>
+  <data name="Option_Split_string_literals_on_enter" xml:space="preserve">
+    <value>Split string literals on _enter</value>
+  </data>
 </root>
