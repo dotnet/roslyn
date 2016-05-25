@@ -210,5 +210,35 @@ class D
     private void SetProp(int value) { this.SetProp(value + 1); }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestCompoundAssign1()
+        {
+            await TestAsync(
+@"class C {
+    int [||]Prop { get { return 0; } set { var v = value; } } 
+    void M() { this.Prop *= x; }
+}",
+@"class C {
+    private int GetProp() { return 0; }
+    private void SetProp(int value) { var v = value; }
+    void M() { this.SetProp(this.GetProp() * x); }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestCompoundAssign2()
+        {
+            await TestAsync(
+@"class C {
+    int [||]Prop { get { return 0; } set { var v = value; } } 
+    void M() { this.Prop *= x + y; }
+}",
+@"class C {
+    private int GetProp() { return 0; }
+    private void SetProp(int value) { var v = value; }
+    void M() { this.SetProp(this.GetProp() * (x + y)); }
+}");
+        }
     }
 }

@@ -124,7 +124,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             }
             else if (expression.IsLeftSideOfAnyAssignExpression())
             {
-
+                HandleAssignExpression(editor, nameToken);
             }
             else if (expression.IsOperandOfIncrementOrDecrementExpression())
             {
@@ -164,6 +164,46 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                 // No writes.  Replace this with a call to the getter.
                 ReplaceWithGetInvocation(editor, nameToken);
             }
+        }
+
+        private void HandleAssignExpression(SyntaxEditor editor, SyntaxToken nameToken)
+        {
+            IdentifierNameSyntax identifierName;
+            ExpressionSyntax expression;
+            GetIdentifierAndContextExpression(nameToken, out identifierName, out expression);
+
+            // We're being read from and written to from a compound assignment 
+            // (i.e. Prop *= X), we need to replace with a Get and a Set call.
+            var parent = (AssignmentExpressionSyntax)expression.Parent;
+
+#if false
+                            case SyntaxKind.OrAssignmentExpression:
+                case SyntaxKind.AndAssignmentExpression:
+                case SyntaxKind.ExclusiveOrAssignmentExpression:
+                case SyntaxKind.LeftShiftAssignmentExpression:
+                case SyntaxKind.RightShiftAssignmentExpression:
+                case SyntaxKind.AddAssignmentExpression:
+                case SyntaxKind.SubtractAssignmentExpression:
+                case SyntaxKind.MultiplyAssignmentExpression:
+                case SyntaxKind.DivideAssignmentExpression:
+                case SyntaxKind.ModuloAssignmentExpression:
+                case SyntaxKind.SimpleAssignmentExpression:
+#endif
+
+            var operatorKind =
+                parent.IsKind(SyntaxKind.OrAssignmentExpression) ? SyntaxKind.BitwiseOrExpression :
+                parent.IsKind(SyntaxKind.AndAssignmentExpression) ? SyntaxKind.BitwiseAndExpression :
+                parent.IsKind(SyntaxKind.ExclusiveOrAssignmentExpression) ? SyntaxKind.ExclusiveOrExpression :
+                parent.IsKind(SyntaxKind.LeftShiftAssignmentExpression) ? SyntaxKind.LeftShiftExpression :
+                parent.IsKind(SyntaxKind.RightShiftAssignmentExpression) ? SyntaxKind.RightShiftExpression :
+                parent.IsKind(SyntaxKind.AddAssignmentExpression) ? SyntaxKind.AddExpression :
+                parent.IsKind(SyntaxKind.SubtractAssignmentExpression) ? SyntaxKind.SubtractExpression :
+                parent.IsKind(SyntaxKind.MultiplyAssignmentExpression) ? SyntaxKind.MultiplyExpression :
+                parent.IsKind(SyntaxKind.DivideAssignmentExpression) ? SyntaxKind.DivideExpression :
+                parent.IsKind(SyntaxKind.ModuloAssignmentExpression) ? SyntaxKind.ModuloExpression : SyntaxKind.None;
+
+            ReplaceWithGetAndSetInvocation(
+                editor, nameToken, operatorKind, parent.Right.Parenthesize());
         }
 
         private static void ReplaceWithGetAndSetInvocation(
