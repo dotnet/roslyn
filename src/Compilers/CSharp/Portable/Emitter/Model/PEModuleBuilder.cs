@@ -338,7 +338,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// </summary>
         internal virtual NamedTypeSymbol DynamicOperationContextType => null;
 
-        internal virtual VariableSlotAllocator TryCreateVariableSlotAllocator(MethodSymbol method, MethodSymbol topLevelMethod)
+        internal virtual VariableSlotAllocator TryCreateVariableSlotAllocator(MethodSymbol method, MethodSymbol topLevelMethod, DiagnosticBag diagnostics)
         {
             return null;
         }
