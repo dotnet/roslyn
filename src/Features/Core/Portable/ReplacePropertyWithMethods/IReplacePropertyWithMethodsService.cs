@@ -12,8 +12,12 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
     {
         SyntaxNode GetPropertyDeclaration(SyntaxToken token);
 
-        void ReplaceReference(SyntaxEditor editor, SyntaxToken nameToken);
+        void ReplaceReference(
+            SyntaxEditor editor, SyntaxToken nameToken, IFieldSymbol propertyBackingField);
 
-        void ReplacePropertyWithMethod(SyntaxEditor editor, SemanticModel semanticModel, IPropertySymbol property, SyntaxNode declaration);
+        void ReplacePropertyWithMethod(
+            SyntaxEditor editor, SemanticModel semanticModel,
+            IPropertySymbol property, SyntaxNode declaration,
+            IFieldSymbol propertyBackingField);
     }
 }

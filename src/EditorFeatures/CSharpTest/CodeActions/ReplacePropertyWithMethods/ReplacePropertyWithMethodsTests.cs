@@ -314,8 +314,46 @@ class D
     public int [||]Prop { get; }
 }",
 @"class C {
-    private readonly int _prop;
-    public int GetProp() { return _prop; }
+    private readonly int prop;
+    public int GetProp() { return prop; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestAutoProperty2()
+        {
+            await TestAsync(
+@"class C {
+    public int [||]Prop { get; }
+    public C() {
+        this.Prop++;
+    }
+}",
+@"class C {
+    private readonly int prop;
+    public int GetProp() { return prop; }
+    public C() {
+        this.prop = this.GetProp() + 1;
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestAutoProperty3()
+        {
+            await TestAsync(
+@"class C {
+    public int [||]Prop { get; }
+    public C() {
+        this.Prop *= x + y;
+    }
+}",
+@"class C {
+    private readonly int prop;
+    public int GetProp() { return prop; }
+    public C() {
+        this.prop = this.GetProp() * (x + y);
+    }
 }");
         }
     }

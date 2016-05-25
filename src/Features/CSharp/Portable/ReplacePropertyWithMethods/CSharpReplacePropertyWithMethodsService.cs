@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ReplacePropertyWithMethods;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
 {
@@ -43,7 +44,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             SyntaxEditor editor,
             SemanticModel semanticModel,
             IPropertySymbol property,
-            SyntaxNode declaration)
+            SyntaxNode declaration,
+            IFieldSymbol propertyBackingField)
         {
             var propertyDeclaration = declaration as PropertyDeclarationSyntax;
             if (propertyDeclaration == null)
@@ -51,7 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                 return;
             }
 
-            var members = ConvertPropertyToMembers(semanticModel, editor.Generator, property, propertyDeclaration);
+            var members = ConvertPropertyToMembers(
+                semanticModel, editor.Generator, property, propertyDeclaration, propertyBackingField);
 
             if (property.ContainingType.TypeKind == TypeKind.Interface)
             {
@@ -64,9 +67,26 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
         }
 
         private List<SyntaxNode> ConvertPropertyToMembers(
-            SemanticModel semanticModel, SyntaxGenerator generator, IPropertySymbol property, PropertyDeclarationSyntax propertyDeclaration)
+            SemanticModel semanticModel, SyntaxGenerator generator, 
+            IPropertySymbol property, PropertyDeclarationSyntax propertyDeclaration,
+            IFieldSymbol propertyBackingField)
         {
             var result = new List<SyntaxNode>();
+
+            if (propertyBackingField != null)
+            {
+                result.Add(generator.FieldDeclaration(propertyBackingField));
+            }
+
+            //var generateField = !property.IsAbstract &&
+            //    propertyDeclaration.AccessorList?.Accessors.FirstOrDefault()?.Body == null;
+
+            //if (generateField)
+            //{
+            //    var fieldName = NameGenerator.GenerateUniqueName(
+            //        property.Name.ToLowerInvariant(), s => !property.ContainingType.GetMembers(s).Any());
+            //    result.Add(generator.FieldDeclaration(fieldName, )
+            //}
 
             var getMethod = property.GetMethod;
             if (getMethod != null)
@@ -118,7 +138,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             return methodDeclaration;
         }
 
-        public void ReplaceReference(SyntaxEditor editor, SyntaxToken nameToken)
+        public void ReplaceReference(
+            SyntaxEditor editor, SyntaxToken nameToken, IFieldSymbol propertyBackingField)
         {
             IdentifierNameSyntax identifierName;
             ExpressionSyntax expression;
@@ -143,11 +164,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                 // We're only being written to here.  This is safe to replace with a call to the 
                 // setter.
                 var value = ((AssignmentExpressionSyntax)expression.Parent).Right;
-                ReplaceWithSetInvocation(editor, nameToken, value);
+                ReplaceWithSetInvocationOrFieldAssignment(editor, nameToken, propertyBackingField, value);
             }
             else if (expression.IsLeftSideOfAnyAssignExpression())
             {
-                HandleAssignExpression(editor, nameToken);
+                HandleAssignExpression(editor, nameToken, propertyBackingField);
             }
             else if (expression.IsOperandOfIncrementOrDecrementExpression())
             {
@@ -159,7 +180,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                     : SyntaxKind.SubtractExpression;
 
                 ReplaceWithGetAndSetInvocation(
-                    editor, nameToken, operatorKind,
+                    editor, nameToken, propertyBackingField, operatorKind,
                     SyntaxFactory.LiteralExpression(
                         SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1)));
             }
@@ -189,7 +210,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             }
         }
 
-        private void HandleAssignExpression(SyntaxEditor editor, SyntaxToken nameToken)
+        private void HandleAssignExpression(
+            SyntaxEditor editor, SyntaxToken nameToken, IFieldSymbol propertyBackingField)
         {
             IdentifierNameSyntax identifierName;
             ExpressionSyntax expression;
@@ -212,11 +234,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                 parent.IsKind(SyntaxKind.ModuloAssignmentExpression) ? SyntaxKind.ModuloExpression : SyntaxKind.None;
 
             ReplaceWithGetAndSetInvocation(
-                editor, nameToken, operatorKind, parent.Right.Parenthesize());
+                editor, nameToken, propertyBackingField, operatorKind, parent.Right.Parenthesize());
         }
 
         private static void ReplaceWithGetAndSetInvocation(
-            SyntaxEditor editor, SyntaxToken nameToken, 
+            SyntaxEditor editor, SyntaxToken nameToken, IFieldSymbol propertyBackingField,
             SyntaxKind operatorKind, ExpressionSyntax value,
             string conflictMessage = null)
         {
@@ -228,10 +250,27 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             var binaryExpression = SyntaxFactory.BinaryExpression(
                 operatorKind, getInvocation, value);
 
-            var setInvocation = GetSetInvocationExpression(
-                nameToken, binaryExpression);
+            if (propertyBackingField != null)
+            {
+                // this.Prop++;
+                // this._prop = this.GetProp() + 1;
 
-            editor.ReplaceNode(expression.Parent, setInvocation);
+                // this.Prop *= x;
+                // this._prop = this.GetProp() * x;
+
+                var newExpression = expression.ReplaceNode(
+                    identifierName,
+                    SyntaxFactory.IdentifierName(propertyBackingField.Name).WithTriviaFrom(identifierName));
+                var assignment = SyntaxFactory.AssignmentExpression(
+                    SyntaxKind.SimpleAssignmentExpression,
+                    newExpression, binaryExpression);
+                editor.ReplaceNode(expression.Parent, assignment);
+            }
+            else
+            {
+                var setInvocation = GetSetInvocationExpression(nameToken, binaryExpression);
+                editor.ReplaceNode(expression.Parent, setInvocation);
+            }
         }
 
         private static void ReplaceWithGetInvocation(
@@ -245,15 +284,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             editor.ReplaceNode(expression, invocation);
         }
 
-        private static void ReplaceWithSetInvocation(
-            SyntaxEditor editor, SyntaxToken nameToken, ExpressionSyntax value)
+        private static void ReplaceWithSetInvocationOrFieldAssignment(
+            SyntaxEditor editor, SyntaxToken nameToken,
+            IFieldSymbol propertyBackingField, ExpressionSyntax value)
         {
             IdentifierNameSyntax identifierName;
             ExpressionSyntax expression;
             GetIdentifierAndContextExpression(nameToken, out identifierName, out expression);
 
-            var invocation = GetSetInvocationExpression(nameToken, value);
-            editor.ReplaceNode(expression.Parent, invocation);
+            if (propertyBackingField != null)
+            {
+                var newIdentifier = SyntaxFactory.IdentifierName(
+                    SyntaxFactory.Identifier(propertyBackingField.Name)).WithTriviaFrom(identifierName);
+                editor.ReplaceNode(identifierName, newIdentifier);
+            }
+            else
+            {
+                var invocation = GetSetInvocationExpression(nameToken, value);
+                editor.ReplaceNode(expression.Parent, invocation);
+            }
         }
 
         private static ExpressionSyntax GetGetInvocationExpression(
