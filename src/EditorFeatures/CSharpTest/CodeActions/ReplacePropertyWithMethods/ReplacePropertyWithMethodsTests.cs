@@ -24,5 +24,13 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
 @"class C { int [||]Prop { get { return 0; } } }",
 @"class C { private int GetProp() { return 0; } }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestPublicProperty()
+        {
+            await TestAsync(
+@"class C { public int [||]Prop { get { return 0; } } }",
+@"class C { public int GetProp() { return 0; } }");
+        }
     }
 }
