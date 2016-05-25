@@ -265,5 +265,33 @@ class D
     private int GetProp() { return 1; }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestAbstractProperty()
+        {
+            await TestAsync(
+@"class C {
+    public abstract int [||]Prop { get; } 
+    public void M() { var v = new { P = this.Prop } }
+}",
+@"class C {
+    public abstract int GetProp();
+    public void M() { var v = new { P = this.GetProp() } }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestVirtualProperty()
+        {
+            await TestAsync(
+@"class C {
+    public virtual int [||]Prop { get { return 1; } } 
+    public void M() { var v = new { P = this.Prop } }
+}",
+@"class C {
+    public virtual int GetProp() { return 1; }
+    public void M() { var v = new { P = this.GetProp() } }
+}");
+        }
     }
 }
