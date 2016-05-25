@@ -66,8 +66,8 @@ namespace HelloWorld
 ```C#
             var compilation = CSharpCompilation.Create("HelloWorld")
                                                .AddReferences(
-                                                    MetadataReference.CreateFromAssembly(
-                                                        typeof(object).Assembly))
+                                                    MetadataReference.CreateFromFile(
+                                                        typeof(object).Assembly.Location))
                                                .AddSyntaxTrees(tree);
 ```
 
@@ -241,7 +241,7 @@ namespace HelloWorld
 
             var compilation = CSharpCompilation.Create("HelloWorld")
                                                .AddReferences(
-                                                    MetadataReference.CreateFromAssembly(
+                                                    MetadataReference.CreateFromFile(
                                                         typeof(object).Assembly.Location))
                                                .AddSyntaxTrees(tree);
 
