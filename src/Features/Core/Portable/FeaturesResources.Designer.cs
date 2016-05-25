@@ -105,7 +105,7 @@ namespace Microsoft.CodeAnalysis {
                 return ResourceManager.GetString("Add_missing_switch_cases", resourceCulture);
             }
         }
-
+        
         /// <summary>
         ///   Looks up a localized string similar to Add braces.
         /// </summary>
@@ -2024,6 +2024,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Property referenced implicitly.
+        /// </summary>
+        internal static string Property_referenced_implicitly {
+            get {
+                return ResourceManager.GetString("Property_referenced_implicitly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to range variable.
         /// </summary>
         internal static string RangeVariable {
@@ -2101,6 +2110,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string RenamingCapturedVariable {
             get {
                 return ResourceManager.GetString("RenamingCapturedVariable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Replace &apos;{0}&apos; with method.
+        /// </summary>
+        internal static string Replace_0_with_method {
+            get {
+                return ResourceManager.GetString("Replace_0_with_method", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Replace &apos;{0}&apos; with methods.
+        /// </summary>
+        internal static string Replace_0_with_methods {
+            get {
+                return ResourceManager.GetString("Replace_0_with_methods", resourceCulture);
             }
         }
         

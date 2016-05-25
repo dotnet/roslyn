@@ -138,8 +138,13 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public SyntaxNode MethodDeclaration(IMethodSymbol method, IEnumerable<SyntaxNode> statements = null)
         {
+            return MethodDeclaration(method, method.Name, statements);
+        }
+
+        internal SyntaxNode MethodDeclaration(IMethodSymbol method, string name, IEnumerable<SyntaxNode> statements = null)
+        {
             var decl = MethodDeclaration(
-                method.Name,
+                name,
                 parameters: method.Parameters.Select(p => ParameterDeclaration(p)),
                 returnType: method.ReturnType.IsSystemVoid() ? null : TypeExpression(method.ReturnType),
                 accessibility: method.DeclaredAccessibility,

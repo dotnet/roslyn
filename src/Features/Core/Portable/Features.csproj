@@ -203,6 +203,8 @@
     <Compile Include="Diagnostics\AbstractHostDiagnosticUpdateSource.cs" />
     <Compile Include="Diagnostics\Analyzers\QualifyMemberAccessDiagnosticAnalyzerBase.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyles\Capitalization.cs" />
+    <Compile Include="ReplacePropertyWithMethods\IReplacePropertyWithMethodsService.cs" />
+    <Compile Include="ReplacePropertyWithMethods\ReplacePropertyWithMethodsCodeRefactoringProvider.cs" />
     <Compile Include="SymbolCategorization\ISymbolCategorizer.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyles\NamingRule.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyles\NamingStylePreferencesInfo.cs" />
