@@ -177,21 +177,14 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             {
                 if (existingWaiters != null)
                 {
-                    // we have waiters and we have data.
-                    // allow some extra time to drain the queue before cancelling
-                    // but do not wait for too long.
-                    SpinWait.SpinUntil(() =>
-                    {
-                        lock (SyncObject)
-                        {
-                            return _data.Count == 0;
-                        }
-                    },
-                    10000);
-
                     // cancel waiters.
-                    // NOTE: this could result in losing diagnostics
-                    //       see https://github.com/dotnet/roslyn/issues/11470
+                    // NOTE: AsyncQueue has an invariant that 
+                    //       the queue can either have waiters or items, not both
+                    //       adding an item would "unwait" the waiters
+                    //       the fact that we _had_ waiters at the time we completed the queue
+                    //       guarantees that there is no items in the que now or in the future, 
+                    //       so it is safe to cancel waiters with no loss of diagnostics
+                    Debug.Assert(this.Count == 0, "we should not be cancelling the waiters when we have items in the queue");
                     foreach (var tcs in existingWaiters)
                     {
                         tcs.SetCanceled();

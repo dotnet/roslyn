@@ -841,8 +841,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (CompilationEventQueue.Count == 0 &&
-                        (prePopulatedEventQueue || CompilationEventQueue.IsCompleted))
+                    // NOTE: IsCompleted guarantees that Count will not increase
+                    //       the other is not true, so we need to check IsCompleted first and then check the Count
+                    if ((prePopulatedEventQueue || CompilationEventQueue.IsCompleted) &&
+                        CompilationEventQueue.Count == 0)
                     {
                         break;
                     }
