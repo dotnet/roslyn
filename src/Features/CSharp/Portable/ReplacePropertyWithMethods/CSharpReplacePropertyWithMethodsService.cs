@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             {
                 // We're only being written to here.  This is safe to replace with a call to the 
                 // setter.
-                var value = ((BinaryExpressionSyntax)expression.Parent).Right;
+                var value = ((AssignmentExpressionSyntax)expression.Parent).Right;
                 ReplaceWithSetInvocation(editor, nameToken, value);
             }
             else if (identifierName.IsWrittenTo())
@@ -184,7 +184,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             }
 
             var invocation = GetSetInvocationExpression(nameToken, value);
-            editor.ReplaceNode(expression, invocation);
+            editor.ReplaceNode(expression.Parent, invocation);
         }
 
         private static ExpressionSyntax GetGetInvocationExpression(

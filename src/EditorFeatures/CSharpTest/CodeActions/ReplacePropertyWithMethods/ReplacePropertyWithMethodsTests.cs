@@ -129,5 +129,19 @@ class D
 @"class C { int [||]Prop { set { var v = value; } } }",
 @"class C { private void SetProp(int value) { var v = value; } }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestSetReference1()
+        {
+            await TestAsync(
+@"class C {
+    int [||]Prop { set { var v = value; } } 
+    void M() { this.Prop = 1; }
+}",
+@"class C {
+    private void SetProp(int value) { var v = value; }
+    void M() { this.SetProp(1); }
+}");
+        }
     }
 }
