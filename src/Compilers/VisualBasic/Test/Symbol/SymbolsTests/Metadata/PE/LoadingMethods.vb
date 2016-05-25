@@ -947,12 +947,21 @@ End Class
             Dim references = {MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.PublicAndPrivateFlags)}
 
             Dim comp = CreateCompilationWithMscorlib(source, references:=references)
-            comp.VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_InaccessibleMember3, "test.M").WithArguments("C", "Private Overloads Sub M()", "Private").WithLocation(4, 7),
-                Diagnostic(ERRID.ERR_InaccessibleSymbol2, "test.F").WithArguments("C.F", "Private").WithLocation(5, 32),
-                Diagnostic(ERRID.ERR_InaccessibleSymbol2, "C.C2").WithArguments("C.C2", "Protected Friend").WithLocation(7, 23),
-                Diagnostic(ERRID.ERR_InaccessibleMember3, "test2.M2").WithArguments("C2", "Private Overloads Sub M2()", "Private").WithLocation(8, 7)
-                )
+            comp.AssertTheseDiagnostics(
+                <expected><![CDATA[
+BC30390: 'C.Private Overloads Sub M()' is not accessible in this context because it is 'Private'.
+      test.M()
+      ~~~~~~
+BC30389: 'C.F' is not accessible in this context because it is 'Private'.
+      System.Console.WriteLine(test.F)
+                               ~~~~~~
+BC30389: 'C.C2' is not accessible in this context because it is 'Protected Friend'.
+      Dim test2 = new C.C2()
+                      ~~~~
+BC30390: 'C2.Private Overloads Sub M2()' is not accessible in this context because it is 'Private'.
+      test2.M2()
+      ~~~~~~~~
+]]></expected>)
         End Sub
 
     End Class
