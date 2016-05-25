@@ -1644,9 +1644,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If _lazyCompilationUnitCompletedTrees.Count = SyntaxTrees.Length Then
                         ' if that was the last tree, signal the end of compilation
-                        EventQueue.TryEnqueue(New CompilationCompletedEvent(Me))
-                        EventQueue.PromiseNotToEnqueue()
-                        EventQueue.TryComplete()
+                        CompleteCompilationEventQueue_NoLock()
                     End If
                 End If
             End SyncLock
@@ -1925,6 +1923,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 builder.AddRange(GetBoundReferenceManager().Diagnostics)
                 builder.AddRange(SourceAssembly.GetAllDeclarationErrors(cancellationToken))
                 builder.AddRange(GetClsComplianceDiagnostics(cancellationToken))
+
+                If EventQueue IsNot Nothing AndAlso SyntaxTrees.Length = 0 Then
+                    EnsureCompilationEventQueueCompleted()
+                End If
             End If
 
             ' Add method body compilation errors.
@@ -2645,6 +2647,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return New SymbolSearcher(Me).GetSymbolsWithName(predicate, filter, cancellationToken)
+        End Function
+
+        Friend Overrides Function IsIOperationFeatureEnabled() As Boolean
+            Dim options = DirectCast(Me.SyntaxTrees.First().Options, VisualBasicParseOptions)
+            Dim IOperationFeatureFlag = InternalSyntax.FeatureExtensions.GetFeatureFlag(InternalSyntax.Feature.IOperation)
+            If IOperationFeatureFlag IsNot Nothing Then
+                Return options.Features.ContainsKey(IOperationFeatureFlag)
+            End If
+            Return False
         End Function
 #End Region
 

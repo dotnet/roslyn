@@ -15,6 +15,7 @@
     <ConcordDir>$(MSBuildThisFileDirectory)</ConcordDir>
     <NonShipping>true</NonShipping>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <FakeSignToolPath>$(NuGetPackageRoot)\FakeSign\0.9.2\tools\FakeSign.exe</FakeSignToolPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
@@ -37,15 +38,15 @@
           Inputs="@(ConcordAssemblies->'$(ConcordDir)%(Identity).NetFX20.il')"
           Outputs="$(OutDir)NetFX20\%(Identity).dll">
     <MakeDir Directories="$(OutDir)NetFX20" />
-    <Exec Command="$(MSBuildFrameworkToolsPath)ilasm.exe /dll /quiet /mdv:v2.0.50727 &quot;/output:$(OutDir)NetFX20\@(ConcordAssemblies).dll&quot; &quot;$(ConcordDir)@(ConcordAssemblies).NetFX20.il&quot;" />
-    <Exec Command="&quot;$(FakeSignToolPath)&quot; &quot;$(OutDir)NetFX20\@(ConcordAssemblies).dll&quot;" />
+    <Exec Command='"$(MSBuildFrameworkToolsPath)ilasm.exe" /dll /quiet /mdv:v2.0.50727 /output:"$(OutDir)NetFX20\@(ConcordAssemblies).dll" "$(ConcordDir)@(ConcordAssemblies).NetFX20.il"' />
+    <Exec Command='"$(FakeSignToolPath)" "$(OutDir)NetFX20\@(ConcordAssemblies).dll"' />
   </Target>
   <Target Name="IlasmPortable" 
           AfterTargets="CoreCompile"
           Inputs="@(ConcordAssemblies->'$(ConcordDir)%(Identity).Portable.il')"
           Outputs="$(OutDir)%(Identity).dll">
-    <Exec Command="$(MSBuildFrameworkToolsPath)ilasm.exe /dll /quiet &quot;/output:$(OutDir)@(ConcordAssemblies).dll&quot; &quot;$(ConcordDir)@(ConcordAssemblies).Portable.il&quot;" />
-    <Exec Command="&quot;$(FakeSignToolPath)&quot; &quot;$(OutDir)@(ConcordAssemblies).dll&quot;" />
+    <Exec Command='"$(MSBuildFrameworkToolsPath)ilasm.exe" /dll /quiet /output:"$(OutDir)@(ConcordAssemblies).dll" "$(ConcordDir)@(ConcordAssemblies).Portable.il"' />
+    <Exec Command='"$(FakeSignToolPath)" "$(OutDir)@(ConcordAssemblies).dll"' />
   </Target>
   <Target Name="CleanIlasmOutputs" AfterTargets="Clean">
     <Delete Files="@(ConcordAssemblies->'$(OutDir)NetFX20\%(Identity).dll')" />

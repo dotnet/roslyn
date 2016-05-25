@@ -2101,6 +2101,32 @@ class C
             VerifySpeculativeSemanticModelForMethodBody(blockStatement, speculativeModel);
         }
 
+        [Fact()]
+        [WorkItem(10211, "https://github.com/dotnet/roslyn/issues/10211")]
+        public void GetDependenceChainRegression_10211_working()
+        {
+            var compilation = CreateCompilation(@"
+class Parent {}
+class Child : Parent {}
+");
+            var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees[0]);
+            // Ensure that we don't crash here.
+            semanticModel.GetMethodBodyDiagnostics();
+        }
+
+        [Fact()]
+        [WorkItem(10211, "https://github.com/dotnet/roslyn/issues/10211")]
+        public void GetDependenceChainRegression_10211()
+        {
+            var compilation = CreateCompilation(@"
+class Child : Parent {}
+class Parent {}
+");
+            var semanticModel = compilation.GetSemanticModel(compilation.SyntaxTrees[0]);
+            // Ensure that we don't crash here.
+            semanticModel.GetMethodBodyDiagnostics();
+        }
+
         private static void VerifySpeculativeSemanticModelForMethodBody(BlockSyntax blockStatement, SemanticModel speculativeModel)
         {
             var localDecl = (LocalDeclarationStatementSyntax)blockStatement.Statements[0];

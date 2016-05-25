@@ -99,9 +99,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 #if DEBUG
             // this is a bit wierd, but if both analyzers and compilationWithAnalyzers are given,
             // make sure both are same.
+            // We also need to handle the fact that compilationWithAnalyzers is created with all non-supprssed analyzers.
             if (_lazyCompilationWithAnalyzers != null)
             {
-                Contract.ThrowIfFalse(_lazyCompilationWithAnalyzers.Analyzers.SetEquals(_analyzers));
+                var filteredAnalyzers = _analyzers
+                    .Where(a => !CompilationWithAnalyzers.IsDiagnosticAnalyzerSuppressed(a, _lazyCompilationWithAnalyzers.Compilation.Options, _lazyCompilationWithAnalyzers.AnalysisOptions.OnAnalyzerException))
+                    .Distinct();
+                Contract.ThrowIfFalse(_lazyCompilationWithAnalyzers.Analyzers.SetEquals(filteredAnalyzers));
             }
 #endif
         }
@@ -167,21 +171,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var documentAnalyzer = analyzer as DocumentDiagnosticAnalyzer;
                 if (documentAnalyzer != null)
                 {
-                    using (var pooledObject = SharedPools.Default<List<Diagnostic>>().GetPooledObject())
-                    {
-                        var diagnostics = pooledObject.Object;
-                        _cancellationToken.ThrowIfCancellationRequested();
+                    _cancellationToken.ThrowIfCancellationRequested();
 
-                        try
-                        {
-                            await documentAnalyzer.AnalyzeSyntaxAsync(_document, diagnostics.Add, _cancellationToken).ConfigureAwait(false);
-                            return GetFilteredDocumentDiagnostics(diagnostics, compilation).ToImmutableArray();
-                        }
-                        catch (Exception e) when (!IsCanceled(e, _cancellationToken))
-                        {
-                            OnAnalyzerException(e, analyzer, compilation);
-                            return ImmutableArray<Diagnostic>.Empty;
-                        }
+                    try
+                    {
+                        var diagnostics = await documentAnalyzer.AnalyzeSyntaxAsync(_document, _cancellationToken).ConfigureAwait(false);
+                        return GetFilteredDocumentDiagnostics(diagnostics, compilation);
+                    }
+                    catch (Exception e) when (!IsCanceled(e, _cancellationToken))
+                    {
+                        OnAnalyzerException(e, analyzer, compilation);
+                        return ImmutableArray<Diagnostic>.Empty;
                     }
                 }
 
@@ -193,7 +193,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var compilationWithAnalyzers = GetCompilationWithAnalyzers(compilation);
                 var syntaxDiagnostics = await compilationWithAnalyzers.GetAnalyzerSyntaxDiagnosticsAsync(_root.SyntaxTree, ImmutableArray.Create(analyzer), _cancellationToken).ConfigureAwait(false);
                 await UpdateAnalyzerTelemetryDataAsync(analyzer, compilationWithAnalyzers).ConfigureAwait(false);
-                return GetFilteredDocumentDiagnostics(syntaxDiagnostics, compilation, onlyLocationFiltering: true).ToImmutableArray();
+                return syntaxDiagnostics.WhereAsArray(IsLocalDiagnostic);
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
@@ -201,25 +201,25 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
         }
 
-        private IEnumerable<Diagnostic> GetFilteredDocumentDiagnostics(IEnumerable<Diagnostic> diagnostics, Compilation compilation, bool onlyLocationFiltering = false)
+        private ImmutableArray<Diagnostic> GetFilteredDocumentDiagnostics(ImmutableArray<Diagnostic> diagnostics, Compilation compilationOpt)
         {
             if (_root == null)
             {
                 return diagnostics;
             }
 
-            return GetFilteredDocumentDiagnosticsCore(diagnostics, compilation, onlyLocationFiltering);
+            if (compilationOpt == null)
+            {
+                return diagnostics.WhereAsArray(IsLocalDiagnostic);
+            }
+
+            return CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics.Where(IsLocalDiagnostic), compilationOpt).ToImmutableArray();
         }
 
-        private IEnumerable<Diagnostic> GetFilteredDocumentDiagnosticsCore(IEnumerable<Diagnostic> diagnostics, Compilation compilation, bool onlyLocationFiltering)
+        private bool IsLocalDiagnostic(Diagnostic diagnostic)
         {
-            var diagsFilteredByLocation = diagnostics.Where(diagnostic => (diagnostic.Location == Location.None) ||
-                        (diagnostic.Location.SourceTree == _root.SyntaxTree &&
-                         (_span == null || diagnostic.Location.SourceSpan.IntersectsWith(_span.Value))));
-
-            return compilation == null || onlyLocationFiltering
-                ? diagsFilteredByLocation
-                : CompilationWithAnalyzers.GetEffectiveDiagnostics(diagsFilteredByLocation, compilation);
+            return diagnostic.Location == Location.None ||
+                   diagnostic.Location.SourceTree == _root.SyntaxTree && (_span == null || diagnostic.Location.SourceSpan.IntersectsWith(_span.Value));
         }
 
         internal void OnAnalyzerException(Exception ex, DiagnosticAnalyzer analyzer, Compilation compilation)
@@ -247,23 +247,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 var documentAnalyzer = analyzer as DocumentDiagnosticAnalyzer;
                 if (documentAnalyzer != null)
                 {
-                    using (var pooledObject = SharedPools.Default<List<Diagnostic>>().GetPooledObject())
+                    _cancellationToken.ThrowIfCancellationRequested();
+
+                    ImmutableArray<Diagnostic> diagnostics;
+                    try
                     {
-                        var diagnostics = pooledObject.Object;
-                        _cancellationToken.ThrowIfCancellationRequested();
-
-                        try
-                        {
-                            await documentAnalyzer.AnalyzeSemanticsAsync(_document, diagnostics.Add, _cancellationToken).ConfigureAwait(false);
-                        }
-                        catch (Exception e) when (!IsCanceled(e, _cancellationToken))
-                        {
-                            OnAnalyzerException(e, analyzer, compilation);
-                            return ImmutableArray<Diagnostic>.Empty;
-                        }
-
-                        return GetFilteredDocumentDiagnostics(diagnostics, compilation).ToImmutableArray();
+                        diagnostics = await documentAnalyzer.AnalyzeSemanticsAsync(_document, _cancellationToken).ConfigureAwait(false);
                     }
+                    catch (Exception e) when (!IsCanceled(e, _cancellationToken))
+                    {
+                        OnAnalyzerException(e, analyzer, compilation);
+                        return ImmutableArray<Diagnostic>.Empty;
+                    }
+
+                    return GetFilteredDocumentDiagnostics(diagnostics, compilation);
                 }
 
                 if (!_document.SupportsSyntaxTree || compilation == null)
@@ -291,12 +288,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                 using (var diagnostics = SharedPools.Default<List<Diagnostic>>().GetPooledObject())
                 {
-                    if (_project.SupportsCompilation)
+                    var projectAnalyzer = analyzer as ProjectDiagnosticAnalyzer;
+                    if (projectAnalyzer != null)
                     {
-                        await this.GetCompilationDiagnosticsAsync(analyzer, diagnostics.Object).ConfigureAwait(false);
+                        await this.GetProjectDiagnosticsWorkerAsync(projectAnalyzer, diagnostics.Object).ConfigureAwait(false);
+                        return diagnostics.Object.ToImmutableArray();
                     }
 
-                    await this.GetProjectDiagnosticsWorkerAsync(analyzer, diagnostics.Object).ConfigureAwait(false);
+                    Contract.ThrowIfFalse(_project.SupportsCompilation);
+                    await this.GetCompilationDiagnosticsAsync(analyzer, diagnostics.Object).ConfigureAwait(false);
 
                     return diagnostics.Object.ToImmutableArray();
                 }
@@ -307,29 +307,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
         }
 
-        private async Task GetProjectDiagnosticsWorkerAsync(DiagnosticAnalyzer analyzer, List<Diagnostic> diagnostics)
+        private async Task GetProjectDiagnosticsWorkerAsync(ProjectDiagnosticAnalyzer analyzer, List<Diagnostic> diagnostics)
         {
+
             try
             {
-                var projectAnalyzer = analyzer as ProjectDiagnosticAnalyzer;
-                if (projectAnalyzer == null)
-                {
-                    return;
-                }
-
-                try
-                {
-                    await projectAnalyzer.AnalyzeProjectAsync(_project, diagnostics.Add, _cancellationToken).ConfigureAwait(false);
-                }
-                catch (Exception e) when (!IsCanceled(e, _cancellationToken))
-                {
-                    var compilation = await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
-                    OnAnalyzerException(e, analyzer, compilation);
-                }
+                await analyzer.AnalyzeProjectAsync(_project, diagnostics.Add, _cancellationToken).ConfigureAwait(false);
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (!IsCanceled(e, _cancellationToken))
             {
-                throw ExceptionUtilities.Unreachable;
+                var compilation = await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
+                OnAnalyzerException(e, analyzer, compilation);
             }
         }
 
@@ -341,7 +329,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
 
                 var compilation = await _project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
                 var compilationWithAnalyzers = GetCompilationWithAnalyzers(compilation);
-                var compilationDiagnostics = await compilationWithAnalyzers.GetAnalyzerCompilationDiagnosticsAsync(ImmutableArray.Create(analyzer), _cancellationToken).ConfigureAwait(false);
+                var analysisResult = await compilationWithAnalyzers.GetAnalysisResultAsync(ImmutableArray.Create(analyzer), _cancellationToken).ConfigureAwait(false);
+                var compilationDiagnostics = analysisResult.CompilationDiagnostics.Count == 1 ? analysisResult.CompilationDiagnostics[analyzer] : ImmutableArray<Diagnostic>.Empty;
                 await UpdateAnalyzerTelemetryDataAsync(analyzer, compilationWithAnalyzers).ConfigureAwait(false);
                 diagnostics.AddRange(compilationDiagnostics);
             }

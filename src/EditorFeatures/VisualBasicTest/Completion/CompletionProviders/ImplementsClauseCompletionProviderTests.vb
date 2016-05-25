@@ -13,7 +13,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             MyBase.New(workspaceFixture)
         End Sub
 
-        Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
+        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
             Return New ImplementsClauseCompletionProvider()
         End Function
 
@@ -643,11 +643,9 @@ End Interface
             Using workspace = Await TestWorkspace.CreateAsync(element)
                 Dim position = workspace.Documents.Single().CursorPosition.Value
                 Dim document = workspace.CurrentSolution.GetDocument(workspace.Documents.Single().Id)
-                Dim triggerInfo = New CompletionTriggerInfo()
-
-                Dim completionList = Await GetCompletionListAsync(document, position, triggerInfo)
+                Dim service = GetCompletionService(workspace)
+                Dim completionList = Await GetCompletionListAsync(service, document, position, CompletionTrigger.Default)
                 AssertEx.Any(completionList.Items, Function(c) c.DisplayText = "Workcover")
-
             End Using
         End Function
 

@@ -3833,6 +3833,9 @@ You should consider suppressing the warning only if you're sure that you don't w
   <data name="ERR_FixedLocalInLambda" xml:space="preserve">
     <value>Cannot use fixed local '{0}' inside an anonymous method, lambda expression, or query expression</value>
   </data>
+  <data name="ERR_EncUpdateFailedMissingAttribute" xml:space="preserve">
+    <value>Cannot update '{0}'; attribute '{1}' is missing.</value>
+  </data>
   <data name="ERR_ExpressionTreeContainsNamedArgument" xml:space="preserve">
     <value>An expression tree may not contain a named argument specification</value>
   </data>
@@ -4679,5 +4682,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_PeWritingFailure" xml:space="preserve">
     <value>An error occurred while writing the output file: {0}</value>
+  </data>
+  <data name="WRN_AttributeIgnoredWhenPublicSigning" xml:space="preserve">
+    <value>Attribute '{0}' is ignored when public signing is specified.</value>
+  </data>
+  <data name="WRN_AttributeIgnoredWhenPublicSigning_Title" xml:space="preserve">
+    <value>Attribute is ignored when public signing is specified.</value>
+  </data>
+  <data name="ERR_OptionMustBeAbsolutePath" xml:space="preserve">
+    <value>Option '{0}' must be an absolute path.</value>
   </data>
 </root>

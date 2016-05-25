@@ -15,6 +15,7 @@ using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Simplification;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnnecessaryCast
 {
@@ -44,29 +45,30 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnnecessaryCast
                 .FirstOrDefault(c => c.Span.IntersectsWith(span) && c.IsUnnecessaryCast(model, cancellationToken));
         }
 
-        public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        public sealed override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var document = context.Document;
-            var span = context.Span;
-            var cancellationToken = context.CancellationToken;
-
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-            var node = GetCastNode(root, model, span, cancellationToken);
-            if (node == null)
-            {
-                return;
-            }
-
             context.RegisterCodeFix(
                 new MyCodeAction(
                     CSharpFeaturesResources.RemoveUnnecessaryCast,
-                    (c) => RemoveUnnecessaryCastAsync(document, node, c)),
+                    c => RemoveUnnecessaryCastAsync(context.Document, context.Span, c)),
                 context.Diagnostics);
+            return SpecializedTasks.EmptyTask;
         }
 
-        private static async Task<Document> RemoveUnnecessaryCastAsync(Document document, CastExpressionSyntax cast, CancellationToken cancellationToken)
+        private static async Task<Document> RemoveUnnecessaryCastAsync(
+            Document document, TextSpan span, CancellationToken cancellationToken)
         {
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+            var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
+            var cast = GetCastNode(root, model, span, cancellationToken);
+            return await RemoveUnnecessaryCastAsync(document, cast, cancellationToken).ConfigureAwait(false);
+        }
+
+        private static async Task<Document> RemoveUnnecessaryCastAsync(
+            Document document, CastExpressionSyntax cast, CancellationToken cancellationToken)
+        {
+            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
+
             var annotatedCast = cast.WithAdditionalAnnotations(Simplifier.Annotation);
 
             if (annotatedCast.Expression is ParenthesizedExpressionSyntax)
@@ -99,7 +101,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnnecessaryCast
 
             newNode = newNode.WithAdditionalAnnotations(Formatter.Annotation);
 
-            var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = root.ReplaceNode(oldNode, newNode);
 
             return document.WithSyntaxRoot(newRoot);

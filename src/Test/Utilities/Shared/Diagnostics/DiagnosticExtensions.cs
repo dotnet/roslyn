@@ -305,18 +305,23 @@ namespace Microsoft.CodeAnalysis
         internal static string GetExpectedErrorLogHeader(string actualOutput, CommonCompiler compiler)
         {
             var expectedToolName = compiler.GetToolName();
-            var expectedProductVersion = compiler.GetAssemblyVersion().ToString(fieldCount: 3);
+            var expectedVersion = compiler.GetAssemblyVersion();
+            var expectedSemanticVersion = compiler.GetAssemblyVersion().ToString(fieldCount: 3);
             var expectedFileVersion = compiler.GetAssemblyFileVersion();
+            var expectedLanguage = compiler.GetCultureName();
 
             return string.Format(@"{{
-  ""version"": ""{0}"",
-  ""runLogs"": [
+  ""$schema"": ""http://json.schemastore.org/sarif-1.0.0"",
+  ""version"": ""1.0.0"",
+  ""runs"": [
     {{
-      ""toolInfo"": {{
-        ""name"": ""{1}"",
-        ""version"": ""{2}"",
-        ""fileVersion"": ""{3}""
-      }},", ErrorLogger.OutputFormatVersion, expectedToolName, expectedProductVersion, expectedFileVersion);
+      ""tool"": {{
+        ""name"": ""{0}"",
+        ""version"": ""{1}"",
+        ""fileVersion"": ""{2}"",
+        ""semanticVersion"": ""{3}"",
+        ""language"": ""{4}""
+      }},", expectedToolName, expectedVersion, expectedFileVersion, expectedSemanticVersion, expectedLanguage);
         }
 
         public static string Stringize(this Diagnostic e)

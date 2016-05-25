@@ -143,7 +143,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
         private bool CheckOptions(Project project, bool forceAnalysis)
         {
             var workspace = project.Solution.Workspace;
-            if (workspace.Options.GetOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, project.Language) &&
+            if (ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(workspace, project.Language) &&
                 workspace.Options.GetOption(RuntimeOptions.FullSolutionAnalysis))
             {
                 return true;
@@ -412,26 +412,42 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     return;
                 }
 
+                // PERF: Ensure that we explicitly ignore the skipped analyzers while creating the analyzer driver, otherwise we might end up running hidden analyzers on closed files.
+                var stateSets = _stateManager.GetOrUpdateStateSets(project).ToImmutableArray();
+                var skipAnalyzersMap = new Dictionary<DiagnosticAnalyzer, bool>(stateSets.Length);
+                var shouldRunAnalyzersMap = new Dictionary<DiagnosticAnalyzer, bool>(stateSets.Length);
+                var analyzersBuilder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>(stateSets.Length);
+                foreach (var stateSet in stateSets)
+                {
+                    var skip = await SkipRunningAnalyzerAsync(project, stateSet.Analyzer, openedDocument: false, skipClosedFileCheck: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                    skipAnalyzersMap.Add(stateSet.Analyzer, skip);
+
+                    var shouldRun = !skip && ShouldRunAnalyzerForStateType(stateSet.Analyzer, StateType.Project, diagnosticIds: null);
+                    shouldRunAnalyzersMap.Add(stateSet.Analyzer, shouldRun);
+
+                    if (shouldRun)
+                    {
+                        analyzersBuilder.Add(stateSet.Analyzer);
+                    }
+                }
+
+                var analyzerDriver = new DiagnosticAnalyzerDriver(project, this, analyzersBuilder.ToImmutable(), ConcurrentAnalysis, ReportSuppressedDiagnostics, cancellationToken);
+
                 var projectTextVersion = await project.GetLatestDocumentVersionAsync(cancellationToken).ConfigureAwait(false);
                 var semanticVersion = await project.GetDependentSemanticVersionAsync(cancellationToken).ConfigureAwait(false);
                 var projectVersion = await project.GetDependentVersionAsync(cancellationToken).ConfigureAwait(false);
-
                 var versions = new VersionArgument(projectTextVersion, semanticVersion, projectVersion);
-
-                var stateSets = _stateManager.GetOrUpdateStateSets(project);
-                var analyzers = stateSets.Select(s => s.Analyzer);
-                var analyzerDriver = new DiagnosticAnalyzerDriver(project, this, analyzers, ConcurrentAnalysis, ReportSuppressedDiagnostics, cancellationToken);
 
                 foreach (var stateSet in stateSets)
                 {
                     // Compilation actions can report diagnostics on open files, so we skipClosedFileChecks.
-                    if (await SkipRunningAnalyzerAsync(project, stateSet.Analyzer, openedDocument: false, skipClosedFileCheck: true, cancellationToken: cancellationToken).ConfigureAwait(false))
+                    if (skipAnalyzersMap[stateSet.Analyzer])
                     {
                         await ClearExistingDiagnostics(project, stateSet, cancellationToken).ConfigureAwait(false);
                         continue;
                     }
 
-                    if (ShouldRunAnalyzerForStateType(stateSet.Analyzer, StateType.Project, diagnosticIds: null))
+                    if (shouldRunAnalyzersMap[stateSet.Analyzer])
                     {
                         var data = await _executor.GetProjectAnalysisDataAsync(analyzerDriver, stateSet, versions).ConfigureAwait(false);
                         if (data.FromCache)
@@ -634,30 +650,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             return Owner.GetDiagnosticDescriptors(analyzer).Any(d => GetEffectiveSeverity(d, options) != ReportDiagnostic.Hidden);
         }
 
-        private static ReportDiagnostic GetEffectiveSeverity(DiagnosticDescriptor descriptor, CompilationOptions options)
-        {
-            return options == null
-                ? MapSeverityToReport(descriptor.DefaultSeverity)
-                : descriptor.GetEffectiveSeverity(options);
-        }
-
-        private static ReportDiagnostic MapSeverityToReport(DiagnosticSeverity severity)
-        {
-            switch (severity)
-            {
-                case DiagnosticSeverity.Hidden:
-                    return ReportDiagnostic.Hidden;
-                case DiagnosticSeverity.Info:
-                    return ReportDiagnostic.Info;
-                case DiagnosticSeverity.Warning:
-                    return ReportDiagnostic.Warn;
-                case DiagnosticSeverity.Error:
-                    return ReportDiagnostic.Error;
-                default:
-                    throw ExceptionUtilities.Unreachable;
-            }
-        }
-
         private bool ShouldRunAnalyzerForStateType(DiagnosticAnalyzer analyzer, StateType stateTypeId, ImmutableHashSet<string> diagnosticIds)
         {
             return ShouldRunAnalyzerForStateType(analyzer, stateTypeId, diagnosticIds, Owner.GetDiagnosticDescriptors);
@@ -824,7 +816,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             StateType type, object key, StateSet stateSet, SolutionArgument solution, ImmutableArray<DiagnosticData> diagnostics, Action<DiagnosticsUpdatedArgs> raiseEvents)
         {
             // get right arg id for the given analyzer
-            var id = CreateArgumentKey(type, key, stateSet);
+            var id = new LiveDiagnosticUpdateArgsId(stateSet.Analyzer, key, (int)type, stateSet.ErrorSourceName);
             raiseEvents(DiagnosticsUpdatedArgs.DiagnosticsCreated(id, Workspace, solution.Solution, solution.ProjectId, solution.DocumentId, diagnostics));
         }
 
@@ -838,7 +830,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             StateType type, object key, StateSet stateSet, SolutionArgument solution, Action<DiagnosticsUpdatedArgs> raiseEvents)
         {
             // get right arg id for the given analyzer
-            var id = CreateArgumentKey(type, key, stateSet);
+            var id = new LiveDiagnosticUpdateArgsId(stateSet.Analyzer, key, (int)type, stateSet.ErrorSourceName);
             raiseEvents(DiagnosticsUpdatedArgs.DiagnosticsRemoved(id, Workspace, solution.Solution, solution.ProjectId, solution.DocumentId));
         }
 
@@ -866,13 +858,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             {
                 RaiseDiagnosticsRemoved(StateType.Project, project.Id, stateSet, new SolutionArgument(project), raiseEvents);
             }
-        }
-
-        private static ArgumentKey CreateArgumentKey(StateType type, object key, StateSet stateSet)
-        {
-            return stateSet.ErrorSourceName != null
-                ? new HostAnalyzerKey(stateSet.Analyzer, type, key, stateSet.ErrorSourceName)
-                : new ArgumentKey(stateSet.Analyzer, type, key);
         }
 
         private ImmutableArray<DiagnosticData> UpdateDocumentDiagnostics(

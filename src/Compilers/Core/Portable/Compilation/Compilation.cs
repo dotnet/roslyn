@@ -851,6 +851,29 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public abstract ImmutableArray<Diagnostic> GetDiagnostics(CancellationToken cancellationToken = default(CancellationToken));
 
+        internal void EnsureCompilationEventQueueCompleted()
+        {
+            Debug.Assert(EventQueue != null);
+
+            lock (EventQueue)
+            {
+                if (!EventQueue.IsCompleted)
+                {
+                    CompleteCompilationEventQueue_NoLock();
+                }
+            }
+        }
+
+        internal void CompleteCompilationEventQueue_NoLock()
+        {
+            Debug.Assert(EventQueue != null);
+            
+            // Signal the end of compilation.
+            EventQueue.TryEnqueue(new CompilationCompletedEvent(this));
+            EventQueue.PromiseNotToEnqueue();
+            EventQueue.TryComplete();
+        }
+
         internal abstract CommonMessageProvider MessageProvider { get; }
 
         /// <param name="accumulator">Bag to which filtered diagnostics will be added.</param>
@@ -1948,6 +1971,12 @@ namespace Microsoft.CodeAnalysis
                     {
                         Options.StrongNameProvider.SignAssembly(StrongNameKeys, signingInputStream, peStream);
                     }
+                    catch (DesktopStrongNameProvider.ClrStrongNameMissingException)
+                    {
+                        diagnostics.Add(StrongNameKeys.GetError(StrongNameKeys.KeyFilePath, StrongNameKeys.KeyContainer,
+                            new CodeAnalysisResourcesLocalizableErrorArgument(nameof(CodeAnalysisResources.AssemblySigningNotSupported)), MessageProvider));
+                        return false;
+                    }
                     catch (IOException ex)
                     {
                         diagnostics.Add(StrongNameKeys.GetError(StrongNameKeys.KeyFilePath, StrongNameKeys.KeyContainer, ex.Message, MessageProvider));
@@ -2217,5 +2246,7 @@ namespace Microsoft.CodeAnalysis
         {
             return _lazyMakeWellKnownTypeMissingMap != null && _lazyMakeWellKnownTypeMissingMap.ContainsKey((int)type);
         }
+        
+        internal abstract bool IsIOperationFeatureEnabled();
     }
 }

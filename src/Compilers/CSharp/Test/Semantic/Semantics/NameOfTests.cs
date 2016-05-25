@@ -1168,5 +1168,95 @@ public class Program
 }";
             var compilation = CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
         }
+
+        [Fact, WorkItem(10467, "https://github.com/dotnet/roslyn/issues/10467")]
+        public void NameofFixedBuffer()
+        {
+            var source =
+@"
+using System;
+unsafe struct Struct1
+{
+    public fixed char MessageType[50];
+
+    public override string ToString()
+    {
+        return nameof(MessageType);
+    }
+
+    public void DoSomething(out char[] x)
+    {
+        x = new char[] { };
+        Action a = () => { System.Console.Write($"" {nameof(x)} ""); };
+        a();
+    }
+
+    public static void Main()
+    {
+        Struct1 myStruct = default(Struct1);
+        Console.Write(myStruct.ToString());
+        char[] o;
+        myStruct.DoSomething(out o);
+        Console.Write(Other.GetFromExternal());
+    }
+}
+
+class Other {
+    public static string GetFromExternal() {
+        Struct1 myStruct = default(Struct1);
+        return nameof(myStruct.MessageType);
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib45(source, null, new CSharpCompilationOptions(OutputKind.ConsoleApplication).WithAllowUnsafe(true));
+            CompileAndVerify(compilation, expectedOutput: 
+                "MessageType x MessageType").VerifyDiagnostics();
+        }
+
+        [Fact, WorkItem(10467, "https://github.com/dotnet/roslyn/issues/10467")]
+        public void NameofMethodFixedBuffer()
+        {
+            var source =
+@"
+using System;
+
+unsafe struct Struct1
+{
+  public fixed char MessageType[50];
+  public static string nameof(char[] mt)
+  {
+    return """";
+  }
+
+  public override string ToString()
+  {
+    return nameof(MessageType);
+  }
+
+  public void DoSomething(out char[] x)
+  {
+    x = new char[] {};
+    Action a = () => { System.Console.WriteLine(nameof(x)); };
+  }
+
+  class Other {
+    public static string GetFromExternal() {
+        Struct1 myStruct = default(Struct1);
+        return nameof(myStruct.MessageType);
+    }
+  }
+}";
+            var compilation = CreateCompilationWithMscorlib45(source, null,
+                new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary).WithAllowUnsafe(true)).VerifyDiagnostics(
+                // (14,19): error CS1666: You cannot use fixed size buffers contained in unfixed expressions. Try using the fixed statement.
+                //     return nameof(MessageType);
+                Diagnostic(ErrorCode.ERR_FixedBufferNotFixed, "MessageType").WithLocation(14, 19),
+                // (20,29): error CS1628: Cannot use ref or out parameter 'x' inside an anonymous method, lambda expression, or query expression
+                //     Action a = () => nameof(x);
+                Diagnostic(ErrorCode.ERR_AnonDelegateCantUse, "x").WithArguments("x").WithLocation(20, 56),
+                // (26,23): error CS1503: Argument 1: cannot convert from 'char*' to 'char[]'
+                //         return nameof(myStruct.MessageType);
+                Diagnostic(ErrorCode.ERR_BadArgType, "myStruct.MessageType").WithArguments("1", "char*", "char[]").WithLocation(26, 23));
+        }
     }
 }

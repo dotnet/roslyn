@@ -24,6 +24,7 @@ using Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel.MethodXml;
 using Microsoft.VisualStudio.LanguageServices.CSharp.Utilities;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel;
 using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.InternalElements;
+using Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel.Interop;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Text.Editor;
 using Roslyn.Utilities;
@@ -1965,6 +1966,34 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.CodeModel
             }
 
             return parameter.WithModifiers(newModifiers);
+        }
+
+        public override EnvDTE80.vsCMParameterKind UpdateParameterKind(EnvDTE80.vsCMParameterKind parameterKind, PARAMETER_PASSING_MODE passingMode)
+        {
+            var updatedParameterKind = parameterKind;
+
+            switch (passingMode)
+            {
+                case PARAMETER_PASSING_MODE.cmParameterTypeIn:
+                    updatedParameterKind |= EnvDTE80.vsCMParameterKind.vsCMParameterKindNone;
+                    updatedParameterKind &= ~EnvDTE80.vsCMParameterKind.vsCMParameterKindRef;
+                    updatedParameterKind &= ~EnvDTE80.vsCMParameterKind.vsCMParameterKindOut;
+                    break;
+
+                case PARAMETER_PASSING_MODE.cmParameterTypeInOut:
+                    updatedParameterKind &= ~EnvDTE80.vsCMParameterKind.vsCMParameterKindNone;
+                    updatedParameterKind |= EnvDTE80.vsCMParameterKind.vsCMParameterKindRef;
+                    updatedParameterKind &= ~EnvDTE80.vsCMParameterKind.vsCMParameterKindOut;
+                    break;
+
+                case PARAMETER_PASSING_MODE.cmParameterTypeOut:
+                    updatedParameterKind &= ~EnvDTE80.vsCMParameterKind.vsCMParameterKindNone;
+                    updatedParameterKind &= ~EnvDTE80.vsCMParameterKind.vsCMParameterKindRef;
+                    updatedParameterKind |= EnvDTE80.vsCMParameterKind.vsCMParameterKindOut;
+                    break;
+            }
+
+            return updatedParameterKind;
         }
 
         public override EnvDTE.vsCMFunction ValidateFunctionKind(SyntaxNode containerNode, EnvDTE.vsCMFunction kind, string name)

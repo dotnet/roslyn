@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                 private sealed class HighPriorityProcessor : IdleProcessor
                 {
                     private readonly IncrementalAnalyzerProcessor _processor;
-                    private readonly Lazy<ImmutableArray<IIncrementalAnalyzer>> _lazyAnalyzers;
+                    private readonly ImmutableArray<IIncrementalAnalyzer> _analyzers;
                     private readonly AsyncDocumentWorkItemQueue _workItemQueue;
 
                     // whether this processor is running or not
@@ -29,26 +29,18 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     public HighPriorityProcessor(
                         IAsynchronousOperationListener listener,
                         IncrementalAnalyzerProcessor processor,
-                        Lazy<ImmutableArray<IIncrementalAnalyzer>> lazyAnalyzers,
+                        ImmutableArray<IIncrementalAnalyzer> analyzers,
                         int backOffTimeSpanInMs,
                         CancellationToken shutdownToken) :
                         base(listener, backOffTimeSpanInMs, shutdownToken)
                     {
                         _processor = processor;
-                        _lazyAnalyzers = lazyAnalyzers;
+                        _analyzers = analyzers;
 
                         _running = SpecializedTasks.EmptyTask;
                         _workItemQueue = new AsyncDocumentWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
 
                         Start();
-                    }
-
-                    private ImmutableArray<IIncrementalAnalyzer> Analyzers
-                    {
-                        get
-                        {
-                            return _lazyAnalyzers.Value;
-                        }
                     }
 
                     public Task Running
@@ -127,7 +119,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             var solution = _processor.CurrentSolution;
 
                             // okay now we have work to do
-                            await ProcessDocumentAsync(solution, this.Analyzers, workItem, documentCancellation).ConfigureAwait(false);
+                            await ProcessDocumentAsync(solution, _analyzers, workItem, documentCancellation).ConfigureAwait(false);
                         }
                         catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                         {

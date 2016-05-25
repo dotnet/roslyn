@@ -406,9 +406,8 @@ End Program</Document>
                 Dim hostDocument = workspace.Documents.First()
                 Dim caretPosition = hostDocument.CursorPosition.Value
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
-                Dim triggerInfo = CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo()
-
-                Dim completionList = Await GetCompletionListAsync(document, caretPosition, triggerInfo)
+                Dim service = GetCompletionService(workspace)
+                Dim completionList = Await GetCompletionListAsync(service, document, caretPosition, CompletionTrigger.Default)
                 Assert.True(completionList Is Nothing OrElse completionList.IsExclusive, "Expected always exclusive")
             End Using
         End Function
@@ -429,7 +428,7 @@ End Program"
             Await VerifySendEnterThroughToEditorAsync(code, "bar", expected:=False)
         End Function
 
-        Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
+        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
             Return New ObjectInitializerCompletionProvider()
         End Function
     End Class

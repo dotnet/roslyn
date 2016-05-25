@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -70,16 +69,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
             }
 
             /// <summary>
-            /// Return <see cref="StateSet"/>s that are added as the given <see cref="Project"/>'s AnalyzerReferences.
-            /// This will never create new <see cref="StateSet"/> but will return ones already created.
-            /// </summary>
-            public ImmutableArray<StateSet> GetBuildOnlyStateSets(object cache, Project project)
-            {
-                var stateSetCache = (IDictionary<Project, ImmutableArray<StateSet>>)cache;
-                return stateSetCache.GetOrAdd(project, CreateBuildOnlyProjectStateSet);
-            }
-
-            /// <summary>
             /// Return <see cref="StateSet"/>s for the given <see cref="Project"/>. 
             /// This will either return already created <see cref="StateSet"/>s for the specific snapshot of <see cref="Project"/> or
             /// It will create new <see cref="StateSet"/>s for the <see cref="Project"/> and update internal state.
@@ -127,21 +116,33 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 _projectStates.RemoveStateSet(projectId);
             }
 
-            private ImmutableArray<StateSet> CreateBuildOnlyProjectStateSet(Project project)
+            /// <summary>
+            /// Return <see cref="StateSet"/>s that are added as the given <see cref="Project"/>'s AnalyzerReferences.
+            /// This will never create new <see cref="StateSet"/> but will return ones already created.
+            /// </summary>
+            public ImmutableArray<StateSet> CreateBuildOnlyProjectStateSet(Project project)
             {
+                // create project analyzer reference identity map
                 var referenceIdentities = project.AnalyzerReferences.Select(r => _analyzerManager.GetAnalyzerReferenceIdentity(r)).ToSet();
-                var stateSetMap = GetStateSets(project).ToDictionary(s => s.Analyzer, s => s);
 
+                // now create analyzer to host stateset map
+                var hostStateSetMap = _hostStates.GetOrCreateStateSets(project.Language).ToDictionary(s => s.Analyzer, s => s);
+
+                // create build only stateSet array
                 var stateSets = ImmutableArray.CreateBuilder<StateSet>();
 
                 // we always include compiler analyzer in build only state
                 var compilerAnalyzer = _analyzerManager.GetCompilerDiagnosticAnalyzer(project.Language);
                 StateSet compilerStateSet;
-                if (stateSetMap.TryGetValue(compilerAnalyzer, out compilerStateSet))
+                if (hostStateSetMap.TryGetValue(compilerAnalyzer, out compilerStateSet))
                 {
                     stateSets.Add(compilerStateSet);
                 }
 
+                // now add all project analyzers
+                stateSets.AddRange(_projectStates.GetOrUpdateStateSets(project));
+
+                // now add analyzers that exist in both host and project
                 var analyzerMap = _analyzerManager.GetHostDiagnosticAnalyzersPerReference(project.Language);
                 foreach (var kv in analyzerMap)
                 {
@@ -158,7 +159,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                     foreach (var analyzer in kv.Value)
                     {
                         StateSet stateSet;
-                        if (stateSetMap.TryGetValue(analyzer, out stateSet) && stateSet != compilerStateSet)
+                        if (hostStateSetMap.TryGetValue(analyzer, out stateSet) && stateSet != compilerStateSet)
                         {
                             stateSets.Add(stateSet);
                         }

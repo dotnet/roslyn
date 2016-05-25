@@ -104,13 +104,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             public readonly ImmutableArray<DocumentId> DocumentIds;
             public readonly DiagnosticAnalyzer Analyzer;
-            public readonly DiagnosticIncrementalAnalyzer.StateType StateType;
+            public readonly int Kind;
 
-            public AggregatedKey(ImmutableArray<DocumentId> documentIds, DiagnosticAnalyzer analyzer, DiagnosticIncrementalAnalyzer.StateType stateType)
+            public AggregatedKey(ImmutableArray<DocumentId> documentIds, DiagnosticAnalyzer analyzer, int kind)
             {
                 DocumentIds = documentIds;
                 Analyzer = analyzer;
-                StateType = stateType;
+                Kind = kind;
             }
 
             public override bool Equals(object obj)
@@ -121,12 +121,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return false;
                 }
 
-                return this.DocumentIds == other.DocumentIds && this.Analyzer == other.Analyzer && this.StateType == other.StateType;
+                return this.DocumentIds == other.DocumentIds && this.Analyzer == other.Analyzer && this.Kind == other.Kind;
             }
 
             public override int GetHashCode()
             {
-                return Hash.Combine(Analyzer.GetHashCode(), Hash.Combine(DocumentIds.GetHashCode(), (int)StateType));
+                return Hash.Combine(Analyzer.GetHashCode(), Hash.Combine(DocumentIds.GetHashCode(), Kind));
             }
         }
     }

@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor
 {
@@ -10,6 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor
     {
         ITextBufferAssociatedViewService AssociatedViewService { get; }
         SolutionPreviewResult GetPreviews(Workspace workspace, IEnumerable<CodeActionOperation> operations, CancellationToken cancellationToken);
-        void Apply(Workspace workspace, Document fromDocument, IEnumerable<CodeActionOperation> operations, string title, CancellationToken cancellationToken);
+        void Apply(Workspace workspace, Document fromDocument, IEnumerable<CodeActionOperation> operations, string title, 
+            IProgressTracker progressTracker, CancellationToken cancellationToken);
     }
 }

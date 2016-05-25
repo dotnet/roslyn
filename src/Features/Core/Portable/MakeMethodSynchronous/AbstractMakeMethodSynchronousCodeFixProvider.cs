@@ -26,27 +26,22 @@ namespace Microsoft.CodeAnalysis.MakeMethodSynchronous
 
         public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 
-        public override async Task RegisterCodeFixesAsync(CodeFixContext context)
+        public override Task RegisterCodeFixesAsync(CodeFixContext context)
         {
-            var cancellationToken = context.CancellationToken;
-            var document = context.Document;
-            var diagnostic = context.Diagnostics.First();
-
-            var token = diagnostic.Location.FindToken(cancellationToken);
-
-            var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-
-            var node = token.GetAncestor(IsMethodOrAnonymousFunction);
-            if (node != null)
-            {
-                context.RegisterCodeFix(new MyCodeAction(c => FixNodeAsync(context.Document, node, c)), diagnostic);
-            }
+            context.RegisterCodeFix(
+                new MyCodeAction(c => FixNodeAsync(context.Document, context.Diagnostics.First(), c)),
+                context.Diagnostics);
+            return SpecializedTasks.EmptyTask;
         }
 
         private const string AsyncSuffix = "Async";
 
-        private async Task<Solution> FixNodeAsync(Document document, SyntaxNode node, CancellationToken cancellationToken)
+        private async Task<Solution> FixNodeAsync(
+            Document document, Diagnostic diagnostic, CancellationToken cancellationToken)
         {
+            var token = diagnostic.Location.FindToken(cancellationToken);
+            var node = token.GetAncestor(IsMethodOrAnonymousFunction);
+
             // See if we're on an actual method declaration (otherwise we're on a lambda declaration).
             // If we're on a method declaration, we'll get an IMethodSymbol back.  In that case, check
             // if it has the 'Async' suffix, and remove that suffix if so.

@@ -4756,8 +4756,8 @@ class C
                     new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
             diff1.EmitResult.Diagnostics.Verify(
-                // error CS7038: Failed to emit module '{0}'.
-                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments(compilation0.SourceModule.Name));
+                // error CS7043: Cannot update 'C.F()'; attribute 'System.Runtime.CompilerServices.IteratorStateMachineAttribute' is missing.
+                Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingAttribute).WithArguments("C.F()", "System.Runtime.CompilerServices.IteratorStateMachineAttribute"));
         }
 
         [Fact, WorkItem(9119, "https://github.com/dotnet/roslyn/issues/9119")]
@@ -4811,10 +4811,10 @@ class C
                     new SemanticEdit(SemanticEditKind.Update, f0, f1, GetSyntaxMapFromMarkers(source0, source1), preserveLocalVariables: true)));
 
             diff1.EmitResult.Diagnostics.Verify(
-                // error CS7038: Failed to emit module '{0}'.
-                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments(compilation0.SourceModule.Name),
-                // error CS7038: Failed to emit module '{0}'.
-                Diagnostic(ErrorCode.ERR_ModuleEmitFailure).WithArguments(compilation0.SourceModule.Name));
+                // error CS7043: Cannot update 'C.F()'; attribute 'System.Runtime.CompilerServices.AsyncStateMachineAttribute' is missing.
+                Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingAttribute).WithArguments("C.F()", "System.Runtime.CompilerServices.AsyncStateMachineAttribute"),
+                // error CS7043: Cannot update 'C.F()'; attribute 'System.Runtime.CompilerServices.AsyncStateMachineAttribute' is missing.
+                Diagnostic(ErrorCode.ERR_EncUpdateFailedMissingAttribute).WithArguments("C.F()", "System.Runtime.CompilerServices.AsyncStateMachineAttribute"));
         }
     }
 }

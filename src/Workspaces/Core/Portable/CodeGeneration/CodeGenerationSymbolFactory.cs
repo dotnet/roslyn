@@ -142,7 +142,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
                 var message = expectedParameterCount == 1 ?
                     WorkspacesResources.InvalidParameterCountForUnaryOperator :
                     WorkspacesResources.InvalidParameterCountForBinaryOperator;
-                throw new ArgumentException(message, "parameters");
+                throw new ArgumentException(message, nameof(parameters));
             }
 
             var result = new CodeGenerationOperatorSymbol(null, attributes, accessibility, modifiers, returnType, operatorKind, parameters, returnTypeAttributes);

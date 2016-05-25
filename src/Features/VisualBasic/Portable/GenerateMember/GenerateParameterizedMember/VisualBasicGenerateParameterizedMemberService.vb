@@ -157,6 +157,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
                 Dim conversion = compilation.ClassifyConversion(sourceType, targetType)
                 Return conversion.IsWidening AndAlso conversion.IsReference
             End Function
+
+            Protected Overrides Function DetermineTypeArguments(cancellationToken As CancellationToken) As IList(Of ITypeSymbol)
+                Dim Result = New List(Of ITypeSymbol)()
+
+                If TypeOf State.SimpleNameOpt Is GenericNameSyntax Then
+                    For Each typeArgument In DirectCast(State.SimpleNameOpt, GenericNameSyntax).TypeArgumentList.Arguments
+                        Dim Type = Me.Document.SemanticModel.GetTypeInfo(typeArgument, cancellationToken).Type
+                        Result.Add(Type)
+                    Next
+                End If
+
+                Return Result
+            End Function
         End Class
     End Class
 End Namespace

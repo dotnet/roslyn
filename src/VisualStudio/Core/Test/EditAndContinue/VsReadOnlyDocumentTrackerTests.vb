@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.IO
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.EditAndContinue
@@ -20,7 +21,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
 
     Public Class VsReadOnlyDocumentTrackerTests
         <WpfFact>
-        Public Async Function StandardTextDocumentTest() As Threading.Tasks.Task
+        Public Async Function StandardTextDocumentTest() As Task
             Dim diagnosticService As IDiagnosticAnalyzerService = New EditAndContinueTestHelper.TestDiagnosticAnalyzerService()
             Dim encService As IEditAndContinueWorkspaceService = New EditAndContinueWorkspaceService(diagnosticService)
             Dim workspace = Await EditAndContinueTestHelper.CreateTestWorkspaceAsync()
@@ -70,7 +71,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
 
         <WorkItem(1089964, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1089964")>
         <WpfFact>
-        Public Async Function ContainedDocumentTest() As Threading.Tasks.Task
+        Public Async Function ContainedDocumentTest() As Task
             Dim diagnosticService As IDiagnosticAnalyzerService = New EditAndContinueTestHelper.TestDiagnosticAnalyzerService()
             Dim encService As IEditAndContinueWorkspaceService = New EditAndContinueWorkspaceService(diagnosticService)
             Dim workspace = Await EditAndContinueTestHelper.CreateTestWorkspaceAsync()
@@ -119,7 +120,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
 
         <WorkItem(1147868, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147868")>
         <WpfFact>
-        Public Async Function InvalidDocumentTest1() As Threading.Tasks.Task
+        Public Async Function InvalidDocumentTest1() As Task
             Dim diagnosticService As IDiagnosticAnalyzerService = New EditAndContinueTestHelper.TestDiagnosticAnalyzerService()
             Dim encService As IEditAndContinueWorkspaceService = New EditAndContinueWorkspaceService(diagnosticService)
             Dim workspace = Await EditAndContinueTestHelper.CreateTestWorkspaceAsync()
@@ -146,7 +147,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.UnitTests.EditAndContinue
 
         <WorkItem(1147868, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1147868")>
         <WpfFact>
-        Public Async Function InvalidDocumentTest2() As Threading.Tasks.Task
+        Public Async Function InvalidDocumentTest2() As Task
             Dim diagnosticService As IDiagnosticAnalyzerService = New EditAndContinueTestHelper.TestDiagnosticAnalyzerService()
             Dim encService As IEditAndContinueWorkspaceService = New EditAndContinueWorkspaceService(diagnosticService)
             Dim workspace = Await EditAndContinueTestHelper.CreateTestWorkspaceAsync()

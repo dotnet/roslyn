@@ -5,13 +5,10 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
-using System.Diagnostics;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Notification;
@@ -22,6 +19,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Editor;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
+using Microsoft.VisualStudio.LanguageServices.SymbolSearch;
 using Microsoft.VisualStudio.Shell.Interop;
 using NuGet.VisualStudio;
 using Roslyn.Utilities;
@@ -38,20 +36,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
     /// the data so it can be read from the background.
     /// </summary>
     [ExportWorkspaceService(typeof(IPackageInstallerService)), Shared]
-    internal partial class PackageInstallerService : ForegroundThreadAffinitizedObject, IPackageInstallerService, IVsSearchProviderCallback
+    internal partial class PackageInstallerService : AbstractDelayStartedService, IPackageInstallerService, IVsSearchProviderCallback
     {
         private readonly object _gate = new object();
+        private readonly VisualStudioWorkspaceImpl _workspace;
         private readonly IVsEditorAdaptersFactoryService _editorAdaptersFactoryService;
 
-        /// <summary>
-        /// The workspace we're connected to.  When we're disconnected this will become 'null'.
-        /// That's our signal to stop working.
-        /// </summary>
-        private VisualStudioWorkspaceImpl _workspace;
-        private IVsPackageInstallerServices _packageInstallerServices;
-        private IVsPackageInstaller _packageInstaller;
-        private IVsPackageUninstaller _packageUninstaller;
-        private IVsPackageSourceProvider _packageSourceProvider;
+        // We refer to the package services through proxy types so that we can
+        // delay loading their DLLs until we actually need them.
+        private IPackageServicesProxy _packageServices;
 
         private CancellationTokenSource _tokenSource = new CancellationTokenSource();
 
@@ -66,8 +59,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         [ImportingConstructor]
         public PackageInstallerService(
+            VisualStudioWorkspaceImpl workspace,
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService)
+            : base(workspace, ServiceComponentOnOffOptions.SymbolSearch,
+                              AddImportOptions.SuggestForTypesInReferenceAssemblies,
+                              AddImportOptions.SuggestForTypesInNuGetPackages)
         {
+            _workspace = workspace;
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
         }
 
@@ -75,50 +73,49 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
         public event EventHandler PackageSourcesChanged;
 
-        internal void Connect(VisualStudioWorkspaceImpl workspace)
-        {
-            this.AssertIsForeground();
+        public bool IsEnabled => _packageServices != null;
 
-            var options = workspace.Options;
-            if (!options.GetOption(ServiceComponentOnOffOptions.PackageSearch))
+        protected override void EnableService()
+        {
+            // Our service has been enabled.  Now load the VS package dlls.
+            var componentModel = _workspace.GetVsService<SComponentModel, IComponentModel>();
+
+            var packageInstallerServices = componentModel.GetExtensions<IVsPackageInstallerServices>().FirstOrDefault();
+            var packageInstaller = componentModel.GetExtensions<IVsPackageInstaller>().FirstOrDefault();
+            var packageUninstaller = componentModel.GetExtensions<IVsPackageUninstaller>().FirstOrDefault();
+            var packageSourceProvider = componentModel.GetExtensions<IVsPackageSourceProvider>().FirstOrDefault();
+
+            if (packageInstallerServices == null ||
+                packageInstaller == null ||
+                packageUninstaller == null ||
+                packageSourceProvider == null)
             {
                 return;
             }
 
-            ConnectWorker(workspace);
-        }
+            _packageServices = new PackageServicesProxy(
+                packageInstallerServices, packageInstaller, packageUninstaller, packageSourceProvider);
 
-        // Don't inline this method.  The references to nuget types will cause the nuget packages 
-        // to load.
-        [MethodImpl(MethodImplOptions.NoInlining)]
-        private void ConnectWorker(VisualStudioWorkspaceImpl workspace)
-        {
-            var componentModel = workspace.GetVsService<SComponentModel, IComponentModel>();
-            _packageInstallerServices = componentModel.GetExtensions<IVsPackageInstallerServices>().FirstOrDefault();
-            _packageInstaller = componentModel.GetExtensions<IVsPackageInstaller>().FirstOrDefault();
-            _packageUninstaller = componentModel.GetExtensions<IVsPackageUninstaller>().FirstOrDefault();
-            _packageSourceProvider = componentModel.GetExtensions<IVsPackageSourceProvider>().FirstOrDefault();
-
-            if (!this.IsEnabled)
-            {
-                return;
-            }
-
-            // Start listening to workspace changes.
-            _workspace = workspace;
+            // Start listening to additional events workspace changes.
             _workspace.WorkspaceChanged += OnWorkspaceChanged;
-            _packageSourceProvider.SourcesChanged += OnSourceProviderSourcesChanged;
-
-            OnSourceProviderSourcesChanged(null, EventArgs.Empty);
+            _packageServices.SourcesChanged += OnSourceProviderSourcesChanged;
         }
 
-        public bool IsEnabled => 
-            _packageInstallerServices != null &&
-            _packageInstallerServices != null &&
-            _packageUninstaller != null &&
-            _packageSourceProvider != null;
+        protected override void StopWorking()
+        {
+            this.AssertIsForeground();
 
-        internal void Disconnect(VisualStudioWorkspaceImpl workspace)
+            if (!IsEnabled)
+            {
+                return;
+            }
+
+            // Stop listening to workspace changes.
+            _workspace.WorkspaceChanged -= OnWorkspaceChanged;
+            _packageServices.SourcesChanged -= OnSourceProviderSourcesChanged;
+        }
+
+        protected override void StartWorking()
         {
             this.AssertIsForeground();
 
@@ -127,11 +124,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
                 return;
             }
 
-            Debug.Assert(workspace == _workspace);
-            _packageSourceProvider.SourcesChanged -= OnSourceProviderSourcesChanged;
-            _workspace.WorkspaceChanged -= OnWorkspaceChanged;
-
-            _workspace = null;
+            OnSourceProviderSourcesChanged(this, EventArgs.Empty);
         }
 
         private void OnSourceProviderSourcesChanged(object sender, EventArgs e)
@@ -144,7 +137,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             this.AssertIsForeground();
 
-            PackageSources = _packageSourceProvider.GetSources(includeUnOfficial: true, includeDisabled: false)
+            PackageSources = _packageServices.GetSources(includeUnOfficial: true, includeDisabled: false)
                 .Select(r => new PackageSource(r.Key, r.Value))
                 .ToImmutableArrayOrEmpty();
 
@@ -164,7 +157,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             // The 'workspace == _workspace' line is probably not necessary. However, we include 
             // it just to make sure that someone isn't trying to install a package into a workspace
             // other than the VisualStudioWorkspace.
-            if (workspace == _workspace && _workspace != null && _packageInstallerServices != null)
+            if (workspace == _workspace && _workspace != null && _packageServices != null)
             {
                 var projectId = documentId.ProjectId;
                 var dte = _workspace.GetVsService<SDTE, EnvDTE.DTE>();
@@ -195,10 +188,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
         {
             try
             {
-                if (!_packageInstallerServices.IsPackageInstalled(dteProject, packageName))
+                if (!_packageServices.IsPackageInstalled(dteProject, packageName))
                 {
                     dte.StatusBar.Text = string.Format(ServicesVSResources.Installing_0, packageName);
-                    _packageInstaller.InstallPackage(source, dteProject, packageName, versionOpt, ignoreDependencies: false);
+                    _packageServices.InstallPackage(source, dteProject, packageName, versionOpt, ignoreDependencies: false);
 
                     var installedVersion = GetInstalledVersion(packageName, dteProject);
                     dte.StatusBar.Text = string.Format(ServicesVSResources.Installing_0_completed,
@@ -236,13 +229,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             try
             {
-                if (_packageInstallerServices.IsPackageInstalled(dteProject, packageName))
+                if (_packageServices.IsPackageInstalled(dteProject, packageName))
                 {
                     dte.StatusBar.Text = string.Format(ServicesVSResources.Uninstalling_0, packageName);
                     var installedVersion = GetInstalledVersion(packageName, dteProject);
-                    _packageUninstaller.UninstallPackage(dteProject, packageName, removeDependencies: true);
+                    _packageServices.UninstallPackage(dteProject, packageName, removeDependencies: true);
 
-                    dte.StatusBar.Text = string.Format(ServicesVSResources.Uninstalling_0_completed, 
+                    dte.StatusBar.Text = string.Format(ServicesVSResources.Uninstalling_0_completed,
                         GetStatusBarText(packageName, installedVersion));
 
                     return true;
@@ -271,7 +264,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
 
             try
             {
-                var installedPackages = _packageInstallerServices.GetInstalledPackages(dteProject);
+                var installedPackages = _packageServices.GetInstalledPackages(dteProject);
                 var metadata = installedPackages.FirstOrDefault(m => m.Id == packageName);
                 return metadata?.VersionString;
             }
@@ -342,7 +335,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             }
 
             // If we've been disconnected, then there's no point proceeding.
-            if (_workspace == null || _packageInstallerServices == null)
+            if (_workspace == null || _packageServices == null)
             {
                 return;
             }
@@ -417,7 +410,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             // Calling into nuget.  Assume they may fail for any reason.
             try
             {
-                var installedPackageMetadata = _packageInstallerServices.GetInstalledPackages(dteProject);
+                var installedPackageMetadata = _packageServices.GetInstalledPackages(dteProject);
                 installedPackages.AddRange(installedPackageMetadata.Select(m => new KeyValuePair<string, string>(m.Id, m.VersionString)));
             }
             catch (Exception e) when (FatalError.ReportWithoutCrash(e))
@@ -573,6 +566,62 @@ namespace Microsoft.VisualStudio.LanguageServices.Packaging
             public uint GetTokens(uint dwMaxTokens, IVsSearchToken[] rgpSearchTokens)
             {
                 return 0;
+            }
+        }
+
+        private class PackageServicesProxy : IPackageServicesProxy
+        {
+            private readonly IVsPackageInstaller _packageInstaller;
+            private readonly IVsPackageInstallerServices _packageInstallerServices;
+            private readonly IVsPackageSourceProvider _packageSourceProvider;
+            private readonly IVsPackageUninstaller _packageUninstaller;
+
+            public PackageServicesProxy(IVsPackageInstallerServices packageInstallerServices, IVsPackageInstaller packageInstaller, IVsPackageUninstaller packageUninstaller, IVsPackageSourceProvider packageSourceProvider)
+            {
+                _packageInstallerServices = packageInstallerServices;
+                _packageInstaller = packageInstaller;
+                _packageUninstaller = packageUninstaller;
+                _packageSourceProvider = packageSourceProvider;
+            }
+
+            public IEnumerable<PackageMetadata> GetInstalledPackages(EnvDTE.Project project)
+            {
+                return _packageInstallerServices.GetInstalledPackages(project)
+                                  .Select(m => new PackageMetadata(m.Id, m.VersionString))
+                                  .ToList();
+            }
+
+            public bool IsPackageInstalled(EnvDTE.Project project, string id)
+            {
+                return _packageInstallerServices.IsPackageInstalled(project, id);
+            }
+
+            public void InstallPackage(string source, EnvDTE.Project project, string packageId, string version, bool ignoreDependencies)
+            {
+                _packageInstaller.InstallPackage(source, project, packageId, version, ignoreDependencies);
+            }
+
+            public event EventHandler SourcesChanged
+            {
+                add
+                {
+                    _packageSourceProvider.SourcesChanged += value;
+                }
+
+                remove
+                {
+                    _packageSourceProvider.SourcesChanged -= value;
+                }
+            }
+
+            public IEnumerable<KeyValuePair<string, string>> GetSources(bool includeUnOfficial, bool includeDisabled)
+            {
+                return _packageSourceProvider.GetSources(includeUnOfficial, includeDisabled);
+            }
+
+            public void UninstallPackage(EnvDTE.Project project, string packageId, bool removeDependencies)
+            {
+                _packageUninstaller.UninstallPackage(project, packageId, removeDependencies);
             }
         }
     }

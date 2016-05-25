@@ -91,6 +91,10 @@
       <Project>{57CA988D-F010-4BF2-9A2E-07D6DCD2FF2C}</Project>
       <Name>Microsoft.CodeAnalysis.VisualBasic.Workspaces</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\..\..\Dependencies\Composition\Composition.csproj">
+      <Project>{A57DDFE5-AB0E-4371-98E5-11B9218DF11C}</Project>
+      <Name>Composition</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AdditionalFileAnalyzers\SimpleAdditionalFileAnalyzer.vb" />

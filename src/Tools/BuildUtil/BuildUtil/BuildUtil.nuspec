@@ -2,7 +2,7 @@
 <package>
   <metadata>
     <id>Roslyn.Build.Util</id>
-    <version>0.9.3-portable</version>
+    <version>0.9.4-portable</version>
     <title>Roslyn.Build.Util</title>
     <authors>RoslynTeam</authors>
     <owners>RoslynTeam</owners>
@@ -24,5 +24,6 @@
   </metadata>
   <files>
     <file src="Roslyn.MSBuild.Util.dll" target="lib/dotnet" />
+    <file src="System.IO.FileSystem.dll" target="lib/dotnet" />
   </files>
 </package>

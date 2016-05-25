@@ -1,2 +1,2 @@
-Microsoft.VisualStudio.InteractiveWindow.IInteractiveWindowOperations2.CopyCode() -> void
-Microsoft.VisualStudio.InteractiveWindow.IInteractiveWindowOperations2.TypeChar(char typedChar) -> void
+Microsoft.VisualStudio.InteractiveWindow.IInteractiveWindow2
+Microsoft.VisualStudio.InteractiveWindow.IInteractiveWindow2.AddToHistory(string input) -> void

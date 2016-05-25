@@ -51,7 +51,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 
                 // VBCSCompiler is used as a DLL in these tests, need to hook the resolve to the installed location.
                 AppDomain.CurrentDomain.AssemblyResolve += OnAssemblyResolve;
-                basePath = GetMSBuildDirectory();
+                basePath = TestHelpers.GetMSBuildDirectory();
                 if (basePath == null)
                 {
                     return;
@@ -69,23 +69,6 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
             if (e.Name.StartsWith("VBCSCompiler"))
             {
                 return Assembly.LoadFrom(CompilerServerExecutable);
-            }
-
-            return null;
-        }
-
-        private static string GetMSBuildDirectory()
-        {
-            using (var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\MSBuild\ToolsVersions\14.0", false))
-            {
-                if (key != null)
-                {
-                    var toolsPath = key.GetValue("MSBuildToolsPath");
-                    if (toolsPath != null)
-                    {
-                        return toolsPath.ToString();
-                    }
-                }
             }
 
             return null;
@@ -1314,31 +1297,6 @@ class Program
 ~", tempOut.ReadAllText().Trim().Replace(srcFile, "src.vb"));
                 Assert.Equal(1, result.ExitCode);
                 await serverData.Verify(connections: 1, completed: 1).ConfigureAwait(true);
-            }
-        }
-
-        [Fact, WorkItem(1095079, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1095079")]
-        public async Task ServerRespectsAppConfig()
-        {
-            var exeConfigPath = Path.Combine(CompilerDirectory, CompilerServerExeName + ".config");
-            var doc = new XmlDocument();
-            using (XmlReader reader = XmlReader.Create(exeConfigPath, new XmlReaderSettings { DtdProcessing = DtdProcessing.Prohibit, XmlResolver = null }))
-            {
-                doc.Load(reader);
-            }
-            var root = doc.DocumentElement;
-
-            root.SelectSingleNode("appSettings/add/@value").Value = "1";
-            doc.Save(exeConfigPath);
-
-            var proc = StartProcess(CompilerServerExecutable, "");
-            await Task.Delay(TimeSpan.FromSeconds(3)).ConfigureAwait(false); // Give 2s leeway
-
-            var exited = proc.HasExited;
-            if (!exited)
-            {
-                Kill(proc);
-                Assert.True(false, "Compiler server did not exit in time");
             }
         }
 

@@ -23,6 +23,10 @@
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
       <Name>CodeAnalysis</Name>
     </ProjectReference>
+    <ProjectReference Include="..\..\..\Dependencies\Composition\Composition.csproj">
+      <Project>{a57ddfe5-ab0e-4371-98e5-11b9218df11c}</Project>
+      <Name>Composition</Name>
+    </ProjectReference>
   </ItemGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\..\Compilers\Core\Portable\Collections\ArrayBuilderExtensions.cs">
@@ -36,6 +40,9 @@
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Collections\ImmutableArrayExtensions.cs">
       <Link>InternalUtilities\ImmutableArrayExtensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\OrderPreservingMultiDictionary.cs">
+      <Link>Utilities\CompilerUtilities\OrderPreservingMultiDictionary.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Collections\PooledStringBuilder.cs">
       <Link>Collections\PooledStringBuilder.cs</Link>
@@ -261,6 +268,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.VisualBasic.Repl" />
+    <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Editor.UI.Wpf" />
     <InternalsVisibleToTest Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
@@ -275,12 +283,16 @@
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Closed.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.DiagnosticsWindow" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Setup" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\Compilers\Core\Portable\UnicodeCharacterUtilities.cs">
+      <Link>Shared\UnicodeCharacterUtilities.cs</Link>
+    </Compile>
     <Compile Include="CaseCorrection\AbstractCaseCorrectionService.cs" />
     <Compile Include="CaseCorrection\CaseCorrector.cs" />
     <Compile Include="CaseCorrection\ICaseCorrectionService.cs" />
@@ -306,10 +318,13 @@
     <Compile Include="CodeCleanup\Providers\SimplificationCodeCleanupProvider.cs" />
     <Compile Include="CodeFixes\CodeFixContext.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\BatchSimplificationFixAllProvider.cs" />
-    <Compile Include="CodeFixes\FixAllOccurrences\FixMultipleContext.DiagnosticProvider.cs" />
-    <Compile Include="CodeFixes\FixAllOccurrences\FixMultipleContext.cs" />
+    <Compile Include="CodeFixes\FixAllOccurrences\FixAllState.FixAllDiagnosticProvider.cs" />
+    <Compile Include="CodeFixes\FixAllOccurrences\FixAllProviderInfo.cs" />
+    <Compile Include="CodeFixes\FixAllOccurrences\FixAllState.FixMultipleDiagnosticProvider.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllLogger.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllContext.DiagnosticProvider.cs" />
+    <Compile Include="CodeFixes\FixAllOccurrences\FixAllState.cs" />
+    <Compile Include="CodeFixes\Supression\ISuppressionFixProvider.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\WellKnownFixAllProviders.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\BatchFixAllProvider.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\FixAllContext.cs" />
@@ -327,8 +342,17 @@
     <Compile Include="CodeGeneration\CodeGenerationSymbolFactory.cs" />
     <Compile Include="CodeGeneration\CodeGenerator.cs" />
     <Compile Include="Diagnostics\DiagnosticData.cs" />
+    <Compile Include="Diagnostics\DiagnosticProvider.cs" />
     <Compile Include="Diagnostics\Extensions.cs" />
     <Compile Include="Diagnostics\InternalDiagnosticsOptions.cs" />
+    <Compile Include="Diagnostics\InternalRuntimeDiagnosticOptions.cs" />
+    <Compile Include="FindSymbols\SyntaxTree\IDeclarationInfo.cs" />
+    <Compile Include="LanguageServices\SyntaxFactsService\AbstractSyntaxFactsService.cs" />
+    <Compile Include="SolutionCrawler\ExportIncrementalAnalyzerProviderAttribute.cs" />
+    <Compile Include="SolutionCrawler\IIncrementalAnalyzer.cs" />
+    <Compile Include="SolutionCrawler\IIncrementalAnalyzerProvider.cs" />
+    <Compile Include="SolutionCrawler\IncrementalAnalyzerProviderMetadata.cs" />
+    <Compile Include="SolutionCrawler\ISolutionCrawlerRegistrationService.cs" />
     <Compile Include="Diagnostics\IWorkspaceVenusSpanMappingService.cs" />
     <Compile Include="Diagnostics\WellKnownDiagnosticPropertyNames.cs" />
     <Compile Include="Editing\DeclarationKind.cs" />
@@ -386,11 +410,17 @@
     <Compile Include="ExtensionManager\IErrorReportingService.cs" />
     <Compile Include="FindSymbols\DeclaredSymbolInfo.cs" />
     <Compile Include="FindSymbols\FindReferences\Finders\ILanguageServiceReferenceFinder.cs" />
+    <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo_Metadata.cs" />
+    <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo_Source.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingLogger.cs" />
     <Compile Include="Packaging\IPackageInstallerService.cs" />
-    <Compile Include="Packaging\IPackageSearchService.cs" />
+    <Compile Include="SymbolSearch\ISymbolSearchService.cs" />
     <Compile Include="FindSymbols\SymbolTree\ISymbolTreeInfoCacheService.cs" />
     <Compile Include="FindSymbols\FindReferences\MetadataUnifyingEquivalenceComparer.cs" />
+    <Compile Include="SymbolId\SymbolId.cs" />
+    <Compile Include="Shared\Utilities\IProgressTracker.cs" />
+    <Compile Include="SolutionCrawler\NullSolutionCrawlerRegisterationService.cs" />
+    <Compile Include="SolutionCrawler\WellKnownSolutionCrawlerAnalyzers.cs" />
     <Compile Include="Utilities\ArraySlice.cs" />
     <Compile Include="Utilities\BKTree.cs" />
     <Compile Include="FindSymbols\SyntaxTree\AbstractSyntaxTreeInfo.cs" />
@@ -431,6 +461,7 @@
     <Compile Include="Utilities\ForegroundThreadDataKind.cs" />
     <Compile Include="Utilities\IReadOnlyDictionaryExtensions.cs" />
     <Compile Include="Utilities\SpellChecker.cs" />
+    <Compile Include="Utilities\StringEscapeEncoder.cs" />
     <Compile Include="Utilities\ValuesSources\CachedWeakValueSource.cs" />
     <Compile Include="Utilities\WeakEventHandler.cs" />
     <Compile Include="Versions\Extensions.cs" />

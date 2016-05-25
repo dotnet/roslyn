@@ -194,8 +194,7 @@ namespace Microsoft.CodeAnalysis.Emit
             // Should rarely happen since the IDE reports a rude edit if the attribute type doesn't exist.
             if (_hoistedLocalSlotsOpt == null)
             {
-                // TODO: better error message https://github.com/dotnet/roslyn/issues/9196
-                diagnostics.Add(_messageProvider.CreateDiagnostic(_messageProvider.ERR_ModuleEmitFailure, NoLocation.Singleton, _previousTopLevelMethod.ContainingModule.Name));
+                ReportMissingStateMachineAttribute(diagnostics);
                 slotIndex = -1;
                 return false;
             }
@@ -230,14 +229,23 @@ namespace Microsoft.CodeAnalysis.Emit
             // Should rarely happen since the IDE reports a rude edit if the attribute type doesn't exist.
             if (_awaiterMapOpt == null)
             {
-                // TODO: better error message https://github.com/dotnet/roslyn/issues/9196
-                diagnostics.Add(_messageProvider.CreateDiagnostic(_messageProvider.ERR_ModuleEmitFailure, NoLocation.Singleton, _previousTopLevelMethod.ContainingModule.Name));
+                ReportMissingStateMachineAttribute(diagnostics);
                 slotIndex = -1;
                 return false;
             }
 
             return _awaiterMapOpt.TryGetValue(_symbolMap.MapReference(currentType), out slotIndex);
         }
+
+        private void ReportMissingStateMachineAttribute(DiagnosticBag diagnostics)
+        {
+            diagnostics.Add(_messageProvider.CreateDiagnostic(
+                _messageProvider.ERR_EncUpdateFailedMissingAttribute,
+                NoLocation.Singleton, 
+                _messageProvider.GetErrorDisplayString(_previousTopLevelMethod),
+                (_previousTopLevelMethod.IsAsync ? AttributeDescription.AsyncStateMachineAttribute : AttributeDescription.IteratorStateMachineAttribute).FullName));
+        }
+
 
         private bool TryGetPreviousSyntaxOffset(SyntaxNode currentSyntax, out int previousSyntaxOffset)
         {

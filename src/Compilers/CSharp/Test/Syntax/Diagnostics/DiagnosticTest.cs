@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.Emit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -184,6 +185,7 @@ class X
                             Assert.Equal(2, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_DelaySignButNoKey:
+                        case ErrorCode.WRN_AttributeIgnoredWhenPublicSigning:
                             Assert.Equal(1, ErrorFacts.GetWarningLevel(errorCode));
                             break;
                         case ErrorCode.WRN_InvalidVersionFormat:
@@ -2226,11 +2228,50 @@ public class A
                 }
             }
 
-            public override string ConvertSymbolToString(int errorCode, ISymbol symbol)
+            public override string GetErrorDisplayString(ISymbol symbol)
             {
-                return MessageProvider.Instance.ConvertSymbolToString(errorCode, symbol);
+                return MessageProvider.Instance.GetErrorDisplayString(symbol);
             }
         }
+
+        #endregion
+
+        #region CoreCLR Signing Tests
+        // These aren't actually syntax tests, but this is in one of only two assemblies tested on linux
+        [ConditionalFact(typeof(UnixLikeOnly), typeof(NotMonoOnly)), WorkItem(9288, "https://github.com/dotnet/roslyn/issues/9288")]
+        public void Bug9288_keyfile()
+        {
+            var snk = Temp.CreateFile().WriteAllBytes(TestResources.General.snKey);
+            var snkPath = snk.Path;
+
+            const string source = "";
+
+            var ca = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithStrongNameProvider(new DesktopStrongNameProvider()).WithCryptoKeyFile(snkPath));
+
+            ca.VerifyEmitDiagnostics(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
+                // error CS7027: Error signing output with public key from file '{temp path}' -- Assembly signing not supported.
+                Diagnostic(ErrorCode.ERR_PublicKeyFileFailure).WithArguments(snkPath, "Assembly signing not supported.").WithLocation(1, 1)
+            );
+        }
+
+        [ConditionalFact(typeof(UnixLikeOnly), typeof(NotMonoOnly)), WorkItem(9288, "https://github.com/dotnet/roslyn/issues/9288")]
+        public void Bug9288_keycontainer()
+        {
+            const string source = "";
+
+            var ca = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseDll.WithStrongNameProvider(new DesktopStrongNameProvider()).WithCryptoKeyContainer("bogus"));
+
+            ca.VerifyEmitDiagnostics(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb),
+                // error CS7028: Error signing output with public key from container 'bogus' -- Assembly signing not supported.
+                Diagnostic(ErrorCode.ERR_PublicKeyContainerFailure).WithArguments("bogus", "Assembly signing not supported.").WithLocation(1, 1)
+            );
+        }
+
+        // There are three places where we catch a ClrStrongNameMissingException,
+        // but the third cannot happen - only if a key is successfully retrieved
+        // from a keycontainer, and then we fail to get IClrStrongName afterwards
+        // for the actual signing. However, we error on the key read, and can never
+        // get to the third case (but there's still error handling if that changes)
 
         #endregion
     }
