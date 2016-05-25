@@ -501,7 +501,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.IsAbstract || this.IsStatic;
+                return this.IsAbstract || this.IsStatic || this.IsExtensionClass;
             }
         }
 
@@ -610,7 +610,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get
             {
                 CheckDefinitionInvariant();
-                return this.IsSealed || this.IsStatic;
+                return this.IsSealed || this.IsStatic || this.IsExtensionClass;
             }
         }
 
@@ -661,6 +661,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     else if (method.IsDefaultValueTypeConstructor())
                     {
                         continue;
+                    }
+
+                    // TODO(t-evhau): don't do the MethodKind.Ordinary comparison
+                    if (this.IsExtensionClass && method.MethodKind == MethodKind.Ordinary)
+                    {
+                        method = method.ExpandExtensionClassMethod();
+                        Debug.Assert(method != null);
                     }
 
                     yield return method;

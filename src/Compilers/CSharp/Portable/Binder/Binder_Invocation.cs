@@ -858,7 +858,35 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Skip building up a new array if the first argument doesn't have to be modified.
             ImmutableArray<BoundExpression> args;
-            if (invokedAsExtensionMethod && !ReferenceEquals(receiver, methodGroup.Receiver))
+            if (invokedAsExtensionMethod && method.IsInExtensionClass)
+            {
+                Debug.Assert(method.MethodKind == MethodKind.ExpandedExtensionClass);
+
+                ArrayBuilder<BoundExpression> builder = ArrayBuilder<BoundExpression>.GetInstance();
+
+                receiver = CreateConversion(receiver, methodResult.Result.ConversionForArg(0), method.Parameters[0].Type, diagnostics);
+
+                bool first = true;
+                foreach (BoundExpression arg in analyzedArguments.Arguments)
+                {
+                    if (first)
+                    {
+                        // Skip the first argument (the receiver artifically inserted for overload resolution).
+                        first = false;
+                    }
+                    else
+                    {
+                        builder.Add(arg);
+                    }
+                }
+                args = builder.ToImmutableAndFree();
+
+                // TODO(t-evhau): This probably will break things. We want to pass around and expose the original source method, though.
+                // (it's only wrapped in a ExpandedExtensionClassMethodSymbol for overload resolution)
+                var expandedMethod = (ExpandedExtensionClassMethodSymbol)method;
+                method = expandedMethod.ExpandedFrom;
+            }
+            else if (invokedAsExtensionMethod && !ReferenceEquals(receiver, methodGroup.Receiver))
             {
                 ArrayBuilder<BoundExpression> builder = ArrayBuilder<BoundExpression>.GetInstance();
 
@@ -893,7 +921,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // For extension methods, there is no receiver because the receiver in source was actually the first argument.
             // For instance methods, we may have synthesized an implicit this node.  We'll keep it for the emitter.
             // For static methods, we may have synthesized a type expression.  It serves no purpose, so we'll drop it.
-            if (invokedAsExtensionMethod || (method.IsStatic && receiver != null && receiver.WasCompilerGenerated))
+            if ((invokedAsExtensionMethod && !method.IsInExtensionClass) || (method.IsStatic && receiver != null && receiver.WasCompilerGenerated))
             {
                 receiver = null;
             }

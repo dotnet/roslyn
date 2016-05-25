@@ -1299,6 +1299,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     memberNames.AddRange(membersDictionary.Keys);
                     MergeReplacedMembers(memberNames, membersDictionary, diagnostics);
                     MergePartialMembers(memberNames, membersDictionary, diagnostics);
+                    if (this.IsExtensionClass)
+                    {
+                        // TODO(t-evhau): Is this needed?
+                        //ReplaceExtensionClassMembers(memberNames, membersDictionary, diagnostics);
+                    }
                     memberNames.Free();
                     AddDeclarationDiagnostics(diagnostics);
                     state.NotePartComplete(CompletionPart.Members);
@@ -2530,6 +2535,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
             return builder.ToImmutableAndFree();
+        }
+
+        // Assumes all members are part of an extension class. Check before calling.
+        private static void ReplaceExtensionClassMembers(
+            ArrayBuilder<string> memberNames,
+            Dictionary<string, ImmutableArray<Symbol>> membersByName,
+            DiagnosticBag diagnostics)
+        {
+            foreach (var name in memberNames)
+            {
+                var builder = ArrayBuilder<Symbol>.GetInstance();
+                foreach (var symbol in membersByName[name])
+                {
+                    // TODO(t-evhau): generalize this `as MethodSymbol` to whatever IsInExtensionClass gets defined on
+                    // as the feature progresses to include more member types.
+                    Debug.Assert((symbol as MethodSymbol)?.IsInExtensionClass ?? true);
+
+                    var method = symbol as SourceMethodSymbol;
+                    if (method == null)
+                    {
+                        // TODO(t-evhau): Piping through non-method symbols on extension class is wrong.
+                        builder.Add(symbol);
+                        continue;
+                    }
+
+                    var expanded = method.ExpandExtensionClassMethod();
+
+                    // don't add `method` back (remove it)
+                    builder.Add(expanded);
+                }
+
+                membersByName[name] = builder.ToImmutableAndFree();
+            }
         }
 
         private static bool DifferByOutOrRef(SourceMethodSymbol m1, SourceMethodSymbol m2)

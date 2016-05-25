@@ -65,13 +65,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return Create(method);
         }
 
+        private static Dictionary<MethodSymbol, ExpandedExtensionClassMethodSymbol> dumbness = new Dictionary<MethodSymbol, ExpandedExtensionClassMethodSymbol>(ReferenceEqualityComparer.Instance);
         public static MethodSymbol Create(MethodSymbol method)
         {
+            ExpandedExtensionClassMethodSymbol dumbness2;
+            if (dumbness.TryGetValue(method, out dumbness2))
+            {
+                return dumbness2;
+            }
+
             Debug.Assert(method.IsInExtensionClass && method.MethodKind != MethodKind.ExpandedExtensionClass);
 
             // The expanded form is always created from the unconstructed method symbol.
             var constructedFrom = method.ConstructedFrom;
             var expandedMethod = new ExpandedExtensionClassMethodSymbol(constructedFrom);
+
+            dumbness[method] = expandedMethod;
 
             if (constructedFrom == method)
             {
@@ -94,6 +103,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _expandedFrom = expandedFrom;
             _typeMap = TypeMap.Empty.WithAlphaRename(expandedFrom, this, out _typeParameters);
             _typeArguments = _typeMap.SubstituteTypesWithoutModifiers(expandedFrom.TypeArguments);
+        }
+
+        internal override bool TryGetThisParameter(out ParameterSymbol thisParameter)
+        {
+            // this is a static method, so there's no this parameter
+            thisParameter = null;
+            return true;
         }
 
         // TODO(t-evhau): Do we need to return something from here? (return null is same as base virtual property)

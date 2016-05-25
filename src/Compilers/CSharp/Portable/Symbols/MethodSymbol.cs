@@ -491,6 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case MethodKind.ExplicitInterfaceImplementation:
                 case MethodKind.StaticConstructor:
                 case MethodKind.ReducedExtension:
+                case MethodKind.ExpandedExtensionClass:
                     return false;
                 case MethodKind.Conversion:
                 case MethodKind.DelegateInvoke:
@@ -690,6 +691,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public MethodSymbol ExpandExtensionClassMethod()
         {
+            Debug.Assert(this.MethodKind != MethodKind.ExpandedExtensionClass);
+            if (this.MethodKind != MethodKind.Ordinary)
+            {
+                var x = 2;
+            }
+            Debug.Assert(this.MethodKind == MethodKind.Ordinary); // TODO(t-evhau): fix this.
             return (this.IsInExtensionClass && this.MethodKind != MethodKind.ExpandedExtensionClass) ? ExpandedExtensionClassMethodSymbol.Create(this) : null;
         }
 

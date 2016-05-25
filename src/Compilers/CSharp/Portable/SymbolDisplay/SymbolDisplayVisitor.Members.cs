@@ -188,6 +188,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (symbol.IsExtensionMethod && format.ExtensionMethodStyle != SymbolDisplayExtensionMethodStyle.Default)
             {
+                // TODO(t-evhau): Handle extension class methods.
                 if (symbol.MethodKind == MethodKind.ReducedExtension && format.ExtensionMethodStyle == SymbolDisplayExtensionMethodStyle.StaticMethod)
                 {
                     symbol = symbol.GetConstructedReducedFrom();

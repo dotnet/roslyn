@@ -187,6 +187,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             BoundExpression rewrittenBoundCall;
 
+            if (invokedAsExtensionMethod && method.IsInExtensionClass)
+            {
+                method = RewriteExtensionClassCall(syntax, method, ref rewrittenReceiver, ref rewrittenArguments);
+            }
+
             if (method.IsStatic &&
                 method.ContainingType.IsObjectType() &&
                 !_inExpressionLambda &&
@@ -385,9 +390,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return rewrittenArguments;
             }
 
-            var receiverNamedType = invokedAsExtensionMethod ?
-                                    ((MethodSymbol)methodOrIndexer).Parameters[0].Type as NamedTypeSymbol :
-                                    methodOrIndexer.ContainingType;
+            NamedTypeSymbol receiverNamedType;
+            if (invokedAsExtensionMethod)
+            {
+                var method = (MethodSymbol)methodOrIndexer;
+                if (method.IsInExtensionClass)
+                {
+                    // TODO(t-evhau): Generics conversions, things that aren't NamedTypeSymbol
+                    receiverNamedType = method.ContainingType.ExtensionClassType as NamedTypeSymbol;
+                }
+                else
+                {
+                    receiverNamedType = method.Parameters[0].Type as NamedTypeSymbol;
+                }
+            }
+            else
+            {
+                receiverNamedType = methodOrIndexer.ContainingType;
+            }
 
             bool isComReceiver = (object)receiverNamedType != null && receiverNamedType.IsComImport;
 
@@ -1126,6 +1146,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 temporariesBuilder.Add(boundTemp.LocalSymbol);
             }
+        }
+
+        private MethodSymbol RewriteExtensionClassCall(
+            CSharpSyntaxNode syntax,
+            MethodSymbol extensionClassMethod,
+            ref BoundExpression rewrittenReceiver,
+            ref ImmutableArray<BoundExpression> rewrittenArguments)
+        {
+            Debug.Assert(rewrittenReceiver != null);
+            Debug.Assert(extensionClassMethod.IsInExtensionClass);
+            Debug.Assert(!extensionClassMethod.IsStatic); // TODO(t-evhau): will probably eventually support this here too
+
+            var expanded = extensionClassMethod.ExpandExtensionClassMethod();
+
+            var builder = ArrayBuilder<BoundExpression>.GetInstance(rewrittenArguments.Length + 1);
+            builder.Add(rewrittenReceiver);
+            builder.AddRange(rewrittenArguments);
+            rewrittenReceiver = null;
+            rewrittenArguments = builder.ToImmutableAndFree();
+
+            return expanded;
         }
 
         public override BoundNode VisitDynamicMemberAccess(BoundDynamicMemberAccess node)

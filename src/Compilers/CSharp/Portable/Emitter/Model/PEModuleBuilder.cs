@@ -240,7 +240,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                             break;
                                         }
 
-                                        AddSymbolLocation(result, member);
+
+                                        // TODO(t-evhau): This is probably the incorrect place to put this? Not sure
+                                        // TODO(t-evhau): checking SourceMemberMethodSymbol and static is definitely wrong
+                                        if (method is SourceMemberMethodSymbol && !method.IsStatic && method.IsInExtensionClass)
+                                        {
+                                            method = method.ExpandExtensionClassMethod();
+                                            Debug.Assert(method != null);
+                                        }
+                                        AddSymbolLocation(result, method);
                                         break;
 
                                     case SymbolKind.Property:

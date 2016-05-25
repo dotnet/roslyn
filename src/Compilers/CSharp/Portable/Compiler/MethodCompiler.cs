@@ -427,6 +427,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 }
                             }
 
+                            // TODO(t-evhau): Fix this (not just MethodKind.Ordinary)
+                            if (method.IsInExtensionClass && method.MethodKind == MethodKind.Ordinary)
+                            {
+                                method = method.ExpandExtensionClassMethod();
+                                Debug.Assert(method != null);
+                            }
+
                             Binder.ProcessedFieldInitializers processedInitializers =
                                 (method.MethodKind == MethodKind.Constructor || method.IsScriptInitializer) ? processedInstanceInitializers :
                                 method.MethodKind == MethodKind.StaticConstructor ? processedStaticInitializers :
@@ -1490,6 +1497,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             importChain = null;
 
             BoundBlock body;
+
+            var expandedExtensionClassMethod = method as ExpandedExtensionClassMethodSymbol;
+            if ((object)expandedExtensionClassMethod != null)
+            {
+                // TODO(t-evhau): Is this the right place to put this?
+                method = expandedExtensionClassMethod.ExpandedFrom;
+            }
 
             var sourceMethod = method as SourceMethodSymbol;
             if ((object)sourceMethod != null)

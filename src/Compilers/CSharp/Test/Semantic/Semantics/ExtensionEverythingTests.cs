@@ -16,7 +16,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         private static readonly CSharpParseOptions parseOptions = TestOptions.Regular.WithExtensionEverythingFeature();
 
-        // TODO(t-evhau): Test extending struct/interface/other odd types
+        // TODO(t-evhau): Test extending struct/interface/other odd types (types that aren't NamedTypeSymbol? - array, pointer, type parameter, dynamic)
+        // TODO(t-evhau): "extension struct" etc. syntax
+        // TODO(t-evhau): Extending a COM class (LocalRewriter.MakeArguments special-cases it)
+        // TODO(t-evhau): Extension .Add collection initializer, foreach and other duck typing calls
+        // TODO(t-evhau): Extension method with params array
 
         [Fact]
         public void SuccessTest()
