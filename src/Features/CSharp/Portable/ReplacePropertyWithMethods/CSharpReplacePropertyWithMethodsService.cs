@@ -53,14 +53,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
 
             var methods = ConvertPropertyToMethods(semanticModel, editor.Generator, property, propertyDeclaration);
 
-            if (methods.Count > 0)
-            {
-                editor.ReplaceNode(propertyDeclaration, methods[0]);
-                if (methods.Count > 1)
-                {
-                    editor.InsertAfter(propertyDeclaration, methods[1]);
-                }
-            }
+            editor.InsertAfter(propertyDeclaration, methods);
+            editor.RemoveNode(propertyDeclaration);
         }
 
         private List<SyntaxNode> ConvertPropertyToMethods(
@@ -128,10 +122,23 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                 var value = ((AssignmentExpressionSyntax)expression.Parent).Right;
                 ReplaceWithSetInvocation(editor, nameToken, value);
             }
-            else if (identifierName.IsWrittenTo())
+            else if (expression.IsLeftSideOfAnyAssignExpression())
+            {
+
+            }
+            else if (expression.IsOperandOfIncrementOrDecrementExpression())
             {
                 // We're being read from and written to (i.e. Prop++), we need to replace with a
                 // Get and a Set call.
+                var parent = expression.Parent;
+                var operatorKind = parent.IsKind(SyntaxKind.PreIncrementExpression) || parent.IsKind(SyntaxKind.PostIncrementExpression)
+                    ? SyntaxKind.AddExpression
+                    : SyntaxKind.SubtractExpression;
+
+                ReplaceWithGetAndSetInvocation(
+                    editor, nameToken, operatorKind,
+                    SyntaxFactory.LiteralExpression(
+                        SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1)));
             }
             else if (expression.IsParentKind(SyntaxKind.AnonymousObjectMemberDeclarator))
             {
@@ -159,15 +166,31 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             }
         }
 
+        private static void ReplaceWithGetAndSetInvocation(
+            SyntaxEditor editor, SyntaxToken nameToken, 
+            SyntaxKind operatorKind, ExpressionSyntax value,
+            string conflictMessage = null)
+        {
+            IdentifierNameSyntax identifierName;
+            ExpressionSyntax expression;
+            GetIdentifierAndContextExpression(nameToken, out identifierName, out expression);
+
+            var getInvocation = GetGetInvocationExpression(nameToken, conflictMessage);
+            var binaryExpression = SyntaxFactory.BinaryExpression(
+                operatorKind, getInvocation, value);
+
+            var setInvocation = GetSetInvocationExpression(
+                nameToken, binaryExpression);
+
+            editor.ReplaceNode(expression, setInvocation);
+        }
+
         private static void ReplaceWithGetInvocation(
             SyntaxEditor editor, SyntaxToken nameToken, string conflictMessage = null)
         {
-            var identifierName = (IdentifierNameSyntax)nameToken.Parent;
-            var expression = (ExpressionSyntax)identifierName;
-            if (expression.IsRightSideOfDotOrArrow())
-            {
-                expression = expression.Parent as ExpressionSyntax;
-            }
+            IdentifierNameSyntax identifierName;
+            ExpressionSyntax expression;
+            GetIdentifierAndContextExpression(nameToken, out identifierName, out expression);
 
             var invocation = GetGetInvocationExpression(nameToken, conflictMessage);
             editor.ReplaceNode(expression, invocation);
@@ -176,12 +199,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
         private static void ReplaceWithSetInvocation(
             SyntaxEditor editor, SyntaxToken nameToken, ExpressionSyntax value)
         {
-            var identifierName = (IdentifierNameSyntax)nameToken.Parent;
-            var expression = (ExpressionSyntax)identifierName;
-            if (expression.IsRightSideOfDotOrArrow())
-            {
-                expression = expression.Parent as ExpressionSyntax;
-            }
+            IdentifierNameSyntax identifierName;
+            ExpressionSyntax expression;
+            GetIdentifierAndContextExpression(nameToken, out identifierName, out expression);
 
             var invocation = GetSetInvocationExpression(nameToken, value);
             editor.ReplaceNode(expression.Parent, invocation);
@@ -204,12 +224,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
         private static ExpressionSyntax GetInvocationExpression(
             SyntaxToken nameToken, string name, ArgumentSyntax argument, string conflictMessage = null)
         {
-            var identifierName = (IdentifierNameSyntax)nameToken.Parent;
-            var expression = (ExpressionSyntax)identifierName;
-            if (expression.IsRightSideOfDotOrArrow())
-            {
-                expression = expression.Parent as ExpressionSyntax;
-            }
+            IdentifierNameSyntax identifierName;
+            ExpressionSyntax expression;
+            GetIdentifierAndContextExpression(nameToken, out identifierName, out expression);
 
             var newIdentifier = SyntaxFactory.Identifier(name);
 
@@ -232,6 +249,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             }
 
             return invocation;
+        }
+
+        private static void GetIdentifierAndContextExpression(SyntaxToken nameToken, out IdentifierNameSyntax identifierName, out ExpressionSyntax expression)
+        {
+            identifierName = (IdentifierNameSyntax)nameToken.Parent;
+            expression = (ExpressionSyntax)identifierName;
+            if (expression.IsRightSideOfDotOrArrow())
+            {
+                expression = expression.Parent as ExpressionSyntax;
+            }
         }
     }
 }

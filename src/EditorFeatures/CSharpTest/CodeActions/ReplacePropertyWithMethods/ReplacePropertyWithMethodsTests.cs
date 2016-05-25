@@ -143,5 +143,18 @@ class D
     void M() { this.SetProp(1); }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestGetterAndSetter()
+        {
+            await TestAsync(
+@"class C {
+    int [||]Prop { get { return 0; } set { var v = value; } } 
+}",
+@"class C {
+    private int GetProp() { return 0; }
+    private void SetProp(int value) { var v = value; }
+}");
+        }
     }
 }
