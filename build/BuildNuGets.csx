@@ -181,9 +181,8 @@ string[] GetRoslynPackageNames()
     return packageNames.ToArray();
 }
 
-IEnumerable<XElement> MakeRoslynPackageElements(out string[] roslynPackageNames)
+IEnumerable<XElement> MakeRoslynPackageElements(string[] roslynPackageNames)
 {
-    roslynPackageNames = GetRoslynPackageNames();
     return roslynPackageNames.Select(packageName => MakePackageElement(packageName, BuildVersion));
 }
 
@@ -207,9 +206,9 @@ IEnumerable<XElement> MakePackageElementsForPublishedDependencies()
     }
 }
 
-void GeneratePublishingConfig(out string[] roslynPackageNames)
+void GeneratePublishingConfig(string[] roslynPackageNames)
 {
-    var packages = MakeRoslynPackageElements(out roslynPackageNames).Concat(MakePackageElementsForPublishedDependencies());
+    var packages = MakeRoslynPackageElements(roslynPackageNames).Concat(MakePackageElementsForPublishedDependencies());
     if (BuildingReleaseNugets)
     {
         // nuget:
@@ -228,15 +227,20 @@ bool IsPreReleaseDependency(string dependencyName, string dependencyVersion, Lis
 {
     if (!string.IsNullOrWhiteSpace(dependencyName) && !string.IsNullOrWhiteSpace(dependencyVersion) && !IsReleaseVersion(dependencyVersion))
     {
-        var message = $"warning: Detected dependency on prerelease version {dependencyVersion} of {dependencyName}";
+        var message = $"Detected dependency on prerelease version {dependencyVersion} of {dependencyName}";
+
+        string warning;
         if (nuspecFile == null)
         {
-            warnings.Add(message);
+            warning = message;
         }
         else
         {
-            warnings.Add($"{nuspecFile}: {message}");
+            warning = $"{nuspecFile}: {message}";
         }
+
+        warnings.Add(warning);
+        Console.WriteLine(warning);
 
         return true;
     }
@@ -286,10 +290,10 @@ bool HasPreReleaseDependencies(string[] nuspecFiles, out List<string> warnings)
 
 Directory.CreateDirectory(OutDir);
 
-string[] roslynPackageNames;
-GeneratePublishingConfig(out roslynPackageNames);
-
+var roslynPackageNames = GetRoslynPackageNames();
+GeneratePublishingConfig(roslynPackageNames);
 string[] roslynNuspecFiles = roslynPackageNames.Select(f => Path.Combine(NuspecDirPath, f + ".nuspec")).ToArray();
+
 if (BuildingReleaseNugets)
 {
     List<string> warnings;
