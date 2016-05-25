@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
 @"class C {
     public int GetProp() { return 0; } 
     public void RefM(ref int i) { }
-    public void M() { RefM(ref {|Conflict:this.GetProp()|}); }
+    public void M() { RefM(ref this.{|Conflict:GetProp|}()); }
 }");
         }
 
@@ -89,7 +89,36 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceProp
 @"class C {
     public int GetProp() { return 0; } 
     public void OutM(out int i) { }
-    public void M() { OutM(out {|Conflict:this.GetProp()|}); }
+    public void M() { OutM(out this.{|Conflict:GetProp|}()); }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestUsedInAttribute1()
+        {
+            await TestAsync(
+@"
+using System;
+
+class CAttribute : Attribute {
+    public int [||]Prop { get { return 0; } }
+}
+
+[C(Prop = 1)]
+class D
+{
+}
+",
+@"
+using System;
+
+class CAttribute : Attribute {
+    public int GetProp() { return 0; }
+}
+
+[C({|Conflict:Prop|} = 1)]
+class D
+{
 }");
         }
     }

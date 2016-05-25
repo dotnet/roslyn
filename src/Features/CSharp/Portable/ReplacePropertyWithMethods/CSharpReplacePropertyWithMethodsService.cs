@@ -111,6 +111,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                 // Just replace this with a simple GetCall, but mark it so it's clear there's an error.
                 ReplaceWithGetInvocation(editor, nameToken, CSharpFeaturesResources.Property_cannot_safely_be_replaced_with_a_method_call);
             }
+            else if (expression.IsAttributeNamedArgumentIdentifier())
+            {
+                // Can't replace a property used in an attribute argument.
+                var newIdentifier = identifierName.Identifier.WithAdditionalAnnotations(
+                    ConflictAnnotation.Create(CSharpFeaturesResources.Property_cannot_safely_be_replaced_with_a_method_call));
+
+                editor.ReplaceNode(identifierName, identifierName.WithIdentifier(newIdentifier));
+            }
             else if (expression.IsOnlyWrittenTo())
             {
                 // We're only being written to here.  This is safe to replace with a call to the 
@@ -157,16 +165,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                 expression = expression.Parent as ExpressionSyntax;
             }
 
-            var invocation = GetGetInvocationExpression(nameToken);
-            if (conflictMessage != null)
-            {
-                invocation = invocation.WithAdditionalAnnotations(ConflictAnnotation.Create(conflictMessage));
-            }
-
+            var invocation = GetGetInvocationExpression(nameToken, conflictMessage);
             editor.ReplaceNode(expression, invocation);
         }
 
-        private static ExpressionSyntax GetGetInvocationExpression(SyntaxToken nameToken)
+        private static ExpressionSyntax GetGetInvocationExpression(
+            SyntaxToken nameToken, string conflictMessage = null)
         {
             var identifierName = (IdentifierNameSyntax)nameToken.Parent;
             var expression = (ExpressionSyntax)identifierName;
@@ -175,9 +179,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                 expression = expression.Parent as ExpressionSyntax;
             }
 
+            var newIdentifier = SyntaxFactory.Identifier("Get" + nameToken.ValueText);
+
+            if (conflictMessage != null)
+            {
+                newIdentifier = newIdentifier.WithAdditionalAnnotations(ConflictAnnotation.Create(conflictMessage));
+            }
+
             var updatedExpression = expression.ReplaceNode(
                 identifierName,
-                SyntaxFactory.IdentifierName("Get" + nameToken.ValueText)
+                SyntaxFactory.IdentifierName(newIdentifier)
                              .WithLeadingTrivia(identifierName.GetLeadingTrivia()));
 
             updatedExpression = SyntaxFactory.InvocationExpression(updatedExpression)

@@ -614,10 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsAttributeNamedArgumentIdentifier(SyntaxNode node)
         {
             var identifier = node as IdentifierNameSyntax;
-            return
-                identifier != null &&
-                identifier.IsParentKind(SyntaxKind.NameEquals) &&
-                identifier.Parent.IsParentKind(SyntaxKind.AttributeArgument);
+            return identifier.IsAttributeNamedArgumentIdentifier();
         }
 
         public SyntaxNode GetContainingTypeDeclaration(SyntaxNode root, int position)

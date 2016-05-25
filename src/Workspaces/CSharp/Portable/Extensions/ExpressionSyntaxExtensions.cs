@@ -345,8 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         return true;
                     }
 
-                    var nameEquals = expression.Parent as NameEqualsSyntax;
-                    if (nameEquals != null && nameEquals.IsParentKind(SyntaxKind.AttributeArgument))
+                    if (expression.IsAttributeNamedArgumentIdentifier())
                     {
                         return true;
                     }
@@ -354,6 +353,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             return false;
+        }
+
+        public static bool IsAttributeNamedArgumentIdentifier(this ExpressionSyntax expression)
+        {
+            var nameEquals = expression.Parent as NameEqualsSyntax;
+            return nameEquals.IsParentKind(SyntaxKind.AttributeArgument);
         }
 
         public static bool IsWrittenTo(this ExpressionSyntax expression)
