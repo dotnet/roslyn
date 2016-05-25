@@ -4,6 +4,7 @@ using System.Composition;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
@@ -104,11 +105,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                 expression = expression.Parent as ExpressionSyntax;
             }
 
-            if (identifierName.IsOnlyWrittenTo())
+            if (expression.IsInOutContext() || expression.IsInRefContext())
+            {
+                // Code wasn't legal (you can't reference a property in an out/ref position in C#).
+                // Just replace this with a simple GetCall, but mark it so it's clear there's an error.
+                ReplaceWithGetInvocation(editor, nameToken, CSharpFeaturesResources.Property_cannot_safely_be_replaced_with_a_method_call);
+            }
+            else if (expression.IsOnlyWrittenTo())
             {
                 // We're only being written to here.  This is safe to replace with a call to the 
                 // setter.
-
             }
             else if (identifierName.IsWrittenTo())
             {
@@ -124,9 +130,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
 
                 if (declarator.NameEquals != null)
                 {
-                    editor.ReplaceNode(
-                        expression,
-                        GetGetInvocationExpression(nameToken));
+                    ReplaceWithGetInvocation(editor, nameToken);
                 }
                 else
                 {
@@ -139,10 +143,27 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             else
             {
                 // No writes.  Replace this with a call to the getter.
-                editor.ReplaceNode(
-                    expression,
-                    GetGetInvocationExpression(nameToken));
+                ReplaceWithGetInvocation(editor, nameToken);
             }
+        }
+
+        private static void ReplaceWithGetInvocation(
+            SyntaxEditor editor, SyntaxToken nameToken, string conflictMessage = null)
+        {
+            var identifierName = (IdentifierNameSyntax)nameToken.Parent;
+            var expression = (ExpressionSyntax)identifierName;
+            if (expression.IsRightSideOfDotOrArrow())
+            {
+                expression = expression.Parent as ExpressionSyntax;
+            }
+
+            var invocation = GetGetInvocationExpression(nameToken);
+            if (conflictMessage != null)
+            {
+                invocation = invocation.WithAdditionalAnnotations(ConflictAnnotation.Create(conflictMessage));
+            }
+
+            editor.ReplaceNode(expression, invocation);
         }
 
         private static ExpressionSyntax GetGetInvocationExpression(SyntaxToken nameToken)

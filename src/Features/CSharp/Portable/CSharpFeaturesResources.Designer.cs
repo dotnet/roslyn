@@ -647,6 +647,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Property cannot safely be replaced with a method call.
+        /// </summary>
+        internal static string Property_cannot_safely_be_replaced_with_a_method_call {
+            get {
+                return ResourceManager.GetString("Property_cannot_safely_be_replaced_with_a_method_call", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to property getter.
         /// </summary>
         internal static string PropertyGetter {
