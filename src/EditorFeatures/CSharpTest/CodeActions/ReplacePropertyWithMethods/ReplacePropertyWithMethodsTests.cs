@@ -315,7 +315,7 @@ class D
 }",
 @"class C {
     private readonly int prop;
-    public int GetProp() { return prop; }
+    public int GetProp() { return this.prop; }
 }");
         }
 
@@ -331,7 +331,7 @@ class D
 }",
 @"class C {
     private readonly int prop;
-    public int GetProp() { return prop; }
+    public int GetProp() { return this.prop; }
     public C() {
         this.prop = this.GetProp() + 1;
     }
@@ -350,10 +350,38 @@ class D
 }",
 @"class C {
     private readonly int prop;
-    public int GetProp() { return prop; }
+    public int GetProp() { return this.prop; }
     public C() {
         this.prop = this.GetProp() * (x + y);
     }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestAutoProperty4()
+        {
+            await TestAsync(
+@"class C {
+    public int [||]Prop { get; } = 1;
+}",
+@"class C {
+    private readonly int prop = 1;
+    public int GetProp() { return this.prop; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestAutoProperty5()
+        {
+            await TestAsync(
+@"class C {
+    private int prop;
+    public int [||]Prop { get; } = 1;
+}",
+@"class C {
+    private int prop;
+    private readonly int prop1 = 1;
+    public int GetProp() { return this.prop1; }
 }");
         }
     }

@@ -75,23 +75,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
 
             if (propertyBackingField != null)
             {
-                result.Add(generator.FieldDeclaration(propertyBackingField));
+                var initializer = propertyDeclaration.Initializer?.Value;
+                result.Add(generator.FieldDeclaration(propertyBackingField, initializer));
             }
-
-            //var generateField = !property.IsAbstract &&
-            //    propertyDeclaration.AccessorList?.Accessors.FirstOrDefault()?.Body == null;
-
-            //if (generateField)
-            //{
-            //    var fieldName = NameGenerator.GenerateUniqueName(
-            //        property.Name.ToLowerInvariant(), s => !property.ContainingType.GetMembers(s).Any());
-            //    result.Add(generator.FieldDeclaration(fieldName, )
-            //}
 
             var getMethod = property.GetMethod;
             if (getMethod != null)
             {
-                result.Add(GetGetMethod(generator, propertyDeclaration, getMethod));
+                result.Add(GetGetMethod(generator, propertyDeclaration, propertyBackingField, getMethod));
             }
 
             var setMethod = property.SetMethod;
@@ -114,12 +105,20 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
         }
 
         private static SyntaxNode GetGetMethod(
-            SyntaxGenerator generator, 
+            SyntaxGenerator generator,
             PropertyDeclarationSyntax propertyDeclaration,
+            IFieldSymbol propertyBackingField,
             IMethodSymbol getMethod)
         {
             var statements = new List<SyntaxNode>();
-            if (propertyDeclaration.ExpressionBody != null)
+
+            if (propertyBackingField != null)
+            {
+                statements.Add(generator.ReturnStatement(
+                    generator.MemberAccessExpression(
+                        generator.ThisExpression(), propertyBackingField.Name)));
+            }
+            else if (propertyDeclaration.ExpressionBody != null)
             {
                 statements.Add(generator.ReturnStatement(propertyDeclaration.ExpressionBody.Expression));
             }
