@@ -240,5 +240,18 @@ class D
     void M() { this.SetProp(this.GetProp() * (x + y)); }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestMissingAccessors()
+        {
+            await TestAsync(
+@"class C {
+    int [||]Prop { }
+    void M() { var v = this.Prop; }
+}",
+@"class C {
+    void M() { var v = this.GetProp(); }
+}");
+        }
     }
 }

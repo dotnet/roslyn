@@ -94,12 +94,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
 
         public void ReplaceReference(SyntaxEditor editor, SyntaxToken nameToken)
         {
-            var identifierName = (IdentifierNameSyntax)nameToken.Parent;
-            var expression = (ExpressionSyntax)identifierName;
-            if (expression.IsRightSideOfDotOrArrow())
-            {
-                expression = expression.Parent as ExpressionSyntax;
-            }
+            IdentifierNameSyntax identifierName;
+            ExpressionSyntax expression;
+            GetIdentifierAndContextExpression(nameToken, out identifierName, out expression);
 
             if (expression.IsInOutContext() || expression.IsInRefContext())
             {
@@ -175,20 +172,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             // We're being read from and written to from a compound assignment 
             // (i.e. Prop *= X), we need to replace with a Get and a Set call.
             var parent = (AssignmentExpressionSyntax)expression.Parent;
-
-#if false
-                            case SyntaxKind.OrAssignmentExpression:
-                case SyntaxKind.AndAssignmentExpression:
-                case SyntaxKind.ExclusiveOrAssignmentExpression:
-                case SyntaxKind.LeftShiftAssignmentExpression:
-                case SyntaxKind.RightShiftAssignmentExpression:
-                case SyntaxKind.AddAssignmentExpression:
-                case SyntaxKind.SubtractAssignmentExpression:
-                case SyntaxKind.MultiplyAssignmentExpression:
-                case SyntaxKind.DivideAssignmentExpression:
-                case SyntaxKind.ModuloAssignmentExpression:
-                case SyntaxKind.SimpleAssignmentExpression:
-#endif
 
             var operatorKind =
                 parent.IsKind(SyntaxKind.OrAssignmentExpression) ? SyntaxKind.BitwiseOrExpression :
