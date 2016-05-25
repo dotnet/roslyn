@@ -69,6 +69,37 @@ Namespace Global.Roslyn.Test.Utilities.VisualBasic
                 End Sub
 
             End Class
+
+            Public Class Version
+                Inherits Global.Xunit.FactAttribute
+
+                Public Enum Comparision
+                    EQ
+                    LE
+                    LT
+                    GT
+                    GE
+                    NE
+                End Enum
+
+                Private ReadOnly Property theVersion As LanguageVersion
+
+                Public Sub New(theVersion As LanguageVersion, Optional condition As Comparision = Comparision.LT)
+                    Me.theVersion = theVersion
+                    Dim defaultVersion = Microsoft.CodeAnalysis.VisualBasic.VisualBasicParseOptions.Default.LanguageVersion
+                    Select Case condition
+                        Case Comparision.EQ : If Not (defaultVersion = theVersion) Then Skip = "Requires Specific Language Version " & theVersion.ToString
+                        Case Comparision.GE : If Not (defaultVersion >= theVersion) Then Skip = "Requires Language Version greater than or equal to" & theVersion.ToString
+                        Case Comparision.GT : If Not (defaultVersion > theVersion) Then Skip = "Requires Language Version greater than " & theVersion.ToString
+                        Case Comparision.LE : If Not (defaultVersion <= theVersion) Then Skip = "Requires Language Version less than or equal to" & theVersion.ToString
+                        Case Comparision.LT : If Not (defaultVersion < theVersion) Then Skip = "Requires Language Version less than " & theVersion.ToString
+                        Case Comparision.NE : If Not (defaultVersion <> theVersion) Then Skip = "Requires Langauge to be not be " & theVersion.ToString
+                        Case Else
+                            Skip = "Unsupported Condition := " & condition.ToString
+                    End Select
+                End Sub
+
+            End Class
         End Namespace
     End Namespace
 End Namespace
