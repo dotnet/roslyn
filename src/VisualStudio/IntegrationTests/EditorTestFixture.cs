@@ -3,6 +3,7 @@
 using System;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.Test.Utilities;
+using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests
 {
@@ -32,17 +33,17 @@ namespace Roslyn.VisualStudio.IntegrationTests
             _visualStudio.Dispose();
         }
 
-        public void WaitForWorkspace()
+        protected void WaitForWorkspace()
         {
             _workspace.WaitForAsyncOperations("Workspace");
         }
 
-        public void WaitForAllAsyncOperations()
+        protected void WaitForAllAsyncOperations()
         {
             _workspace.WaitForAllAsyncOperations();
         }
 
-        public void SetUpEditor(string markupCode)
+        protected void SetUpEditor(string markupCode)
         {
             string code;
             int caretPosition;
@@ -50,6 +51,27 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
             EditorWindow.SetText(code);
             EditorWindow.MoveCaret(caretPosition);
+        }
+
+        protected void VerifyCurrentLine(string text)
+        {
+            var caretIndex = text.IndexOf("$$");
+            if (caretIndex >= 0)
+            {
+                var firstPart = text.Substring(0, caretIndex);
+                var secondPart = text.Substring(caretIndex + "$$".Length);
+
+                var lineText = EditorWindow.GetCurrentLineText();
+
+                Assert.Equal(firstPart.Length + secondPart.Length, lineText.Length);
+                Assert.Equal(firstPart, lineText.Substring(0, caretIndex));
+                Assert.Equal(secondPart, lineText.Substring(caretIndex));
+            }
+        }
+
+        protected void VerifyTextContains(string text)
+        {
+            Assert.Contains(text, EditorWindow.GetText());
         }
     }
 }

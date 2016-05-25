@@ -26,14 +26,10 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
 }");
 
             await EditorWindow.TypeTextAsync("if (true) {");
-
-            Assert.Equal("        if (true) { ", EditorWindow.GetLineTextBeforeCaret());
-            Assert.Equal("}", EditorWindow.GetLineTextAfterCaret());
+            VerifyCurrentLine("        if (true) { $$}");
 
             EditorWindow.SendKey(EditorWindow.VirtualKey.Tab);
-
-            Assert.Equal("        if (true) { }", EditorWindow.GetLineTextBeforeCaret());
-            Assert.Equal(string.Empty, EditorWindow.GetLineTextAfterCaret());
+            VerifyCurrentLine("        if (true) { }$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -46,10 +42,10 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
 }");
 
             await EditorWindow.TypeTextAsync("if (true) {");
-            await EditorWindow.TypeTextAsync("}");
+            VerifyCurrentLine("        if (true) { $$}");
 
-            Assert.Equal("        if (true) { }", EditorWindow.GetLineTextBeforeCaret());
-            Assert.Equal(string.Empty, EditorWindow.GetLineTextAfterCaret());
+            await EditorWindow.TypeTextAsync("}");
+            VerifyCurrentLine("        if (true) { }$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -65,8 +61,7 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
             EditorWindow.SendKey(EditorWindow.VirtualKey.Enter);
             await EditorWindow.TypeTextAsync("var a = 1;");
 
-            Assert.Equal("            var a = 1;", EditorWindow.GetLineTextBeforeCaret());
-            Assert.Equal(string.Empty, EditorWindow.GetLineTextAfterCaret());
+            VerifyCurrentLine("            var a = 1;$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -82,14 +77,12 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
             EditorWindow.SendKey(EditorWindow.VirtualKey.Enter);
             await EditorWindow.TypeTextAsync("var a = 1;}");
 
-            Assert.Equal("        }", EditorWindow.GetLineTextBeforeCaret());
-            Assert.Equal(string.Empty, EditorWindow.GetLineTextAfterCaret());
+            VerifyCurrentLine("        }$$");
 
-            Assert.Contains(@"if (true)
+            VerifyTextContains(@"if (true)
         {
             var a = 1;
-        }
-", EditorWindow.GetText());
+        }");
         }
 
         [WorkItem(653540, "DevDiv")]
@@ -101,11 +94,10 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
             await EditorWindow.TypeTextAsync("class A { int i;");
             EditorWindow.SendKey(EditorWindow.VirtualKey.Enter);
 
-            Assert.Equal(string.Empty, EditorWindow.GetLineTextBeforeCaret());
-            Assert.Equal("}", EditorWindow.GetLineTextAfterCaret());
+            VerifyCurrentLine("$$}");
 
-            Assert.Contains(@"class A { int i;
-}", EditorWindow.GetText());
+            VerifyTextContains(@"class A { int i;
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -116,15 +108,11 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
 }");
 
             await EditorWindow.TypeTextAsync("void Foo(");
-
-            Assert.Equal("    void Foo(", EditorWindow.GetLineTextBeforeCaret());
-            Assert.Equal(")", EditorWindow.GetLineTextAfterCaret());
+            VerifyCurrentLine("    void Foo($$)");
 
             await EditorWindow.TypeTextAsync("int x");
             EditorWindow.SendKey(EditorWindow.VirtualKey.Tab);
-
-            Assert.Equal("    void Foo(int x)", EditorWindow.GetLineTextBeforeCaret());
-            Assert.Equal(string.Empty, EditorWindow.GetLineTextAfterCaret());
+            VerifyCurrentLine("    void Foo(int x)$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -138,8 +126,7 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
             EditorWindow.SendKey(EditorWindow.VirtualKey.Escape);
             await EditorWindow.TypeTextAsync(")");
 
-            Assert.Equal("    void Foo()", EditorWindow.GetLineTextBeforeCaret());
-            Assert.Equal("", EditorWindow.GetLineTextAfterCaret());
+            VerifyCurrentLine("    void Foo()$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -151,8 +138,7 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
 
             await EditorWindow.TypeTextAsync("int [");
 
-            Assert.Equal("    int [", EditorWindow.GetLineTextBeforeCaret());
-            Assert.Equal("]", EditorWindow.GetLineTextAfterCaret());
+            VerifyCurrentLine("    int [$$]");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -165,8 +151,7 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
             await EditorWindow.TypeTextAsync("int [");
             await EditorWindow.TypeTextAsync("]");
 
-            Assert.Equal("    int []", EditorWindow.GetLineTextBeforeCaret());
-            Assert.Equal(string.Empty, EditorWindow.GetLineTextAfterCaret());
+            VerifyCurrentLine("    int []$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -179,8 +164,7 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
             await EditorWindow.TypeTextAsync("string str = \"");
             EditorWindow.SendKey(EditorWindow.VirtualKey.Tab);
 
-            Assert.Equal("    string str = \"\"", EditorWindow.GetLineTextBeforeCaret());
-            Assert.Equal(string.Empty, EditorWindow.GetLineTextAfterCaret());
+            VerifyCurrentLine("    string str = \"\"$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -193,8 +177,7 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
             await EditorWindow.TypeTextAsync("string str = \"Hi Roslyn!");
             await EditorWindow.TypeTextAsync("\"");
 
-            Assert.Equal("    string str = \"Hi Roslyn!\"", EditorWindow.GetLineTextBeforeCaret());
-            Assert.Equal(string.Empty, EditorWindow.GetLineTextAfterCaret());
+            VerifyCurrentLine("    string str = \"Hi Roslyn!\"$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -209,8 +192,7 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
             WaitForAllAsyncOperations();
             EditorWindow.SendKey(EditorWindow.VirtualKey.Tab);
 
-            Assert.Equal("    System.Action<>", EditorWindow.GetLineTextBeforeCaret());
-            Assert.Equal(string.Empty, EditorWindow.GetLineTextAfterCaret());
+            VerifyCurrentLine("    System.Action<>$$");
 
             SetUpEditor(@"class C {
     //method decl
@@ -221,8 +203,7 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
             WaitForAllAsyncOperations();
             EditorWindow.SendKey(EditorWindow.VirtualKey.Tab);
 
-            Assert.Equal("    void GenericMethod<>", EditorWindow.GetLineTextBeforeCaret());
-            Assert.Equal(string.Empty, EditorWindow.GetLineTextAfterCaret());
+            VerifyCurrentLine("    void GenericMethod<>$$");
 
             SetUpEditor(@"class C {
     //delegate
@@ -231,8 +212,7 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
 
             await EditorWindow.TypeTextAsync("delegate void Del<");
 
-            Assert.Equal("    delegate void Del<", EditorWindow.GetLineTextBeforeCaret());
-            Assert.Equal(">", EditorWindow.GetLineTextAfterCaret());
+            VerifyCurrentLine("    delegate void Del<$$>");
 
             SetUpEditor(@"
 //using directive
@@ -241,8 +221,7 @@ $$
 
             await EditorWindow.TypeTextAsync("using ActionOfT = System.Action<");
 
-            Assert.Equal("using ActionOfT = System.Action<", EditorWindow.GetLineTextBeforeCaret());
-            Assert.Equal(">", EditorWindow.GetLineTextAfterCaret());
+            VerifyCurrentLine("using ActionOfT = System.Action<$$>");
 
             SetUpEditor(@"
 //class
@@ -253,8 +232,7 @@ $$
             WaitForAllAsyncOperations();
             await EditorWindow.TypeTextAsync(">");
 
-            Assert.Equal("class GenericClass<>", EditorWindow.GetLineTextBeforeCaret());
-            Assert.Equal(string.Empty, EditorWindow.GetLineTextAfterCaret());
+            VerifyCurrentLine("class GenericClass<>$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -265,17 +243,14 @@ $$
 }");
 
             await EditorWindow.TypeTextAsync("char c = '");
-            Assert.Equal("    char c = '", EditorWindow.GetLineTextBeforeCaret());
-            Assert.Equal("'", EditorWindow.GetLineTextAfterCaret());
+            VerifyCurrentLine("    char c = '$$'");
 
             EditorWindow.SendKey(EditorWindow.VirtualKey.Delete);
             EditorWindow.SendKey(EditorWindow.VirtualKey.Backspace);
 
             await EditorWindow.TypeTextAsync("'\u6666");
             await EditorWindow.TypeTextAsync("'");
-
-            Assert.Equal("    char c = '\u6666'", EditorWindow.GetLineTextBeforeCaret());
-            Assert.Equal(string.Empty, EditorWindow.GetLineTextAfterCaret());
+            VerifyCurrentLine("    char c = '\u6666'$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -301,7 +276,7 @@ $$
             EditorWindow.SendKey(EditorWindow.VirtualKey.Tab);
             await EditorWindow.TypeTextAsync(";");
 
-            Assert.Contains("        var arr = new object[,] { { Foo(0) }, { Foo(Foo(\"hello\")) } };", EditorWindow.GetText());
+            VerifyTextContains("        var arr = new object[,] { { Foo(0) }, { Foo(Foo(\"hello\")) } };");
         }
     }
 }
