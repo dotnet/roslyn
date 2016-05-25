@@ -121,5 +121,13 @@ class D
 {
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestSetWithBody1()
+        {
+            await TestAsync(
+@"class C { int [||]Prop { set { var v = value; } } }",
+@"class C { private void SetProp(int value) { var v = value; } }");
+        }
     }
 }

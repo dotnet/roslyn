@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Composition;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -87,13 +88,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             SemanticModel semanticModel, SyntaxGenerator generator, IMethodSymbol getMethod, AccessorDeclarationSyntax getAccessorDeclaration)
         {
             return generator.MethodDeclaration(
-                getMethod, "Get" + getMethod.AssociatedSymbol.Name, getAccessorDeclaration.Body.Statements);
+                getMethod, "Get" + getMethod.AssociatedSymbol.Name, getAccessorDeclaration.Body?.Statements);
         }
 
         private SyntaxNode ConvertSetAccessorToMethod(
             SemanticModel semanticModel, SyntaxGenerator generator, IMethodSymbol setMethod, AccessorDeclarationSyntax setAccessorDeclaration)
         {
-            return generator.MethodDeclaration(setMethod, setAccessorDeclaration.Body.Statements);
+            return generator.MethodDeclaration(
+                setMethod, "Set" + setMethod.AssociatedSymbol.Name, setAccessorDeclaration.Body?.Statements);
         }
 
         public void ReplaceReference(SyntaxEditor editor, SyntaxToken nameToken)
@@ -119,10 +121,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
 
                 editor.ReplaceNode(identifierName, identifierName.WithIdentifier(newIdentifier));
             }
-            else if (expression.IsOnlyWrittenTo())
+            else if (expression.IsLeftSideOfAssignExpression())
             {
                 // We're only being written to here.  This is safe to replace with a call to the 
                 // setter.
+                var value = ((BinaryExpressionSyntax)expression.Parent).Right;
+                ReplaceWithSetInvocation(editor, nameToken, value);
             }
             else if (identifierName.IsWrittenTo())
             {
@@ -169,8 +173,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             editor.ReplaceNode(expression, invocation);
         }
 
-        private static ExpressionSyntax GetGetInvocationExpression(
-            SyntaxToken nameToken, string conflictMessage = null)
+        private static void ReplaceWithSetInvocation(
+            SyntaxEditor editor, SyntaxToken nameToken, ExpressionSyntax value)
         {
             var identifierName = (IdentifierNameSyntax)nameToken.Parent;
             var expression = (ExpressionSyntax)identifierName;
@@ -179,7 +183,35 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                 expression = expression.Parent as ExpressionSyntax;
             }
 
-            var newIdentifier = SyntaxFactory.Identifier("Get" + nameToken.ValueText);
+            var invocation = GetSetInvocationExpression(nameToken, value);
+            editor.ReplaceNode(expression, invocation);
+        }
+
+        private static ExpressionSyntax GetGetInvocationExpression(
+            SyntaxToken nameToken, string conflictMessage = null)
+        {
+            return GetInvocationExpression(nameToken, "Get" + nameToken.ValueText,
+                argument: null, conflictMessage: conflictMessage);
+        }
+
+        private static ExpressionSyntax GetSetInvocationExpression(
+            SyntaxToken nameToken, ExpressionSyntax expression, string conflictMessage = null)
+        {
+            return GetInvocationExpression(nameToken, "Set" + nameToken.ValueText,
+                argument: SyntaxFactory.Argument(expression), conflictMessage: conflictMessage);
+        }
+
+        private static ExpressionSyntax GetInvocationExpression(
+            SyntaxToken nameToken, string name, ArgumentSyntax argument, string conflictMessage = null)
+        {
+            var identifierName = (IdentifierNameSyntax)nameToken.Parent;
+            var expression = (ExpressionSyntax)identifierName;
+            if (expression.IsRightSideOfDotOrArrow())
+            {
+                expression = expression.Parent as ExpressionSyntax;
+            }
+
+            var newIdentifier = SyntaxFactory.Identifier(name);
 
             if (conflictMessage != null)
             {
@@ -191,9 +223,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                 SyntaxFactory.IdentifierName(newIdentifier)
                              .WithLeadingTrivia(identifierName.GetLeadingTrivia()));
 
-            updatedExpression = SyntaxFactory.InvocationExpression(updatedExpression)
-                                             .WithTrailingTrivia(identifierName.GetTrailingTrivia());
-            return updatedExpression;
+            var invocation = SyntaxFactory.InvocationExpression(updatedExpression)
+                                          .WithTrailingTrivia(identifierName.GetTrailingTrivia());
+
+            if (argument != null)
+            {
+                invocation = invocation.AddArgumentListArguments(argument);
+            }
+
+            return invocation;
         }
     }
 }
