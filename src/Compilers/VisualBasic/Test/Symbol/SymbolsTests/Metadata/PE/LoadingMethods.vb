@@ -6,8 +6,8 @@ Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Test.Utilities
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
+Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
 
@@ -925,5 +925,35 @@ BC30657: 'VT' has a return type that is not supported or parameter types that ar
                             ~~
 ]]>)
         End Sub
+
+        <Fact, WorkItem(217681, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217681")>
+        Public Sub LoadingMethodWithPublicAndPrivateAccessibility()
+            Dim source =
+         <compilation>
+             <file>
+Class D
+   Shared Sub Main()
+      Dim test = new C()
+      test.M()
+      System.Console.WriteLine(test.F)
+
+      Dim test2 = new C.C2()
+      test2.M2()
+   End Sub
+End Class
+    </file>
+         </compilation>
+
+            Dim references = {MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.PublicAndPrivateFlags)}
+
+            Dim comp = CreateCompilationWithMscorlib(source, references:=references)
+            comp.VerifyDiagnostics(
+                Diagnostic(ERRID.ERR_InaccessibleMember3, "test.M").WithArguments("C", "Private Overloads Sub M()", "Private").WithLocation(4, 7),
+                Diagnostic(ERRID.ERR_InaccessibleSymbol2, "test.F").WithArguments("C.F", "Private").WithLocation(5, 32),
+                Diagnostic(ERRID.ERR_InaccessibleSymbol2, "C.C2").WithArguments("C.C2", "Protected Friend").WithLocation(7, 23),
+                Diagnostic(ERRID.ERR_InaccessibleMember3, "test2.M2").WithArguments("C2", "Private Overloads Sub M2()", "Private").WithLocation(8, 7)
+                )
+        End Sub
+
     End Class
 End Namespace
