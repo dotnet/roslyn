@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                 _propertyBackingField = propertyBackingField;
 
                 _identifierName = (IdentifierNameSyntax)nameToken.Parent;
-                _expression = (ExpressionSyntax)_identifierName;
+                _expression = _identifierName;
                 if (_expression.IsRightSideOfDotOrArrow())
                 {
                     _expression = _expression.Parent as ExpressionSyntax;
@@ -205,8 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                 {
                     // We're only being written to here.  This is safe to replace with a call to the 
                     // setter.
-                    var value = ((AssignmentExpressionSyntax)_expression.Parent).Right;
-                    ReplaceWrite(value);
+                    ReplaceWrite(writeValue: ((AssignmentExpressionSyntax)_expression.Parent).Right);
                 }
                 else if (_expression.IsLeftSideOfAnyAssignExpression())
                 {
@@ -222,7 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                         : SyntaxKind.SubtractExpression;
 
                     ReplaceReadAndWrite(operatorKind,
-                        SyntaxFactory.LiteralExpression(
+                        writeValue: SyntaxFactory.LiteralExpression(
                             SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1)));
                 }
                 else if (_expression.IsParentKind(SyntaxKind.AnonymousObjectMemberDeclarator))
@@ -234,6 +233,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
 
                     if (declarator.NameEquals != null)
                     {
+                        // We already have the form: new { Prop = ... }
+                        // We only need to replace the right side of the equals.
                         _editor.ReplaceNode(_expression, readExpression);
                     }
                     else
@@ -257,6 +258,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                 _editor.ReplaceNode(_expression, readExpression);
             }
 
+            private void ReplaceWrite(ExpressionSyntax writeValue)
+            {
+                var writeExpression = GetWriteExpression(writeValue);
+                _editor.ReplaceNode(_expression.Parent, writeExpression);
+            }
+
             private ExpressionSyntax GetReadExpression(string conflictMessage = null)
             {
                 if (ShouldReadFromBackingField())
@@ -272,17 +279,32 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                 }
             }
 
+            private ExpressionSyntax GetWriteExpression(ExpressionSyntax writeValue)
+            {
+                if (ShouldWriteToBackingField())
+                {
+                    var newIdentifierToken = SyntaxFactory.Identifier(_propertyBackingField.Name);
+                    var newIdentifierName = _identifierName.WithIdentifier(newIdentifierToken);
+
+                    return _expression.ReplaceNode(_identifierName, newIdentifierName);
+                }
+                else
+                {
+                    return GetSetInvocationExpression(writeValue);
+                }
+            }
+
             private ExpressionSyntax GetGetInvocationExpression(string conflictMessage = null)
             {
                 return GetInvocationExpression("Get" + _nameToken.ValueText,
                     argument: null, conflictMessage: conflictMessage);
             }
+
             private ExpressionSyntax GetInvocationExpression(
                 string name, ArgumentSyntax argument, string conflictMessage = null)
             {
-                var newIdentifier = SyntaxFactory.Identifier(name);
-
-                newIdentifier = AddConflictAnnotation(newIdentifier, conflictMessage);
+                var newIdentifier = AddConflictAnnotation(
+                    SyntaxFactory.Identifier(name), conflictMessage);
 
                 var updatedExpression = _expression.ReplaceNode(
                     _identifierName,
@@ -306,19 +328,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                 return _propertyBackingField != null && _property.GetMethod == null;
             }
 
-            private void ReplaceWrite(ExpressionSyntax writeValue)
-            {
-                if (ShouldWriteToBackingField())
-                {
-                    ReplaceWithBackingFieldReference();
-                }
-                else
-                {
-                    var invocation = GetSetInvocationExpression(writeValue);
-                    _editor.ReplaceNode(_expression.Parent, invocation);
-                }
-            }
-
             private void ReplaceWithBackingFieldReference()
             {
                 var newIdentifier = SyntaxFactory.IdentifierName(
@@ -337,6 +346,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             {
                 return _propertyBackingField != null && _property.SetMethod == null;
             }
+
             private void HandleAssignExpression()
             {
                 // We're being read from and written to from a compound assignment 
@@ -355,18 +365,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                     parent.IsKind(SyntaxKind.DivideAssignmentExpression) ? SyntaxKind.DivideExpression :
                     parent.IsKind(SyntaxKind.ModuloAssignmentExpression) ? SyntaxKind.ModuloExpression : SyntaxKind.None;
 
-                ReplaceReadAndWrite(
-                    operatorKind, parent.Right.Parenthesize());
+                ReplaceReadAndWrite(operatorKind, writeValue: parent.Right.Parenthesize());
             }
 
             private void ReplaceReadAndWrite(
                 SyntaxKind operatorKind,
-                ExpressionSyntax value,
+                ExpressionSyntax writeValue,
                 string conflictMessage = null)
             {
                 var readExpression = GetReadExpression(conflictMessage);
                 var binaryExpression = SyntaxFactory.BinaryExpression(
-                    operatorKind, readExpression, value);
+                    operatorKind, readExpression, writeValue);
 
                 if (ShouldWriteToBackingField())
                 {
