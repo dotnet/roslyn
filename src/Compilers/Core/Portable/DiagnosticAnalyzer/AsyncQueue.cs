@@ -182,7 +182,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     //       the queue can either have waiters or items, not both
                     //       adding an item would "unwait" the waiters
                     //       the fact that we _had_ waiters at the time we completed the queue
-                    //       guarantees that there is no items in the que now or in the future, 
+                    //       guarantees that there is no items in the queue now or in the future, 
                     //       so it is safe to cancel waiters with no loss of diagnostics
                     Debug.Assert(this.Count == 0, "we should not be cancelling the waiters when we have items in the queue");
                     foreach (var tcs in existingWaiters)
