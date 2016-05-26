@@ -578,34 +578,12 @@ End Class
     </file>
 </compilation>
 
-            ' This is the same output as the native VB compiler
-            Dim comp = CompileAndVerify(source, expectedOutput:="621558279390000000")
-            comp.VerifyDiagnostics()
-
-            Dim libComp = CreateCompilationWithMscorlib(source)
-            Dim libCompRef = New VisualBasicCompilationReference(libComp)
-
-            Dim source2 =
-<compilation>
-    <file name="attr.vb"><![CDATA[
-Public Class Consumer
-    Public Shared Sub Main()
-        System.Console.WriteLine(Bar.F.Ticks)
-    End Sub
-End Class
-]]>
-    </file>
-</compilation>
-
-            Dim comp2 = CompileAndVerify(source2, expectedOutput:="621558279390000000", additionalRefs:={libCompRef})
-
-            ' Using the native compiler, this code crashes at runtime: Unhandled Exception: System.ArgumentOutOfRangeException: Ticks must be between DateTime.MinValue.Ticks and DateTime.MaxValue.Ticks.
-            Dim libAssemblyRef = libComp.EmitToImageReference()
-            Dim comp3 = CreateCompilationWithMscorlib(source2, references:={libAssemblyRef})
-            comp3.AssertTheseDiagnostics(<expected><![CDATA[
-BC30799: Field 'Bar.F' has an invalid constant value.
-        System.Console.WriteLine(Bar.F.Ticks)
-                                 ~~~~~
+            ' The native compiler would output 621558279390000000
+            Dim comp = CreateCompilationWithMscorlib(source)
+            comp.AssertTheseDiagnostics(<expected><![CDATA[
+BC37228: The field has multiple distinct constant values.
+    <DateTimeConstant(-1)>
+     ~~~~~~~~~~~~~~~~~~~~
 ]]></expected>)
 
         End Sub
@@ -725,7 +703,7 @@ End Class
     </file>
 </compilation>
 
-            ' Using the native compiler, this code outputs 621558279390000000
+            ' Using the native compiler, this code crashed
             Dim ilReference = CompileIL(ilSource.Value)
             Dim comp = CreateCompilationWithMscorlib(source, references:={ilReference})
             AssertTheseDiagnostics(comp,
