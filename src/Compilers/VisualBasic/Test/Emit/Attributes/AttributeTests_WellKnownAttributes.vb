@@ -506,6 +506,8 @@ End Class
             ' .custom instance void [mscorlib]System.Runtime.CompilerServices.DateTimeConstantAttribute:: .ctor(Int64) = (1 00 80 73 3E 42 F6 37 A0 08 00 00 )
             ' .custom instance void [mscorlib]System.Runtime.CompilerServices.DateTimeConstantAttribute:: .ctor(Int64) = (1 00 FF FF FF FF FF FF FF FF 00 00 )
 
+            ' Using the native compiler, the code would output 621558279390000000
+
             Dim comp = CreateCompilationWithMscorlib(source)
             AssertTheseDiagnostics(comp,
                                    <expected><![CDATA[
@@ -544,6 +546,8 @@ End Class
             ' .custom instance void [mscorlib]System.Runtime.CompilerServices.DateTimeConstantAttribute:: .ctor(Int64) = (1 00 2A 00 00 00 00 00 00 00 00 00 )
             ' .custom instance void [mscorlib]System.Runtime.CompilerServices.DateTimeConstantAttribute:: .ctor(Int64) = (1 00 80 73 3E 42 F6 37 A0 08 00 00 )
 
+            ' Using the native compiler, the code would output 621558279390000000
+
             Dim comp = CreateCompilationWithMscorlib(source)
             AssertTheseDiagnostics(comp,
                                    <expected><![CDATA[
@@ -552,7 +556,6 @@ BC37226: The parameter has multiple distinct default values.
                                                                             ~~~~~~~~~~~~~~~~~~~~~~~
 ]]></expected>)
         End Sub
-
 
         <WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>
         <Fact()>
@@ -574,7 +577,6 @@ End Class
 ]]>
     </file>
 </compilation>
-
 
             ' This is the same output as the native VB compiler
             Dim comp = CompileAndVerify(source, expectedOutput:="621558279390000000")
