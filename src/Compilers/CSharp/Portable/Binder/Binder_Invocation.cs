@@ -113,6 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             boundExpression.WasCompilerGenerated = true;
 
             var analyzedArguments = AnalyzedArguments.GetInstance();
+            Debug.Assert(!args.Any(e => e.Kind == BoundKind.OutVarLocalPendingInference));
             analyzedArguments.Arguments.AddRange(args);
             BoundExpression result = BindInvocationExpression(
                 node, node, methodName, boundExpression, analyzedArguments, diagnostics, queryClause,
@@ -329,6 +330,30 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ImmutableArray<BoundExpression> BuildArgumentsForDynamicInvocation(AnalyzedArguments arguments, DiagnosticBag diagnostics)
         {
+            for (int i = 0; i < arguments.Arguments.Count; i++)
+            {
+                if (arguments.Arguments[i].Kind == BoundKind.OutVarLocalPendingInference)
+                {
+                    var builder = ArrayBuilder<BoundExpression>.GetInstance(arguments.Arguments.Count);
+                    builder.AddRange(arguments.Arguments);
+
+                    do
+                    {
+                        BoundExpression argument = builder[i];
+
+                        if (argument.Kind == BoundKind.OutVarLocalPendingInference)
+                        {
+                            builder[i] = ((OutVarLocalPendingInference)argument).FailInference(this, diagnostics);
+                        }
+
+                        i++;
+                    }
+                    while (i < builder.Count);
+
+                    return builder.ToImmutableAndFree();
+                }
+            }
+
             return arguments.Arguments.ToImmutable();
         }
 
@@ -1100,7 +1125,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundKind argumentKind = oldArguments[i].Kind;
 
-                if (argumentKind == BoundKind.UnboundLambda && i < parameterCount)
+                if (argumentKind == BoundKind.OutVarLocalPendingInference || 
+                    (argumentKind == BoundKind.UnboundLambda && i < parameterCount))
                 {
                     ArrayBuilder<BoundExpression> newArguments = ArrayBuilder<BoundExpression>.GetInstance(argumentCount);
                     newArguments.AddRange(oldArguments);
@@ -1120,7 +1146,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         newArguments[i] = ((UnboundLambda)oldArgument).Bind(parameterType);
                                     }
                                     break;
+
+                                case BoundKind.OutVarLocalPendingInference:
+                                    newArguments[i] = ((OutVarLocalPendingInference)oldArgument).SetInferredType(parameters[i].Type, success: true);
+                                    break;
                             }
+                        }
+                        else if (oldArgument.Kind == BoundKind.OutVarLocalPendingInference)
+                        {
+                            newArguments[i] = ((OutVarLocalPendingInference)oldArgument).FailInference(this, null);
                         }
 
                         i++;

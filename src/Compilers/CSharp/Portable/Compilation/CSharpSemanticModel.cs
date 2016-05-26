@@ -519,10 +519,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Named arguments handled in special way.
                 return this.GetNamedArgumentSymbolInfo((IdentifierNameSyntax)expression, cancellationToken);
             }
-            else
+            else if (expression.Parent?.Kind() == SyntaxKind.Argument && 
+                     ((ArgumentSyntax)expression.Parent).Type == expression)
             {
-                return this.GetSymbolInfoWorker(expression, SymbolInfoOptions.DefaultOptions, cancellationToken);
+                TypeSymbol outVarType = (GetDeclaredSymbol((ArgumentSyntax)expression.Parent, cancellationToken) as LocalSymbol)?.Type;
+
+                if (outVarType?.IsErrorType() == false)
+                {
+                    return new SymbolInfo(outVarType);
+                }
+
+                return SymbolInfo.None;
             }
+
+            return this.GetSymbolInfoWorker(expression, SymbolInfoOptions.DefaultOptions, cancellationToken);
         }
 
         /// <summary>

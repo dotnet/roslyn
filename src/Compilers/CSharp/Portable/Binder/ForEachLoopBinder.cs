@@ -890,5 +890,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             throw ExceptionUtilities.Unreachable;
         }
+
+        internal override SyntaxNode ScopeDesignator
+        {
+            get
+            {
+                return _syntax;
+            }
+        }
     }
 }

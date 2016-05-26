@@ -1367,6 +1367,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_RefReturnLocal = 8924,
         ERR_RefReturnLocal2 = 8925,
         ERR_RefReturnStructThis = 8926,
+        ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList = 8927,
+        ERR_TypeInferenceFailedForImplicitlyTypedOutVariable = 8928,
+        ERR_OutVarInConstructorInitializer = 8929,
 
         // more diagnostics for ref locals and ref returns
         ERR_MustBeRefAssignable = 8930,

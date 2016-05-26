@@ -4873,6 +4873,15 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
     <value>tuples</value>
   </data>
   <data name="IDS_FeatureOutVar" xml:space="preserve">
-    <value>out var</value>
+    <value>out variable declaration</value>
+  </data>
+  <data name="ERR_ImplicitlyTypedOutVariableUsedInTheSameArgumentList" xml:space="preserve">
+    <value>Reference to an implicitly-typed out variable '{0}' is not permitted in the same argument list.</value>
+  </data>
+  <data name="ERR_TypeInferenceFailedForImplicitlyTypedOutVariable" xml:space="preserve">
+    <value>Cannot infer the type of implicitly-typed out variable.</value>
+  </data>
+  <data name="ERR_OutVarInConstructorInitializer" xml:space="preserve">
+    <value>Out variable declarations are not allowed within constructor initializers.</value>
   </data>
 </root>

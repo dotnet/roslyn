@@ -168,6 +168,18 @@ namespace Microsoft.CodeAnalysis.CSharp
             return this.Next.GetDeclaredLocalFunctionsForScope(scopeDesignator);
         }
 
+        /// <summary>
+        /// If this binder owns a scope for locals, return syntax node that is used
+        /// as the scope designator. Otherwise, null.
+        /// </summary>
+        internal virtual SyntaxNode ScopeDesignator
+        {
+            get
+            {
+                return null;
+            }
+        }
+
         internal virtual bool IsLocalFunctionsScopeBinder
         {
             get

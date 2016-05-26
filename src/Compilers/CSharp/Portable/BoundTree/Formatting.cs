@@ -75,4 +75,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             get { throw ExceptionUtilities.Unreachable; }
         }
     }
+
+    internal partial class OutVarLocalPendingInference
+    {
+        public override object Display
+        {
+            get
+            {
+                return MessageID.IDS_FeatureOutVar.Localize();
+            }
+        }
+    }
 }
