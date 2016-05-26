@@ -148,7 +148,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             {
                 // Code wasn't legal (you can't reference a property in an out/ref position in C#).
                 // Just replace this with a simple GetCall, but mark it so it's clear there's an error.
-                ReplaceWithGetInvocation(editor, nameToken, CSharpFeaturesResources.Property_cannot_safely_be_replaced_with_a_method_call);
+                ReplaceRead(editor, nameToken, CSharpFeaturesResources.Property_cannot_safely_be_replaced_with_a_method_call);
             }
             else if (expression.IsAttributeNamedArgumentIdentifier())
             {
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                 // We're only being written to here.  This is safe to replace with a call to the 
                 // setter.
                 var value = ((AssignmentExpressionSyntax)expression.Parent).Right;
-                ReplaceWithSetInvocationOrFieldAssignment(editor, nameToken, propertyBackingField, value);
+                ReplaceWrite(editor, nameToken, propertyBackingField, value);
             }
             else if (expression.IsLeftSideOfAnyAssignExpression())
             {
@@ -178,7 +178,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                     ? SyntaxKind.AddExpression
                     : SyntaxKind.SubtractExpression;
 
-                ReplaceWithGetAndSetInvocation(
+                ReplaceReadAndWrite(
                     editor, nameToken, propertyBackingField, operatorKind,
                     SyntaxFactory.LiteralExpression(
                         SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1)));
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
 
                 if (declarator.NameEquals != null)
                 {
-                    ReplaceWithGetInvocation(editor, nameToken);
+                    ReplaceRead(editor, nameToken);
                 }
                 else
                 {
@@ -205,7 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             else
             {
                 // No writes.  Replace this with a call to the getter.
-                ReplaceWithGetInvocation(editor, nameToken);
+                ReplaceRead(editor, nameToken);
             }
         }
 
@@ -232,11 +232,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                 parent.IsKind(SyntaxKind.DivideAssignmentExpression) ? SyntaxKind.DivideExpression :
                 parent.IsKind(SyntaxKind.ModuloAssignmentExpression) ? SyntaxKind.ModuloExpression : SyntaxKind.None;
 
-            ReplaceWithGetAndSetInvocation(
+            ReplaceReadAndWrite(
                 editor, nameToken, propertyBackingField, operatorKind, parent.Right.Parenthesize());
         }
 
-        private static void ReplaceWithGetAndSetInvocation(
+        private static void ReplaceReadAndWrite(
             SyntaxEditor editor, SyntaxToken nameToken, IFieldSymbol propertyBackingField,
             SyntaxKind operatorKind, ExpressionSyntax value,
             string conflictMessage = null)
@@ -272,7 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             }
         }
 
-        private static void ReplaceWithGetInvocation(
+        private static void ReplaceRead(
             SyntaxEditor editor, SyntaxToken nameToken, string conflictMessage = null)
         {
             IdentifierNameSyntax identifierName;
@@ -283,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             editor.ReplaceNode(expression, invocation);
         }
 
-        private static void ReplaceWithSetInvocationOrFieldAssignment(
+        private static void ReplaceWrite(
             SyntaxEditor editor, SyntaxToken nameToken,
             IFieldSymbol propertyBackingField, ExpressionSyntax value)
         {

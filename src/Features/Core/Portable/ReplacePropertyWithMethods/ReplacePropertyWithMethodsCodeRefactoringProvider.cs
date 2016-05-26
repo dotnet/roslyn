@@ -21,6 +21,9 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
        Name = nameof(ReplacePropertyWithMethodsCodeRefactoringProvider)), Shared]
     internal class ReplacePropertyWithMethodsCodeRefactoringProvider : CodeRefactoringProvider
     {
+        private const string GetPrefix = "Get";
+        private const string SetPrefix = "Set";
+
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
             var document = context.Document;
@@ -64,7 +67,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             // Looks good!
             context.RegisterRefactoring(new ReplacePropertyWithMethodsCodeAction(
                 string.Format(resourceString, propertyName),
-                c => ReplacePropertyWithMethods(context.Document, /*propertyName, */ propertySymbol, c),
+                c => ReplacePropertyWithMethods(context.Document, propertySymbol, c),
                 propertyName));
         }
 
@@ -73,6 +76,12 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
            IPropertySymbol propertySymbol,
            CancellationToken cancellationToken)
         {
+            var desiredMethodSuffix = NameGenerator.GenerateUniqueName(propertySymbol.Name,
+                n => !HasAnyMatchingGetOrSetMethods(propertySymbol, n));
+
+            var getMethodName = GetPrefix + desiredMethodSuffix;
+            var setMethodName = SetPrefix + desiredMethodSuffix;
+
             var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 
             var originalSolution = document.Project.Solution;
@@ -107,6 +116,17 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 originalSolution, updatedSolution, propertyReferences, definitionToBackingField, cancellationToken).ConfigureAwait(false);
 
             return updatedSolution;
+        }
+
+        private bool HasAnyMatchingGetOrSetMethods(IPropertySymbol property, string name)
+        {
+            return false;
+            //return NameGenerator.GenerateUniqueName(name,
+            //    n =>
+            //    {
+            //        var type = property.ContainingType;
+            //        var 
+            //    });
         }
 
         private static IFieldSymbol GetBackingField(IPropertySymbol property)
