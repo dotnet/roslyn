@@ -168,14 +168,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return false;
                 }
 
-                existingWaiters = _waiters;
                 _completed = true;
+
+                existingWaiters = _waiters;
                 _waiters = null;
             }
 
             Task.Run(() =>
             {
-                if (existingWaiters != null)
+                if (existingWaiters?.Count > 0)
                 {
                     // cancel waiters.
                     // NOTE: AsyncQueue has an invariant that 
