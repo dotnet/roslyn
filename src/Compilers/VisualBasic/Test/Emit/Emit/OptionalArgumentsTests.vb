@@ -1152,6 +1152,7 @@ Imports System.Runtime.InteropServices
 Interface I
     Sub M1(<DefaultParameterValue(GetType(C)), DecimalConstant(0, 0, 0, 0, 0)> o As Decimal)
     Sub M2(<DefaultParameterValue(0), DecimalConstant(0, 0, 0, 0, GetType(C))> o As Decimal)
+    Sub M3(<DefaultParameterValue(0), DecimalConstant(0, 0, 0, 0, 0)> o As Decimal)
 End Interface
 ]]>
     </file>
@@ -1160,9 +1161,15 @@ End Interface
 BC30002: Type 'C' is not defined.
     Sub M1(<DefaultParameterValue(GetType(C)), DecimalConstant(0, 0, 0, 0, 0)> o As Decimal)
                                           ~
+BC37226: The parameter has multiple distinct default values.
+    Sub M1(<DefaultParameterValue(GetType(C)), DecimalConstant(0, 0, 0, 0, 0)> o As Decimal)
+                                               ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 BC30002: Type 'C' is not defined.
     Sub M2(<DefaultParameterValue(0), DecimalConstant(0, 0, 0, 0, GetType(C))> o As Decimal)
                                                                           ~
+BC37226: The parameter has multiple distinct default values.
+    Sub M3(<DefaultParameterValue(0), DecimalConstant(0, 0, 0, 0, 0)> o As Decimal)
+                                      ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 ]]></errors>)
         End Sub
 
