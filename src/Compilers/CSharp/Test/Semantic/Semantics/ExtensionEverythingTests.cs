@@ -16,11 +16,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         private static readonly CSharpParseOptions parseOptions = TestOptions.Regular.WithExtensionEverythingFeature();
 
-        // TODO(t-evhau): Test extending struct/interface/other odd types (types that aren't NamedTypeSymbol? - array, pointer, type parameter, dynamic)
+        // TODO(t-evhau): Test extending struct/interface/other odd types (types that aren't NamedTypeSymbol? - array, pointer, type parameter, dynamic). Also test no "base type" at all.
         // TODO(t-evhau): "extension struct" etc. syntax
         // TODO(t-evhau): Extending a COM class (LocalRewriter.MakeArguments special-cases it)
         // TODO(t-evhau): Extension .Add collection initializer, foreach and other duck typing calls
         // TODO(t-evhau): Extension method with params array
+        // TODO(t-evhau): Extension method converted to delegate
 
         [Fact]
         public void SuccessTest()
@@ -28,11 +29,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             var text = @"
 #define __DEMO__
 
-class Bar
+class BaseClass
 {
 }
 
-extension class Foo : Bar
+extension class ExtClass : BaseClass
 {
     public void Ext()
     {
@@ -44,7 +45,58 @@ class Program
 {
     static void Main(string[] args)
     {
-        new Bar().Ext();
+        new BaseClass().Ext();
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlibAndSystemCore(text, parseOptions: parseOptions);
+            CompileAndVerify(source: text,
+                parseOptions: parseOptions,
+                additionalRefs: new[] { SystemCoreRef }, expectedOutput: "Hello, world!");
+        }
+
+        [Fact]
+        public void VariousMemberTests()
+        {
+            var text = @"
+#define __DEMO__
+
+using System;
+
+class BaseClass
+{
+}
+
+extension class ExtClass : BaseClass
+{
+    public int ExtMethod()
+    {
+        return 2;
+    }
+    public int ExtProp
+    {
+        get { return 2; }
+    }
+    public int ExtStaticMethod()
+    {
+        return 2;
+    }
+    public int ExtStaticProp
+    {
+        get { return 2; }
+    }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var obj = new BaseClass();
+        Console.Write(obj.ExtMethod());
+        Console.Write(obj.ExtProp);
+        Console.Write(BaseClass.ExtStaticMethod());
+        Console.Write(BaseClass.ExtStaticProp);
     }
 }
 ";
@@ -53,7 +105,7 @@ class Program
             comp.VerifyDiagnostics();
             CompileAndVerify(source: text,
                 parseOptions: parseOptions,
-                additionalRefs: new[] { SystemCoreRef }, expectedOutput: "Hello, world!");
+                additionalRefs: new[] { SystemCoreRef }, expectedOutput: "2222");
         }
 
         [Fact]

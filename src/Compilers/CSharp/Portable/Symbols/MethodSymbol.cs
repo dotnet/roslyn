@@ -692,12 +692,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public MethodSymbol ExpandExtensionClassMethod()
         {
             Debug.Assert(this.MethodKind != MethodKind.ExpandedExtensionClass);
-            if (this.MethodKind != MethodKind.Ordinary)
-            {
-                var x = 2;
-            }
             Debug.Assert(this.MethodKind == MethodKind.Ordinary); // TODO(t-evhau): fix this.
-            return (this.IsInExtensionClass && this.MethodKind != MethodKind.ExpandedExtensionClass) ? ExpandedExtensionClassMethodSymbol.Create(this) : null;
+            if (!this.IsInExtensionClass || this.MethodKind == MethodKind.ExpandedExtensionClass)
+                return null;
+
+            var containingType = this.ContainingType;
+            Debug.Assert(containingType != null);
+            var underlying = containingType.GetUnderlyingMember(this);
+            Debug.Assert(underlying.Kind == SymbolKind.Method);
+            var underlyingMethod = (MethodSymbol)underlying;
+            Debug.Assert(underlyingMethod.MethodKind == MethodKind.ExpandedExtensionClass);
+            return underlyingMethod;
         }
 
         /// <summary>

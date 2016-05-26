@@ -351,9 +351,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        // TODO(t-evhau): BaseType is wrong here. We should directly compute/store the exteded type,
+        // TODO(t-evhau): BaseType is wrong here. We should directly compute/store the extended type,
         // since the semantics of what's valid there are very different than base types.
         public TypeSymbol ExtensionClassType => IsExtensionClass ? BaseType : null;
+
+        // For example, for the following declaration:
+        //     extension class ListIntExt : List<int>
+        //     {
+        //         void Sum();
+        //     }
+        // when GetUnderlyingMember is called with Sum, this is the resulting symbol:
+        //     static void Sum(List<int> @this);
+        // This method works with all supported extension class member types.
+        /// <summary>
+        /// For extension classes, returns the form of the member when used for emitting IL. Otherwise, returns <paramref name="symbol"/> without change.
+        /// </summary>
+        public virtual Symbol GetUnderlyingMember(Symbol symbol)
+        {
+            Debug.Assert(symbol.ContainingType == this);
+            return symbol;
+        }
 
         /// <summary>
         /// Returns true if this type might contain extension methods. If this property
@@ -395,7 +412,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         {
                             Debug.Assert(method.MethodKind != MethodKind.ExpandedExtensionClass);
                             // TODO(t-evhau): This assumes source methods. What about loaded symbols from disk?
-                            // TODO(t-evhau): Cache this? Might need same symbol for all references to this method.
                             var expanded = method.ExpandExtensionClassMethod();
                             Debug.Assert(expanded != null);
                             methods.Add(expanded);
