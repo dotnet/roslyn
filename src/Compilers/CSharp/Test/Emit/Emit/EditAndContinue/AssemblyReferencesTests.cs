@@ -598,7 +598,7 @@ class C
                 "C: {<>c}",
                 "C.<>c: {<>9__0_0, <>9__0_1#1, <M>b__0_0, <M>b__0_1#1}");
 
-            // Second update is if a method that doesn't produce any synthesized members 
+            // Second update is to a method that doesn't produce any synthesized members 
             var diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables: true)));

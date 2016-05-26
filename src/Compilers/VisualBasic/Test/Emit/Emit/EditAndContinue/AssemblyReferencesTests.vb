@@ -465,7 +465,7 @@ End Class")
                 "C: {_Closure$__}",
                 "C._Closure$__: {$I1-0, $I1-1#1, _Lambda$__1-0, _Lambda$__1-1#1}")
 
-            ' Second update is if a method that doesn't produce any synthesized members 
+            ' Second update is to a method that doesn't produce any synthesized members 
             Dim diff2 = compilation2.EmitDifference(
                 diff1.NextGeneration,
                 ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, f1, f2, GetSyntaxMapFromMarkers(source1, source2), preserveLocalVariables:=True)))
