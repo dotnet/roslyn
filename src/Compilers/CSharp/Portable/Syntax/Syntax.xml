@@ -1101,17 +1101,13 @@
         <summary>SyntaxToken representing the optional ref or out keyword.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="Expression" Type="ExpressionSyntax" Optional="true">
+    <Field Name="ExpressionOrDeclaration" Type="CSharpSyntaxNode" >
       <PropertyComment>
-        <summary>ExpressionSyntax node representing the argument.</summary>
+        <summary>
+          ExpressionSyntax node representing the argument value, 
+          or VariableDeclarationSyntax representing out local declaration.
+        </summary>
       </PropertyComment>
-    </Field>
-    <Field Name="Type" Type="TypeSyntax" Optional="true"/>
-    <Field Name="Identifier" Type="SyntaxToken" Optional="true">
-      <PropertyComment>
-        <summary>Gets the identifier.</summary>
-      </PropertyComment>
-      <Kind Name="IdentifierToken"/>
     </Field>
     <TypeComment>
       <summary>Class which represents the syntax node for argument.</summary>

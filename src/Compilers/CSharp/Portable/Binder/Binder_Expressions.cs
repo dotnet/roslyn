@@ -1370,15 +1370,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                         else
                         {
                             SourceLocalSymbol sourceLocal;
+                            ArgumentSyntax argument;
                             type = null;
 
-                            if (node.SyntaxTree == localSymbolLocation.SourceTree && (object)(sourceLocal = localSymbol as SourceLocalSymbol) != null &&
-                                sourceLocal.IdentifierToken.Parent?.Kind() == SyntaxKind.Argument)
+                            if (node.SyntaxTree == localSymbolLocation.SourceTree && 
+                                (object)(sourceLocal = localSymbol as SourceLocalSymbol) != null &&
+                                ArgumentSyntax.IsIdentifierOfOutVariableDeclaration(sourceLocal.IdentifierToken, out argument))
                             {
-                                var argument = (ArgumentSyntax)sourceLocal.IdentifierToken.Parent;
-
-                                if (argument.Identifier == sourceLocal.IdentifierToken &&
-                                    argument.Type.IsVar)
+                                if (argument.Type.IsVar)
                                 {
                                     // We are referring to an out variable which might need type inference.
                                     // If it is in fact needs inference, it is illegal to reference it in the same argument list that immediately 

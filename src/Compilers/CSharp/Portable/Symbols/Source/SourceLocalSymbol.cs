@@ -95,10 +95,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Debug.Assert(declarationKind != LocalDeclarationKind.ForEachIterationVariable);
             if (initializer == null)
             {
-                if (identifierToken.Parent?.Kind() == SyntaxKind.Argument)
+                ArgumentSyntax argument;
+                if (ArgumentSyntax.IsIdentifierOfOutVariableDeclaration(identifierToken, out argument))
                 {
-                    var argument = (ArgumentSyntax)identifierToken.Parent;
-                    if (argument.Identifier == identifierToken && argument.Type.IsVar)
+                    if (argument.Type.IsVar)
                     {
                         return new PossibleOutVarLocalSymbol(containingSymbol, binder, refKind, typeSyntax, identifierToken, declarationKind);
                     }
@@ -537,12 +537,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 LocalDeclarationKind declarationKind) 
             : base(containingSymbol, binder, refKind, typeSyntax, identifierToken, declarationKind)
             {
-                Debug.Assert(identifierToken.Parent.Kind() == SyntaxKind.Argument  && 
-                             ((ArgumentSyntax)identifierToken.Parent).Identifier == identifierToken);
-
-                Debug.Assert(identifierToken.Parent.Parent.Parent is ConstructorInitializerSyntax ?
-                                 binder.ScopeDesignator == identifierToken.Parent.Parent :
-                                 binder.ScopeDesignator.Contains(identifierToken.Parent.Parent.Parent));
+#if DEBUG
+                ArgumentSyntax argument;
+                Debug.Assert(ArgumentSyntax.IsIdentifierOfOutVariableDeclaration(identifierToken, out argument));
+                Debug.Assert(argument.Parent.Parent is ConstructorInitializerSyntax ?
+                                 binder.ScopeDesignator == argument.Parent :
+                                 binder.ScopeDesignator.Contains(argument.Parent.Parent));
+#endif
             }
 
             protected override TypeSymbol InferTypeOfVarVariable(DiagnosticBag diagnostics)
@@ -550,6 +551,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 // Try binding immediately enclosing invocation expression, this should force the inference.
 
                 CSharpSyntaxNode invocation = (CSharpSyntaxNode)IdentifierToken.
+                                                                Parent. // VariableDeclaratorSyntax
+                                                                Parent. // VariableDeclarationSyntax
                                                                 Parent. // ArgumentSyntax
                                                                 Parent. // ArgumentListSyntax
                                                                 Parent; // invocation/constructor initializer
