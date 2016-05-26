@@ -446,7 +446,7 @@ public class Bar
                     var theParameter = (PEParameterSymbol)parameters[0];
                     var peModule = (PEModuleSymbol)module;
 
-                    Assert.Equal(ParameterAttributes.HasDefault, theParameter.Flags);
+                    Assert.Equal(ParameterAttributes.HasDefault, theParameter.Flags); // native compiler has None instead
 
                     // let's find the attribute in the PE metadata
                     var attributeInfo = PEModule.FindTargetAttribute(peModule.Module.MetadataReader, theParameter.Handle, AttributeDescription.DateTimeConstantAttribute);
@@ -532,36 +532,18 @@ public class Bar
 ";
             #endregion
 
-            // The native C# compiler emits this:
+            // The native C# compiler would succeed and emit this:
             // .method public hidebysig instance void M1([opt] valuetype[mscorlib] System.DateTime x) cil managed
             // {
             // .param [1] = nullref
             // .custom instance void[mscorlib] System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = ( 01 00 FF FF FF FF FF FF FF FF 00 00 )
-            Action<IModuleSymbol> verifier = (module) =>
-            {
-                var bar = (NamedTypeSymbol)((ModuleSymbol)module).GlobalNamespace.GetMember("Bar");
-                var method = (MethodSymbol)bar.GetMember("M1");
-                var parameters = method.GetParameters();
-                var theParameter = (PEParameterSymbol)parameters[0];
-                var peModule = (PEModuleSymbol)module;
 
-                Assert.Equal(ParameterAttributes.Optional | ParameterAttributes.HasDefault, theParameter.Flags);
-
-                // let's find the attribute in the PE metadata
-                var attributeInfo = PEModule.FindTargetAttribute(peModule.Module.MetadataReader, theParameter.Handle, AttributeDescription.DateTimeConstantAttribute);
-                Assert.True(attributeInfo.HasValue);
-
-                long attributeValue;
-                Assert.True(peModule.Module.TryExtractLongValueFromAttribute(attributeInfo.Handle, out attributeValue));
-                Assert.Equal(-1L, attributeValue); // check the attribute is constructed with a -1
-
-                // check .param has no value
-                var constantValue = peModule.Module.GetParamDefaultValue(theParameter.Handle);
-                Assert.Equal(ConstantValue.Null, constantValue);
-            };
-
-            var comp = CompileAndVerify(source, expectedOutput: "0", symbolValidator: verifier);
-            comp.VerifyDiagnostics();
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (7,60): error CS8017: The parameter has multiple distinct default values.
+                //     public DateTime M1([DateTimeConstant(-1)] DateTime x = default(DateTime)) { return x; }
+                Diagnostic(ErrorCode.ERR_ParamDefaultValueDiffersFromAttribute, "default(DateTime)").WithLocation(7, 60)
+                );
         }
 
         [Fact]

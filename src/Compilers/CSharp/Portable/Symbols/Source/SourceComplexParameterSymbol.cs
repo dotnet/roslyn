@@ -642,8 +642,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (data != null)
             {
                 var attrValue = data.DefaultParameterValue;
-                if (!attrValue.IsBad &&
-                    (attrValue != ConstantValue.Unset) &&
+                if ((attrValue != ConstantValue.Unset) &&
                     (value != attrValue))
                 {
                     // CS8017: The parameter has multiple distinct default values.
