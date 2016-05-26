@@ -49,9 +49,41 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
+        }
+
+        private static IdentifierNameSyntax GetReference(SyntaxTree tree, string name)
+        {
+            return GetReferences(tree, name).Single();
+        }
+        
+        private static IdentifierNameSyntax[] GetReferences(SyntaxTree tree, string name, int count)
+        {
+            var nameRef = GetReferences(tree, name).ToArray();
+            Assert.Equal(count, nameRef.Length);
+            return nameRef;
+        }
+
+        private static IEnumerable<IdentifierNameSyntax> GetReferences(SyntaxTree tree, string name)
+        {
+            return tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == name);
+        }
+
+        private static ArgumentSyntax GetOutVarDeclaration(SyntaxTree tree, string name)
+        {
+            return GetOutVarDeclarations(tree, name).Single();
+        }
+
+        private static IEnumerable<ArgumentSyntax> GetOutVarDeclarations(SyntaxTree tree, string name)
+        {
+            return tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == name);
+        }
+
+        private static IEnumerable<ArgumentSyntax> GetOutVarDeclarations(SyntaxTree tree)
+        {
+            return tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.Kind() != SyntaxKind.None);
         }
 
         [Fact]
@@ -90,11 +122,11 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            var x2Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x2").Single();
+            var x2Ref = GetReference(tree, "x2");
             Assert.Null(model.GetDeclaredSymbol(x2Ref));
             Assert.Null(model.GetDeclaredSymbol((ArgumentSyntax)x2Ref.Parent));
         }
@@ -316,11 +348,11 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            var x2Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x2").Single();
+            var x2Ref = GetReference(tree, "x2");
             Assert.Null(model.GetDeclaredSymbol(x2Ref));
             Assert.Null(model.GetDeclaredSymbol((ArgumentSyntax)x2Ref.Parent));
         }
@@ -374,8 +406,8 @@ namespace System
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -408,8 +440,8 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -443,9 +475,8 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
-            Assert.Equal(2, x1Ref.Length);
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReferences(tree, "x1", 2);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -478,9 +509,8 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
-            Assert.Equal(2, x1Ref.Length);
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReferences(tree, "x1", 2);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -513,9 +543,8 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").ToArray();
-            Assert.Equal(2, x1Ref.Length);
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReferences(tree, "x1", 2);
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -554,11 +583,11 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
-            var x2Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x2").Single();
+            var x2Ref = GetReference(tree, "x2");
             Assert.Null(model.GetDeclaredSymbol(x2Ref));
             Assert.Null(model.GetDeclaredSymbol((ArgumentSyntax)x2Ref.Parent));
         }
@@ -592,8 +621,8 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -629,8 +658,8 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -665,8 +694,8 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -860,8 +889,8 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -893,8 +922,8 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
         
@@ -926,7 +955,7 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
             VerifyModelForOutVar(model, x1Decl);
 
             var x2Decl = tree.GetRoot().DescendantNodes().OfType<LocalDeclarationStatementSyntax>().Single();
@@ -965,7 +994,7 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
             VerifyModelForOutVar(model, x1Decl);
         }
 
@@ -1012,7 +1041,7 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            Assert.False(tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.Kind() != SyntaxKind.None).Any());
+            Assert.False(GetOutVarDeclarations(tree).Any());
         }
 
         [Fact]
@@ -1042,7 +1071,7 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
             VerifyModelForOutVar(model, x1Decl);
         }
 
@@ -1073,7 +1102,7 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            Assert.False(tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.Kind() != SyntaxKind.None).Any());
+            Assert.False(GetOutVarDeclarations(tree).Any());
         }
 
         [Fact]
@@ -1102,7 +1131,7 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
             VerifyModelForOutVar(model, x1Decl);
 
             Assert.Equal("a=System.Int32", model.GetAliasInfo(x1Decl.Type).ToTestDisplayString());
@@ -1144,8 +1173,8 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -1181,7 +1210,7 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
             VerifyModelForOutVar(model, x1Decl);
 
             Assert.Equal("Cls.var", ((LocalSymbol)model.GetDeclaredSymbol(x1Decl)).Type.ToTestDisplayString());
@@ -1218,8 +1247,8 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
             Assert.Null(model.GetAliasInfo(x1Decl.Type));
@@ -1253,8 +1282,8 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
             Assert.Null(model.GetAliasInfo(x1Decl.Type));
@@ -1292,8 +1321,8 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
             Assert.Null(model.GetAliasInfo(x1Decl.Type));
@@ -1333,8 +1362,8 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
             Assert.Null(model.GetAliasInfo(x1Decl.Type));
@@ -1376,8 +1405,8 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
             Assert.Null(model.GetAliasInfo(x1Decl.Type));
@@ -1419,8 +1448,8 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
             Assert.Null(model.GetAliasInfo(x1Decl.Type));
@@ -1458,8 +1487,8 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
             Assert.Null(model.GetAliasInfo(x1Decl.Type));
@@ -1499,8 +1528,8 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -1537,8 +1566,8 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, true, x1Ref);
 
             Assert.Null(model.GetAliasInfo(x1Decl.Type));
@@ -1585,8 +1614,8 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -1634,8 +1663,8 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -1674,7 +1703,7 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
             VerifyModelForOutVar(model, x1Decl);
         }
 
@@ -1717,7 +1746,7 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
             VerifyModelForOutVar(model, x1Decl);
         }
 
@@ -1753,8 +1782,8 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
 
             Assert.Null(model.GetAliasInfo(x1Decl.Type));
@@ -1794,8 +1823,8 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var varDecl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "var").Single();
-            var varRef = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "var").Skip(1).Single();
+            var varDecl = GetOutVarDeclaration(tree, "var");
+            var varRef = GetReferences(tree, "var").Skip(1).Single();
             VerifyModelForOutVar(model, varDecl, varRef);
         }
 
@@ -1850,10 +1879,10 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
             VerifyModelForOutVar(model, x1Decl);
 
-            var x2Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x2").Single();
+            var x2Decl = GetOutVarDeclaration(tree, "x2");
             VerifyModelForOutVar(model, x2Decl);
         }
 
@@ -1895,7 +1924,7 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
             VerifyModelForOutVar(model, x1Decl);
         }
 
@@ -1933,8 +1962,8 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -1972,8 +2001,8 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
 
@@ -2019,8 +2048,8 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
         
@@ -2073,8 +2102,8 @@ public class Cls
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
 
-            var x1Decl = tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Single();
-            var x1Ref = tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>().Where(id => id.Identifier.ValueText == "x1").Single();
+            var x1Decl = GetOutVarDeclaration(tree, "x1");
+            var x1Ref = GetReference(tree, "x1");
             VerifyModelForOutVar(model, x1Decl, x1Ref);
         }
         
@@ -2115,7 +2144,7 @@ public class Cls
                 );
 
             var tree = compilation.SyntaxTrees.Single();
-            Assert.False(tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Any());
+            Assert.False(GetOutVarDeclarations(tree, "x1").Any());
         }
 
         [Fact]
@@ -2155,7 +2184,7 @@ public class Cls
                 );
 
             var tree = compilation.SyntaxTrees.Single();
-            Assert.False(tree.GetRoot().DescendantNodes().OfType<ArgumentSyntax>().Where(p => p.Identifier.ValueText == "x1").Any());
+            Assert.False(GetOutVarDeclarations(tree, "x1").Any());
         }
     }
 }
