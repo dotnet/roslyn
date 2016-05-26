@@ -51,6 +51,7 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="InternalUtilities\IncrementalHash.cs" />
     <Compile Include="System\Reflection\Blob.cs" />
     <Compile Include="System\Reflection\BlobWriter.cs" />

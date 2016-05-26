@@ -349,7 +349,7 @@ namespace Microsoft.CodeAnalysis
 
                 EncodeParameters(symbol.Parameters);
 
-// return types are not use for overloading in C# and VB
+                // return types are not use for overloading in C# and VB
 #if false
                 if (!symbol.ReturnsVoid)
                 {
@@ -656,7 +656,7 @@ namespace Microsoft.CodeAnalysis
 
                         // sym.Equals(symbol) not working for locals of empty anonymous types?
                         // since this code is only called on source that originated symbol, then spans should match
-                        if (sym.DeclaringSyntaxReferences.Length > 0 
+                        if (sym.DeclaringSyntaxReferences.Length > 0
                             && symbol.DeclaringSyntaxReferences.Length > 0
                             && sym.DeclaringSyntaxReferences[0].Span == symbol.DeclaringSyntaxReferences[0].Span)
                         {
@@ -714,6 +714,26 @@ namespace Microsoft.CodeAnalysis
             {
                 foreach (var declaringLocation in containingSymbol.DeclaringSyntaxReferences)
                 {
+                    // This operation can potentially fail. If containingSymbol came from 
+                    // a SpeculativeSemanticModel, containingSymbol.ContainingAssembly.Compilation
+                    // may not have been rebuilt to reflect the trees used by the 
+                    // SpeculativeSemanticModel to produce containingSymbol. In that case,
+                    // asking the ContainingAssembly's complation for a SemanticModel based
+                    // on trees for containingSymbol with throw an ArgumentException.
+                    // Unfortunately, the best way to avoid this (currently) is to see if
+                    // we're asking for a model for a tree that's part of the compilation.
+                    // (There's no way to get back to a SemanticModel from a symbol).
+
+                    // TODO (rchande): It might be better to call compilation.GetSemanticModel
+                    // and catch the ArgumentException. The compilation internally has a 
+                    // Dictionary<SyntaxTree, ...> that it uses to check if the SyntaxTree
+                    // is applicable wheras the public interface requires us to enumerate
+                    // the entire IEnumerable of trees in the Compilation.
+                    if (!compilation.SyntaxTrees.Contains(declaringLocation.SyntaxTree))
+                    {
+                        continue;
+                    }
+
                     var node = declaringLocation.GetSyntax();
                     if (node.Language == LanguageNames.VisualBasic)
                     {
@@ -1027,7 +1047,7 @@ namespace Microsoft.CodeAnalysis
 
             private void ConstructArray(List<ISymbol> symbols, int bounds)
             {
-                for (int i = 0; i < symbols.Count; )
+                for (int i = 0; i < symbols.Count;)
                 {
                     var typeSymbol = symbols[i] as ITypeSymbol;
                     if (typeSymbol != null)
@@ -1782,7 +1802,7 @@ namespace Microsoft.CodeAnalysis
                     _index++;
 
                     var start = _index;
-                    char ch; 
+                    char ch;
                     while ((ch = PeekNextChar()) != '\'' && ch != '\0')
                     {
                         _index++;

@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Roslyn.Test.Performance.Utilities
 {
-    public class ConsoleAndFileLogger : ILogger
+    internal class ConsoleAndFileLogger : ILogger
     {
         private readonly string _file;
         private readonly StringBuilder _buffer = new StringBuilder();

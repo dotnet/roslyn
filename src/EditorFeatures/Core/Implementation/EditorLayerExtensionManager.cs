@@ -71,8 +71,8 @@ namespace Microsoft.CodeAnalysis.Editor
 
                         _errorReportingService?.ShowErrorInfoForCodeFix(
                             codefixName: provider.GetType().Name,
-                            OnEnableClicked: () => { EnableProvider(provider); LogEnableProvider(provider); },
-                            OnEnableAndIgnoreClicked: () => { EnableProvider(provider); IgnoreProvider(provider); LogEnableAndIgnoreProvider(provider); },
+                            OnEnable: () => { EnableProvider(provider); LogEnableProvider(provider); },
+                            OnEnableAndIgnore: () => { EnableProvider(provider); IgnoreProvider(provider); LogEnableAndIgnoreProvider(provider); },
                             OnClose: () => LogLeaveDisabled(provider));
                     }
                     else

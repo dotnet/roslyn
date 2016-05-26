@@ -1010,8 +1010,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// 4) Pragma directives for the given <paramref name="compilation"/>.
         /// </summary>
         public static IEnumerable<Diagnostic> GetEffectiveDiagnostics(IEnumerable<Diagnostic> diagnostics, Compilation compilation)
+            => GetEffectiveDiagnostics(diagnostics.AsImmutableOrNull(), compilation);
+
+        /// <summary>
+        /// Given a set of compiler or <see cref="DiagnosticAnalyzer"/> generated <paramref name="diagnostics"/>, returns the effective diagnostics after applying the below filters:
+        /// 1) <see cref="CompilationOptions.SpecificDiagnosticOptions"/> specified for the given <paramref name="compilation"/>.
+        /// 2) <see cref="CompilationOptions.GeneralDiagnosticOption"/> specified for the given <paramref name="compilation"/>.
+        /// 3) Diagnostic suppression through applied <see cref="System.Diagnostics.CodeAnalysis.SuppressMessageAttribute"/>.
+        /// 4) Pragma directives for the given <paramref name="compilation"/>.
+        /// </summary>
+        public static IEnumerable<Diagnostic> GetEffectiveDiagnostics(ImmutableArray<Diagnostic> diagnostics, Compilation compilation)
         {
-            if (diagnostics == null)
+            if (diagnostics.IsDefault)
             {
                 throw new ArgumentNullException(nameof(diagnostics));
             }
@@ -1021,16 +1031,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentNullException(nameof(compilation));
             }
 
+            return GetEffectiveDiagnosticsImpl(diagnostics, compilation);
+        }
+
+        private static IEnumerable<Diagnostic> GetEffectiveDiagnosticsImpl(ImmutableArray<Diagnostic> diagnostics, Compilation compilation)
+        {
             var suppressMessageState = new SuppressMessageAttributeState(compilation);
-            foreach (var diagnostic in diagnostics.ToImmutableArray())
+            foreach (var diagnostic in diagnostics)
             {
                 if (diagnostic != null)
                 {
                     var effectiveDiagnostic = compilation.Options.FilterDiagnostic(diagnostic);
                     if (effectiveDiagnostic != null)
                     {
-                        effectiveDiagnostic = suppressMessageState.ApplySourceSuppressions(effectiveDiagnostic);
-                        yield return effectiveDiagnostic;
+                        yield return suppressMessageState.ApplySourceSuppressions(effectiveDiagnostic);
                     }
                 }
             }

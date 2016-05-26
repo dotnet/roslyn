@@ -119,6 +119,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CommonTestBase.cs" />
+    <Compile Include="ConditionalFactAttribute.cs" />
     <Compile Include="CoreCLRRuntimeEnvironment.cs" />
     <Compile Include="Exceptions.cs" />
     <Compile Include="CompilerTraitAttribute.cs" />

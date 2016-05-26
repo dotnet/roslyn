@@ -52,7 +52,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim languageServices = Me.Workspace.CurrentSolution.Projects.First().LanguageServices
             Dim language = languageServices.Language
 
-            If (extraCompletionProviders IsNot Nothing) Then
+            If extraCompletionProviders IsNot Nothing Then
                 Dim completionService = DirectCast(languageServices.GetService(Of CompletionService), CompletionServiceWithProviders)
                 completionService.SetTestProviders(extraCompletionProviders.Select(Function(lz) lz.Value).ToList())
             End If

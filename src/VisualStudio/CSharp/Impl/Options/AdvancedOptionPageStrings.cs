@@ -14,10 +14,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             get { return CSharpVSResources.Option_ClosedFileDiagnostics; }
         }
 
-        public static string Option_RenameTrackingPreview
-        {
-            get { return CSharpVSResources.Option_RenameTrackingPreview; }
-        }
+        public static string Option_RenameTrackingPreview => CSharpVSResources.Option_RenameTrackingPreview;
+        public static string Option_Split_string_literals_on_enter => CSharpVSResources.Option_Split_string_literals_on_enter;
 
         public static string Option_DisplayLineSeparators
         {

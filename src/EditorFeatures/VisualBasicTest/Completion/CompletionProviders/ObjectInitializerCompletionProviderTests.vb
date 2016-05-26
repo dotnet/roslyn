@@ -406,8 +406,8 @@ End Program</Document>
                 Dim hostDocument = workspace.Documents.First()
                 Dim caretPosition = hostDocument.CursorPosition.Value
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
-
-                Dim completionList = Await GetCompletionListContextAsync(document, caretPosition, CompletionTrigger.Default)
+                Dim service = GetCompletionService(workspace)
+                Dim completionList = Await GetCompletionListAsync(service, document, caretPosition, CompletionTrigger.Default)
                 Assert.True(completionList Is Nothing OrElse completionList.IsExclusive, "Expected always exclusive")
             End Using
         End Function

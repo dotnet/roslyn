@@ -347,6 +347,7 @@
     <Compile Include="SignatureHelp\GenericNameSignatureHelpProviderTests.cs" />
     <Compile Include="SignatureHelp\InvocationExpressionSignatureHelpProviderTests.cs" />
     <Compile Include="SignatureHelp\ObjectCreationExpressionSignatureHelpProviderTests.cs" />
+    <Compile Include="SplitStringLiteral\SplitStringLiteralCommandHandlerTests.cs" />
     <Compile Include="Squiggles\ErrorSquiggleProducerTests.cs" />
     <Compile Include="SymbolId\SymbolKeyCompilationsTests.cs" />
     <Compile Include="SymbolId\SymbolKeyMetadataVsSourceTests.cs" />

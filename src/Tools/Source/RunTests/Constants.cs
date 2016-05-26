@@ -12,7 +12,9 @@ namespace RunTests
     {
         internal static string ResultsDirectoryName => "xUnitResults";
 
-        internal static bool IsJenkinsRun => !string.IsNullOrEmpty(Environment.GetEnvironmentVariable("JENKINS_URL"));
+        internal static string JenkinsUrl => Environment.GetEnvironmentVariable("JENKINS_URL");
+
+        internal static bool IsJenkinsRun => !string.IsNullOrEmpty(JenkinsUrl);
 
         internal static string EnlistmentRoot = IsJenkinsRun
             ? Environment.GetEnvironmentVariable("WORKSPACE")

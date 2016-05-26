@@ -186,6 +186,9 @@
   <data name="NotInitialized" xml:space="preserve">
     <value>The interactive window has not yet been initialized.</value>
   </data>
+  <data name="IsResettings" xml:space="preserve">
+    <value>The interactive window is resettings.</value>
+  </data>
   <data name="Parameters" xml:space="preserve">
     <value>Parameters:</value>
   </data>
