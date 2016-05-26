@@ -1,17 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Composition;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ReplacePropertyWithMethods;
-using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
 {
@@ -45,7 +40,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             SemanticModel semanticModel,
             IPropertySymbol property,
             SyntaxNode declaration,
-            IFieldSymbol propertyBackingField)
+            IFieldSymbol propertyBackingField,
+            string desiredGetMethodName,
+            string desiredSetMethodName)
         {
             var propertyDeclaration = declaration as PropertyDeclarationSyntax;
             if (propertyDeclaration == null)
@@ -54,7 +51,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             }
 
             var members = ConvertPropertyToMembers(
-                semanticModel, editor.Generator, property, propertyDeclaration, propertyBackingField);
+                semanticModel, editor.Generator, property, 
+                propertyDeclaration, propertyBackingField,
+                desiredGetMethodName, desiredSetMethodName);
 
             if (property.ContainingType.TypeKind == TypeKind.Interface)
             {
@@ -69,7 +68,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
         private List<SyntaxNode> ConvertPropertyToMembers(
             SemanticModel semanticModel, SyntaxGenerator generator, 
             IPropertySymbol property, PropertyDeclarationSyntax propertyDeclaration,
-            IFieldSymbol propertyBackingField)
+            IFieldSymbol propertyBackingField,
+            string desiredGetMethodName,
+            string desiredSetMethodName)
         {
             var result = new List<SyntaxNode>();
 
@@ -82,25 +83,30 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             var getMethod = property.GetMethod;
             if (getMethod != null)
             {
-                result.Add(GetGetMethod(generator, propertyDeclaration, propertyBackingField, getMethod));
+                result.Add(GetGetMethod(
+                    generator, propertyDeclaration, propertyBackingField, getMethod, desiredGetMethodName));
             }
 
             var setMethod = property.SetMethod;
             if (setMethod != null)
             {
-                result.Add(GetSetMethod(generator, propertyDeclaration, setMethod));
+                result.Add(GetSetMethod(generator, propertyDeclaration, setMethod, desiredSetMethodName));
             }
 
             return result;
         }
 
-        private static SyntaxNode GetSetMethod(SyntaxGenerator generator, PropertyDeclarationSyntax propertyDeclaration, IMethodSymbol setMethod)
+        private static SyntaxNode GetSetMethod(
+            SyntaxGenerator generator, 
+            PropertyDeclarationSyntax propertyDeclaration, 
+            IMethodSymbol setMethod,
+            string desiredSetMethodName)
         {
             var setAccessorDeclaration = propertyDeclaration.AccessorList.Accessors.FirstOrDefault(
                 a => a.Kind() == SyntaxKind.SetAccessorDeclaration);
 
             var method = generator.MethodDeclaration(
-                setMethod, "Set" + setMethod.AssociatedSymbol.Name, setAccessorDeclaration?.Body?.Statements);
+                setMethod, desiredSetMethodName, setAccessorDeclaration?.Body?.Statements);
             return method;
         }
 
@@ -108,7 +114,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             SyntaxGenerator generator,
             PropertyDeclarationSyntax propertyDeclaration,
             IFieldSymbol propertyBackingField,
-            IMethodSymbol getMethod)
+            IMethodSymbol getMethod,
+            string desiredGetMethodName)
         {
             var statements = new List<SyntaxNode>();
 
@@ -132,16 +139,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                 }
             }
 
-            var methodDeclaration = generator.MethodDeclaration(
-                getMethod, "Get" + getMethod.AssociatedSymbol.Name, statements);
-            return methodDeclaration;
+            return generator.MethodDeclaration(getMethod, desiredGetMethodName, statements);
         }
 
         public void ReplaceReference(
             SyntaxEditor editor, SyntaxToken nameToken, 
-            IPropertySymbol property, IFieldSymbol propertyBackingField)
+            IPropertySymbol property, IFieldSymbol propertyBackingField,
+            string desiredGetMethodName, string desiredSetMethodName)
         {
-            var referenceReplacer = new ReferenceReplacer(editor, nameToken, property, propertyBackingField);
+            var referenceReplacer = new ReferenceReplacer(
+                editor, nameToken, property, propertyBackingField, desiredGetMethodName, desiredSetMethodName);
             referenceReplacer.Do();
         }
 
@@ -166,16 +173,24 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             private readonly SyntaxToken _nameToken;
             private readonly IPropertySymbol _property;
             private readonly IFieldSymbol _propertyBackingField;
+            private readonly string _desiredGetMethodName;
+            private readonly string _desiredSetMethodName;
 
             private readonly IdentifierNameSyntax _identifierName;
             private readonly ExpressionSyntax _expression;
 
-            public ReferenceReplacer(SyntaxEditor editor, SyntaxToken nameToken, IPropertySymbol property, IFieldSymbol propertyBackingField)
+            public ReferenceReplacer(
+                SyntaxEditor editor, SyntaxToken nameToken, 
+                IPropertySymbol property, IFieldSymbol propertyBackingField,
+                string desiredGetMethodName,
+                string desiredSetMethodName)
             {
                 _editor = editor;
                 _nameToken = nameToken;
                 _property = property;
                 _propertyBackingField = propertyBackingField;
+                _desiredGetMethodName = desiredGetMethodName;
+                _desiredSetMethodName = desiredSetMethodName;
 
                 _identifierName = (IdentifierNameSyntax)nameToken.Parent;
                 _expression = _identifierName;
@@ -191,7 +206,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                 {
                     // Code wasn't legal (you can't reference a property in an out/ref position in C#).
                     // Just replace this with a simple GetCall, but mark it so it's clear there's an error.
-                    ReplaceRead(CSharpFeaturesResources.Property_cannot_safely_be_replaced_with_a_method_call);
+                    ReplaceRead(
+                        CSharpFeaturesResources.Property_cannot_safely_be_replaced_with_a_method_call);
                 }
                 else if (_expression.IsAttributeNamedArgumentIdentifier())
                 {
@@ -222,14 +238,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
 
                     ReplaceReadAndWrite(operatorKind,
                         writeValue: SyntaxFactory.LiteralExpression(
-                            SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1)));
+                            SyntaxKind.NumericLiteralExpression, SyntaxFactory.Literal(1)),
+                        conflictMessage: null);
                 }
                 else if (_expression.IsParentKind(SyntaxKind.AnonymousObjectMemberDeclarator))
                 {
                     // If we have:   new { this.Prop }.  We need ot convert it to:
                     //               new { Prop = this.GetProp() }
                     var declarator = (AnonymousObjectMemberDeclaratorSyntax)_expression.Parent;
-                    var readExpression = GetReadExpression();
+                    var readExpression = GetReadExpression(conflictMessage: null);
 
                     if (declarator.NameEquals != null)
                     {
@@ -248,11 +265,11 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                 else
                 {
                     // No writes.  Replace this with an appropriate read.
-                    ReplaceRead();
+                    ReplaceRead(conflictMessage: null);
                 }
             }
 
-            private void ReplaceRead(string conflictMessage = null)
+            private void ReplaceRead(string conflictMessage)
             {
                 var readExpression = GetReadExpression(conflictMessage);
                 _editor.ReplaceNode(_expression, readExpression);
@@ -264,7 +281,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                 _editor.ReplaceNode(_expression.Parent, writeExpression);
             }
 
-            private ExpressionSyntax GetReadExpression(string conflictMessage = null)
+            private ExpressionSyntax GetReadExpression(
+                string conflictMessage)
             {
                 if (ShouldReadFromBackingField())
                 {
@@ -283,10 +301,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             {
                 if (ShouldWriteToBackingField())
                 {
-                    var newIdentifierToken = SyntaxFactory.Identifier(_propertyBackingField.Name);
-                    var newIdentifierName = _identifierName.WithIdentifier(newIdentifierToken);
+                    var newIdentifierName = _identifierName.WithIdentifier(
+                        SyntaxFactory.Identifier(_propertyBackingField.Name));
 
-                    return _expression.ReplaceNode(_identifierName, newIdentifierName);
+                    return SyntaxFactory.AssignmentExpression(
+                        SyntaxKind.SimpleAssignmentExpression,
+                        _expression.ReplaceNode(_identifierName, newIdentifierName),
+                        writeValue);
                 }
                 else
                 {
@@ -294,17 +315,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                 }
             }
 
-            private ExpressionSyntax GetGetInvocationExpression(string conflictMessage = null)
+            private ExpressionSyntax GetGetInvocationExpression(
+                string conflictMessage)
             {
-                return GetInvocationExpression("Get" + _nameToken.ValueText,
-                    argument: null, conflictMessage: conflictMessage);
+                return GetInvocationExpression(_desiredGetMethodName, argument: null, conflictMessage: conflictMessage);
             }
 
             private ExpressionSyntax GetInvocationExpression(
-                string name, ArgumentSyntax argument, string conflictMessage = null)
+                string desiredName, ArgumentSyntax argument, string conflictMessage)
             {
                 var newIdentifier = AddConflictAnnotation(
-                    SyntaxFactory.Identifier(name), conflictMessage);
+                    SyntaxFactory.Identifier(desiredName), conflictMessage);
 
                 var updatedExpression = _expression.ReplaceNode(
                     _identifierName,
@@ -322,24 +343,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                 return invocation;
             }
 
-
             private bool ShouldReadFromBackingField()
             {
                 return _propertyBackingField != null && _property.GetMethod == null;
             }
 
-            private void ReplaceWithBackingFieldReference()
-            {
-                var newIdentifier = SyntaxFactory.IdentifierName(
-                    SyntaxFactory.Identifier(_propertyBackingField.Name)).WithTriviaFrom(_identifierName);
-                _editor.ReplaceNode(_identifierName, newIdentifier);
-            }
-
             private ExpressionSyntax GetSetInvocationExpression(
                 ExpressionSyntax writeValue, string conflictMessage = null)
             {
-                return GetInvocationExpression("Set" + _nameToken.ValueText,
-                    argument: SyntaxFactory.Argument(writeValue), conflictMessage: conflictMessage);
+                return GetInvocationExpression(_desiredSetMethodName, argument: SyntaxFactory.Argument(writeValue), conflictMessage: conflictMessage);
             }
 
             private bool ShouldWriteToBackingField()
@@ -365,39 +377,19 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                     parent.IsKind(SyntaxKind.DivideAssignmentExpression) ? SyntaxKind.DivideExpression :
                     parent.IsKind(SyntaxKind.ModuloAssignmentExpression) ? SyntaxKind.ModuloExpression : SyntaxKind.None;
 
-                ReplaceReadAndWrite(operatorKind, writeValue: parent.Right.Parenthesize());
+                ReplaceReadAndWrite(
+                    operatorKind, writeValue: parent.Right.Parenthesize(), conflictMessage: null);
             }
 
             private void ReplaceReadAndWrite(
                 SyntaxKind operatorKind,
                 ExpressionSyntax writeValue,
-                string conflictMessage = null)
+                string conflictMessage)
             {
-                var readExpression = GetReadExpression(conflictMessage);
-                var binaryExpression = SyntaxFactory.BinaryExpression(
-                    operatorKind, readExpression, writeValue);
-
-                if (ShouldWriteToBackingField())
-                {
-                    // this.Prop++;
-                    // this._prop = this.GetProp() + 1;
-
-                    // this.Prop *= x;
-                    // this._prop = this.GetProp() * x;
-
-                    var newExpression = _expression.ReplaceNode(
-                        _identifierName,
-                        SyntaxFactory.IdentifierName(_propertyBackingField.Name).WithTriviaFrom(_identifierName));
-                    var assignment = SyntaxFactory.AssignmentExpression(
-                        SyntaxKind.SimpleAssignmentExpression,
-                        newExpression, binaryExpression);
-                    _editor.ReplaceNode(_expression.Parent, assignment);
-                }
-                else
-                {
-                    var setInvocation = GetSetInvocationExpression(binaryExpression);
-                    _editor.ReplaceNode(_expression.Parent, setInvocation);
-                }
+                ReplaceWrite(writeValue: SyntaxFactory.BinaryExpression(
+                    kind: operatorKind,
+                    left: GetReadExpression(conflictMessage),
+                    right: writeValue));
             }
         }
     }

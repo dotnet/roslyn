@@ -14,11 +14,14 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
         void ReplaceReference(
             SyntaxEditor editor, SyntaxToken nameToken,
-            IPropertySymbol property, IFieldSymbol propertyBackingField);
+            IPropertySymbol property, IFieldSymbol propertyBackingField,
+            string desiredGetMethodName, string desiredSetMethodName);
 
         void ReplacePropertyWithMethod(
             SyntaxEditor editor, SemanticModel semanticModel,
             IPropertySymbol property, SyntaxNode declaration,
-            IFieldSymbol propertyBackingField);
+            IFieldSymbol propertyBackingField,
+            string desiredGetMethodName,
+            string desiredSetMethodName);
     }
 }
