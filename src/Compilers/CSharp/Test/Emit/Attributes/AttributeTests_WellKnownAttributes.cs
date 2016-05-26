@@ -596,6 +596,69 @@ public class Bar
                 );
         }
 
+
+        [Fact]
+        [WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")]
+        public void DateTimeConstantAttributeWithBadDefaultValueOnField()
+        {
+            #region "Source"
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+public class C
+{
+   [DateTimeConstant(-1)]
+   public DateTime F = default(DateTime);
+
+   public static void Main()
+   {
+     System.Console.WriteLine(new C().F.Ticks);
+   }
+}
+";
+            #endregion
+
+            // The native C# compiler emits this:
+            // .field public valuetype[mscorlib] System.DateTime F
+            // .custom instance void[mscorlib] System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = ( 01 00 FF FF FF FF FF FF FF FF 00 00 )
+
+            // using the native compiler, this code outputs 0
+            var comp = CompileAndVerify(source, expectedOutput: "0");
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")]
+        public void DateTimeConstantAttributeWithValidDefaultValueOnField()
+        {
+            #region "Source"
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+public class C
+{
+   [DateTimeConstant(42)]
+   public DateTime F = default(DateTime);
+
+   public static void Main()
+   {
+      System.Console.WriteLine(new C().F.Ticks);
+   }
+}
+";
+            #endregion
+
+            // The native C# compiler emits this:
+            // .field public valuetype[mscorlib] System.DateTime F
+            // .custom instance void[mscorlib] System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = ( 01 00 2A 00 00 00 00 00 00 00 00 00 )
+
+            // Using the native compiler, the code executes to output 0
+            var comp = CompileAndVerify(source, expectedOutput: "0");
+            comp.VerifyDiagnostics();
+        }
+
         [Fact, WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")]
         public void LoadingDateTimeConstantWithBadValue()
         {
