@@ -151,15 +151,37 @@ int PackFiles(string[] nuspecFiles, string licenseUrl)
         p.StartInfo.FileName = nugetExePath;
         p.StartInfo.Arguments = nugetArgs;
         p.StartInfo.UseShellExecute = false;
+        p.StartInfo.RedirectStandardError = true;
 
-        Console.WriteLine($"Running: nuget.exe {nugetArgs}");
+        Console.WriteLine($"{Environment.NewLine}Running: nuget.exe {nugetArgs}");
+
         p.Start();
         p.WaitForExit();
 
-        if ((exit = p.ExitCode) != 0)
+        var currentExit = p.ExitCode;
+        if (currentExit != 0)
         {
-            break;
+            var stdErr = p.StandardError.ReadToEnd();
+            string message;
+            if (BuildingReleaseNugets && stdErr.Contains("A stable release of a package should not have on a prerelease dependency."))
+            {
+                // If we are building release nugets and if any packages have dependencies on prerelease packages  
+                // then we want to ignore the error and allow the build to succeed.
+                currentExit = 0;
+                message = $"{Environment.NewLine}{file}: {stdErr}";
+            }
+            else
+            {
+                message = $"{Environment.NewLine}{file}: error: {stdErr}";
+            }
+
+            Console.WriteLine(message);
+            File.AppendAllText(ErrorLogFile, message);
         }
+
+        // We want to try and generate all nugets and log any errors encountered along the way.
+        // We also want to fail the build in case of all encountered errors except the prerelease package dependency error above.
+        exit = (exit == 0) ? currentExit : exit;
     }
 
     return exit;
@@ -223,91 +245,20 @@ void GeneratePublishingConfig(string[] roslynPackageNames)
 }
 
 bool IsReleaseVersion(string version) => !version.Contains('-');
-
-bool IsPreReleaseDependency(string dependencyName, string dependencyVersion, List<string> warnings, string nuspecFile = null)
-{
-    if (!string.IsNullOrWhiteSpace(dependencyName) && !string.IsNullOrWhiteSpace(dependencyVersion) && !IsReleaseVersion(dependencyVersion))
-    {
-        var message = $"Detected dependency on prerelease version {dependencyVersion} of {dependencyName}";
-
-        string warning;
-        if (nuspecFile == null)
-        {
-            warning = message;
-        }
-        else
-        {
-            warning = $"{nuspecFile}: {message}";
-        }
-
-        warnings.Add(warning);
-        Console.WriteLine(warning);
-
-        return true;
-    }
-
-    return false;
-}
-
-XName NuspecDependencyElementName = (XNamespace)@"http://schemas.microsoft.com/packaging/2011/08/nuspec.xsd" + "dependency";
-bool HasPreReleaseDependencies(string nuspecFile, List<string> warnings)
-{
-    var hasPreReleaseDependencies = false;
-    var nuspecDocument = XDocument.Load(nuspecFile);
-    foreach (var dependency in nuspecDocument.Descendants(NuspecDependencyElementName))
-    {
-        if (IsPreReleaseDependency(dependency.Attribute("id").Value, dependency.Attribute("version").Value, warnings, nuspecFile))
-        {
-            hasPreReleaseDependencies = true;
-        }
-    }
-
-    return hasPreReleaseDependencies;
-}
-
-bool HasPreReleaseDependencies(string[] nuspecFiles, out List<string> warnings)
-{
-    warnings = new List<string>();
-    var hasPreReleaseDependencies = false;
-    if (IsPreReleaseDependency("System.Collections.Immutable", SystemCollectionsImmutableVersion, warnings) ||
-        IsPreReleaseDependency("System.Reflection.Metadata", SystemReflectionMetadataVersion, warnings) ||
-        IsPreReleaseDependency("Microsoft.CodeAnalysis.Analyzers", CodeAnalysisAnalyzersVersion, warnings) ||
-        IsPreReleaseDependency("Microsoft.DiaSymReader", MicrosoftDiaSymReaderVersion, warnings) ||
-        IsPreReleaseDependency("Microsoft.DiaSymReader.PortablePdb", MicrosoftDiaSymReaderPortablePdbVersion, warnings))
-    {
-        hasPreReleaseDependencies = true;
-    }
-
-    foreach (var nuspecFile in nuspecFiles)
-    {
-        if (HasPreReleaseDependencies(nuspecFile, warnings))
-        {
-            hasPreReleaseDependencies = true;
-        }
-    }
-
-    return hasPreReleaseDependencies;
-}
-
 Directory.CreateDirectory(OutDir);
+var ErrorLogFile = Path.Combine(OutDir, "ERRORS.txt");
+try
+{
+    if (File.Exists(ErrorLogFile)) File.Delete(ErrorLogFile);
+}
+catch
+{
+    // Ignore errors
+}
 
 var roslynPackageNames = GetRoslynPackageNames();
 GeneratePublishingConfig(roslynPackageNames);
 string[] roslynNuspecFiles = roslynPackageNames.Select(f => Path.Combine(NuspecDirPath, f + ".nuspec")).ToArray();
-
-if (BuildingReleaseNugets)
-{
-    List<string> warnings;
-    if (HasPreReleaseDependencies(roslynNuspecFiles, out warnings))
-    {
-        // If we are building release nugets and if any packages have dependencies on prerelease packages
-        // then print a warning and skip building release nugets.
-        Console.WriteLine("warning: Skipping generation of release nugets since prerelease dependencies were detected");
-        File.WriteAllLines(Path.Combine(OutDir, "warnings.log"), warnings);
-        Environment.Exit(0);
-    }
-}
-
 int exit = PackFiles(roslynNuspecFiles, LicenseUrlRedist);
 
 try
