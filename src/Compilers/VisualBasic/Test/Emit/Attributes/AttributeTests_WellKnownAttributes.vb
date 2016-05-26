@@ -505,58 +505,14 @@ End Class
             ' .param [1]
             ' .custom instance void [mscorlib]System.Runtime.CompilerServices.DateTimeConstantAttribute:: .ctor(Int64) = (1 00 80 73 3E 42 F6 37 A0 08 00 00 )
             ' .custom instance void [mscorlib]System.Runtime.CompilerServices.DateTimeConstantAttribute:: .ctor(Int64) = (1 00 FF FF FF FF FF FF FF FF 00 00 )
-            Dim symValidator As Action(Of ModuleSymbol) =
-                Sub(peModule)
 
-                    Dim bar = peModule.GlobalNamespace.GetMember(Of NamedTypeSymbol)("Bar")
-                    Dim method = bar.GetMember(Of MethodSymbol)("Method")
-                    Dim parameters = method.Parameters
-                    Dim theParameter = DirectCast(parameters(0), PEParameterSymbol)
-                    Dim peModuleSymbol = DirectCast(peModule, PEModuleSymbol)
-
-                    Assert.Equal(ParameterAttributes.Optional, theParameter.ParamFlags)
-
-                    ' verify only one instance of the attribute
-                    Dim attributes = peModuleSymbol.Module.MetadataReader.GetCustomAttributes(theParameter.Handle)
-                    Dim datetimeAttributes = attributes.Where(Function(attribute) CodeAnalysis.PEModule.GetTargetAttributeSignatureIndex(peModuleSymbol.Module.MetadataReader, attribute, AttributeDescription.DateTimeConstantAttribute) <> -1)
-                    Assert.Equal(1, datetimeAttributes.Count())
-
-                    ' let's find the attribute in the PE metadata
-                    Dim attributeInfo = CodeAnalysis.PEModule.FindTargetAttribute(peModuleSymbol.Module.MetadataReader, theParameter.Handle, AttributeDescription.DateTimeConstantAttribute)
-                    Assert.True(attributeInfo.HasValue)
-
-                    Dim attributeValue As Long
-                    Assert.True(peModuleSymbol.Module.TryExtractLongValueFromAttribute(attributeInfo.Handle, attributeValue))
-                    Assert.Equal(621558279390000000, attributeValue)
-
-                    ' check .param has no value
-                    Dim constantHandle = peModuleSymbol.Module.MetadataReader.GetParameter(theParameter.Handle).GetDefaultValue()
-                    Assert.True(constantHandle.IsNil)
-                End Sub
-
-            ' This is the same output as the native VB compiler
-            Dim comp = CompileAndVerify(source, expectedOutput:="621558279390000000", symbolValidator:=symValidator)
-            comp.VerifyDiagnostics()
-
-            Dim libComp = CreateCompilationWithMscorlib(source)
-            Dim libCompRef = New VisualBasicCompilationReference(libComp)
-
-            Dim source2 =
-<compilation>
-    <file name="attr.vb"><![CDATA[
-Public Class Consumer
-    Public Shared Sub Main()
-        System.Console.WriteLine(New Bar().Method().Ticks)
-    End Sub
-End Class
-]]>
-    </file>
-</compilation>
-
-            Dim comp2 = CompileAndVerify(source2, expectedOutput:="621558279390000000", additionalRefs:={libCompRef})
-
-            Dim libAssemblyRef = libComp.EmitToImageReference()
-            Dim comp3 = CompileAndVerify(source2, expectedOutput:="0", additionalRefs:={libAssemblyRef})
+            Dim comp = CreateCompilationWithMscorlib(source)
+            AssertTheseDiagnostics(comp,
+                                   <expected><![CDATA[
+BC37226: The parameter has multiple distinct default values.
+    Public Function Method(<DateTimeConstant(-1)> Optional p1 As DateTime = # 8/23/1970 3:45:39AM #) As DateTime
+                                                                            ~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
         End Sub
 
         <WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>

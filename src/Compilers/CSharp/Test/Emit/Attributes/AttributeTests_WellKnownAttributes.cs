@@ -596,7 +596,6 @@ public class Bar
                 );
         }
 
-
         [Fact]
         [WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")]
         public void DateTimeConstantAttributeWithBadDefaultValueOnField()
