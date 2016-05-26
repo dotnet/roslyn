@@ -15,17 +15,29 @@ namespace Runner
 {
     public static class Program
     {
+        private static bool LaunchedWithArgument(string arg)
+        {
+            return Environment.GetCommandLineArgs().Contains($"/{arg}") ||
+                   Environment.GetCommandLineArgs().Contains($"--{arg}");
+        }
+        private static bool ShouldReportBenchview => LaunchedWithArgument("report-benchview");
+        private static bool ShouldUploadTrace => !LaunchedWithArgument("no-trace-upload");
+        private static bool IsRunningUnderCI => LaunchedWithArgument("ci-test");
         public static void Main(string[] args)
         {
             AsyncMain(args).GetAwaiter().GetResult();
+            if (IsRunningUnderCI)
+            {
+                Log("Running under continuous integration");
+            }
 
-            if (args.Contains("--report-benchview"))
+            if (ShouldReportBenchview)
             {
                 Log("Uploading results to benchview");
                 UploadBenchviewReport();
             }
 
-            if (!args.Contains("--no-trace-upload"))
+            if (ShouldUploadTrace)
             {
                 Log("Uploading traces");
                 UploadTraces();
@@ -65,9 +77,20 @@ namespace Runner
                 test.Setup();
                 traceManager.Setup();
 
-                var iterations = traceManager.HasWarmUpIteration ?
-                                 test.Iterations + 1 :
-                                 test.Iterations;
+                int iterations;
+                if (IsRunningUnderCI)
+                {
+                    Log("Running one iteration per test");
+                    iterations = 1;
+                }
+                else if (traceManager.HasWarmUpIteration)
+                {
+                    iterations = test.Iterations + 1;
+                }
+                else
+                {
+                    iterations = test.Iterations;
+                }
 
                 for (int i = 0; i < iterations; i++)
                 {
