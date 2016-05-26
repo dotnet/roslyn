@@ -565,43 +565,19 @@ Imports System.Runtime.CompilerServices
 
 Public Class Bar
     <DateTimeConstant(-1)>
-    Public F As DateTime = # 8/23/1970 3:45:39AM #
+    Public Const F As DateTime = # 8/23/1970 3:45:39AM #
 
     Public Shared Sub Main()
-        Console.WriteLine(New Bar().F.Ticks)
+        Console.WriteLine(Bar.F.Ticks)
     End Sub
 End Class
 ]]>
     </file>
 </compilation>
 
-            ' The native VB compiler emits this:
-            Dim symValidator As Action(Of ModuleSymbol) =
-                Sub(peModule)
-
-                    'Dim bar = peModule.GlobalNamespace.GetMember(Of NamedTypeSymbol)("Bar")
-                    'Dim method = bar.GetMember(Of MethodSymbol)("F")
-                    'Dim parameters = method.Parameters
-                    'Dim theParameter = DirectCast(parameters(0), PEParameterSymbol)
-                    'Dim peModuleSymbol = DirectCast(peModule, PEModuleSymbol)
-
-                    'Assert.Equal(ParameterAttributes.Optional, theParameter.ParamFlags)
-
-                    '' let's find the attribute in the PE metadata
-                    'Dim attributeInfo = CodeAnalysis.PEModule.FindTargetAttribute(peModuleSymbol.Module.MetadataReader, theParameter.Handle, AttributeDescription.DateTimeConstantAttribute)
-                    'Assert.True(attributeInfo.HasValue)
-
-                    'Dim attributeValue As Long
-                    'Assert.True(peModuleSymbol.Module.TryExtractLongValueFromAttribute(attributeInfo.Handle, attributeValue))
-                    'Assert.Equal(621558279390000000, attributeValue)
-
-                    '' check .param has no value
-                    'Dim constantHandle = peModuleSymbol.Module.MetadataReader.GetParameter(theParameter.Handle).GetDefaultValue()
-                    'Assert.True(constantHandle.IsNil)
-                End Sub
 
             ' This is the same output as the native VB compiler
-            Dim comp = CompileAndVerify(source, expectedOutput:="621558279390000000", symbolValidator:=symValidator)
+            Dim comp = CompileAndVerify(source, expectedOutput:="621558279390000000")
             comp.VerifyDiagnostics()
 
             Dim libComp = CreateCompilationWithMscorlib(source)
@@ -612,7 +588,7 @@ End Class
     <file name="attr.vb"><![CDATA[
 Public Class Consumer
     Public Shared Sub Main()
-        System.Console.WriteLine(New Bar().F.Ticks)
+        System.Console.WriteLine(Bar.F.Ticks)
     End Sub
 End Class
 ]]>
@@ -622,13 +598,12 @@ End Class
             Dim comp2 = CompileAndVerify(source2, expectedOutput:="621558279390000000", additionalRefs:={libCompRef})
 
             ' Using the native compiler, this code crashes at runtime: Unhandled Exception: System.ArgumentOutOfRangeException: Ticks must be between DateTime.MinValue.Ticks and DateTime.MaxValue.Ticks.
-            ' Also the compiler gives a warning: warning BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
             Dim libAssemblyRef = libComp.EmitToImageReference()
             Dim comp3 = CreateCompilationWithMscorlib(source2, references:={libAssemblyRef})
             comp3.AssertTheseDiagnostics(<expected><![CDATA[
 BC30799: Field 'Bar.F' has an invalid constant value.
-        System.Console.WriteLine(New Bar().F.Ticks)
-                                 ~~~~~~~~~~~
+        System.Console.WriteLine(Bar.F.Ticks)
+                                 ~~~~~
 ]]></expected>)
 
         End Sub
@@ -644,44 +619,23 @@ Imports System.Runtime.CompilerServices
 
 Public Class Bar
     <DateTimeConstant(42)>
-    Public F As DateTime = # 8/23/1970 3:45:39AM #
+    Public Const F As DateTime = # 8/23/1970 3:45:39AM #
 
     Public Shared Sub Main()
-        Console.WriteLine(New Bar().F.Ticks)
+        Console.WriteLine(Bar.F.Ticks)
     End Sub
 End Class
 ]]>
     </file>
 </compilation>
-
-            ' The native VB compiler emits this:
 
             ' With the native VB compiler, this code outputs 621558279390000000
-            Dim comp = CompileAndVerify(source, expectedOutput:="621558279390000000")
-            comp.VerifyDiagnostics()
-
-            Dim libComp = CreateCompilationWithMscorlib(source)
-            Dim libCompRef = New VisualBasicCompilationReference(libComp)
-
-            Dim source2 =
-<compilation>
-    <file name="attr.vb"><![CDATA[
-Public Class Consumer
-    Public Shared Sub Main()
-        System.Console.WriteLine(New Bar().F.Ticks)
-    End Sub
-End Class
-]]>
-    </file>
-</compilation>
-
-            Dim comp2 = CompileAndVerify(source2, expectedOutput:="621558279390000000", additionalRefs:={libCompRef})
-
-            ' With the native compiler, this code outputs 42
-            ' But it gives a warning: warning BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
-            Dim libAssemblyRef = libComp.EmitToImageReference()
-            Dim comp3 = CompileAndVerify(source2, expectedOutput:="42", additionalRefs:={libAssemblyRef})
-            AssertTheseDiagnostics(comp3.Compilation)
+            Dim comp = CreateCompilationWithMscorlib(source)
+            comp.AssertTheseDiagnostics(<expected><![CDATA[
+BC37228: The field has multiple distinct constant values.
+    <DateTimeConstant(42)>
+     ~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
 
         End Sub
 
@@ -762,7 +716,7 @@ BC30455: Argument not specified for parameter 'p1' of 'Public Sub Method(p1 As D
     <file name="attr.vb"><![CDATA[
 Public Class D
     Shared Sub Main()
-        System.Console.WriteLine(New C().F.Ticks)
+        System.Console.WriteLine(C.F.Ticks)
     End Sub
 End Class
 ]]>
@@ -775,11 +729,8 @@ End Class
             AssertTheseDiagnostics(comp,
                 <expected><![CDATA[
 BC30799: Field 'C.F' has an invalid constant value.
-        System.Console.WriteLine(New C().F.Ticks)
-                                 ~~~~~~~~~
-BC42025: Access of shared member, constant member, enum member or nested type through an instance; qualifying expression will not be evaluated.
-        System.Console.WriteLine(New C().F.Ticks)
-                                 ~~~~~~~~~
+        System.Console.WriteLine(C.F.Ticks)
+                                 ~~~
 ]]></expected>)
         End Sub
 

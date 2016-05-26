@@ -189,7 +189,7 @@ namespace Microsoft.CodeAnalysis
             if (value < DateTime.MinValue.Ticks || value > DateTime.MaxValue.Ticks)
             {
                 // Treat as-is parameter doesn't have default
-                return ConstantValue.Unset;
+                return ConstantValue.Bad;
             }
 
             return ConstantValue.Create(new DateTime(value));
