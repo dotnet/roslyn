@@ -446,7 +446,7 @@ public class Bar
                     var theParameter = (PEParameterSymbol)parameters[0];
                     var peModule = (PEModuleSymbol)module;
 
-                    Assert.Equal(ParameterAttributes.None, theParameter.Flags);
+                    Assert.Equal(ParameterAttributes.HasDefault, theParameter.Flags);
 
                     // let's find the attribute in the PE metadata
                     var attributeInfo = PEModule.FindTargetAttribute(peModule.Module.MetadataReader, theParameter.Handle, AttributeDescription.DateTimeConstantAttribute);
@@ -457,8 +457,10 @@ public class Bar
                     Assert.Equal(-1L, attributeValue); // check the attribute is constructed with a -1
 
                     // check .param has no value
-                    var constantHandle = peModule.Module.MetadataReader.GetParameter(theParameter.Handle).GetDefaultValue();
-                    Assert.True(constantHandle.IsNil);
+                    //var constantHandle = peModule.Module.MetadataReader.GetParameter(theParameter.Handle).GetDefaultValue();
+                    //Assert.True(constantHandle.IsNil);
+                    var constantValue = peModule.Module.GetParamDefaultValue(theParameter.Handle);
+                    Assert.Equal(ConstantValue.Null, constantValue);
                 };
 
             var comp = CompileAndVerify(source, symbolValidator: verifier);
@@ -512,7 +514,7 @@ public class Consumer
 
         [Fact]
         [WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")]
-        public void DateTimeConstantAttributeWithDefaultValue()
+        public void DateTimeConstantAttributeWithBadDefaultValue()
         {
             #region "Source"
             var source = @"
@@ -560,6 +562,38 @@ public class Bar
 
             var comp = CompileAndVerify(source, expectedOutput: "0", symbolValidator: verifier);
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        [WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")]
+        public void DateTimeConstantAttributeWithValidDefaultValue()
+        {
+            #region "Source"
+            var source = @"
+using System;
+using System.Runtime.CompilerServices;
+
+public class Bar
+{
+    public DateTime M1([DateTimeConstant(42)] DateTime x = default(DateTime)) { return x; }
+    public static void Main()
+    {
+        Console.WriteLine(new Bar().M1().Ticks);
+    }
+}
+";
+            #endregion
+
+            // The native C# compiler emits this:
+            // .param [1] = nullref
+            // .custom instance void[mscorlib] System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = (01 00 2A 00 00 00 00 00 00 00 00 00 )
+
+            var comp = CreateCompilationWithMscorlib(source);
+            comp.VerifyDiagnostics(
+                // (7,60): error CS8017: The parameter has multiple distinct default values.
+                //     public DateTime M1([DateTimeConstant(42)] DateTime x = default(DateTime)) { return x; }
+                Diagnostic(ErrorCode.ERR_ParamDefaultValueDiffersFromAttribute, "default(DateTime)").WithLocation(7, 60)
+                );
         }
 
         [Fact, WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")]

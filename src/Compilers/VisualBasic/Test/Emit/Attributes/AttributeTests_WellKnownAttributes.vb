@@ -480,7 +480,7 @@ End Class
 
         <WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>
         <Fact()>
-        Public Sub DateTimeConstantAttributeWithDefaultValue()
+        Public Sub DateTimeConstantAttributeWithBadDefaultValue()
             Dim source =
 <compilation>
     <file name="attr.vb"><![CDATA[
@@ -530,9 +530,67 @@ End Class
                 End Sub
 
             ' This is the same output as the native VB compiler
-            CompileAndVerify(source, expectedOutput:="621558279390000000", symbolValidator:=symValidator)
+            Dim comp = CompileAndVerify(source, expectedOutput:="621558279390000000", symbolValidator:=symValidator)
+            comp.VerifyDiagnostics()
+
+            Dim libComp = CreateCompilationWithMscorlib(source)
+            Dim libCompRef = New VisualBasicCompilationReference(libComp)
+
+            Dim source2 =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Public Class Consumer
+    Public Shared Sub Main()
+        System.Console.WriteLine(New Bar().Method().Ticks)
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>
+
+            Dim comp2 = CompileAndVerify(source2, expectedOutput:="621558279390000000", additionalRefs:={libCompRef})
+
+            Dim libAssemblyRef = libComp.EmitToImageReference()
+            Dim comp3 = CompileAndVerify(source2, expectedOutput:="0", additionalRefs:={libAssemblyRef})
         End Sub
 
+        <WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>
+        <Fact()>
+        Public Sub DateTimeConstantAttributeWithValidDefaultValue()
+            Dim source =
+<compilation>
+    <file name="attr.vb"><![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+
+Public Class Bar
+    Public Function Method(<DateTimeConstant(42)> Optional p1 As DateTime = # 8/23/1970 3:45:39AM #) As DateTime
+        Return p1
+    End Function
+    Public Shared Sub Main()
+        Console.WriteLine(New Bar().Method().Ticks)
+    End Sub
+End Class
+]]>
+    </file>
+</compilation>
+
+            ' The native VB compiler emits this:
+            ' .method public instance valuetype [mscorlib]System.DateTime
+            ' Method([opt] valuetype [mscorlib]System.DateTime p1) cil managed
+            ' {
+            ' .param [1]
+            ' .custom instance void [mscorlib]System.Runtime.CompilerServices.DateTimeConstantAttribute:: .ctor(Int64) = (1 00 2A 00 00 00 00 00 00 00 00 00 )
+            ' .custom instance void [mscorlib]System.Runtime.CompilerServices.DateTimeConstantAttribute:: .ctor(Int64) = (1 00 80 73 3E 42 F6 37 A0 08 00 00 )
+
+            Dim comp = CreateCompilationWithMscorlib(source)
+            AssertTheseDiagnostics(comp,
+                                   <expected><![CDATA[
+BC37226: The parameter has multiple distinct default values.
+    Public Function Method(<DateTimeConstant(42)> Optional p1 As DateTime = # 8/23/1970 3:45:39AM #) As DateTime
+                                                                            ~~~~~~~~~~~~~~~~~~~~~~~
+]]></expected>)
+        End Sub
 
         <WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>
         <Fact()>
@@ -568,15 +626,21 @@ End Class
             Dim libCompRef = New VisualBasicCompilationReference(libComp)
 
             Dim comp2 = CreateCompilationWithMscorlib(source2, references:={libCompRef})
-            comp2.VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_OmittedArgument2, "Method").WithArguments("p1", "Public Sub Method(p1 As Date)").WithLocation(4, 14)
-                )
+            AssertTheseDiagnostics(comp2,
+                                   <expected><![CDATA[
+BC30455: Argument not specified for parameter 'p1' of 'Public Sub Method(p1 As Date)'.
+        test.Method()
+             ~~~~~~
+]]></expected>)
 
             Dim libAssemblyRef = libComp.EmitToImageReference()
             Dim comp3 = CreateCompilationWithMscorlib(source2, references:={libAssemblyRef})
-            comp3.VerifyDiagnostics(
-                Diagnostic(ERRID.ERR_OmittedArgument2, "Method").WithArguments("p1", "Public Sub Method(p1 As Date)").WithLocation(4, 14)
-                )
+            AssertTheseDiagnostics(comp3,
+                <expected><![CDATA[
+BC30455: Argument not specified for parameter 'p1' of 'Public Sub Method(p1 As Date)'.
+        test.Method()
+             ~~~~~~
+]]></expected>)
         End Sub
 
         <WorkItem(217740, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217740")>
@@ -586,7 +650,7 @@ End Class
 .class public auto ansi C
        extends [mscorlib]System.Object
 {
-  .field private static initonly valuetype [mscorlib]System.DateTime f
+  .field public static initonly valuetype [mscorlib]System.DateTime F
   .custom instance void [mscorlib]System.Runtime.CompilerServices.DateTimeConstantAttribute::.ctor(int64) = ( 01 00 ff ff ff ff ff ff ff ff 00 00 )
   .method public specialname rtspecialname
           instance void  .ctor() cil managed
@@ -597,21 +661,6 @@ End Class
     IL_0001:  call       instance void [mscorlib]System.Object::.ctor()
     IL_0006:  ret
   } // end of method C::.ctor
-
-  .method public instance void  Method() cil managed
-  {
-    // Code size       29 (0x1d)
-    .maxstack  2
-    .locals init (valuetype [mscorlib]System.DateTime V_0)
-    IL_0000:  ldc.i8     0x8a037f6423e7380
-    IL_0009:  newobj     instance void [mscorlib]System.DateTime::.ctor(int64)
-    IL_000e:  stloc.s    V_0
-    IL_0010:  ldloca.s   V_0
-    IL_0012:  call       instance int64 [mscorlib]System.DateTime::get_Ticks()
-    IL_0017:  call       void [mscorlib]System.Console::WriteLine(int64)
-    IL_001c:  ret
-  } // end of method C::Method
-
 } // end of class C
                 ]]>
 
@@ -620,8 +669,7 @@ End Class
     <file name="attr.vb"><![CDATA[
 Public Class D
     Shared Sub Main()
-        Dim test = New C()
-        test.Method()
+        System.Console.WriteLine(New C().F.Ticks)
     End Sub
 End Class
 ]]>
