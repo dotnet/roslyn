@@ -11,7 +11,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     public class CodeGenDeconstructTests : CSharpTestBase
     {
         [Fact]
-        public void Deconstruct()
+        public void SimpleAssign()
         {
             string source = @"
 class C
@@ -140,7 +140,7 @@ class C
         }
 
         [Fact]
-        public void DeconstructWithLeftHandSideErrors()
+        public void AssignmentWithLeftHandSideErrors()
         {
             string source = @"
 class C
@@ -240,7 +240,7 @@ class C
         }
 
         [Fact]
-        public void DeconstructDataFlow()
+        public void AssignmentDataFlow()
         {
             string source = @"
 class C
@@ -342,7 +342,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [Fact(Skip = "PROTOTYPE(tuples)")]
+        [Fact]
         public void Dynamic()
         {
             string source = @"
@@ -354,8 +354,8 @@ class C
     static void Main()
     {
         C c = new C();
-        (c.Dynamic1, c.Dynamic2) = new C();
-        System.Console.WriteLine(c.Dynamic1 + "" "" + c.Dyanmic2);
+        (c.Dynamic1, c.Dynamic2) = c;
+        System.Console.WriteLine(c.Dynamic1 + "" "" + c.Dynamic2);
     }
 
     public void Deconstruct(out int a, out dynamic b)
@@ -366,7 +366,7 @@ class C
 }
 ";
 
-            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: new[] { SystemCoreRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: new[] { SystemCoreRef, CSharpRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics();
         }
 
@@ -402,7 +402,7 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [Fact(Skip = "PROTOTYPE(tuples)")]
+        [Fact]
         public void DifferentVariableRefKinds()
         {
             string source = @"
@@ -495,7 +495,7 @@ class D
             // expect a console output
         }
 
-        [Fact(Skip = "PROTOTYPE(tuples)")]
+        [Fact]
         public void ExpressionType()
         {
             string source = @"
@@ -505,7 +505,6 @@ class C
     {
         int x, y;
         var type = ((x, y) = new C()).GetType();
-        System.Console.WriteLine(type);
     }
 
     public void Deconstruct(out int a, out int b)
@@ -516,7 +515,11 @@ class C
 ";
 
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
-            comp.VerifyDiagnostics(); // expect an error
+            comp.VerifyDiagnostics(
+                // (7,38): error CS0023: Operator '.' cannot be applied to operand of type 'void'
+                //         var type = ((x, y) = new C()).GetType();
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, ".").WithArguments(".", "void").WithLocation(7, 38)
+                );
         }
 
         [Fact]
@@ -705,7 +708,7 @@ class C
             //Diagnostic(ErrorCode.WRN_UnassignedInternalField, "i").WithArguments("C.i", "0").WithLocation(4, 16)
         }
 
-        [Fact(Skip = "PROTOTYPE(tuples)")]
+        [Fact]
         [CompilerTrait(CompilerFeature.RefLocalsReturns)]
         public void RefReturningMethodFlow()
         {
@@ -741,16 +744,16 @@ struct C
 }
 ";
 
-            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature().WithRefsFeature());
-            comp.VerifyDiagnostics();
-
-
             var expected =
-                @"";
+@"M (previous i is C)
+M (previous i is C)
+getP
+Deconstruct
+conversion
+conversion";
 
-            // Should not crash!
-            var comp2 = CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular.WithTuplesFeature().WithRefsFeature());
-            comp2.VerifyDiagnostics();
+            var comp = CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular.WithTuplesFeature().WithRefsFeature());
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -884,7 +887,7 @@ class C
         }
 
         [Fact]
-        public void DeconstructTuple()
+        public void AssigningTuple()
         {
             string source = @"
 class C
@@ -905,7 +908,7 @@ class C
         }
 
         [Fact(Skip = "PROTOTYPE(tuples)")]
-        public void DeconstructTuple2()
+        public void AssigningTuple2()
         {
             string source = @"
 class C
@@ -931,7 +934,7 @@ class C
         }
 
         [Fact]
-        public void DeconstructLongTuple()
+        public void AssigningLongTuple()
         {
             string source = @"
 class C
@@ -1021,7 +1024,7 @@ class C
         }
 
         [Fact]
-        public void DeconstructLongTupleWithNames()
+        public void AssigningLongTupleWithNames()
         {
             string source = @"
 class C
@@ -1041,8 +1044,8 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [Fact(Skip = "PROTOTYPE(tuples)")]
-        public void DeconstructLongTuple2()
+        [Fact]
+        public void AssigningLongTuple2()
         {
             string source = @"
 class C
@@ -1058,13 +1061,12 @@ class C
 }
 ";
 
-            // issue with return type
             var comp = CompileAndVerify(source, expectedOutput: "4 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics();
         }
 
         [Fact]
-        public void DeconstructTypelessTuple()
+        public void AssigningTypelessTuple()
         {
             string source = @"
 class C
@@ -1133,7 +1135,7 @@ class C
         }
 
         [Fact]
-        public void DeconstructIntoProperties()
+        public void AssigningIntoProperties()
         {
             string source = @"
 class C
@@ -1162,7 +1164,7 @@ hello";
         }
 
         [Fact]
-        public void DeconstructTupleIntoProperties()
+        public void AssigningTupleIntoProperties()
         {
             string source = @"
 class C
@@ -1307,6 +1309,39 @@ class C
 
             var comp = CompileAndVerify(source, expectedOutput: "(1, 1) 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature().WithRefsFeature());
             comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AssignmentTypeIsVoid()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x, y;
+
+        ((x, y) = new C()).ToString();
+
+        var z = ((x, y) = new C());
+    }
+
+    public void Deconstruct(out int a, out int b)
+    {
+        a = 1;
+        b = 2;
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // (8,27): error CS0023: Operator '.' cannot be applied to operand of type 'void'
+                //         ((x, y) = new C()).ToString();
+                Diagnostic(ErrorCode.ERR_BadUnaryOp, ".").WithArguments(".", "void").WithLocation(8, 27),
+                // (10,13): error CS0815: Cannot assign void to an implicitly-typed variable
+                //         var z = ((x, y) = new C());
+                Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "z = ((x, y) = new C())").WithArguments("void").WithLocation(10, 13)
+                );
         }
     }
 }

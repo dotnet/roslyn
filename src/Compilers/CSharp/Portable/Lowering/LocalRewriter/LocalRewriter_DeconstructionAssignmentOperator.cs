@@ -54,6 +54,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 stores.Add(assignment);
             }
 
+            stores.Add(new BoundVoid(node.Syntax, node.Type));
             var result = _factory.Sequence(temps.ToImmutable(), stores.ToArray());
 
             temps.Free();
