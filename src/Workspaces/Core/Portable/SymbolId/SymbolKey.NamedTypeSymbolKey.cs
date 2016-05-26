@@ -5,20 +5,34 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
+using Newtonsoft.Json;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     internal abstract partial class SymbolKey
     {
+        [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
         private class NamedTypeSymbolKey : AbstractSymbolKey<NamedTypeSymbolKey>
         {
-            private readonly SymbolKey _containerKey;
-            private readonly string _metadataName;
-            private readonly int _arity;
-            private readonly SymbolKey[] _typeArgumentKeysOpt;
-            private readonly TypeKind _typeKind;
-            private readonly bool _isUnboundGenericType;
+            [JsonProperty] private readonly SymbolKey _containerKey;
+            [JsonProperty] private readonly string _metadataName;
+            [JsonProperty] private readonly int _arity;
+            [JsonProperty] private readonly SymbolKey[] _typeArgumentKeysOpt;
+            [JsonProperty] private readonly TypeKind _typeKind;
+            [JsonProperty] private readonly bool _isUnboundGenericType;
+
+            public NamedTypeSymbolKey(
+                SymbolKey _containerKey, string _metadataName, int _arity,
+                SymbolKey[] _typeArgumentKeysOpt, TypeKind _typeKind, bool _isUnboundGenericType)
+            {
+                this._containerKey = _containerKey;
+                this._metadataName = _metadataName;
+                this._arity = _arity;
+                this._typeArgumentKeysOpt = _typeArgumentKeysOpt;
+                this._typeKind = _typeKind;
+                this._isUnboundGenericType = _isUnboundGenericType;
+            }
 
             internal NamedTypeSymbolKey(INamedTypeSymbol symbol, Visitor visitor)
             {

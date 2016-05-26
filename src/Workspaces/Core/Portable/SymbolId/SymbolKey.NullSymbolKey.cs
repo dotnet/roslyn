@@ -4,26 +4,35 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Threading;
+using Newtonsoft.Json;
 
 namespace Microsoft.CodeAnalysis
 {
     internal abstract partial class SymbolKey
     {
-        private class NullSymbolKey : SymbolKey
+        [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
+        private class NullSymbolKey : AbstractSymbolKey<NullSymbolKey>
         {
+            public static readonly NullSymbolKey Instance = new NullSymbolKey();
+
+            [JsonConstructor]
+            internal NullSymbolKey()
+            {
+            }
+
             public override SymbolKeyResolution Resolve(Compilation compilation, bool ignoreAssemblyKey, CancellationToken cancellationToken)
             {
                 return default(SymbolKeyResolution);
             }
 
-            internal override bool Equals(SymbolKey other, ComparisonOptions options)
+            internal override bool Equals(NullSymbolKey other, ComparisonOptions options)
             {
-                return ReferenceEquals(this, other);
+                return true;
             }
 
             internal override int GetHashCode(ComparisonOptions options)
             {
-                return RuntimeHelpers.GetHashCode(this);
+                return RuntimeHelpers.GetHashCode(Instance);
             }
         }
     }

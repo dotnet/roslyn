@@ -4,14 +4,22 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Newtonsoft.Json;
 
 namespace Microsoft.CodeAnalysis
 {
     internal abstract partial class SymbolKey
     {
+        [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
         private class AssemblySymbolKey : AbstractSymbolKey<AssemblySymbolKey>
         {
-            private readonly string _assemblyName;
+            [JsonProperty] private readonly string _assemblyName;
+
+            [JsonConstructor]
+            internal AssemblySymbolKey(string _assemblyName)
+            {
+                this._assemblyName = _assemblyName;
+            }
 
             internal AssemblySymbolKey(IAssemblySymbol symbol)
             {

@@ -5,16 +5,25 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
+using Newtonsoft.Json;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     internal abstract partial class SymbolKey
     {
+        [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
         private class ModuleSymbolKey : AbstractSymbolKey<ModuleSymbolKey>
         {
-            private readonly SymbolKey _containerKey;
-            private readonly string _metadataName;
+            [JsonProperty] private readonly SymbolKey _containerKey;
+            [JsonProperty] private readonly string _metadataName;
+
+            [JsonConstructor]
+            internal ModuleSymbolKey(SymbolKey _containerKey, string _metadataName)
+            {
+                this._containerKey = _containerKey;
+                this._metadataName = _metadataName;
+            }
 
             internal ModuleSymbolKey(IModuleSymbol symbol, Visitor visitor)
             {

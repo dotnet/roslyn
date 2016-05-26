@@ -4,15 +4,23 @@ using System;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
+using Newtonsoft.Json;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     internal abstract partial class SymbolKey
     {
+        [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
         private class PointerTypeSymbolKey : AbstractSymbolKey<PointerTypeSymbolKey>
         {
-            private readonly SymbolKey _pointedAtKey;
+            [JsonProperty] private readonly SymbolKey _pointedAtKey;
+
+            [JsonConstructor]
+            internal PointerTypeSymbolKey(SymbolKey _pointedAtKey)
+            {
+                this._pointedAtKey = _pointedAtKey;
+            }
 
             public PointerTypeSymbolKey(IPointerTypeSymbol symbol, Visitor visitor)
             {

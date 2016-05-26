@@ -1,23 +1,33 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Text;
+using Newtonsoft.Json;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     internal abstract partial class SymbolKey
     {
+        [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
         private class PropertySymbolKey : AbstractSymbolKey<PropertySymbolKey>
         {
-            private readonly SymbolKey _containerKey;
-            private readonly string _metadataName;
-            private readonly RefKind[] _refKinds;
-            private readonly SymbolKey[] _originalParameterTypeKeys;
-            private readonly bool _isIndexer;
+            [JsonProperty] private readonly SymbolKey _containerKey;
+            [JsonProperty] private readonly string _metadataName;
+            [JsonProperty] private readonly RefKind[] _refKinds;
+            [JsonProperty] private readonly SymbolKey[] _originalParameterTypeKeys;
+            [JsonProperty] private readonly bool _isIndexer;
+
+            public PropertySymbolKey(
+                SymbolKey _containerKey, string _metadataName, RefKind[] _refKinds, 
+                SymbolKey[] _originalParameterTypeKeys, bool _isIndexer)
+            {
+                this._containerKey = _containerKey;
+                this._metadataName = _metadataName;
+                this._refKinds = _refKinds;
+                this._originalParameterTypeKeys = _originalParameterTypeKeys;
+                this._isIndexer = _isIndexer;
+            }
 
             internal PropertySymbolKey(IPropertySymbol symbol, Visitor visitor)
             {

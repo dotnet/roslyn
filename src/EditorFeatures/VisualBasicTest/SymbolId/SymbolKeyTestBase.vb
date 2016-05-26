@@ -71,6 +71,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
 
         Friend Shared Function ResolveSymbol(originalSymbol As ISymbol, targetCompilation As Compilation, comparison As SymbolIdComparison) As ISymbol
             Dim sid = SymbolKey.Create(originalSymbol, CancellationToken.None)
+
+            ' Verify that serialization works.
+            Dim serialized = sid.Serialize()
+            Dim deserialized = SymbolKey.Deserialize(serialized)
+
+            Dim comparer = SymbolKey.GetComparer(ignoreCase:=False, ignoreAssemblyKeys:=False)
+            Assert.True(comparer.Equals(sid, deserialized))
+
             Dim symInfo = sid.Resolve(targetCompilation, (comparison And SymbolIdComparison.IgnoreAssemblyIds) = SymbolIdComparison.IgnoreAssemblyIds)
             Return symInfo.Symbol
         End Function

@@ -6,7 +6,8 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
@@ -58,8 +59,6 @@ namespace Microsoft.CodeAnalysis
     /// </summary>
     internal abstract partial class SymbolKey
     {
-        private static readonly SymbolKey s_null = new NullSymbolKey();
-
         public abstract SymbolKeyResolution Resolve(Compilation compilation, bool ignoreAssemblyKey = false, CancellationToken cancellationToken = default(CancellationToken));
 
         public static IEqualityComparer<SymbolKey> GetComparer(bool ignoreCase, bool ignoreAssemblyKeys)
@@ -112,7 +111,7 @@ namespace Microsoft.CodeAnalysis
         {
             if (symbol == null)
             {
-                return s_null;
+                return NullSymbolKey.Instance;
             }
 
             SymbolKey result;
@@ -287,6 +286,25 @@ namespace Microsoft.CodeAnalysis
             return index > 0
                 ? metadataName.Substring(0, index)
                 : metadataName;
+        }
+
+        private static readonly JsonSerializerSettings serializerSettings = new JsonSerializerSettings
+        {
+            TypeNameHandling = TypeNameHandling.All,
+            PreserveReferencesHandling = PreserveReferencesHandling.Objects,
+#if DEBUG
+            Formatting = Newtonsoft.Json.Formatting.Indented
+#endif
+        };
+
+        internal string Serialize()
+        {
+            return JsonConvert.SerializeObject(this, serializerSettings);
+        }
+
+        internal static SymbolKey Deserialize(string encoded)
+        {
+            return JsonConvert.DeserializeObject<SymbolKey>(encoded, serializerSettings);
         }
     }
 }

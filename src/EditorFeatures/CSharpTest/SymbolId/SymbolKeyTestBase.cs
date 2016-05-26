@@ -77,8 +77,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
         internal static ISymbol ResolveSymbol(ISymbol originalSymbol, Compilation targetCompilation, SymbolKeyComparison comparison)
         {
             var sid = SymbolKey.Create(originalSymbol, CancellationToken.None);
-            var symInfo = sid.Resolve(targetCompilation, (comparison & SymbolKeyComparison.IgnoreAssemblyIds) == SymbolKeyComparison.IgnoreAssemblyIds);
 
+            // Verify that serialization works.
+            var serialized = sid.Serialize();
+            var deserialized = SymbolKey.Deserialize(serialized);
+            var comparer = SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: false);
+            Assert.True(comparer.Equals(sid, deserialized));
+
+            var symInfo = sid.Resolve(targetCompilation, (comparison & SymbolKeyComparison.IgnoreAssemblyIds) == SymbolKeyComparison.IgnoreAssemblyIds);
             return symInfo.Symbol;
         }
 

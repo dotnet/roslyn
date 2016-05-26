@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 
 namespace Microsoft.CodeAnalysis
@@ -22,7 +23,10 @@ namespace Microsoft.CodeAnalysis
 
             public override SymbolKey VisitAlias(IAliasSymbol aliasSymbol)
             {
-                return GetOrCreate(aliasSymbol.Target, this);
+                var syntaxRef = aliasSymbol.DeclaringSyntaxReferences.FirstOrDefault();
+                return syntaxRef == null
+                    ? (SymbolKey)NullSymbolKey.Instance
+                    : new AliasSymbolKey(aliasSymbol, this);
             }
 
             public override SymbolKey VisitArrayType(IArrayTypeSymbol arrayTypeSymbol)
@@ -47,17 +51,28 @@ namespace Microsoft.CodeAnalysis
 
             public override SymbolKey VisitLabel(ILabelSymbol labelSymbol)
             {
-                return new NonDeclarationSymbolKey<ILabelSymbol>(labelSymbol, this);
+                return new NonDeclarationSymbolKey(labelSymbol, this);
             }
 
             public override SymbolKey VisitLocal(ILocalSymbol localSymbol)
             {
-                return new NonDeclarationSymbolKey<ILocalSymbol>(localSymbol, this);
+                return new NonDeclarationSymbolKey(localSymbol, this);
             }
 
             public override SymbolKey VisitMethod(IMethodSymbol methodSymbol)
             {
-                return new MethodSymbolKey(methodSymbol, this);
+                if (!methodSymbol.Equals(methodSymbol.ConstructedFrom))
+                {
+                    return new ConstructedMethodSymbolKey(methodSymbol, this);
+                }
+                else if (methodSymbol.MethodKind == MethodKind.ReducedExtension)
+                {
+                    return new ReducedExtensionMethodSymbolKey(methodSymbol, this);
+                }
+                else
+                {
+                    return new MethodSymbolKey(methodSymbol, this);
+                }
             }
 
             public override SymbolKey VisitModule(IModuleSymbol moduleSymbol)
@@ -127,13 +142,13 @@ namespace Microsoft.CodeAnalysis
                 }
                 else
                 {
-                    return SymbolKey.s_null;
+                    return NullSymbolKey.Instance;
                 }
             }
 
             public override SymbolKey VisitRangeVariable(IRangeVariableSymbol rangeVariableSymbol)
             {
-                return new NonDeclarationSymbolKey<IRangeVariableSymbol>(rangeVariableSymbol, this);
+                return new NonDeclarationSymbolKey(rangeVariableSymbol, this);
             }
         }
     }

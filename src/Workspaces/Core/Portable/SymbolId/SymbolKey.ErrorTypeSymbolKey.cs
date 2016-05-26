@@ -5,18 +5,30 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
+using Newtonsoft.Json;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     internal abstract partial class SymbolKey
     {
+        [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
         private class ErrorTypeSymbolKey : AbstractSymbolKey<ErrorTypeSymbolKey>
         {
-            private readonly SymbolKey _containerKey;
-            private readonly string _name;
-            private readonly int _arity;
-            private readonly SymbolKey[] _typeArgumentKeysOpt;
+            [JsonProperty] private readonly SymbolKey _containerKey;
+            [JsonProperty] private readonly string _name;
+            [JsonProperty] private readonly int _arity;
+            [JsonProperty] private readonly SymbolKey[] _typeArgumentKeysOpt;
+
+            [JsonConstructor]
+            internal ErrorTypeSymbolKey(
+                SymbolKey _containerKey, string _name, int _arity, SymbolKey[] _typeArgumentKeysOpt)
+            {
+                this._containerKey = _containerKey;
+                this._name = _name;
+                this._arity = _arity;
+                this._typeArgumentKeysOpt = _typeArgumentKeysOpt;
+            }
 
             internal ErrorTypeSymbolKey(INamedTypeSymbol symbol, Visitor visitor)
             {

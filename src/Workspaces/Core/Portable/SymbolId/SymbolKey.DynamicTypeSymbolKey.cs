@@ -4,16 +4,19 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Threading;
+using Newtonsoft.Json;
 
 namespace Microsoft.CodeAnalysis
 {
     internal abstract partial class SymbolKey
     {
+        [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
         private class DynamicTypeSymbolKey : AbstractSymbolKey<DynamicTypeSymbolKey>
         {
             internal static readonly DynamicTypeSymbolKey Instance = new DynamicTypeSymbolKey();
 
-            private DynamicTypeSymbolKey()
+            [JsonConstructor]
+            internal DynamicTypeSymbolKey()
             {
             }
 
@@ -24,12 +27,12 @@ namespace Microsoft.CodeAnalysis
 
             internal override bool Equals(DynamicTypeSymbolKey other, ComparisonOptions options)
             {
-                return ReferenceEquals(this, other);
+                return true;
             }
 
             internal override int GetHashCode(ComparisonOptions options)
             {
-                return RuntimeHelpers.GetHashCode(this);
+                return RuntimeHelpers.GetHashCode(Instance);
             }
         }
     }

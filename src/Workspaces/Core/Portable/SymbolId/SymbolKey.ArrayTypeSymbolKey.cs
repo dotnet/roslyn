@@ -4,16 +4,25 @@ using System;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Text;
+using Newtonsoft.Json;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     internal abstract partial class SymbolKey
     {
+        [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
         private class ArrayTypeSymbolKey : AbstractSymbolKey<ArrayTypeSymbolKey>
         {
-            private readonly SymbolKey _elementKey;
-            private readonly int _rank;
+            [JsonProperty] private readonly SymbolKey _elementKey;
+            [JsonProperty] private readonly int _rank;
+
+            [JsonConstructor]
+            internal ArrayTypeSymbolKey(SymbolKey _elementKey, int _rank)
+            {
+                this._elementKey = _elementKey;
+                this._rank = _rank;
+            }
 
             internal ArrayTypeSymbolKey(IArrayTypeSymbol symbol, Visitor visitor)
             {

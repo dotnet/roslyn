@@ -1,17 +1,17 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Text;
+using Newtonsoft.Json;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     internal abstract partial class SymbolKey
     {
+        [JsonObject]
         private class NamespaceSymbolKey : AbstractSymbolKey<NamespaceSymbolKey>
         {
             // This can be one of many things. 
@@ -21,8 +21,15 @@ namespace Microsoft.CodeAnalysis
             // 3) The SymbolId for a module symbol if this is the global namespace for a module.
             // 4) The SymbolId for the containing namespace symbol if this is not a global
             //    namespace.
-            private readonly SymbolKey _containerKeyOpt;
-            private readonly string _metadataName;
+            [JsonProperty] private readonly SymbolKey _containerKeyOpt;
+            [JsonProperty] private readonly string _metadataName;
+
+            [JsonConstructor]
+            internal NamespaceSymbolKey(SymbolKey _containerKeyOpt, string _metadataName)
+            {
+                this._containerKeyOpt = _containerKeyOpt;
+                this._metadataName = _metadataName;
+            }
 
             internal NamespaceSymbolKey(INamespaceSymbol symbol, Visitor visitor)
             {

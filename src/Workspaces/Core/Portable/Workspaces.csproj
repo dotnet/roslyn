@@ -422,10 +422,10 @@
     <Compile Include="Options\OptionSet.cs" />
     <Compile Include="Packaging\IPackageInstallerService.cs" />
     <Compile Include="SolutionCrawler\PredefinedInvocationReasons.cs" />
+    <Compile Include="SymbolId\SymbolKey.AliasSymbolKey.cs" />
     <Compile Include="SymbolSearch\ISymbolSearchService.cs" />
     <Compile Include="FindSymbols\SymbolTree\ISymbolTreeInfoCacheService.cs" />
     <Compile Include="FindSymbols\FindReferences\MetadataUnifyingEquivalenceComparer.cs" />
-    <Compile Include="SymbolId\SymbolId.cs" />
     <Compile Include="Shared\Utilities\IProgressTracker.cs" />
     <Compile Include="SolutionCrawler\NullSolutionCrawlerRegisterationService.cs" />
     <Compile Include="SolutionCrawler\WellKnownSolutionCrawlerAnalyzers.cs" />

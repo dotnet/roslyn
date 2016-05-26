@@ -6,20 +6,34 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal abstract partial class SymbolKey
+    internal partial class SymbolKey
     {
-        private class NonDeclarationSymbolKey<TSymbol> : AbstractSymbolKey<NonDeclarationSymbolKey<TSymbol>> where TSymbol : class, ISymbol
+        [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
+        private class NonDeclarationSymbolKey : AbstractSymbolKey<NonDeclarationSymbolKey>
         {
-            private readonly SymbolKey _containingKey;
-            private readonly string _localName;
-            private readonly int _ordinal;
+            [JsonProperty] private readonly SymbolKey _containingKey;
+            [JsonProperty] private readonly string _localName;
+            [JsonProperty] private readonly int _ordinal;
+            [JsonProperty] private readonly SymbolKind _kind;
 
-            internal NonDeclarationSymbolKey(TSymbol symbol, Visitor visitor)
+            [JsonConstructor]
+            internal NonDeclarationSymbolKey(
+                SymbolKey _containingKey, string _localName, int _ordinal, SymbolKind _kind)
             {
+                this._containingKey = _containingKey;
+                this._localName = _localName;
+                this._ordinal = _ordinal;
+                this._kind = _kind;
+            }
+
+            internal NonDeclarationSymbolKey(ISymbol symbol, Visitor visitor)
+            {
+                _kind = symbol.Kind;
                 var containingSymbol = symbol.ContainingSymbol;
 
                 while (!containingSymbol.DeclaringSyntaxReferences.Any())
@@ -32,8 +46,8 @@ namespace Microsoft.CodeAnalysis
 
                 Contract.ThrowIfNull(
                     visitor.Compilation,
-                    message: $"visitor cannot be created with a null compilation and visit a {nameof(NonDeclarationSymbolKey<TSymbol>)}.");
-                foreach (var possibleSymbol in EnumerateSymbols(visitor.Compilation, containingSymbol, _localName, visitor.CancellationToken))
+                    message: $"visitor cannot be created with a null compilation and visit a {nameof(NonDeclarationSymbolKey)}.");
+                foreach (var possibleSymbol in EnumerateSymbols(visitor.Compilation, containingSymbol, visitor.CancellationToken))
                 {
                     if (possibleSymbol.Item1.Equals(symbol))
                     {
@@ -52,7 +66,7 @@ namespace Microsoft.CodeAnalysis
                     return new SymbolKeyResolution();
                 }
 
-                foreach (var symbol in EnumerateSymbols(compilation, containingSymbol, _localName, cancellationToken))
+                foreach (var symbol in EnumerateSymbols(compilation, containingSymbol, cancellationToken))
                 {
                     if (symbol.Item2 == _ordinal)
                     {
@@ -63,7 +77,9 @@ namespace Microsoft.CodeAnalysis
                 return new SymbolKeyResolution();
             }
 
-            private static IEnumerable<ValueTuple<TSymbol, int>> EnumerateSymbols(Compilation compilation, ISymbol containingSymbol, string name, CancellationToken cancellationToken)
+            private IEnumerable<ValueTuple<ISymbol, int>> EnumerateSymbols(
+                Compilation compilation, ISymbol containingSymbol,
+                CancellationToken cancellationToken)
             {
                 int ordinal = 0;
 
@@ -99,9 +115,11 @@ namespace Microsoft.CodeAnalysis
 
                     foreach (var token in node.DescendantNodes())
                     {
-                        var symbol = semanticModel.GetDeclaredSymbol(token, cancellationToken) as TSymbol;
+                        var symbol = semanticModel.GetDeclaredSymbol(token, cancellationToken);
 
-                        if (symbol != null && Equals(compilation.IsCaseSensitive, symbol.Name, name))
+                        if (symbol != null &&
+                            symbol.Kind == _kind &&
+                            Equals(compilation.IsCaseSensitive, symbol.Name, _localName))
                         {
                             yield return ValueTuple.Create(symbol, ordinal++);
                         }
@@ -109,7 +127,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            internal override bool Equals(NonDeclarationSymbolKey<TSymbol> other, ComparisonOptions options)
+            internal override bool Equals(NonDeclarationSymbolKey other, ComparisonOptions options)
             {
                 throw new NotImplementedException();
             }

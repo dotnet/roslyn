@@ -6,16 +6,25 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using Newtonsoft.Json;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     internal abstract partial class SymbolKey
     {
+        [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
         private class TupleTypeSymbolKey : AbstractSymbolKey<TupleTypeSymbolKey>
         {
-            private readonly SymbolKey _underlyingType;
-            private readonly string[] _names;
+            [JsonProperty] private readonly SymbolKey _underlyingType;
+            [JsonProperty] private readonly string[] _names;
+
+            [JsonConstructor]
+            internal TupleTypeSymbolKey(SymbolKey _underlyingType, string[] _names)
+            {
+                this._underlyingType = _underlyingType;
+                this._names = _names;
+            }
 
             internal TupleTypeSymbolKey(INamedTypeSymbol symbol, Visitor visitor)
             {
@@ -60,8 +69,8 @@ namespace Microsoft.CodeAnalysis
 
             internal override bool Equals(TupleTypeSymbolKey other, ComparisonOptions options)
             {
-                return _underlyingType.Equals(other._underlyingType, options)
-                       && SequenceEquals(other._names, _names, StringComparer.Ordinal);
+                return _underlyingType.Equals(other._underlyingType, options) &&
+                    SequenceEquals(other._names, _names, StringComparer.Ordinal);
             }
 
             internal override int GetHashCode(ComparisonOptions options)
