@@ -693,4 +693,10 @@ Additional information: {1}</value>
   <data name="LearnMore" xml:space="preserve">
     <value>Learn more</value>
   </data>
+  <data name="PreferFrameworkType" xml:space="preserve">
+    <value>Prefer framework type</value>
+  </data>
+  <data name="PreferPredefinedType" xml:space="preserve">
+    <value>Prefer predefined type</value>
+  </data>
 </root>

@@ -23,14 +23,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
             new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
                 new CSharpUseImplicitTypeDiagnosticAnalyzer(), new UseImplicitTypeCodeFixProvider());
 
-        private readonly SimpleCodeStyleOption onWithNone = new SimpleCodeStyleOption(true, NotificationOption.None);
-        private readonly SimpleCodeStyleOption offWithNone = new SimpleCodeStyleOption(false, NotificationOption.None);
-        private readonly SimpleCodeStyleOption onWithInfo = new SimpleCodeStyleOption(true, NotificationOption.Info);
-        private readonly SimpleCodeStyleOption offWithInfo = new SimpleCodeStyleOption(false, NotificationOption.Info);
-        private readonly SimpleCodeStyleOption onWithWarning = new SimpleCodeStyleOption(true, NotificationOption.Warning);
-        private readonly SimpleCodeStyleOption offWithWarning = new SimpleCodeStyleOption(false, NotificationOption.Warning);
-        private readonly SimpleCodeStyleOption onWithError = new SimpleCodeStyleOption(true, NotificationOption.Error);
-        private readonly SimpleCodeStyleOption offWithError = new SimpleCodeStyleOption(false, NotificationOption.Error);
+        private readonly CodeStyleOption<bool> onWithNone = new CodeStyleOption<bool>(true, NotificationOption.None);
+        private readonly CodeStyleOption<bool> offWithNone = new CodeStyleOption<bool>(false, NotificationOption.None);
+        private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Info);
+        private readonly CodeStyleOption<bool> offWithInfo = new CodeStyleOption<bool>(false, NotificationOption.Info);
+        private readonly CodeStyleOption<bool> onWithWarning = new CodeStyleOption<bool>(true, NotificationOption.Warning);
+        private readonly CodeStyleOption<bool> offWithWarning = new CodeStyleOption<bool>(false, NotificationOption.Warning);
+        private readonly CodeStyleOption<bool> onWithError = new CodeStyleOption<bool>(true, NotificationOption.Error);
+        private readonly CodeStyleOption<bool> offWithError = new CodeStyleOption<bool>(false, NotificationOption.Error);
 
         // specify all options explicitly to override defaults.
         private IDictionary<OptionKey, object> ImplicitTypeEverywhere() =>

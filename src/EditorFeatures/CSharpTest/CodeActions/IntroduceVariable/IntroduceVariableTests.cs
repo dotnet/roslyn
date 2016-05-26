@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Introd
             return new IntroduceVariableCodeRefactoringProvider();
         }
 
-        private readonly SimpleCodeStyleOption onWithInfo = new SimpleCodeStyleOption(true, NotificationOption.Info);
+        private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Info);
 
         // specify all options explicitly to override defaults.
         private IDictionary<OptionKey, object> ImplicitTypingEverywhere() =>
