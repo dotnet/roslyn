@@ -209,6 +209,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
+                    var property = tuple.Item1;
                     var referenceLocation = tuple.Item2;
                     var location = referenceLocation.Location;
                     var nameToken = root.FindToken(location.SourceSpan.Start);
@@ -222,7 +223,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                     else
                     {
                         var fieldSymbol = propertyToBackingField.GetValueOrDefault(tuple.Item1);
-                        service.ReplaceReference(editor, nameToken, fieldSymbol);
+                        service.ReplaceReference(editor, nameToken, property, fieldSymbol);
                     }
                 }
             }
