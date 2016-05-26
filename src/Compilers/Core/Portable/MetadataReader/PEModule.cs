@@ -1995,7 +1995,7 @@ namespace Microsoft.CodeAnalysis
         /// signatures array, -1 if
         /// this is not the target attribute.
         /// </returns>
-        internal static int GetTargetAttributeSignatureIndex(MetadataReader metadataReader, CustomAttributeHandle customAttribute, AttributeDescription description)
+        private static int GetTargetAttributeSignatureIndex(MetadataReader metadataReader, CustomAttributeHandle customAttribute, AttributeDescription description)
         {
             const int No = -1;
             EntityHandle ctor;

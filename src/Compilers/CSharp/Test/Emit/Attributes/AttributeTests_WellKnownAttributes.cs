@@ -457,8 +457,6 @@ public class Bar
                     Assert.Equal(-1L, attributeValue); // check the attribute is constructed with a -1
 
                     // check .param has no value
-                    //var constantHandle = peModule.Module.MetadataReader.GetParameter(theParameter.Handle).GetDefaultValue();
-                    //Assert.True(constantHandle.IsNil);
                     var constantValue = peModule.Module.GetParamDefaultValue(theParameter.Handle);
                     Assert.Equal(ConstantValue.Null, constantValue);
                 };
@@ -503,6 +501,7 @@ public class Consumer
                 Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "Method").WithArguments("p1", "Bar.Method(System.DateTime)").WithLocation(6, 19)
                 );
 
+            // The native compiler also gives an error: error CS1501: No overload for method 'Method' takes 0 arguments
             var libAssemblyRef = libComp.EmitToImageReference();
             var comp3 = CreateCompilationWithMscorlib(source2, new[] { libAssemblyRef });
             comp3.VerifyDiagnostics(

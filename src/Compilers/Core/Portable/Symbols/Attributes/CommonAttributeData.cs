@@ -188,7 +188,6 @@ namespace Microsoft.CodeAnalysis
             // if value is outside this range, DateTime would throw when constructed
             if (value < DateTime.MinValue.Ticks || value > DateTime.MaxValue.Ticks)
             {
-                // Treat as-is parameter doesn't have default
                 return ConstantValue.Bad;
             }
 
