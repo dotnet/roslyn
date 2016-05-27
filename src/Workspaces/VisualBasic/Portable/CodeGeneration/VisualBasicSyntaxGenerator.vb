@@ -3859,6 +3859,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             ' do it the normal way
             Return root.RemoveNode(node, options)
         End Function
+
+        Friend Overrides Function IdentifierName(identifier As SyntaxToken) As SyntaxNode
+            Return SyntaxFactory.IdentifierName(identifier)
+        End Function
+
+        Friend Overrides Function Identifier(text As String) As SyntaxToken
+            Return SyntaxFactory.Identifier(text)
+        End Function
+
+        Friend Overrides Function NamedAnonymousObjectMemberDeclarator(identifier As SyntaxNode, expression As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.NamedFieldInitializer(
+                DirectCast(identifier, IdentifierNameSyntax),
+                DirectCast(expression, ExpressionSyntax))
+
+        End Function
 #End Region
 
     End Class

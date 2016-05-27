@@ -1299,5 +1299,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return If(TryCast(node, QualifiedNameSyntax)?.Right,
                       TryCast(node, MemberAccessExpressionSyntax)?.Name)
         End Function
+
+        Public Function IsLeftSideOfAssignment(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLeftSideOfAssignment
+            Return TryCast(node, ExpressionSyntax).IsLeftSideOfAnyAssignStatement
+        End Function
+
+        Public Function IsLeftSideOfAnyAssignment(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLeftSideOfAnyAssignment
+            Return TryCast(node, ExpressionSyntax).IsLeftSideOfAnyAssignStatement
+        End Function
+
+        Public Function GetRightHandSideOfAssignment(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetRightHandSideOfAssignment
+            Return TryCast(node, AssignmentStatementSyntax)?.Right
+        End Function
+
+        Public Function IsInferredAnonymousObjectMemberDeclarator(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInferredAnonymousObjectMemberDeclarator
+            Return node.IsKind(SyntaxKind.InferredFieldInitializer)
+        End Function
+
+        Public Function IsOperandOfIncrementExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsOperandOfIncrementExpression
+            Return False
+        End Function
+
+        Public Function IsOperandOfIncrementOrDecrementExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsOperandOfIncrementOrDecrementExpression
+            Return False
+        End Function
     End Class
 End Namespace

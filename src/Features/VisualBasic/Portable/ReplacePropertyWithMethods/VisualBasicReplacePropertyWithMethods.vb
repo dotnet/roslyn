@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithProperty
     <ExportLanguageService(GetType(IReplacePropertyWithMethodsService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicReplacePropertyWithMethods
-        Inherits AbstractReplacePropertyWithMethodsService
+        Inherits AbstractReplacePropertyWithMethodsService(Of IdentifierNameSyntax, ExpressionSyntax)
 
         Public Overrides Function GetPropertyDeclaration(token As SyntaxToken) As SyntaxNode
             Dim containingProperty = token.Parent.FirstAncestorOrSelf(Of PropertyStatementSyntax)
@@ -144,14 +144,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 propertyDeclaration)
         End Function
 
-        Public Overrides Sub ReplaceReference(
-                editor As SyntaxEditor,
-                nameToken As SyntaxToken,
-                [property] As IPropertySymbol,
-                propertyBackingField As IFieldSymbol,
-                desiredGetMethodName As String,
-                desiredSetMethodName As String)
-            Throw New NotImplementedException()
-        End Sub
+        Protected Overrides Function UnwrapCompoundAssignment(compoundAssignment As SyntaxNode, readExpression As ExpressionSyntax) As ExpressionSyntax
+            Throw New InvalidOperationException("Compound assignments don't exist in VB")
+        End Function
     End Class
 End Namespace

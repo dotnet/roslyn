@@ -2024,6 +2024,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Property cannot safely be replaced with a method call.
+        /// </summary>
+        internal static string Property_cannot_safely_be_replaced_with_a_method_call {
+            get {
+                return ResourceManager.GetString("Property_cannot_safely_be_replaced_with_a_method_call", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Property referenced implicitly.
         /// </summary>
         internal static string Property_referenced_implicitly {

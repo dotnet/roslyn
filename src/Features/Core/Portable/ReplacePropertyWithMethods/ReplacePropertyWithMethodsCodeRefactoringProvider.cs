@@ -204,15 +204,17 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             var editor = new SyntaxEditor(root, originalDocument.Project.Solution.Workspace);
             var service = originalDocument.GetLanguageService<IReplacePropertyWithMethodsService>();
 
-            ReplaceReferences(references, propertyToBackingField, root, editor, service, 
-                desiredGetMethodName, desiredSetMethodName, cancellationToken);
+            await ReplaceReferencesAsync(
+                originalDocument, references, propertyToBackingField, root, editor, service, 
+                desiredGetMethodName, desiredSetMethodName, cancellationToken).ConfigureAwait(false);
 
             updatedSolution = updatedSolution.WithDocumentSyntaxRoot(originalDocument.Id, editor.GetChangedRoot());
 
             return updatedSolution;
         }
 
-        private static void ReplaceReferences(
+        private static async Task ReplaceReferencesAsync(
+            Document originalDocument,
             IEnumerable<ValueTuple<IPropertySymbol, ReferenceLocation>> references,
             IDictionary<IPropertySymbol, IFieldSymbol> propertyToBackingField,
             SyntaxNode root, SyntaxEditor editor,
@@ -240,7 +242,11 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                     else
                     {
                         var fieldSymbol = propertyToBackingField.GetValueOrDefault(tuple.Item1);
-                        service.ReplaceReference(editor, nameToken, property, fieldSymbol, desiredGetMethodName, desiredSetMethodName);
+                        await service.ReplaceReferenceAsync(
+                            originalDocument, editor, nameToken, 
+                            property, fieldSymbol,
+                            desiredGetMethodName, desiredSetMethodName,
+                            cancellationToken).ConfigureAwait(false);
                     }
                 }
             }

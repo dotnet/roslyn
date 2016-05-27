@@ -4080,6 +4080,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return list;
         }
+
+        internal override SyntaxNode IdentifierName(SyntaxToken identifier)
+        {
+            return SyntaxFactory.IdentifierName(identifier);
+        }
+
+        internal override SyntaxToken Identifier(string identifier)
+        {
+            return SyntaxFactory.Identifier(identifier);
+        }
+
+        internal override SyntaxNode NamedAnonymousObjectMemberDeclarator(SyntaxNode identifier, SyntaxNode expression)
+        {
+            return SyntaxFactory.AnonymousObjectMemberDeclarator(
+                SyntaxFactory.NameEquals((IdentifierNameSyntax)identifier),
+                (ExpressionSyntax)expression);
+        }
+
         #endregion
     }
 }

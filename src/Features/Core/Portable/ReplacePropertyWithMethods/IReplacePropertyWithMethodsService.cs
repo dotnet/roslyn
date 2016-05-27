@@ -13,10 +13,12 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
     {
         SyntaxNode GetPropertyDeclaration(SyntaxToken token);
 
-        void ReplaceReference(
+        Task ReplaceReferenceAsync(
+            Document document,
             SyntaxEditor editor, SyntaxToken nameToken,
             IPropertySymbol property, IFieldSymbol propertyBackingField,
-            string desiredGetMethodName, string desiredSetMethodName);
+            string desiredGetMethodName, string desiredSetMethodName,
+            CancellationToken cancellationToken);
 
         IList<SyntaxNode> GetReplacementMembers(
             Document document,

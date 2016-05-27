@@ -1499,6 +1499,10 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <returns></returns>
         public abstract SyntaxNode IdentifierName(string identifier);
 
+        internal abstract SyntaxNode IdentifierName(SyntaxToken identifier);
+        internal abstract SyntaxToken Identifier(string identifier);
+        internal abstract SyntaxNode NamedAnonymousObjectMemberDeclarator(SyntaxNode identifier, SyntaxNode expression);
+
         /// <summary>
         /// Creates an expression that denotes a generic identifier name.
         /// </summary>
