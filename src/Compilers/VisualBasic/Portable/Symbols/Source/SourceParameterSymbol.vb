@@ -332,8 +332,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Dim data = GetEarlyDecodedWellKnownAttributeData()
             If data IsNot Nothing Then
                 Dim attrValue = data.DefaultParameterValue
-                If Not attrValue.IsBad AndAlso
-                    attrValue <> ConstantValue.Unset AndAlso
+                If attrValue <> ConstantValue.Unset AndAlso
                     value <> attrValue Then
                     Binder.ReportDiagnostic(diagnostics, syntax, ERRID.ERR_ParamDefaultValueDiffersFromAttribute)
                 End If
