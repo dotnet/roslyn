@@ -410,5 +410,47 @@ class D
     public int GetPascalCase() { return this.pascalCase; }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestUniqueName1()
+        {
+            await TestAsync(
+@"class C {
+    public int [||]Prop { get { return 0; } }
+    public abstract int GetProp();
+}",
+@"class C {
+    public int GetProp1() { return 0; }
+    public abstract int GetProp();
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestUniqueName2()
+        {
+            await TestAsync(
+@"class C {
+    public int [||]Prop { set { } }
+    public abstract void SetProp(int i);
+}",
+@"class C {
+    public void SetProp1(int value) { }
+    public abstract void SetProp(int i);
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestUniqueName3()
+        {
+            await TestAsync(
+@"class C {
+    public object [||]Prop { set { } }
+    public abstract void SetProp(dynamic i);
+}",
+@"class C {
+    public void SetProp1(object value) { }
+    public abstract void SetProp(dynamic i);
+}");
+        }
     }
 }

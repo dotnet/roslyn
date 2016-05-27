@@ -122,13 +122,27 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
         private bool HasAnyMatchingGetOrSetMethods(IPropertySymbol property, string name)
         {
-            return false;
-            //return NameGenerator.GenerateUniqueName(name,
-            //    n =>
-            //    {
-            //        var type = property.ContainingType;
-            //        var 
-            //    });
+            return HasAnyMatchingGetMethods(property, name) ||
+                HasAnyMatchingSetMethods(property, name);
+        }
+
+        private bool HasAnyMatchingGetMethods(IPropertySymbol property, string name)
+        {
+            return property.GetMethod != null &&
+                   property.ContainingType.GetMembers(GetPrefix + name)
+                                          .OfType<IMethodSymbol>()
+                                          .Any(m => m.Parameters.Length == 0);
+        }
+
+        private bool HasAnyMatchingSetMethods(IPropertySymbol property, string name)
+        {
+            var comparer = SymbolEquivalenceComparer.Instance.SignatureTypeEquivalenceComparer;
+            return property.SetMethod != null &&
+                   property.ContainingType
+                          .GetMembers(SetPrefix + name)
+                          .OfType<IMethodSymbol>()
+                          .Any(m => m.Parameters.Length == 1 &&
+                                    comparer.Equals(m.Parameters[0].Type, property.Type));
         }
 
         private static IFieldSymbol GetBackingField(IPropertySymbol property)
