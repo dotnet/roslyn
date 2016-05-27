@@ -82,11 +82,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                     getMethod, desiredGetMethodName, cancellationToken))
             End If
 
-            'Dim setMethod = [property].SetMethod
-            'If setMethod IsNot Nothing Then
-            '    result.Add(GetSetMethod(
-            '        generator, propertyStatement, setMethod, desiredSetMethodName))
-            'End If
+            Dim setMethod = [property].SetMethod
+            If setMethod IsNot Nothing Then
+                result.Add(GetSetMethod(
+                    generator, propertyStatement, propertyBackingField,
+                    setMethod, desiredSetMethodName, cancellationToken))
+            End If
 
             Return result
         End Function
@@ -112,13 +113,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             Return generator.MethodDeclaration(getMethod, desiredGetMethodName, statements)
         End Function
 
-        Private Function GetFieldReference(generator As SyntaxGenerator,
-                                           propertyBackingField As IFieldSymbol) As SyntaxNode
-            Dim through = If(propertyBackingField.IsStatic,
-                generator.TypeExpression(propertyBackingField.ContainingType),
-                generator.ThisExpression())
+        Private Function GetSetMethod(
+                generator As SyntaxGenerator,
+                propertyStatement As PropertyStatementSyntax,
+                propertyBackingField As IFieldSymbol,
+                setMethod As IMethodSymbol,
+                desiredSetMethodName As String,
+                cancellationToken As CancellationToken) As SyntaxNode
+            Dim statements = New List(Of SyntaxNode)()
 
-            Return generator.MemberAccessExpression(through, propertyBackingField.Name)
+            Dim setAccessorDeclaration = TryCast(setMethod.DeclaringSyntaxReferences(0).GetSyntax(cancellationToken), AccessorStatementSyntax)
+            If TypeOf setAccessorDeclaration?.Parent Is AccessorBlockSyntax Then
+                Dim block = DirectCast(setAccessorDeclaration.Parent, AccessorBlockSyntax)
+                statements.AddRange(block.Statements)
+            ElseIf propertyBackingField IsNot Nothing Then
+                Dim fieldReference = GetFieldReference(generator, propertyBackingField)
+                statements.Add(generator.AssignmentStatement(
+                    fieldReference, generator.IdentifierName(setMethod.Parameters(0).Name)))
+            End If
+
+            Return generator.MethodDeclaration(setMethod, desiredSetMethodName, statements)
         End Function
 
         Public Overrides Sub ReplaceReference(
