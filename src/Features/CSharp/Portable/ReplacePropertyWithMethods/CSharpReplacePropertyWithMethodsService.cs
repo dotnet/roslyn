@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
 {
     [ExportLanguageService(typeof(IReplacePropertyWithMethodsService), LanguageNames.CSharp), Shared]
     internal class CSharpReplacePropertyWithMethodsService : 
-        AbstractReplacePropertyWithMethodsService<IdentifierNameSyntax, ExpressionSyntax>
+        AbstractReplacePropertyWithMethodsService<IdentifierNameSyntax, ExpressionSyntax, StatementSyntax>
     {
         public override SyntaxNode GetPropertyDeclaration(SyntaxToken token)
         {

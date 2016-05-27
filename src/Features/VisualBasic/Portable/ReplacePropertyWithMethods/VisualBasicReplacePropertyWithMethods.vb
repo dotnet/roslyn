@@ -8,7 +8,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithProperty
     <ExportLanguageService(GetType(IReplacePropertyWithMethodsService), LanguageNames.VisualBasic), [Shared]>
     Friend Class VisualBasicReplacePropertyWithMethods
-        Inherits AbstractReplacePropertyWithMethodsService(Of IdentifierNameSyntax, ExpressionSyntax)
+        Inherits AbstractReplacePropertyWithMethodsService(Of IdentifierNameSyntax, ExpressionSyntax, StatementSyntax)
 
         Public Overrides Function GetPropertyDeclaration(token As SyntaxToken) As SyntaxNode
             Dim containingProperty = token.Parent.FirstAncestorOrSelf(Of PropertyStatementSyntax)

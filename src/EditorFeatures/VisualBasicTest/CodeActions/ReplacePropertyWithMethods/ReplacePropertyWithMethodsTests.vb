@@ -70,7 +70,7 @@ end class")
         Public Async Function TestAnonyousType2() As Task
             Await TestAsync(
 "class C
-    public readonly [||]Prop as integer
+    public readonly property [||]Prop as integer
         get
             return 0
         end get
@@ -93,7 +93,7 @@ end class")
         Public Async Function TestPassedToRef1() As Task
             Await TestAsync(
 "class C
-    public readonly [||]Prop as integer
+    public readonly property [||]Prop as integer
         get
             return 0
         end get
@@ -200,8 +200,8 @@ end class")
     end sub
 end class",
 "class C
-    Private Sub SetProp(Value As Integer)
-        dim v = value
+    Public Sub SetProp(val As Integer)
+        dim v = val
     End Sub
     sub M() 
         me.SetProp(1)
@@ -256,7 +256,7 @@ end class")
     writeonly property [||]Prop as integer
         set
             me.Prop = value + 1
-        end get
+        end set
     end property
 end class",
 "class C
@@ -270,13 +270,13 @@ end class")
         Public Async Function TestAbstractProperty() As Task
             Await TestAsync(
 "class C
-    public readonly mustinherit property[||]Prop as integer
+    public readonly mustoverride property [||]Prop as integer
     public sub M()
         dim v = me.Prop
     end sub
 end class",
 "class C
-    Public MustInherit Function GetProp() As Integer
+    Public MustOverride Function GetProp() As Integer
     public sub M()
         dim v = me.GetProp()
     end sub
@@ -287,7 +287,7 @@ end class")
         Public Async Function TestVirtualProperty() As Task
             Await TestAsync(
 "class C
-    public readonly overridable property[||]Prop as integer
+    public readonly overridable property [||]Prop as integer
         get
             return 0
         end get

@@ -481,16 +481,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TypeOf node Is AttributeSyntax
         End Function
 
-        Public Function IsAttributeNamedArgumentIdentifier(node As Microsoft.CodeAnalysis.SyntaxNode) As Boolean Implements ISyntaxFactsService.IsAttributeNamedArgumentIdentifier
+        Public Function IsAttributeNamedArgumentIdentifier(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsAttributeNamedArgumentIdentifier
             Dim identifierName = TryCast(node, IdentifierNameSyntax)
-            If identifierName IsNot Nothing Then
-                Dim simpleArgument = TryCast(identifierName.Parent, SimpleArgumentSyntax)
-                If simpleArgument IsNot Nothing AndAlso simpleArgument.IsNamed AndAlso identifierName Is simpleArgument.NameColonEquals.Name Then
-                    Return simpleArgument.Parent.IsParentKind(SyntaxKind.Attribute)
-                End If
-            End If
-
-            Return False
+            Return identifierName.IsParentKind(SyntaxKind.NameColonEquals) AndAlso
+                identifierName.Parent.IsParentKind(SyntaxKind.SimpleArgument) AndAlso
+                identifierName.Parent.Parent.IsParentKind(SyntaxKind.ArgumentList) AndAlso
+                identifierName.Parent.Parent.Parent.IsParentKind(SyntaxKind.Attribute)
         End Function
 
         Public Function GetContainingTypeDeclaration(root As SyntaxNode, position As Integer) As SyntaxNode Implements ISyntaxFactsService.GetContainingTypeDeclaration

@@ -12,10 +12,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 {
-    internal abstract class AbstractReplacePropertyWithMethodsService<TIdentifierNameSyntax, TExpressionSyntax>
+    internal abstract class AbstractReplacePropertyWithMethodsService<TIdentifierNameSyntax, TExpressionSyntax, TStatementSyntax>
         : IReplacePropertyWithMethodsService
         where TIdentifierNameSyntax : TExpressionSyntax
         where TExpressionSyntax : SyntaxNode
+        where TStatementSyntax : SyntaxNode
     {
         public abstract SyntaxNode GetPropertyDeclaration(SyntaxToken token);
         public abstract SyntaxNode GetPropertyNodeToReplace(SyntaxNode propertyDeclaration);
@@ -53,7 +54,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
         private struct ReferenceReplacer
         {
-            private readonly AbstractReplacePropertyWithMethodsService<TIdentifierNameSyntax, TExpressionSyntax> _service;
+            private readonly AbstractReplacePropertyWithMethodsService<TIdentifierNameSyntax, TExpressionSyntax, TStatementSyntax> _service;
             private readonly SemanticModel _semanticModel;
             private readonly ISyntaxFactsService _syntaxFacts;
             private readonly ISemanticFactsService _semanticFacts;
@@ -69,7 +70,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             private readonly CancellationToken _cancellationToken;
 
             public ReferenceReplacer(
-                AbstractReplacePropertyWithMethodsService<TIdentifierNameSyntax, TExpressionSyntax> service,
+                AbstractReplacePropertyWithMethodsService<TIdentifierNameSyntax, TExpressionSyntax, TStatementSyntax> service,
                 SemanticModel semanticModel,
                 ISyntaxFactsService syntaxFacts,
                 ISemanticFactsService semanticFacts,
@@ -171,6 +172,11 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             private void ReplaceWrite(TExpressionSyntax writeValue)
             {
                 var writeExpression = GetWriteExpression(writeValue);
+                if (_expression.Parent is TStatementSyntax)
+                {
+                    writeExpression = Generator.ExpressionStatement(writeExpression);
+                }
+
                 _editor.ReplaceNode(_expression.Parent, writeExpression);
             }
 
