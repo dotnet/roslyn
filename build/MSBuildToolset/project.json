@@ -13,17 +13,17 @@
     "Microsoft.Build": "0.1.0-preview-00017",
     "Microsoft.Net.Compilers.netcore": "1.2.0-beta1-20160202-02",
     "Microsoft.Net.Compilers.Targets.netcore": "0.1.4-dev",
-    "Microsoft.NETCore.Platforms": "1.0.1-rc2-23811",
-    "Microsoft.NETCore.TestHost": "1.0.0-rc2-23811",
-    "NETStandard.Library": "1.0.0-rc2-23811",
+    "Microsoft.NETCore.Platforms": "1.0.1-rc3-24126-00",
+    "Microsoft.NETCore.TestHost": "1.0.0-rc3-24126-00",
+    "NETStandard.Library": "1.0.0-rc3-24126-00",
     "MSBuild": "0.1.0-preview-00017",
-    "System.Security.Cryptography.X509Certificates": "4.0.0-rc2-23811",
-    "System.Diagnostics.Process": "4.1.0-rc2-23811",
+    "System.Security.Cryptography.X509Certificates": "4.0.0-rc3-24126-00",
+    "System.Diagnostics.Process": "4.1.0-rc3-24126-00",
     "Newtonsoft.Json": "7.0.1"
   },
 
   "frameworks": {
-    "dnxcore50": {
+    "NETCoreApp1.0": {
       "imports": "portable-net452"
     }
   },
