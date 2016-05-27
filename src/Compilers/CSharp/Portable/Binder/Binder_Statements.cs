@@ -1772,8 +1772,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // figure out the pairwise conversions
             var assignments = checkedVariables.SelectAsArray((variable, index, types) => MakeAssignmentInfo(variable, types[index], node, diagnostics), tupleTypes);
 
-            TypeSymbol lastType = tupleTypes.Last();
-            return new BoundDeconstructionAssignmentOperator(node, checkedVariables, typedRHS, deconstructMemberOpt: null, assignments: assignments, type: lastType);
+            TypeSymbol voidType = GetSpecialType(SpecialType.System_Void, diagnostics, node);
+            return new BoundDeconstructionAssignmentOperator(node, checkedVariables, typedRHS, deconstructMemberOpt: null, assignments: assignments, type: voidType);
         }
 
         private BoundExpression BindDeconstructWithDeconstruct(AssignmentExpressionSyntax node, DiagnosticBag diagnostics, BoundExpression boundRHS, ImmutableArray<BoundExpression> checkedVariables)
@@ -1798,8 +1798,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var deconstructParameters = deconstructMethod.Parameters;
             var assignments = checkedVariables.SelectAsArray((variable, index, parameters) => MakeAssignmentInfo(variable, parameters[index].Type, node, diagnostics), deconstructParameters);
 
-            TypeSymbol lastType = deconstructParameters.Last().Type;
-            return new BoundDeconstructionAssignmentOperator(node, checkedVariables, boundRHS, deconstructMethod, assignments, lastType);
+            TypeSymbol voidType = GetSpecialType(SpecialType.System_Void, diagnostics, node);
+            return new BoundDeconstructionAssignmentOperator(node, checkedVariables, boundRHS, deconstructMethod, assignments, voidType);
         }
 
         /// <summary>
