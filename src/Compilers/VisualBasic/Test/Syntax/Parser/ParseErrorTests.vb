@@ -2227,8 +2227,8 @@ End Module
                                                                                                                                                                                                                                                    </errors>)
     End Sub
 
-    <Fact()>
-    Public Sub BC30642ERR_MultipleOptionalParameterSpecifiers()
+    <Requires.Language.Version(LanguageVersion.VisualBasic14, Requires.Language.Version.Comparision.LE)>
+    Public Sub BC30642ERR_MultipleOptionalParameterSpecifiers_A()
         Dim code = "
 Namespace NS1
     Module Module1
@@ -2242,23 +2242,31 @@ Namespace NS1
     End Module
 End Namespace
 "
-        Dim vbp = VisualBasicParseOptions.Default
-        For Each langVersion In {LanguageVersion.VisualBasic14, LanguageVersion.VBnext}
-            vbp = vbp.WithLanguageVersion(langVersion)
-            If ImplicitDefaultValueOnOptionalParameter.IsUnavailable(langVersion) Then
-                ParseAndVerify(code, vbp, <errors>
-                                              <error id="30642"/>
-                                              <error id="30812"/>
-                                              <error id="30201"/>
-                                          </errors>)
-            Else
-                ParseAndVerify(code, vbp, <errors>
-                                              <error id="30642"/>
-                                          </errors>)
-            End If
-        Next
+        Dim vbp = VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic14)
+        ParseAndVerify(code, vbp, <errors><error id="30642"/><error id="30812"/><error id="30201"/></errors>)
+
     End Sub
 
+    <Requires.Language.Feature(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)>
+    Public Sub BC30642ERR_MultipleOptionalParameterSpecifiers_B()
+        Dim code = "
+Namespace NS1
+    Module Module1
+        Public Function calcSum(ByVal ParamArray optional args() As Double) As Double
+            calcSum = 0
+            If args.Length <= 0 Then Exit Function
+                For i As Integer = 0 To UBound(args, 1)
+                    calcSum += args(i)
+                Next i
+        End Function
+    End Module
+End Namespace
+"
+        Dim vbp = VisualBasicParseOptions.Default.WithLanguageVersion(ImplicitDefaultValueOnOptionalParameter.GetLanguageVersion)
+
+        ParseAndVerify(code, vbp, <errors><error id="30642"/></errors>)
+
+    End Sub
     <Fact()>
     Public Sub BC30648ERR_UnterminatedStringLiteral()
         ParseAndVerify(<![CDATA[
