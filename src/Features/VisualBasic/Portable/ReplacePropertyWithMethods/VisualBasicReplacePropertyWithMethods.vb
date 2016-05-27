@@ -16,6 +16,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 Return Nothing
             End If
 
+            ' a parameterized property can be trivially converted to a method.
+            If containingProperty.ParameterList IsNot Nothing Then
+                Return Nothing
+            End If
+
             Dim start = If(containingProperty.AttributeLists.Count > 0,
                 containingProperty.AttributeLists.Last().GetLastToken().GetNextToken().SpanStart,
                  containingProperty.SpanStart)
@@ -28,10 +33,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
 
             If containingProperty.HasReturnType() AndAlso
                 position > containingProperty.GetReturnType().Span.End Then
-                Return Nothing
-            End If
-
-            If position > containingProperty.ParameterList.Span.End Then
                 Return Nothing
             End If
 
@@ -101,7 +102,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 cancellationToken As CancellationToken) As SyntaxNode
             Dim statements = New List(Of SyntaxNode)()
 
-            Dim getAccessorDeclaration = TryCast(getMethod.DeclaringSyntaxReferences(0).GetSyntax(cancellationToken), AccessorStatementSyntax)
+            Dim getAccessorDeclaration = If(getMethod.DeclaringSyntaxReferences.Length = 0,
+                Nothing,
+                TryCast(getMethod.DeclaringSyntaxReferences(0).GetSyntax(cancellationToken), AccessorStatementSyntax))
+
             If TypeOf getAccessorDeclaration?.Parent Is AccessorBlockSyntax Then
                 Dim block = DirectCast(getAccessorDeclaration.Parent, AccessorBlockSyntax)
                 statements.AddRange(block.Statements)
@@ -122,7 +126,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 cancellationToken As CancellationToken) As SyntaxNode
             Dim statements = New List(Of SyntaxNode)()
 
-            Dim setAccessorDeclaration = TryCast(setMethod.DeclaringSyntaxReferences(0).GetSyntax(cancellationToken), AccessorStatementSyntax)
+            Dim setAccessorDeclaration = If(setMethod.DeclaringSyntaxReferences.Length = 0,
+                Nothing,
+                TryCast(setMethod.DeclaringSyntaxReferences(0).GetSyntax(cancellationToken), AccessorStatementSyntax))
+
             If TypeOf setAccessorDeclaration?.Parent Is AccessorBlockSyntax Then
                 Dim block = DirectCast(setAccessorDeclaration.Parent, AccessorBlockSyntax)
                 statements.AddRange(block.Statements)
