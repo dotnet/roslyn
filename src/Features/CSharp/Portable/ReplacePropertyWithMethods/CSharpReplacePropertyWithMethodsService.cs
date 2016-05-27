@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             return containingProperty;
         }
 
-        public IEnumerable<SyntaxNode> GetReplacementMembers(
+        public IList<SyntaxNode> GetReplacementMembers(
             Document document,
             IPropertySymbol property,
             SyntaxNode propertyDeclarationNode,
@@ -48,16 +48,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             var propertyDeclaration = propertyDeclarationNode as PropertyDeclarationSyntax;
             if (propertyDeclaration == null)
             {
-                return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
+                return SpecializedCollections.EmptyList<SyntaxNode>();
             }
 
-            var generator = SyntaxGenerator.GetGenerator(document);
-            var members = ConvertPropertyToMembers(
-                generator, property, 
+            return ConvertPropertyToMembers(
+                SyntaxGenerator.GetGenerator(document), property,
                 propertyDeclaration, propertyBackingField,
                 desiredGetMethodName, desiredSetMethodName);
-
-            return members;
         }
 
         private List<SyntaxNode> ConvertPropertyToMembers(

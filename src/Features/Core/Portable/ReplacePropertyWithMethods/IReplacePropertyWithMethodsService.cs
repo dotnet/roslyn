@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             IPropertySymbol property, IFieldSymbol propertyBackingField,
             string desiredGetMethodName, string desiredSetMethodName);
 
-        IEnumerable<SyntaxNode> GetReplacementMembers(
+        IList<SyntaxNode> GetReplacementMembers(
             Document document,
             IPropertySymbol property, SyntaxNode propertyDeclaration,
             IFieldSymbol propertyBackingField,

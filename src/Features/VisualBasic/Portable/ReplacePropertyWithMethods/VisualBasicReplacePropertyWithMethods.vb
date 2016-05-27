@@ -43,11 +43,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 propertyDeclarationNode As SyntaxNode,
                 propertyBackingField As IFieldSymbol,
                 desiredGetMethodName As String,
-                desiredSetMethodName As String) As IEnumerable(Of SyntaxNode) Implements IReplacePropertyWithMethodsService.GetReplacementMembers
+                desiredSetMethodName As String) As IList(Of SyntaxNode) Implements IReplacePropertyWithMethodsService.GetReplacementMembers
 
             Dim propertyStatement = TryCast(propertyDeclarationNode, PropertyStatementSyntax)
             If propertyStatement Is Nothing Then
-                Return SpecializedCollections.EmptyEnumerable(Of SyntaxNode)
+                Return SpecializedCollections.EmptyList(Of SyntaxNode)
             End If
 
 
