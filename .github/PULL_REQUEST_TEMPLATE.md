@@ -6,9 +6,9 @@ Changes Proposed in this pull request:
 - 
 
 Choose a team to tag for review:
-@dotnet/debugger-team 
 @dotnet/roslyn-analysis
 @dotnet/roslyn-compiler
 @dotnet/roslyn-ide
+@dotnet/roslyn-interactive 
 
-Choose idividual to verify the fix:
+Choose individual to verify the fix:
