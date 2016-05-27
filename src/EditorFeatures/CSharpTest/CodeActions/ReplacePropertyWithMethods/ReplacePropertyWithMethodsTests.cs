@@ -158,6 +158,19 @@ class D
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestGetterAndSetterAccessibilityChange()
+        {
+            await TestAsync(
+@"class C {
+    public int [||]Prop { get { return 0; } private set { var v = value; } } 
+}",
+@"class C {
+    public int GetProp() { return 0; }
+    private void SetProp(int value) { var v = value; }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
         public async Task TestIncrement1()
         {
             await TestAsync(
