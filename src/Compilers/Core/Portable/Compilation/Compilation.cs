@@ -851,6 +851,22 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public abstract ImmutableArray<Diagnostic> GetDiagnostics(CancellationToken cancellationToken = default(CancellationToken));
 
+        internal void EnsureCompilationCompleted()
+        {
+            Debug.Assert(this.EventQueue != null);
+
+            lock (this.EventQueue)
+            {
+                if (!this.EventQueue.IsCompleted)
+                {
+                    // Signal the end of compilation.
+                    EventQueue.TryEnqueue(new CompilationCompletedEvent(this));
+                    EventQueue.PromiseNotToEnqueue();
+                    EventQueue.TryComplete();
+                }
+            }
+        }
+
         internal abstract CommonMessageProvider MessageProvider { get; }
 
         /// <param name="accumulator">Bag to which filtered diagnostics will be added.</param>

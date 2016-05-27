@@ -1644,9 +1644,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                     If _lazyCompilationUnitCompletedTrees.Count = SyntaxTrees.Length Then
                         ' if that was the last tree, signal the end of compilation
-                        EventQueue.TryEnqueue(New CompilationCompletedEvent(Me))
-                        EventQueue.PromiseNotToEnqueue()
-                        EventQueue.TryComplete()
+                        EnsureCompilationCompleted()
                     End If
                 End If
             End SyncLock
@@ -1925,6 +1923,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 builder.AddRange(GetBoundReferenceManager().Diagnostics)
                 builder.AddRange(SourceAssembly.GetAllDeclarationErrors(cancellationToken))
                 builder.AddRange(GetClsComplianceDiagnostics(cancellationToken))
+
+                If Me.EventQueue IsNot Nothing AndAlso Me.SyntaxTrees.Length = 0 Then
+                    EnsureCompilationCompleted()
+                End If
             End If
 
             ' Add method body compilation errors.
