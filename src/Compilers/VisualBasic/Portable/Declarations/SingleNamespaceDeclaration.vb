@@ -5,11 +5,6 @@ Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports System.Diagnostics
 Imports System.Linq
-Imports System.Text
-Imports System.Threading
-Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -113,5 +108,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Return bestDeclarationName
         End Function
+
+        Friend NotInheritable Class LocationComparer
+            Implements IComparer(Of SingleNamespaceDeclaration)
+
+            Private ReadOnly _compilation As VisualBasicCompilation
+
+            Friend Sub New(compilation As VisualBasicCompilation)
+                _compilation = compilation
+            End Sub
+
+            Public Function Compare(x As SingleNamespaceDeclaration, y As SingleNamespaceDeclaration) As Integer Implements IComparer(Of SingleNamespaceDeclaration).Compare
+                Return _compilation.CompareSourceLocations(x.Location, y.Location)
+            End Function
+        End Class
     End Class
 End Namespace

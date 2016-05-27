@@ -2,7 +2,6 @@
 
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using Roslyn.Utilities;
 
@@ -85,18 +84,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Note: we can keep around the 'latestLazyRootDeclaration'.  There's no need to
                 // realize it if we don't have to.
                 return new DeclarationTable(_allOlderRootDeclarations.Remove(lazyRootDeclaration.Value), _latestLazyRootDeclaration, cache: null);
-            }
-        }
-
-        public IEnumerable<RootSingleNamespaceDeclaration> AllRootNamespacesUnordered()
-        {
-            if (_latestLazyRootDeclaration == null)
-            {
-                return _allOlderRootDeclarations;
-            }
-            else
-            {
-                return _allOlderRootDeclarations.Concat(SpecializedCollections.SingletonEnumerable(_latestLazyRootDeclaration.Value));
             }
         }
 

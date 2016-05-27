@@ -33,7 +33,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private SymbolCompletionState _state;
         private CustomAttributesBag<CSharpAttributeData> _lazyCustomAttributesBag;
-        private ImmutableArray<Location> _locations;
         private NamespaceSymbol _globalNamespace;
 
         private bool _hasBadAttributes;
@@ -195,7 +194,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         private SourceNamespaceSymbol MakeGlobalNamespace()
         {
-            return new SourceNamespaceSymbol(this, this, _sources.MergedRoot);
+            var declarations = _sources.MergedRoot.Declarations;
+            var builder = ArrayBuilder<SingleNamespaceDeclaration>.GetInstance(declarations.Length);
+            builder.AddRange(declarations);
+            // Sort the root namespace declarations to match the order of DeclaringCompilation.SyntaxTrees.
+            builder.Sort(new SingleNamespaceDeclaration.LocationComparer(DeclaringCompilation));
+            var mergedRoot = MergedNamespaceDeclaration.Create(builder.ToImmutableAndFree());
+            return new SourceNamespaceSymbol(this, this, mergedRoot);
         }
 
         internal sealed override bool RequiresCompletion
@@ -345,14 +350,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                if (_locations.IsDefault)
-                {
-                    ImmutableInterlocked.InterlockedCompareExchange(ref _locations,
-                        _sources.AllRootNamespacesUnordered().Select(n => n.Location).AsImmutable<Location>(),
-                        default(ImmutableArray<Location>));
-                }
-
-                return _locations;
+                return GlobalNamespace.Locations;
             }
         }
 

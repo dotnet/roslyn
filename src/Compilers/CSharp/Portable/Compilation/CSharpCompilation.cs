@@ -2934,7 +2934,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = new HashSet<ISymbol>();
                 var spine = new List<MergedNamespaceOrTypeDeclaration>();
 
-                AppendSymbolsWithName(spine, _compilation.Declarations.MergedRoot, predicate, filter, result, cancellationToken);
+                var mergedRoot = ((SourceNamespaceSymbol)_compilation.SourceModule.GlobalNamespace).MergedDeclaration;
+                AppendSymbolsWithName(spine, mergedRoot, predicate, filter, result, cancellationToken);
 
                 return result;
             }
