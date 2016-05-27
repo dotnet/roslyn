@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
@@ -147,6 +148,17 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        /// <exception cref="IOException">
+        /// Error reading from the stream (only when prefetching data).
+        /// Only thrown first time the reader is accessed.
+        /// </exception>
+        /// <exception cref="BadImageFormatException">
+        /// The data read from stream have invalid format.
+        /// Only thrown first time the reader is accessed.
+        /// </exception>
+        /// <exception cref="ObjectDisposedException">
+        /// The underlying memory has been disposed.
+        /// </exception>
         internal MetadataReader MetadataReader
         {
             get
@@ -168,6 +180,8 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
+        /// <exception cref="IOException">Error reading from the stream (only when prefetching data).</exception>
+        /// <exception cref="BadImageFormatException">The data read from stream have invalid format.</exception>
         private unsafe void InitializeMetadataReader()
         {
             MetadataReader newReader;
@@ -2949,6 +2963,7 @@ namespace Microsoft.CodeAnalysis
             get { return _peReaderOpt != null && _peReaderOpt.IsEntireImageAvailable; }
         }
 
+        /// <exception cref="IOException">Error reading from the stream (only when prefetching data).</exception>
         /// <exception cref="BadImageFormatException">Invalid metadata.</exception>
         internal MethodBodyBlock GetMethodBodyOrThrow(MethodDefinitionHandle methodHandle)
         {
