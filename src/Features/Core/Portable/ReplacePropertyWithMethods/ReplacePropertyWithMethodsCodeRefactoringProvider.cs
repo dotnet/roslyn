@@ -333,7 +333,8 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                     updatedDocument,
                     propertyDefinition, propertyDeclaration,
                     definitionToBackingField.GetValueOrDefault(propertyDefinition),
-                    desiredGetMethodName, desiredSetMethodName);
+                    desiredGetMethodName, desiredSetMethodName,
+                    cancellationToken);
 
                 // Properly make the members fit within an interface if that's what
                 // we're generating into.

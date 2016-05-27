@@ -1189,6 +1189,11 @@ namespace Microsoft.CodeAnalysis.Editing
 
         protected static SyntaxNode PreserveTrivia<TNode>(TNode node, Func<TNode, SyntaxNode> nodeChanger) where TNode : SyntaxNode
         {
+            if (node == null)
+            {
+                return node;
+            }
+
             var nodeWithoutTrivia = node.WithoutLeadingTrivia().WithoutTrailingTrivia();
 
             var changedNode = nodeChanger(nodeWithoutTrivia);

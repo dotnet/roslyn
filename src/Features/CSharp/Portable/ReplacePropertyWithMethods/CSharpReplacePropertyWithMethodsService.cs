@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
+using System.Threading;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -13,9 +14,9 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
 {
     [ExportLanguageService(typeof(IReplacePropertyWithMethodsService), LanguageNames.CSharp), Shared]
-    internal class CSharpReplacePropertyWithMethodsService : IReplacePropertyWithMethodsService
+    internal class CSharpReplacePropertyWithMethodsService : AbstractReplacePropertyWithMethodsService
     {
-        public SyntaxNode GetPropertyDeclaration(SyntaxToken token)
+        public override SyntaxNode GetPropertyDeclaration(SyntaxToken token)
         {
             var containingProperty = token.Parent.FirstAncestorOrSelf<PropertyDeclarationSyntax>();
             if (containingProperty == null)
@@ -37,13 +38,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             return containingProperty;
         }
 
-        public IList<SyntaxNode> GetReplacementMembers(
+        public override IList<SyntaxNode> GetReplacementMembers(
             Document document,
             IPropertySymbol property,
             SyntaxNode propertyDeclarationNode,
             IFieldSymbol propertyBackingField,
             string desiredGetMethodName,
-            string desiredSetMethodName)
+            string desiredSetMethodName,
+            CancellationToken cancellationToken)
         {
             var propertyDeclaration = propertyDeclarationNode as PropertyDeclarationSyntax;
             if (propertyDeclaration == null)
@@ -54,7 +56,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             return ConvertPropertyToMembers(
                 SyntaxGenerator.GetGenerator(document), property,
                 propertyDeclaration, propertyBackingField,
-                desiredGetMethodName, desiredSetMethodName);
+                desiredGetMethodName, desiredSetMethodName,
+                cancellationToken);
         }
 
         private List<SyntaxNode> ConvertPropertyToMembers(
@@ -62,7 +65,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             IPropertySymbol property, PropertyDeclarationSyntax propertyDeclaration,
             IFieldSymbol propertyBackingField,
             string desiredGetMethodName,
-            string desiredSetMethodName)
+            string desiredSetMethodName,
+            CancellationToken cancellationToken)
         {
             var result = new List<SyntaxNode>();
 
@@ -76,14 +80,16 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             if (getMethod != null)
             {
                 result.Add(GetGetMethod(
-                    generator, propertyDeclaration, propertyBackingField, getMethod, desiredGetMethodName));
+                    generator, propertyDeclaration, propertyBackingField,
+                    getMethod, desiredGetMethodName, cancellationToken));
             }
 
             var setMethod = property.SetMethod;
             if (setMethod != null)
             {
                 result.Add(GetSetMethod(
-                    generator, propertyDeclaration, propertyBackingField, setMethod, desiredSetMethodName));
+                    generator, propertyDeclaration, propertyBackingField, 
+                    setMethod, desiredSetMethodName, cancellationToken));
             }
 
             return result;
@@ -94,14 +100,25 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             PropertyDeclarationSyntax propertyDeclaration, 
             IFieldSymbol propertyBackingField,
             IMethodSymbol setMethod,
-            string desiredSetMethodName)
+            string desiredSetMethodName,
+            CancellationToken cancellationToken)
         {
-            var setAccessorDeclaration = propertyDeclaration.AccessorList.Accessors.FirstOrDefault(
-                a => a.Kind() == SyntaxKind.SetAccessorDeclaration);
+            var setAccessorDeclaration = (AccessorDeclarationSyntax)setMethod.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
 
-            var method = generator.MethodDeclaration(
-                setMethod, desiredSetMethodName, setAccessorDeclaration?.Body?.Statements);
-            return method;
+            var statements = new List<SyntaxNode>();
+            if (setAccessorDeclaration?.Body != null)
+            {
+                statements.AddRange(setAccessorDeclaration?.Body?.Statements);
+            }
+            else if (propertyBackingField != null)
+            {
+                statements.Add(generator.ExpressionStatement(
+                    generator.AssignmentStatement(
+                        GetFieldReference(generator, propertyBackingField),
+                        generator.IdentifierName("value"))));
+            }
+
+            return generator.MethodDeclaration(setMethod, desiredSetMethodName, statements);
         }
 
         private static SyntaxNode GetGetMethod(
@@ -109,7 +126,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             PropertyDeclarationSyntax propertyDeclaration,
             IFieldSymbol propertyBackingField,
             IMethodSymbol getMethod,
-            string desiredGetMethodName)
+            string desiredGetMethodName,
+            CancellationToken cancellationToken)
         {
             var statements = new List<SyntaxNode>();
 
@@ -119,24 +137,22 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             }
             else
             {
-                var getAccessorDeclaration = propertyDeclaration.AccessorList?.Accessors.FirstOrDefault(
-                    a => a.Kind() == SyntaxKind.GetAccessorDeclaration);
+                var getAccessorDeclaration = (AccessorDeclarationSyntax)getMethod.DeclaringSyntaxReferences[0].GetSyntax(cancellationToken);
                 if (getAccessorDeclaration?.Body != null)
                 {
                     statements.AddRange(getAccessorDeclaration.Body.Statements);
                 }
                 else if (propertyBackingField != null)
                 {
-                    statements.Add(generator.ReturnStatement(
-                        generator.MemberAccessExpression(
-                            generator.ThisExpression(), propertyBackingField.Name)));
+                    var fieldReference = GetFieldReference(generator, propertyBackingField);
+                    statements.Add(generator.ReturnStatement(fieldReference));
                 }
             }
 
             return generator.MethodDeclaration(getMethod, desiredGetMethodName, statements);
         }
 
-        public void ReplaceReference(
+        public override void ReplaceReference(
             SyntaxEditor editor, SyntaxToken nameToken, 
             IPropertySymbol property, IFieldSymbol propertyBackingField,
             string desiredGetMethodName, string desiredSetMethodName)
@@ -161,7 +177,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             return token;
         }
 
-        public SyntaxNode GetPropertyNodeToReplace(SyntaxNode propertyDeclaration)
+        public override SyntaxNode GetPropertyNodeToReplace(SyntaxNode propertyDeclaration)
         {
             // For C# we'll have the property declaration that we want to replace.
             return propertyDeclaration;

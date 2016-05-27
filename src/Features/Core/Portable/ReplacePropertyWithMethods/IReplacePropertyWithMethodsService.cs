@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host;
@@ -22,7 +23,8 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             IPropertySymbol property, SyntaxNode propertyDeclaration,
             IFieldSymbol propertyBackingField,
             string desiredGetMethodName,
-            string desiredSetMethodName);
+            string desiredSetMethodName,
+            CancellationToken cancellationToken);
 
         SyntaxNode GetPropertyNodeToReplace(SyntaxNode propertyDeclaration);
     }
