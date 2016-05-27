@@ -397,5 +397,18 @@ class D
     public int GetProp() { return this.prop1; }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestAutoProperty6()
+        {
+            await TestAsync(
+@"class C {
+    public int [||]PascalCase { get; }
+}",
+@"class C {
+    private readonly int pascalCase;
+    public int GetPascalCase() { return this.pascalCase; }
+}");
+        }
     }
 }

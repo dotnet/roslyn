@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                 ? containingProperty.AttributeLists.Last().GetLastToken().GetNextToken().SpanStart
                 : containingProperty.SpanStart;
 
-            // Offer this refactoring anywhere in the signature of the method.
+            // Offer this refactoring anywhere in the signature of the property.
             var position = token.SpanStart;
             if (position < start || position > containingProperty.Identifier.Span.End)
             {

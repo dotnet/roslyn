@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             // the case for C# where we have mangled names for the backing field and need something
             // actually usable in code.
             var uniqueName = NameGenerator.GenerateUniqueName(
-                property.Name.ToLowerInvariant(),
+                property.Name.ToCamelCase(),
                 n => !property.ContainingType.GetMembers(n).Any());
 
             return CodeGenerationSymbolFactory.CreateFieldSymbol(
