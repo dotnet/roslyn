@@ -11,8 +11,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class LocalRewriter
     {
+
         // Rewriting for pattern-matching switch statements.
-        public override BoundNode VisitPatternSwitchStatement(BoundPatternSwitchStatement node)
+        // This is a temporary translation into a series of if-then-else statements.
+        // Ultimately it will be replaced by a translation based on the decision tree.
+        private BoundNode VisitPatternSwitchStatement_Ifchain(BoundPatternSwitchStatement node)
         {
             var statements = ArrayBuilder<BoundStatement>.GetInstance();
 

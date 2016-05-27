@@ -1450,7 +1450,7 @@
   </Node>
 
   <AbstractNode Name="BoundPattern" Base="BoundNode">
-    <Field Name="KnownMatchResult" Type="bool?" Null="allow"/>
+    <!-- CONSIDER: we might benefit from recording the input (matched value) type in the bound pattern. -->
   </AbstractNode>
 
   <Node Name="BoundDeclarationPattern" Base="BoundPattern">

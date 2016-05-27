@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case SyntaxKind.DefaultSwitchLabel:
                     {
                         var defaultLabelSyntax = (DefaultSwitchLabelSyntax)node;
-                        var pattern = new BoundWildcardPattern(node, knownMatchResult: true);
+                        var pattern = new BoundWildcardPattern(node);
                         bool hasErrors = pattern.HasErrors;
                         if (defaultLabel != null)
                         {

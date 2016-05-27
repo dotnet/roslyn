@@ -187,20 +187,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors = true;
             }
 
-            bool? knownMatchResult = null;
-            if (constantValueOpt != null)
-            {
-                if (constantValueOpt.IsNull)
-                {
-                    knownMatchResult = operandIsNull;
-                }
-                else if (operand.ConstantValue != null)
-                {
-                    knownMatchResult = constantValueOpt.Equals(operand.ConstantValue);
-                }
-            }
-
-            return new BoundConstantPattern(node, expression, constantValueOpt, knownMatchResult, hasErrors);
+            return new BoundConstantPattern(node, expression, constantValueOpt, hasErrors);
         }
 
         internal BoundExpression ConvertPatternExpression(TypeSymbol leftType, CSharpSyntaxNode node, BoundExpression expression, ref ConstantValue constantValue, DiagnosticBag diagnostics)
@@ -357,8 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             DeclareLocalVariable(localSymbol, identifier, declType);
-            bool? knownMatchResult = null; // PROTOTYPE(patterns): TODO: compute if the declaration pattern is irrefutable
-            return new BoundDeclarationPattern(node, localSymbol, boundDeclType, isVar, knownMatchResult, hasErrors);
+            return new BoundDeclarationPattern(node, localSymbol, boundDeclType, isVar, hasErrors);
         }
     }
 }

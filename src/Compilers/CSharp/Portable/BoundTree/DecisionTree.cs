@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         private ImmutableArray<Diagnostic> _decisionTreeDiagnostics;
         private DecisionTree _decisionTree;
+        private ImmutableArray<LocalSymbol> _temps;
 
         public ImmutableArray<Diagnostic> DecisionTreeDiagnostics
         {
@@ -34,6 +35,67 @@ namespace Microsoft.CodeAnalysis.CSharp
                 EnsureDecisionTree();
                 Debug.Assert(_decisionTree != null);
                 return _decisionTree;
+            }
+        }
+
+        public ImmutableArray<LocalSymbol> Temps
+        {
+            get
+            {
+                EnsureDecisionTree();
+                if (_temps.IsDefault)
+                {
+                    ImmutableInterlocked.InterlockedInitialize(ref _temps, ComputeTemps(_decisionTree));
+                }
+                Debug.Assert(!_temps.IsDefault);
+                return _temps;
+            }
+        }
+
+        /// <summary>
+        /// Compute the set of temps needed for the whole decision tree.
+        /// </summary>
+        private ImmutableArray<LocalSymbol> ComputeTemps(DecisionTree decisionTree)
+        {
+            var builder = ArrayBuilder<LocalSymbol>.GetInstance();
+            AddTemps(decisionTree, builder);
+            return builder.ToImmutableAndFree();
+        }
+
+        private void AddTemps(DecisionTree decisionTree, ArrayBuilder<LocalSymbol> builder)
+        {
+            if (decisionTree == null) return;
+            switch (decisionTree.Kind)
+            {
+                case DecisionTree.DecisionKind.ByType:
+                    {
+                        var byType = (DecisionTree.ByType)decisionTree;
+                        AddTemps(byType.WhenNull, builder);
+                        foreach (var td in byType.TypeAndDecision)
+                        {
+                            AddTemps(td.Value, builder);
+                        }
+                        AddTemps(byType.Default, builder);
+                        return;
+                    }
+                case DecisionTree.DecisionKind.ByValue:
+                    {
+                        var byValue = (DecisionTree.ByValue)decisionTree;
+                        foreach (var vd in byValue.ValueAndDecision)
+                        {
+                            AddTemps(vd.Value, builder);
+                        }
+                        AddTemps(byValue.Default, builder);
+                        return;
+                    }
+                case DecisionTree.DecisionKind.Guarded:
+                    {
+                        var guarded = (DecisionTree.Guarded)decisionTree;
+                        ComputeTemps(guarded.Default);
+                        return;
+                    }
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(decisionTree.Kind);
             }
         }
 
@@ -82,7 +144,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             {
                                 var type = td.Key;
                                 var decision = td.Value;
-                                switch (Binder.Conversions.ExpressionOfTypeMatchesPatternType(expression.Type, type))
+                                switch (Binder.Conversions.ExpressionOfTypeMatchesPatternType(expression.Type.TupleUnderlyingTypeOrSelf(), type))
                                 {
                                     case null:
                                         return null; // we don't know if this matches the input
@@ -350,7 +412,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     {
                                         var type = td.Key;
                                         var decision = td.Value;
-                                        if (_conversions.ExpressionOfTypeMatchesPatternType(declarationPattern.DeclaredType.Type, type) == true)
+                                        if (_conversions.ExpressionOfTypeMatchesPatternType(declarationPattern.DeclaredType.Type.TupleUnderlyingTypeOrSelf(), type) == true)
                                         {
                                             var error = CheckSubsumed(pattern, decision, false);
                                             if (error != 0) return error;
@@ -533,7 +595,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var kvp = byType.TypeAndDecision[i];
                 var matchedType = kvp.Key;
                 var decision = kvp.Value;
-                if (matchedType == value.Type)
+                if (matchedType.TupleUnderlyingTypeOrSelf() == value.Type.TupleUnderlyingTypeOrSelf())
                 {
                     forType = decision;
                     break;
@@ -546,9 +608,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (forType == null)
             {
-                // PROTOTYPE(patterns): the expression should be a new temp when value.Type != byType.Expression.Type
-                var narrowedExpression = byType.Expression;
-                forType = new DecisionTree.ByValue(narrowedExpression, value.Type);
+                var type = value.Type;
+                var localSymbol = new SynthesizedLocal(_enclosingSymbol as MethodSymbol, type, SynthesizedLocalKind.PatternMatchingTemp, _syntax, false, RefKind.None);
+                var narrowedExpression = new BoundLocal(_syntax, localSymbol, null, type);
+                forType = new DecisionTree.ByValue(narrowedExpression, value.Type.TupleUnderlyingTypeOrSelf());
                 forType.Parent = byType;
                 byType.TypeAndDecision.Add(new KeyValuePair<TypeSymbol, DecisionTree>(value.Type, forType));
             }
@@ -634,6 +697,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = makeDecision(Expression, type);
             result.Parent = byType;
             byType.TypeAndDecision.Add(new KeyValuePair<TypeSymbol, DecisionTree>(type, result));
+            byType.Temps.Add(localSymbol);
             if (_conversions.ExpressionOfTypeMatchesPatternType(byType.Type, type) == true && result.MatchIsComplete && byType.WhenNull?.MatchIsComplete == true)
             {
                 byType.MatchIsComplete = true;
@@ -694,7 +758,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool NonNullHandled(DecisionTree.ByType byType)
         {
-            var inputType = byType.Type.StrippedType();
+            var inputType = byType.Type.StrippedType().TupleUnderlyingTypeOrSelf();
             foreach (var td in byType.TypeAndDecision)
             {
                 var type = td.Key;
@@ -874,6 +938,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             public DecisionTree WhenNull;
             public readonly ArrayBuilder<KeyValuePair<TypeSymbol, DecisionTree>> TypeAndDecision =
                 new ArrayBuilder<KeyValuePair<TypeSymbol, DecisionTree>>();
+            public readonly ArrayBuilder<LocalSymbol> Temps =
+                new ArrayBuilder<LocalSymbol>();
             public DecisionTree Default;
             public override DecisionKind Kind => DecisionKind.ByType;
             public ByType(BoundExpression expression, TypeSymbol type) : base(expression, type) { }
