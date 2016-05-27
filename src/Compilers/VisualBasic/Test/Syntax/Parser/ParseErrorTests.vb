@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FeatureExtensions
 Imports Roslyn.Test.Utilities
+Imports Roslyn.Test.Utilities.VisualBasic
 
 <CLSCompliant(False)>
 Public Class ParseErrorTests
@@ -1437,29 +1438,32 @@ End Class
                 ]]>)
     End Sub
 
-    <Fact()>
-    Public Sub BC30200ERR_InvalidNewInType()
+    <Requires.Language.Version(LanguageVersion.VisualBasic14, Requires.Language.Version.Comparision.LE)>
+    Public Sub BC30200ERR_InvalidNewInType_A()
         Dim code = "
 Class C1
     Function myfunc(Optional ByVal x As New test()) 
     End Function
 End Class
 "
-        Dim vbp = VisualBasicParseOptions.Default
-        For Each langversion In {LanguageVersion.VisualBasic14, LanguageVersion.VBnext}
-            vbp = vbp.WithLanguageVersion(langversion)
-            If ImplicitDefaultValueOnOptionalParameter.IsUnavailable(langversion) Then
-                ParseAndVerify(code, vbp, <errors>
-                                              <error id="30200"/>
-                                              <error id="30201"/>
-                                              <error id="30812"/>
-                                          </errors>)
-            Else
-                ParseAndVerify(code, vbp, <errors>
-                                              <error id="30200"/>
-                                          </errors>)
-            End If
-        Next
+        Dim vbp = VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic14)
+        ParseAndVerify(code, vbp, <errors>
+                                          <error id="30200"/>
+                                          <error id="30201"/>
+                                          <error id="30812"/>
+                                      </errors>)
+    End Sub
+
+    <Requires.Language.Feature(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)>
+    Public Sub BC30200ERR_InvalidNewInType_B()
+        Dim code = "
+Class C1
+    Function myfunc(Optional ByVal x As New test()) 
+    End Function
+End Class
+"
+        Dim vbp = VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VBnext)
+        ParseAndVerify(code, vbp, <errors><error id="30200"/></errors>)
     End Sub
 
     <Fact()>
@@ -2553,26 +2557,27 @@ End Namespace
                                                                                                                                                                                                                                                                                                                                                                </errors>)
     End Sub
 
-    <Fact()>
-    Public Sub BC30812ERR_ObsoleteOptionalWithoutValue()
-        Dim code = "
-                Class C1
-                    Function f1(Optional ByVal c1 )
-                    End Function
-                End Class
-"
-        Dim vbp = VisualBasicParseOptions.Default
-        For Each langVersion In {LanguageVersion.VisualBasic14, LanguageVersion.VBnext}
-            vbp = vbp.WithLanguageVersion(langVersion)
-            If ImplicitDefaultValueOnOptionalParameter.IsUnavailable(langVersion) Then
-                ParseAndVerify(code, vbp, <errors>
-                                              <error id="30812"/>
-                                              <error id="30201"/>
-                                          </errors>)
-            Else
-                Parse(code, vbp).GetDiagnostics.AsImmutable.AssertNoErrors
-            End If
-        Next
+    <Requires.Language.Version(LanguageVersion.VisualBasic14, Requires.Language.Version.Comparision.LE)>
+    Public Sub BC30812ERR_ObsoleteOptionalWithoutValue_A()
+        Dim code =
+"Class C1
+    Function f1(Optional ByVal c1 )
+    End Function
+End Class"
+        Dim vbp = VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic14)
+                ParseAndVerify(code, vbp, <errors><error id = "30812" /><error id="30201"/></errors>)
+    End Sub
+
+    <Requires.Language.Feature(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)>
+    Public Sub BC30812ERR_ObsoleteOptionalWithoutValue_B()
+        Dim code =
+"Class C1
+    Function f1(Optional ByVal c1 )
+    End Function
+End Class"
+        Dim vbp = VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic14)
+        Parse(code, vbp).GetDiagnostics.AsImmutable.AssertNoErrors
+
     End Sub
 
     <Fact()>
@@ -2588,10 +2593,7 @@ End Namespace
                     End Sub
                 End Module
             ]]>.Value
-        ParseAndVerify(code, <errors>
-                                                                                                                                                                                                                                                                                                                                                                           <error id="30817"/>
-                                                                                                                                                                                                                                                                                                                                                                           <error id="30817"/>
-                                                                                                                                                                                                                                                                                                                                                                       </errors>)
+        ParseAndVerify(code, <errors><error id="30817"/><error id="30817"/></errors>)
     End Sub
 
     ' old name - ParsePreprocessorIfEndIfNoSpace
