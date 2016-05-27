@@ -17,11 +17,13 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             IPropertySymbol property, IFieldSymbol propertyBackingField,
             string desiredGetMethodName, string desiredSetMethodName);
 
-        void ReplacePropertyWithMethod(
-            SyntaxEditor editor, SemanticModel semanticModel,
-            IPropertySymbol property, SyntaxNode declaration,
+        IEnumerable<SyntaxNode> GetReplacementMembers(
+            Document document,
+            IPropertySymbol property, SyntaxNode propertyDeclaration,
             IFieldSymbol propertyBackingField,
             string desiredGetMethodName,
             string desiredSetMethodName);
+
+        SyntaxNode GetPropertyNodeToReplace(SyntaxNode propertyDeclaration);
     }
 }

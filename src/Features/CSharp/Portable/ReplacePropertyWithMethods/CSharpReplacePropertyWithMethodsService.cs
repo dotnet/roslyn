@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -7,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.ReplacePropertyWithMethods;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
 {
@@ -35,38 +37,37 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             return containingProperty;
         }
 
-        public void ReplacePropertyWithMethod(
-            SyntaxEditor editor,
-            SemanticModel semanticModel,
+        public IEnumerable<SyntaxNode> GetReplacementMembers(
+            Document document,
             IPropertySymbol property,
-            SyntaxNode declaration,
+            SyntaxNode propertyDeclarationNode,
             IFieldSymbol propertyBackingField,
             string desiredGetMethodName,
             string desiredSetMethodName)
         {
-            var propertyDeclaration = declaration as PropertyDeclarationSyntax;
+            var propertyDeclaration = propertyDeclarationNode as PropertyDeclarationSyntax;
             if (propertyDeclaration == null)
             {
-                return;
+                return SpecializedCollections.EmptyEnumerable<SyntaxNode>();
             }
 
+            var generator = SyntaxGenerator.GetGenerator(document);
             var members = ConvertPropertyToMembers(
-                semanticModel, editor.Generator, property, 
+                generator, property, 
                 propertyDeclaration, propertyBackingField,
                 desiredGetMethodName, desiredSetMethodName);
 
             if (property.ContainingType.TypeKind == TypeKind.Interface)
             {
                 members = members.OfType<MethodDeclarationSyntax>()
-                                 .Select(editor.Generator.AsInterfaceMember).ToList();
+                                 .Select(generator.AsInterfaceMember).ToList();
             }
 
-            editor.InsertAfter(propertyDeclaration, members);
-            editor.RemoveNode(propertyDeclaration);
+            return members;
         }
 
         private List<SyntaxNode> ConvertPropertyToMembers(
-            SemanticModel semanticModel, SyntaxGenerator generator, 
+            SyntaxGenerator generator, 
             IPropertySymbol property, PropertyDeclarationSyntax propertyDeclaration,
             IFieldSymbol propertyBackingField,
             string desiredGetMethodName,
@@ -165,6 +166,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             }
 
             return token;
+        }
+
+        public SyntaxNode GetPropertyNodeToReplace(SyntaxNode propertyDeclaration)
+        {
+            // For C# we'll have the property declaration that we want to replace.
+            return propertyDeclaration;
         }
 
         private struct ReferenceReplacer

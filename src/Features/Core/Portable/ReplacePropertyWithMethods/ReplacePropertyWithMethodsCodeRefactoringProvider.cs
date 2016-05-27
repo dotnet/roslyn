@@ -316,10 +316,17 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 cancellationToken.ThrowIfCancellationRequested();
 
                 var propertyDefinition = definition.Item1;
-                service.ReplacePropertyWithMethod(
-                    editor, semanticModel, definition.Item1, definition.Item2,
+                var propertyDeclaration = definition.Item2;
+
+                var members = service.GetReplacementMembers(
+                    updatedDocument,
+                    propertyDefinition, propertyDeclaration,
                     definitionToBackingField.GetValueOrDefault(propertyDefinition),
                     desiredGetMethodName, desiredSetMethodName);
+
+                var nodeToReplace = service.GetPropertyNodeToReplace(propertyDeclaration);
+                editor.InsertAfter(nodeToReplace, members);
+                editor.RemoveNode(nodeToReplace);
             }
 
             return updatedSolution.WithDocumentSyntaxRoot(documentId, editor.GetChangedRoot());
