@@ -141,6 +141,17 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 return null;
             }
 
+            // If the field is something can be referenced with the name it has, then just use
+            // it as the backing field we'll generate.  This is the case in VB where the backing
+            // field can be referenced as is.
+            if (field.CanBeReferencedByName)
+            {
+                return field;
+            }
+
+            // Otherwise, generate a good name for the backing field we're generating.  This is
+            // the case for C# where we have mangled names for the backing field and need something
+            // actually usable in code.
             var uniqueName = NameGenerator.GenerateUniqueName(
                 property.Name.ToLowerInvariant(),
                 n => !property.ContainingType.GetMembers(n).Any());
