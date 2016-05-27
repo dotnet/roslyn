@@ -356,7 +356,7 @@ namespace Microsoft.CodeAnalysis
                 if (symbol != null)
                 {
                     argumentsToUse = InitializeArgumentListIfNeeded(argumentsToUse);
-                    argumentsToUse[i] = _messageProvider.ConvertSymbolToString(_errorCode, symbol);
+                    argumentsToUse[i] = _messageProvider.GetErrorDisplayString(symbol);
                 }
             }
 

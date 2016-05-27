@@ -3434,6 +3434,59 @@ class Test
             CompileAndVerify(compilation2, expectedOutput: @"4");
         }
 
+        [Fact, WorkItem(9945, "https://github.com/dotnet/roslyn/issues/9945")]
+        public void DynamicGetOnlyProperty()
+        {
+            string source = @"
+class Program
+{
+    static void Main()
+    {
+        I i = null;
+        System.Type t = i.d.GetType();
+    }
+
+    interface I
+    {
+        dynamic d { set; }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugDll);
+            // crash happens during emit if not detected, so VerifyDiagnostics (no Emit) doesn't catch the crash.
+            compilation.VerifyEmitDiagnostics(
+                // (7,25): error CS0154: The property or indexer 'Program.I.d' cannot be used in this context because it lacks the get accessor
+                //         System.Type t = i.d.GetType();
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "i.d").WithArguments("Program.I.d").WithLocation(7, 25)
+            );
+        }
+
+        [Fact, WorkItem(9945, "https://github.com/dotnet/roslyn/issues/9945")]
+        public void DynamicGetOnlyPropertyIndexer()
+        {
+            string source = @"
+class Program
+{
+    static void Main()
+    {
+        I i = null;
+        System.Type t = i[null].GetType();
+    }
+
+    interface I
+    {
+        dynamic this[string s] { set; }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugDll);
+            compilation.VerifyEmitDiagnostics(
+                // (7,25): error CS0154: The property or indexer 'Program.I.this[string]' cannot be used in this context because it lacks the get accessor
+                //         System.Type t = i[null].GetType();
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "i[null]").WithArguments("Program.I.this[string]").WithLocation(7, 25)
+            );
+        }
+
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void IncorrectArrayLength()
         {

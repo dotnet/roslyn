@@ -863,7 +863,7 @@ public class Maine
             string expected =
 @"<?xml version=""1.0"" encoding=""utf-16""?>
 <VersionResource Size=""964"">
-  <VS_FIXEDFILEINFO FileVersionMS=""00050006"" FileVersionLS=""00070008"" ProductVersionMS=""00000000"" ProductVersionLS=""00000000"" />
+  <VS_FIXEDFILEINFO FileVersionMS=""00050006"" FileVersionLS=""00070008"" ProductVersionMS=""00010002"" ProductVersionLS=""00030000"" />
   <KeyValuePair Key=""Comments"" Value=""A classic of magical realist literature"" />
   <KeyValuePair Key=""CompanyName"" Value=""MossBrain"" />
   <KeyValuePair Key=""FileDescription"" Value=""One Hundred Years of Solitude"" />

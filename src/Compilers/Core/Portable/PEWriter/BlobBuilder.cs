@@ -279,29 +279,33 @@ namespace Microsoft.Cci
 
             var result = new byte[byteCount];
 
-            int chunkStartPosition = 0;
-            int resultOffset = 0;
+            int chunkStart = 0;
+            int bufferStart = start;
+            int bufferEnd = start + byteCount;
             foreach (var chunk in GetChunks())
             {
-                int chunkEndPosition = chunkStartPosition + chunk.Length;
+                int chunkEnd = chunkStart + chunk.Length;
+                Debug.Assert(bufferStart >= chunkStart);
 
-                if (chunkEndPosition > start)
+                if (chunkEnd > bufferStart)
                 {
-                    int bytesToCopy = Math.Min(chunk.Length, result.Length - resultOffset);
-                    if (bytesToCopy == 0)
+                    int bytesToCopy = Math.Min(bufferEnd, chunkEnd) - bufferStart;
+                    Debug.Assert(bytesToCopy >= 0);
+
+                    Array.Copy(chunk._buffer, bufferStart - chunkStart, result, bufferStart - start, bytesToCopy);
+                    bufferStart += bytesToCopy;
+
+                    if (bufferStart == bufferEnd)
                     {
                         break;
                     }
-
-                    Array.Copy(chunk._buffer, Math.Max(start - chunkStartPosition, 0), result, resultOffset, bytesToCopy);
-
-                    resultOffset += bytesToCopy;
                 }
 
-                chunkStartPosition = chunkEndPosition;
+                chunkStart = chunkEnd;
             }
 
-            Debug.Assert(resultOffset == result.Length);
+            Debug.Assert(bufferStart == bufferEnd);
+
             return result;
         }
 

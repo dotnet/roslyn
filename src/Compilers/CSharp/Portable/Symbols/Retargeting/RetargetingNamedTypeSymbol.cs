@@ -431,10 +431,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                 if (ReferenceEquals(_lazyBaseType, ErrorTypeSymbol.UnknownResultType))
                 {
                     NamedTypeSymbol acyclicBase = GetDeclaredBaseType(null);
-                    if (BaseTypeAnalysis.ClassDependsOn(acyclicBase, this))
-                    {
-                        return CyclicInheritanceError(this, acyclicBase);
-                    }
 
                     if ((object)acyclicBase == null)
                     {
@@ -444,6 +440,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
                         {
                             acyclicBase = this.RetargetingTranslator.Retarget(underlyingBase, RetargetOptions.RetargetPrimitiveTypesByName);
                         }
+                    }
+
+                    if ((object)acyclicBase != null && BaseTypeAnalysis.ClassDependsOn(acyclicBase, this))
+                    {
+                        return CyclicInheritanceError(this, acyclicBase);
                     }
 
                     Interlocked.CompareExchange(ref _lazyBaseType, acyclicBase, ErrorTypeSymbol.UnknownResultType);

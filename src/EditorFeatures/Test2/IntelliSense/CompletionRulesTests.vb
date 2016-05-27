@@ -3,6 +3,7 @@
 Imports System.Globalization
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.CSharp.Completion
+Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
     ' These tests adapted from David Kean's table at
@@ -46,20 +47,24 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Private Sub TestMatches(v As String, wordsToMatch() As String)
             Using New CultureContext("tr-TR")
-                Dim rules = New CompletionRules(New CSharpCompletionService())
+                Dim workspace = New TestWorkspace
+                Dim helper = CompletionHelper.GetHelper(workspace, LanguageNames.CSharp,
+                                                        workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService(Of CompletionService))
                 For Each word In wordsToMatch
-                    Dim item = New CompletionItem(Nothing, word, Nothing)
-                    Assert.True(rules.MatchesFilterText(item, v, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo(), CompletionFilterReason.TypeChar), $"Expected item {word} does not match {v}")
+                    Dim item = CompletionItem.Create(word)
+                    Assert.True(helper.MatchesFilterText(item, v, CompletionTrigger.Default, CompletionFilterReason.TypeChar), $"Expected item {word} does not match {v}")
                 Next
             End Using
         End Sub
 
         Private Sub TestNotMatches(v As String, wordsToNotMatch() As String)
             Using New CultureContext("tr-TR")
-                Dim rules = New CompletionRules(New CSharpCompletionService())
+                Dim workspace = New TestWorkspace
+                Dim helper = CompletionHelper.GetHelper(workspace, LanguageNames.CSharp,
+                                                        workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService(Of CompletionService))
                 For Each word In wordsToNotMatch
-                    Dim item = New CompletionItem(Nothing, word, Nothing)
-                    Assert.False(rules.MatchesFilterText(item, v, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo(), CompletionFilterReason.TypeChar), $"Unexpected item {word} matches {v}")
+                    Dim item = CompletionItem.Create(word)
+                    Assert.False(helper.MatchesFilterText(item, v, CompletionTrigger.Default, CompletionFilterReason.TypeChar), $"Unexpected item {word} matches {v}")
                 Next
             End Using
 

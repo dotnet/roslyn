@@ -6,9 +6,11 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.CommandHandlers
 Imports Microsoft.CodeAnalysis.Editor.Commands
+Imports Microsoft.CodeAnalysis.Editor.Host
 Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Shared.TestHooks
+Imports Microsoft.CodeAnalysis.SignatureHelp
 Imports Microsoft.VisualStudio.Composition
 Imports Microsoft.VisualStudio.Language.Intellisense
 Imports Microsoft.VisualStudio.Text
@@ -41,7 +43,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         End Property
 
         Private Sub New(workspaceElement As XElement,
-                        extraCompletionProviders As IEnumerable(Of Lazy(Of CompletionListProvider, OrderableLanguageAndRoleMetadata)),
+                        extraCompletionProviders As IEnumerable(Of Lazy(Of CompletionProvider, OrderableLanguageAndRoleMetadata)),
                         extraSignatureHelpProviders As IEnumerable(Of Lazy(Of ISignatureHelpProvider, OrderableLanguageMetadata)),
                         Optional extraExportedTypes As List(Of Type) = Nothing,
                         Optional workspaceKind As String = Nothing)
@@ -50,18 +52,18 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             Dim languageServices = Me.Workspace.CurrentSolution.Projects.First().LanguageServices
             Dim language = languageServices.Language
 
-            Dim completionProviders = GetExports(Of CompletionListProvider, OrderableLanguageAndRoleMetadata)() _
-                .Where(Function(f) f.Metadata.Language = language) _
-                .Concat(extraCompletionProviders) _
-                .ToList()
+            If extraCompletionProviders IsNot Nothing Then
+                Dim completionService = DirectCast(languageServices.GetService(Of CompletionService), CompletionServiceWithProviders)
+                completionService.SetTestProviders(extraCompletionProviders.Select(Function(lz) lz.Value).ToList())
+            End If
 
             Me.AsyncCompletionService = New AsyncCompletionService(
                 GetService(Of IEditorOperationsFactoryService)(),
                 UndoHistoryRegistry,
                 GetService(Of IInlineRenameService)(),
+                GetService(Of IWaitIndicator)(),
                 GetExports(Of IAsynchronousOperationListener, FeatureMetadata)(),
                 {New Lazy(Of IIntelliSensePresenter(Of ICompletionPresenterSession, ICompletionSession), OrderableMetadata)(Function() New TestCompletionPresenter(Me), New OrderableMetadata("Presenter"))},
-                completionProviders,
                 GetExports(Of IBraceCompletionSessionProvider, BraceCompletionMetadata)())
 
             Me.CompletionCommandHandler = New CompletionCommandHandler(Me.AsyncCompletionService)
@@ -73,8 +75,6 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
                 GetExports(Of IAsynchronousOperationListener, FeatureMetadata)())
 
             Me.IntelliSenseCommandHandler = New IntelliSenseCommandHandler(CompletionCommandHandler, SignatureHelpCommandHandler, Nothing)
-
-            languageServices.GetService(Of ICompletionService).ClearMRUCache()
         End Sub
 
         Private Shared Function CreatePartCatalog(types As List(Of Type)) As ComposableCatalog
@@ -88,7 +88,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public Shared Function CreateVisualBasicTestState(
                 documentElement As XElement,
-                Optional extraCompletionProviders As CompletionListProvider() = Nothing,
+                Optional extraCompletionProviders As CompletionProvider() = Nothing,
                 Optional extraSignatureHelpProviders As ISignatureHelpProvider() = Nothing,
                 Optional extraExportedTypes As List(Of Type) = Nothing) As TestState
             Return New TestState(
@@ -106,7 +106,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public Shared Function CreateCSharpTestState(
                 documentElement As XElement,
-                Optional extraCompletionProviders As CompletionListProvider() = Nothing,
+                Optional extraCompletionProviders As CompletionProvider() = Nothing,
                 Optional extraSignatureHelpProviders As ISignatureHelpProvider() = Nothing,
                 Optional extraExportedTypes As List(Of Type) = Nothing) As TestState
             Return New TestState(
@@ -124,7 +124,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public Shared Function CreateTestStateFromWorkspace(
                 workspaceElement As XElement,
-                Optional extraCompletionProviders As CompletionListProvider() = Nothing,
+                Optional extraCompletionProviders As CompletionProvider() = Nothing,
                 Optional extraSignatureHelpProviders As ISignatureHelpProvider() = Nothing,
                 Optional extraExportedTypes As List(Of Type) = Nothing,
                 Optional workspaceKind As String = Nothing) As TestState
@@ -188,7 +188,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             MyBase.SendCommitUniqueCompletionListItem(Sub(a, n) handler.ExecuteCommand(a, n), Sub() Return)
         End Sub
 
-        Public Overloads Sub SendSelectCompletionItemThroughPresenterSession(item As CompletionItem)
+        Public Overloads Sub SendSelectCompletionItemThroughPresenterSession(item As PresentationItem)
             CurrentCompletionPresenterSession.SetSelectedItem(item)
         End Sub
 
@@ -226,14 +226,14 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 
         Public Function CompletionItemsContainsAll(displayText As String()) As Boolean
             AssertNoAsynchronousOperationsRunning()
-            Return displayText.All(Function(v) CurrentCompletionPresenterSession.CompletionItems.Any(
-                                       Function(i) i.DisplayText = v))
+            Return displayText.All(Function(v) CurrentCompletionPresenterSession.PresentationItems.Any(
+                                       Function(i) i.Item.DisplayText = v))
         End Function
 
         Public Function CompletionItemsContainsAny(displayText As String()) As Boolean
             AssertNoAsynchronousOperationsRunning()
-            Return displayText.Any(Function(v) CurrentCompletionPresenterSession.CompletionItems.Any(
-                                       Function(i) i.DisplayText = v))
+            Return displayText.Any(Function(v) CurrentCompletionPresenterSession.PresentationItems.Any(
+                                       Function(i) i.Item.DisplayText = v))
         End Function
 
         Public Async Function AssertSelectedCompletionItem(Optional displayText As String = Nothing,
@@ -251,11 +251,11 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
             End If
 
             If displayText IsNot Nothing Then
-                Assert.Equal(displayText, Me.CurrentCompletionPresenterSession.SelectedItem.DisplayText)
+                Assert.Equal(displayText, Me.CurrentCompletionPresenterSession.SelectedItem.Item.DisplayText)
             End If
 
             If shouldFormatOnCommit.HasValue Then
-                Assert.Equal(shouldFormatOnCommit.Value, Me.CurrentCompletionPresenterSession.SelectedItem.ShouldFormatOnCommit)
+                Assert.Equal(shouldFormatOnCommit.Value, Me.CurrentCompletionPresenterSession.SelectedItem.Item.Rules.FormatOnCommit)
             End If
 
 #If False Then
@@ -265,7 +265,9 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
 #End If
 
             If description IsNot Nothing Then
-                Assert.Equal(description, (Await Me.CurrentCompletionPresenterSession.SelectedItem.GetDescriptionAsync()).GetFullText())
+                Dim document = Me.Workspace.CurrentSolution.Projects.First().Documents.First()
+                Dim itemDescription = Await Me.CurrentCompletionPresenterSession.SelectedItem.GetDescriptionAsync(document, CancellationToken.None)
+                Assert.Equal(description, itemDescription.Text)
             End If
         End Function
 

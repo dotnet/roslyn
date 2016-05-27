@@ -43,9 +43,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly ImmutableArray<MetadataReference> _metadataReferences;
         private uint _runningDocumentTableEventsCookie;
 
-        // document worker coordinator
-        private ISolutionCrawlerRegistrationService _registrationService;
-
         [ImportingConstructor]
         public MiscellaneousFilesWorkspace(
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
@@ -53,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             SaveEventsService saveEventsService,
             VisualStudioWorkspace visualStudioWorkspace,
             SVsServiceProvider serviceProvider) :
-            base(visualStudioWorkspace.Services.HostServices, "MiscellaneousFiles")
+            base(visualStudioWorkspace.Services.HostServices, WorkspaceKind.MiscellaneousFiles)
         {
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
             _fileTrackingMetadataAsSourceService = fileTrackingMetadataAsSourceService;
@@ -74,32 +71,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal void StartSolutionCrawler()
         {
-            if (_registrationService == null)
-            {
-                lock (this)
-                {
-                    if (_registrationService == null)
-                    {
-                        _registrationService = this.Services.GetService<ISolutionCrawlerRegistrationService>();
-                        _registrationService.Register(this);
-                    }
-                }
-            }
+            DiagnosticProvider.Enable(this, DiagnosticProvider.Options.Syntax);
         }
 
         internal void StopSolutionCrawler()
         {
-            if (_registrationService != null)
-            {
-                lock (this)
-                {
-                    if (_registrationService != null)
-                    {
-                        _registrationService.Unregister(this, blockingShutdown: true);
-                        _registrationService = null;
-                    }
-                }
-            }
+            DiagnosticProvider.Disable(this);
         }
 
         private LanguageInformation TryGetLanguageInformation(string filename)
@@ -255,7 +232,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                     }
                 }
                 else
-                { 
+                {
                     // We should now claim this
                     AttachToDocument(docCookie, moniker);
                 }

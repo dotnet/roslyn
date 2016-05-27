@@ -840,8 +840,9 @@ class D
         }
 
         [WorkItem(1174255, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1174255")]
+        [WorkItem(8009, "https://github.com/dotnet/roslyn/issues/8009")]
         [Fact, Trait(Traits.Feature, Traits.Features.NavigateTo)]
-        public async Task NoNavigationToGeneratedFiles()
+        public async Task NavigateToGeneratedFiles()
         {
             using (var workspace = await TestWorkspace.CreateAsync(@"
 <Workspace>
@@ -860,7 +861,7 @@ class D
             {
                 public partial class C
                 {
-                    public void VisibleMethod_Not() { }
+                    public void VisibleMethod_Generated() { }
                 }
             }
         </Document>
@@ -876,7 +877,8 @@ class D
                 var items = _aggregator.GetItems("VisibleMethod");
                 var expectedItems = new List<NavigateToItem>()
                 {
-                    new NavigateToItem("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, MatchKind.Exact, true, null)
+                    new NavigateToItem("VisibleMethod", NavigateToItemKind.Method, "csharp", null, null, MatchKind.Exact, true, null),
+                    new NavigateToItem("VisibleMethod_Generated", NavigateToItemKind.Method, "csharp", null, null, MatchKind.Prefix, true, null)
                 };
 
                 // The pattern matcher should match 'VisibleMethod' to both 'VisibleMethod' and 'VisibleMethod_Not', except that

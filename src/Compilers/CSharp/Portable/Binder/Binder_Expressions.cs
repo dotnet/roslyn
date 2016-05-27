@@ -375,7 +375,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void VerifyUnchecked(ExpressionSyntax node, DiagnosticBag diagnostics, BoundExpression expr)
         {
-            if (!expr.HasAnyErrors)
+            var isInsideNameof = this.EnclosingNameofArgument != null;
+            if (!expr.HasAnyErrors && !isInsideNameof)
             {
                 TypeSymbol exprType = expr.Type;
                 if ((object)exprType != null && exprType.IsUnsafe())
@@ -1192,8 +1193,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 // Not expecting parameter from constructed method.
                                 Debug.Assert(!parameter.ContainingSymbol.Equals(containingMethod));
 
+                                var isInsideNameof = this.EnclosingNameofArgument != null;
                                 // Captured in a lambda.
-                                if (containingMethod.MethodKind == MethodKind.AnonymousFunction) // false in EE evaluation method
+                                if (containingMethod.MethodKind == MethodKind.AnonymousFunction && !isInsideNameof) // false in EE evaluation method
                                 {
                                     Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUse, node, parameter.Name);
                                 }
@@ -4508,6 +4510,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if ((object)leftType != null && leftType.IsDynamic())
             {
+                // There are some sources of a `dynamic` typed value that can be known before runtime
+                // to be invalid. For example, accessing a set-only property whose type is dynamic:
+                //   dynamic Foo { set; }
+                // If Foo itself is a dynamic thing (e.g. in `x.Foo.Bar`, `x` is dynamic, and we're
+                // currently checking Bar), then CheckValue will do nothing.
+                boundLeft = CheckValue(boundLeft, BindValueKind.RValue, diagnostics);
                 return BindDynamicMemberAccess(node, boundLeft, right, invoked, indexed, diagnostics);
             }
 
@@ -5283,8 +5291,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!hasError)
                 {
                     var isFixedStatementExpression = SyntaxFacts.IsFixedStatementExpression(node);
+                    var isInsideNameof = this.EnclosingNameofArgument != null;
                     Symbol accessedLocalOrParameterOpt;
-                    if (IsNonMoveableVariable(receiver, out accessedLocalOrParameterOpt) == isFixedStatementExpression)
+                    if (IsNonMoveableVariable(receiver, out accessedLocalOrParameterOpt) == isFixedStatementExpression && !isInsideNameof)
                     {
                         Error(diagnostics, isFixedStatementExpression ? ErrorCode.ERR_FixedNotNeeded : ErrorCode.ERR_FixedBufferNotFixed, node);
                         hasErrors = true;

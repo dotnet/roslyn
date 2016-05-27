@@ -1271,7 +1271,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Debug.Assert(current.Parent.Kind = SyntaxKind.WithStatement)
                     Debug.Assert(current.Parent.Parent.Kind = SyntaxKind.WithBlock)
 
-                    current = current.Parent.Parent.Parent
+                    current = current.Parent.Parent
+
+                    ' If we are speculating on the With block, we might have reached our root,
+                    ' return memberBinder in this case.
+                    If current Is binderRoot Then
+                        Return memberBinder
+                    End If
+
+                    current = current.Parent
                     ' Proceed to the end of If statement
 
                 End If

@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
@@ -30,13 +31,34 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(FeatureOnOffOptions.AutoXmlDocCommentGeneration, value); }
         }
 
+        public int AutoInsertAsteriskForNewLinesOfBlockComments
+        {
+            get { return GetBooleanOption(FeatureOnOffOptions.AutoInsertBlockCommentStartString); }
+            set { SetBooleanOption(FeatureOnOffOptions.AutoInsertBlockCommentStartString, value); }
+        }
+
         public int BringUpOnIdentifier
         {
             get { return GetBooleanOption(CompletionOptions.TriggerOnTypingLetters); }
             set { SetBooleanOption(CompletionOptions.TriggerOnTypingLetters, value); }
         }
 
+        [Obsolete("This SettingStore option has now been deprecated in favor of CSharpClosedFileDiagnostics")]
         public int ClosedFileDiagnostics
+        {
+            get { return GetBooleanOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic); }
+            set
+            {
+                // Even though this option has been deprecated, we want to respect the setting if the user has explicitly turned off closed file diagnostics (which is the non-default value for 'ClosedFileDiagnostics').
+                // So, we invoke the setter only for value = 0.
+                if (value == 0)
+                {
+                    SetBooleanOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, value);
+                }
+            }
+        }
+
+        public int CSharpClosedFileDiagnostics
         {
             get { return GetBooleanOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic); }
             set { SetBooleanOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, value); }
@@ -284,6 +306,18 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(OrganizerOptions.PlaceSystemNamespaceFirst, value); }
         }
 
+        public int AddImport_SuggestForTypesInReferenceAssemblies
+        {
+            get { return GetBooleanOption(AddImportOptions.SuggestForTypesInReferenceAssemblies); }
+            set { SetBooleanOption(AddImportOptions.SuggestForTypesInReferenceAssemblies, value); }
+        }
+
+        public int AddImport_SuggestForTypesInNuGetPackages
+        {
+            get { return GetBooleanOption(AddImportOptions.SuggestForTypesInNuGetPackages); }
+            set { SetBooleanOption(AddImportOptions.SuggestForTypesInNuGetPackages, value); }
+        }
+
         public int Space_AfterBasesColon
         {
             get { return GetBooleanOption(CSharpFormattingOptions.SpaceAfterColonInBaseTypeDeclaration); }
@@ -457,12 +491,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals, value); }
         }
 
-        public int WarnOnBuildErrors
-        {
-            get { return GetBooleanOption(OrganizerOptions.WarnOnBuildErrors); }
-            set { SetBooleanOption(OrganizerOptions.WarnOnBuildErrors, value); }
-        }
-
         public int Wrapping_IgnoreSpacesAroundBinaryOperators
         {
             get
@@ -518,6 +546,25 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             var optionSet = _optionService.GetOptions();
             optionSet = optionSet.WithChangedOption(key, LanguageNames.CSharp, value != 0);
+            _optionService.SetOptions(optionSet);
+        }
+
+        private int GetBooleanOption(PerLanguageOption<bool?> key)
+        {
+            var option = _optionService.GetOption(key, LanguageNames.CSharp);
+            if (!option.HasValue)
+            {
+                return -1;
+            }
+
+            return option.Value ? 1 : 0;
+        }
+
+        private void SetBooleanOption(PerLanguageOption<bool?> key, int value)
+        {
+            bool? boolValue = (value < 0) ? (bool?)null : (value > 0);
+            var optionSet = _optionService.GetOptions();
+            optionSet = optionSet.WithChangedOption(key, LanguageNames.CSharp, boolValue);
             _optionService.SetOptions(optionSet);
         }
     }

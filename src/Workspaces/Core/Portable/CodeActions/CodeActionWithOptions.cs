@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeActions
@@ -43,7 +44,8 @@ namespace Microsoft.CodeAnalysis.CodeActions
             return operations;
         }
 
-        internal override async Task<ImmutableArray<CodeActionOperation>> GetOperationsCoreAsync(CancellationToken cancellationToken)
+        internal override async Task<ImmutableArray<CodeActionOperation>> GetOperationsCoreAsync(
+            IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             var options = this.GetOptions(cancellationToken);
             return (await this.GetOperationsAsync(options, cancellationToken).ConfigureAwait(false)).ToImmutableArray();

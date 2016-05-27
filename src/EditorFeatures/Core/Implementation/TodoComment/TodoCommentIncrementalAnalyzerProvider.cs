@@ -12,9 +12,11 @@ using Microsoft.CodeAnalysis.SolutionCrawler;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
 {
-    [Export(typeof(ITodoListProvider))]
     [Shared]
-    [ExportIncrementalAnalyzerProvider(WorkspaceKind.Host, WorkspaceKind.Interactive, WorkspaceKind.MiscellaneousFiles)]
+    [Export(typeof(ITodoListProvider))]
+    [ExportIncrementalAnalyzerProvider(
+        name: nameof(TodoCommentIncrementalAnalyzerProvider),
+        workspaceKinds: new[] { WorkspaceKind.Host, WorkspaceKind.Interactive, WorkspaceKind.MiscellaneousFiles })]
     internal class TodoCommentIncrementalAnalyzerProvider : IIncrementalAnalyzerProvider, ITodoListProvider
     {
         private static readonly ConditionalWeakTable<Workspace, TodoCommentIncrementalAnalyzer> s_analyzers = new ConditionalWeakTable<Workspace, TodoCommentIncrementalAnalyzer>();

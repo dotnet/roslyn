@@ -16,6 +16,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         private sealed class BinderFactoryVisitor : CSharpSyntaxVisitor<Binder>
         {
             private int _position;
+            private CSharpSyntaxNode _memberDeclarationOpt;
+            private Symbol _memberOpt;
             private readonly BinderFactory _factory;
 
             internal BinderFactoryVisitor(BinderFactory factory)
@@ -23,12 +25,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _factory = factory;
             }
 
-            internal int Position
+            internal void Initialize(int position, CSharpSyntaxNode memberDeclarationOpt, Symbol memberOpt)
             {
-                set
-                {
-                    _position = value;
-                }
+                Debug.Assert((memberDeclarationOpt == null) == (memberOpt == null));
+
+                _position = position;
+                _memberDeclarationOpt = memberDeclarationOpt;
+                _memberOpt = memberOpt;
             }
 
             private CSharpCompilation compilation
@@ -449,6 +452,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Get the correct methods symbol within container that corresponds to the given method syntax.
             private SourceMethodSymbol GetMethodSymbol(BaseMethodDeclarationSyntax baseMethodDeclarationSyntax, Binder outerBinder)
             {
+                if (baseMethodDeclarationSyntax == _memberDeclarationOpt)
+                {
+                    return (SourceMethodSymbol)_memberOpt;
+                }
+
                 NamedTypeSymbol container = GetContainerType(outerBinder, baseMethodDeclarationSyntax);
                 if ((object)container == null)
                 {
@@ -461,6 +469,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private SourcePropertySymbol GetPropertySymbol(BasePropertyDeclarationSyntax basePropertyDeclarationSyntax, Binder outerBinder)
             {
+                if (basePropertyDeclarationSyntax == _memberDeclarationOpt)
+                {
+                    return (SourcePropertySymbol)_memberOpt;
+                }
+
                 Debug.Assert(basePropertyDeclarationSyntax.Kind() == SyntaxKind.PropertyDeclaration || basePropertyDeclarationSyntax.Kind() == SyntaxKind.IndexerDeclaration);
 
                 NamedTypeSymbol container = GetContainerType(outerBinder, basePropertyDeclarationSyntax);
@@ -475,6 +488,11 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             private SourceEventSymbol GetEventSymbol(EventDeclarationSyntax eventDeclarationSyntax, Binder outerBinder)
             {
+                if (eventDeclarationSyntax == _memberDeclarationOpt)
+                {
+                    return (SourceEventSymbol)_memberOpt;
+                }
+
                 NamedTypeSymbol container = GetContainerType(outerBinder, eventDeclarationSyntax);
                 if ((object)container == null)
                 {

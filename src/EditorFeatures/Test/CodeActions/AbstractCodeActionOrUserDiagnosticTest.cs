@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes.Suppression;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.UnitTests;
 using Roslyn.Test.Utilities;
@@ -343,7 +344,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                 }
                 else if (operation.ApplyDuringTests)
                 {
-                    operation.Apply(workspace, CancellationToken.None);
+                    operation.Apply(workspace, new ProgressTracker(), CancellationToken.None);
                 }
             }
 

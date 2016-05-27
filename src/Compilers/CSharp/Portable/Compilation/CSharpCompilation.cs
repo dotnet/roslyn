@@ -1709,9 +1709,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (_lazyCompilationUnitCompletedTrees.Count == this.SyntaxTrees.Length)
                     {
                         // if that was the last tree, signal the end of compilation
-                        EventQueue.TryEnqueue(new CompilationCompletedEvent(this));
-                        EventQueue.PromiseNotToEnqueue();
-                        EventQueue.TryComplete();
+                        CompleteCompilationEventQueue_NoLock();
                     }
                 }
             }
@@ -1950,6 +1948,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 cancellationToken.ThrowIfCancellationRequested();
 
                 builder.AddRange(GetSourceDeclarationDiagnostics(cancellationToken: cancellationToken));
+
+                if (EventQueue != null && SyntaxTrees.Length == 0)
+                {
+                    EnsureCompilationEventQueueCompleted();
+                }
             }
 
             cancellationToken.ThrowIfCancellationRequested();

@@ -21,20 +21,20 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
             }
         }
 
-        public override Task AnalyzeSyntaxAsync(Document document, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+        public override Task<ImmutableArray<Diagnostic>> AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
         {
             // No syntax diagnostics produced by the EnC engine.  
-            return SpecializedTasks.EmptyTask;
+            return SpecializedTasks.EmptyImmutableArray<Diagnostic>();
         }
 
-        public override async Task AnalyzeSemanticsAsync(Document document, Action<Diagnostic> addDiagnostic, CancellationToken cancellationToken)
+        public override async Task<ImmutableArray<Diagnostic>> AnalyzeSemanticsAsync(Document document, CancellationToken cancellationToken)
         {
             try
             {
                 var encService = document.Project.Solution.Workspace.Services.GetService<IEditAndContinueWorkspaceService>();
                 if (encService == null)
                 {
-                    return;
+                    return ImmutableArray<Diagnostic>.Empty;
                 }
 
                 EditSession session = encService.EditSession;
@@ -42,20 +42,18 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     session.BaseSolution.WorkspaceVersion == document.Project.Solution.WorkspaceVersion ||
                     !session.HasProject(document.Project.Id))
                 {
-                    return;
+                    return ImmutableArray<Diagnostic>.Empty;
                 }
 
                 var tree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
                 var analysis = await session.GetDocumentAnalysis(document).GetValueAsync(cancellationToken).ConfigureAwait(false);
-                if (!analysis.RudeEditErrors.IsDefault)
+                if (analysis.RudeEditErrors.IsDefault)
                 {
-                    session.LogRudeEditErrors(analysis.RudeEditErrors);
-
-                    foreach (var error in analysis.RudeEditErrors)
-                    {
-                        addDiagnostic(error.ToDiagnostic(tree));
-                    }
+                    return ImmutableArray<Diagnostic>.Empty;
                 }
+
+                session.LogRudeEditErrors(analysis.RudeEditErrors);
+                return analysis.RudeEditErrors.SelectAsArray((e, t) => e.ToDiagnostic(t), tree);
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
