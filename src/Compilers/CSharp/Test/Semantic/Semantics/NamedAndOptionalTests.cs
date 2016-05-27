@@ -932,10 +932,16 @@ class Test{
 }
 ";
             CreateCompilationWithMscorlib(source, new[] { SystemRef }).VerifyDiagnostics(
-                // (5,21): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
-                Diagnostic(ErrorCode.ERR_DefaultValueUsedWithAttributes, "Optional"),
                 // (9,21): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
-                Diagnostic(ErrorCode.ERR_DefaultValueUsedWithAttributes, "DefaultParameterValue"));
+                //     public int Bar([DefaultParameterValue(1)]int i = 2) {
+                Diagnostic(ErrorCode.ERR_DefaultValueUsedWithAttributes, "DefaultParameterValue").WithLocation(9, 21),
+                // (9,54): error CS8017: The parameter has multiple distinct default values.
+                //     public int Bar([DefaultParameterValue(1)]int i = 2) {
+                Diagnostic(ErrorCode.ERR_ParamDefaultValueDiffersFromAttribute, "2").WithLocation(9, 54),
+                // (5,21): error CS1745: Cannot specify default parameter value in conjunction with DefaultParameterAttribute or OptionalAttribute
+                //     public int Foo([Optional]object i = null) {
+                Diagnostic(ErrorCode.ERR_DefaultValueUsedWithAttributes, "Optional").WithLocation(5, 21)
+                );
         }
 
         [WorkItem(10290, "DevDiv_Projects/Roslyn")]

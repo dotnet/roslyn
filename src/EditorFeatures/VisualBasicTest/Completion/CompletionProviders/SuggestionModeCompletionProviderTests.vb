@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading
 Imports System.Threading.Tasks
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Completion
@@ -299,18 +300,18 @@ Class C1
     End Sub
 End Class
 </a>
-            Await VerifyBuilderAsync(markup, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo(), useDebuggerOptions:=True)
+            Await VerifyBuilderAsync(markup, CompletionTrigger.Default, useDebuggerOptions:=True)
         End Function
 
-        Private Function VerifyNotBuilderAsync(markup As XElement, Optional triggerInfo As CompletionTriggerInfo? = Nothing, Optional useDebuggerOptions As Boolean = False) As Task
+        Private Function VerifyNotBuilderAsync(markup As XElement, Optional triggerInfo As CompletionTrigger? = Nothing, Optional useDebuggerOptions As Boolean = False) As Task
             Return VerifySuggestionModeWorkerAsync(markup, isBuilder:=False, triggerInfo:=triggerInfo, useDebuggerOptions:=useDebuggerOptions)
         End Function
 
-        Private Function VerifyBuilderAsync(markup As XElement, Optional triggerInfo As CompletionTriggerInfo? = Nothing, Optional useDebuggerOptions As Boolean = False) As Task
+        Private Function VerifyBuilderAsync(markup As XElement, Optional triggerInfo As CompletionTrigger? = Nothing, Optional useDebuggerOptions As Boolean = False) As Task
             Return VerifySuggestionModeWorkerAsync(markup, isBuilder:=True, triggerInfo:=triggerInfo, useDebuggerOptions:=useDebuggerOptions)
         End Function
 
-        Private Async Function VerifySuggestionModeWorkerAsync(markup As XElement, isBuilder As Boolean, triggerInfo As CompletionTriggerInfo?, Optional useDebuggerOptions As Boolean = False) As Task
+        Private Async Function VerifySuggestionModeWorkerAsync(markup As XElement, isBuilder As Boolean, triggerInfo As CompletionTrigger?, Optional useDebuggerOptions As Boolean = False) As Task
             Dim code As String = Nothing
             Dim position As Integer = 0
             MarkupTestFile.GetPosition(markup.NormalizedValue, code, position)
@@ -328,25 +329,26 @@ End Class
                     Await CheckResultsAsync(document2, position, isBuilder, triggerInfo, options)
                 End If
             End Using
-
         End Function
 
-        Private Async Function CheckResultsAsync(document As Document, position As Integer, isBuilder As Boolean, triggerInfo As CompletionTriggerInfo?, options As OptionSet) As Task
-            triggerInfo = If(triggerInfo, CompletionTriggerInfo.CreateTypeCharTriggerInfo("a"c))
+        Private Async Function CheckResultsAsync(document As Document, position As Integer, isBuilder As Boolean, triggerInfo As CompletionTrigger?, options As OptionSet) As Task
+            triggerInfo = If(triggerInfo, CompletionTrigger.CreateInsertionTrigger("a"c))
 
-            Dim completionList = Await GetCompletionListAsync(document, position, triggerInfo.Value, options)
+            Dim service = GetCompletionService(document.Project.Solution.Workspace)
+            Dim context = Await service.GetContextAsync(
+                service.ExclusiveProviders?(0), document, position, triggerInfo.Value, options, CancellationToken.None)
 
             If isBuilder Then
-                Assert.NotNull(completionList)
-                Assert.NotNull(completionList.Builder)
+                Assert.NotNull(context)
+                Assert.NotNull(context.SuggestionModeItem)
             Else
-                If completionList IsNot Nothing Then
-                    Assert.True(completionList.Builder Is Nothing, "group.Builder = " & If(completionList.Builder IsNot Nothing, completionList.Builder.DisplayText, "null"))
+                If context IsNot Nothing Then
+                    Assert.True(context.SuggestionModeItem Is Nothing, "group.Builder = " & If(context.SuggestionModeItem IsNot Nothing, context.SuggestionModeItem.DisplayText, "null"))
                 End If
             End If
         End Function
 
-        Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
+        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
             Return New VisualBasicSuggestionModeCompletionProvider()
         End Function
     End Class

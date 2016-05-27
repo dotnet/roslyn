@@ -3,220 +3,225 @@
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
+    /// <summary>
+    /// One of many possible completions used to form the completion list presented to the user.
+    /// </summary>
     [DebuggerDisplay("{DisplayText}")]
-    internal class CompletionItem : IComparable<CompletionItem>
+    public sealed class CompletionItem : IComparable<CompletionItem>
     {
-        internal AsyncLazy<ImmutableArray<SymbolDisplayPart>> LazyDescription;
-
-        internal bool HasAsyncDescription { get; }
-
         /// <summary>
-        /// An appropriate icon to present to the user for this completion item.
-        /// </summary>
-        public Glyph? Glyph { get; }
-
-        /// <summary>
-        /// The ICompletionProvider that this CompletionItem was created from.
-        /// </summary>
-        public virtual CompletionListProvider CompletionProvider { get; }
-
-        /// <summary>
-        /// The text for the completion item should be presented to the user (for example, in a
-        /// completion list in an IDE).
+        /// The text that is displayed to the user.
         /// </summary>
         public string DisplayText { get; }
 
         /// <summary>
-        /// Text to compare against when filtering completion items against user entered text.
+        /// The text used to determine if the item matches the filter and is show in the list.
+        /// This is often the same as <see cref="DisplayText"/> but may be different in certain circumstances.
         /// </summary>
         public string FilterText { get; }
 
         /// <summary>
-        /// A string that is used for comparing completion items so that they can be ordered.  This
-        /// is often the same as the DisplayText but may be different in certain circumstances.  For
-        /// example, in C# a completion item with the display text "@int" might have the sort text
-        /// "int" so that it would appear next to other items with similar names instead of
-        /// appearing before, or after all the items due to the leading @ character.
+        /// The text used to determine the order that the item appears in the list.
+        /// This is often the same as the <see cref="DisplayText"/> but may be different in certain circumstances.
         /// </summary>
         public string SortText { get; }
 
         /// <summary>
-        /// Whether or not this item should be preselected when presented to the user.  It is up to
-        /// the ICompletionRules to determine how this flag should be handled.  However, the default
-        /// behavior is that, if there has been no filter text then a preselected item is preferred
-        /// over any other item. If there has been filter text supplied, then a preselected item is
-        /// preferred over another item if the ICompletionRules currently in effect deem them
-        /// otherwise identical.
+        /// The span of the syntax element associated with this item.
+        /// 
+        /// The span identifies the text in the document that is used to filter the initial list presented to the user,
+        /// and typically represents the region of the document that will be changed if this item is committed.
         /// </summary>
-        public bool Preselect { get; }
+        public TextSpan Span { get; }
 
         /// <summary>
-        /// The span(respective to the original document text when this completion item was created)
-        /// to use for determining what text should be used to filter this completion item against.
-        /// Most commonly this is the same text span that is in TextChange, however in specialized
-        /// cases it can be different.  For example, in C#, if a user types "foo." the item "operator
-        /// int" may be placed in the list.  It's filter span will be created a after the dot
-        /// position (so that typing "oper" will help filter down to the list of operators).
-        /// However, the text change may extend further backward so that if that item is committed
-        /// the resultant text becomes "((int)foo).
+        /// Additional information attached to a completion item by it creator.
         /// </summary>
-        public TextSpan FilterSpan { get; }
+        public ImmutableDictionary<string, string> Properties { get; }
 
         /// <summary>
-        /// A CompletionItem marked as a builder will be presented as an Intellisense Builder,
-        /// initially with its display text, which will be replaced as the user types.
+        /// Descriptive tags from <see cref="CompletionTags"/>.
+        /// These tags may influence how the item is displayed.
         /// </summary>
-        public bool IsBuilder { get; }
+        public ImmutableArray<string> Tags { get; }
 
         /// <summary>
-        /// When this property is true, the completion list will display a warning icon to the
-        /// right of the item's text, indicating that the corresponding symbol may not be
-        /// available in every project a linked file is linked into.
+        /// Rules that declare how this item should behave.
         /// </summary>
-        /// <returns></returns>
-        public bool ShowsWarningIcon { get; }
-
-        /// <summary>
-        /// When this property is true, after performing the action associated with the item, 
-        /// formatting is performed on the change
-        /// </summary>
-        public bool ShouldFormatOnCommit { get; internal set; }
-
         public CompletionItemRules Rules { get; }
 
-        public ImmutableArray<CompletionItemFilter> Filters { get; }
-
-        // Constructor kept for back compat.  When we move to our new completion API we can remove this.
-        public CompletionItem(
-            CompletionListProvider completionProvider,
-            string displayText,
-            TextSpan filterSpan,
-            ImmutableArray<SymbolDisplayPart> description,
-            Glyph? glyph,
-            string sortText,
-            string filterText,
-            bool preselect,
-            bool isBuilder,
-            bool showsWarningIcon,
-            bool shouldFormatOnCommit,
-            CompletionItemRules rules)
-            : this(completionProvider, displayText, filterSpan, description, glyph, sortText, 
-                   filterText, preselect, isBuilder, showsWarningIcon, shouldFormatOnCommit, rules,
-                   ImmutableArray<CompletionItemFilter>.Empty)
-        {
-        }
-
-        public CompletionItem(
-            CompletionListProvider completionProvider,
-            string displayText,
-            TextSpan filterSpan,
-            ImmutableArray<SymbolDisplayPart> description = default(ImmutableArray<SymbolDisplayPart>),
-            Glyph? glyph = null,
-            string sortText = null,
-            string filterText = null,
-            bool preselect = false,
-            bool isBuilder = false,
-            bool showsWarningIcon = false,
-            bool shouldFormatOnCommit = false,
-            CompletionItemRules rules = null,
-            ImmutableArray<CompletionItemFilter>? filters = null)
-            : this(completionProvider, displayText, filterSpan,
-                   description.IsDefault ? (Func<CancellationToken, Task<ImmutableArray<SymbolDisplayPart>>>)null : c => Task.FromResult(description),
-                   glyph, /*hasAsyncDescription*/ false, sortText, filterText, preselect, isBuilder, showsWarningIcon, shouldFormatOnCommit, rules, filters)
-        {
-        }
-
-        // Constructor kept for back compat.  When we move to our new completion API we can remove this.
-        public CompletionItem(
-            CompletionListProvider completionProvider,
-            string displayText,
-            TextSpan filterSpan,
-            Func<CancellationToken, Task<ImmutableArray<SymbolDisplayPart>>> descriptionFactory,
-            Glyph? glyph,
-            string sortText,
-            string filterText,
-            bool preselect,
-            bool isBuilder,
-            bool showsWarningIcon,
-            bool shouldFormatOnCommit,
-            CompletionItemRules rules)
-            : this(completionProvider, displayText, filterSpan, descriptionFactory, glyph, sortText,
-                  filterText, preselect, isBuilder, showsWarningIcon, shouldFormatOnCommit, rules,
-                  ImmutableArray<CompletionItemFilter>.Empty)
-        {
-
-        }
-
-        public CompletionItem(
-            CompletionListProvider completionProvider,
-            string displayText,
-            TextSpan filterSpan,
-            Func<CancellationToken, Task<ImmutableArray<SymbolDisplayPart>>> descriptionFactory,
-            Glyph? glyph,
-            string sortText = null,
-            string filterText = null,
-            bool preselect = false,
-            bool isBuilder = false,
-            bool showsWarningIcon = false,
-            bool shouldFormatOnCommit = false,
-            CompletionItemRules rules = null,
-            ImmutableArray<CompletionItemFilter>? filters = null)
-                : this(completionProvider, displayText, filterSpan, descriptionFactory, glyph, /*hasAsyncDescription*/ true, sortText,
-                     filterText, preselect, isBuilder, showsWarningIcon, shouldFormatOnCommit, rules, filters)
-        {
-        }
-
         private CompletionItem(
-            CompletionListProvider completionProvider,
             string displayText,
-            TextSpan filterSpan,
-            Func<CancellationToken, Task<ImmutableArray<SymbolDisplayPart>>> descriptionFactory,
-            Glyph? glyph,
-            bool hasAsyncDescription,
-            string sortText,
             string filterText,
-            bool preselect,
-            bool isBuilder,
-            bool showsWarningIcon,
-            bool shouldFormatOnCommit,
-            CompletionItemRules rules,
-            ImmutableArray<CompletionItemFilter>? filters)
+            string sortText,
+            TextSpan span,
+            ImmutableDictionary<string, string> properties,
+            ImmutableArray<string> tags,
+            CompletionItemRules rules)
         {
-            this.CompletionProvider = completionProvider;
-            this.DisplayText = displayText;
-            this.Glyph = glyph;
-            this.SortText = sortText ?? displayText;
-            this.FilterText = filterText ?? displayText;
-            this.Preselect = preselect;
-            this.FilterSpan = filterSpan;
-            this.IsBuilder = isBuilder;
-            this.ShowsWarningIcon = showsWarningIcon;
-            this.ShouldFormatOnCommit = shouldFormatOnCommit;
-            this.HasAsyncDescription = hasAsyncDescription;
-            this.Rules = rules ?? CompletionItemRules.DefaultRules;
-            this.Filters = filters ?? ImmutableArray<CompletionItemFilter>.Empty;
+            this.DisplayText = displayText ?? "";
+            this.FilterText = filterText ?? this.DisplayText;
+            this.SortText = sortText ?? this.DisplayText;
+            this.Span = span;
+            this.Properties = properties ?? ImmutableDictionary<string, string>.Empty;
+            this.Tags = tags.IsDefault ? ImmutableArray<string>.Empty : tags;
+            this.Rules = rules ?? CompletionItemRules.Default;
+        }
 
-            if (descriptionFactory != null)
+        /// <summary>
+        /// Creates a new <see cref="CompletionItem"/>
+        /// </summary>
+        /// <param name="displayText">The text that is displayed to the user.</param>
+        /// <param name="filterText">The text used to determine if the item matches the filter and is show in the list.</param>
+        /// <param name="sortText">The text used to determine the order that the item appears in the list.</param>
+        /// <param name="span">The span of the syntax element in the document associated with this item.</param>
+        /// <param name="properties">Additional information.</param>
+        /// <param name="tags">Descriptive tags that may influence how the item is displayed.</param>
+        /// <param name="rules">The rules that declare how this item should behave.</param>
+        /// <returns></returns>
+        public static CompletionItem Create(
+            string displayText,
+            string filterText = null,
+            string sortText = null,
+            TextSpan span = default(TextSpan),
+            ImmutableDictionary<string, string> properties = null,
+            ImmutableArray<string> tags = default(ImmutableArray<string>),
+            CompletionItemRules rules = null)
+        {
+            return new CompletionItem(
+                span: span,
+                displayText: displayText,
+                filterText: filterText,
+                sortText: sortText,
+                properties: properties,
+                tags: tags,
+                rules: rules);
+        }
+
+        private CompletionItem With(
+            Optional<TextSpan> span = default(Optional<TextSpan>),
+            Optional<string> displayText = default(Optional<string>),
+            Optional<string> filterText = default(Optional<string>),
+            Optional<string> sortText = default(Optional<string>),
+            Optional<ImmutableDictionary<string, string>> properties = default(Optional<ImmutableDictionary<string,string>>),
+            Optional<ImmutableArray<string>> tags = default(Optional<ImmutableArray<string>>),
+            Optional<CompletionItemRules> rules = default(Optional<CompletionItemRules>))
+        {
+            var newSpan = span.HasValue ? span.Value : this.Span;
+            var newDisplayText = displayText.HasValue ? displayText.Value : this.DisplayText;
+            var newFilterText = filterText.HasValue ? filterText.Value : this.FilterText;
+            var newSortText = sortText.HasValue ? sortText.Value : this.SortText;
+            var newProperties = properties.HasValue ? properties.Value : this.Properties;
+            var newTags = tags.HasValue ? tags.Value : this.Tags;
+            var newRules = rules.HasValue ? rules.Value : this.Rules;
+
+            if (newSpan == this.Span
+                && newDisplayText == this.DisplayText
+                && newFilterText == this.FilterText
+                && newSortText == this.SortText
+                && newProperties == this.Properties
+                && newTags == this.Tags
+                && newRules == this.Rules)
             {
-                this.LazyDescription = new AsyncLazy<ImmutableArray<SymbolDisplayPart>>(descriptionFactory, cacheResult: true);
+                return this;
+            }
+
+            return Create(
+                displayText: newDisplayText,
+                filterText: newFilterText,
+                span: newSpan,
+                sortText: newSortText,
+                properties: newProperties,
+                tags: newTags,
+                rules: newRules);
+        }
+
+        /// <summary>
+        /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="Span"/> property changed.
+        /// </summary>
+        public CompletionItem WithSpan(TextSpan span)
+        {
+            return With(span: span);
+        }
+
+        /// <summary>
+        /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="DisplayText"/> property changed.
+        /// </summary>
+        public CompletionItem WithDisplayText(string text)
+        {
+            return With(displayText: text);
+        }
+
+        /// <summary>
+        /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="FilterText"/> property changed.
+        /// </summary>
+        public CompletionItem WithFilterText(string text)
+        {
+            return With(filterText: text);
+        }
+
+        /// <summary>
+        /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="SortText"/> property changed.
+        /// </summary>
+        public CompletionItem WithSortText(string text)
+        {
+            return With(sortText: text);
+        }
+
+        /// <summary>
+        /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="Properties"/> property changed.
+        /// </summary>
+        public CompletionItem WithProperties(ImmutableDictionary<string, string> properties)
+        {
+            return With(properties: properties);
+        }
+
+        /// <summary>
+        /// Creates a copy of this <see cref="CompletionItem"/> with a property added to the <see cref="Properties"/> collection.
+        /// </summary>
+        public CompletionItem AddProperty(string name, string value)
+        {
+            return With(properties: this.Properties.Add(name, value));
+        }
+
+        /// <summary>
+        /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="Tags"/> property changed.
+        /// </summary>
+        public CompletionItem WithTags(ImmutableArray<string> tags)
+        {
+            return With(tags: tags);
+        }
+
+        /// <summary>
+        /// Creates a copy of this <see cref="CompletionItem"/> with a tag added to the <see cref="Tags"/> collection.
+        /// </summary>
+        public CompletionItem AddTag(string tag)
+        {
+            if (tag == null)
+            {
+                throw new ArgumentNullException(nameof(tag));
+            }
+
+            if (this.Tags.Contains(tag))
+            {
+                return this;
+            }
+            else
+            {
+                return With(tags: this.Tags.Add(tag));
             }
         }
 
         /// <summary>
-        /// A description to present to the user for this completion item.
+        /// Creates a copy of this <see cref="CompletionItem"/> with the <see cref="Rules"/> property changed.
         /// </summary>
-        public virtual Task<ImmutableArray<SymbolDisplayPart>> GetDescriptionAsync(CancellationToken cancellationToken = default(CancellationToken))
+        public CompletionItem WithRules(CompletionItemRules rules)
         {
-            return this.LazyDescription == null
-                ? SpecializedTasks.EmptyImmutableArray<SymbolDisplayPart>()
-                : this.LazyDescription.GetValueAsync(cancellationToken);
+            return With(rules: rules);
         }
 
         int IComparable<CompletionItem>.CompareTo(CompletionItem other)

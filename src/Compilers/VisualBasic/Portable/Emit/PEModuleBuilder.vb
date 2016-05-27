@@ -316,7 +316,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             End Get
         End Property
 
-        Friend Overridable Function TryCreateVariableSlotAllocator(method As MethodSymbol, topLevelMethod As MethodSymbol) As VariableSlotAllocator
+        Friend Overridable Function TryCreateVariableSlotAllocator(method As MethodSymbol, topLevelMethod As MethodSymbol, diagnostics As DiagnosticBag) As VariableSlotAllocator
             Return Nothing
         End Function
 

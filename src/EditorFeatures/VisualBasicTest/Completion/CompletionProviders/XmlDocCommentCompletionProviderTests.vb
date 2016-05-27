@@ -1,9 +1,10 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Completion.CompletionProviders
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
+Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
 Namespace Tests
     Public Class XmlDocCommentCompletionProviderTests
@@ -13,8 +14,13 @@ Namespace Tests
             MyBase.New(workspaceFixture)
         End Sub
 
-        Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
+        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
             Return New XmlDocCommentCompletionProvider()
+        End Function
+
+        Protected Overrides Async Function VerifyWorkerAsync(code As String, position As Integer, expectedItemOrNull As String, expectedDescriptionOrNull As String, sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean, checkForAbsence As Boolean, experimental As Boolean, glyph As Integer?) As Task
+            Await VerifyAtPositionAsync(code, position, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph, experimental)
+            Await VerifyAtEndOfFileAsync(code, position, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph, experimental)
         End Function
 
         Private Async Function VerifyItemsExistAsync(markup As String, ParamArray items() As String) As Task
@@ -340,7 +346,9 @@ Class C
 End Class
 "
 
-            Await VerifyItemExistsAsync(text, "foo", usePreviousCharAsTrigger:=True)
+            Await VerifyItemExistsAsync(
+                text, "foo",
+                usePreviousCharAsTrigger:=True)
         End Function
 
         <WorkItem(638805, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/638805")>

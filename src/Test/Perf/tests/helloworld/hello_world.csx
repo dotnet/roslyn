@@ -1,29 +1,48 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-#load "../../util/test_util.csx"
-using System.IO;
+#r "../../../Roslyn.Test.Performance.Utilities.dll"
 
-class HelloWorldTest: PerfTest 
+// TestThisPlease()
+#load "../../util/test_util.csx"
+// IsVerbose()
+#load "../../util/tools_util.csx"
+
+using System.IO;
+using Roslyn.Test.Performance.Utilities;
+using static Roslyn.Test.Performance.Utilities.TestUtilities;
+
+class HelloWorldTest : PerfTest 
 {
     private string _pathToHelloWorld;
     private string _pathToOutput;
+    private ILogger _logger;
     
-    public HelloWorldTest(): base() {}
+    public HelloWorldTest(): base() 
+    {
+        _logger = new ConsoleAndFileLogger();
+    }
+    
     
     public override void Setup() 
     {
         _pathToHelloWorld = Path.Combine(MyWorkingDirectory, "HelloWorld.cs");
-        _pathToOutput = Path.Combine(MyArtifactsDirectory, "HelloWorld.exe");
+        _pathToOutput = Path.Combine(TempDirectory, "HelloWorld.exe");
     }
     
     public override void Test() 
     {
-        ShellOutVital(ReleaseCscPath, _pathToHelloWorld + " /out:" + _pathToOutput);
+        ShellOutVital(Path.Combine(MyBinaries(), "csc.exe"), _pathToHelloWorld + " /out:" + _pathToOutput, IsVerbose(), _logger, workingDirectory: MyWorkingDirectory);
+        _logger.Flush();
     }
     
-    public override int Iterations => 2;
+    public override int Iterations => 1;
     public override string Name => "hello world";
     public override string MeasuredProc => "csc";
+    public override bool ProvidesScenarios => false;
+    public override string[] GetScenarios()
+    {
+        throw new System.NotImplementedException();
+    }
 }
 
 TestThisPlease(new HelloWorldTest());

@@ -27,34 +27,6 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.EditorFeatures" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="Microsoft.VisualStudio.CoreUtility, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Editor, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Language.Intellisense, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Language.StandardClassification, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Text.Data, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Text.Internal, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>False</Private>
-      <HintPath>$(DevEnvDir)\PrivateAssemblies\Microsoft.VisualStudio.Text.Internal.dll</HintPath>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Text.Logic, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Text.UI, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
-    <Reference Include="Microsoft.VisualStudio.Text.UI.Wpf, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
@@ -90,6 +62,7 @@
     <Compile Include="Commands\IInteractiveWindowCommandsFactory.cs" />
     <Compile Include="IInteractiveEvaluator.cs" />
     <Compile Include="IInteractiveWindow.cs" />
+    <Compile Include="IInteractiveWindow2.cs" />
     <Compile Include="IInteractiveWindowEditorFactoryService.cs" />
     <Compile Include="IInteractiveWindowFactoryService.cs" />
     <Compile Include="IInteractiveWindowOperations.cs" />
@@ -147,6 +120,16 @@
     <None Include="project.json" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Dependencies\VisualStudioEditor\VisualStudioEditor.csproj">
+      <Project>{ef986d9b-8cfc-4ecb-9729-e260a1f84aff}</Project>
+      <Name>VisualStudioEditor</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Dependencies\VisualStudioText\VisualStudioText.csproj">
+      <Project>{c25768b3-2fe1-4d6d-8c17-a6acd56f8389}</Project>
+      <Name>VisualStudioText</Name>
+    </ProjectReference>
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />

@@ -91,7 +91,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case _
                     SyntaxKind.SimpleMemberAccessExpression,
                     SyntaxKind.GlobalName,
-                    SyntaxKind.IdentifierName
+                    SyntaxKind.IdentifierName,
+                    SyntaxKind.PredefinedType
                     ' References to constant type members or constant locals.
                     ' References to members of enumeration types.
                     Return True

@@ -12,14 +12,14 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal class ExternAliasCompletionProvider : CompletionListProvider
+    internal class ExternAliasCompletionProvider : CommonCompletionProvider
     {
-        public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
+        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
 
-        public override async Task ProduceCompletionListAsync(CompletionListContext context)
+        public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
             var document = context.Document;
             var position = context.Position;
@@ -52,11 +52,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     aliases.Remove(MetadataReferenceProperties.GlobalAlias);
 
                     var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    var filterSpan = CompletionUtilities.GetTextChangeSpan(text, position);
 
                     foreach (var alias in aliases)
                     {
-                        context.AddItem(new CompletionItem(this, alias, filterSpan, glyph: Glyph.Namespace));
+                        context.AddItem(CommonCompletionItem.Create(alias, context.DefaultItemSpan, glyph: Glyph.Namespace));
                     }
                 }
             }

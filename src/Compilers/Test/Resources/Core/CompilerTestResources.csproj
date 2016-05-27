@@ -137,6 +137,7 @@
     <Content Include="NetFX\Minimal\Key.snk" />
     <Content Include="NetFX\Minimal\minasync.cs" />
     <Content Include="NetFX\Minimal\mincorlib.cs" />
+    <EmbeddedResource Include="SymbolsTests\Metadata\public-and-private.dll" />
     <Content Include="SymbolsTests\NoPia\ParametersWithoutNames.cs" />
     <EmbeddedResource Include="PerfTests\CSPerfTest.cs" />
     <Content Include="Resources\License.txt" />
@@ -418,6 +419,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ResourceLoader.cs" />
+    <None Include="SymbolsTests\Metadata\public-and-private.cs" />
     <Compile Include="TestKeys.cs" />
     <Compile Include="TestResources.cs" />
   </ItemGroup>

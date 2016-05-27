@@ -98,8 +98,8 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 return null;
             }
 
-            var spans = members.Select(m => m.Span).ToArray();
-            var index = Array.BinarySearch(spans, new TextSpan(caretPosition, 0), PositionToTextSpanComparer.Instance);
+            var starts = members.Select(m => MemberStart(m)).ToArray();
+            var index = Array.BinarySearch(starts, caretPosition);
             if (index >= 0)
             {
                 // We're actually contained in a member, go to the next or previous.
@@ -122,32 +122,13 @@ namespace Microsoft.CodeAnalysis.Editor.CommandHandlers
                 index = members.Count - 1;
             }
 
-            // TODO: Better position within the node (e.g. attributes?)
-            return members[index].Span.Start;
+            return MemberStart(members[index]);
         }
 
-        /// <summary>
-        /// A custom comparer that returns true if two <see cref="TextSpan"/>'s intersect, and otherwise
-        /// compares by <see cref="TextSpan.Start"/>.
-        /// </summary>
-        private class PositionToTextSpanComparer : IComparer
+        private static int MemberStart(SyntaxNode node)
         {
-            public static IComparer Instance { get; } = new PositionToTextSpanComparer();
-
-            private PositionToTextSpanComparer() { }
-
-            int IComparer.Compare(object x, object y)
-            {
-                var left = (TextSpan)x;
-                var right = (TextSpan)y;
-
-                if (left.IntersectsWith(right))
-                {
-                    return 0;
-                }
-
-                return left.Start - right.Start;
-            }
+            // TODO: Better position within the node (e.g. attributes?)
+            return node.SpanStart;
         }
     }
 }

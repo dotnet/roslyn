@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.CodeAnalysis.ErrorReporting;
+using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -47,33 +48,41 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             public async Task<DocumentAnalysisData> GetDocumentAnalysisDataAsync(
                 CompilationWithAnalyzers analyzerDriverOpt, Document document, StateSet stateSet, AnalysisKind kind, CancellationToken cancellationToken)
             {
-                try
+                // get log title and functionId
+                string title;
+                FunctionId functionId;
+                GetLogFunctionIdAndTitle(kind, out functionId, out title);
+
+                using (Logger.LogBlock(functionId, GetDocumentLogMessage, title, document, stateSet.Analyzer, cancellationToken))
                 {
-                    var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
-                    var state = stateSet.GetActiveFileState(document.Id);
-                    var existingData = state.GetAnalysisData(kind);
-
-                    if (existingData.Version == version)
+                    try
                     {
-                        return existingData;
-                    }
+                        var version = await GetDiagnosticVersionAsync(document.Project, cancellationToken).ConfigureAwait(false);
+                        var state = stateSet.GetActiveFileState(document.Id);
+                        var existingData = state.GetAnalysisData(kind);
 
-                    // perf optimization. check whether analyzer is suppressed and avoid getting diagnostics if suppressed.
-                    // REVIEW: IsAnalyzerSuppressed call seems can be quite expensive in certain condition. is there any other way to do this?
-                    if (_owner.Owner.IsAnalyzerSuppressed(stateSet.Analyzer, document.Project))
+                        if (existingData.Version == version)
+                        {
+                            return existingData;
+                        }
+
+                        // perf optimization. check whether analyzer is suppressed and avoid getting diagnostics if suppressed.
+                        // REVIEW: IsAnalyzerSuppressed call seems can be quite expensive in certain condition. is there any other way to do this?
+                        if (_owner.Owner.IsAnalyzerSuppressed(stateSet.Analyzer, document.Project))
+                        {
+                            return new DocumentAnalysisData(version, existingData.Items, ImmutableArray<DiagnosticData>.Empty);
+                        }
+
+                        var nullFilterSpan = (TextSpan?)null;
+                        var diagnostics = await ComputeDiagnosticsAsync(analyzerDriverOpt, document, stateSet.Analyzer, kind, nullFilterSpan, cancellationToken).ConfigureAwait(false);
+
+                        // we only care about local diagnostics
+                        return new DocumentAnalysisData(version, existingData.Items, diagnostics.ToImmutableArrayOrEmpty());
+                    }
+                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                     {
-                        return new DocumentAnalysisData(version, existingData.Items, ImmutableArray<DiagnosticData>.Empty);
+                        throw ExceptionUtilities.Unreachable;
                     }
-
-                    var nullFilterSpan = (TextSpan?)null;
-                    var diagnostics = await ComputeDiagnosticsAsync(analyzerDriverOpt, document, stateSet.Analyzer, kind, nullFilterSpan, cancellationToken).ConfigureAwait(false);
-
-                    // we only care about local diagnostics
-                    return new DocumentAnalysisData(version, existingData.Items, diagnostics.ToImmutableArrayOrEmpty());
-                }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
-                {
-                    throw ExceptionUtilities.Unreachable;
                 }
             }
 
@@ -81,33 +90,36 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             /// Return all diagnostics that belong to given project for the given StateSets (analyzers) either from cache or by calculating them
             /// </summary>
             public async Task<ProjectAnalysisData> GetProjectAnalysisDataAsync(
-                CompilationWithAnalyzers analyzerDriverOpt, Project project, IEnumerable<StateSet> stateSets, CancellationToken cancellationToken)
+                CompilationWithAnalyzers analyzerDriverOpt, Project project, IEnumerable<StateSet> stateSets, bool ignoreFullAnalysisOptions, CancellationToken cancellationToken)
             {
-                try
+                using (Logger.LogBlock(FunctionId.Diagnostics_ProjectDiagnostic, GetProjectLogMessage, project, stateSets, cancellationToken))
                 {
-                    // PERF: we need to flip this to false when we do actual diffing.
-                    var avoidLoadingData = true;
-                    var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
-                    var existingData = await ProjectAnalysisData.CreateAsync(project, stateSets, avoidLoadingData, cancellationToken).ConfigureAwait(false);
-
-                    if (existingData.Version == version)
+                    try
                     {
-                        return existingData;
-                    }
+                        // PERF: we need to flip this to false when we do actual diffing.
+                        var avoidLoadingData = true;
+                        var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
+                        var existingData = await ProjectAnalysisData.CreateAsync(project, stateSets, avoidLoadingData, cancellationToken).ConfigureAwait(false);
 
-                    // perf optimization. check whether we want to analyze this project or not.
-                    if (!await FullAnalysisEnabledAsync(project, cancellationToken).ConfigureAwait(false))
+                        if (existingData.Version == version)
+                        {
+                            return existingData;
+                        }
+
+                        // perf optimization. check whether we want to analyze this project or not.
+                        if (!await FullAnalysisEnabledAsync(project, ignoreFullAnalysisOptions, cancellationToken).ConfigureAwait(false))
+                        {
+                            return new ProjectAnalysisData(project.Id, VersionStamp.Default, existingData.Result, ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult>.Empty);
+                        }
+
+                        var result = await ComputeDiagnosticsAsync(analyzerDriverOpt, project, stateSets, existingData.Result, cancellationToken).ConfigureAwait(false);
+
+                        return new ProjectAnalysisData(project.Id, version, existingData.Result, result);
+                    }
+                    catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                     {
-                        return new ProjectAnalysisData(project.Id, version, existingData.Result, ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult>.Empty);
+                        throw ExceptionUtilities.Unreachable;
                     }
-
-                    var result = await ComputeDiagnosticsAsync(analyzerDriverOpt, project, stateSets, cancellationToken).ConfigureAwait(false);
-
-                    return new ProjectAnalysisData(project.Id, version, existingData.Result, result);
-                }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
-                {
-                    throw ExceptionUtilities.Unreachable;
                 }
             }
 
@@ -148,6 +160,93 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 // check whether there is IDE specific project diagnostic analyzer
                 return await MergeProjectDiagnosticAnalyzerDiagnosticsAsync(project, stateSets, analyzerDriverOpt?.Compilation, result, cancellationToken).ConfigureAwait(false);
+            }
+
+            private async Task<ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult>> ComputeDiagnosticsAsync(
+                CompilationWithAnalyzers analyzerDriverOpt, Project project, IEnumerable<StateSet> stateSets,
+                ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> existing, CancellationToken cancellationToken)
+            {
+                // PERF: check whether we can reduce number of analyzers we need to run.
+                //       this can happen since caller could have created the driver with different set of analyzers that are different
+                //       than what we used to create the cache.
+                var version = await GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
+                ImmutableArray<DiagnosticAnalyzer> analyzersToRun;
+                if (TryReduceAnalyzersToRun(analyzerDriverOpt, version, existing, out analyzersToRun))
+                {
+                    // it looks like we can reduce the set. create new CompilationWithAnalyzer.
+                    var analyzerDriverWithReducedSet = await _owner._compilationManager.CreateAnalyzerDriverAsync(
+                        project, analyzersToRun, analyzerDriverOpt.AnalysisOptions.ReportSuppressedDiagnostics, cancellationToken).ConfigureAwait(false);
+
+                    var result = await ComputeDiagnosticsAsync(analyzerDriverWithReducedSet, project, stateSets, cancellationToken).ConfigureAwait(false);
+                    return MergeExistingDiagnostics(version, existing, result);
+                }
+
+                // we couldn't reduce the set.
+                return await ComputeDiagnosticsAsync(analyzerDriverOpt, project, stateSets, cancellationToken).ConfigureAwait(false);
+            }
+
+            private ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> MergeExistingDiagnostics(
+                VersionStamp version, ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> existing, ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> result)
+            {
+                // quick bail out.
+                if (existing.IsEmpty)
+                {
+                    return result;
+                }
+
+                foreach (var kv in existing)
+                {
+                    if (kv.Value.Version != version)
+                    {
+                        continue;
+                    }
+
+                    result = result.SetItem(kv.Key, kv.Value);
+                }
+
+                return result;
+            }
+
+            private bool TryReduceAnalyzersToRun(
+                CompilationWithAnalyzers analyzerDriverOpt, VersionStamp version,
+                ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult> existing,
+                out ImmutableArray<DiagnosticAnalyzer> analyzers)
+            {
+                analyzers = default(ImmutableArray<DiagnosticAnalyzer>);
+
+                // we don't have analyzer driver, nothing to reduce.
+                if (analyzerDriverOpt == null)
+                {
+                    return false;
+                }
+
+                var existingAnalyzers = analyzerDriverOpt.Analyzers;
+                var builder = ImmutableArray.CreateBuilder<DiagnosticAnalyzer>();
+                foreach (var analyzer in existingAnalyzers)
+                {
+                    AnalysisResult analysisResult;
+                    if (existing.TryGetValue(analyzer, out analysisResult) &&
+                        analysisResult.Version == version)
+                    {
+                        // we already have up to date result.
+                        continue;
+                    }
+
+                    // analyzer that is out of date.
+                    builder.Add(analyzer);
+                }
+
+                // if this condition is true, it shouldn't be called.
+                Contract.ThrowIfTrue(builder.Count == 0);
+
+                // all of analyzers are out of date.
+                if (builder.Count == existingAnalyzers.Length)
+                {
+                    return false;
+                }
+
+                analyzers = builder.ToImmutable();
+                return true;
             }
 
             private async Task<ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult>> MergeProjectDiagnosticAnalyzerDiagnosticsAsync(
@@ -224,30 +323,38 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private async Task<IEnumerable<Diagnostic>> ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(
                 Document document, DocumentDiagnosticAnalyzer analyzer, AnalysisKind kind, Compilation compilationOpt, CancellationToken cancellationToken)
             {
-                using (var pooledObject = SharedPools.Default<List<Diagnostic>>().GetPooledObject())
-                {
-                    var diagnostics = pooledObject.Object;
-                    cancellationToken.ThrowIfCancellationRequested();
+                cancellationToken.ThrowIfCancellationRequested();
 
-                    try
+                try
+                {
+                    Task<ImmutableArray<Diagnostic>> analyzeAsync;
+
+                    switch (kind)
                     {
-                        switch (kind)
-                        {
-                            case AnalysisKind.Syntax:
-                                await analyzer.AnalyzeSyntaxAsync(document, diagnostics.Add, cancellationToken).ConfigureAwait(false);
-                                return compilationOpt == null ? diagnostics.ToImmutableArrayOrEmpty() : CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilationOpt);
-                            case AnalysisKind.Semantic:
-                                await analyzer.AnalyzeSemanticsAsync(document, diagnostics.Add, cancellationToken).ConfigureAwait(false);
-                                return compilationOpt == null ? diagnostics.ToImmutableArrayOrEmpty() : CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilationOpt);
-                            default:
-                                return Contract.FailWithReturn<ImmutableArray<Diagnostic>>("shouldn't reach here");
-                        }
+                        case AnalysisKind.Syntax:
+                            analyzeAsync = analyzer.AnalyzeSyntaxAsync(document, cancellationToken);
+                            break;
+
+                        case AnalysisKind.Semantic:
+                            analyzeAsync = analyzer.AnalyzeSemanticsAsync(document, cancellationToken);
+                            break;
+
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(kind);
                     }
-                    catch (Exception e) when (!IsCanceled(e, cancellationToken))
+
+                    var diagnostics = (await analyzeAsync.ConfigureAwait(false)).NullToEmpty();
+                    if (compilationOpt != null)
                     {
-                        OnAnalyzerException(analyzer, document.Project.Id, compilationOpt, e);
-                        return ImmutableArray<Diagnostic>.Empty;
+                        return CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilationOpt);
                     }
+
+                    return diagnostics;
+                }
+                catch (Exception e) when (!IsCanceled(e, cancellationToken))
+                {
+                    OnAnalyzerException(analyzer, document.Project.Id, compilationOpt, e);
+                    return ImmutableArray<Diagnostic>.Empty;
                 }
             }
 
@@ -303,12 +410,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
             }
 
-            private static async Task<bool> FullAnalysisEnabledAsync(Project project, CancellationToken cancellationToken)
+            private static async Task<bool> FullAnalysisEnabledAsync(Project project, bool ignoreFullAnalysisOptions, CancellationToken cancellationToken)
             {
                 var workspace = project.Solution.Workspace;
                 var language = project.Language;
 
-                if (!workspace.Options.GetOption(ServiceFeatureOnOffOptions.ClosedFileDiagnostic, language) ||
+                if (ignoreFullAnalysisOptions)
+                {
+                    return await project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false);
+                }
+
+                if (!ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(workspace, language) ||
                     !workspace.Options.GetOption(RuntimeOptions.FullSolutionAnalysis))
                 {
                     return false;
@@ -379,6 +491,26 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                     }
 
                     yield return DiagnosticData.Create(document, diagnostic);
+                }
+            }
+
+            private static void GetLogFunctionIdAndTitle(AnalysisKind kind, out FunctionId functionId, out string title)
+            {
+                switch (kind)
+                {
+                    case AnalysisKind.Syntax:
+                        functionId = FunctionId.Diagnostics_SyntaxDiagnostic;
+                        title = "syntax";
+                        break;
+                    case AnalysisKind.Semantic:
+                        functionId = FunctionId.Diagnostics_SemanticDiagnostic;
+                        title = "semantic";
+                        break;
+                    default:
+                        functionId = FunctionId.Diagnostics_ProjectDiagnostic;
+                        title = "nonLocal";
+                        Contract.Fail("shouldn't reach here");
+                        break;
                 }
             }
         }

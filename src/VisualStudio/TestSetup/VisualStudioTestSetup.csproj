@@ -1,0 +1,81 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="Settings">
+    <Import Project="..\..\..\build\Targets\VSL.Settings.targets" />
+  </ImportGroup>
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectTypeGuids>{82B43B9B-A64C-4715-B499-D71E9CA2BD60};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <ProjectGuid>{A88AB44F-7F9D-43F6-A127-83BB65E5A7E2}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>Roslyn.VisualStudio.Test.Setup</RootNamespace>
+    <AssemblyName>Roslyn.VisualStudio.Test.Setup</AssemblyName>
+    <GeneratePkgDefFile>true</GeneratePkgDefFile>
+    <IncludeDebugSymbolsInVSIXContainer>false</IncludeDebugSymbolsInVSIXContainer>
+    <VSSDKTargetPlatformRegRootSuffix>RoslynDev</VSSDKTargetPlatformRegRootSuffix>
+    <Nonshipping>true</Nonshipping>
+    <MinimumVisualStudioVersion>$(VisualStudioVersion)</MinimumVisualStudioVersion>
+    <ImportVSSDKTargets>true</ImportVSSDKTargets>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <TargetFrameworkProfile />
+    <UseCodebase>true</UseCodebase>
+    <CopyNuGetImplementations>true</CopyNuGetImplementations>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="project.json" />
+    <None Include="source.extension.vsixmanifest">
+      <SubType>Designer</SubType>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="BindingAttributes.cs" />
+    <Compile Include="IntegrationTestServiceCommands.cs" />
+    <Compile Include="IntegrationTestServicePackage.cs" />
+    <Compile Include="TestExtensionErrorHandler.cs" />
+    <Compile Include="TestExtensionManager.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <VSCTCompile Include="Commands.vsct">
+      <ResourceName>Menus.ctmenu</ResourceName>
+    </VSCTCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="VSPackage.resx">
+      <MergeWithCTO>true</MergeWithCTO>
+      <ManifestResourceName>VSPackage</ManifestResourceName>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Test\Diagnostics\Diagnostics.csproj">
+      <Project>{e2e889a5-2489-4546-9194-47c63e49eaeb}</Project>
+      <Name>Diagnostics</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Workspaces\Core\Portable\Workspaces.csproj">
+      <Project>{5f8d2414-064a-4b3a-9b42-8e2a04246be5}</Project>
+      <Name>Workspaces</Name>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\Setup\VisualStudioSetup.csproj">
+      <Project>{201ec5b7-f91e-45e5-b9f2-67a266cce6fc}</Project>
+      <Name>VisualStudioSetup</Name>
+      <Private>False</Private>
+      <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
+    </ProjectReference>
+    <ProjectReference Include="..\TestUtilities\VisualStudioTestUtilities.csproj">
+      <Project>{3bed15fd-d608-4573-b432-1569c1026f6d}</Project>
+      <Name>VisualStudioTestUtilities</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <NuGetPackageToIncludeInVsix Include="Microsoft.Diagnostics.Runtime" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Design" />
+    <Reference Include="System.Runtime.Remoting" />
+  </ItemGroup>
+  <ImportGroup Label="Targets">
+    <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
+  </ImportGroup>
+</Project>

@@ -443,7 +443,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
 
         private static bool IsReferenced(MetadataReference reference, HashSet<string> referenceNames)
         {
-            var assemblyMetadata = ((PortableExecutableReference)reference).GetMetadata() as AssemblyMetadata;
+            var assemblyMetadata = ((PortableExecutableReference)reference).GetMetadataNoCopy() as AssemblyMetadata;
             if (assemblyMetadata == null)
             {
                 // Netmodule. Assume it is referenced.
@@ -497,7 +497,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
         private static ModuleMetadata GetManifestModuleMetadata(MetadataReference reference)
         {
             // make a copy to avoid disposing shared reference metadata:
-            var metadata = ((MetadataImageReference)reference).GetMetadata().Copy();
+            var metadata = ((MetadataImageReference)reference).GetMetadata();
             return (metadata as AssemblyMetadata)?.GetModules()[0] ?? (ModuleMetadata)metadata;
         }
 

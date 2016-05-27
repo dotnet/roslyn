@@ -431,6 +431,35 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 isSuppressed: diagnostic.IsSuppressed);
         }
 
+        public static bool TryCreate(DiagnosticDescriptor descriptor, string[] messageArguments, ProjectId projectId, Workspace workspace, out DiagnosticData diagnosticData, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            diagnosticData = null;
+            var project = workspace.CurrentSolution.GetProject(projectId);
+            if (project == null)
+            {
+                return false;
+            }
+
+            var diagnostic = Diagnostic.Create(descriptor, Location.None, messageArguments);
+            if (project.SupportsCompilation)
+            {
+                // Get diagnostic with effective severity.
+                // Additionally, if the diagnostic was suppressed by a source suppression, effectiveDiagnostics will have a diagnostic with IsSuppressed = true.
+                var compilation = project.GetCompilationAsync(cancellationToken).WaitAndGetResult(cancellationToken);
+                var effectiveDiagnostics = CompilationWithAnalyzers.GetEffectiveDiagnostics(SpecializedCollections.SingletonEnumerable(diagnostic), compilation);
+                if (effectiveDiagnostics == null || effectiveDiagnostics.IsEmpty())
+                {
+                    // Rule is disabled by compilation options.
+                    return false;
+                }
+
+                diagnostic = effectiveDiagnostics.Single();
+            }
+
+            diagnosticData = diagnostic.ToDiagnosticData(project);
+            return true;
+        }
+
         private static void GetLocationInfo(Document document, Location location, out TextSpan sourceSpan, out FileLinePositionSpan originalLineInfo, out FileLinePositionSpan mappedLineInfo)
         {
             var diagnosticSpanMappingService = document.Project.Solution.Workspace.Services.GetService<IWorkspaceVenusSpanMappingService>();

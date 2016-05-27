@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
@@ -243,6 +244,8 @@ namespace Microsoft.CodeAnalysis
                 var newProjectReferences = new List<ProjectReference>();
                 metadataReferences.AddRange(this.ProjectState.MetadataReferences);
 
+                var metadataReferenceToProjectId = new Dictionary<MetadataReference, ProjectId>();
+
                 foreach (var projectReference in this.ProjectState.ProjectReferences)
                 {
                     var referencedProject = solution.GetProject(projectReference.ProjectId);
@@ -261,23 +264,24 @@ namespace Microsoft.CodeAnalysis
                             if (metadata == null)
                             {
                                 // if we failed to get the metadata, check to see if we previously had existing metadata and reuse it instead.
-                                metadata = inProgressCompilation.ExternalReferences.FirstOrDefault(r => solution.GetProjectId(r) == projectReference.ProjectId);
+                                var inProgressCompilationNotRef = inProgressCompilation;
+                                metadata = inProgressCompilationNotRef.ExternalReferences.FirstOrDefault(
+                                    r => solution.GetProject(inProgressCompilationNotRef.GetAssemblyOrModuleSymbol(r) as IAssemblySymbol)?.Id == projectReference.ProjectId);
                             }
 
                             if (metadata != null)
                             {
                                 newProjectReferences.Add(projectReference);
                                 metadataReferences.Add(metadata);
+                                metadataReferenceToProjectId.Add(metadata, projectReference.ProjectId);
                             }
                         }
                     }
                 }
 
                 inProgressProject = inProgressProject.AddProjectReferences(newProjectReferences);
-                if (!Enumerable.SequenceEqual(inProgressCompilation.ExternalReferences, metadataReferences))
-                {
-                    inProgressCompilation = inProgressCompilation.WithReferences(metadataReferences);
-                }
+
+                inProgressCompilation = UpdateCompilationWithNewReferencesAndRecordAssemblySymbols(inProgressCompilation, metadataReferences, metadataReferenceToProjectId);
             }
 
             private static bool IsTouchDocumentActionForDocument(ValueTuple<ProjectState, CompilationTranslationAction> tuple, DocumentId id)
@@ -591,6 +595,7 @@ namespace Microsoft.CodeAnalysis
                     bool hasSuccessfullyLoaded = this.ProjectState.HasAllInformation;
 
                     var newReferences = new List<MetadataReference>();
+                    var metadataReferenceToProjectId = new Dictionary<MetadataReference, ProjectId>();
                     newReferences.AddRange(this.ProjectState.MetadataReferences);
 
                     foreach (var projectReference in this.ProjectState.ProjectReferences)
@@ -623,6 +628,7 @@ namespace Microsoft.CodeAnalysis
                                 if (metadataReference != null)
                                 {
                                     newReferences.Add(metadataReference);
+                                    metadataReferenceToProjectId.Add(metadataReference, projectReference.ProjectId);
                                 }
                                 else
                                 {
@@ -632,20 +638,41 @@ namespace Microsoft.CodeAnalysis
                         }
                     }
 
-                    if (!Enumerable.SequenceEqual(compilation.ExternalReferences, newReferences))
-                    {
-                        compilation = compilation.WithReferences(newReferences);
-                    }
+                    compilation = UpdateCompilationWithNewReferencesAndRecordAssemblySymbols(compilation, newReferences, metadataReferenceToProjectId);
 
                     bool hasSuccessfullyLoadedTransitively = !HasMissingReferences(compilation, this.ProjectState.MetadataReferences) && await ComputeHasSuccessfullyLoadedTransitivelyAsync(solution, hasSuccessfullyLoaded, cancellationToken).ConfigureAwait(false);
 
                     this.WriteState(new FinalState(State.CreateValueSource(compilation, solution.Services), hasSuccessfullyLoadedTransitively), solution);
+
                     return new CompilationInfo(compilation, hasSuccessfullyLoadedTransitively);
                 }
                 catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
                 {
                     throw ExceptionUtilities.Unreachable;
                 }
+            }
+
+            private Compilation UpdateCompilationWithNewReferencesAndRecordAssemblySymbols(Compilation compilation, List<MetadataReference> newReferences, Dictionary<MetadataReference, ProjectId> metadataReferenceToProjectId)
+            {
+                if (!Enumerable.SequenceEqual(compilation.ExternalReferences, newReferences))
+                {
+                    compilation = compilation.WithReferences(newReferences);
+                }
+
+                // TODO: Record source assembly to project mapping
+                // RecordSourceOfAssemblySymbol(compilation.Assembly, this.ProjectState.Id);
+
+                foreach (var kvp in metadataReferenceToProjectId)
+                {
+                    var metadataReference = kvp.Key;
+                    var projectId = kvp.Value;
+
+                    var symbol = compilation.GetAssemblyOrModuleSymbol(metadataReference);
+                    
+                    RecordSourceOfAssemblySymbol(symbol, projectId);
+                }
+
+                return compilation;
             }
 
             private bool HasMissingReferences(Compilation compilation, IReadOnlyList<MetadataReference> metadataReferences)
@@ -729,8 +756,8 @@ namespace Microsoft.CodeAnalysis
 
             /// <summary>
             /// Attempts to get (without waiting) a metadata reference to a possibly in progress
-            /// compilation. Actual compilation references are preferred over skeletal assembly
-            /// references.  Could potentially return null if nothing can be provided.
+            /// compilation. Only actual compilation references are returned. Could potentially 
+            /// return null if nothing can be provided.
             /// </summary>
             public MetadataReference GetPartialMetadataReference(Solution solution, ProjectState fromProject, ProjectReference projectReference, CancellationToken cancellationToken)
             {

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -9,7 +10,9 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Recommendations;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.Completion.Providers
 {
@@ -19,6 +22,24 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         /// Return null if not in object creation type context.
         /// </summary>
         protected abstract SyntaxNode GetObjectCreationNewExpression(SyntaxTree tree, int position, CancellationToken cancellationToken);
+
+        private static readonly ImmutableArray<string> s_Tags = ImmutableArray.Create(CompletionTags.ObjectCreation);
+
+        protected override CompletionItem CreateItem(string displayText, string insertionText, int position, List<ISymbol> symbols, AbstractSyntaxContext context, TextSpan span, bool preselect, SupportedPlatformData supportedPlatformData)
+        {
+            return SymbolCompletionItem.Create(
+                displayText: displayText,
+                insertionText: insertionText,
+                filterText: GetFilterText(symbols[0], displayText, context),
+                span: span,
+                contextPosition: context.Position,
+                descriptionPosition: position,
+                symbols: symbols,
+                supportedPlatforms: supportedPlatformData,
+                preselect: preselect,
+                tags: s_Tags,
+                rules: GetCompletionItemRules(symbols, context));
+        }
 
         protected override Task<IEnumerable<ISymbol>> GetSymbolsWorker(AbstractSyntaxContext context, int position, OptionSet options, CancellationToken cancellationToken)
         {

@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Completion.Providers
@@ -60,10 +61,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Task.FromResult(otherInstances.Concat(enumType))
         End Function
 
-        Public Overrides Function IsTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return text(characterPosition) = " "c OrElse
                 text(characterPosition) = "("c OrElse
-                (text.Length > 2 AndAlso text(characterPosition) = "="c AndAlso text(characterPosition - 1) = ":"c) OrElse
+                (characterPosition > 1 AndAlso text(characterPosition) = "="c AndAlso text(characterPosition - 1) = ":"c) OrElse
                 SyntaxFacts.IsIdentifierStartCharacter(text(characterPosition)) AndAlso
                 options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.VisualBasic)
         End Function
@@ -103,34 +104,37 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return result
         End Function
 
-        Protected Overrides Function GetTextChangeSpan(text As SourceText, position As Integer) As TextSpan
-            Return CompletionUtilities.GetTextChangeSpan(text, position)
-        End Function
-
         Protected Overrides Async Function CreateContext(document As Document, position As Integer, cancellationToken As CancellationToken) As Task(Of AbstractSyntaxContext)
             Dim semanticModel = Await document.GetSemanticModelForSpanAsync(New TextSpan(position, 0), cancellationToken).ConfigureAwait(False)
             Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Function CreateItem(displayAndInsertionText As ValueTuple(Of String, String), position As Integer, symbols As List(Of ISymbol), context As AbstractSyntaxContext, textChangeSpan As TextSpan, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
-            Return New SymbolCompletionItem(
-                Me,
-                displayAndInsertionText.Item1,
-                displayAndInsertionText.Item2,
-                GetFilterText(symbols(0), displayAndInsertionText.Item1, context),
-                textChangeSpan,
-                position,
-                symbols,
-                displayAndInsertionText.Item1,
-                context,
-                symbols(0).GetGlyph(),
+        Protected Overrides Function CreateItem(displayText As String, insertionText As String, position As Integer, symbols As List(Of ISymbol), context As AbstractSyntaxContext, textChangeSpan As TextSpan, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
+            Return SymbolCompletionItem.Create(
+                displayText:=displayText,
+                insertionText:=insertionText,
+                filterText:=GetFilterText(symbols(0), displayText, context),
+                span:=textChangeSpan,
+                symbols:=symbols,
+                contextPosition:=context.Position,
+                descriptionPosition:=position,
+                sortText:=insertionText,
                 preselect:=preselect,
                 supportedPlatforms:=supportedPlatformData,
-                rules:=ItemRules.Instance)
+                rules:=GetCompletionItemRules(symbols, context))
         End Function
 
-        Protected Overrides Function GetCompletionItemRules() As CompletionItemRules
-            Return ItemRules.Instance
+        Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol), context As AbstractSyntaxContext) As CompletionItemRules
+            Return CompletionItemRules.Default
+        End Function
+
+        Public Overrides Function GetTextChangeAsync(document As Document, selectedItem As CompletionItem, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)
+            Dim insertionText As String = SymbolCompletionItem.GetInsertionText(selectedItem)
+            Return Task.FromResult(Of TextChange?)(New TextChange(selectedItem.Span, insertionText))
+        End Function
+
+        Protected Overrides Function GetInsertionText(symbol As ISymbol, context As AbstractSyntaxContext, ch As Char) As String
+            Return CompletionUtilities.GetInsertionTextAtInsertionTime(symbol, context, ch)
         End Function
 
     End Class

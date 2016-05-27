@@ -46,8 +46,8 @@ namespace CSharpAnalyzers
 
             // Report diagnostic for void non-virtual methods with empty method bodies.
             var method = (IMethodSymbol)codeBlockContext.OwningSymbol;
-            var block = (BlockSyntax)codeBlockContext.CodeBlock.ChildNodes().First(n => n.Kind() == SyntaxKind.Block);
-            if (method.ReturnsVoid && !method.IsVirtual && block.Statements.Count == 0)
+            var block = (BlockSyntax)codeBlockContext.CodeBlock.ChildNodes().FirstOrDefault(n => n.Kind() == SyntaxKind.Block);
+            if (method.ReturnsVoid && !method.IsVirtual && block != null && block.Statements.Count == 0)
             {
                 var tree = block.SyntaxTree;
                 var location = method.Locations.First(l => tree.Equals(l.SourceTree));
