@@ -82,7 +82,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
             var setMethod = property.SetMethod;
             if (setMethod != null)
             {
-                result.Add(GetSetMethod(generator, propertyDeclaration, setMethod, desiredSetMethodName));
+                result.Add(GetSetMethod(
+                    generator, propertyDeclaration, propertyBackingField, setMethod, desiredSetMethodName));
             }
 
             return result;
@@ -91,6 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
         private static SyntaxNode GetSetMethod(
             SyntaxGenerator generator, 
             PropertyDeclarationSyntax propertyDeclaration, 
+            IFieldSymbol propertyBackingField,
             IMethodSymbol setMethod,
             string desiredSetMethodName)
         {
@@ -111,13 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
         {
             var statements = new List<SyntaxNode>();
 
-            if (propertyBackingField != null)
-            {
-                statements.Add(generator.ReturnStatement(
-                    generator.MemberAccessExpression(
-                        generator.ThisExpression(), propertyBackingField.Name)));
-            }
-            else if (propertyDeclaration.ExpressionBody != null)
+            if (propertyDeclaration.ExpressionBody != null)
             {
                 statements.Add(generator.ReturnStatement(propertyDeclaration.ExpressionBody.Expression));
             }
@@ -128,6 +124,12 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                 if (getAccessorDeclaration?.Body != null)
                 {
                     statements.AddRange(getAccessorDeclaration.Body.Statements);
+                }
+                else if (propertyBackingField != null)
+                {
+                    statements.Add(generator.ReturnStatement(
+                        generator.MemberAccessExpression(
+                            generator.ThisExpression(), propertyBackingField.Name)));
                 }
             }
 

@@ -50,7 +50,40 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 Return SpecializedCollections.EmptyList(Of SyntaxNode)
             End If
 
+            Return ConvertPropertyToMembers(
+                SyntaxGenerator.GetGenerator(document), [property],
+                propertyStatement, propertyBackingField,
+                desiredGetMethodName, desiredSetMethodName)
+        End Function
 
+        Private Function ConvertPropertyToMembers(
+                generator As SyntaxGenerator,
+                [property] As IPropertySymbol,
+                propertyStatement As PropertyStatementSyntax,
+                propertyBackingField As IFieldSymbol,
+                desiredGetMethodName As String,
+                desiredSetMethodName As String) As IList(Of SyntaxNode)
+
+            Dim result = New List(Of SyntaxNode)()
+
+            If propertyBackingField IsNot Nothing Then
+                Dim initializer = propertyStatement.Initializer?.Value
+                result.Add(generator.FieldDeclaration(propertyBackingField, initializer))
+            End If
+
+            'Dim getMethod = [property].GetMethod
+            'If getMethod IsNot Nothing Then
+            '    result.Add(GetGetMethod(
+            '        generator, propertyStatement, propertyBackingField, getMethod, desiredGetMethodName))
+            'End If
+
+            'Dim setMethod = [property].SetMethod
+            'If setMethod IsNot Nothing Then
+            '    result.Add(GetSetMethod(
+            '        generator, propertyStatement, setMethod, desiredSetMethodName))
+            'End If
+
+            Return result
         End Function
 
         Public Sub ReplaceReference(editor As SyntaxEditor,
