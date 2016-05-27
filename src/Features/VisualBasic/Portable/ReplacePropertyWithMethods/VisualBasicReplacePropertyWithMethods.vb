@@ -135,6 +135,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
             Return generator.MethodDeclaration(setMethod, desiredSetMethodName, statements)
         End Function
 
+        Public Overrides Function GetPropertyNodeToReplace(propertyDeclaration As SyntaxNode) As SyntaxNode
+            ' In VB we'll have the property statement.  If that is parented by a 
+            ' property block, we'll want to replace that instead.  Otherwise we
+            ' just replace the property statement itself
+            Return If(propertyDeclaration.IsParentKind(SyntaxKind.PropertyBlock),
+                propertyDeclaration.Parent,
+                propertyDeclaration)
+        End Function
+
         Public Overrides Sub ReplaceReference(
                 editor As SyntaxEditor,
                 nameToken As SyntaxToken,
@@ -144,14 +153,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 desiredSetMethodName As String)
             Throw New NotImplementedException()
         End Sub
-
-        Public Overrides Function GetPropertyNodeToReplace(propertyDeclaration As SyntaxNode) As SyntaxNode
-            ' In VB we'll have the property statement.  If that is parented by a 
-            ' property block, we'll want to replace that instead.  Otherwise we
-            ' just replace the property statement itself
-            Return If(propertyDeclaration.IsParentKind(SyntaxKind.PropertyBlock),
-                propertyDeclaration.Parent,
-                propertyDeclaration)
-        End Function
     End Class
 End Namespace
