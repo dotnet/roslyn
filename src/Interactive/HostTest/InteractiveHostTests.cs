@@ -10,6 +10,7 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
@@ -366,11 +367,10 @@ while(true) {}
         }
 
         [Fact]
-        public void AsyncExecuteFile_NonExistingFile()
+        public async Task AsyncExecuteFile_NonExistingFile()
         {
-            var task = _host.ExecuteFileAsync("non existing file");
-            task.Wait();
-            Assert.False(task.Result.Success);
+            var result = await _host.ExecuteFileAsync("non existing file");
+            Assert.False(result.Success);
 
             var errorOut = ReadErrorOutputToEnd().Trim();
             Assert.Contains(FeaturesResources.SpecifiedFileNotFound, errorOut, StringComparison.Ordinal);
@@ -1153,6 +1153,20 @@ Console.Write(Task.Run(() => { Thread.CurrentThread.Join(100); return 42; }).Con
             Assert.Equal("", output);
             Assert.DoesNotContain("Unexpected", error, StringComparison.OrdinalIgnoreCase);
             Assert.True(error.StartsWith(new Exception().Message));
+        }
+
+        [Fact, WorkItem(10883, "https://github.com/dotnet/roslyn/issues/10883")]
+        public void PreservingDeclarationsOnException()
+        {
+            Execute(@"int i = 100;");
+            Execute(@"int j = 20; throw new System.Exception(""Bang!""); int k = 3;");
+            Execute(@"i + j + k");
+
+            var output = ReadOutputToEnd();
+            var error = ReadErrorOutputToEnd();
+
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("120", output);
+            AssertEx.AssertEqualToleratingWhitespaceDifferences("Bang!", error);
         }
 
         #region Submission result printing - null/void/value.

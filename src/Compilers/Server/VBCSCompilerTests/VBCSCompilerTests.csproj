@@ -120,6 +120,7 @@
     <Compile Include="CompilerServerApiTest.cs" />
     <Compile Include="CompilerServerTests.cs" />
     <Compile Include="DesktopBuildClientTests.cs" />
+    <Compile Include="DesktopBuildServerControllerTests.cs" />
     <Compile Include="EndToEndDeterminismTest.cs" />
     <Compile Include="VBCSCompilerServerTests.cs" />
     <Compile Include="MockEngine.cs" />

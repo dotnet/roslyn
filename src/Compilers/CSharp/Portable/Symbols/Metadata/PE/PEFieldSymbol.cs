@@ -415,7 +415,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         break;
 
                     default:
-                        throw ExceptionUtilities.UnexpectedValue(_flags & FieldAttributes.FieldAccessMask);
+                        access = Accessibility.Private;
+                        break;
                 }
 
                 return access;

@@ -1,5 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Roslyn.Utilities;
+
 namespace Microsoft.CodeAnalysis.Shared.Utilities
 {
     /// <summary>
@@ -25,6 +27,13 @@ namespace Microsoft.CodeAnalysis.Shared.Utilities
         /// <summary>
         /// The pattern matched the CamelCased candidate string.
         /// </summary>
-        CamelCase
+        CamelCase,
+
+        /// <summary>
+        /// The pattern matches the candidate in a fuzzy manner.  Fuzzy matching allows for 
+        /// a certain amount of misspellings, missing words, etc. See <see cref="SpellChecker"/> for 
+        /// more details.
+        /// </summary>
+        Fuzzy
     }
 }

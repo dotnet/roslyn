@@ -353,7 +353,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
                 if ((object)diagnostics != null && (object)syntax != null)
                 {
-                    Binder.ReportUseSiteDiagnostics(firstTupleType, diagnostics, syntax);
+                    Binder.ReportUseSiteDiagnostics(chainedTupleType, diagnostics, syntax);
                 }
 
                 do
@@ -367,6 +367,26 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return currentSymbol;
+        }
+
+        /// <summary>
+        /// For tuples with no natural type, we still need to verify that an underlying type of proper arity exists, and report if otherwise.
+        /// </summary>
+        internal static void VerifyTupleTypePresent(int cardinality, CSharpSyntaxNode syntax, CSharpCompilation compilation, DiagnosticBag diagnostics)
+        {
+            Debug.Assert((object)diagnostics != null && (object)syntax != null);
+
+            int remainder;
+            int chainLength = NumberOfValueTuples(cardinality, out remainder);
+
+            NamedTypeSymbol firstTupleType = compilation.GetWellKnownType(GetTupleType(remainder));
+            Binder.ReportUseSiteDiagnostics(firstTupleType, diagnostics, syntax);
+
+            if (chainLength > 1)
+            {
+                NamedTypeSymbol chainedTupleType = compilation.GetWellKnownType(GetTupleType(RestPosition));
+                Binder.ReportUseSiteDiagnostics(chainedTupleType, diagnostics, syntax);
+            }
         }
 
         /// <summary>

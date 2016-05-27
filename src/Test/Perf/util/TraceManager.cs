@@ -1,14 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.IO;
 using static Roslyn.Test.Performance.Utilities.TestUtilities;
 
 namespace Roslyn.Test.Performance.Utilities
 {
-    public class TraceManager : ITraceManager
+    internal class TraceManager : ITraceManager
     {
         private readonly ScenarioGenerator _scenarioGenerator;
         private readonly string _cpcPath;

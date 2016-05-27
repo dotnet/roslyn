@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using RestSharp;
 using System;
@@ -13,18 +14,8 @@ using System.Xml.Linq;
 
 namespace RunTests.Cache
 {
-    internal sealed class WebDataStorage : IDataStorage
+    internal sealed partial class WebDataStorage : IDataStorage
     {
-        private const string NameExitCode = "exitCode";
-        private const string NameOutputStandard = "outputStandard";
-        private const string NameOutputError = "outputError";
-        private const string NameResultsFileName = "resultsFileName";
-        private const string NameResultsFileContent = "resultsFileContent";
-        private const string NameElapsedSeconds = "elapsedSeconds";
-        private const string NameTestPassed = "testPassed";
-        private const string NameTestFailed = "testFailed";
-        private const string NameTestSkipped = "testSkipped";
-
         private readonly RestClient _restClient = new RestClient(Constants.DashboardUriString);
 
         public string Name => "web";
@@ -33,14 +24,11 @@ namespace RunTests.Cache
         {
             try
             {
-                var obj = new JObject();
-                obj["TestResultData"] = CreateTestResultData(assemblyInfo.ResultsFileName, testResult);
-                obj["TestSourceData"] = CreateTestSourceData(assemblyInfo);
-
-                var request = new RestRequest($"api/testcache/{contentFile.Checksum}");
+                var testCacheData = CreateTestCacheData(assemblyInfo, assemblyInfo.ResultsFileName, testResult);
+                var request = new RestRequest($"api/testData/cache/{contentFile.Checksum}");
                 request.Method = Method.PUT;
                 request.RequestFormat = DataFormat.Json;
-                request.AddParameter("text/json", obj.ToString(), ParameterType.RequestBody);
+                request.AddParameter("text/json", JsonConvert.SerializeObject(testCacheData), ParameterType.RequestBody);
 
                 var response = await _restClient.ExecuteTaskAsync(request);
                 if (response.StatusCode != HttpStatusCode.NoContent)
@@ -50,7 +38,7 @@ namespace RunTests.Cache
             }
             catch (Exception ex)
             {
-                Logger.Log($"Exception adding web cached result:  {ex}");
+                Logger.LogError(ex, "Exception uploading cached test result");
             }
         }
 
@@ -58,7 +46,7 @@ namespace RunTests.Cache
         {
             try
             {
-                var request = new RestRequest($"api/testcache/{checksum}");
+                var request = new RestRequest($"api/testData/cache/{checksum}");
 
                 // Add query parameters the web service uses for additional tracking
                 request.AddParameter("machineName", Environment.MachineName, ParameterType.QueryString);
@@ -75,47 +63,57 @@ namespace RunTests.Cache
                     return null;
                 }
 
-                var obj = JObject.Parse(response.Content);
+                var testCacheData = JsonConvert.DeserializeObject<TestResultData>(response.Content);
                 var result = new CachedTestResult(
-                    exitCode: obj.Value<int>(NameExitCode),
-                    standardOutput: obj.Value<string>(NameOutputStandard),
-                    errorOutput: obj.Value<string>(NameOutputError),
-                    resultsFileContent: obj.Value<string>(NameResultsFileContent),
-                    elapsed: TimeSpan.FromSeconds(obj.Value<int>(NameElapsedSeconds)));
+                    exitCode: testCacheData.ExitCode,
+                    standardOutput: testCacheData.OutputStandard,
+                    errorOutput: testCacheData.OutputError,
+                    resultsFileContent: testCacheData.ResultsFileContent,
+                    elapsed: TimeSpan.FromSeconds(testCacheData.ElapsedSeconds));
                 return result;
             }
             catch (Exception ex)
             {
-                Logger.Log($"Exception retrieving cached test result {checksum}: {ex}");
+                Logger.LogError(ex, $"Exception downloading cached test result for {checksum}");
                 return null;
             }
         }
 
-        private static JObject CreateTestResultData(string resultsFileName, CachedTestResult testResult)
+        private static TestCacheData CreateTestCacheData(AssemblyInfo assemblyInfo, string resultsFileName, CachedTestResult testResult)
         {
-            var numbers = GetTestNumbers(resultsFileName, testResult) ?? Tuple.Create(-1, -1, -1);
-            var obj = new JObject();
-            obj[NameExitCode] = testResult.ExitCode;
-            obj[NameOutputStandard] = testResult.StandardOutput;
-            obj[NameOutputError] = testResult.ErrorOutput;
-            obj[NameResultsFileName] = resultsFileName;
-            obj[NameResultsFileContent] = testResult.ResultsFileContent;
-            obj[NameElapsedSeconds] = (int)testResult.Elapsed.TotalSeconds;
-            obj[NameTestPassed] = numbers.Item1;
-            obj[NameTestFailed] = numbers.Item2;
-            obj[NameTestSkipped] = numbers.Item3;
-
-            return obj;
+            return new TestCacheData()
+            {
+                TestResultData = CreateTestResultData(resultsFileName, testResult),
+                TestSourceData = CreateTestSourceData(assemblyInfo)
+            };
         }
 
-        private JObject CreateTestSourceData(AssemblyInfo assemblyInfo)
+        private static TestResultData CreateTestResultData(string resultsFileName, CachedTestResult testResult)
         {
-            var obj = new JObject();
-            obj["MachineName"] = Environment.MachineName;
-            obj["TestRoot"] = "";
-            obj["AssemblyName"] = assemblyInfo.DisplayName;
-            obj["IsJenkins"] = Constants.IsJenkinsRun;
-            return obj;
+            var numbers = GetTestNumbers(resultsFileName, testResult) ?? Tuple.Create(-1, -1, -1);
+            return new TestResultData()
+            {
+                ExitCode = testResult.ExitCode,
+                OutputStandard = testResult.StandardOutput,
+                OutputError = testResult.ErrorOutput,
+                ResultsFileName = resultsFileName,
+                ResultsFileContent = testResult.ResultsFileContent,
+                ElapsedSeconds = (int)testResult.Elapsed.TotalSeconds,
+                TestPassed = numbers.Item1,
+                TestFailed = numbers.Item2,
+                TestSkipped = numbers.Item3
+            };
+        }
+
+        private static TestSourceData CreateTestSourceData(AssemblyInfo assemblyInfo)
+        {
+            return new TestSourceData()
+            {
+                MachineName = Environment.MachineName,
+                EnlistmentRoot = Constants.EnlistmentRoot,
+                AssemblyName = assemblyInfo.DisplayName,
+                IsJenkins = Constants.IsJenkinsRun
+            };
         }
 
         private static Tuple<int, int, int> GetTestNumbers(string resultsFileName, CachedTestResult testResult)
@@ -128,7 +126,7 @@ namespace RunTests.Cache
             try
             {
                 using (var reader = new StringReader(testResult.ResultsFileContent))
-                { 
+                {
                     var document = XDocument.Load(reader);
                     var assembly = document.Element("assemblies").Element("assembly");
                     var passed = int.Parse(assembly.Attribute("passed").Value);
@@ -139,7 +137,7 @@ namespace RunTests.Cache
             }
             catch (Exception ex)
             {
-                Logger.Log($"Exception reading test numbers: {ex}");
+                Logger.LogError(ex, $"Error reading test numbers");
                 return null;
             }
         }

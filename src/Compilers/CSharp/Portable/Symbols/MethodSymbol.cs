@@ -1218,10 +1218,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #region IMethodSymbolInternal
 
-        int IMethodSymbolInternal.CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
-        {
-            return CalculateLocalSyntaxOffset(localPosition, localTree);
-        }
+        bool IMethodSymbolInternal.IsIterator => IsIterator;
+
+        int IMethodSymbolInternal.CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree) => CalculateLocalSyntaxOffset(localPosition, localTree);
 
         #endregion
 

@@ -14,14 +14,14 @@ namespace Microsoft.CodeAnalysis
     {
         private class TupleTypeSymbolKey : AbstractSymbolKey<TupleTypeSymbolKey>
         {
-            private readonly SymbolKey[] _types;
+            private readonly SymbolKey _underlyingType;
             private readonly string[] _names;
 
             internal TupleTypeSymbolKey(INamedTypeSymbol symbol, Visitor visitor)
             {
                 Debug.Assert(symbol.IsTupleType);
 
-                _types = symbol.TupleElementTypes.Select(t => GetOrCreate(t, visitor)).ToArray();
+                _underlyingType = GetOrCreate(symbol.TupleUnderlyingType, visitor);
                 _names = symbol.TupleElementNames.IsDefault ? null : symbol.TupleElementNames.ToArray();
             }
 
@@ -34,35 +34,40 @@ namespace Microsoft.CodeAnalysis
                 Compilation compilation,
                 bool ignoreAssemblyKey)
             {
-                // We need all types to have a resolution and we ignore ambiguous candidates
-                ITypeSymbol[] types = _types.Select(a => a.Resolve(compilation, ignoreAssemblyKey).Symbol as ITypeSymbol).ToArray();
-                if (types.Any(a => a == null))
+                INamedTypeSymbol underlyingType = _underlyingType.Resolve(compilation, ignoreAssemblyKey).Symbol as INamedTypeSymbol;
+                if ((object)underlyingType == null)
                 {
                     return SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>();
                 }
 
-                if (_names == null)
+                try
                 {
-                    return SpecializedCollections.SingletonEnumerable(compilation.CreateTupleTypeSymbol(types.ToImmutableArray()));
+                    if (_names == null)
+                    {
+                        return SpecializedCollections.SingletonEnumerable(compilation.CreateTupleTypeSymbol(underlyingType));
+                    }
+                    else
+                    {
+                        return SpecializedCollections.SingletonEnumerable(compilation.CreateTupleTypeSymbol(underlyingType, _names.ToImmutableArray()));
+                    }
                 }
-                else
+                catch (ArgumentException)
                 {
-                    return SpecializedCollections.SingletonEnumerable(compilation.CreateTupleTypeSymbol(types.ToImmutableArray(), _names.ToImmutableArray()));
+                    // underlyingType is not tuple-compatible
+                    return SpecializedCollections.SingletonEnumerable(compilation.GetSpecialType(SpecialType.System_Object));
                 }
             }
 
             internal override bool Equals(TupleTypeSymbolKey other, ComparisonOptions options)
             {
-                var comparer = SymbolKeyComparer.GetComparer(options);
-
-                return SequenceEquals(other._types, _types, comparer)
+                return _underlyingType.Equals(other._underlyingType, options)
                        && SequenceEquals(other._names, _names, StringComparer.Ordinal);
             }
 
             internal override int GetHashCode(ComparisonOptions options)
             {
-                // Types are good enough for hash code, we don't need to include names.
-                return Hash.CombineValues(_types);
+                // The hash of the underlying type is good enough, we don't need to include names.
+                return _underlyingType.GetHashCode(options);
             }
         }
     }

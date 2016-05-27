@@ -7729,6 +7729,7 @@ using System.Diagnostics; // Unused.
             return output;
         }
 
+        [WorkItem(11368, "https://github.com/dotnet/roslyn/issues/11368")]
         [WorkItem(899050, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/899050")]
         [WorkItem(981677, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/981677")]
         [WorkItem(998069, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/998069")]
