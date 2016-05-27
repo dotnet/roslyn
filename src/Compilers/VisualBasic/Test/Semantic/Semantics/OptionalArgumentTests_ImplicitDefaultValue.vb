@@ -44,10 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
 </compilation>
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, parseOptions:=MyParseOptions)
             comp.AssertNoDiagnostics()
-            CompileAndVerify(source,
-     expectedOutput:=<![CDATA[
-        0
-        ]]>)
+            CompileAndVerify(source, expectedOutput:="  0")
         End Sub
 
         ' Verify that there is no copy back conversion when optional parameters are byref.
@@ -104,11 +101,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source)
             comp.AssertNoDiagnostics()
             CompileAndVerify(source,
-expectedOutput:=<![CDATA[
- 1/1/2012 12:00:00 AM
-2
-
-]]>)
+expectedOutput:="  1/1/2012 12:00:00 AM
+2")
         End Sub
 
         ' Report error if the default value of overridden method is different 
@@ -448,7 +442,7 @@ expectedOutput:=<![CDATA[
   IL_0002:  initobj    ""Integer?""
   IL_0008:  ldloc.0
   IL_0009:  call       ""Sub m.X(Integer?)""
-  IL_000e:    ret
+  IL_000e:  ret
 }
 ")
         End Sub
@@ -778,10 +772,10 @@ System.Runtime.InteropServices.DispatchWrapper
 
             Dim libRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
 
-            CompileAndVerify(source, additionalRefs:=New MetadataReference() {libRef}, expectedOutput:=<![CDATA[
-        1
-        2
-        ]]>).VerifyDiagnostics()
+            CompileAndVerify(source, additionalRefs:=New MetadataReference() {libRef}, expectedOutput:=
+"  1
+2"
+).VerifyDiagnostics()
         End Sub
 
         <WorkItem(543187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543187")>
@@ -1100,23 +1094,22 @@ True
 </compilation>
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, options:=TestOptions.ReleaseDll, parseOptions:=MyParseOptions)
             AssertTheseDiagnostics(comp,
-<expected><![CDATA[
-        BC30529: All parameters must be explicitly typed if any of them are explicitly typed.
-                    Optional f A String = "",
+"BC30529: All parameters must be explicitly typed if any of them are explicitly typed.
+                    Optional f A String = """",
                              ~
-        BC30213: Comma or ')' expected.
-                    Optional f A String = "",
+BC30213: Comma or ')' expected.
+                    Optional f A String = """",
                                ~
-        BC30002: Type 'CallerFilePath' is not defined.
-                    <CallerFilePath> Optional f As String = "",
+BC30002: Type 'CallerFilePath' is not defined.
+                    <CallerFilePath> Optional f As String = """",
                      ~~~~~~~~~~~~~~
-        BC30002: Type 'CallerLineNumber' is not defined.
+BC30002: Type 'CallerLineNumber' is not defined.
                     <CallerLineNumber> Optional l As Integer = -1,
                      ~~~~~~~~~~~~~~~~
-        BC30002: Type 'CallerMemberName' is not defined.
+BC30002: Type 'CallerMemberName' is not defined.
                     <CallerMemberName> Optional m As String )
-                     ~~~~~~~~~~~~~~~~
-        ]]></expected>)
+                     ~~~~~~~~~~~~~~~~"
+)
 
         End Sub
 
@@ -1356,114 +1349,113 @@ True
 
             CompileAndVerify(compilation,
      expectedOutput:=
-            <![CDATA[
-        - 01 -
-        TestBase.New
-            a.vb
-            185
-            Main
-        - 02 -
-        TestBase.New
-            a.vb
-            187
-            Main
-        - 03 -
-        TestBase.New
-            a.vb
-            189
-            Main
-        - 04 -
-        TestBase.New
-            UnknownFile
-            -1
-            UnknownMember
-        CallerInfo <F1>
-            a.vb
-            38
-            F1
-        CallerInfo <P1>
-            a.vb
-            40
-            P1
-        +++ TestDerived.New()
-        CallerInfo <TestDerived.New()>
-            a.vb
-            34
-            .ctor
-        --- TestDerived.New()
-        Add <Val1>
-            a.vb
-            192
-            Main
-        - 05 -
-        F1 = 38
-        - 06 -
-        TestBase.New
-            a.vb
-            27
-            .ctor
-        CallerInfo <F1>
-            a.vb
-            38
-            F1
-        CallerInfo <P1>
-            a.vb
-            40
-            P1
-        +++ TestDerived.New(Integer)
-        --- TestDerived.New(Integer)
-        - 07 -
-        F1 = 38
-        - 08 -
-        CallerInfo <M1>
-            a.vb
-            43
-            M1
-        - 09 -
-        CallerInfo <set_P2>
-            a.vb
-            51
-            P2
-        - 10 -
-        CallerInfo <get_P2>
-            a.vb
-            48
-            P2
-        - 11 -
-        CallerInfo <AddHandler>
-            a.vb
-            57
-            E1
-        - 12 -
-        CallerInfo <RemoveHandler>
-            a.vb
-            60
-            E1
-        - 13 -
-        CallerInfo <RaiseEvent>
-            a.vb
-            63
-            E1
-        - 14 -
-        GetEnumerator
-            a.vb
-            213
-            Main
-        MoveNext
-            a.vb
-            213
-            Main
-        A
-        MoveNext
-            a.vb
-            213
-            Main
-        - 15 -
-        CallerInfo
-            a.vb
-            218
-            Main
-        ]]>)
+"  - 01 -
+TestBase.New
+    a.vb
+    185
+    Main
+- 02 -
+TestBase.New
+    a.vb
+    187
+    Main
+- 03 -
+TestBase.New
+    a.vb
+    189
+    Main
+- 04 -
+TestBase.New
+    UnknownFile
+    -1
+    UnknownMember
+CallerInfo <F1>
+    a.vb
+    38
+    F1
+CallerInfo <P1>
+    a.vb
+    40
+    P1
++++ TestDerived.New()
+CallerInfo <TestDerived.New()>
+    a.vb
+    34
+    .ctor
+--- TestDerived.New()
+Add <Val1>
+    a.vb
+    192
+    Main
+- 05 -
+F1 = 38
+- 06 -
+TestBase.New
+    a.vb
+    27
+    .ctor
+CallerInfo <F1>
+    a.vb
+    38
+    F1
+CallerInfo <P1>
+    a.vb
+    40
+    P1
++++ TestDerived.New(Integer)
+--- TestDerived.New(Integer)
+- 07 -
+F1 = 38
+- 08 -
+CallerInfo <M1>
+    a.vb
+    43
+    M1
+- 09 -
+CallerInfo <set_P2>
+    a.vb
+    51
+    P2
+- 10 -
+CallerInfo <get_P2>
+    a.vb
+    48
+    P2
+- 11 -
+CallerInfo <AddHandler>
+    a.vb
+    57
+    E1
+- 12 -
+CallerInfo <RemoveHandler>
+    a.vb
+    60
+    E1
+- 13 -
+CallerInfo <RaiseEvent>
+    a.vb
+    63
+    E1
+- 14 -
+GetEnumerator
+    a.vb
+    213
+    Main
+MoveNext
+    a.vb
+    213
+    Main
+A
+MoveNext
+    a.vb
+    213
+    Main
+- 15 -
+CallerInfo
+    a.vb
+    218
+    Main"
+)
         End Sub
 
         <Requires.Language.Feature(ImplicitDefaultValueOnOptionalParameter)>
@@ -1503,10 +1495,10 @@ True
             AssertTheseDiagnostics(compilation,
 <expected>
         BC30521: Overload resolution failed because no accessible 'Overloaded' is most specific for these arguments:
-          'Public Sub Overloaded([number As Integer = -1])': Not most specific.
-          'Public Sub Overloaded([number As String = "0"])': Not most specific.
-              t1.Overloaded()
-                 ~~~~~~~~~~
+    'Public Sub Overloaded([number As Integer = -1])': Not most specific.
+    'Public Sub Overloaded([number As String = "0"])': Not most specific.
+                t1.Overloaded()
+                   ~~~~~~~~~~
         </expected>)
         End Sub
 
@@ -1653,29 +1645,28 @@ True
 </compilation>
 
             Dim expectedOutput =
-            <![CDATA[
-        Int32 F1 - 102, F1, a.vb
-        Int32 get_P2() - 60, P2, a.vb
-        Int32 get_P2() Int32  - 59, P2, a.vb
-        Int32 P1 - 56, P1, a.vb
-        Int32 Test1(Int32, Int32) Int32  - 52, Test1, a.vb
-        Int32 Test1(Int32, Int32) Int32 x - 52, Test1, a.vb
-        Int32 Test1(Int32, Int32) Int32 y - 52, Test1, a.vb
-        Module1 - 7, UnknownMember, a.vb
-        System.Action E1 - 69, E1, a.vb
-        System.Action E2 - 72, E2, a.vb
-        Void add_E3(System.Action) - 88, E3, a.vb
-        Void Main() - 10, Main, a.vb
-        ]]>
+ "  Int32 F1 - 102, F1, a.vb
+Int32 get_P2() - 60, P2, a.vb
+Int32 get_P2() Int32  - 59, P2, a.vb
+Int32 P1 - 56, P1, a.vb
+Int32 Test1(Int32, Int32) Int32  - 52, Test1, a.vb
+Int32 Test1(Int32, Int32) Int32 x - 52, Test1, a.vb
+Int32 Test1(Int32, Int32) Int32 y - 52, Test1, a.vb
+Module1 - 7, UnknownMember, a.vb
+System.Action E1 - 69, E1, a.vb
+System.Action E2 - 72, E2, a.vb
+Void add_E3(System.Action) - 88, E3, a.vb
+Void Main() - 10, Main, a.vb
+"
 
             Dim attributeCompilation = CreateCompilationWithReferences(attributeSource, {MscorlibRef_v4_0_30316_17626}, TestOptions.ReleaseDll, parseOptions:=MyParseOptions)
             CompileAndVerify(attributeCompilation)
 
             Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef, New VisualBasicCompilationReference(attributeCompilation)}, TestOptions.ReleaseExe, parseOptions:=MyParseOptions)
-            CompileAndVerify(compilation, expectedOutput)
+            CompileAndVerify(compilation, expectedOutput:=expectedOutput)
 
             compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef, MetadataReference.CreateFromImage(attributeCompilation.EmitToArray())}, TestOptions.ReleaseExe, parseOptions:=MyParseOptions)
-            CompileAndVerify(compilation, expectedOutput)
+            CompileAndVerify(compilation, expectedOutput:=expectedOutput)
         End Sub
 
         <Requires.Language.Feature(ImplicitDefaultValueOnOptionalParameter)>
@@ -1811,23 +1802,20 @@ True
 </compilation>
 
             Dim expectedOutput =
-            <![CDATA[
-        Int32 F1 - 102, F1, a.vb
-        Int32 get_P2() - 60, P2, a.vb
-        Int32 get_P2() Int32  - 59, P2, a.vb
-        Int32 P1 - 56, P1, a.vb
-        Int32 Test1(Int32, Int32) Int32  - 52, Test1, a.vb
-        Int32 Test1(Int32, Int32) Int32 x - 52, Test1, a.vb
-        Int32 Test1(Int32, Int32) Int32 y - 52, Test1, a.vb
-        Module1 - 7, UnknownMember, a.vb
-        System.Action E1 - 69, E1, a.vb
-        System.Action E2 - 72, E2, a.vb
-        Void add_E3(System.Action) - 88, E3, a.vb
-        Void Main() - 10, Main, a.vb
-        ]]>
-
+"  Int32 F1 - 102, F1, a.vb
+Int32 get_P2() - 60, P2, a.vb
+Int32 get_P2() Int32  - 59, P2, a.vb
+Int32 P1 - 56, P1, a.vb
+Int32 Test1(Int32, Int32) Int32  - 52, Test1, a.vb
+Int32 Test1(Int32, Int32) Int32 x - 52, Test1, a.vb
+Int32 Test1(Int32, Int32) Int32 y - 52, Test1, a.vb
+Module1 - 7, UnknownMember, a.vb
+System.Action E1 - 69, E1, a.vb
+System.Action E2 - 72, E2, a.vb
+Void add_E3(System.Action) - 88, E3, a.vb
+Void Main() - 10, Main, a.vb"
             Dim compilation = CreateCompilationWithReferences(source, {MscorlibRef_v4_0_30316_17626, MsvbRef}, TestOptions.ReleaseExe, parseOptions:=MyParseOptions)
-            CompileAndVerify(compilation, expectedOutput)
+            CompileAndVerify(compilation, expectedOutput:=expectedOutput)
         End Sub
 
         <WorkItem(1040287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040287")>
@@ -1958,11 +1946,8 @@ True
                 </compilation>,
                 options:=TestOptions.ReleaseExe, parseOptions:=MyParseOptions,
                 additionalRefs:={reference1})
-            CompileAndVerify(compilation2,
-            <![CDATA[ 9
-  12
-
-]]>)
+            CompileAndVerify(compilation2, expectedOutput:=" 9
+12")
         End Sub
 
         <Requires.Language.Feature(ImplicitDefaultValueOnOptionalParameter)>
@@ -2139,7 +2124,7 @@ True
             comp.AssertNoDiagnostics()
             CompileAndVerify(source,
      expectedOutput:=
-"2
+"  2
 a
 ")
             Dim prog As NamedTypeSymbol = comp.GetTypeByMetadataName("Program")
