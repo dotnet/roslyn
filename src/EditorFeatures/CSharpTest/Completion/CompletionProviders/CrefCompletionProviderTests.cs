@@ -956,6 +956,11 @@ class C
             {
                 throw new NotImplementedException();
             }
+
+            public bool IsOperandOfIncrementExpression(SyntaxNode node)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }
