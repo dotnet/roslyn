@@ -57,12 +57,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ReplacePropertyWithMethods
                 propertyDeclaration, propertyBackingField,
                 desiredGetMethodName, desiredSetMethodName);
 
-            if (property.ContainingType.TypeKind == TypeKind.Interface)
-            {
-                members = members.OfType<MethodDeclarationSyntax>()
-                                 .Select(generator.AsInterfaceMember).ToList();
-            }
-
             return members;
         }
 

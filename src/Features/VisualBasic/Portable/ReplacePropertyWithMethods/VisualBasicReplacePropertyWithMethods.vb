@@ -44,7 +44,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 propertyBackingField As IFieldSymbol,
                 desiredGetMethodName As String,
                 desiredSetMethodName As String) As IEnumerable(Of SyntaxNode) Implements IReplacePropertyWithMethodsService.GetReplacementMembers
-            Throw New NotImplementedException()
+
+            Dim propertyStatement = TryCast(propertyDeclarationNode, PropertyStatementSyntax)
+            If propertyStatement Is Nothing Then
+                Return SpecializedCollections.EmptyEnumerable(Of SyntaxNode)
+            End If
+
+
         End Function
 
         Public Sub ReplaceReference(editor As SyntaxEditor,

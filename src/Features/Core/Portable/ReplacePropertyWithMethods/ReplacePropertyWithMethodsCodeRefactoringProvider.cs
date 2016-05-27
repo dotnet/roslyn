@@ -335,6 +335,15 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                     definitionToBackingField.GetValueOrDefault(propertyDefinition),
                     desiredGetMethodName, desiredSetMethodName);
 
+                // Properly make the members fit within an interface if that's what
+                // we're generating into.
+                if (propertyDefinition.ContainingType.TypeKind == TypeKind.Interface)
+                {
+                    members = members.Select(editor.Generator.AsInterfaceMember)
+                                     .WhereNotNull()
+                                     .ToList();
+                }
+
                 var nodeToReplace = service.GetPropertyNodeToReplace(propertyDeclaration);
                 editor.InsertAfter(nodeToReplace, members);
                 editor.RemoveNode(nodeToReplace);
