@@ -121,7 +121,7 @@ namespace Microsoft.CodeAnalysis.GenerateType
                 }
             }
 
-            if (state.TypeToGenerateInOpt != null)
+            if (state.TypeToGenerateInOpt != null && !state.TypeToGenerateInOpt.MemberNames.Contains(state.Name))
             {
                 yield return new GenerateTypeCodeAction((TService)this, document.Document, state, intoNamespace: false, inNewFile: false);
             }

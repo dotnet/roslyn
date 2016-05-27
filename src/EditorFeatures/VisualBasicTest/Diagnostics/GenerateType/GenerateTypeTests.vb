@@ -800,8 +800,8 @@ index:=1)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestAccessibilityForPublicFields3() As Task
             Await TestAsync(
-NewLines("Public Class A \n Public B As New [|B|]() \n End Class"),
-NewLines("Public Class A \n Public B As New B() \n Public Class B \n Public Sub New() \n End Sub \n End Class \n End Class"),
+NewLines("Public Class A \n Public C As New [|B|]() \n End Class"),
+NewLines("Public Class A \n Public C As New B() \n Public Class B \n Public Sub New() \n End Sub \n End Class \n End Class"),
 index:=2)
         End Function
 
@@ -827,8 +827,8 @@ index:=1)
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestAccessibilityForPublicFields6() As Task
             Await TestAsync(
-NewLines("Public Class A \n Public B As New [|B|] \n End Class"),
-NewLines("Public Class A \n Public B As New B \n Public Class B \n End Class \n End Class"),
+NewLines("Public Class A \n Public C As New [|B|] \n End Class"),
+NewLines("Public Class A \n Public C As New B \n Public Class B \n End Class \n End Class"),
 index:=2)
         End Function
 
@@ -850,12 +850,20 @@ NewLines("Public Class A \n Public B As New B(Of Integer) \n End Class \n\n Publ
 index:=1)
         End Function
 
+        <WorkItem(5590, "https://github.com/dotnet/roslyn/issues/5990")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
+        Public Async Function TestNestedClassNotOfferedWhenNameConflicts() As Task
+            Await TestExactActionSetOfferedAsync(
+NewLines("Class X \n Dim Point As [|Point|] \n End Class"),
+expectedActionSet:={String.Format(FeaturesResources.Generate_0_1_in_new_file, "class", "Point", FeaturesResources.GlobalNamespace), String.Format(FeaturesResources.Generate_0_1, "class", "Point"), FeaturesResources.GenerateNewType})
+        End Function
+
         <WorkItem(1107929, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1107929")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateType)>
         Public Async Function TestAccessibilityForPublicFields9() As Task
             Await TestAsync(
-NewLines("Public Class A \n Public B As New [|B(Of Integer)|] \n End Class"),
-NewLines("Public Class A \n Public B As New B(Of Integer) \n Public Class B(Of T) \n End Class \n End Class"),
+NewLines("Public Class A \n Public C As New [|B(Of Integer)|] \n End Class"),
+NewLines("Public Class A \n Public C As New B(Of Integer) \n Public Class B(Of T) \n End Class \n End Class"),
 index:=2)
         End Function
 
