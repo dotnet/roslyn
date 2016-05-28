@@ -1,39 +1,41 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
-using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Extensions;
-using Newtonsoft.Json;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal abstract partial class SymbolKey
+    internal partial class SymbolKey
     {
-        [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
-        private class AssemblySymbolKey : AbstractSymbolKey<AssemblySymbolKey>
+        private struct AssemblySymbolKey
         {
-            [JsonProperty] private readonly string _assemblyName;
-
-            [JsonConstructor]
-            internal AssemblySymbolKey(string _assemblyName)
+            public static void Create(IAssemblySymbol symbol, Visitor visitor)
             {
-                this._assemblyName = _assemblyName;
+                // If the format of this ever changed, then it's necessary to fixup the
+                // SymbolKeyComparer.RemoveAssemblyKeys function.
+                visitor.WriteString(symbol.Identity.Name);
             }
 
-            internal AssemblySymbolKey(IAssemblySymbol symbol)
+            public static int GetHashCode(GetHashCodeReader reader)
             {
-                _assemblyName = symbol.Identity.Name;
+                var value = reader.ReadString();
+                // isCaseSensitive doesn't apply here as AssemblyIdentity is always case
+                // insensitive.
+                return reader.Options.IgnoreAssemblyKey ? 1 : value;
             }
 
-            public override SymbolKeyResolution Resolve(Compilation compilation, bool ignoreAssemblyKey, CancellationToken cancellationToken)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
-                return CreateSymbolInfo(GetAssemblySymbols(compilation, ignoreAssemblyKey));
+                var assemblyName = reader.ReadString();
+
+                return CreateSymbolInfo(GetAssemblySymbols(
+                    assemblyName, reader.Compilation, reader.IgnoreAssemblyKey));
             }
 
-            private IEnumerable<IAssemblySymbol> GetAssemblySymbols(Compilation compilation, bool ignoreAssemblyKey)
+            private static IEnumerable<IAssemblySymbol> GetAssemblySymbols(
+                string assemblyName, Compilation compilation, bool ignoreAssemblyKey)
             {
-                if (ignoreAssemblyKey || compilation.Assembly.Identity.Name == _assemblyName)
+                if (ignoreAssemblyKey || compilation.Assembly.Identity.Name == assemblyName)
                 {
                     yield return compilation.Assembly;
                 }
@@ -41,25 +43,11 @@ namespace Microsoft.CodeAnalysis
                 // Might need keys for symbols from previous script compilations.
                 foreach (var assembly in compilation.GetReferencedAssemblySymbols())
                 {
-                    if (ignoreAssemblyKey || assembly.Identity.Name == _assemblyName)
+                    if (ignoreAssemblyKey || assembly.Identity.Name == assemblyName)
                     {
                         yield return assembly;
                     }
                 }
-            }
-
-            internal override bool Equals(AssemblySymbolKey other, ComparisonOptions options)
-            {
-                // isCaseSensitive doesn't apply here as AssemblyIdentity is always case
-                // insensitive.
-                return options.IgnoreAssemblyKey || other._assemblyName == _assemblyName;
-            }
-
-            internal override int GetHashCode(ComparisonOptions options)
-            {
-                // isCaseSensitive doesn't apply here as AssemblyIdentity is always case
-                // insensitive.
-                return options.IgnoreAssemblyKey ? 1 : _assemblyName.GetHashCode();
             }
         }
     }

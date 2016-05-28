@@ -1,46 +1,30 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Linq;
-using System.Threading;
-using Microsoft.CodeAnalysis.Text;
-using Newtonsoft.Json;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal abstract partial class SymbolKey
+    internal partial class SymbolKey
     {
-        [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
-        private class PointerTypeSymbolKey : AbstractSymbolKey<PointerTypeSymbolKey>
+        private class PointerTypeSymbolKey
         {
-            [JsonProperty] private readonly SymbolKey _pointedAtKey;
-
-            [JsonConstructor]
-            internal PointerTypeSymbolKey(SymbolKey _pointedAtKey)
+            public static void Create(IPointerTypeSymbol symbol, Visitor visitor)
             {
-                this._pointedAtKey = _pointedAtKey;
+                visitor.WriteSymbolKey(symbol.PointedAtType);
             }
 
-            public PointerTypeSymbolKey(IPointerTypeSymbol symbol, Visitor visitor)
+            public static int GetHashCode(GetHashCodeReader reader)
             {
-                _pointedAtKey = GetOrCreate(symbol.PointedAtType, visitor);
+                return Hash.Combine(1, reader.ReadSymbolKey());
             }
 
-            public override SymbolKeyResolution Resolve(Compilation compilation, bool ignoreAssemblyKey, CancellationToken cancellationToken)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
-                var elementInfo = _pointedAtKey.Resolve(compilation, ignoreAssemblyKey, cancellationToken);
-                return CreateSymbolInfo(GetAllSymbols<ITypeSymbol>(elementInfo).Select(compilation.CreatePointerTypeSymbol));
-            }
+                var pointedAtTypeResolution = reader.ReadSymbolKey();
 
-            internal override bool Equals(PointerTypeSymbolKey other, ComparisonOptions options)
-            {
-                return other._pointedAtKey.Equals(_pointedAtKey, options);
-            }
-
-            internal override int GetHashCode(ComparisonOptions options)
-            {
-                return Hash.Combine(1, _pointedAtKey.GetHashCode(options));
+                return CreateSymbolInfo(GetAllSymbols<ITypeSymbol>(pointedAtTypeResolution)
+                    .Select(reader.Compilation.CreatePointerTypeSymbol));
             }
         }
     }

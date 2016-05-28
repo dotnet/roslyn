@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         public static string EncodeSymbol(ISymbol symbol)
         {
-            return SymbolKey.Create(symbol).Serialize();
+            return SymbolKey.ToString(symbol);
         }
 
         public static bool HasSymbols(CompletionItem item)
@@ -181,7 +181,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         private static ISymbol DecodeSymbol(string id, Compilation compilation)
         {
-            return SymbolKey.Deserialize(id).Resolve(compilation).GetAnySymbol();
+            return SymbolKey.Resolve(id, compilation).GetAnySymbol();
         }
 
         public static async Task<CompletionDescription> GetDescriptionAsync(CompletionItem item, Document document, CancellationToken cancellationToken)

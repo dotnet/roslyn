@@ -1,39 +1,18 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
-using System.Threading.Tasks;
-using Newtonsoft.Json;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     internal partial class SymbolKey
     {
-        [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
-        private class NonDeclarationSymbolKey : AbstractSymbolKey<NonDeclarationSymbolKey>
+        private struct BodyLevelSymbolKey
         {
-            [JsonProperty] private readonly SymbolKey _containingKey;
-            [JsonProperty] private readonly string _localName;
-            [JsonProperty] private readonly int _ordinal;
-            [JsonProperty] private readonly SymbolKind _kind;
-
-            [JsonConstructor]
-            internal NonDeclarationSymbolKey(
-                SymbolKey _containingKey, string _localName, int _ordinal, SymbolKind _kind)
+            public static void Create(ISymbol symbol, Visitor visitor)
             {
-                this._containingKey = _containingKey;
-                this._localName = _localName;
-                this._ordinal = _ordinal;
-                this._kind = _kind;
-            }
-
-            internal NonDeclarationSymbolKey(ISymbol symbol, Visitor visitor)
-            {
-                _kind = symbol.Kind;
                 var containingSymbol = symbol.ContainingSymbol;
 
                 while (!containingSymbol.DeclaringSyntaxReferences.Any())
@@ -41,44 +20,61 @@ namespace Microsoft.CodeAnalysis
                     containingSymbol = containingSymbol.ContainingSymbol;
                 }
 
-                _containingKey = GetOrCreate(containingSymbol, visitor);
-                _localName = symbol.Name;
-
+                var kind = symbol.Kind;
+                var localName = symbol.Name;
                 Contract.ThrowIfNull(
                     visitor.Compilation,
-                    message: $"visitor cannot be created with a null compilation and visit a {nameof(NonDeclarationSymbolKey)}.");
-                foreach (var possibleSymbol in EnumerateSymbols(visitor.Compilation, containingSymbol, visitor.CancellationToken))
+                    message: $"visitor cannot be created with a null compilation and visit a {nameof(BodyLevelSymbolKey)}.");
+                var ordinal = 0;
+                foreach (var possibleSymbol in EnumerateSymbols(visitor.Compilation, containingSymbol, kind, localName, visitor.CancellationToken))
                 {
                     if (possibleSymbol.Item1.Equals(symbol))
                     {
-                        _ordinal = possibleSymbol.Item2;
+                        ordinal = possibleSymbol.Item2;
                         break;
                     }
                 }
+
+                visitor.WriteString(localName);
+                visitor.WriteSymbolKey(containingSymbol);
+                visitor.WriteInteger(ordinal);
+                visitor.WriteInteger((int)kind);
             }
 
-            public override SymbolKeyResolution Resolve(Compilation compilation, bool ignoreAssemblyKey = false, CancellationToken cancellationToken = default(CancellationToken))
+            public static int GetHashCode(GetHashCodeReader reader)
             {
-                var containingSymbol = _containingKey.Resolve(compilation, ignoreAssemblyKey, cancellationToken).Symbol;
+                return Hash.Combine(reader.ReadString(),
+                       Hash.Combine(reader.ReadSymbolKey(),
+                       Hash.Combine(reader.ReadInteger(),
+                                    reader.ReadInteger())));
+            }
 
-                if (containingSymbol == null)
-                {
-                    return new SymbolKeyResolution();
-                }
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            {
+                var localName = reader.ReadString();
+                var containingSymbolResolution = reader.ReadSymbolKey();
+                var ordinal = reader.ReadInteger();
+                var kind = (SymbolKind)reader.ReadInteger();
 
-                foreach (var symbol in EnumerateSymbols(compilation, containingSymbol, cancellationToken))
+                var containingSymbol = containingSymbolResolution.Symbol;
+                if (containingSymbol != null)
                 {
-                    if (symbol.Item2 == _ordinal)
+                    foreach (var symbol in EnumerateSymbols(
+                        reader.Compilation, containingSymbol, kind, localName, reader.CancellationToken))
                     {
-                        return new SymbolKeyResolution(symbol.Item1);
+                        if (symbol.Item2 == ordinal)
+                        {
+                            return new SymbolKeyResolution(symbol.Item1);
+                        }
                     }
                 }
 
                 return new SymbolKeyResolution();
             }
 
-            private IEnumerable<ValueTuple<ISymbol, int>> EnumerateSymbols(
+            private static IEnumerable<ValueTuple<ISymbol, int>> EnumerateSymbols(
                 Compilation compilation, ISymbol containingSymbol,
+                SymbolKind kind, string localName,
                 CancellationToken cancellationToken)
             {
                 int ordinal = 0;
@@ -118,23 +114,13 @@ namespace Microsoft.CodeAnalysis
                         var symbol = semanticModel.GetDeclaredSymbol(token, cancellationToken);
 
                         if (symbol != null &&
-                            symbol.Kind == _kind &&
-                            Equals(compilation.IsCaseSensitive, symbol.Name, _localName))
+                            symbol.Kind == kind &&
+                            SymbolKey.Equals(compilation, symbol.Name, localName))
                         {
                             yield return ValueTuple.Create(symbol, ordinal++);
                         }
                     }
                 }
-            }
-
-            internal override bool Equals(NonDeclarationSymbolKey other, ComparisonOptions options)
-            {
-                throw new NotImplementedException();
-            }
-
-            internal override int GetHashCode(ComparisonOptions options)
-            {
-                throw new NotImplementedException();
             }
         }
     }

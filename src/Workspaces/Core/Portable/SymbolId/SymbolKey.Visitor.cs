@@ -1,154 +1,406 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
+using System.Text;
 using System.Threading;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal abstract partial class SymbolKey
+    internal partial class SymbolKey
     {
-        private class Visitor : SymbolVisitor<SymbolKey>
+        private enum SymbolKeyType
         {
-            internal readonly Dictionary<ISymbol, SymbolKey> SymbolCache = new Dictionary<ISymbol, SymbolKey>();
-            internal readonly Compilation Compilation;
-            internal readonly CancellationToken CancellationToken;
+            Alias = 'A',
+            BodyLevel = 'B',
+            ConstructedMethod = 'C',
+            NamedType = 'D',
+            ErrorType = 'E',
+            Field = 'F',
+            DynamicType = 'I',
+            Method = 'M',
+            Namespace = 'N',
+            PointerType = 'O',
+            Parameter = 'P',
+            Property = 'Q',
+            ArrayType = 'R',
+            Assembly = 'S',
+            TupleType = 'T',
+            Module = 'U',
+            Event = 'V',
+            ReducedExtensionMethod = 'X',
+            TypeParameter = 'Y',
 
-            public Visitor(Compilation compilation, CancellationToken cancellationToken)
+            // Not to be confused with ArrayType.  This indicates an array of elements in the stream.
+            Array = '%',
+            Reference = '#',
+            Null = '!',
+            TypeParameterOrdinal = '@',
+        }
+
+        private class Visitor : SymbolVisitor<object>, IDisposable
+        {
+            private static readonly ObjectPool<Visitor> s_visitorPool =
+                new ObjectPool<Visitor>(() => new Visitor());
+
+            private readonly Action<ISymbol> _writeSymbolKey;
+            private readonly Action<string> _writeString;
+            private readonly Action<IParameterSymbol> _writeParameterType;
+            private readonly Action<IParameterSymbol> _writeRefKind;
+
+            private readonly Dictionary<ISymbol, int> _symbolToId = new Dictionary<ISymbol, int>();
+            private readonly StringBuilder _stringBuilder = new StringBuilder();
+
+            public Compilation Compilation { get; private set; }
+            public CancellationToken CancellationToken { get; private set; }
+            public bool WritingSignature;
+
+            internal int _nestingCount;
+            private int _nextId;
+
+            private Visitor()
             {
-                this.Compilation = compilation;
-                this.CancellationToken = cancellationToken;
+                _writeSymbolKey = WriteSymbolKey;
+                _writeString = WriteString;
+                _writeParameterType = p => WriteSymbolKey(p.Type);
+                _writeRefKind = p => WriteInteger((int)p.RefKind);
             }
 
-            public override SymbolKey VisitAlias(IAliasSymbol aliasSymbol)
+            public void Dispose()
             {
-                var syntaxRef = aliasSymbol.DeclaringSyntaxReferences.FirstOrDefault();
-                return syntaxRef == null
-                    ? (SymbolKey)NullSymbolKey.Instance
-                    : new AliasSymbolKey(aliasSymbol, this);
+                _symbolToId.Clear();
+                _stringBuilder.Clear();
+                Compilation = null;
+                CancellationToken = default(CancellationToken);
+                _nestingCount = 0;
+                _nextId = 0;
+
+                // Place us back in the pool for future use.
+                s_visitorPool.Free(this);
             }
 
-            public override SymbolKey VisitArrayType(IArrayTypeSymbol arrayTypeSymbol)
+            public static Visitor GetVisitor(Compilation compilation, CancellationToken cancellationToken)
             {
-                return new ArrayTypeSymbolKey(arrayTypeSymbol, this);
+                var visitor = s_visitorPool.Allocate();
+                visitor.Initialize(compilation, cancellationToken);
+                return visitor;
             }
 
-            public override SymbolKey VisitAssembly(IAssemblySymbol assemblySymbol)
+            private void Initialize(Compilation compilation, CancellationToken cancellationToken)
             {
-                return new AssemblySymbolKey(assemblySymbol);
+                Compilation = compilation;
+                CancellationToken = cancellationToken;
             }
 
-            public override SymbolKey VisitDynamicType(IDynamicTypeSymbol dynamicTypeSymbol)
+            public string CreateKey()
             {
-                return DynamicTypeSymbolKey.Instance;
+                Debug.Assert(_nestingCount == 0);
+                return _stringBuilder.ToString();
             }
 
-            public override SymbolKey VisitField(IFieldSymbol fieldSymbol)
+            private void StartKey()
             {
-                return new FieldSymbolKey(fieldSymbol, this);
+                _stringBuilder.Append('(');
+                _nestingCount++;
             }
 
-            public override SymbolKey VisitLabel(ILabelSymbol labelSymbol)
+            private void WriteType(SymbolKeyType type)
             {
-                return new NonDeclarationSymbolKey(labelSymbol, this);
+                _stringBuilder.Append((char)type);
             }
 
-            public override SymbolKey VisitLocal(ILocalSymbol localSymbol)
+            private void EndKey()
             {
-                return new NonDeclarationSymbolKey(localSymbol, this);
+                _nestingCount--;
+                _stringBuilder.Append(')');
             }
 
-            public override SymbolKey VisitMethod(IMethodSymbol methodSymbol)
+            internal void WriteSymbolKey(ISymbol symbol)
+            {
+                WriteSymbolKey(symbol, first: false);
+            }
+
+            internal void WriteFirstSymbolKey(ISymbol symbol)
+            {
+                WriteSymbolKey(symbol, first: true);
+            }
+
+            private void WriteSymbolKey(ISymbol symbol, bool first)
+            {
+                if (!first)
+                {
+                    WriteSpace();
+                }
+
+                if (symbol == null)
+                {
+                    WriteType(SymbolKeyType.Null);
+                    return;
+                }
+
+                var shouldWriteOrdinal = ShouldWriteTypeParameterOrdinal(symbol);
+                int id;
+                if (!shouldWriteOrdinal)
+                {
+                    if (_symbolToId.TryGetValue(symbol, out id))
+                    {
+                        StartKey();
+                        WriteType(SymbolKeyType.Reference);
+                        WriteInteger(id);
+                        EndKey();
+                        return;
+                    }
+                }
+
+                id = _nextId;
+                _nextId++;
+
+                StartKey();
+                symbol.Accept(this);
+                WriteInteger(id);
+
+                if (!shouldWriteOrdinal)
+                {
+                    _symbolToId.Add(symbol, id);
+                }
+
+                EndKey();
+            }
+
+            private void WriteSpace()
+            {
+                _stringBuilder.Append(' ');
+            }
+
+            internal void WriteInteger(int value)
+            {
+                WriteSpace();
+                _stringBuilder.Append(value);
+            }
+
+            internal void WriteBoolean(bool value)
+            {
+                WriteInteger(value ? 1 : 0);
+            }
+
+            internal void WriteString(string value)
+            {
+                // Strings are quoted, with all embedded quotes being doubled to escape them.
+                WriteSpace();
+                _stringBuilder.Append('"');
+                _stringBuilder.Append(value.Replace("\"", "\"\""));
+                _stringBuilder.Append('"');
+            }
+
+            internal void WriteSymbolKeyArray<TSymbol>(ImmutableArray<TSymbol> symbols)
+                where TSymbol : ISymbol
+            {
+                WriteArray(symbols, _writeSymbolKey);
+            }
+
+            internal void WriteParameterTypesArray(ImmutableArray<IParameterSymbol> symbols)
+            {
+                WriteArray(symbols, _writeParameterType);
+            }
+
+            internal void WriteStringArray(ImmutableArray<string> strings)
+            {
+                WriteArray(strings, _writeString);
+            }
+
+            internal void WriteRefKindArray(ImmutableArray<IParameterSymbol> values)
+            {
+                WriteArray(values, _writeRefKind);
+            }
+
+            private void WriteArray<T, U>(ImmutableArray<T> array, Action<U> writeValue)
+                where T : U
+            {
+                WriteSpace();
+                if (array.IsDefault)
+                {
+                    WriteType(SymbolKeyType.Null);
+                    return;
+                }
+
+                StartKey();
+                WriteType(SymbolKeyType.Array);
+
+                WriteInteger(array.Length);
+                foreach (var value in array)
+                {
+                    writeValue(value);
+                }
+
+                EndKey();
+            }
+
+            public override object VisitAlias(IAliasSymbol aliasSymbol)
+            {
+                WriteType(SymbolKeyType.Alias);
+                AliasSymbolKey.Create(aliasSymbol, this);
+                return null;
+            }
+
+            public override object VisitArrayType(IArrayTypeSymbol arrayTypeSymbol)
+            {
+                WriteType(SymbolKeyType.ArrayType);
+                ArrayTypeSymbolKey.Create(arrayTypeSymbol, this);
+                return null;
+            }
+
+            public override object VisitAssembly(IAssemblySymbol assemblySymbol)
+            {
+                WriteType(SymbolKeyType.Assembly);
+                AssemblySymbolKey.Create(assemblySymbol, this);
+                return null;
+            }
+
+            public override object VisitDynamicType(IDynamicTypeSymbol dynamicTypeSymbol)
+            {
+                WriteType(SymbolKeyType.DynamicType);
+                DynamicTypeSymbolKey.Create(this);
+                return null;
+            }
+
+            public override object VisitField(IFieldSymbol fieldSymbol)
+            {
+                WriteType(SymbolKeyType.Field);
+                FieldSymbolKey.Create(fieldSymbol, this);
+                return null;
+            }
+
+            public override object VisitLabel(ILabelSymbol labelSymbol)
+            {
+                WriteType(SymbolKeyType.BodyLevel);
+                BodyLevelSymbolKey.Create(labelSymbol, this);
+                return null;
+            }
+
+            public override object VisitLocal(ILocalSymbol localSymbol)
+            {
+                WriteType(SymbolKeyType.BodyLevel);
+                BodyLevelSymbolKey.Create(localSymbol, this);
+                return null;
+            }
+
+            public override object VisitRangeVariable(IRangeVariableSymbol rangeVariableSymbol)
+            {
+                WriteType(SymbolKeyType.BodyLevel);
+                BodyLevelSymbolKey.Create(rangeVariableSymbol, this);
+                return null;
+            }
+
+            public override object VisitMethod(IMethodSymbol methodSymbol)
             {
                 if (!methodSymbol.Equals(methodSymbol.ConstructedFrom))
                 {
-                    return new ConstructedMethodSymbolKey(methodSymbol, this);
+                    WriteType(SymbolKeyType.ConstructedMethod);
+                    ConstructedMethodSymbolKey.Create(methodSymbol, this);
                 }
                 else if (methodSymbol.MethodKind == MethodKind.ReducedExtension)
                 {
-                    return new ReducedExtensionMethodSymbolKey(methodSymbol, this);
+                    WriteType(SymbolKeyType.ReducedExtensionMethod);
+                    ReducedExtensionMethodSymbolKey.Create(methodSymbol, this);
                 }
                 else
                 {
-                    return new MethodSymbolKey(methodSymbol, this);
+                    WriteType(SymbolKeyType.Method);
+                    MethodSymbolKey.Create(methodSymbol, this);
                 }
+
+                return null;
             }
 
-            public override SymbolKey VisitModule(IModuleSymbol moduleSymbol)
+            public override object VisitModule(IModuleSymbol moduleSymbol)
             {
-                return new ModuleSymbolKey(moduleSymbol, this);
+                WriteType(SymbolKeyType.Module);
+                ModuleSymbolKey.Create(moduleSymbol, this);
+                return null;
             }
 
-            public override SymbolKey VisitNamedType(INamedTypeSymbol namedTypeSymbol)
+            public override object VisitNamedType(INamedTypeSymbol namedTypeSymbol)
             {
                 if (namedTypeSymbol.TypeKind == TypeKind.Error)
                 {
-                    return new ErrorTypeSymbolKey(namedTypeSymbol, this);
+                    WriteType(SymbolKeyType.ErrorType);
+                    ErrorTypeSymbolKey.Create(namedTypeSymbol, this);
                 }
-
-                if (namedTypeSymbol.IsTupleType)
+                else if (namedTypeSymbol.IsTupleType)
                 {
-                    return new TupleTypeSymbolKey(namedTypeSymbol, this);
-                }
-
-                return new NamedTypeSymbolKey(namedTypeSymbol, this);
-            }
-
-            public override SymbolKey VisitNamespace(INamespaceSymbol namespaceSymbol)
-            {
-                return new NamespaceSymbolKey(namespaceSymbol, this);
-            }
-
-            public override SymbolKey VisitParameter(IParameterSymbol parameterSymbol)
-            {
-                return new ParameterSymbolKey(parameterSymbol, this);
-            }
-
-            public override SymbolKey VisitPointerType(IPointerTypeSymbol pointerTypeSymbol)
-            {
-                return new PointerTypeSymbolKey(pointerTypeSymbol, this);
-            }
-
-            public override SymbolKey VisitProperty(IPropertySymbol propertySymbol)
-            {
-                return new PropertySymbolKey(propertySymbol, this);
-            }
-
-            public override SymbolKey VisitEvent(IEventSymbol eventSymbol)
-            {
-                return new EventSymbolKey(eventSymbol, this);
-            }
-
-            public override SymbolKey VisitTypeParameter(ITypeParameterSymbol typeParameterSymbol)
-            {
-                if (typeParameterSymbol.TypeParameterKind == TypeParameterKind.Method)
-                {
-                    // In the method type parameter case, getting the containingId above will cause
-                    // the symbol id for the type parameter to be created and added to the symbol
-                    // table.  So just fish the type parameter out of that.
-                    var containingId = GetOrCreate(typeParameterSymbol.ContainingSymbol, this);
-
-                    SymbolKey symbolId;
-                    var succeeded = SymbolCache.TryGetValue(typeParameterSymbol, out symbolId);
-                    Debug.Assert(!ReferenceEquals(symbolId, null));
-                    Debug.Assert(succeeded);
-
-                    return symbolId;
-                }
-                else if (typeParameterSymbol.TypeParameterKind == TypeParameterKind.Type)
-                {
-                    return new TypeParameterSymbolKey(typeParameterSymbol, this);
+                    WriteType(SymbolKeyType.TupleType);
+                    TupleTypeSymbolKey.Create(namedTypeSymbol, this);
                 }
                 else
                 {
-                    return NullSymbolKey.Instance;
+                    WriteType(SymbolKeyType.NamedType);
+                    NamedTypeSymbolKey.Create(namedTypeSymbol, this);
                 }
+
+                return null;
             }
 
-            public override SymbolKey VisitRangeVariable(IRangeVariableSymbol rangeVariableSymbol)
+            public override object VisitNamespace(INamespaceSymbol namespaceSymbol)
             {
-                return new NonDeclarationSymbolKey(rangeVariableSymbol, this);
+                WriteType(SymbolKeyType.Namespace);
+                NamespaceSymbolKey.Create(namespaceSymbol, this);
+                return null;
+            }
+
+            public override object VisitParameter(IParameterSymbol parameterSymbol)
+            {
+                WriteType(SymbolKeyType.Parameter);
+                ParameterSymbolKey.Create(parameterSymbol, this);
+                return null;
+            }
+
+            public override object VisitPointerType(IPointerTypeSymbol pointerTypeSymbol)
+            {
+                WriteType(SymbolKeyType.PointerType);
+                PointerTypeSymbolKey.Create(pointerTypeSymbol, this);
+                return null;
+            }
+
+            public override object VisitProperty(IPropertySymbol propertySymbol)
+            {
+                WriteType(SymbolKeyType.Property);
+                PropertySymbolKey.Create(propertySymbol, this);
+                return null;
+            }
+
+            public override object VisitEvent(IEventSymbol eventSymbol)
+            {
+                WriteType(SymbolKeyType.Event);
+                EventSymbolKey.Create(eventSymbol, this);
+                return null;
+            }
+
+            public override object VisitTypeParameter(ITypeParameterSymbol typeParameterSymbol)
+            {
+                // If it's a reference to a method type parameter, and we're currently writing
+                // out a signture, then only write out the ordinal of type parameter.  This 
+                // helps prevent recursion problems in cases like "Foo<T>(T t).
+                if (ShouldWriteTypeParameterOrdinal(typeParameterSymbol))
+                {
+                    WriteType(SymbolKeyType.TypeParameterOrdinal);
+                    TypeParameterOrdinalSymbolKey.Create(typeParameterSymbol, this);
+                }
+                else
+                {
+                    WriteType(SymbolKeyType.TypeParameter);
+                    TypeParameterSymbolKey.Create(typeParameterSymbol, this);
+                }
+                return null;
+            }
+
+            private bool ShouldWriteTypeParameterOrdinal(ISymbol symbol)
+            {
+                return WritingSignature &&
+                    symbol.Kind == SymbolKind.TypeParameter &&
+                    ((ITypeParameterSymbol)symbol).TypeParameterKind != TypeParameterKind.Type;
             }
         }
     }

@@ -1,51 +1,43 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Newtonsoft.Json;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal abstract partial class SymbolKey
+    internal partial class SymbolKey
     {
-        [JsonObject]
-        private class AliasSymbolKey : AbstractSymbolKey<AliasSymbolKey>
+        private struct AliasSymbolKey
         {
-            [JsonProperty] private readonly string _name;
-            [JsonProperty] private readonly SymbolKey _target;
-            [JsonProperty] private readonly string _filePath;
-
-            [JsonConstructor]
-            internal AliasSymbolKey(string _name, SymbolKey _target, string _filePath)
+            public static void Create(IAliasSymbol symbol, Visitor visitor)
             {
-                this._name = _name;
-                this._target = _target;
-                this._filePath = _filePath;
+                visitor.WriteString(symbol.Name);
+                visitor.WriteSymbolKey(symbol.Target);
+                visitor.WriteString(symbol.DeclaringSyntaxReferences.FirstOrDefault()?.SyntaxTree.FilePath ?? "");
             }
 
-            public AliasSymbolKey(IAliasSymbol aliasSymbol, Visitor visitor)
+            public static int GetHashCode(GetHashCodeReader reader)
             {
-                _name = aliasSymbol.Name;
-                _target = GetOrCreate(aliasSymbol.Target, visitor);
-                _filePath = aliasSymbol.DeclaringSyntaxReferences.FirstOrDefault().SyntaxTree.FilePath;
+                return
+                    Hash.Combine(reader.ReadString(),
+                    Hash.Combine(reader.ReadSymbolKey(),
+                                 reader.ReadString()));
             }
 
-            public override SymbolKeyResolution Resolve(
-                Compilation compilation, bool ignoreAssemblyKey = false, CancellationToken cancellationToken = default(CancellationToken))
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
+                var name = reader.ReadString();
+                var targetResolution = reader.ReadSymbolKey();
+                var filePath = reader.ReadString();
 
-                var syntaxTree = compilation.SyntaxTrees.FirstOrDefault(t => t.FilePath == _filePath);
+                var syntaxTree = reader.Compilation.SyntaxTrees.FirstOrDefault(t => t.FilePath == filePath);
                 if (syntaxTree != null)
                 {
-                    var target = _target.Resolve(compilation, ignoreAssemblyKey, cancellationToken).GetAnySymbol();
+                    var target = targetResolution.GetAnySymbol();
                     if (target != null)
                     {
-                        var semanticModel = compilation.GetSemanticModel(syntaxTree);
-                        var result = Resolve(semanticModel, syntaxTree.GetRoot(cancellationToken), target, cancellationToken);
+                        var semanticModel = reader.Compilation.GetSemanticModel(syntaxTree);
+                        var result = Resolve(semanticModel, syntaxTree.GetRoot(reader.CancellationToken), name, target, reader.CancellationToken);
                         if (result.HasValue)
                         {
                             return result.Value;
@@ -56,8 +48,8 @@ namespace Microsoft.CodeAnalysis
                 return default(SymbolKeyResolution);
             }
 
-            private SymbolKeyResolution? Resolve(
-                SemanticModel semanticModel, SyntaxNode syntaxNode, ISymbol target, 
+            private static SymbolKeyResolution? Resolve(
+                SemanticModel semanticModel, SyntaxNode syntaxNode, string name, ISymbol target,
                 CancellationToken cancellationToken)
             {
                 var symbol = semanticModel.GetDeclaredSymbol(syntaxNode, cancellationToken);
@@ -66,7 +58,7 @@ namespace Microsoft.CodeAnalysis
                     if (symbol.Kind == SymbolKind.Alias)
                     {
                         var aliasSymbol = (IAliasSymbol)symbol;
-                        if (aliasSymbol.Name == _name &&
+                        if (aliasSymbol.Name == name &&
                             SymbolEquivalenceComparer.Instance.Equals(aliasSymbol.Target, target))
                         {
                             return new SymbolKeyResolution(aliasSymbol);
@@ -84,7 +76,7 @@ namespace Microsoft.CodeAnalysis
                 {
                     if (child.IsNode)
                     {
-                        var result = Resolve(semanticModel, child.AsNode(), target, cancellationToken);
+                        var result = Resolve(semanticModel, child.AsNode(), name, target, cancellationToken);
                         if (result.HasValue)
                         {
                             return result;
@@ -93,19 +85,6 @@ namespace Microsoft.CodeAnalysis
                 }
 
                 return null;
-            }
-
-            internal override bool Equals(AliasSymbolKey other, ComparisonOptions options)
-            {
-                return _name == other._name &&
-                    _target.Equals(other._target, options);
-            }
-
-            internal override int GetHashCode(ComparisonOptions options)
-            {
-                return Hash.Combine(
-                    _target.GetHashCode(options), 
-                    _name.GetHashCode());
             }
         }
     }

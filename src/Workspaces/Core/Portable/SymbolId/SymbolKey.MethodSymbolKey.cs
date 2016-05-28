@@ -1,280 +1,267 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
-using Newtonsoft.Json;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal abstract partial class SymbolKey
+    internal partial class SymbolKey
     {
-        [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
-        private class ReducedExtensionMethodSymbolKey : AbstractSymbolKey<ReducedExtensionMethodSymbolKey>
+        private struct ReducedExtensionMethodSymbolKey
         {
-            [JsonProperty] private readonly SymbolKey _reducedFrom;
-            [JsonProperty] private readonly SymbolKey _receiverType;
-
-            [JsonConstructor]
-            internal ReducedExtensionMethodSymbolKey(
-                SymbolKey _reducedFrom, SymbolKey _receiverType)
-            {
-                this._reducedFrom = _reducedFrom;
-                this._receiverType = _receiverType;
-            }
-
-            internal ReducedExtensionMethodSymbolKey(IMethodSymbol symbol, Visitor visitor)
+            public static void Create(IMethodSymbol symbol, Visitor visitor)
             {
                 Debug.Assert(symbol.Equals(symbol.ConstructedFrom));
 
-                _reducedFrom = GetOrCreate(symbol.ReducedFrom, visitor);
-                _receiverType = GetOrCreate(symbol.ReceiverType, visitor);
+                visitor.WriteSymbolKey(symbol.ReducedFrom);
+                visitor.WriteSymbolKey(symbol.ReceiverType);
             }
 
-            internal override bool Equals(ReducedExtensionMethodSymbolKey other, ComparisonOptions options)
+            public static int GetHashCode(GetHashCodeReader reader)
             {
-                var comparer = SymbolKeyComparer.GetComparer(options.IgnoreCase, options.IgnoreAssemblyKey, compareMethodTypeParametersByName: true);
-
-                return _reducedFrom.Equals(other._reducedFrom, options) &&
-                    _receiverType.Equals(other._receiverType, options);
+                return Hash.Combine(reader.ReadSymbolKey(),
+                                    reader.ReadSymbolKey());
             }
 
-            internal override int GetHashCode(ComparisonOptions options)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
-                return Hash.Combine(_reducedFrom.GetHashCode(options), _receiverType.GetHashCode(options));
-            }
+                var reducedFromResolution = reader.ReadSymbolKey();
+                var receiverTypeResolution = reader.ReadSymbolKey();
 
-            public override SymbolKeyResolution Resolve(Compilation compilation, bool ignoreAssemblyKey = false, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                var q = from m in _reducedFrom.Resolve(compilation, ignoreAssemblyKey, cancellationToken).GetAllSymbols().OfType<IMethodSymbol>()
-                        from t in _receiverType.Resolve(compilation, ignoreAssemblyKey, cancellationToken).GetAllSymbols().OfType<ITypeSymbol>()
+                var q = from m in reducedFromResolution.GetAllSymbols().OfType<IMethodSymbol>()
+                        from t in receiverTypeResolution.GetAllSymbols().OfType<ITypeSymbol>()
                         let r = m.ReduceExtensionMethod(t)
-                        where r != null
                         select r;
 
-                return CreateSymbolInfo(q.ToArray());
+                return CreateSymbolInfo(q);
             }
         }
     }
 
-    internal abstract partial class SymbolKey
+    internal partial class SymbolKey
     {
-        [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
-        private class ConstructedMethodSymbolKey : AbstractSymbolKey<ConstructedMethodSymbolKey>
+        private struct ConstructedMethodSymbolKey
         {
-            [JsonProperty] private readonly SymbolKey _constructedFrom;
-            [JsonProperty] private readonly SymbolKey[] _typeArgumentKeys;
-
-            [JsonConstructor]
-            internal ConstructedMethodSymbolKey(
-                SymbolKey _constructedFrom, SymbolKey[] _typeArgumentKeys)
+            public static void Create(IMethodSymbol symbol, Visitor visitor)
             {
-                this._constructedFrom = _constructedFrom;
-                this._typeArgumentKeys = _typeArgumentKeys;
+                visitor.WriteSymbolKey(symbol.ConstructedFrom);
+                visitor.WriteSymbolKeyArray(symbol.TypeArguments);
             }
 
-            internal ConstructedMethodSymbolKey(IMethodSymbol symbol, Visitor visitor)
+            public static int GetHashCode(GetHashCodeReader reader)
             {
-                _constructedFrom = GetOrCreate(symbol.ConstructedFrom, visitor);
-                _typeArgumentKeys = symbol.TypeArguments.Select(t => GetOrCreate(t, visitor)).ToArray();
+                return Hash.Combine(
+                    reader.ReadSymbolKey(),
+                    reader.ReadSymbolKeyArrayHashCode());
             }
 
-            internal override bool Equals(ConstructedMethodSymbolKey other, ComparisonOptions options)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
-                var comparer = SymbolKeyComparer.GetComparer(options.IgnoreCase, options.IgnoreAssemblyKey, compareMethodTypeParametersByName: true);
+                var constructedFromResolution = reader.ReadSymbolKey();
+                var typeArgumentResolutions = reader.ReadSymbolKeyArray();
 
-                return _constructedFrom.Equals(other._constructedFrom, options) &&
-                    SequenceEquals(this._typeArgumentKeys, other._typeArgumentKeys, comparer);
-            }
+                Debug.Assert(!typeArgumentResolutions.IsDefault);
+                var typeArguments = typeArgumentResolutions.Select(
+                    r => GetFirstSymbol<ITypeSymbol>(r)).ToArray();
 
-            internal override int GetHashCode(ComparisonOptions options)
-            {
-                return _constructedFrom.GetHashCode(options);
-            }
-
-            public override SymbolKeyResolution Resolve(Compilation compilation, bool ignoreAssemblyKey = false, CancellationToken cancellationToken = default(CancellationToken))
-            {
-                var typeArguments = _typeArgumentKeys.Select(a => a.Resolve(compilation, ignoreAssemblyKey, cancellationToken: cancellationToken).Symbol as ITypeSymbol).ToArray();
-                if (typeArguments.Any(a => a == null))
+                if (typeArguments.Any(s_typeIsNull))
                 {
                     return default(SymbolKeyResolution);
                 }
 
-                var constructedFroms = _constructedFrom.Resolve(compilation, ignoreAssemblyKey, cancellationToken);
-                var constructeds = constructedFroms.GetAllSymbols()
-                                                   .OfType<IMethodSymbol>()
-                                                   .Select(m => m.Construct(typeArguments));
+                var result = constructedFromResolution.GetAllSymbols()
+                       .OfType<IMethodSymbol>()
+                       .Select(m => m.Construct(typeArguments));
 
-                return CreateSymbolInfo(constructeds.ToArray());
+                return CreateSymbolInfo(result);
             }
         }
     }
 
-    internal abstract partial class SymbolKey
+    internal partial class SymbolKey
     {
-        [JsonObject(MemberSerialization = MemberSerialization.OptIn)]
-        private class MethodSymbolKey : AbstractSymbolKey<MethodSymbolKey>
+        private class MethodSymbolKey 
         {
-            [JsonProperty] private readonly SymbolKey _containerKey;
-            [JsonProperty] private readonly string _metadataName;
-            [JsonProperty] private readonly RefKind[] _refKinds;
-            [JsonProperty] private readonly SymbolKey[] _originalParameterTypeKeys;
-            [JsonProperty] private readonly bool _isPartialMethodImplementationPart;
-            [JsonProperty] private readonly SymbolKey _returnType;
-
-            /// <summary>
-            /// There is a circularity between methods and their type parameters.  As such
-            /// we may generate the type parameter when processing the method.  Or we may
-            /// generate the method when processing the type parameter.  Because we may 
-            /// be create before our contianing method is available, we may start out with
-            /// a null containerKey.  However, once our containing method finishes being
-            /// created it will set itself as our container.
-            /// </summary>
-            [JsonProperty] internal readonly MethodTypeParameterSymbolKey[] _typeParameterKeysOpt;
-
-            [JsonConstructor]
-            internal MethodSymbolKey(
-                SymbolKey _containerKey, string _metadataName,
-                MethodTypeParameterSymbolKey[] _typeParameterKeysOpt,
-                RefKind[] _refKinds, 
-                SymbolKey[] _originalParameterTypeKeys,
-                bool _isPartialMethodImplementationPart, 
-                SymbolKey _returnType)
-            {
-                this._containerKey = _containerKey;
-                this._metadataName = _metadataName;
-                this._typeParameterKeysOpt = _typeParameterKeysOpt;
-                this._refKinds = _refKinds;
-                this._originalParameterTypeKeys = _originalParameterTypeKeys;
-                this._isPartialMethodImplementationPart = _isPartialMethodImplementationPart;
-                this._returnType = _returnType;
-
-                // Let our type parameters know about us in case they were created before we were.
-                if (_typeParameterKeysOpt != null)
-                {
-                    foreach (var typeParameter in _typeParameterKeysOpt)
-                    {
-                        if (typeParameter != null)
-                        {
-                            typeParameter._containerKey = this;
-                        }
-                    }
-                }
-            }
-
-            internal MethodSymbolKey(IMethodSymbol symbol, Visitor visitor)
+            public static void Create(IMethodSymbol symbol, Visitor visitor)
             {
                 Debug.Assert(symbol.Equals(symbol.ConstructedFrom));
 
-                // First thing we do when creating the symbol ID for a method is create symbol IDs
-                // for it's type parameters.  However, we pass ourselves to that type parameter so
-                // that it does not recurse back to us.
-                List<MethodTypeParameterSymbolKey> typeParameters = null;
-                foreach (var typeParameter in symbol.TypeParameters)
+                visitor.WriteString(symbol.MetadataName);
+                visitor.WriteSymbolKey(symbol.ContainingSymbol);
+                visitor.WriteInteger(symbol.Arity);
+                visitor.WriteBoolean(symbol.PartialDefinitionPart != null);
+                visitor.WriteRefKindArray(symbol.Parameters);
+
+                // Mark that we're writing out the signature of a method.  This way if we hit a 
+                // method type parameter in our parameter-list or return type, we won't recurse
+                // into it, but will instead only write out the type parameter ordinal.  This
+                // happens with cases like Foo<T>(T t);
+                Debug.Assert(!visitor.WritingSignature);
+                visitor.WritingSignature = true;
+
+                visitor.WriteParameterTypesArray(symbol.OriginalDefinition.Parameters);
+
+                if (symbol.MethodKind == MethodKind.Conversion)
                 {
-                    var symbolId = new MethodTypeParameterSymbolKey(this, typeParameter);
-
-                    typeParameters = typeParameters ?? new List<MethodTypeParameterSymbolKey>();
-                    typeParameters.Add(symbolId);
-
-                    visitor.SymbolCache.Add(typeParameter, symbolId);
+                    visitor.WriteSymbolKey(symbol.ReturnType);
+                }
+                else
+                {
+                    visitor.WriteSymbolKey(null);
                 }
 
-                _typeParameterKeysOpt = typeParameters?.ToArray();
-
-                _isPartialMethodImplementationPart = symbol.PartialDefinitionPart != null;
-
-                _containerKey = GetOrCreate(symbol.ContainingSymbol, visitor);
-                _metadataName = symbol.MetadataName;
-                _refKinds = symbol.Parameters.Select(p => p.RefKind).ToArray();
-                _originalParameterTypeKeys = symbol.OriginalDefinition.Parameters.Select(p => GetOrCreate(p.Type, visitor)).ToArray();
-
-                // If this is conversion operator, we must also compare the return type. Otherwise, we'll return
-                // an ambiguous result in the case that there are multiple conversions from the same type to different
-                // types.
-                _returnType = symbol.MethodKind == MethodKind.Conversion
-                    ? GetOrCreate(symbol.ReturnType, visitor)
-                    : null;
+                // Done writing the signature.  Go back to normal mode.
+                Debug.Assert(visitor.WritingSignature);
+                visitor.WritingSignature = false;
             }
 
-            public override SymbolKeyResolution Resolve(Compilation compilation, bool ignoreAssemblyKey, CancellationToken cancellationToken)
+            public static int GetHashCode(GetHashCodeReader reader)
             {
-                var container = _containerKey.Resolve(compilation, ignoreAssemblyKey, cancellationToken);
-
-                var methods = GetAllSymbols<INamedTypeSymbol>(container).SelectMany(t => Resolve(compilation, t, ignoreAssemblyKey, cancellationToken));
-                return CreateSymbolInfo(methods);
+                return Hash.Combine(reader.ReadString(),
+                       Hash.Combine(reader.ReadSymbolKey(),
+                       Hash.Combine(reader.ReadInteger(),
+                       Hash.Combine(reader.ReadBoolean(),
+                       Hash.Combine(reader.ReadRefKindArrayHashCode(),
+                       Hash.Combine(reader.ReadSymbolKeyArrayHashCode(),
+                                    reader.ReadSymbolKey()))))));
             }
 
-            private int Arity => _typeParameterKeysOpt?.Length ?? 0;
-
-            private IEnumerable<IMethodSymbol> Resolve(Compilation compilation, INamedTypeSymbol container, bool ignoreAssemblyKey, CancellationToken cancellationToken)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
-                var comparisonOptions = new ComparisonOptions(compilation.IsCaseSensitive, ignoreAssemblyKey, compareMethodTypeParametersByName: true);
+                var metadataName = reader.ReadString();
+                var containingSymbolResolution = reader.ReadSymbolKey();
+                var arity = reader.ReadInteger();
+                var isPartialMethodImplementationPart = reader.ReadBoolean();
+                var parameterRefKinds = reader.ReadRefKindArray();
 
-                foreach (var method in container.GetMembers().OfType<IMethodSymbol>())
+                // For each method that we look at, we'll have to resolve the parameter list and
+                // return type in the context of that method.  i.e. if we have Foo<T>(IList<T> list)
+                // then we'll need to have marked that we're on the Foo<T> method so that we know 
+                // 'T' in IList<T> resolves to.
+                //
+                // Because of this, we keep track of where we are in the reader.  Before resolving
+                // every parameter list, we'll mark which method we're on and we'll rewind to this
+                // point.
+                var beforeParametersPosition = reader.Position;
+
+                var result = new List<IMethodSymbol>();
+
+                var namedTypes = containingSymbolResolution.GetAllSymbols().OfType<INamedTypeSymbol>();
+                foreach (var namedType in namedTypes)
                 {
-                    // Quick checks first
-                    if (method.MetadataName != _metadataName || method.Parameters.Length != _originalParameterTypeKeys.Length)
-                    {
-                        continue;
-                    }
+                    var method = Resolve(reader, metadataName, arity, isPartialMethodImplementationPart,
+                        parameterRefKinds, beforeParametersPosition, namedType);
 
-                    if (method.Arity != this.Arity)
+                    // Note: after finding the first method that matches we stop.  That's necessary
+                    // as we cache results while searching.  We don't want to override these positive
+                    // matches with a negative ones if we were to continue searching.
+                    if (method != null)
                     {
-                        continue;
+                        result.Add(method);
+                        break;
                     }
+                }
 
-                    // Is this a conversion operator? If so, we must also compare the return type.
-                    if (_returnType != null)
+                if (reader.Position == beforeParametersPosition)
+                {
+                    // We didn't find any candidates.  We still need to stream through this
+                    // method signature so the reader is in a proper position.
+                    var parameterTypeResolutions = reader.ReadSymbolKeyArray();
+                    var returnType = GetFirstSymbol<ITypeSymbol>(reader.ReadSymbolKey());
+                }
+
+                return CreateSymbolInfo(result);
+            }
+
+            private static IMethodSymbol Resolve(
+                SymbolKeyReader reader, string metadataName, int arity, bool isPartialMethodImplementationPart,
+                ImmutableArray<RefKind> parameterRefKinds, int beforeParametersPosition,
+                INamedTypeSymbol namedType)
+            {
+                foreach (var method in namedType.GetMembers().OfType<IMethodSymbol>())
+                {
+                    var result = Resolve(reader, metadataName, arity, isPartialMethodImplementationPart,
+                        parameterRefKinds, beforeParametersPosition, method);
+
+                    if (result != null)
                     {
-                        if (!_returnType.Equals(SymbolKey.Create(method.ReturnType, cancellationToken), comparisonOptions))
+                        return result; 
+                    }
+                }
+
+                return null;
+            }
+
+            private static IMethodSymbol Resolve(
+                SymbolKeyReader reader, string metadataName, int arity, bool isPartialMethodImplementationPart,
+                ImmutableArray<RefKind> parameterRefKinds, int beforeParametersPosition,
+                IMethodSymbol method)
+            {
+                if (method.Arity == arity &&
+                    method.MetadataName == metadataName &&
+                    ParameterRefKindsMatch(method.Parameters, parameterRefKinds))
+                {
+                    // Method looks like a potential match.  It has the right arity, name and 
+                    // refkinds match.  We now need to do the more complicated work of checking
+                    // the parameters (and possibly the return type).  This is more complicated 
+                    // because those symbols might refer to method type parameters.  In order
+                    // for resolution to work on those type parameters, we have to keep track
+                    // in the reader that we're on this specific method.
+
+                    // Restore our position to right before the list of parameters.
+                    // Also set the current method so that we can properly resolve
+                    // method type parameter ordinals.
+                    reader.Position = beforeParametersPosition;
+
+                    Debug.Assert(reader.CurrentMethod == null);
+                    reader.CurrentMethod = method;
+
+                    var result = Resolve(reader, isPartialMethodImplementationPart, method);
+
+                    Debug.Assert(reader.CurrentMethod == method);
+                    reader.CurrentMethod = null;
+
+                    if (result != null)
+                    {
+                        return result;
+                    }
+                }
+
+                return null;
+            }
+
+            private static IMethodSymbol Resolve(
+                SymbolKeyReader reader, bool isPartialMethodImplementationPart,
+                IMethodSymbol method)
+            {
+                var originalParameterTypeResolutions = reader.ReadSymbolKeyArray();
+                var returnType = GetFirstSymbol<ITypeSymbol>(reader.ReadSymbolKey());
+
+                var originalParameterTypes = originalParameterTypeResolutions.Select(
+                    r => GetFirstSymbol<ITypeSymbol>(r)).ToArray();
+
+                if (!originalParameterTypes.Any(s_typeIsNull))
+                {
+                    if (reader.ParameterTypesMatch(method.OriginalDefinition.Parameters, originalParameterTypes))
+                    {
+                        if (returnType == null ||
+                            reader.Comparer.Equals(returnType, method.ReturnType))
                         {
-                            continue;
+                            if (isPartialMethodImplementationPart)
+                            {
+                                method = method.PartialImplementationPart ?? method;
+                            }
+
+                            Debug.Assert(method != null);
+                            return method;
                         }
                     }
-
-                    if (!ParametersMatch(comparisonOptions, method.OriginalDefinition.Parameters, _refKinds, _originalParameterTypeKeys, cancellationToken))
-                    {
-                        continue;
-                    }
-
-                    // It matches, so let's return it, but we might have to do some construction first
-                    var methodToReturn = method;
-
-                    if (_isPartialMethodImplementationPart)
-                    {
-                        methodToReturn = methodToReturn.PartialImplementationPart ?? methodToReturn;
-                    }
-
-                    yield return methodToReturn;
                 }
-            }
 
-            internal override bool Equals(MethodSymbolKey other, ComparisonOptions options)
-            {
-                var comparer = SymbolKeyComparer.GetComparer(options.IgnoreCase, options.IgnoreAssemblyKey, compareMethodTypeParametersByName: true);
-                return
-                    other._refKinds.Length == _refKinds.Length &&
-                    other._isPartialMethodImplementationPart == _isPartialMethodImplementationPart &&
-                    other.Arity == this.Arity &&
-                    Equals(options.IgnoreCase, other._metadataName, _metadataName) &&
-                    other._containerKey.Equals(_containerKey, options) &&
-                    other._refKinds.SequenceEqual(_refKinds) &&
-                    other._originalParameterTypeKeys.SequenceEqual(_originalParameterTypeKeys, comparer);
-            }
-
-            internal override int GetHashCode(ComparisonOptions options)
-            {
-                // TODO: Consider hashing the parameters as well
-                return
-                    Hash.Combine(this.Arity,
-                    Hash.Combine(_refKinds.Length,
-                    Hash.Combine(_isPartialMethodImplementationPart,
-                    Hash.Combine(GetHashCode(options.IgnoreCase, _metadataName),
-                                 _containerKey.GetHashCode(options)))));
+                return null;
             }
         }
     }

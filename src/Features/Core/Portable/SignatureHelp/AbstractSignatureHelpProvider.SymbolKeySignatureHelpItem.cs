@@ -40,8 +40,13 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
 
             public override int GetHashCode()
             {
-                return this.SymbolKey == null ? 0 : this.SymbolKey.GetHashCode(
-                    new SymbolKey.ComparisonOptions(ignoreCase: false, ignoreAssemblyKeys: false, compareMethodTypeParametersByName: false));
+                if (this.SymbolKey == null)
+                {
+                    return 0;
+                }
+
+                var comparer = SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: false);
+                return comparer.GetHashCode(this.SymbolKey);
             }
         }
     }

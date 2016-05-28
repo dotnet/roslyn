@@ -6,10 +6,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -483,9 +481,9 @@ class C
 
         private void TestRoundTrip(ISymbol symbol, Compilation compilation, Func<ISymbol, object> fnId = null)
         {
-            var id = SymbolKey.Create(symbol).Serialize();
+            var id = SymbolKey.ToString(symbol);
             Assert.NotNull(id);
-            var found = SymbolKey.Deserialize(id).Resolve(compilation).GetAnySymbol();
+            var found = SymbolKey.Resolve(id, compilation).GetAnySymbol();
             Assert.NotNull(found);
 
             if (fnId != null)
