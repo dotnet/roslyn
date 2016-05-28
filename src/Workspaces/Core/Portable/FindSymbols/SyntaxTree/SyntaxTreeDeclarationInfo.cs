@@ -10,10 +10,10 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.FindSymbols
 {
-    internal class SyntaxTreeDeclarationInfo : AbstractSyntaxTreeInfo
+    internal class SyntaxTreeDeclarationInfo : AbstractSyntaxTreeInfo, IDeclarationInfo
     {
         private const string PersistenceName = "<SyntaxTreeInfoDeclarationPersistence>";
-        private const string SerializationFormat = "2";
+        private const string SerializationFormat = "3";
 
         /// <summary>
         /// in memory cache will hold onto any info related to opened documents in primary branch or all documents in forked branch
@@ -23,9 +23,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly ConditionalWeakTable<BranchId, ConditionalWeakTable<DocumentId, AbstractSyntaxTreeInfo>> s_cache =
             new ConditionalWeakTable<BranchId, ConditionalWeakTable<DocumentId, AbstractSyntaxTreeInfo>>();
 
-        public IEnumerable<DeclaredSymbolInfo> DeclaredSymbolInfos { get; }
+        public IReadOnlyList<DeclaredSymbolInfo> DeclaredSymbolInfos { get; }
 
-        public SyntaxTreeDeclarationInfo(VersionStamp version, IEnumerable<DeclaredSymbolInfo> declaredSymbolInfos)
+        public SyntaxTreeDeclarationInfo(VersionStamp version, IReadOnlyList<DeclaredSymbolInfo> declaredSymbolInfos)
             : base(version)
         {
             DeclaredSymbolInfos = declaredSymbolInfos;
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 
         public override void WriteTo(ObjectWriter writer)
         {
-            writer.WriteInt32(DeclaredSymbolInfos.Count());
+            writer.WriteInt32(DeclaredSymbolInfos.Count);
             foreach (var declaredSymbolInfo in DeclaredSymbolInfos)
             {
                 declaredSymbolInfo.WriteTo(writer);

@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.Hosting
             }
             catch (Exception ex)
             {
-                Console.WriteLine(ex.ToString());
+                Console.Error.WriteLine(ex.ToString());
                 return 1;
             }
         }

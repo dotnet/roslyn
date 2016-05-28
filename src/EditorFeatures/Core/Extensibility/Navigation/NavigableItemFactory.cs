@@ -22,7 +22,6 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
             return new DeclaredSymbolNavigableItem(document, declaredSymbolInfo);
         }
 
-
         public static IEnumerable<INavigableItem> GetItemsFromPreferredSourceLocations(Solution solution, ISymbol symbol, string displayString = null)
         {
             var locations = GetPreferredSourceLocations(solution, symbol);

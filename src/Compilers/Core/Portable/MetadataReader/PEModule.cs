@@ -1046,7 +1046,16 @@ namespace Microsoft.CodeAnalysis
             AttributeInfo info = FindLastTargetAttribute(token, AttributeDescription.DateTimeConstantAttribute);
             if (info.HasValue && TryExtractLongValueFromAttribute(info.Handle, out value))
             {
-                defaultValue = ConstantValue.Create(new DateTime(value));
+                // if value is outside this range, DateTime would throw when constructed
+                if (value < DateTime.MinValue.Ticks || value > DateTime.MaxValue.Ticks)
+                {
+                    defaultValue = ConstantValue.Bad;
+                }
+                else
+                {
+                    defaultValue = ConstantValue.Create(new DateTime(value));
+                }
+
                 return true;
             }
 
@@ -1145,6 +1154,7 @@ namespace Microsoft.CodeAnalysis
                 case 0: // DeprecatedAttribute(String, DeprecationType, UInt32) 
                 case 1: // DeprecatedAttribute(String, DeprecationType, UInt32, Platform) 
                 case 2: // DeprecatedAttribute(String, DeprecationType, UInt32, Type) 
+                case 3: // DeprecatedAttribute(String, DeprecationType, UInt32, String) 
                     return TryExtractValueFromAttribute(attributeInfo.Handle, out obsoleteData, s_attributeDeprecatedDataExtractor);
 
                 default:
@@ -1242,7 +1252,7 @@ namespace Microsoft.CodeAnalysis
             return TryExtractValueFromAttribute(handle, out value, s_attributeStringValueExtractor);
         }
 
-        private bool TryExtractLongValueFromAttribute(CustomAttributeHandle handle, out long value)
+        internal bool TryExtractLongValueFromAttribute(CustomAttributeHandle handle, out long value)
         {
             return TryExtractValueFromAttribute(handle, out value, s_attributeLongValueExtractor);
         }

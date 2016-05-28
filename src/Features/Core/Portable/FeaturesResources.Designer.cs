@@ -2323,6 +2323,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Attribute &apos;{0}&apos; is missing. Updating an async method or an iterator will prevent the debug session from continuing..
+        /// </summary>
+        internal static string UpdatingStateMachineMethodMissingAttribute {
+            get {
+                return ResourceManager.GetString("UpdatingStateMachineMethodMissingAttribute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Updating the alias of Declare Statement will prevent the debug session from continuing..
         /// </summary>
         internal static string UpdatingTheAliasOfDeclareStatement {
@@ -2519,6 +2528,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string UseTheNavigationBarToSwitchContext {
             get {
                 return ResourceManager.GetString("UseTheNavigationBarToSwitchContext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Variadic SignatureHelpItem must have at least one parameter..
+        /// </summary>
+        internal static string VariadicSignaturehelpitemMustHaveOneParam {
+            get {
+                return ResourceManager.GetString("VariadicSignaturehelpitemMustHaveOneParam", resourceCulture);
             }
         }
         

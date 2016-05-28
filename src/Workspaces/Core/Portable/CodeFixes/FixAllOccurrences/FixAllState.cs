@@ -4,6 +4,7 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CodeFixes
@@ -111,9 +112,10 @@ namespace Microsoft.CodeAnalysis.CodeFixes
                 this.DiagnosticIds, this.DiagnosticProvider);
         }
 
-        public FixAllContext CreateFixAllContext(CancellationToken cancellationToken)
+        public FixAllContext CreateFixAllContext(
+            IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
-            return new FixAllContext(this, cancellationToken);
+            return new FixAllContext(this, progressTracker, cancellationToken);
         }
 
         internal static FixAllState Create(

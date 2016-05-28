@@ -12,6 +12,7 @@ using Roslyn.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
 {
@@ -81,19 +82,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return newSolution;
         }
 
-        protected override async Task InvokeAsync(CancellationToken cancellationToken)
+        protected override async Task InvokeAsync(
+            IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesSession, cancellationToken))
             {
                 // We might not have an origin subject buffer, for example if we are fixing selected diagnostics in the error list.
                 if (this.SubjectBuffer != null)
                 {
-                    await base.InvokeAsync(cancellationToken).ConfigureAwait(true);
+                    await base.InvokeAsync(progressTracker, cancellationToken).ConfigureAwait(true);
                 }
                 else
                 {
                     Func<Document> getDocument = () => _triggerDocumentOpt;
-                    await InvokeCoreAsync(getDocument, cancellationToken).ConfigureAwait(true);
+                    await InvokeCoreAsync(getDocument, progressTracker, cancellationToken).ConfigureAwait(true);
                 }
             }
         }

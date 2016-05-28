@@ -99,6 +99,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private static readonly EventHandler<bool> s_additionalDocumentClosingEventHandler = OnAdditionalDocumentClosing;
         private static readonly EventHandler s_additionalDocumentUpdatedOnDiskEventHandler = OnAdditionalDocumentUpdatedOnDisk;
 
+        private readonly DiagnosticDescriptor _errorReadingRulesetRule = new DiagnosticDescriptor(
+            id: IDEDiagnosticIds.ErrorReadingRulesetId,
+            title: ServicesVSResources.ERR_CantReadRulesetFileTitle,
+            messageFormat: ServicesVSResources.ERR_CantReadRulesetFileMessage,
+            category: FeaturesResources.ErrorCategory,
+            defaultSeverity: DiagnosticSeverity.Error,
+            isEnabledByDefault: true);
+
         public AbstractProject(
             VisualStudioProjectTracker projectTracker,
             Func<ProjectId, IVsReportExternalErrors> reportExternalErrorCreatorOpt,
@@ -1166,20 +1174,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             }
             else
             {
-                string message = string.Format(ServicesVSResources.ERR_CantReadRulesetFileMessage, ruleSetFile.FilePath, ruleSetFile.GetException().Message);
-                var data = new DiagnosticData(
-                    id: IDEDiagnosticIds.ErrorReadingRulesetId,
-                    category: FeaturesResources.ErrorCategory,
-                    message: message,
-                    enuMessageForBingSearch: ServicesVSResources.ERR_CantReadRulesetFileMessage,
-                    severity: DiagnosticSeverity.Error,
-                    isEnabledByDefault: true,
-                    warningLevel: 0,
-                    workspace: this.Workspace,
-                    projectId: this.Id,
-                    title: ServicesVSResources.ERR_CantReadRulesetFileTitle);
-
-                this.HostDiagnosticUpdateSource.UpdateDiagnosticsForProject(this.Id, RuleSetErrorId, SpecializedCollections.SingletonEnumerable(data));
+                var messageArguments = new string[] { ruleSetFile.FilePath, ruleSetFile.GetException().Message };
+                DiagnosticData diagnostic;
+                if (DiagnosticData.TryCreate(_errorReadingRulesetRule, messageArguments, this.Id, this.Workspace, out diagnostic))
+                {
+                    this.HostDiagnosticUpdateSource.UpdateDiagnosticsForProject(this.Id, RuleSetErrorId, SpecializedCollections.SingletonEnumerable(diagnostic));
+                }
             }
         }
 

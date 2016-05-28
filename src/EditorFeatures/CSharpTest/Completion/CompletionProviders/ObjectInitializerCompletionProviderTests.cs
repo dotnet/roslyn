@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
@@ -17,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
         {
         }
 
-        internal override CompletionListProvider CreateCompletionProvider()
+        internal override CompletionProvider CreateCompletionProvider()
         {
             return new ObjectInitializerCompletionProvider();
         }
@@ -574,13 +573,13 @@ class d
                 var hostDocument = workspace.Documents.Single();
                 var position = hostDocument.CursorPosition.Value;
                 var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                var triggerInfo = CompletionTriggerInfo.CreateTypeCharTriggerInfo('a');
+                var triggerInfo = CompletionTrigger.CreateInsertionTrigger('a');
 
-                var completionList = await GetCompletionListAsync(document, position, triggerInfo);
+                var service = GetCompletionService(workspace);
+                var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
                 var item = completionList.Items.First();
 
-                var completionService = document.Project.LanguageServices.GetService<ICompletionService>();
-                var completionRules = completionService.GetCompletionRules();
+                var completionRules = CompletionHelper.GetHelper(document, service);
 
                 Assert.False(completionRules.SendEnterThroughToEditor(item, string.Empty, workspace.Options), "Expected false from SendEnterThroughToEditor()");
             }
@@ -776,9 +775,10 @@ class Program
                 var hostDocument = workspace.Documents.Single();
                 var position = hostDocument.CursorPosition.Value;
                 var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
-                var triggerInfo = CompletionTriggerInfo.CreateTypeCharTriggerInfo('a');
+                var triggerInfo = CompletionTrigger.CreateInsertionTrigger('a');
 
-                var completionList = await GetCompletionListAsync(document, position, triggerInfo);
+                var service = GetCompletionService(workspace);
+                var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
 
                 if (completionList != null)
                 {

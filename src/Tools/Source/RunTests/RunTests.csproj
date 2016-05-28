@@ -32,6 +32,7 @@
     <Compile Include="Cache\CachingTestExecutor.cs" />
     <Compile Include="Cache\ContentFile.cs" />
     <Compile Include="Cache\EmptyDataStorage.cs" />
+    <Compile Include="Cache\WebDataStorage.Json.cs" />
     <Compile Include="Cache\WebDataStorage.cs" />
     <Compile Include="Constants.cs" />
     <Compile Include="CrashDumps.cs" />
@@ -48,6 +49,7 @@
     <Compile Include="ConsoleUtil.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Program..Json.cs" />
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>

@@ -46,7 +46,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Interactive
                 // Now, we're going to do a bunch of async operations.  So create a wait
                 // indicator so the user knows something is happening, and also so they cancel.
                 var waitIndicator = GetWaitIndicator();
-                var waitContext = waitIndicator.StartWait(title, InteractiveEditorFeaturesResources.BuildingProject, allowCancel: true);
+                var waitContext = waitIndicator.StartWait(title, InteractiveEditorFeaturesResources.BuildingProject, allowCancel: true, showProgress: false);
 
                 var resetInteractiveTask = ResetInteractiveAsync(
                     interactiveWindow,

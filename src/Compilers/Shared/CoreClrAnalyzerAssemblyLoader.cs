@@ -14,24 +14,17 @@ using static Microsoft.CodeAnalysis.CommandLine.AssemblyIdentityUtils;
 namespace Microsoft.CodeAnalysis
 {
     /// Core CLR compatible wrapper for loading analyzers.
-    internal sealed class CoreClrAnalyzerAssemblyLoader : AssemblyLoadContext, IAnalyzerAssemblyLoader
+    internal sealed class CoreClrAnalyzerAssemblyLoader : IAnalyzerAssemblyLoader
     {
         private readonly Dictionary<string, Assembly> _pathsToAssemblies = new Dictionary<string, Assembly>(StringComparer.OrdinalIgnoreCase);
         private readonly Dictionary<string, Assembly> _namesToAssemblies = new Dictionary<string, Assembly>();
         private readonly List<string> _dependencyPaths = new List<string>();
         private readonly object _guard = new object();
+        private readonly AssemblyLoadContext _loadContext = AssemblyLoadContext.GetLoadContext(typeof(CoreClrAnalyzerAssemblyLoader).GetTypeInfo().Assembly);
 
-        /// <summary>
-        /// Creates a new instance of <see cref="CoreClrAnalyzerAssemblyLoader" />,
-        /// sets that instance to be the default <see cref="AssemblyLoadContext" />,
-        /// and returns that instance. Throws if the Default is already set or the
-        /// binding model is already locked.
-        /// </summary>
-        public static CoreClrAnalyzerAssemblyLoader CreateAndSetDefault()
+        public CoreClrAnalyzerAssemblyLoader()
         {
-            var assemblyLoader = new CoreClrAnalyzerAssemblyLoader();
-            InitializeDefaultContext(assemblyLoader);
-            return assemblyLoader;
+            _loadContext.Resolving += this.Load;
         }
 
         public void AddDependencyLocation(string fullPath)
@@ -92,7 +85,7 @@ namespace Microsoft.CodeAnalysis
             return null;
         }
 
-        protected override Assembly Load(AssemblyName assemblyName)
+        private Assembly Load(AssemblyLoadContext loadContext, AssemblyName assemblyName)
         {
             lock (_guard)
             {
@@ -141,7 +134,7 @@ namespace Microsoft.CodeAnalysis
         /// </remarks>
         private Assembly LoadAndCache(string fullPath)
         {
-            var assembly = LoadFromAssemblyPath(fullPath);
+            var assembly = _loadContext.LoadFromAssemblyPath(fullPath);
             var name = assembly.FullName;
 
             _pathsToAssemblies[fullPath] = assembly;

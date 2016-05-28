@@ -593,16 +593,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var importChain = methodWithBody.ImportChainOpt;
                     compilationState.CurrentImportChain = importChain;
 
-                    var method = methodWithBody.Method;
-                    var lambda = method as SynthesizedLambdaMethod;
-                    var variableSlotAllocatorOpt = ((object)lambda != null) ?
-                        _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(lambda, lambda.TopLevelMethod) :
-                        _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(method, method);
-
                     // We make sure that an asynchronous mutation to the diagnostic bag does not 
                     // confuse the method body generator by making a fresh bag and then loading
                     // any diagnostics emitted into it back into the main diagnostic bag.
                     var diagnosticsThisMethod = DiagnosticBag.GetInstance();
+
+                    var method = methodWithBody.Method;
+                    var lambda = method as SynthesizedLambdaMethod;
+                    var variableSlotAllocatorOpt = ((object)lambda != null) ?
+                        _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(lambda, lambda.TopLevelMethod, diagnosticsThisMethod) :
+                        _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(method, method, diagnosticsThisMethod);
 
                     AsyncStateMachine stateMachineType;
 
@@ -1209,7 +1209,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (lazyVariableSlotAllocator == null)
                 {
-                    lazyVariableSlotAllocator = compilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method, method);
+                    lazyVariableSlotAllocator = compilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method, method, diagnostics);
                 }
 
                 BoundStatement bodyWithoutLambdas = loweredBody;

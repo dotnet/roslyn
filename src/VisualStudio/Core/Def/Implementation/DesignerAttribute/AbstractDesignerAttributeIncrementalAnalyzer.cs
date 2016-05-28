@@ -58,7 +58,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         public System.Threading.Tasks.Task DocumentResetAsync(Document document, CancellationToken cancellationToken)
         {
             _state.Remove(document.Id);
-            return _state.PersistAsync(document, new Data(VersionStamp.Default, VersionStamp.Default, designerAttributeArgument: string.Empty), cancellationToken);
+            return _state.PersistAsync(document, new Data(VersionStamp.Default, VersionStamp.Default, designerAttributeArgument: null), cancellationToken);
         }
 
         public bool NeedsReanalysisOnOptionChanged(object sender, OptionChangedEventArgs e)
@@ -88,8 +88,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 // check whether we can use the data as it is (can happen when re-using persisted data from previous VS session)
                 if (CheckVersions(document, textVersion, projectVersion, semanticVersion, existingData))
                 {
-                    var workspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
-                    RegisterDesignerAttribute(workspace, document.Id, existingData.DesignerAttributeArgument);
+                    RegisterDesignerAttribute(document, existingData.DesignerAttributeArgument);
                     return;
                 }
             }
@@ -101,6 +100,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             Compilation compilation = null;
             INamedTypeSymbol designerAttribute = null;
             SemanticModel model = null;
+
+            var documentHasError = false;
 
             // get type defined in current tree
             foreach (var typeNode in GetAllTopLevelTypeDefined(root))
@@ -120,7 +121,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                         if (designerAttribute == null)
                         {
                             // The DesignerCategoryAttribute doesn't exist.
-                            InvalidateDocument(document);
+                            // no idea on design attribute status, just leave things as it is.
+                            _state.Remove(document.Id);
                             return;
                         }
                     }
@@ -139,6 +141,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                     // walk up type chain
                     foreach (var type in definedType.GetBaseTypesAndThis())
                     {
+                        if (type.IsErrorType())
+                        {
+                            documentHasError = true;
+                            continue;
+                        }
+
                         cancellationToken.ThrowIfCancellationRequested();
 
                         // if it has designer attribute, set it
@@ -146,7 +154,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                         if (attribute != null && attribute.ConstructorArguments.Length == 1)
                         {
                             designerAttributeArgument = GetArgumentString(attribute.ConstructorArguments[0]);
-                            await RegisterDesignerAttributeAndSaveStateAsync(document, textVersion, semanticVersion, designerAttributeArgument, existingData, cancellationToken).ConfigureAwait(false);
+                            await RegisterDesignerAttributeAndSaveStateAsync(document, textVersion, semanticVersion, designerAttributeArgument, cancellationToken).ConfigureAwait(false);
 
                             return;
                         }
@@ -160,7 +168,10 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 }
             }
 
-            await RegisterDesignerAttributeAndSaveStateAsync(document, textVersion, semanticVersion, designerAttributeArgument, existingData, cancellationToken).ConfigureAwait(false);
+            // we checked all types in the document, but couldn't find designer attribute, but we can't say this document doesn't have designer attribute
+            // if the document also contains some errors.
+            var designerAttributeArgumentOpt = documentHasError ? new Optional<string>() : new Optional<string>(designerAttributeArgument);
+            await RegisterDesignerAttributeAndSaveStateAsync(document, textVersion, semanticVersion, designerAttributeArgumentOpt, cancellationToken).ConfigureAwait(false);
         }
 
         private bool CheckVersions(
@@ -185,34 +196,30 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
         }
 
         private async System.Threading.Tasks.Task RegisterDesignerAttributeAndSaveStateAsync(
-            Document document, VersionStamp textVersion, VersionStamp semanticVersion, string designerAttributeArgument,
-            Data existingData, CancellationToken cancellationToken)
+            Document document, VersionStamp textVersion, VersionStamp semanticVersion, Optional<string> designerAttributeArgumentOpt, CancellationToken cancellationToken)
         {
-            if (existingData != null && string.Equals(existingData.DesignerAttributeArgument, designerAttributeArgument, StringComparison.OrdinalIgnoreCase))
+            if (!designerAttributeArgumentOpt.HasValue)
             {
+                // no value means it couldn't determine whether this document has designer attribute or not.
+                // one of such case is when base type is error type.
                 return;
             }
 
-            var data = new Data(textVersion, semanticVersion, designerAttributeArgument);
+            var data = new Data(textVersion, semanticVersion, designerAttributeArgumentOpt.Value);
             await _state.PersistAsync(document, data, cancellationToken).ConfigureAwait(false);
 
-            var workspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
-            RegisterDesignerAttribute(workspace, document.Id, designerAttributeArgument);
+            RegisterDesignerAttribute(document, designerAttributeArgumentOpt.Value);
         }
 
         private void RegisterDesignerAttribute(Document document, string designerAttributeArgument)
         {
             var workspace = document.Project.Solution.Workspace as VisualStudioWorkspaceImpl;
-            RegisterDesignerAttribute(workspace, document.Id, designerAttributeArgument);
-        }
-
-        private void RegisterDesignerAttribute(VisualStudioWorkspaceImpl workspace, DocumentId documentId, string designerAttributeArgument)
-        {
             if (workspace == null)
             {
                 return;
             }
 
+            var documentId = document.Id;
             _notificationService.RegisterNotification(() =>
             {
                 var vsDocument = workspace.GetHostDocument(documentId);
@@ -269,12 +276,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             _dotNotAccessDirectlyDesigner = _serviceProvider.GetService(typeof(SVSMDDesignerService)) as IVSMDDesignerService;
 
             return _dotNotAccessDirectlyDesigner;
-        }
-
-        private void InvalidateDocument(Document document)
-        {
-            _state.Remove(document.Id);
-            RegisterDesignerAttribute(document, designerAttributeArgument: null);
         }
 
         public void RemoveDocument(DocumentId documentId)

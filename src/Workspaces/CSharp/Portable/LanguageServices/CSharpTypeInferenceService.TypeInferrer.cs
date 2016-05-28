@@ -551,7 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // If the method has already been constructed poorly (i.e. with error types for type 
                 // arguments), then unconstruct it.
-                if (method.TypeArguments.All(t => t.Kind == SymbolKind.ErrorType))
+                if (method.TypeArguments.Any(t => t.Kind == SymbolKind.ErrorType))
                 {
                     method = method.ConstructedFrom;
                 }

@@ -28,6 +28,8 @@
     <Compile Include="Collections\BoxesTest.cs" />
     <Compile Include="Collections\ByteSequenceComparerTests.cs" />
     <Compile Include="CryptoBlobParserTests.cs" />
+    <Compile Include="Diagnostics\CompilationWithAnalyzersTests.cs" />
+    <Compile Include="Diagnostics\ErrorLoggerTests.cs" />
     <Compile Include="Diagnostics\AnalysisContextInfoTests.cs" />
     <Compile Include="Diagnostics\BoxingOperationAnalyzer.cs" />
     <Compile Include="Diagnostics\CouldHaveMoreSpecificTypeAnalyzer.cs" />
@@ -40,6 +42,7 @@
     <Compile Include="Emit\CustomDebugInfoTests.cs" />
     <Compile Include="FileSystem\PathUtilitiesTests.cs" />
     <Compile Include="InternalUtilities\StreamExtensionsTests.cs" />
+    <Compile Include="InternalUtilities\JsonWriterTests.cs" />
     <Compile Include="InternalUtilities\StringExtensionsTests.cs" />
     <Compile Include="MetadataReferences\AssemblyIdentityExtensions.cs" />
     <Compile Include="MetadataReferences\AssemblyIdentityMapTests.cs" />
@@ -93,7 +96,7 @@
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <NoWarn>1591;RS0007</NoWarn>
+    <NoWarn>1591</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>

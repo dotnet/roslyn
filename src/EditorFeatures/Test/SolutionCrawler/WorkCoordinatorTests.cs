@@ -696,12 +696,14 @@ End Class";
         }
 
         [Fact, WorkItem(739943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739943")]
-        public async Task SemanticChange_Propagation()
+        public async Task SemanticChange_Propagation_Transitive()
         {
             var solution = GetInitialSolutionInfoWithP2P();
 
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
+                workspace.Options = workspace.Options.WithChangedOption(InternalSolutionCrawlerOptions.DirectDependencyPropagationOnly, false);
+
                 workspace.OnSolutionAdded(solution);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -712,13 +714,28 @@ End Class";
 
                 Assert.Equal(1, worker.SyntaxDocumentIds.Count);
                 Assert.Equal(4, worker.DocumentIds.Count);
+            }
+        }
 
-#if false
-                Assert.True(1 == worker.SyntaxDocumentIds.Count,
-                    string.Format("Expected 1 SyntaxDocumentIds, Got {0}\n\n{1}", worker.SyntaxDocumentIds.Count, GetListenerTrace(workspace.ExportProvider)));
-                Assert.True(4 == worker.DocumentIds.Count, 
-                    string.Format("Expected 4 DocumentIds, Got {0}\n\n{1}", worker.DocumentIds.Count, GetListenerTrace(workspace.ExportProvider)));
-#endif
+        [Fact, WorkItem(739943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739943")]
+        public async Task SemanticChange_Propagation_Direct()
+        {
+            var solution = GetInitialSolutionInfoWithP2P();
+
+            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
+            {
+                workspace.Options = workspace.Options.WithChangedOption(InternalSolutionCrawlerOptions.DirectDependencyPropagationOnly, true);
+
+                workspace.OnSolutionAdded(solution);
+                await WaitWaiterAsync(workspace.ExportProvider);
+
+                var id = solution.Projects[0].Id;
+                var info = DocumentInfo.Create(DocumentId.CreateNewId(id), "D6");
+
+                var worker = await ExecuteOperation(workspace, w => w.OnDocumentAdded(info));
+
+                Assert.Equal(1, worker.SyntaxDocumentIds.Count);
+                Assert.Equal(3, worker.DocumentIds.Count);
             }
         }
 

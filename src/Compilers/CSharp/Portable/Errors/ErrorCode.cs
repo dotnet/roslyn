@@ -1174,6 +1174,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // ERR_NameIllegallyOverrides3 = 7040, // Not used anymore due to 'Single Meaning' relaxation changes
         ERR_ResourceFileNameNotUnique = 7041,
         ERR_DllImportOnGenericMethod = 7042,
+        ERR_EncUpdateFailedMissingAttribute = 7043,
 
         ERR_ParameterNotValidForType = 7045,
         ERR_AttributeParameterRequired1 = 7046,
@@ -1321,5 +1322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PublicSignButNoKey = 8102,
         ERR_TooManyUserStrings = 8103,
         ERR_PeWritingFailure = 8104,
+        WRN_AttributeIgnoredWhenPublicSigning = 8105,
+        ERR_OptionMustBeAbsolutePath = 8106,
     }
 }

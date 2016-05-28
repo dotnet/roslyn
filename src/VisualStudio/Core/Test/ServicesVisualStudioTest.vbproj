@@ -13,7 +13,13 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <TargetFrameworkProfile />
+    <ForceGenerationOfBindingRedirects>true</ForceGenerationOfBindingRedirects>
   </PropertyGroup>
+  <ItemGroup>
+    <SuggestedBindingRedirects Include="Microsoft.VisualStudio.Diagnostics.PerformanceProvider, Version=14.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+      <MaxVersion>$(VisualStudioReferenceAssemblyVersion)</MaxVersion>
+    </SuggestedBindingRedirects>
+  </ItemGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
       <Project>{1EE8CAD3-55F9-4D91-96B2-084641DA9A6C}</Project>
@@ -125,13 +131,6 @@
     <Reference Include="Microsoft.VisualStudio.ComponentModelHost, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>false</Private>
     </Reference>
-    <Reference Include="Microsoft.VisualStudio.GraphModel, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Progression.CodeSchema, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Progression.Common, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Progression.Interfaces, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
-    <Reference Include="Microsoft.VisualStudio.Text.Internal, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-      <Private>false</Private>
-    </Reference>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
@@ -146,16 +145,6 @@
     <Reference Include="System.Xml.Linq" />
     <Reference Include="WindowsBase" />
   </ItemGroup>
-  <Target Name="AddShellImmutable15" Condition="'$(VisualStudioVersion)' == '15.0'" BeforeTargets="ResolveAssemblyReferences">
-    <!-- we want this to only be added for Dev15 builds, but the project system doesn't like us having conditional
-         attributes on Reference nodes in regular item groups; if the condition fails you get yellow exclamation points
-         in the solution explorer since it doesn't think it resolved. By making this a target, we work around that issue. -->
-    <ItemGroup>
-      <Reference Include="Microsoft.VisualStudio.Shell.Immutable.15.0, Version=15.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
-        <Private>false</Private>
-      </Reference>
-    </ItemGroup>
-  </Target>
   <ItemGroup>
     <Import Include="System.Xml.Linq" />
     <Import Include="Xunit" />
@@ -295,7 +284,7 @@
     <Compile Include="Debugging\VisualBasicBreakpointResolutionServiceTests.vb" />
     <Compile Include="Diagnostics\DiagnosticTableDataSourceTests.vb" />
     <Compile Include="Diagnostics\ExternalDiagnosticUpdateSourceTests.vb" />
-    <Compile Include="Diagnostics\MiscDiagnosticUpdateSourceTests.vb" />
+    <Compile Include="Diagnostics\DefaultDiagnosticUpdateSourceTests.vb" />
     <Compile Include="Diagnostics\MockExtensionManager.vb" />
     <Compile Include="Diagnostics\TestTableManagerProvider.vb" />
     <Compile Include="Diagnostics\TodoListTableDataSourceTests.vb" />
@@ -310,7 +299,7 @@
     <Compile Include="Help\HelpTests.vb" />
     <Compile Include="LanguageBlockTests.vb" />
     <Compile Include="MockComponentModel.vb" />
-    <Compile Include="Packaging\PackageSearchServiceTests.vb" />
+    <Compile Include="SymbolSearch\SymbolSearchServiceTests.vb" />
     <Compile Include="Utilities\VsNavInfoHelpers.vb" />
     <Compile Include="VsNavInfo\VsNavInfoTests.vb" />
     <Compile Include="ObjectBrowser\AbstractObjectBrowserTests.vb" />

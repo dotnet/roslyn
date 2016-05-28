@@ -10,6 +10,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Internal.Log;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -197,7 +198,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             Contract.ThrowIfFalse(batchOfFixes.Any());
 
             var solution = fixAllState.Solution;
-            var newSolution = await TryMergeFixesAsync(solution, batchOfFixes, cancellationToken).ConfigureAwait(false);
+            var newSolution = await TryMergeFixesAsync(solution, batchOfFixes, fixAllState, cancellationToken).ConfigureAwait(false);
             if (newSolution != null && newSolution != solution)
             {
                 var title = GetFixAllTitle(fixAllState);
@@ -241,7 +242,9 @@ namespace Microsoft.CodeAnalysis.CodeFixes
             }
         }
 
-        public virtual async Task<Solution> TryMergeFixesAsync(Solution oldSolution, IEnumerable<CodeAction> codeActions, CancellationToken cancellationToken)
+        public virtual async Task<Solution> TryMergeFixesAsync(
+            Solution oldSolution, IEnumerable<CodeAction> codeActions,
+            FixAllState fixAllState, CancellationToken cancellationToken)
         {
             var changedDocumentsMap = new Dictionary<DocumentId, Document>();
             Dictionary<DocumentId, List<Document>> documentsToMergeMap = null;

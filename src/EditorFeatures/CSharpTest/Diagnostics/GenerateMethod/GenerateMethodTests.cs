@@ -867,8 +867,25 @@ index: 0);
         public async Task TestUnmentionableTypeParameter7()
         {
             await TestAsync(
-@"class H < T > { void A ( T t1 ) { t1 = [|Foo < T >|] ( t1 ) ; } } ",
-@"using System; class H < T > { void A ( T t1 ) { t1 = Foo < T > ( t1 ) ; } private T Foo < T1 > ( T t1 ) { throw new NotImplementedException ( ) ; } } ");
+@"class H < T >
+{
+    void A ( T t1 )
+    {
+        t1 = [|Foo < T >|] ( t1 ) ;
+    }
+} ",
+@"using System;
+class H < T >
+{
+    void A ( T t1 )
+    {
+        t1 = Foo < T > ( t1 ) ;
+    }
+    private T1 Foo < T1 > ( T1 t1 )
+    {
+        throw new NotImplementedException ( ) ;
+    }
+} ");
         }
 
         [WorkItem(539593, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539593")]
@@ -1006,8 +1023,19 @@ parseOptions: GetScriptOptions());
         public async Task TestLambdaReturnType()
         {
             await TestAsync(
-@"using System ; class C < T , R > { private static Func < T , R > g = null ; private static Func < T , R > f = ( T ) => { return [|Foo < T , R >|] ( g ) ; } ; } ",
-@"using System ; class C < T , R > { private static Func < T , R > g = null ; private static Func < T , R > f = ( T ) => { return Foo < T , R > ( g ) ; } ; private static R Foo < T1 , T2 > ( Func < T , R > g ) { throw new NotImplementedException ( ) ; } } ");
+@"using System ;
+class C < T , R > 
+{
+    private static Func < T , R > g = null ;
+    private static Func < T , R > f = ( T ) => { return [|Foo < T , R >|] ( g ) ; } ;
+} ",
+@"using System ;
+class C < T , R >
+{
+    private static Func < T , R > g = null ;
+    private static Func < T , R > f = ( T ) => { return Foo < T , R > ( g ) ; } ;
+    private static T2 Foo < T1 , T2 > ( Func < T1 , T2 > g ) { throw new NotImplementedException ( ) ; }
+} ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
@@ -2873,6 +2901,78 @@ class Program
     }
 
     private static void OnChanged(object sender, EventArgs e)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
+        [WorkItem(10004, "https://github.com/dotnet/roslyn/issues/10004")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestGenerateMethodWithMultipleOfSameGenericType()
+        {
+            await TestAsync(
+@"using System;
+
+public class C
+{
+}
+
+public static class Ex
+{
+    public static T M1<T>(this T t) where T : C
+    {
+        return [|t.M<T, T>()|];
+    }
+}
+",
+@"using System;
+
+public class C
+{
+    internal T2 M<T1, T2>()
+        where T1 : C
+        where T2 : C
+    {
+    }
+}
+
+public static class Ex
+{
+    public static T M1<T>(this T t) where T : C
+    {
+        return t.M<T, T>();
+    }
+}
+");
+        }
+
+        [WorkItem(11141, "https://github.com/dotnet/roslyn/issues/11141")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task InferTypeParameters1()
+        {
+            await TestAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        List<int> list = null;
+        int i = [|First<int>(list)|];
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        List<int> list = null;
+        int i = First<int>(list);
+    }
+
+    private T First<T>(List<T> list)
     {
         throw new NotImplementedException();
     }
