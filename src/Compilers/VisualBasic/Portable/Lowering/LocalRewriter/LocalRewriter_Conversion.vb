@@ -96,10 +96,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If node.RelaxationLambdaOpt IsNot Nothing Then
-                returnValue = node.Update(VisitExpressionNode(node.RelaxationLambdaOpt),
+
+                If _inExpressionLambda AndAlso
+                    NoParameterRelaxation(DirectCast(node.Operand, BoundLambda).LambdaSymbol, node.RelaxationLambdaOpt.LambdaSymbol) Then
+
+                    ' COMPAT: skip relaxation in this case. ET can drop the return value of the inner lambda.
+                    returnValue = MyBase.VisitConversion(
+                        node.Update(node.Operand,
+                                          node.ConversionKind, node.Checked, node.ExplicitCastInCode,
+                                          node.ConstantValueOpt, node.ConstructorOpt,
+                                          relaxationLambdaOpt:=Nothing, relaxationReceiverPlaceholderOpt:=Nothing, type:=node.Type))
+
+                    returnValue = TransformRewrittenConversion(DirectCast(returnValue, BoundConversion))
+                Else
+                    returnValue = node.Update(VisitExpressionNode(node.RelaxationLambdaOpt),
                                           node.ConversionKind, node.Checked, node.ExplicitCastInCode,
                                           node.ConstantValueOpt, node.ConstructorOpt,
                                           relaxationLambdaOpt:=Nothing, relaxationReceiverPlaceholderOpt:=Nothing, type:=node.Type)
+                End If
 
             ElseIf node.ConversionKind = ConversionKind.InterpolatedString Then
                 returnValue = RewriteInterpolatedStringConversion(node)
@@ -114,6 +128,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _inExpressionLambda = wasInExpressionlambda
             Return returnValue
         End Function
+
+        Private Shared Function NoParameterRelaxation(fromLambda As LambdaSymbol, toLambda As LambdaSymbol) As Boolean
+            ' are we are relaxing for the purpose of dropping return?
+            Return Not fromLambda.IsSub AndAlso
+                toLambda.IsSub AndAlso
+                MethodSignatureComparer.HaveSameParameterTypes(fromLambda.Parameters, Nothing, toLambda.Parameters, Nothing, considerByRef:=True, considerCustomModifiers:=False)
+
+        End Function
+
 
         ' Rewrite Anonymous Delegate conversion into a delegate creation
         Private Function RewriteAnonymousDelegateConversion(node As BoundConversion) As BoundNode

@@ -2807,6 +2807,195 @@ Lambda(
 ]]>)
         End Sub
 
+        <Fact()>
+        Public Sub Relaxation01()
+            Dim file = <file name="expr.vb"><![CDATA[
+Imports System
+Imports System.Linq.Expressions
+Imports System.Reflection
+
+Module Module1
+
+    Sub Main()
+        Dim o As New C1(Of C0)
+    End Sub
+
+End Module
+
+Class C0
+    Public Function Process() As Boolean
+        Return False
+    End Function
+
+    Public Sub ProcessSub()
+    End Sub
+End Class
+
+Class C1(Of T As C0)
+    Public ProcessMethodSub As MethodInfo = RegisterMethod(Sub(c) c.ProcessSub())
+    Public ProcessMethod As MethodInfo = RegisterMethod(Function(c) c.Process)
+
+    Public Function RegisterMethod(methodLambdaExpression As Expression(Of Action(Of T))) As MethodInfo
+        System.Console.WriteLine(methodLambdaExpression.ToString())
+
+        Return Nothing
+    End Function
+
+End Class
+
+
+]]></file>
+
+            TestExpressionTrees(file,
+            <![CDATA[
+c => c.ProcessSub()
+c => c.Process()
+]]>)
+        End Sub
+
+
+        <Fact()>
+        Public Sub Relaxation02()
+            Dim file = <file name="expr.vb"><![CDATA[
+Imports System
+Imports System.Linq.Expressions
+Imports System.Reflection
+
+Module Module1
+
+    Sub Main()
+        Dim o As New C1(Of String)
+    End Sub
+
+End Module
+
+Class C0
+    Public Shared Function Process(x As Integer) As Boolean
+        Return False
+    End Function
+
+    Public Shared Sub ProcessSub(x As Integer)
+    End Sub
+End Class
+
+Class C1(Of T)
+    Public ProcessMethodSub As MethodInfo = RegisterMethod(Sub(c As String) C0.ProcessSub(c))
+    Public ProcessMethod As MethodInfo = RegisterMethod(Function(c) C0.Process(c))
+
+    Public Function RegisterMethod(methodLambdaExpression As Expression(Of Action(Of String))) As MethodInfo
+
+        System.Console.WriteLine(methodLambdaExpression.ToString())
+
+        Return Nothing
+    End Function
+
+End Class
+
+
+]]></file>
+
+            TestExpressionTrees(file,
+            <![CDATA[
+c => ProcessSub(ConvertChecked(c))
+c => Process(ConvertChecked(c))
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub Relaxation03()
+            Dim file = <file name="expr.vb"><![CDATA[
+Imports System
+Imports System.Linq.Expressions
+Imports System.Reflection
+
+Module Module1
+
+    Sub Main()
+        Dim o As New C1(Of String)
+    End Sub
+
+End Module
+
+Class C0
+    Public Shared Function Process() As Boolean
+        Return False
+    End Function
+
+    Public Shared Sub ProcessSub()
+    End Sub
+End Class
+
+Class C1(Of T)
+    Public ProcessMethodSub As MethodInfo = RegisterMethod(Sub(c As String) C0.ProcessSub())
+    Public ProcessMethod As MethodInfo = RegisterMethod(Function(c As String) C0.Process())
+
+    Public Function RegisterMethod(methodLambdaExpression As Expression(Of Action(Of String))) As MethodInfo
+
+        System.Console.WriteLine(methodLambdaExpression.ToString())
+
+        Return Nothing
+    End Function
+
+End Class
+
+]]></file>
+
+            TestExpressionTrees(file,
+            <![CDATA[
+c => ProcessSub()
+c => Process()
+]]>)
+        End Sub
+
+        <Fact()>
+        Public Sub Relaxation04()
+            Dim file = <file name="expr.vb"><![CDATA[
+Imports System
+Imports System.Linq.Expressions
+Imports System.Reflection
+
+Module Module1
+
+    Sub Main()
+        Dim o As New C1(Of String)
+    End Sub
+
+End Module
+
+Class C0
+    Public Shared Function Process() As Boolean
+        Return False
+    End Function
+
+    Public Shared Sub ProcessSub()
+    End Sub
+End Class
+
+Class C1(Of T)
+    Public ProcessMethodSub As MethodInfo = RegisterMethod(Sub() C0.ProcessSub())
+    Public ProcessMethod As MethodInfo = RegisterMethod(Function() C0.Process())
+
+    Public Function RegisterMethod(methodLambdaExpression As Expression(Of Action(Of Integer))) As MethodInfo
+
+        System.Console.WriteLine(methodLambdaExpression.ToString())
+
+        Return Nothing
+    End Function
+
+End Class
+
+
+]]></file>
+
+            TestExpressionTrees(file,
+            <![CDATA[
+a0 => Invoke(() => ProcessSub())
+a0 => Invoke(() => Process())
+]]>)
+        End Sub
+
+
+
 #End Region
 
 #Region "Xml Literals"
