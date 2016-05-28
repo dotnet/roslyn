@@ -96,24 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If node.RelaxationLambdaOpt IsNot Nothing Then
-
-                If _inExpressionLambda AndAlso
-                    NoParameterRelaxation(DirectCast(node.Operand, BoundLambda).LambdaSymbol, node.RelaxationLambdaOpt.LambdaSymbol) Then
-
-                    ' COMPAT: skip relaxation in this case. ET can drop the return value of the inner lambda.
-                    returnValue = MyBase.VisitConversion(
-                        node.Update(node.Operand,
-                                          node.ConversionKind, node.Checked, node.ExplicitCastInCode,
-                                          node.ConstantValueOpt, node.ConstructorOpt,
-                                          relaxationLambdaOpt:=Nothing, relaxationReceiverPlaceholderOpt:=Nothing, type:=node.Type))
-
-                    returnValue = TransformRewrittenConversion(DirectCast(returnValue, BoundConversion))
-                Else
-                    returnValue = node.Update(VisitExpressionNode(node.RelaxationLambdaOpt),
-                                          node.ConversionKind, node.Checked, node.ExplicitCastInCode,
-                                          node.ConstantValueOpt, node.ConstructorOpt,
-                                          relaxationLambdaOpt:=Nothing, relaxationReceiverPlaceholderOpt:=Nothing, type:=node.Type)
-                End If
+                returnValue = RewriteLambdaRelaxationConversion(node)
 
             ElseIf node.ConversionKind = ConversionKind.InterpolatedString Then
                 returnValue = RewriteInterpolatedStringConversion(node)
@@ -129,9 +112,82 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return returnValue
         End Function
 
-        Private Shared Function NoParameterRelaxation(fromLambda As LambdaSymbol, toLambda As LambdaSymbol) As Boolean
+        Private Function RewriteLambdaRelaxationConversion(node As BoundConversion) As BoundNode
+            Dim returnValue As BoundNode
+
+            If _inExpressionLambda AndAlso
+                 NoParameterRelaxation(node.Operand, node.RelaxationLambdaOpt.LambdaSymbol) Then
+
+                ' COMPAT: skip relaxation in this case. ET can drop the return value of the inner lambda.
+                returnValue = MyBase.VisitConversion(
+                    node.Update(node.Operand,
+                                      node.ConversionKind, node.Checked, node.ExplicitCastInCode,
+                                      node.ConstantValueOpt, node.ConstructorOpt,
+                                      relaxationLambdaOpt:=Nothing, relaxationReceiverPlaceholderOpt:=Nothing, type:=node.Type))
+
+                returnValue = TransformRewrittenConversion(DirectCast(returnValue, BoundConversion))
+            Else
+                returnValue = node.Update(VisitExpressionNode(node.RelaxationLambdaOpt),
+                                      node.ConversionKind, node.Checked, node.ExplicitCastInCode,
+                                      node.ConstantValueOpt, node.ConstructorOpt,
+                                      relaxationLambdaOpt:=Nothing, relaxationReceiverPlaceholderOpt:=Nothing, type:=node.Type)
+            End If
+
+            Return returnValue
+        End Function
+
+        Private Function RewriteLambdaRelaxationConversion(node As BoundDirectCast) As BoundNode
+            Dim returnValue As BoundNode
+
+            If _inExpressionLambda AndAlso
+                 NoParameterRelaxation(node.Operand, node.RelaxationLambdaOpt.LambdaSymbol) Then
+
+                ' COMPAT: skip relaxation in this case. ET can drop the return value of the inner lambda.
+                returnValue = MyBase.VisitDirectCast(
+                    node.Update(node.Operand,
+                                      node.ConversionKind, node.SuppressVirtualCalls,
+                                      node.ConstantValueOpt,
+                                      relaxationLambdaOpt:=Nothing, type:=node.Type))
+
+            Else
+                returnValue = node.Update(VisitExpressionNode(node.RelaxationLambdaOpt),
+                                      node.ConversionKind, node.SuppressVirtualCalls,
+                                      node.ConstantValueOpt,
+                                      relaxationLambdaOpt:=Nothing, type:=node.Type)
+            End If
+
+            Return returnValue
+        End Function
+
+        Private Function RewriteLambdaRelaxationConversion(node As BoundTryCast) As BoundNode
+            Dim returnValue As BoundNode
+
+            If _inExpressionLambda AndAlso
+                 NoParameterRelaxation(node.Operand, node.RelaxationLambdaOpt.LambdaSymbol) Then
+
+                ' COMPAT: skip relaxation in this case. ET can drop the return value of the inner lambda.
+                returnValue = MyBase.VisitTryCast(
+                    node.Update(node.Operand,
+                                      node.ConversionKind,
+                                      node.ConstantValueOpt,
+                                      relaxationLambdaOpt:=Nothing, type:=node.Type))
+
+            Else
+                returnValue = node.Update(VisitExpressionNode(node.RelaxationLambdaOpt),
+                                      node.ConversionKind,
+                                      node.ConstantValueOpt,
+                                      relaxationLambdaOpt:=Nothing, type:=node.Type)
+            End If
+
+            Return returnValue
+        End Function
+
+        Private Shared Function NoParameterRelaxation(from As BoundExpression, toLambda As LambdaSymbol) As Boolean
+            Dim fromLambda As LambdaSymbol = TryCast(from, BoundLambda)?.LambdaSymbol
+
             ' are we are relaxing for the purpose of dropping return?
-            Return Not fromLambda.IsSub AndAlso
+            Return fromLambda IsNot Nothing AndAlso
+                Not fromLambda.IsSub AndAlso
                 toLambda.IsSub AndAlso
                 MethodSignatureComparer.HaveSameParameterTypes(fromLambda.Parameters, Nothing, toLambda.Parameters, Nothing, considerByRef:=True, considerCustomModifiers:=False)
 
@@ -1221,9 +1277,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             If node.RelaxationLambdaOpt Is Nothing Then
                 returnValue = MyBase.VisitDirectCast(node)
             Else
-                returnValue = node.Update(VisitExpressionNode(node.RelaxationLambdaOpt),
-                                   node.ConversionKind, node.SuppressVirtualCalls, node.ConstantValueOpt,
-                                   relaxationLambdaOpt:=Nothing, type:=node.Type)
+                returnValue = RewriteLambdaRelaxationConversion(node)
             End If
 
             _inExpressionLambda = wasInExpressionlambda
@@ -1273,9 +1327,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
 
             Else
-                returnValue = node.Update(VisitExpressionNode(node.RelaxationLambdaOpt),
-                                       node.ConversionKind, node.ConstantValueOpt,
-                                       relaxationLambdaOpt:=Nothing, type:=node.Type)
+                returnValue = RewriteLambdaRelaxationConversion(node)
             End If
 
             _inExpressionLambda = wasInExpressionlambda
