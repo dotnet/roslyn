@@ -138,8 +138,13 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public SyntaxNode MethodDeclaration(IMethodSymbol method, IEnumerable<SyntaxNode> statements = null)
         {
+            return MethodDeclaration(method, method.Name, statements);
+        }
+
+        internal SyntaxNode MethodDeclaration(IMethodSymbol method, string name, IEnumerable<SyntaxNode> statements = null)
+        {
             var decl = MethodDeclaration(
-                method.Name,
+                name,
                 parameters: method.Parameters.Select(p => ParameterDeclaration(p)),
                 returnType: method.ReturnType.IsSystemVoid() ? null : TypeExpression(method.ReturnType),
                 accessibility: method.DeclaredAccessibility,
@@ -1112,6 +1117,8 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract SyntaxNode AddInterfaceType(SyntaxNode declaration, SyntaxNode interfaceType);
 
+        internal abstract SyntaxNode AsInterfaceMember(SyntaxNode member);
+
         #endregion
 
         #region Remove, Replace, Insert
@@ -1182,6 +1189,11 @@ namespace Microsoft.CodeAnalysis.Editing
 
         protected static SyntaxNode PreserveTrivia<TNode>(TNode node, Func<TNode, SyntaxNode> nodeChanger) where TNode : SyntaxNode
         {
+            if (node == null)
+            {
+                return node;
+            }
+
             var nodeWithoutTrivia = node.WithoutLeadingTrivia().WithoutTrailingTrivia();
 
             var changedNode = nodeChanger(nodeWithoutTrivia);
@@ -1486,6 +1498,10 @@ namespace Microsoft.CodeAnalysis.Editing
         /// <param name="identifier"></param>
         /// <returns></returns>
         public abstract SyntaxNode IdentifierName(string identifier);
+
+        internal abstract SyntaxNode IdentifierName(SyntaxToken identifier);
+        internal abstract SyntaxToken Identifier(string identifier);
+        internal abstract SyntaxNode NamedAnonymousObjectMemberDeclarator(SyntaxNode identifier, SyntaxNode expression);
 
         /// <summary>
         /// Creates an expression that denotes a generic identifier name.

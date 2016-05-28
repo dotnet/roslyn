@@ -357,6 +357,7 @@
     <Compile Include="RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsService.cs" />
     <Compile Include="RemoveUnnecessaryImports\CSharpRemoveUnnecessaryImportsService.Rewriter.cs" />
     <Compile Include="ReplaceMethodWithProperty\CSharpReplaceMethodWithPropertyService.cs" />
+    <Compile Include="ReplacePropertyWithMethods\CSharpReplacePropertyWithMethodsService.cs" />
     <Compile Include="SignatureHelp\AbstractCSharpSignatureHelpProvider.cs" />
     <Compile Include="SignatureHelp\AttributeSignatureHelpProvider.cs" />
     <Compile Include="SignatureHelp\ConstructorInitializerSignatureHelpProvider.cs" />

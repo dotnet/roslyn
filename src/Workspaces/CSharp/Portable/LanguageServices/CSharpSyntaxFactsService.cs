@@ -614,10 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsAttributeNamedArgumentIdentifier(SyntaxNode node)
         {
             var identifier = node as IdentifierNameSyntax;
-            return
-                identifier != null &&
-                identifier.IsParentKind(SyntaxKind.NameEquals) &&
-                identifier.Parent.IsParentKind(SyntaxKind.AttributeArgument);
+            return identifier.IsAttributeNamedArgumentIdentifier();
         }
 
         public SyntaxNode GetContainingTypeDeclaration(SyntaxNode root, int position)
@@ -1608,6 +1605,44 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return (node as QualifiedNameSyntax)?.Right ??
                 (node as MemberAccessExpressionSyntax)?.Name;
+        }
+
+        public bool IsLeftSideOfAssignment(SyntaxNode node)
+        {
+            return (node as ExpressionSyntax).IsLeftSideOfAssignExpression();
+        }
+
+        public bool IsLeftSideOfAnyAssignment(SyntaxNode node)
+        {
+            return (node as ExpressionSyntax).IsLeftSideOfAnyAssignExpression();
+        }
+
+        public SyntaxNode GetRightHandSideOfAssignment(SyntaxNode node)
+        {
+            return (node as AssignmentExpressionSyntax)?.Right;
+        }
+
+        public bool IsInferredAnonymousObjectMemberDeclarator(SyntaxNode node)
+        {
+            return node.IsKind(SyntaxKind.AnonymousObjectMemberDeclarator) &&
+                ((AnonymousObjectMemberDeclaratorSyntax)node).NameEquals == null;
+        }
+
+        public bool IsOperandOfIncrementExpression(SyntaxNode node)
+        {
+            return node.IsParentKind(SyntaxKind.PostIncrementExpression) ||
+                node.IsParentKind(SyntaxKind.PreIncrementExpression);
+        }
+
+        public bool IsOperandOfDecrementExpression(SyntaxNode node)
+        {
+            return node.IsParentKind(SyntaxKind.PostDecrementExpression) ||
+                node.IsParentKind(SyntaxKind.PreDecrementExpression);
+        }
+
+        public bool IsOperandOfIncrementOrDecrementExpression(SyntaxNode node)
+        {
+            return IsOperandOfIncrementExpression(node) || IsOperandOfDecrementExpression(node);
         }
     }
 }
