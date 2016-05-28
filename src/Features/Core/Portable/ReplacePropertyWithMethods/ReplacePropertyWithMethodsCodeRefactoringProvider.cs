@@ -341,7 +341,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
             var editor = new SyntaxEditor(root, updatedSolution.Workspace);
 
-            // First replace all the get methods with properties.
+            // First replace all the properties with the appropriate getters/setters.
             foreach (var definition in currentDefinitions)
             {
                 cancellationToken.ThrowIfCancellationRequested();
