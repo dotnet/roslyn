@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression notNull = byType.Type.IsNullableType()
                     ? this.RewriteNullableNullEquality(_factory.Syntax, BinaryOperatorKind.NullableNullNotEqual, byType.Expression, nullValue, _factory.SpecialType(SpecialType.System_Boolean))
                     : _factory.ObjectNotEqual(byType.Expression, nullValue);
-                result.Add(_factory.If(notNull, _factory.Goto(notNullLabel)));
+                result.Add(_factory.ConditionalGoto(notNull, notNullLabel, true));
                 LowerDecisionTree(byType.WhenNull, usedLabels, usedTemps, result);
                 result.Add(_factory.Goto(defaultLabel));
                 result.Add(_factory.Label(notNullLabel));
@@ -125,14 +125,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var type = td.Key;
                 var decision = td.Value;
                 var failLabel = _factory.GenerateLabel("failedDecision");
-                grep("if there is a fresh temp needed, copy to it and add the temp from ", decision.Expression, " to ", usedTemps);
-                grep("test for the type ", type, " into that temp and goto failLabel when that fails");
+                var testAndCopy = TypeTestAndCopyToTemp(byType.Expression, decision.Expression);
+                result.Add(_factory.ConditionalGoto(testAndCopy, failLabel, false));
                 LowerDecisionTree(decision, usedLabels, usedTemps, result);
                 result.Add(_factory.Label(failLabel));
             }
 
             result.Add(_factory.Label(defaultLabel));
             LowerDecisionTree(byType.Default, usedLabels, usedTemps, result);
+        }
+
+        private BoundExpression TypeTestAndCopyToTemp(BoundExpression input, BoundExpression temp)
+        {
+            if (input == temp)
+            {
+                // if the expression is the same, no need to type test and copy to temp
+                return _factory.Literal(true);
+            }
+
+            Debug.Assert(temp.Kind == BoundKind.Local);
+            return MakeDeclarationPattern(_factory.Syntax, input, ((BoundLocal)temp).LocalSymbol);
         }
 
         private void LowerDecisionTree(DecisionTree.ByValue byValue, HashSet<LabelSymbol> usedLabels, HashSet<LocalSymbol> usedTemps, ArrayBuilder<BoundStatement> result)

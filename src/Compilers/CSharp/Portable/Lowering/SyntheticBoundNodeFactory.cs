@@ -646,6 +646,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return If(condition, ImmutableArray<LocalSymbol>.Empty, thenClause, elseClauseOpt);
         }
 
+        public BoundStatement ConditionalGoto(BoundExpression condition, LabelSymbol label, bool jumpIfTrue)
+        {
+            return new BoundConditionalGoto(Syntax, condition, jumpIfTrue, label) { WasCompilerGenerated = true };
+        }
+
         public BoundStatement If(BoundExpression condition, ImmutableArray<LocalSymbol> locals, BoundStatement thenClause, BoundStatement elseClauseOpt = null)
         {
             // We translate
@@ -668,7 +673,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var alt = new GeneratedLabelSymbol("alternative");
 
-                statements.Add(new BoundConditionalGoto(Syntax, condition, false, alt) { WasCompilerGenerated = true });
+                statements.Add(ConditionalGoto(condition, alt, false));
                 statements.Add(thenClause);
                 statements.Add(Goto(afterif));
                 if (!locals.IsDefaultOrEmpty)
@@ -683,7 +688,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
-                statements.Add(new BoundConditionalGoto(Syntax, condition, false, afterif) { WasCompilerGenerated = true });
+                statements.Add(ConditionalGoto(condition, afterif, false));
                 statements.Add(thenClause);
                 if (!locals.IsDefaultOrEmpty)
                 {
@@ -695,34 +700,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             statements.Add(Label(afterif));
             return Block(statements.ToImmutableAndFree());
-        }
-
-        public BoundStatement For(BoundExpression initialization, BoundExpression termination, BoundExpression increment, BoundStatement body)
-        {
-            //      for(<initialization>; <increment>; <termination>)
-            //      {
-            //          <body>;
-            //      }
-
-            //  Lowered form:
-
-            //      <initialization>;
-            //      goto LoopCondition;
-            //      LoopStart:
-            //      <body>
-            //      <increment>
-            //      LoopCondition:
-            //      if(<termination>)
-            //          goto LoopStart;
-            var lLoopStart = GenerateLabel("LoopStart");
-            var lLoopCondition = GenerateLabel("LoopCondition");
-            return Block(ExpressionStatement(initialization),
-                         Goto(lLoopCondition),
-                         Label(lLoopStart),
-                         body,
-                         ExpressionStatement(increment),
-                         Label(lLoopCondition),
-                         If(termination, Goto(lLoopStart)));
         }
 
         public BoundThrowStatement Throw(BoundExpression e = null)
