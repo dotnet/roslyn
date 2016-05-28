@@ -150,7 +150,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter.IsUnavailable Then
                     Throw New InvalidOperationException
                 Else
-                    Return Nothing
+                    Return Nothing 'ConstantValue.Nothing.Value
                 End If
             End Get
         End Property

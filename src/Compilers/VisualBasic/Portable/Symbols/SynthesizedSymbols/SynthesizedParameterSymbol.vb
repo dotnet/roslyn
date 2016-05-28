@@ -4,6 +4,7 @@ Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FeatureExtensions
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
@@ -338,7 +339,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public NotOverridable Overrides ReadOnly Property HasExplicitDefaultValue As Boolean
             Get
-                Return _defaultValue IsNot Nothing
+                Return (_defaultValue IsNot Nothing) ' OrElse InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter.IsAvailable
             End Get
         End Property
 

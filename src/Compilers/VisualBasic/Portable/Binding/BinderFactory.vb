@@ -332,7 +332,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Case NodeUsage.ParameterDefaultValue
                     Dim parameterSyntax = DirectCast(node, ParameterSyntax)
 
-                    If (parameterSyntax.Default IsNot Nothing) OrElse InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter.IsAvailable Then
+                    If (parameterSyntax.Default IsNot Nothing) Then
                         Dim parameterListSyntax = DirectCast(parameterSyntax.Parent, ParameterListSyntax)
                         Dim methodSyntax = DirectCast(parameterListSyntax.Parent, MethodBaseSyntax)
                         Dim parameterSymbol As ParameterSymbol = Nothing
