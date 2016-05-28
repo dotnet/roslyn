@@ -664,15 +664,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Prefer framework type.
-        /// </summary>
-        internal static string PreferFrameworkType {
-            get {
-                return ResourceManager.GetString("PreferFrameworkType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to For locals, parameters and members.
         /// </summary>
         internal static string PreferIntrinsicPredefinedTypeKeywordInDeclaration {
@@ -687,15 +678,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string PreferIntrinsicPredefinedTypeKeywordInMemberAccess {
             get {
                 return ResourceManager.GetString("PreferIntrinsicPredefinedTypeKeywordInMemberAccess", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Prefer predefined type.
-        /// </summary>
-        internal static string PreferPredefinedType {
-            get {
-                return ResourceManager.GetString("PreferPredefinedType", resourceCulture);
             }
         }
         

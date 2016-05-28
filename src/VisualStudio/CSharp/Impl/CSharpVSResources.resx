@@ -438,12 +438,6 @@
   <data name="PreferExplicitType" xml:space="preserve">
     <value>Prefer explicit type</value>
   </data>
-  <data name="PreferFrameworkType" xml:space="preserve">
-    <value>Prefer framework type</value>
-  </data>
-  <data name="PreferPredefinedType" xml:space="preserve">
-    <value>Prefer predefined type</value>
-  </data>
   <data name="PreferThis" xml:space="preserve">
     <value>Prefer 'this.'</value>
   </data>

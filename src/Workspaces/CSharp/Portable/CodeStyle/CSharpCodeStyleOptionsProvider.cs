@@ -3,6 +3,7 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Composition;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
 
@@ -13,6 +14,10 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle
     {
         private readonly IEnumerable<IOption> _options = new List<IOption>
             {
+                CodeStyleOptions.QualifyFieldAccess,
+                CodeStyleOptions.QualifyPropertyAccess,
+                CodeStyleOptions.QualifyMethodAccess,
+                CodeStyleOptions.QualifyEventAccess,
                 CSharpCodeStyleOptions.UseVarWhenDeclaringLocals,
                 CSharpCodeStyleOptions.UseImplicitTypeWherePossible,
                 CSharpCodeStyleOptions.UseImplicitTypeWhereApparent,

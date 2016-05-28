@@ -1019,4 +1019,16 @@ This version used in: {2}</value>
   <data name="AddBraces" xml:space="preserve">
     <value>Add braces</value>
   </data>
+  <data name="Replace_0_with_method" xml:space="preserve">
+    <value>Replace '{0}' with method</value>
+  </data>
+  <data name="Replace_0_with_methods" xml:space="preserve">
+    <value>Replace '{0}' with methods</value>
+  </data>
+  <data name="Property_referenced_implicitly" xml:space="preserve">
+    <value>Property referenced implicitly</value>
+  </data>
+  <data name="Property_cannot_safely_be_replaced_with_a_method_call" xml:space="preserve">
+    <value>Property cannot safely be replaced with a method call</value>
+  </data>
 </root>
