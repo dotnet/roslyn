@@ -244,6 +244,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ((ConstructorInitializerSyntax)token.Parent).ThisOrBaseKeyword == token;
         }
 
+        public bool IsConstructorIdentifier(SyntaxToken token)
+        {
+            return token.Parent.IsKind(SyntaxKind.ConstructorDeclaration);
+        }
+
         public bool IsQueryExpression(SyntaxNode node)
         {
             return node is QueryExpressionSyntax;
@@ -1344,6 +1349,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return constructors;
         }
 
+        public IEnumerable<SyntaxToken> GetConstructorTokens(SyntaxNode root, CancellationToken cancellationToken)
+        {
+            return GetConstructors(root, cancellationToken).Select(n => ((ConstructorDeclarationSyntax)n).Identifier);
+        }
+
         private void AppendConstructors(SyntaxList<MemberDeclarationSyntax> members, List<SyntaxNode> constructors, CancellationToken cancellationToken)
         {
             foreach (var member in members)
@@ -1439,5 +1449,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return string.Empty;
         }
+
     }
 }

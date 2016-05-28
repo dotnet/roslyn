@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace Microsoft.CodeAnalysis.FindSymbols.Finders
 {
@@ -36,7 +37,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 var identifierInfo = await SyntaxTreeInfo.GetIdentifierInfoAsync(d, c).ConfigureAwait(false);
                 if (identifierInfo.ProbablyContainsIdentifier(symbol.ContainingType.Name))
                 {
-                    if (contextInfo.ContainsThisConstructorInitializer)
+                    var declaredInfo = await SyntaxTreeInfo.GetDeclarationInfoAsync(d, c).ConfigureAwait(false);
+                    if (contextInfo.ContainsThisConstructorInitializer || declaredInfo.DeclaredSymbolInfos.Any(i => i.Kind == DeclaredSymbolInfoKind.Constructor))
                     {
                         return true;
                     }
@@ -76,22 +78,76 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 {
                     return true;
                 }
+                else if (syntaxFactsService.IsConstructorIdentifier(t))
+                {
+                    var containingType = semanticModel.GetEnclosingNamedType(t.SpanStart, cancellationToken);
+                    if (((ConstructorDeclarationSyntax)t.Parent).Initializer == null
+                        && containingType != null
+                        && containingType.BaseType != null
+                        && containingType.BaseType.Name == typeName)
+                    {
+                        return true;
+                    }
+                }
 
                 return false;
             };
 
             var tokens = await document.GetConstructorInitializerTokensAsync(cancellationToken).ConfigureAwait(false);
+            var ctorTokens = await document.GetConstructorTokensAsync(cancellationToken).ConfigureAwait(false);
+            tokens = tokens.Concat(ctorTokens);
             if (semanticModel.Language == LanguageNames.VisualBasic)
             {
                 tokens = tokens.Concat(await document.GetIdentifierOrGlobalNamespaceTokensWithTextAsync("New", cancellationToken).ConfigureAwait(false)).Distinct();
             }
 
-            return await FindReferencesInTokensAsync(
+            return await FindReferencesAndConstructorsInTokensAsync(
                  methodSymbol,
                  document,
+                 syntaxFactsService,
                  tokens,
                  tokensMatch,
                  cancellationToken).ConfigureAwait(false);
+        }
+
+        private Task<IEnumerable<ReferenceLocation>> FindReferencesAndConstructorsInTokensAsync(
+            IMethodSymbol symbol,
+            Document document,
+            ISyntaxFactsService syntaxFactsService,
+            IEnumerable<SyntaxToken> tokens,
+            Func<SyntaxToken, bool> tokensMatch,
+            CancellationToken cancellationToken,
+            Func<SyntaxToken, SyntaxNode> findParentNode = null)
+        {
+            var standardSymbolsMatch = GetStandardSymbolsMatchFunction(symbol, findParentNode, document.Project.Solution, cancellationToken);
+            Func<SyntaxToken, SemanticModel, ValueTuple<bool, CandidateReason>> ctorMatch = (t, model) =>
+            {
+                if (syntaxFactsService.IsConstructorIdentifier(t))
+                {
+                    return ValueTuple.Create(true, CandidateReason.None);
+                }
+                return ValueTuple.Create(false, CandidateReason.None);
+            };
+
+            Func<SyntaxToken, SemanticModel, ValueTuple<bool, CandidateReason>> symbolAndCtorMatch = (t, model) =>
+            {
+                var symbolMatchResult = standardSymbolsMatch(t, model);
+                if (symbolMatchResult.Item1)
+                {
+                    return symbolMatchResult;
+                }
+                else
+                {
+                    return ctorMatch(t, model);
+                }
+            };
+
+            return FindReferencesInTokensAsync(
+                document,
+                tokens,
+                tokensMatch,
+                symbolAndCtorMatch,
+                cancellationToken);
         }
     }
 }

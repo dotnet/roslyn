@@ -820,6 +820,14 @@ End Class]]></a>.Value.NormalizeLineEndings()
             Public Function GetNameForArgument(argument As SyntaxNode) As String Implements ISyntaxFactsService.GetNameForArgument
                 Throw New NotImplementedException()
             End Function
+
+            Public Function GetConstructorTokens(root As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of SyntaxToken) Implements ISyntaxFactsService.GetConstructorTokens
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function IsConstructorIdentifier(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsConstructorIdentifier
+                Throw New NotImplementedException()
+            End Function
         End Class
     End Class
 End Namespace

@@ -915,6 +915,16 @@ class C
             {
                 throw new NotImplementedException();
             }
+
+            public IEnumerable<SyntaxToken> GetConstructorTokens(SyntaxNode root, CancellationToken cancellationToken)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsConstructorIdentifier(SyntaxToken token)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

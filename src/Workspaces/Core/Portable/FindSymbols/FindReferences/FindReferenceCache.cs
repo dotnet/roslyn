@@ -189,6 +189,32 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return initializers;
         }
 
+        public static IEnumerable<SyntaxToken> GetConstructorTokens(
+            ISyntaxFactsService syntaxFacts, SemanticModel model, SyntaxNode root, CancellationToken cancellationToken)
+        {
+            // this one will only get called when we know given document contains constructor initializer.
+            // no reason to use text to check whether it exist first.
+            var entry = GetCachedEntry(model);
+            if (entry == null)
+            {
+                return GetConstructorTokens(syntaxFacts, root, cancellationToken);
+            }
+
+            if (entry.ConstructorCache == null)
+            {
+                var constructors = GetConstructorTokens(syntaxFacts, root, cancellationToken);
+                Interlocked.CompareExchange(ref entry.ConstructorCache, constructors, null);
+            }
+
+            return entry.ConstructorCache;
+        }
+
+        private static List<SyntaxToken> GetConstructorTokens(
+            ISyntaxFactsService syntaxFacts, SyntaxNode root, CancellationToken cancellationToken)
+        {
+            return syntaxFacts.GetConstructorTokens(root, cancellationToken).ToList();
+        }
+
         private static ConcurrentDictionary<SyntaxNode, SymbolInfo> GetNodeCache(SemanticModel model)
         {
             var entry = GetCachedEntry(model);
@@ -255,6 +281,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             public int Count;
             public ImmutableHashSet<string> AliasNameSet;
             public List<SyntaxToken> ConstructorInitializerCache;
+            public List<SyntaxToken> ConstructorCache;
 
             public readonly ConcurrentDictionary<string, IList<SyntaxToken>> IdentifierCache = new ConcurrentDictionary<string, IList<SyntaxToken>>();
             public readonly ConcurrentDictionary<SyntaxNode, SymbolInfo> SymbolInfoCache = new ConcurrentDictionary<SyntaxNode, SymbolInfo>();

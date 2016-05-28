@@ -1142,6 +1142,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return constructors
         End Function
 
+        Public Function GetConstructorTokens(root As SyntaxNode, cancellationToken As CancellationToken) As IEnumerable(Of SyntaxToken) Implements ISyntaxFactsService.GetConstructorTokens
+            Return Nothing
+        End Function
+
         Private Sub AppendConstructors(members As SyntaxList(Of StatementSyntax), constructors As List(Of SyntaxNode), cancellationToken As CancellationToken)
             For Each member As StatementSyntax In members
                 cancellationToken.ThrowIfCancellationRequested()
@@ -1184,6 +1188,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return String.Empty
+        End Function
+
+        Public Function IsConstructorIdentifier(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsConstructorIdentifier
+            Throw New NotImplementedException()
         End Function
     End Class
 End Namespace

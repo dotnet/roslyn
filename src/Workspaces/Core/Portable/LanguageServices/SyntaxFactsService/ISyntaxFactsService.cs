@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsThisConstructorInitializer(SyntaxToken token);
         bool IsBaseConstructorInitializer(SyntaxToken token);
+        bool IsConstructorIdentifier(SyntaxToken token);
         bool IsQueryExpression(SyntaxNode node);
         bool IsElementAccessExpression(SyntaxNode node);
         bool IsIndexerMemberCRef(SyntaxNode node);
@@ -154,6 +155,8 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode GetBindableParent(SyntaxToken token);
 
         IEnumerable<SyntaxNode> GetConstructors(SyntaxNode root, CancellationToken cancellationToken);
+
+        IEnumerable<SyntaxToken> GetConstructorTokens(SyntaxNode root, CancellationToken cancellationToken);
 
         bool TryGetCorrespondingOpenBrace(SyntaxToken token, out SyntaxToken openBrace);
 

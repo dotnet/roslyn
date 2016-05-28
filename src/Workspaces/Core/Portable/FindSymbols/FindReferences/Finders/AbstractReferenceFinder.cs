@@ -222,7 +222,6 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 {
                     var symbolInfoToMatch = FindReferenceCache.GetSymbolInfo(model, node, cancellationToken);
 
-                    var symbolToMatch = symbolInfoToMatch.Symbol;
                     var symbolToMatchCompilation = model.Compilation;
 
                     if (DependentTypeFinder.OriginalSymbolsMatch(searchSymbol, symbolInfoToMatch.Symbol, solution, null, symbolToMatchCompilation, cancellationToken))

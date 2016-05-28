@@ -33,6 +33,26 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return FindReferenceCache.GetConstructorInitializerTokens(syntaxFacts, model, root, cancellationToken);
         }
 
+        public static async Task<IEnumerable<SyntaxToken>> GetConstructorTokensAsync(this Document document, CancellationToken cancellationToken)
+        {
+            // model should exist already
+            SemanticModel model;
+            if (!document.TryGetSemanticModel(out model))
+            {
+                return Contract.FailWithReturn<IEnumerable<SyntaxToken>>("we should never reach here");
+            }
+
+            var root = await model.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
+
+            var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+            if (syntaxFacts == null)
+            {
+                return SpecializedCollections.EmptyEnumerable<SyntaxToken>();
+            }
+
+            return FindReferenceCache.GetConstructorTokens(syntaxFacts, model, root, cancellationToken);
+        }
+
         internal static async Task<IEnumerable<SyntaxToken>> GetIdentifierOrGlobalNamespaceTokensWithTextAsync(
             this Document document, string identifier, CancellationToken cancellationToken)
         {
