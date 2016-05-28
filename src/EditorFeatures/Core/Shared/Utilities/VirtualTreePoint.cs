@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Utilities
 
         public override string ToString()
         {
-            return $"VirtualTreePoint {{ Tree: '{Tree}', Text: '{Text}', Position: '{Position}', VirtualSpaces '{VirtualPosition}' }}";
+            return $"VirtualTreePoint {{ Tree: '{Tree}', Text: '{Text}', Position: '{Position}', VirtualSpaces '{VirtualSpaces}' }}";
         }
 
         public TextLine GetContainingLine()
