@@ -63,9 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor.Navigation
                 // CancellationToken.None.
                 var semanticModel = Document.GetPartialSemanticModelAsync(CancellationToken.None).GetAwaiter().GetResult();
 
-                var root = semanticModel.SyntaxTree.GetRoot(CancellationToken.None);
-                var node = root.FindNode(_declaredSymbolInfo.Span);
-                return semanticModel.GetDeclaredSymbol(node, CancellationToken.None);
+                return _declaredSymbolInfo.Resolve(semanticModel, CancellationToken.None);
             }
         }
     }

@@ -460,6 +460,14 @@ End Class
             Await VerifyProviderCommitAsync(markup, "E.A", expected, ","c, textTypedSoFar:="")
         End Function
 
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WorkItem(201807, "https://devdiv.visualstudio.com/DevDiv/_workitems?id=201807&triage=true&_a=edit")>
+        Public Async Function TestDoNotCrashAtPosition1AfterEquals() As Task
+            Dim markup = <Text><![CDATA[=$$     
+]]></Text>.Value
+            Await VerifyNoItemsExistAsync(markup)
+        End Function
+
         Friend Overrides Function CreateCompletionProvider() As CompletionProvider
             Return New EnumCompletionProvider()
         End Function

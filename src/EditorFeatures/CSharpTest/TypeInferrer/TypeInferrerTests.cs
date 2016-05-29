@@ -1728,7 +1728,27 @@ class C
         args = args.Select(a =>[|b|])
     }
 }";
-            await TestAsync(text, "System.Object", testPosition: false);
+            await TestAsync(text, "System.String", testPosition: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        [WorkItem(1903, "https://github.com/dotnet/roslyn/issues/1903")]
+        public async Task TestSelectLambda3()
+        {
+            var text =
+@"using System.Collections.Generic;
+using System.Linq;
+
+class A { }
+class B { }
+class C
+{
+    IEnumerable<B> GetB(IEnumerable<A> a)
+    {
+        return a.Select(i => [|Foo(i)|]);
+    }
+}";
+            await TestAsync(text, "global::B");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]

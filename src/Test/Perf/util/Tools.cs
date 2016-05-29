@@ -7,10 +7,10 @@ using static Roslyn.Test.Performance.Utilities.TestUtilities;
 
 namespace Roslyn.Test.Performance.Utilities
 {
-    public class Tools
+    internal class Tools
     {
         /// Takes a consumptionTempResults file and converts to csv file
-        /// Each info contains the <ScenarioName, Metric Key, Metric value>
+        /// Each info contains the {ScenarioName, Metric Key, Metric value}
         public static bool ConvertConsumptionToCsv(string source, string destination, string requiredMetricKey, ILogger logger)
         {
             logger.Log("Entering ConvertConsumptionToCsv");

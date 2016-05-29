@@ -2,7 +2,7 @@
 
 namespace Roslyn.Test.Performance.Utilities
 {
-    public class TraceManagerFactory
+    internal class TraceManagerFactory
     {
         public static ITraceManager GetTraceManager(bool isVerbose = false)
         {

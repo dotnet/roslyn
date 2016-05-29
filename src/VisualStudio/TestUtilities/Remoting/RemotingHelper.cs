@@ -52,6 +52,8 @@ namespace Roslyn.VisualStudio.Test.Utilities.Remoting
             }
         }
 
+        public static IWpfTextViewMargin GetTextViewMargin(string marginName) => InvokeOnUIThread(() => ActiveTextViewHost.GetTextViewMargin(marginName));
+
         public static ReadOnlyCollection<ICompletionSession> ActiveTextViewCompletionSessions => CompletionBroker.GetSessions(ActiveTextView);
 
         public static IComponentModel ComponentModel => GetGlobalService<IComponentModel>(typeof(SComponentModel));
@@ -155,9 +157,9 @@ namespace Roslyn.VisualStudio.Test.Utilities.Remoting
 
         private static T GetGlobalService<T>(Type serviceType) => InvokeOnUIThread(() => (T)(GlobalServiceProvider.GetService(serviceType)));
 
-        private static void InvokeOnUIThread(Action action) => CurrentApplicationDispatcher.Invoke(action);
+        public static void InvokeOnUIThread(Action action) => CurrentApplicationDispatcher.Invoke(action);
 
-        private static T InvokeOnUIThread<T>(Func<T> action) => CurrentApplicationDispatcher.Invoke(action);
+        public static T InvokeOnUIThread<T>(Func<T> action) => CurrentApplicationDispatcher.Invoke(action);
 
         private static void LoadRoslynPackage()
         {

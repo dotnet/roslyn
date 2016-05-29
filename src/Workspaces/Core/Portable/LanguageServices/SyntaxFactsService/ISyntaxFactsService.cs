@@ -45,6 +45,20 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsObjectCreationExpression(SyntaxNode node);
         bool IsInvocationExpression(SyntaxNode node);
 
+        // Left side of = assignment.
+        bool IsLeftSideOfAssignment(SyntaxNode node);
+
+        // Left side of any assignment (for example  *=  or += )
+        bool IsLeftSideOfAnyAssignment(SyntaxNode node);
+        SyntaxNode GetRightHandSideOfAssignment(SyntaxNode node);
+
+        bool IsInferredAnonymousObjectMemberDeclarator(SyntaxNode node);
+        bool IsOperandOfIncrementExpression(SyntaxNode node);
+        bool IsOperandOfIncrementOrDecrementExpression(SyntaxNode node);
+
+        bool IsLeftSideOfDot(SyntaxNode node);
+        SyntaxNode GetRightSideOfDot(SyntaxNode node);
+
         bool IsRightSideOfQualifiedName(SyntaxNode node);
         bool IsMemberAccessExpressionName(SyntaxNode node);
 

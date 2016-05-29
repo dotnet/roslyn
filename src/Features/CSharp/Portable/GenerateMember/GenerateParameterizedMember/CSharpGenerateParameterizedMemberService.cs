@@ -169,6 +169,22 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
                 var conversion = compilation.ClassifyConversion(sourceType, targetType);
                 return conversion.IsImplicit && conversion.IsReference;
             }
+
+            protected override IList<ITypeSymbol> DetermineTypeArguments(CancellationToken cancellationToken)
+            {
+                var result = new List<ITypeSymbol>();
+
+                if (State.SimpleNameOpt is GenericNameSyntax)
+                {
+                    foreach (var typeArgument in ((GenericNameSyntax)State.SimpleNameOpt).TypeArgumentList.Arguments)
+                    {
+                        var type = this.Document.SemanticModel.GetTypeInfo(typeArgument, cancellationToken).Type;
+                        result.Add(type);
+                    }
+                }
+
+                return result;
+            }
         }
     }
 }
