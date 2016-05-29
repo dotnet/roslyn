@@ -3159,6 +3159,50 @@ t => Process(tt => Process(null))
 ]]>)
         End Sub
 
+        <Fact()>
+        Public Sub Relaxation08()
+            Dim file = <file name="expr.vb"><![CDATA[
+Imports System
+Imports System.Linq.Expressions
+Imports System.Reflection
+
+Module Module1
+
+    Sub Main()
+        Dim o As New C1(Of String)
+        o.Test()
+    End Sub
+
+End Module
+
+
+Class C1(Of T)
+
+    Sub Test()
+        Dim anonymousDelegate = Function(x As Integer) x
+        RegisterMethod(Sub() M1(anonymousDelegate))
+    End Sub
+
+    Shared Sub M1(y As Action(Of Integer))
+    End Sub
+
+    Public Function RegisterMethod(methodLambdaExpression As Expression(Of Action)) As MethodInfo
+        System.Console.WriteLine(methodLambdaExpression.ToString())
+        methodLambdaExpression.Compile()()
+        Return Nothing
+    End Function
+
+End Class
+
+]]></file>
+
+            TestExpressionTrees(file,
+            <![CDATA[
+() => M1(a0 => Invoke(value(C1`1+_Closure$__1-0[System.String]).$VB$Local_anonymousDelegate, a0))
+]]>)
+        End Sub
+
+
 #End Region
 
 #Region "Xml Literals"
