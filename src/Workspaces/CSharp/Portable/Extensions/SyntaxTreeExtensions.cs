@@ -114,13 +114,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static bool IsNamespaceDeclarationNameContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            var namespaceName = token.GetAncestor<NamespaceDeclarationSyntax>();
-            if (namespaceName == null)
+            var namespaceDeclaration = token.GetAncestor<NamespaceDeclarationSyntax>();
+            if (namespaceDeclaration == null)
             {
                 return false;
             }
 
-            return namespaceName.Name.Span.IntersectsWith(position);
+            return namespaceDeclaration.Name.Span.IntersectsWith(position) || token == namespaceDeclaration.NamespaceKeyword;
         }
 
         public static bool IsRightOfDotOrArrowOrColonColon(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)

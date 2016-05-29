@@ -370,19 +370,165 @@ class CL {}";
             await VerifyItemExistsAsync(AddUsingDirectives("using System;", content), @"System");
         }
 
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task NamespaceName1()
+        public async Task NamespaceName_Unqualified_TopLevelNoPeers()
         {
-            await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"namespace $$"), @"String");
-            await VerifyItemIsAbsentAsync(AddUsingDirectives("using System;", @"namespace $$"), @"System");
+            var source = @"using System;
+
+namespace $$";
+
+            await VerifyItemExistsAsync(source, "System");
+            await VerifyItemIsAbsentAsync(source, "String");
         }
 
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-        public async Task NamespaceName2()
+        public async Task NamespaceName_Unqualified_TopLevelWithPeer()
         {
-            await VerifyItemIsAbsentAsync(@"namespace $$", @"String");
-            await VerifyItemIsAbsentAsync(@"namespace $$", @"System");
+            var source = @"
+namespace A { }
+
+namespace $$";
+
+            await VerifyItemExistsAsync(source, "A");
         }
+
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NamespaceName_Unqualified_NestedWithNoPeers()
+        {
+            var source = @"
+namespace A
+{
+    namespace $$
+}";
+
+            await VerifyNoItemsExistAsync(source);
+        }
+
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NamespaceName_Unqualified_NestedWithPeer()
+        {
+            var source = @"
+namespace A
+{
+    namespace B { }
+
+    namespace $$
+}";
+
+            await VerifyItemIsAbsentAsync(source, "A");
+            await VerifyItemExistsAsync(source, "B");
+        }
+
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NamespaceName_Unqualified_ExcludesCurrentDeclaration()
+        {
+            var source = @"namespace N$$S";
+
+            await VerifyItemIsAbsentAsync(source, "NS");
+        }
+
+//        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+//        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+//        public async Task NamespaceName_Unqualified_IncompleteDeclaration()
+//        {
+//            var source = @"
+//namespace A.B.C0 { }
+//
+//namespace A
+//{
+//    namespace B
+//    {
+//        namespace C$$
+//
+//        namespace C1.X { }
+//    }
+//
+//    namespace B.C2.Y { }
+//}
+//
+//namespace A.B.C3.Z { }";
+//
+//            await VerifyItemIsAbsentAsync(source, "C0");
+//            await VerifyItemExistsAsync(source, "C1");
+//            await VerifyItemExistsAsync(source, "C2");
+//            await VerifyItemExistsAsync(source, "C3");
+//            await VerifyItemIsAbsentAsync(source, "X");
+//            await VerifyItemIsAbsentAsync(source, "Y");
+//            await VerifyItemIsAbsentAsync(source, "Z");
+//        }
+
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NamespaceName_Qualified_NoPeers()
+        {
+            var source = @"namespace A.$$";
+
+            await VerifyNoItemsExistAsync(source);
+        }
+
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NamespaceName_Qualified_TopLevelWithPeer()
+        {
+            var source = @"
+namespace A.B { }
+
+namespace A.$$";
+
+            await VerifyItemExistsAsync(source, "B");
+        }
+
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NamespaceName_Qualified_NestedWithPeer()
+        {
+            var source = @"
+namespace A
+{
+    namespace B.C { }
+
+    namespace B.$$
+}";
+
+            await VerifyItemIsAbsentAsync(source, "A");
+            await VerifyItemIsAbsentAsync(source, "B");
+            await VerifyItemExistsAsync(source, "C");
+        }
+
+//        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+//        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+//        public async Task NamespaceName_Qualified_IncompleteDeclaration()
+//        {
+//            var source = @"
+//namespace A.B.C.D0 { }
+//
+//namespace A
+//{
+//    namespace B
+//    {
+//        namespace C.D$$
+//
+//        namespace C.D1.X { }
+//    }
+//
+//    namespace B.C.D2.Y { }
+//}
+//
+//namespace A.B.C.D3.Z { }";
+//
+//            await VerifyItemIsAbsentAsync(source, "D0");
+//            await VerifyItemExistsAsync(source, "D1");
+//            await VerifyItemExistsAsync(source, "D2");
+//            await VerifyItemExistsAsync(source, "D3");
+//            await VerifyItemIsAbsentAsync(source, "X");
+//            await VerifyItemIsAbsentAsync(source, "Y");
+//            await VerifyItemIsAbsentAsync(source, "Z");
+//        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task UnderNamespace()
