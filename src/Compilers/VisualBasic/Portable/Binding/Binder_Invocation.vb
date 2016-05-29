@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Collections
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FeatureExtensions
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
@@ -699,20 +700,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function BindInvocationExpression(
-            node As VisualBasicSyntaxNode,
-            target As VisualBasicSyntaxNode,
-            typeChar As TypeCharacter,
-            group As BoundMethodOrPropertyGroup,
-            boundArguments As ImmutableArray(Of BoundExpression),
-            argumentNames As ImmutableArray(Of String),
-            diagnostics As DiagnosticBag,
-            callerInfoOpt As VisualBasicSyntaxNode,
-            Optional allowConstructorCall As Boolean = False,
-            Optional suppressAbstractCallDiagnostics As Boolean = False,
-            Optional isDefaultMemberAccess As Boolean = False,
-            Optional representCandidateInDiagnosticsOpt As Symbol = Nothing,
-            Optional forceExpandedForm As Boolean = False
-        ) As BoundExpression
+                                                  node As VisualBasicSyntaxNode,
+                                                  target As VisualBasicSyntaxNode,
+                                                  typeChar As TypeCharacter,
+                                                  group As BoundMethodOrPropertyGroup,
+                                                  boundArguments As ImmutableArray(Of BoundExpression),
+                                                  argumentNames As ImmutableArray(Of String),
+                                                  diagnostics As DiagnosticBag,
+                                                  callerInfoOpt As VisualBasicSyntaxNode,
+                                         Optional allowConstructorCall As Boolean = False,
+                                         Optional suppressAbstractCallDiagnostics As Boolean = False,
+                                         Optional isDefaultMemberAccess As Boolean = False,
+                                         Optional representCandidateInDiagnosticsOpt As Symbol = Nothing,
+                                         Optional forceExpandedForm As Boolean = False
+                                                ) As BoundExpression
 
             Debug.Assert(group IsNot Nothing)
             Debug.Assert(allowConstructorCall OrElse Not IsGroupOfConstructors(group))
@@ -2588,11 +2589,11 @@ ProduceBoundNode:
         ''' data this function operates on.
         ''' </summary>
         Private Function PassArguments(
-            node As VisualBasicSyntaxNode,
-            ByRef candidate As OverloadResolution.CandidateAnalysisResult,
-            arguments As ImmutableArray(Of BoundExpression),
-            diagnostics As DiagnosticBag
-        ) As ImmutableArray(Of BoundExpression)
+                                        node As VisualBasicSyntaxNode,
+                                  ByRef candidate As OverloadResolution.CandidateAnalysisResult,
+                                        arguments As ImmutableArray(Of BoundExpression),
+                                        diagnostics As DiagnosticBag
+                                      ) As ImmutableArray(Of BoundExpression)
 
             Debug.Assert(candidate.State = OverloadResolution.CandidateAnalysisResultState.Applicable)
 
@@ -3022,13 +3023,18 @@ ProduceBoundNode:
 
         End Sub
 
-        Friend Function GetArgumentForParameterDefaultValue(param As ParameterSymbol, syntax As VisualBasicSyntaxNode, diagnostics As DiagnosticBag, callerInfoOpt As VisualBasicSyntaxNode) As BoundExpression
+        Friend Function GetArgumentForParameterDefaultValue(
+                                                             param As ParameterSymbol,
+                                                             syntax As VisualBasicSyntaxNode,
+                                                             diagnostics As DiagnosticBag,
+                                                             callerInfoOpt As VisualBasicSyntaxNode
+                                                           ) As BoundExpression
             Dim defaultArgument As BoundExpression = Nothing
 
             ' See Section 3 of §11.8.2 Applicable Methods
             ' Deal with Optional arguments. HasDefaultValue is true if the parameter is optional and has a default value.
             Dim defaultConstantValue As ConstantValue = If(param.IsOptional, param.ExplicitDefaultConstantValue(DefaultParametersInProgress), Nothing)
-            If defaultConstantValue IsNot Nothing Then
+            If (defaultConstantValue IsNot Nothing) OrElse InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter.IsAvailable Then
 
                 If callerInfoOpt IsNot Nothing AndAlso
                    callerInfoOpt.SyntaxTree IsNot Nothing AndAlso
@@ -3044,6 +3050,7 @@ ProduceBoundNode:
 
                         If isCallerLineNumber Then
                             callerInfoValue = ConstantValue.Create(callerInfoOpt.SyntaxTree.GetDisplayLineNumber(GetCallerLocation(callerInfoOpt)))
+
                         ElseIf isCallerMemberName Then
                             Dim container As Symbol = ContainingMember
 
@@ -3055,6 +3062,7 @@ ProduceBoundNode:
                                     Case SymbolKind.Method
                                         If container.IsLambdaMethod Then
                                             container = container.ContainingSymbol
+
                                         Else
                                             Dim propertyOrEvent As Symbol = DirectCast(container, MethodSymbol).AssociatedSymbol
 

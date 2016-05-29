@@ -320,7 +320,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                     Dim peModule = Me.PEModule
                     Dim handle = Me._handle
 
-                    If ((_flags And ParameterAttributes.HasDefault) <> 0) OrElse Feature.ImplicitDefaultValueOnOptionalParameter.IsAvailable Then
+                    If ((_flags And ParameterAttributes.HasDefault) <> 0) Then
                         defaultValue = peModule.GetParamDefaultValue(handle)
                     ElseIf IsOptional Then
                         ' Dev10 behavior just checks for Decimal then DateTime.  If both are specified, DateTime wins
