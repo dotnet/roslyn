@@ -510,6 +510,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             CheckSyntaxNode(expression);
 
+            SyntaxNode parent;
+
             if (!CanGetSemanticInfo(expression, allowNamedArgumentName: true))
             {
                 return SymbolInfo.None;
@@ -519,10 +521,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Named arguments handled in special way.
                 return this.GetNamedArgumentSymbolInfo((IdentifierNameSyntax)expression, cancellationToken);
             }
-            else if (expression.Parent?.Kind() == SyntaxKind.Argument && 
-                     ((ArgumentSyntax)expression.Parent).Type == expression)
+            else if ((parent = expression.Parent)?.Kind() == SyntaxKind.VariableDeclaration &&
+                     ((VariableDeclarationSyntax)parent).Type == expression &&
+                     (parent = parent.Parent)?.Kind() == SyntaxKind.Argument && 
+                     ((ArgumentSyntax)parent).Type == expression)
             {
-                TypeSymbol outVarType = (GetDeclaredSymbol((ArgumentSyntax)expression.Parent, cancellationToken) as LocalSymbol)?.Type;
+                TypeSymbol outVarType = (GetDeclaredSymbol(((ArgumentSyntax)parent).VariableDeclaration.Variables.First(), cancellationToken) as LocalSymbol)?.Type;
 
                 if (outVarType?.IsErrorType() == false)
                 {
@@ -2668,14 +2672,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract ISymbol GetDeclaredSymbol(VariableDeclaratorSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
-        /// Given an argument syntax, get symbol for an out var that it declares, if any.
-        /// </summary>
-        /// <param name="declarationSyntax">The syntax node that declares a variable.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The symbol that was declared.</returns>
-        public abstract ISymbol GetDeclaredSymbol(ArgumentSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
-
-        /// <summary>
         /// Given a declaration pattern syntax, get the corresponding symbol.
         /// </summary>
         /// <param name="declarationSyntax">The syntax node that declares a variable.</param>
@@ -4569,8 +4565,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return this.GetDeclaredSymbol((AnonymousObjectMemberDeclaratorSyntax)node, cancellationToken);
                 case SyntaxKind.VariableDeclarator:
                     return this.GetDeclaredSymbol((VariableDeclaratorSyntax)node, cancellationToken);
-                case SyntaxKind.Argument:
-                    return this.GetDeclaredSymbol((ArgumentSyntax)node, cancellationToken);
                 case SyntaxKind.DeclarationPattern:
                     return this.GetDeclaredSymbol((DeclarationPatternSyntax)node, cancellationToken);
                 case SyntaxKind.NamespaceDeclaration:

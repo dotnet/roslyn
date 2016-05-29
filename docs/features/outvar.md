@@ -41,26 +41,19 @@ corresponding parameter in the signature of the best candidate.
 
 **ArgumentSyntax node is extended as follows to accommodate for the new syntax:**
 
-- ```Expression``` field is made optional.
-- Two new optional fields are added.
+- ```Expression``` field is replaced with the following field
 ```
-    <Field Name="Type" Type="TypeSyntax" Optional="true"/>
-    <Field Name="Identifier" Type="SyntaxToken" Optional="true">
+    <Field Name="ExpressionOrDeclaration" Type="CSharpSyntaxNode" >
+      <PropertyComment>
+        <summary>
+          ExpressionSyntax node representing the argument value, 
+          or VariableDeclarationSyntax representing out local declaration.
+        </summary>
+      </PropertyComment>
+    </Field>
 ```
-
-
-**SemanticModel changes:**
-
-Added new API
-```
-        /// <summary>
-        /// Given an argument syntax, get symbol for an out var that it declares, if any.
-        /// </summary>
-        /// <param name="declarationSyntax">The syntax node that declares a variable.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The symbol that was declared.</returns>
-        public ISymbol GetDeclaredSymbol(ArgumentSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken));
-```
+The Expression property in the public API is preserved.
+VariableDeclarationSyntax is expected to contain single VariableDeclarator without initializer or arguments.
 
 
 **Open issues and TODOs:**

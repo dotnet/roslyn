@@ -4942,8 +4942,7 @@ tryAgain:
                             var expression = item as ExpressionSyntax;
                             if (expression != null)
                             {
-                                args.Add(_syntaxFactory.Argument(null, default(SyntaxToken), expression,
-                                                                 type: null, identifier: default(SyntaxToken)));
+                                args.Add(_syntaxFactory.Argument(null, default(SyntaxToken), expression));
                             }
                             else
                             {
@@ -9470,8 +9469,6 @@ tryAgain:
             }
 
             ExpressionSyntax expression;
-            TypeSyntax typeSyntax = null;
-            SyntaxToken identifier = default(SyntaxToken);
 
             if (isIndexer && (this.CurrentToken.Kind == SyntaxKind.CommaToken || this.CurrentToken.Kind == SyntaxKind.CloseBracketToken))
             {
@@ -9493,9 +9490,14 @@ tryAgain:
                     refOrOutKeyword != null && refOrOutKeyword.Kind == SyntaxKind.OutKeyword &&
                     IsPossibleOutVarDeclaration())
                 {
-                    expression = null;
-                    typeSyntax = ParseType(parentIsParameter: false);
-                    identifier = CheckFeatureAvailability(this.ParseIdentifierToken(), MessageID.IDS_FeatureOutVar);
+                    TypeSyntax typeSyntax = ParseType(parentIsParameter: false);
+                    SyntaxToken identifier = CheckFeatureAvailability(this.ParseIdentifierToken(), MessageID.IDS_FeatureOutVar);
+
+                    return _syntaxFactory.Argument(nameColon, refOrOutKeyword, 
+                               _syntaxFactory.VariableDeclaration(typeSyntax,
+                                   new SeparatedSyntaxList<VariableDeclaratorSyntax>(
+                                       new SyntaxList<CSharpSyntaxNode>(
+                                           _syntaxFactory.VariableDeclarator(identifier, null, null)))));
                 }
                 else
                 {
@@ -9503,7 +9505,7 @@ tryAgain:
                 }
             }
 
-            return _syntaxFactory.Argument(nameColon, refOrOutKeyword, expression, typeSyntax, identifier);
+            return _syntaxFactory.Argument(nameColon, refOrOutKeyword, expression);
         }
 
         private bool IsPossibleOutVarDeclaration()
@@ -9789,8 +9791,7 @@ tryAgain:
                     //  ( <expr>,    must be a tuple
                     if (this.CurrentToken.Kind == SyntaxKind.CommaToken)
                     {
-                        var firstArg = _syntaxFactory.Argument(nameColon: null, refOrOutKeyword: default(SyntaxToken), expression: expression, 
-                                                               type: null, identifier: default(SyntaxToken));
+                        var firstArg = _syntaxFactory.Argument(nameColon: null, refOrOutKeyword: default(SyntaxToken), expressionOrDeclaration: expression);
                         return ParseTupleExpressionTail(openParen, firstArg);
                     }
 
@@ -9801,8 +9802,7 @@ tryAgain:
                         var nameColon = _syntaxFactory.NameColon((IdentifierNameSyntax)expression, EatToken());
                         expression = ParseSubExpression(0);
 
-                        var firstArg = _syntaxFactory.Argument(nameColon, refOrOutKeyword: default(SyntaxToken), expression: expression, 
-                                                               type: null, identifier: default(SyntaxToken));
+                        var firstArg = _syntaxFactory.Argument(nameColon, refOrOutKeyword: default(SyntaxToken), expressionOrDeclaration: expression);
                         return ParseTupleExpressionTail(openParen, firstArg);
                     }
 
@@ -9837,13 +9837,11 @@ tryAgain:
                         var nameColon = _syntaxFactory.NameColon((IdentifierNameSyntax)expression, EatToken());
                         expression = ParseSubExpression(0);
 
-                        arg = _syntaxFactory.Argument(nameColon, refOrOutKeyword: default(SyntaxToken), expression: expression, 
-                                                      type: null, identifier: default(SyntaxToken));
+                        arg = _syntaxFactory.Argument(nameColon, refOrOutKeyword: default(SyntaxToken), expressionOrDeclaration: expression);
                     }
                     else
                     {
-                        arg = _syntaxFactory.Argument(nameColon: null, refOrOutKeyword: default(SyntaxToken), expression: expression, 
-                                                      type: null, identifier: default(SyntaxToken));
+                        arg = _syntaxFactory.Argument(nameColon: null, refOrOutKeyword: default(SyntaxToken), expressionOrDeclaration: expression);
                     }
 
                     list.Add(arg);

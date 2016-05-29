@@ -1644,18 +1644,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Given an argument syntax, get symbol for an out var that it declares, if any.
-        /// </summary>
-        /// <param name="declarationSyntax">The syntax node that declares a variable.</param>
-        /// <param name="cancellationToken">The cancellation token.</param>
-        /// <returns>The symbol that was declared.</returns>
-        public override ISymbol GetDeclaredSymbol(ArgumentSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            var memberModel = this.GetMemberModel(declarationSyntax);
-            return memberModel == null ? null : memberModel.GetDeclaredSymbol(declarationSyntax, cancellationToken);
-        }
-
-        /// <summary>
         /// Given a declaration pattern syntax, get the corresponding symbol.
         /// </summary>
         /// <param name="declarationSyntax">The syntax node that declares a variable.</param>

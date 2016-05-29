@@ -2517,10 +2517,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>Creates a new ArgumentSyntax instance.</summary>
         public static ArgumentSyntax Argument(NameColonSyntax nameColon, SyntaxToken refOrOutKeyword, ExpressionSyntax expression)
         {
-            if (expression == null)
-                throw new ArgumentNullException(nameof(expression));
-
-            return Argument(nameColon, refOrOutKeyword, expression, null, default(SyntaxToken));
+            return Argument(nameColon, refOrOutKeyword, (CSharpSyntaxNode)expression);
         }
 
         /// <summary>Creates a new ArgumentSyntax instance.</summary>
@@ -2530,30 +2527,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>Creates a new ArgumentSyntax instance.</summary>
-        public static ArgumentSyntax Argument(NameColonSyntax nameColon, SyntaxToken outKeyword, TypeSyntax type, SyntaxToken identifier)
+        public static ArgumentSyntax Argument(NameColonSyntax nameColon, SyntaxToken outKeyword, VariableDeclarationSyntax declaration)
         {
             if (outKeyword.Kind() != SyntaxKind.OutKeyword)
             {
                 throw new ArgumentException(nameof(outKeyword));
             }
 
-            if (type == null)
+            if (declaration != null && !ArgumentSyntax.IsValidOutVariableDeclaration(declaration))
             {
-                throw new ArgumentNullException(nameof(type));
+                throw new ArgumentException(nameof(declaration));
             }
 
-            if (identifier.Kind() != SyntaxKind.IdentifierToken)
-            {
-                throw new ArgumentException(nameof(identifier));
-            }
-
-            return Argument(nameColon, outKeyword, null, type, identifier);
+            return Argument(nameColon, outKeyword, (CSharpSyntaxNode)declaration);
         }
 
         /// <summary>Creates a new ArgumentSyntax instance.</summary>
-        public static ArgumentSyntax Argument(SyntaxToken outKeyword, TypeSyntax type, SyntaxToken identifier)
+        public static ArgumentSyntax Argument(SyntaxToken outKeyword, VariableDeclarationSyntax declaration)
         {
-            return Argument(default(NameColonSyntax), outKeyword, type, identifier);
+            return Argument(default(NameColonSyntax), outKeyword, declaration);
         }
     }
 }

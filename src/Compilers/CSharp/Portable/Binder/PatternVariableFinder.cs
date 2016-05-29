@@ -165,9 +165,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var contextKind = node.Identifier.
-                                   Parent. // ArgumentSyntax
-                                   Parent. // ArgumentListSyntax
+            var contextKind = node.Parent. // ArgumentListSyntax
                                    Parent. // invocation/constructor initializer
                                    Kind();
 

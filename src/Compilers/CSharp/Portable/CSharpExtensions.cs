@@ -1211,15 +1211,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Given an argument syntax, get symbol for out var that it declares, if any.
-        /// </summary>
-        public static ISymbol GetDeclaredSymbol(this SemanticModel semanticModel, ArgumentSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            var csmodel = semanticModel as CSharpSemanticModel;
-            return csmodel?.GetDeclaredSymbol(declarationSyntax, cancellationToken);
-        }
-
-        /// <summary>
         /// Given a declaration pattern syntax, get the corresponding symbol.
         /// </summary>
         public static ISymbol GetDeclaredSymbol(this SemanticModel semanticModel, DeclarationPatternSyntax declarationSyntax, CancellationToken cancellationToken = default(CancellationToken))
