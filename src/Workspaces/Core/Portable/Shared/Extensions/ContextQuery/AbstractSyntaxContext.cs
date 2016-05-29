@@ -1,9 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
@@ -105,6 +105,16 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         public TService GetWorkspaceService<TService>() where TService : class, IWorkspaceService
         {
             return this.Workspace.Services.GetService<TService>();
+        }
+
+        public bool IntersectsWith(Location location)
+        {
+            if (location == null)
+            {
+                throw new ArgumentNullException(nameof(location));
+            }
+
+            return location.SourceTree == SyntaxTree && location.SourceSpan.IntersectsWith(Position);
         }
     }
 }
