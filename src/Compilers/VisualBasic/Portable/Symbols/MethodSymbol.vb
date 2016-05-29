@@ -978,6 +978,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 #End Region
 
 #Region "IMethodSymbolInternal"
+        Private ReadOnly Property IMethodSymbolInternal_IsIterator As Boolean Implements IMethodSymbolInternal.IsIterator
+            Get
+                Return Me.IsIterator
+            End Get
+        End Property
+
         Private Function IMethodSymbolInternal_CalculateLocalSyntaxOffset(localPosition As Integer, localTree As SyntaxTree) As Integer Implements IMethodSymbolInternal.CalculateLocalSyntaxOffset
             Return CalculateLocalSyntaxOffset(localPosition, localTree)
         End Function

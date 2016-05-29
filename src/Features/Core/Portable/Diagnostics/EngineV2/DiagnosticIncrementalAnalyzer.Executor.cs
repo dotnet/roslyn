@@ -323,30 +323,38 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private async Task<IEnumerable<Diagnostic>> ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(
                 Document document, DocumentDiagnosticAnalyzer analyzer, AnalysisKind kind, Compilation compilationOpt, CancellationToken cancellationToken)
             {
-                using (var pooledObject = SharedPools.Default<List<Diagnostic>>().GetPooledObject())
-                {
-                    var diagnostics = pooledObject.Object;
-                    cancellationToken.ThrowIfCancellationRequested();
+                cancellationToken.ThrowIfCancellationRequested();
 
-                    try
+                try
+                {
+                    Task<ImmutableArray<Diagnostic>> analyzeAsync;
+
+                    switch (kind)
                     {
-                        switch (kind)
-                        {
-                            case AnalysisKind.Syntax:
-                                await analyzer.AnalyzeSyntaxAsync(document, diagnostics.Add, cancellationToken).ConfigureAwait(false);
-                                return compilationOpt == null ? diagnostics.ToImmutableArrayOrEmpty() : CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilationOpt);
-                            case AnalysisKind.Semantic:
-                                await analyzer.AnalyzeSemanticsAsync(document, diagnostics.Add, cancellationToken).ConfigureAwait(false);
-                                return compilationOpt == null ? diagnostics.ToImmutableArrayOrEmpty() : CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilationOpt);
-                            default:
-                                return Contract.FailWithReturn<ImmutableArray<Diagnostic>>("shouldn't reach here");
-                        }
+                        case AnalysisKind.Syntax:
+                            analyzeAsync = analyzer.AnalyzeSyntaxAsync(document, cancellationToken);
+                            break;
+
+                        case AnalysisKind.Semantic:
+                            analyzeAsync = analyzer.AnalyzeSemanticsAsync(document, cancellationToken);
+                            break;
+
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(kind);
                     }
-                    catch (Exception e) when (!IsCanceled(e, cancellationToken))
+
+                    var diagnostics = (await analyzeAsync.ConfigureAwait(false)).NullToEmpty();
+                    if (compilationOpt != null)
                     {
-                        OnAnalyzerException(analyzer, document.Project.Id, compilationOpt, e);
-                        return ImmutableArray<Diagnostic>.Empty;
+                        return CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilationOpt);
                     }
+
+                    return diagnostics;
+                }
+                catch (Exception e) when (!IsCanceled(e, cancellationToken))
+                {
+                    OnAnalyzerException(analyzer, document.Project.Id, compilationOpt, e);
+                    return ImmutableArray<Diagnostic>.Empty;
                 }
             }
 

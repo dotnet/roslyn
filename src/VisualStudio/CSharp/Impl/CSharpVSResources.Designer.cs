@@ -610,6 +610,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Split string literals on _enter.
+        /// </summary>
+        internal static string Option_Split_string_literals_on_enter {
+            get {
+                return ResourceManager.GetString("Option_Split_string_literals_on_enter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Suggest usings for types in _NuGet packages.
         /// </summary>
         internal static string Option_Suggest_usings_for_types_in_NuGet_packages {
@@ -655,15 +664,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Prefer framework type.
-        /// </summary>
-        internal static string PreferFrameworkType {
-            get {
-                return ResourceManager.GetString("PreferFrameworkType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to For locals, parameters and members.
         /// </summary>
         internal static string PreferIntrinsicPredefinedTypeKeywordInDeclaration {
@@ -678,15 +678,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string PreferIntrinsicPredefinedTypeKeywordInMemberAccess {
             get {
                 return ResourceManager.GetString("PreferIntrinsicPredefinedTypeKeywordInMemberAccess", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Prefer predefined type.
-        /// </summary>
-        internal static string PreferPredefinedType {
-            get {
-                return ResourceManager.GetString("PreferPredefinedType", resourceCulture);
             }
         }
         

@@ -87,6 +87,11 @@ namespace Microsoft.CodeAnalysis
             return typeof(CommonCompiler).GetTypeInfo().Assembly.GetName().Version;
         }
 
+        internal string GetCultureName()
+        {
+            return Culture.Name;
+        }
+
         internal virtual Func<string, MetadataReferenceProperties, PortableExecutableReference> GetMetadataProvider()
         {
             return (path, properties) => MetadataReference.CreateFromFile(path, properties);
@@ -210,13 +215,13 @@ namespace Microsoft.CodeAnalysis
 
                 // We want to report diagnostics with source suppression in the error log file.
                 // However, these diagnostics should not be reported on the console output.
-                errorLoggerOpt?.LogDiagnostic(diag, this.Culture);
+                errorLoggerOpt?.LogDiagnostic(diag);
                 if (diag.IsSuppressed)
                 {
                     continue;
                 }
 
-                consoleOutput.WriteLine(DiagnosticFormatter.Format(diag, this.Culture));
+                consoleOutput.WriteLine(DiagnosticFormatter.Format(diag));
 
                 if (diag.Severity == DiagnosticSeverity.Error)
                 {
@@ -251,7 +256,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     PrintError(diagnostic, consoleOutput);
-                    errorLoggerOpt?.LogDiagnostic(Diagnostic.Create(diagnostic), this.Culture);
+                    errorLoggerOpt?.LogDiagnostic(Diagnostic.Create(diagnostic));
 
                     if (diagnostic.Severity == DiagnosticSeverity.Error)
                     {
@@ -278,7 +283,7 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            return new ErrorLogger(errorLog, GetToolName(), GetAssemblyFileVersion(), GetAssemblyVersion());
+            return new ErrorLogger(errorLog, GetToolName(), GetAssemblyFileVersion(), GetAssemblyVersion(), Culture);
         }
 
         /// <summary>
@@ -496,14 +501,17 @@ namespace Microsoft.CodeAnalysis
                                             win32ResourceStreamOpt,
                                             diagnosticBag,
                                             cancellationToken);
+                                    }
 
-                                        if (success)
-                                        {
-                                            compilation.ReportUnusedImports(null, diagnosticBag, cancellationToken);
-                                        }
+                                    // only report unused usings if we have success.
+                                    if (success)
+                                    {
+                                        compilation.ReportUnusedImports(null, diagnosticBag, cancellationToken);
                                     }
                                 }
                             }
+
+                            compilation.CompleteTrees(null);
 
                             if (analyzerDriver != null)
                             {

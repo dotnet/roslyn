@@ -1,7 +1,7 @@
 // Groovy Script: http://www.groovy-lang.org/syntax.html
 // Jenkins DSL: https://github.com/jenkinsci/job-dsl-plugin/wiki
 
-import jobs.generation.Utilities;
+import jobs.generation.*;
 
 // The input project name (e.g. dotnet/corefx)
 def projectName = GithubProject
@@ -42,9 +42,21 @@ static String generateTriggerPhrase(String jobName, String opsysName, String tri
 }
 
 static void addRoslynJob(def myJob, String jobName, String branchName, Boolean isPr, String triggerPhraseExtra, Boolean triggerPhraseOnly = false) {
-  def includePattern = "Binaries/**/*.pdb,Binaries/**/*.xml,Binaries/**/*.log,Binaries/**/*.dmp,Binaries/**/*.zip,Binaries/**/*.png,Binaries/**/*.xml"
-  def excludePattern = "Binaries/Obj/**,Binaries/Bootstrap/**,Binaries/**/nuget*.zip"
-  Utilities.addArchival(myJob, includePattern, excludePattern)
+  def archiveSettings = new ArchivalSettings()
+  archiveSettings.addFiles('Binaries/**/*.pdb')
+  archiveSettings.addFiles('Binaries/**/*.xml')
+  archiveSettings.addFiles('Binaries/**/*.log')
+  archiveSettings.addFiles('Binaries/**/*.dmp')
+  archiveSettings.addFiles('Binaries/**/*.zip')
+  archiveSettings.addFiles('Binaries/**/*.png')
+  archiveSettings.addFiles('Binaries/**/*.xml')
+  archiveSettings.excludeFiles('Binaries/Obj/**')
+  archiveSettings.excludeFiles('Binaries/Bootstrap/**')
+  archiveSettings.excludeFiles('Binaries/**/nuget*.zip')
+  // Only archive if failed/aborted
+  archiveSettings.setArchiveOnFailure()
+  archiveSettings.setFailIfNothingArchived()
+  Utilities.addArchival(myJob, archiveSettings)
 
   // Create the standard job.  This will setup parameter, SCM, timeout, etc ...
   def projectName = 'dotnet/roslyn'
@@ -77,21 +89,21 @@ if (branchName.startsWith("features/")) {
 // Windows     
 commitPullList.each { isPr -> 
   ['debug', 'release'].each { configuration ->
-    ['unit32', 'unit64'].each { buildTarget ->
+        ['unit32', 'unit64'].each { buildTarget ->
       def jobName = Utilities.getFullJobName(projectName, "windows_${configuration}_${buildTarget}", isPr)
-      def myJob = job(jobName) {
+            def myJob = job(jobName) {
         description("Windows ${configuration} tests on ${buildTarget}")
-        steps {
-          batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
+                  steps {
+                    batchFile("""set TEMP=%WORKSPACE%\\Binaries\\Temp
 mkdir %TEMP%
 set TMP=%TEMP%
 .\\cibuild.cmd ${(configuration == 'debug') ? '/debug' : '/release'} ${(buildTarget == 'unit32') ? '/test32' : '/test64'}""")
-        }
-      }
+                  }
+                }
 
       def triggerPhraseOnly = configuration == 'release'   
       def triggerPhraseExtra = ""
-      Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto')
+                Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto')
       Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
       addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
     }
@@ -103,14 +115,14 @@ commitPullList.each { isPr ->
   def jobName = Utilities.getFullJobName(projectName, "linux_debug", isPr)
   def myJob = job(jobName) {
     description("Linux tests")
-    steps {
-      shell("./cibuild.sh --nocache --debug")
-    }
-  }
+                  steps {
+                    shell("./cibuild.sh --nocache --debug")
+                  }
+                }
 
   def triggerPhraseOnly = false
   def triggerPhraseExtra = ""
-  Utilities.setMachineAffinity(myJob, 'Ubuntu14.04', 'latest-or-auto')
+                Utilities.setMachineAffinity(myJob, 'Ubuntu14.04', 'latest-or-auto')
   Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
@@ -120,17 +132,17 @@ commitPullList.each { isPr ->
   def jobName = Utilities.getFullJobName(projectName, "mac_debug", isPr)
   def myJob = job(jobName) {
     description("Mac tests")
-    label('mac-roslyn')
-    steps {
-      shell("./cibuild.sh --nocache --debug")
-    }
-  }
+                  label('mac-roslyn')
+                  steps {
+                    shell("./cibuild.sh --nocache --debug")
+                  }
+            }
 
   def triggerPhraseOnly = true
   def triggerPhraseExtra = ""
-  Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
+            Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
-}
+  }
 
 // Determinism
 commitPullList.each { isPr -> 
@@ -145,9 +157,9 @@ set TMP=%TEMP%
 .\\cibuild.cmd /testDeterminism""")
     }
   }
- 
+
   def triggerPhraseOnly = true
-  def triggerPhraseExtra = ""
+  def triggerPhraseExtra = "determinism"
   Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto')
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }

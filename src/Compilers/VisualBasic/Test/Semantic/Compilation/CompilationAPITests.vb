@@ -22,14 +22,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
         Inherits BasicTestBase
 
         <WorkItem(8360, "https://github.com/dotnet/roslyn/issues/8360")>
+        <WorkItem(9153, "https://github.com/dotnet/roslyn/issues/9153")>
         <Fact>
         Public Sub PublicSignWithRelativeKeyPath()
             Dim options = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary).
                     WithPublicSign(True).WithCryptoKeyFile("test.snk")
             AssertTheseDiagnostics(VisualBasicCompilation.Create("test", options:=options),
 <errors>
-BC2014: the value 'test.snk' is invalid for option 'CryptoKeyFile'
 BC37254: Public sign was specified and requires a public key, but no public key was specified
+BC37257: Option 'CryptoKeyFile' must be an absolute path.
 </errors>)
         End Sub
 
@@ -1207,9 +1208,16 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
 
         <Fact()>
         <CompilerTrait(CompilerFeature.Tuples)>
-        Public Sub TuplesNotSupported()
+        Public Sub TuplesNotSupported2()
             Dim compilation = VisualBasicCompilation.Create("HelloWorld")
             Assert.Throws(Of NotSupportedException)(Function() compilation.CreateTupleTypeSymbol(New ImmutableArray(Of ITypeSymbol), New ImmutableArray(Of String)))
+        End Sub
+
+        <Fact()>
+        <CompilerTrait(CompilerFeature.Tuples)>
+        Public Sub TuplesNotSupported()
+            Dim compilation = VisualBasicCompilation.Create("HelloWorld")
+            Assert.Throws(Of NotSupportedException)(Function() compilation.CreateTupleTypeSymbol(underlyingType:=Nothing, elementNames:=New ImmutableArray(Of String)))
         End Sub
 
         <Fact()>

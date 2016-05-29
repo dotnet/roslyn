@@ -1337,7 +1337,7 @@ Class M1
         sub1(Of Integer, String)(New Integer() {1, 2, 3}, New String() {"a", "b"})
     End Sub
 
-    Private Sub sub1(Of T1, T2)(v1() As Integer, v2() As String)
+    Private Sub sub1(Of T1, T2)(v1() As T1, v2() As T2)
         Throw New NotImplementedException()
     End Sub
 End Class
@@ -2230,6 +2230,52 @@ Namespace TestClasses
     End Module
 End Namespace
 </text>.Value.Replace(vbLf, vbCrLf))
+        End Function
+
+        <WorkItem(11461, "https://github.com/dotnet/roslyn/issues/11461")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestGenerateMethodOffOfExistingProperty() As Task
+            Await TestAsync(
+<text>
+Imports System
+
+Public NotInheritable Class Repository
+    Shared ReadOnly Property agreementtype As AgreementType
+        Get
+        End Get
+    End Property
+End Class
+
+Public Class Agreementtype
+End Class
+
+Class C
+    Shared Sub TestError()
+        [|Repository.AgreementType.NewFunction|]("", "")
+    End Sub
+End Class
+</text>.Value.Replace(vbLf, vbCrLf),
+<text>
+Imports System
+
+Public NotInheritable Class Repository
+    Shared ReadOnly Property agreementtype As AgreementType
+        Get
+        End Get
+    End Property
+End Class
+
+Public Class Agreementtype
+    Friend Sub NewFunction(v1 As String, v2 As String)
+        Throw New NotImplementedException()
+    End Sub
+End Class
+
+Class C
+    Shared Sub TestError()
+        Repository.AgreementType.NewFunction("", "")
+    End Sub
+End Class</text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
         Public Class GenerateConversionTests

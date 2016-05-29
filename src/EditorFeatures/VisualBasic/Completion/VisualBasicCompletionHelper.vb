@@ -13,21 +13,17 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion
         Implements ILanguageServiceFactory
 
         Public Function CreateLanguageService(languageServices As HostLanguageServices) As ILanguageService Implements ILanguageServiceFactory.CreateLanguageService
-            Dim completionService = languageServices.GetService(Of CompletionService)
-            Return New VisualBasicCompletionHelperFactory(completionService)
+            Return New VisualBasicCompletionHelperFactory()
         End Function
 
         Private Class VisualBasicCompletionHelperFactory
             Inherits CompletionHelperFactory
 
-            Private _completionService As CompletionService
-
-            Public Sub New(completionService As CompletionService)
-                _completionService = completionService
+            Public Sub New()
             End Sub
 
-            Public Overrides Function CreateCompletionHelper() As CompletionHelper
-                Return New VisualBasicCompletionHelper(_completionService)
+            Public Overrides Function CreateCompletionHelper(service As CompletionService) As CompletionHelper
+                Return New VisualBasicCompletionHelper(service)
             End Function
         End Class
     End Class

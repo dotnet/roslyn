@@ -125,9 +125,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.Suppression
             Dim attributeList = CreateAttributeList(targetSymbol, diagnostic)
 
             Dim attributeStatement = SyntaxFactory.AttributesStatement(New SyntaxList(Of AttributeListSyntax)().Add(attributeList))
-            If Not isFirst AndAlso Not IsEndOfLine(compilationRoot.Attributes.Last().GetTrailingTrivia().LastOrDefault) Then
-                ' Add leading end of line trivia to attribute statement
-                attributeStatement = attributeStatement.WithLeadingTrivia(attributeStatement.GetLeadingTrivia.Add(SyntaxFactory.ElasticCarriageReturnLineFeed))
+            If Not isFirst Then
+                Dim trailingTrivia = compilationRoot.Attributes.Last().GetTrailingTrivia()
+                Dim lastTrivia = If(trailingTrivia.IsEmpty, Nothing, trailingTrivia(trailingTrivia.Count - 1))
+                If Not IsEndOfLine(lastTrivia) Then
+                    ' Add leading end of line trivia to attribute statement
+                    attributeStatement = attributeStatement.WithLeadingTrivia(attributeStatement.GetLeadingTrivia.Add(SyntaxFactory.ElasticCarriageReturnLineFeed))
+                End If
             End If
 
             attributeStatement = CType(Await Formatter.FormatAsync(attributeStatement, workspace, cancellationToken:=cancellationToken).ConfigureAwait(False), AttributesStatementSyntax)

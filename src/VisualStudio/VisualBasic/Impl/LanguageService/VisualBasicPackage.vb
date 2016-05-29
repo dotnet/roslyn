@@ -5,6 +5,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.ErrorReporting
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.VisualBasic
+Imports Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
@@ -47,7 +48,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
     <ProvideLanguageExtension(GetType(VisualBasicLanguageService), ".vb")>
     <ProvideLanguageEditorOptionPage(GetType(AdvancedOptionPage), "Basic", Nothing, "Advanced", "#102", 10160)>
     <ProvideLanguageEditorToolsOptionCategory("Basic", "Code Style", "#109")>
-    <ProvideLanguageEditorOptionPage(GetType(StyleOptionPage), "Basic", "Code Style", "General", "#111", 10161)>
+    <ProvideLanguageEditorOptionPage(GetType(CodeStylePage), "Basic", "Code Style", "General", "#111", 10161)>
     <ProvideLanguageEditorOptionPage(GetType(NamingStylesOptionPage), "Basic", "Code Style", "Naming", "#110", 10162)>
     <ProvideAutomationProperties("TextEditor", "Basic", Guids.TextManagerPackageString, 103, 105, Guids.VisualBasicPackageIdString)>
     <ProvideAutomationProperties("TextEditor", "Basic-Specific", Guids.VisualBasicPackageIdString, 104, 106)>
