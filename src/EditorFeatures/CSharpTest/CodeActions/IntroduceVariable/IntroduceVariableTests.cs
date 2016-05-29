@@ -307,7 +307,7 @@ options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOpti
         {
             await TestAsync(
 @"static class G<T> { public class @class { } public static void Add(object t) { } } class Program { static void Main() { G<int>.Add([|new G<int>.@class()|]); } }",
-@"static class G<T> { public class @class { } public static void Add(object t) { } } class Program { static void Main() { var {|Rename:@class|} = new G<int>.@class(); G<int>.Add(@class); } }",
+@"static class G<T> { public class @class { } public static void Add(object t) { } } class Program { static void Main() { var {|Rename:t|} = new G<int>.@class(); G<int>.Add(t); } }",
 index: 0);
         }
 
@@ -316,7 +316,7 @@ index: 0);
         {
             await TestAsync(
 @"static class G<T> { public class @class { } public static void Add(object t) { } } class Program { static void Main() { G<int>.Add([|new G<int>.@class()|]); } }",
-@"static class G<T> { public class @class { } public static void Add(object t) { } } class Program { static void Main() { G<int>.@class {|Rename:@class|} = new G<int>.@class(); G<int>.Add(@class); } }",
+@"static class G<T> { public class @class { } public static void Add(object t) { } } class Program { static void Main() { G<int>.@class {|Rename:t|} = new G<int>.@class(); G<int>.Add(t); } }",
 index: 0,
 options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals), false } });
         }
@@ -326,7 +326,7 @@ options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOpti
         {
             await TestAsync(
 @"static class G<T> { public class @class { } public static void Add(object t) { } static void Main() { G<int>.Add([|new G<int>.@class()|]); } }",
-@"static class G<T> { public class @class { } public static void Add(object t) { } static void Main() { var {|Rename:class1|} = new G<int>.@class(); G<int>.Add(class1); } }");
+@"static class G<T> { public class @class { } public static void Add(object t) { } static void Main() { var {|Rename:t|} = new G<int>.@class(); G<int>.Add(t); } }");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
@@ -334,7 +334,7 @@ options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOpti
         {
             await TestAsync(
 @"static class G<T> { public class @class { } public static void Add(object t) { } static void Main() { G<int>.Add([|new G<int>.@class()|]); } }",
-@"static class G<T> { public class @class { } public static void Add(object t) { } static void Main() { G<int>.@class {|Rename:class1|} = new G<int>.@class(); G<int>.Add(class1); } }",
+@"static class G<T> { public class @class { } public static void Add(object t) { } static void Main() { G<int>.@class {|Rename:t|} = new G<int>.@class(); G<int>.Add(t); } }",
 options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals), false } });
         }
 
@@ -1176,7 +1176,7 @@ compareTokens: false);
         {
             await TestAsync(
 @"class Program { int Main ( int i ) { switch ( 1 ) { case 0 : var f = Main ( [|1 + 1|] ) ; Console . WriteLine ( f ) ; } } } ",
-@"class Program { int Main ( int i ) { switch ( 1 ) { case 0 : const int {|Rename:V|} = 1 + 1 ; var f = Main ( V ) ; Console . WriteLine ( f ) ; } } } ",
+@"class Program { int Main ( int i ) { switch ( 1 ) { case 0 : const int {|Rename:i1|} = 1 + 1 ; var f = Main ( i1 ) ; Console . WriteLine ( f ) ; } } } ",
 index: 2);
         }
 
@@ -1259,7 +1259,7 @@ options: new Dictionary<OptionKey, object> { { new OptionKey(CSharpCodeStyleOpti
         {
             await TestAsync(
 @"using System.Collections.Generic; class C { static void Main(string[] args) { var set = new HashSet<string>(); set.Add([|set.ToString()|]); } } ",
-@"using System.Collections.Generic; class C { static void Main(string[] args) { var set = new HashSet<string>(); var {|Rename:v|} = set.ToString(); set.Add(v); } } ");
+@"using System.Collections.Generic; class C { static void Main(string[] args) { var set = new HashSet<string>(); var {|Rename:item|} = set.ToString(); set.Add(item); } } ");
         }
 
         [WorkItem(655498, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/655498")]
@@ -1353,8 +1353,8 @@ class Program
     static void Main(string[] args)
     {
         var d = new Dictionary<string, Exception>();
-        var {|Rename:exception|} = new Exception();
-        d.Add(""a"", exception);
+        var {|Rename:value|} = new Exception();
+        d.Add(""a"", value);
     }
 }",
 compareTokens: false);
@@ -1897,8 +1897,8 @@ class Complex
     int real; int imaginary;
     public static Complex operator +(Complex a, Complex b)
     {
-        var {|Rename:v|} = b.real + 1;
-        return a.Add(v);
+        var {|Rename:b1|} = b.real + 1;
+        return a.Add(b1);
     }
 
     private Complex Add(int b)
@@ -1967,7 +1967,7 @@ public struct DBBool
     @"using System;
 public struct DBBool
 {
-    private const int {|Rename:V|} = 1;
+    private const int {|Rename:value1|} = 1;
     public static readonly DBBool dbFalse = new DBBool(-1);
     int value;
 
@@ -1976,7 +1976,7 @@ public struct DBBool
         this.value = value;
     }
 
-    public static implicit operator DBBool(bool x) => x ? new DBBool(V) : dbFalse;
+    public static implicit operator DBBool(bool x) => x ? new DBBool(value1) : dbFalse;
 }";
 
             await TestAsync(code, expected, index: 0, compareTokens: false);
@@ -2380,8 +2380,8 @@ class TestClass
 {
     static void Test(string[] args)
     {
-        var {|Rename:v|} = $""{DateTime.Now.ToString()}Text{args[0]}"";
-        Console.WriteLine(v);
+        var {|Rename:value|} = $""{DateTime.Now.ToString()}Text{args[0]}"";
+        Console.WriteLine(value);
     }
 }";
 
@@ -2409,9 +2409,9 @@ class TestClass
 {
     static void Test(string[] args)
     {
-        var {|Rename:v|} = $""Text{{s}}"";
-        Console.WriteLine(v);
-        Console.WriteLine(v);
+        var {|Rename:value|} = $""Text{{s}}"";
+        Console.WriteLine(value);
+        Console.WriteLine(value);
     }
 }";
 
@@ -2571,8 +2571,8 @@ namespace N
     {
         public async Task M()
         {
-            FormattableString {|Rename:v|} = $"""";
-            var f = FormattableString.Invariant(v);
+            FormattableString {|Rename:formattable|} = $"""";
+            var f = FormattableString.Invariant(formattable);
         }
     }
 }";
@@ -2639,6 +2639,237 @@ class C
     Func<int, int> X { get; } = a => { const int {|Rename:V|} = 7; return V; };
 }";
             await TestAsync(code, expected, index: 2, compareTokens: false);
+        }
+
+        //Kasey Tests
+        [WorkItem(2423, "https://github.com/dotnet/roslyn/issues/2423")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task IntroduceLocalFromParameterWithNamedParameters()
+        {
+            var code =
+    @"class Program
+{
+    void Main(string a, string b)
+    {
+        var y = new TextSpan(second:[|int.Parse(a)|], first:int.Parse(b));
+    }
+}
+
+internal class TextSpan
+{
+    public TextSpan(int first, int second)
+    {
+    }
+}";
+            var expected =
+    @"class Program
+{
+    void Main(string a, string b)
+    {
+        var  {|Rename:second|} = int.Parse(a);
+        var y = new TextSpan(second:second, first:int.Parse(b));
+    }
+}
+
+internal class TextSpan
+{
+    public TextSpan(int first, int second)
+    {
+    }
+}";
+            await TestAsync(code, expected, index: 0);
+        }
+
+        [WorkItem(2423, "https://github.com/dotnet/roslyn/issues/2423")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task IntroduceLocalFromParameterWithUnNamedParameters()
+        {
+            var code =
+    @"class Program
+{
+    void Main(string a, string b)
+    {
+        var y = new TextSpan([|int.Parse(a)|], int.Parse(b));
+    }
+}
+
+internal class TextSpan
+{
+    public TextSpan(int first, int second)
+    {
+    }
+}";
+            var expected =
+    @"class Program
+{
+    void Main(string a, string b)
+    {
+        var {|Rename:first|} = int.Parse(a);
+        var y = new TextSpan(first, int.Parse(b));
+    }
+}
+
+internal class TextSpan
+{
+    public TextSpan(int first, int second)
+    {
+    }
+}";
+            await TestAsync(code, expected, index: 0);
+        }
+
+        [WorkItem(2423, "https://github.com/dotnet/roslyn/issues/2423")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task IntroduceLocalFromParameterWithNameConflict()
+        {
+            var code =
+    @"class Program
+{
+    void Main(string a, string b)
+    {
+        var y = new TextSpan([|int.Parse(a)|], int.Parse(b));
+    }
+}
+
+internal class TextSpan
+{
+    public TextSpan(int a, int b)
+    {
+    }
+}";
+            var expected =
+    @"class Program
+{
+    void Main(string a, string b)
+    {
+        var {|Rename:a1|} = int.Parse(a);
+        var y = new TextSpan(a1, int.Parse(b));
+    }
+}
+
+internal class TextSpan
+{
+    public TextSpan(int a, int b)
+    {
+    }
+}";
+            await TestAsync(code, expected, index: 0);
+        }
+
+        [WorkItem(2423, "https://github.com/dotnet/roslyn/issues/2423")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task IntroduceLocalConstantFromParameterWithParamsArray()
+        {
+            var code =
+    @"class Program
+{
+    static void Main(string a, string b)
+    {
+        var paramsarray = Foo([|1|], 2, 3, 4);
+    }
+
+    private static object Foo(params int[] parameters)
+    {
+        throw new NotImplementedException();
+    }
+}";
+            var expected =
+    @"class Program
+{
+    static void Main(string a, string b)
+    {
+        const int {|Rename:V|} = 1;
+        var paramsarray = Foo(V, 2, 3, 4);
+    }
+
+    private static object Foo(params int[] parameters)
+    {
+        throw new NotImplementedException();
+    }
+}";
+            await TestAsync(code, expected, index: 2);
+        }
+
+        [WorkItem(2423, "https://github.com/dotnet/roslyn/issues/2423")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task IntroduceLocalFromParameterWithReducedExtension()
+        {
+            var code =
+    @"using System.Collections.Generic;
+using System.Linq;
+class Program
+{
+    static void Main(string[] args)
+    {
+        IEnumerable<int> ints = new[] { 1, 2, 3 };
+        ints.Select([|a => a|]);
+    }
+}";
+            var expected =
+    @"using System.Collections.Generic;
+using System.Linq;
+class Program
+{
+    static void Main(string[] args)
+    {
+        IEnumerable<int> ints = new[] { 1, 2, 3 };
+        System.Func<int, int> {|Rename:selector|} = a => a;
+        ints.Select(selector);
+    }
+}";
+            await TestAsync(code, expected, index: 0);
+        }
+
+        [WorkItem(2423, "https://github.com/dotnet/roslyn/issues/2423")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task IntroduceLocalFromParameterInvocationExpressionWithUnNamedParameters()
+        {
+            var code =
+    @"class Program
+{
+    static void Main(string a, string b)
+    {
+        M(""hello"", [|""kitty""|]);
+    }
+    public static void M(string foo, string bar){}
+}";
+            var expected =
+    @"class Program
+{
+    static void Main(string a, string b)
+    {
+        const string {|Rename:bar|} = ""kitty"";
+        M(""hello"", bar);
+    }
+    public static void M(string foo, string bar){}
+}";
+            await TestAsync(code, expected, index: 2);
+        }
+
+        [WorkItem(2423, "https://github.com/dotnet/roslyn/issues/2423")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsIntroduceVariable)]
+        public async Task IntroduceLocalFromParameterInvocationExpressionWithNamedParameters()
+        {
+            var code =
+    @"class Program
+{
+    static void Main(string a, string b)
+    {
+        M(bar:""hello"", foo:[|""kitty""|]);
+    }
+    public static void M(string foo, string bar){}
+}";
+            var expected =
+    @"class Program
+{
+    static void Main(string a, string b)
+    {
+        const string {|Rename:foo|} = ""kitty"";
+        M(bar:""hello"", foo:foo);
+    }
+    public static void M(string foo, string bar){}
+}";
+            await TestAsync(code, expected, index: 2);
         }
     }
 }

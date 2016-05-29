@@ -203,6 +203,38 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         public static string GenerateNameForExpression(
             this SemanticModel semanticModel, ExpressionSyntax expression, bool capitalize = false)
         {
+
+            // Check if expression is ArgumentSyntax. If we have an expression that
+            // is an argument, return the name of the parameter.
+            var parent = expression.Parent as ArgumentSyntax;
+            if (parent != null)
+            {
+                if (parent.NameColon != null)
+                {
+                    return parent.NameColon.Name.Identifier.ValueText.ToCamelCase();
+                }
+                else
+                {
+                    var argumentList = parent.Parent as ArgumentListSyntax;
+                    if (argumentList != null)
+                    {
+                        var argumentIndex = argumentList.Arguments.IndexOf(parent);
+                        var argumentInfo = GetArgumentInfo(semanticModel, argumentList.Arguments[argumentIndex]);
+                        if (argumentInfo.Parameter != null)
+                        {
+                            if (!argumentInfo.Parameter.IsParams)
+                            {
+                                return argumentInfo.Parameter.Name.ToCamelCase();
+                            }
+                            else if (!expression.IsAnyLiteralExpression())
+                            {
+                                return argumentInfo.Parameter.Name.ToCamelCase();
+                            }
+                        }
+                    }
+                }
+            }
+
             // Try to find a usable name node that we can use to name the
             // parameter.  If we have an expression that has a name as part of it
             // then we try to use that part.
@@ -444,6 +476,104 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private static TypeSyntax GetOutermostType(TypeSyntax type)
         {
             return type.GetAncestorsOrThis<TypeSyntax>().Last();
+        }
+
+
+        // API that  gets semantic info for a specific arguments from @dustinca
+        //https://github.com/DustinCampbell/CSharpEssentials/blob/master/Source/CSharpEssentials/Extensions.cs
+        // supposedly there is a bug on github somewhere for him to add this api to the compiler
+        internal struct ArgumentInfo
+        {
+            public readonly ISymbol MethodOrProperty;
+            public readonly IParameterSymbol Parameter;
+
+            public ArgumentInfo(ISymbol methodOrProperty, IParameterSymbol parameter)
+            {
+                this.MethodOrProperty = methodOrProperty;
+                this.Parameter = parameter;
+            }
+        }
+
+        public static ArgumentInfo GetArgumentInfo(this SemanticModel semanticModel, ArgumentSyntax argument)
+        {
+            if (semanticModel == null)
+            {
+                throw new System.ArgumentNullException(nameof(semanticModel));
+            }
+
+            if (argument == null)
+            {
+                throw new System.ArgumentNullException(nameof(argument));
+            }
+
+            var argumentList = argument.Parent as ArgumentListSyntax;
+            if (argumentList == null)
+            {
+                return default(ArgumentInfo);
+            }
+
+            var expression = argumentList.Parent as ExpressionSyntax;
+            if (expression == null)
+            {
+                return default(ArgumentInfo);
+            }
+
+            var methodOrProperty = semanticModel.GetSymbolInfo(expression).Symbol;
+            if (methodOrProperty == null)
+            {
+                return default(ArgumentInfo);
+            }
+
+            var parameters = methodOrProperty.GetParameters();
+            if (parameters.Length == 0)
+            {
+                return default(ArgumentInfo);
+            }
+
+            if (argument.NameColon != null)
+            {
+                if (argument.NameColon.Name == null)
+                {
+                    return default(ArgumentInfo);
+                }
+
+                // We've got a named argument...
+                var nameText = argument.NameColon.Name.Identifier.ValueText;
+                if (nameText == null)
+                {
+                    return default(ArgumentInfo);
+                }
+
+                foreach (var parameter in parameters)
+                {
+                    if (string.Equals(parameter.Name, nameText, System.StringComparison.Ordinal))
+                    {
+                        return new ArgumentInfo(methodOrProperty, parameter);
+                    }
+                }
+            }
+            else
+            {
+                // Positional argument...
+                var index = argumentList.Arguments.IndexOf(argument);
+                if (index < 0)
+                {
+                    return default(ArgumentInfo);
+                }
+
+                if (index < parameters.Length)
+                {
+                    return new ArgumentInfo(methodOrProperty, parameters[index]);
+                }
+
+                if (index >= parameters.Length &&
+                    parameters[parameters.Length - 1].IsParams)
+                {
+                    return new ArgumentInfo(methodOrProperty, parameters[parameters.Length - 1]);
+                }
+            }
+
+            return default(ArgumentInfo);
         }
     }
 }
