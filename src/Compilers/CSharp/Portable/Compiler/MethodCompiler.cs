@@ -1147,7 +1147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Synthesized parameterless constructors in structs chain to the "default" constructor
         /// </summary>
-        private BoundStatement ChainImplicitStructConstructor(MethodSymbol methodSymbol, SourceMemberContainerTypeSymbol containingType)
+        private static BoundStatement ChainImplicitStructConstructor(MethodSymbol methodSymbol, SourceMemberContainerTypeSymbol containingType)
         {
             CSharpSyntaxNode syntax = methodSymbol.GetNonNullSyntaxNode();
 

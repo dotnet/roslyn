@@ -928,7 +928,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private ConstantValue DecodePrimitiveConstantValue(ref BlobReader sigReader, SignatureTypeCode typeCode, out bool isEnumTypeCode)
+        private static ConstantValue DecodePrimitiveConstantValue(ref BlobReader sigReader, SignatureTypeCode typeCode, out bool isEnumTypeCode)
         {
             switch (typeCode)
             {

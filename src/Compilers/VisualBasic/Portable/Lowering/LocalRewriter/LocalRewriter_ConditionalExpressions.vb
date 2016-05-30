@@ -163,12 +163,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return node.Update(rewrittenTestExpression, rewrittenWhenTrue, Nothing, rewrittenWhenFalse, node.ConstantValueOpt, node.Type)
         End Function
 
-        Public Function TransformRewrittenBinaryConditionalExpression(node As BoundNode) As BoundNode
+        Private Shared Function TransformRewrittenBinaryConditionalExpression(node As BoundNode) As BoundNode
             Return If(node.Kind <> BoundKind.BinaryConditionalExpression, node,
                       TransformRewrittenBinaryConditionalExpression(DirectCast(node, BoundBinaryConditionalExpression)))
         End Function
 
-        Public Function TransformRewrittenBinaryConditionalExpression(node As BoundBinaryConditionalExpression) As BoundExpression
+        Private Shared Function TransformRewrittenBinaryConditionalExpression(node As BoundBinaryConditionalExpression) As BoundExpression
             Debug.Assert(node.ConvertedTestExpression Is Nothing)   ' Those should be rewritten by now
             Debug.Assert(node.TestExpressionPlaceholder Is Nothing)
 
@@ -313,7 +313,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         DirectCast(MyBase.VisitTernaryConditionalExpression(node), BoundTernaryConditionalExpression))
         End Function
 
-        Private Function TransformRewrittenTernaryConditionalExpression(node As BoundTernaryConditionalExpression) As BoundExpression
+        Private Shared Function TransformRewrittenTernaryConditionalExpression(node As BoundTernaryConditionalExpression) As BoundExpression
             If node.Condition.IsConstant AndAlso node.WhenTrue.IsConstant AndAlso node.WhenFalse.IsConstant Then
                 ' This optimization be applies if only *all three* operands are constants!!!
 
