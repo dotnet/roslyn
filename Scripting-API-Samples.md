@@ -2,22 +2,16 @@ The scripting APIs enable .NET applications to instatiate a C# engine and execut
 
 ## Supported Platforms
 
-Scripting APIs require desktop .NET Framework 4.6 or CoreCLR 1.0. 
+Scripting APIs require desktop .NET Framework 4.6+. 
 
 Scripting APIs can't be used within Universal Windows Applications and .NET Native since the application model doesn't support code compilation at runtime. 
 
 ## Getting Started
-Install the [Scripting API NuGet Package](https://www.nuget.org/packages/Microsoft.CodeAnalysis.Scripting/):
+Install the [Scripting API NuGet Package](https://www.nuget.org/packages/Microsoft.CodeAnalysis.CSharp.Scripting/):
 ```
-Install-Package Microsoft.CodeAnalysis.Scripting
+Install-Package Microsoft.CodeAnalysis.CSharp.Scripting
 ```
 
-Using your text editor of choice, create a csx file. To run your script, use the command-line tool csi.exe. If you have Visual Studio installed you can access csi.exe via the Developer Command Prompt. If you do not have Visual Studio installed on your machine, you can access csi.exe with the [dotnet CLI tool](https://dotnet.github.io/getting-started).
-
-To run a script file simply type the command:
-```
-csi "MyScript.csx"
-```
 ## Code Samples
 > **Note:** the samples require the following using: <br/>
 > ```using Microsoft.CodeAnalysis.CSharp.Scripting;``` <br/>
