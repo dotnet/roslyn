@@ -493,7 +493,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         /// <param name="symbols">Assembly symbols for references of the current compilation.</param>
         /// <param name="originalIdentities">Identities in the baseline. <paramref name="originalIdentities"/>[i] corresponds to <paramref name="symbols"/>[i].</param>
-        internal ImmutableDictionary<AssemblyIdentity, AssemblyIdentity> GetAssemblyReferenceIdentityBaselineMap(ImmutableArray<TAssemblySymbol> symbols, ImmutableArray<AssemblyIdentity> originalIdentities)
+        internal static ImmutableDictionary<AssemblyIdentity, AssemblyIdentity> GetAssemblyReferenceIdentityBaselineMap(ImmutableArray<TAssemblySymbol> symbols, ImmutableArray<AssemblyIdentity> originalIdentities)
         {
             Debug.Assert(originalIdentities.Length == symbols.Length);
 

@@ -327,7 +327,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New DelegateResolutionResult(delegateConversions, fromMethod, methodConversions, diagnostics.ToReadOnlyAndFree())
         End Function
 
-        Friend Function ReportDelegateInvokeUseSiteError(
+        Friend Shared Function ReportDelegateInvokeUseSiteError(
             diagBag As DiagnosticBag,
             syntax As VisualBasicSyntaxNode,
             delegateType As TypeSymbol,
@@ -581,7 +581,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Debug.Assert(addressOfExpression.MethodGroup.ResultKind = LookupResultKind.Good)
                 End If
 
-                resolutionBinder.ReportDelegateBindingIncompatible(
+                ReportDelegateBindingIncompatible(
                     addressOfOperandSyntax,
                     toMethod.ContainingType,
                     DirectCast(bestSymbols(0), MethodSymbol),
@@ -687,7 +687,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 methodConversions = methodConversions Or MethodConversionKind.Error_Unspecified
             Else
-                addressOfExpression.Binder.ReportDelegateBindingIncompatible(
+                ReportDelegateBindingIncompatible(
                     addressOfOperandSyntax,
                     toMethod.ContainingType,
                     targetMethodSymbol,
@@ -707,7 +707,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return New KeyValuePair(Of MethodSymbol, MethodConversionKind)(Nothing, methodConversions)
         End Function
 
-        Private Sub ReportDelegateBindingMismatchStrictOff(
+        Private Shared Sub ReportDelegateBindingMismatchStrictOff(
             syntax As VisualBasicSyntaxNode,
             delegateType As NamedTypeSymbol,
             targetMethodSymbol As MethodSymbol,
@@ -731,7 +731,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Private Sub ReportDelegateBindingIncompatible(
+        Private Shared Sub ReportDelegateBindingIncompatible(
             syntax As VisualBasicSyntaxNode,
             delegateType As NamedTypeSymbol,
             targetMethodSymbol As MethodSymbol,

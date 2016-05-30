@@ -432,7 +432,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <param name="fieldSymbol">The field symbol.</param>
         ''' <param name="equalsValueOrAsNewSyntax">The syntax node for the optional initialization.</param>
         ''' <param name="boundInitializers">The array of bound initializers to add the newly bound ones to.</param>
-        Private Sub BindConstFieldInitializer(
+        Private Shared Sub BindConstFieldInitializer(
             fieldSymbol As SourceFieldSymbol,
             equalsValueOrAsNewSyntax As VisualBasicSyntaxNode,
             boundInitializers As ArrayBuilder(Of BoundInitializer))

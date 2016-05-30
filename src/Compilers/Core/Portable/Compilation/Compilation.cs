@@ -1027,7 +1027,7 @@ namespace Microsoft.CodeAnalysis
             RES
         }
 
-        internal Win32ResourceForm DetectWin32ResourceForm(Stream win32Resources)
+        internal static Win32ResourceForm DetectWin32ResourceForm(Stream win32Resources)
         {
             var reader = new BinaryReader(win32Resources, Encoding.Unicode);
 

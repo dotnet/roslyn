@@ -4,7 +4,6 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -41,60 +40,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 default:
                     throw ExceptionUtilities.UnexpectedValue(node.Kind());
             }
-        }
-        /// <summary>
-        /// Is a user-defined `operator is` applicable? At the use site, we ignore those that are not.
-        /// </summary>
-        private bool ApplicableOperatorIs(MethodSymbol candidate, CSharpSyntaxNode node, DiagnosticBag diagnostics)
-        {
-            // must be a user-defined operator, and requires at least one parameter
-            if (candidate.MethodKind != MethodKind.UserDefinedOperator || candidate.ParameterCount == 0)
-            {
-                return false;
-            }
-
-            // must be static.
-            if (!candidate.IsStatic)
-            {
-                return false;
-            }
-
-            // the first parameter must be a value. The remaining parameters must be out.
-            foreach (var parameter in candidate.Parameters)
-            {
-                if (parameter.RefKind != ((parameter.Ordinal == 0) ? RefKind.None : RefKind.Out))
-                {
-                    return false;
-                }
-            }
-
-            // must return void or bool
-            switch (candidate.ReturnType.SpecialType)
-            {
-                case SpecialType.System_Void:
-                case SpecialType.System_Boolean:
-                    break;
-                default:
-                    return false;
-            }
-
-            // must not be generic
-            if (candidate.Arity != 0)
-            {
-                return false;
-            }
-
-            // it should be accessible
-            HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            bool isAccessible = this.IsAccessible(candidate, ref useSiteDiagnostics);
-            diagnostics.Add(node, useSiteDiagnostics);
-            if (!isAccessible)
-            {
-                return false;
-            }
-
-            // all requirements are satisfied
-            return true;
         }
 
         private BoundPattern BindConstantPattern(
