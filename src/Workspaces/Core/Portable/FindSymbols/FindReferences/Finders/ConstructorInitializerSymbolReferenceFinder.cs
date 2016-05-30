@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 {
                     return true;
                 }
-                else if (syntaxFactsService.IsConstructorIdentifier(t))
+                else if (semanticModel.Language == LanguageNames.CSharp && syntaxFactsService.IsConstructorIdentifier(t))
                 {
                     var containingType = semanticModel.GetEnclosingNamedType(t.SpanStart, cancellationToken);
                     if (((ConstructorDeclarationSyntax)t.Parent).Initializer == null
