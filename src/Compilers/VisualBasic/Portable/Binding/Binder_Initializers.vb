@@ -630,10 +630,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' <summary>
         ''' Binds a parameter's default value syntax
         ''' </summary>
-        Friend Function BindParameterDefaultValue(targetType As TypeSymbol,
+        Friend Function BindParameterDefaultValue(
+                                                   targetType As TypeSymbol,
                                                    EqualsValueSyntax As EqualsValueSyntax,
-                                                         diagnostics As DiagnosticBag,
-                                              <Out> ByRef constValue As ConstantValue
+                                                   diagnostics As DiagnosticBag,
+                                       <Out> ByRef constValue As ConstantValue
                                                  ) As BoundExpression
             constValue = Nothing
 

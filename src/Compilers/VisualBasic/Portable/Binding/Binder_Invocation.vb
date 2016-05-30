@@ -3114,7 +3114,7 @@ ProduceBoundNode:
 
                 ' For compatibility with the native compiler bad metadata constants should be treated as default(T).  This 
                 ' is a possible outcome of running an obfuscator over a valid DLL 
-                If defaultConstantValue.IsBad Then
+                If defaultConstantValue Is Nothing OrElse defaultConstantValue.IsBad Then
                     defaultConstantValue = ConstantValue.Null
                 End If
 

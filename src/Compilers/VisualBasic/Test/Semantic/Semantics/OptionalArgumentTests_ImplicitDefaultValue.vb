@@ -1906,11 +1906,10 @@ Void Main() - 10, Main, a.vb"
     </file>
 </compilation>
             Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=TestOptions.ReleaseExe, parseOptions:=MyParseOptions)
-            CompileAndVerify(compilation,
-            <![CDATA[
-        x: 14
-        y: 15
-        ]]>)
+            CompileAndVerify(compilation, expectedOutput:=
+" x: 14
+y: 15
+")
         End Sub
 
         <Requires.Language.Feature(ImplicitDefaultValueOnOptionalParameter)>
@@ -2003,12 +2002,12 @@ Void Main() - 10, Main, a.vb"
                 {MscorlibRef_v4_0_30316_17626, MsvbRef},
                 TestOptions.ReleaseExe.WithSourceReferenceResolver(SourceFileResolver.Default).WithParseOptions(MyParseOptions))
 
-            CompileAndVerify(compilation, expectedOutput:="
-        1: 'C:\filename'
-        2: 'a\b\..\c\d'
-        3: '*'
-        4: '       '
-        ")
+            CompileAndVerify(compilation, expectedOutput:=
+" 1: 'C:\filename'
+2: 'a\b\..\c\d'
+3: '*'
+4: '       '
+")
         End Sub
 
         <Requires.Language.Feature(ImplicitDefaultValueOnOptionalParameter)>
@@ -2087,13 +2086,13 @@ Void Main() - 10, Main, a.vb"
                     baseDirectory:="C:\A\B",
                     pathMap:=ImmutableArray.Create(New KeyValuePair(Of String, String)("C:", "/X")))).WithParseOptions(MyParseOptions))
 
-            CompileAndVerify(compilation, expectedOutput:="
-        1: '/X/filename'
-        2: '/X/A/B/a/c/d.vb'
-        3: '*'
-        4: '/X/abc'
-        5: '     '
-        ")
+            CompileAndVerify(compilation, expectedOutput:=
+" 1: '/X/filename'
+2: '/X/A/B/a/c/d.vb'
+3: '*'
+4: '/X/abc'
+5: '     '
+")
         End Sub
 
         <WorkItem(623122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623122"), WorkItem(619347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/619347")>
