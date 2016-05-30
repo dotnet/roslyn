@@ -269,8 +269,7 @@ expectedOutput:="  1/1/2012 12:00:00 AM
     </file>
 </compilation>
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, parseOptions:=MyParseOptions)
-            comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_OptionalIllegal1, "Optional").WithArguments("Event"),
-                                   Diagnostic(ERRID.ERR_OmittedArgument2, "RaiseEvent E()").WithArguments("I", "Public Event E(I As Integer)"))
+            comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_OptionalIllegal1, "Optional").WithArguments("Event"))
         End Sub
 
         <WorkItem(543526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543526")>
@@ -703,23 +702,23 @@ x = nothing
             Dim compilationRef As MetadataReference = libComp.ToMetadataReference()
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, parseOptions:=MyParseOptions, additionalRefs:={compilationRef})
-
-            comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_OmittedArgument2, "M2").WithArguments("x", "Public Shared Sub M2(x As Object)"),
-                                   Diagnostic(ERRID.ERR_OmittedArgument2, "M4").WithArguments("x", "Public Shared Sub M4(x As Object)"),
-                                   Diagnostic(ERRID.ERR_OmittedArgument2, "M6").WithArguments("x", "Public Shared Sub M6(x As Object)"),
-                                   Diagnostic(ERRID.ERR_OmittedArgument2, "M8").WithArguments("x", "Public Shared Sub M8(x As Object)"))
+            comp.AssertNoDiagnostics
+            'comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_OmittedArgument2, "M2").WithArguments("x", "Public Shared Sub M2(x As Object)"),
+            '                       Diagnostic(ERRID.ERR_OmittedArgument2, "M4").WithArguments("x", "Public Shared Sub M4(x As Object)"),
+            '                       Diagnostic(ERRID.ERR_OmittedArgument2, "M6").WithArguments("x", "Public Shared Sub M6(x As Object)"),
+            '                       Diagnostic(ERRID.ERR_OmittedArgument2, "M8").WithArguments("x", "Public Shared Sub M8(x As Object)"))
 
             Dim metadataRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
 
             CompileAndVerify(source, additionalRefs:={metadataRef}, expectedOutput:="
 1
-System.Reflection.Missing
+2
 3
-System.Runtime.InteropServices.DispatchWrapper
+4
 5
-System.Runtime.InteropServices.UnknownWrapper
+6
 7
-System.Runtime.InteropServices.DispatchWrapper
+8
 ").VerifyDiagnostics()
         End Sub
 
@@ -855,8 +854,8 @@ System.Runtime.InteropServices.DispatchWrapper
 4
 5
 6
-System.Runtime.InteropServices.DispatchWrapper
-System.Runtime.InteropServices.DispatchWrapper
+7
+8
 "
 
             Dim metadataRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
@@ -917,15 +916,15 @@ System.Runtime.InteropServices.DispatchWrapper
             Dim libRef As MetadataReference = libComp.ToMetadataReference()
 
             Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, parseOptions:=MyParseOptions, additionalRefs:=New MetadataReference() {libRef})
-
-            comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_OmittedArgument2, "Foo1").WithArguments("x", "Public Shared Sub Foo1(x As Object)"),
-                                   Diagnostic(ERRID.ERR_OmittedArgument2, "Foo2").WithArguments("x", "Public Shared Sub Foo2(x As String)"),
-                                   Diagnostic(ERRID.ERR_OmittedArgument2, "Foo3").WithArguments("x", "Public Shared Sub Foo3(x As Integer)"))
+            comp.AssertNoDiagnostics
+            'comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_OmittedArgument2, "Foo1").WithArguments("x", "Public Shared Sub Foo1(x As Object)"),
+            '                       Diagnostic(ERRID.ERR_OmittedArgument2, "Foo2").WithArguments("x", "Public Shared Sub Foo2(x As String)"),
+            '                       Diagnostic(ERRID.ERR_OmittedArgument2, "Foo3").WithArguments("x", "Public Shared Sub Foo3(x As Integer)"))
 
             libRef = MetadataReference.CreateFromImage(libComp.EmitToArray())
 
             CompileAndVerify(source, parseOptions:=MyParseOptions, additionalRefs:=New MetadataReference() {libRef}, expectedOutput:=
-"System.Reflection.Missing
+"nothing
 nothing
 0
 ").VerifyDiagnostics()
@@ -1866,16 +1865,14 @@ Void Main() - 10, Main, a.vb"
     </file>
 </compilation>
             Dim compilation = CreateCompilationWithMscorlib45AndVBRuntime(source, options:=TestOptions.ReleaseExe, parseOptions:=MyParseOptions)
-            CompileAndVerify(compilation,
-            <![CDATA[
-        1: 21
-        0: 22
-        2: 23
-        3: 23
-        4: 27
-        5: 30
-        6: 33
-        ]]>)
+            CompileAndVerify(compilation, expectedOutput:=
+"1: 21
+0: 22
+2: 23
+3: 23
+4: 27
+5: 30
+6: 33")
         End Sub
 
         <WorkItem(1040287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040287")>

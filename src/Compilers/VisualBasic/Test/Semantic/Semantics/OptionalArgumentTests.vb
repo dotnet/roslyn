@@ -18,7 +18,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
         Inherits BasicTestBase
 
         <WorkItem(543066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543066")>
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
         Public Sub TestOptionalOnGenericMethod()
             Dim source =
 <compilation name="TestOptionalOnGenericMethod">
@@ -48,7 +47,6 @@ End Module
 
         ' Verify that there is no copy back conversion when optional parameters are byref.
         <WorkItem(543099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543099")>
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
         Public Sub TestIntegerOptionalDoubleWithConversionError()
             Dim source =
 <compilation name="TestIntegerOptionalDoubleWithConversionError">
@@ -71,7 +69,6 @@ End Module
         End Sub
 
         <WorkItem(543093, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543093")>
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
         Public Sub TestOptionalByRef()
             Dim source =
 <compilation name="TestOptionalByRef">
@@ -109,7 +106,7 @@ expectedOutput:=<![CDATA[
 
         ' Report error if the default value of overridden method is different 
 
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
+
         Public Sub TestOverridingOptionalWithDifferentDefaultValue()
             Dim source =
 <compilation name="TestOverridingOptionalWithDifferentDefaultValue">
@@ -144,7 +141,6 @@ End Module
 
         ' Should only report an error for guid parameter.
         <WorkItem(543202, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543202")>
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
         Public Sub TestOptionalAfterParameterWithConversionError()
             Dim source =
 <compilation name="TestOptionalAfterParameterWithConversionError">
@@ -169,7 +165,6 @@ End Module
         End Sub
 
         <WorkItem(543227, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543227")>
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
         Public Sub TestMultipleEnumDefaultValues()
             Dim source =
 <compilation>
@@ -202,7 +197,6 @@ End Module
 
 
         <WorkItem(543179, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543179")>
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
         Public Sub TestOptionalObject()
             Dim source =
 <compilation name="TestOptionalObject">
@@ -227,7 +221,6 @@ End Module
 
 
         <WorkItem(543230, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543230")>
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
         Public Sub TestOptionalIntegerWithStringValue()
             Dim source =
 <compilation name="TestOptionalIntegerWithStringValue">
@@ -250,7 +243,6 @@ End Module
 
 
         <WorkItem(543395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543395")>
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
         Public Sub TestEventWithOptionalInteger()
             Dim source =
 <compilation name="TestEventWithOptionalInteger">
@@ -277,7 +269,6 @@ End Module
         End Sub
 
         <WorkItem(543526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543526")>
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
         Public Sub MidParameterMissOptional()
             Dim source =
 <compilation name="MidParameterMissOptional">
@@ -297,7 +288,7 @@ End Module
         End Sub
 
 
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
+
         Public Sub ParamArrayAfterOptional()
             Dim source =
 <compilation name="MidParameterMissOptional">
@@ -317,7 +308,7 @@ End Module
         End Sub
 
 
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
+
         Public Sub ParamArrayNotLast()
             Dim source =
 <compilation name="MidParameterMissOptional">
@@ -337,7 +328,6 @@ End Module
         End Sub
 
         <WorkItem(543527, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543527")>
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
         Public Sub OptionalParameterValueAssignedToRuntime()
             Dim source =
 <compilation name="OptionalParameterValueAssignedToRuntime">
@@ -357,7 +347,6 @@ End Class
         End Sub
 
         <WorkItem(543531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543531")>
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
         Public Sub OptionalParameterForConstructorofStructure()
             Dim source =
 <compilation name="OptionalParameterForConstructorofStructure">
@@ -376,7 +365,6 @@ End Structure
         End Sub
 
         <WorkItem(544515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544515")>
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
         Public Sub OptionalNullableInteger()
             Dim source =
 <compilation name="OptionalNullableInteger">
@@ -413,7 +401,6 @@ End Structure
         End Sub
 
         <WorkItem(544515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544515")>
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
         Public Sub OptionalNullableIntegerWithNothingValue()
             Dim source =
 <compilation name="OptionalNullableInteger">
@@ -452,7 +439,6 @@ False
         End Sub
 
         <WorkItem(544603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544603")>
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
         Public Sub OptionalParameterValueRefersToContainingFunction1()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -478,7 +464,6 @@ End Module
 
 
         <WorkItem(544603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544603")>
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
         Public Sub OptionalParameterValueRefersToContainingFunction2()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -508,7 +493,6 @@ End Module
 
 
         <WorkItem(544603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544603")>
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
         Public Sub OptionalParameterValueRefersToMe()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -539,7 +523,6 @@ End Module
 
 
         <WorkItem(545416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545416")>
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
         Public Sub OptionalParameterValueWithEnumValue()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -567,7 +550,7 @@ End Module
             compilation.AssertNoDiagnostics()
         End Sub
 
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
+
         Public Sub NullableEnumAsOptional()
             Dim compilation =
 <compilation>
@@ -595,7 +578,6 @@ End Enum
         End Sub
 
         <WorkItem(536772, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536772")>
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
         Public Sub NullableConversionsInOptional()
             Dim compilation =
 <compilation>
@@ -634,7 +616,6 @@ x = nothing
         End Sub
 
         <WorkItem(543187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543187")>
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
         Public Sub OptionalWithIUnknownConstantAndIDispatchConstant()
             Dim libSource =
 <compilation>
@@ -727,7 +708,6 @@ System.Runtime.InteropServices.DispatchWrapper
         End Sub
 
         <WorkItem(543187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543187")>
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
         Public Sub OptionalWithIUnknownConstantAndIDispatchConstantWithString()
             Dim libSource =
 <compilation>
@@ -781,7 +761,6 @@ End Module
         End Sub
 
         <WorkItem(543187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543187")>
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
         Public Sub OptionalWithMarshallAs()
             Dim libSource =
             <compilation>
@@ -866,7 +845,6 @@ System.Runtime.InteropServices.DispatchWrapper
         End Sub
 
         <WorkItem(545405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545405")>
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
         Public Sub OptionalWithNoDefaultValue()
             Dim libSource =
 <compilation>
@@ -933,7 +911,6 @@ nothing
         End Sub
 
         <WorkItem(545405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545405")>
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
         Public Sub OptionalWithOptionCompare()
             Dim libSource =
 <compilation>
@@ -1016,7 +993,6 @@ True
         End Sub
 
         <WorkItem(545686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545686")>
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
         Public Sub ParameterValueWithGenericSemanticInfo()
             Dim compilation = CreateCompilationWithMscorlib(
           <compilation>
@@ -1053,7 +1029,6 @@ End Interface
         End Sub
 
         <WorkItem(578129, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578129")>
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
         Public Sub Bug578129()
             Dim source =
 <compilation>
@@ -1139,7 +1114,7 @@ BC30002: Type 'CallerMemberName' is not defined.
         End Sub
 
 
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
+
         Public Sub CallerInfo1()
             Dim source =
 <compilation>
@@ -1485,7 +1460,7 @@ CallerInfo
 ]]>)
         End Sub
 
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
+
         Public Sub CallerInfo2()
             Dim source =
 <compilation>
@@ -1530,7 +1505,7 @@ BC30521: Overload resolution failed because no accessible 'Overloaded' is most s
         End Sub
 
 
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
+
         Public Sub CallerInfo3()
             Dim source =
 <compilation>
@@ -1698,7 +1673,7 @@ Void Main() - 10, Main, a.vb
             CompileAndVerify(compilation, expectedOutput)
         End Sub
 
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
+
         Public Sub CallerInfo4()
             Dim source =
 <compilation>
@@ -1851,7 +1826,6 @@ Void Main() - 10, Main, a.vb
         End Sub
 
         <WorkItem(1040287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040287")>
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
         Public Sub CallerInfo5()
             Dim source =
 <compilation>
@@ -1911,7 +1885,6 @@ End Class
         End Sub
 
         <WorkItem(1040287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040287")>
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
         Public Sub CallerInfo6()
             Dim source =
 <compilation>
@@ -1946,7 +1919,7 @@ y: 15
         End Sub
 
 
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
+
         Public Sub CallerInfo7()
             Dim compilation1 = CreateCSharpCompilation(<![CDATA[
 using System.Runtime.CompilerServices;
@@ -1986,7 +1959,7 @@ End Class
 ]]>)
         End Sub
 
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
+
         Public Sub TestCallerFilePath1()
             Dim source1 = "
 Imports System.Runtime.CompilerServices
@@ -2047,7 +2020,7 @@ End Module
 ")
         End Sub
 
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
+
         Public Sub TestCallerFilePath2()
             Dim source1 = "
 Imports System.Runtime.CompilerServices
@@ -2133,7 +2106,6 @@ End Module
         End Sub
 
         <WorkItem(623122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623122"), WorkItem(619347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/619347")>
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
         Public Sub Bug_619347_623122()
             Dim source =
 <compilation>
@@ -2176,7 +2148,6 @@ a
         Dim myVBLangVersion As LanguageVersion = VisualBasic.VisualBasicParseOptions.Default.LanguageVersion
 
         <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
         Public Sub IsOptionalVsHasDefaultValue_PrimitiveStruct()
             Dim source =
 <compilation name="TestOptionalOnGenericMethod">
@@ -2289,7 +2260,6 @@ End Class
         End Sub
 
         <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
         Public Sub IsOptionalVsHasDefaultValue_UserDefinedStruct()
             Dim source =
 <compilation name="TestOptionalOnGenericMethod">
@@ -2376,7 +2346,6 @@ End Structure
         End Sub
 
         <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
         Public Sub IsOptionalVsHasDefaultValue_String()
             Dim source =
 <compilation name="TestOptionalOnGenericMethod">
@@ -2489,7 +2458,6 @@ End Class
         End Sub
 
         <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
         Public Sub IsOptionalVsHasDefaultValue_Decimal()
             Dim source =
 <compilation name="TestOptionalOnGenericMethod">
@@ -2654,7 +2622,6 @@ End Class
         End Sub
 
         <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
-        <Requires.Language.Version(LanguageVersion.VBnext, Requires.Language.Version.Comparision.LT)>
         Public Sub IsOptionalVsHasDefaultValue_DateTime()
             Dim source =
 <compilation name="TestOptionalOnGenericMethod">
