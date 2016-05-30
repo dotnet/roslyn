@@ -303,7 +303,7 @@ Friend Module Extensions
 End Module
 
 Namespace Global.Roslyn.Test.Utilities.VisualBasic
-
+#Const Skip_Enable = False
     Namespace Requires
         Namespace Language
             Public Class Feature
@@ -313,7 +313,9 @@ Namespace Global.Roslyn.Test.Utilities.VisualBasic
 
                 Public Sub New(theFeature As InternalSyntax.Feature)
                     Me.theFeature = theFeature
+#If Skip_Enabled Then
                     If theFeature.IsUnavailable Then Skip = "Language Feature " & theFeature.ToString & " is unavailable."
+#End If
                 End Sub
 
             End Class

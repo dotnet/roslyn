@@ -339,7 +339,7 @@ Public Class ParseMethods
         ]]>)
     End Sub
 
-    <Requires.Language.Version(LanguageVersion.VisualBasic14, Requires.Language.Version.Comparision.LE)>
+    <Fact>
     Public Sub Bug862505_a()
         Dim source = "
             Class C1

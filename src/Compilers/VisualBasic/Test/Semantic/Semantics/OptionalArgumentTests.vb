@@ -17,7 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class OptionalArgumentTests
         Inherits BasicTestBase
 
-        <WorkItem(543066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543066")>
+        <Fact> <WorkItem(543066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543066")>
         Public Sub TestOptionalOnGenericMethod()
             Dim source =
 <compilation name="TestOptionalOnGenericMethod">
@@ -46,7 +46,7 @@ End Module
         End Sub
 
         ' Verify that there is no copy back conversion when optional parameters are byref.
-        <WorkItem(543099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543099")>
+        <Fact> <WorkItem(543099, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543099")>
         Public Sub TestIntegerOptionalDoubleWithConversionError()
             Dim source =
 <compilation name="TestIntegerOptionalDoubleWithConversionError">
@@ -68,7 +68,7 @@ End Module
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_DateToDoubleConversion, "#1/1/2001#"))
         End Sub
 
-        <WorkItem(543093, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543093")>
+        <Fact> <WorkItem(543093, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543093")>
         Public Sub TestOptionalByRef()
             Dim source =
 <compilation name="TestOptionalByRef">
@@ -140,7 +140,7 @@ End Module
         End Sub
 
         ' Should only report an error for guid parameter.
-        <WorkItem(543202, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543202")>
+        <Fact> <WorkItem(543202, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543202")>
         Public Sub TestOptionalAfterParameterWithConversionError()
             Dim source =
 <compilation name="TestOptionalAfterParameterWithConversionError">
@@ -164,7 +164,7 @@ End Module
             comp.VerifyDiagnostics(Diagnostic(ERRID.ERR_TypeMismatch2, "1").WithArguments("Integer", "System.Guid"))
         End Sub
 
-        <WorkItem(543227, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543227")>
+        <Fact> <WorkItem(543227, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543227")>
         Public Sub TestMultipleEnumDefaultValues()
             Dim source =
 <compilation>
@@ -196,7 +196,7 @@ End Module
         End Sub
 
 
-        <WorkItem(543179, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543179")>
+        <Fact> <WorkItem(543179, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543179")>
         Public Sub TestOptionalObject()
             Dim source =
 <compilation name="TestOptionalObject">
@@ -220,7 +220,7 @@ End Module
         End Sub
 
 
-        <WorkItem(543230, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543230")>
+        <Fact> <WorkItem(543230, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543230")>
         Public Sub TestOptionalIntegerWithStringValue()
             Dim source =
 <compilation name="TestOptionalIntegerWithStringValue">
@@ -242,7 +242,7 @@ End Module
         End Sub
 
 
-        <WorkItem(543395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543395")>
+        <Fact> <WorkItem(543395, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543395")>
         Public Sub TestEventWithOptionalInteger()
             Dim source =
 <compilation name="TestEventWithOptionalInteger">
@@ -268,7 +268,7 @@ End Module
                                    Diagnostic(ERRID.ERR_OmittedArgument2, "RaiseEvent E()").WithArguments("I", "Public Event E(I As Integer)"))
         End Sub
 
-        <WorkItem(543526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543526")>
+        <Fact> <WorkItem(543526, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543526")>
         Public Sub MidParameterMissOptional()
             Dim source =
 <compilation name="MidParameterMissOptional">
@@ -327,7 +327,7 @@ End Module
                 Diagnostic(ERRID.ERR_ParamArrayMustBeLast, "Optional z As Integer = 1"))
         End Sub
 
-        <WorkItem(543527, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543527")>
+        <Fact> <WorkItem(543527, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543527")>
         Public Sub OptionalParameterValueAssignedToRuntime()
             Dim source =
 <compilation name="OptionalParameterValueAssignedToRuntime">
@@ -346,7 +346,7 @@ End Class
                 Diagnostic(ERRID.ERR_RequiredConstExpr, "String.Empty"))
         End Sub
 
-        <WorkItem(543531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543531")>
+        <Fact> <WorkItem(543531, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543531")>
         Public Sub OptionalParameterForConstructorofStructure()
             Dim source =
 <compilation name="OptionalParameterForConstructorofStructure">
@@ -364,7 +364,7 @@ End Structure
             CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source).AssertNoDiagnostics()
         End Sub
 
-        <WorkItem(544515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544515")>
+        <Fact> <WorkItem(544515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544515")>
         Public Sub OptionalNullableInteger()
             Dim source =
 <compilation name="OptionalNullableInteger">
@@ -400,7 +400,7 @@ End Structure
 ]]>)
         End Sub
 
-        <WorkItem(544515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544515")>
+        <Fact> <WorkItem(544515, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544515")>
         Public Sub OptionalNullableIntegerWithNothingValue()
             Dim source =
 <compilation name="OptionalNullableInteger">
@@ -438,7 +438,7 @@ False
 ]]>)
         End Sub
 
-        <WorkItem(544603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544603")>
+        <Fact> <WorkItem(544603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544603")>
         Public Sub OptionalParameterValueRefersToContainingFunction1()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -463,7 +463,7 @@ End Module
         End Sub
 
 
-        <WorkItem(544603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544603")>
+        <Fact> <WorkItem(544603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544603")>
         Public Sub OptionalParameterValueRefersToContainingFunction2()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -492,7 +492,7 @@ End Module
         End Sub
 
 
-        <WorkItem(544603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544603")>
+        <Fact> <WorkItem(544603, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544603")>
         Public Sub OptionalParameterValueRefersToMe()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -522,7 +522,7 @@ End Module
         End Sub
 
 
-        <WorkItem(545416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545416")>
+        <Fact> <WorkItem(545416, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545416")>
         Public Sub OptionalParameterValueWithEnumValue()
             Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
 <compilation>
@@ -577,7 +577,7 @@ End Enum
             CompileAndVerify(compilation, expectedOutput:="B").VerifyDiagnostics()
         End Sub
 
-        <WorkItem(536772, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536772")>
+        <Fact> <WorkItem(536772, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/536772")>
         Public Sub NullableConversionsInOptional()
             Dim compilation =
 <compilation>
@@ -615,7 +615,7 @@ x = nothing
 ]]>).VerifyDiagnostics()
         End Sub
 
-        <WorkItem(543187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543187")>
+        <Fact> <WorkItem(543187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543187")>
         Public Sub OptionalWithIUnknownConstantAndIDispatchConstant()
             Dim libSource =
 <compilation>
@@ -707,7 +707,7 @@ System.Runtime.InteropServices.DispatchWrapper
 ]]>).VerifyDiagnostics()
         End Sub
 
-        <WorkItem(543187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543187")>
+        <Fact> <WorkItem(543187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543187")>
         Public Sub OptionalWithIUnknownConstantAndIDispatchConstantWithString()
             Dim libSource =
 <compilation>
@@ -760,7 +760,7 @@ End Module
 ]]>).VerifyDiagnostics()
         End Sub
 
-        <WorkItem(543187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543187")>
+        <Fact> <WorkItem(543187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543187")>
         Public Sub OptionalWithMarshallAs()
             Dim libSource =
             <compilation>
@@ -844,7 +844,7 @@ System.Runtime.InteropServices.DispatchWrapper
             CompileAndVerify(source, additionalRefs:={metadataRef}, expectedOutput:=expected).VerifyDiagnostics()
         End Sub
 
-        <WorkItem(545405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545405")>
+        <Fact> <WorkItem(545405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545405")>
         Public Sub OptionalWithNoDefaultValue()
             Dim libSource =
 <compilation>
@@ -910,7 +910,7 @@ nothing
 ]]>).VerifyDiagnostics()
         End Sub
 
-        <WorkItem(545405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545405")>
+        <Fact> <WorkItem(545405, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545405")>
         Public Sub OptionalWithOptionCompare()
             Dim libSource =
 <compilation>
@@ -992,7 +992,7 @@ True
 ]]>).VerifyDiagnostics()
         End Sub
 
-        <WorkItem(545686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545686")>
+        <Fact> <WorkItem(545686, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545686")>
         Public Sub ParameterValueWithGenericSemanticInfo()
             Dim compilation = CreateCompilationWithMscorlib(
           <compilation>
@@ -1028,7 +1028,7 @@ End Interface
             Assert.False(semanticSummary.ConstantValue.HasValue)
         End Sub
 
-        <WorkItem(578129, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578129")>
+        <Fact> <WorkItem(578129, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/578129")>
         Public Sub Bug578129()
             Dim source =
 <compilation>
@@ -1063,35 +1063,10 @@ End Class
     </file>
 </compilation>
             Dim vbp = VisualBasicParseOptions.Default
-            For Each langVersion In {LanguageVersion.VisualBasic14, LanguageVersion.VBnext}
-                vbp = vbp.WithLanguageVersion(langVersion)
-                Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, options:=TestOptions.ReleaseDll,
-                                                                                                      parseOptions:=vbp)
-                If ImplicitDefaultValueOnOptionalParameter.IsUnavailable(langVersion) Then
 
-                    AssertTheseDiagnostics(comp,
-<expected><![CDATA[
-BC30529: All parameters must be explicitly typed if any of them are explicitly typed.
-            Optional f A String = "",
-                     ~
-BC30812: Optional parameters must specify a default value.
-            Optional f A String = "",
-                       ~
-BC30451: 'A' is not declared. It may be inaccessible due to its protection level.
-            Optional f A String = "",
-                       ~
-BC30002: Type 'CallerFilePath' is not defined.
-            <CallerFilePath> Optional f As String = "",
-             ~~~~~~~~~~~~~~
-BC30002: Type 'CallerLineNumber' is not defined.
-            <CallerLineNumber> Optional l As Integer = -1,
-             ~~~~~~~~~~~~~~~~
-BC30002: Type 'CallerMemberName' is not defined.
-            <CallerMemberName> Optional m As String = Nothing)
-             ~~~~~~~~~~~~~~~~
-]]></expected>)
-                Else
-                    AssertTheseDiagnostics(comp,
+            Dim comp = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntimeAndReferences(source, options:=TestOptions.ReleaseDll,
+                                                                                                      parseOptions:=vbp)
+            AssertTheseDiagnostics(comp,
 <expected><![CDATA[
 BC30529: All parameters must be explicitly typed if any of them are explicitly typed.
             Optional f A String = "",
@@ -1109,8 +1084,7 @@ BC30002: Type 'CallerMemberName' is not defined.
             <CallerMemberName> Optional m As String = Nothing)
              ~~~~~~~~~~~~~~~~
 ]]></expected>)
-                End If
-            Next
+
         End Sub
 
 
@@ -1825,7 +1799,7 @@ Void Main() - 10, Main, a.vb
             CompileAndVerify(compilation, expectedOutput)
         End Sub
 
-        <WorkItem(1040287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040287")>
+        <Fact> <WorkItem(1040287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040287")>
         Public Sub CallerInfo5()
             Dim source =
 <compilation>
@@ -1884,7 +1858,7 @@ End Class
 ]]>)
         End Sub
 
-        <WorkItem(1040287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040287")>
+        <Fact> <WorkItem(1040287, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1040287")>
         Public Sub CallerInfo6()
             Dim source =
 <compilation>
@@ -2105,7 +2079,7 @@ End Module
 ")
         End Sub
 
-        <WorkItem(623122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623122"), WorkItem(619347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/619347")>
+        <Fact> <WorkItem(623122, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/623122"), WorkItem(619347, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/619347")>
         Public Sub Bug_619347_623122()
             Dim source =
 <compilation>
@@ -2147,7 +2121,7 @@ a
 
         Dim myVBLangVersion As LanguageVersion = VisualBasic.VisualBasicParseOptions.Default.LanguageVersion
 
-        <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
+        <Fact> <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
         Public Sub IsOptionalVsHasDefaultValue_PrimitiveStruct()
             Dim source =
 <compilation name="TestOptionalOnGenericMethod">
@@ -2259,7 +2233,7 @@ End Class
             CompileAndVerify(source, {MscorlibRef, SystemRef}, sourceSymbolValidator:=validator(True), symbolValidator:=validator(False))
         End Sub
 
-        <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
+        <Fact> <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
         Public Sub IsOptionalVsHasDefaultValue_UserDefinedStruct()
             Dim source =
 <compilation name="TestOptionalOnGenericMethod">
@@ -2345,7 +2319,7 @@ End Structure
             CompileAndVerify(source, {MscorlibRef, SystemRef}, sourceSymbolValidator:=validator(True), symbolValidator:=validator(False))
         End Sub
 
-        <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
+        <Fact> <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
         Public Sub IsOptionalVsHasDefaultValue_String()
             Dim source =
 <compilation name="TestOptionalOnGenericMethod">
@@ -2457,7 +2431,7 @@ End Class
             CompileAndVerify(source, {MscorlibRef, SystemRef}, sourceSymbolValidator:=validator(True), symbolValidator:=validator(False))
         End Sub
 
-        <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
+        <Fact> <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
         Public Sub IsOptionalVsHasDefaultValue_Decimal()
             Dim source =
 <compilation name="TestOptionalOnGenericMethod">
@@ -2621,7 +2595,7 @@ End Class
             CompileAndVerify(source, {MscorlibRef, SystemRef}, sourceSymbolValidator:=validator(True), symbolValidator:=validator(False))
         End Sub
 
-        <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
+        <Fact> <WorkItem(529775, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529775")>
         Public Sub IsOptionalVsHasDefaultValue_DateTime()
             Dim source =
 <compilation name="TestOptionalOnGenericMethod">
