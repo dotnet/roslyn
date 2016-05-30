@@ -16,7 +16,7 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
     [ExportIncrementalAnalyzerProvider(
-        highPriorityForActiveFile: true, name: WellKnownSolutionCrawlerAnalyzers.Diagnostic, 
+        highPriorityForActiveFile: true, name: WellKnownSolutionCrawlerAnalyzers.Diagnostic,
         workspaceKinds: new string[] { WorkspaceKind.Host, WorkspaceKind.Interactive })]
     internal partial class DiagnosticAnalyzerService : IIncrementalAnalyzerProvider
     {
@@ -187,6 +187,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return Analyzer.SynchronizeWithBuildAsync(workspace, diagnostics);
             }
             #endregion
+
+            public override void LogAnalyzerCountSummary()
+            {
+                Analyzer.LogAnalyzerCountSummary();
+            }
 
             public void TurnOff(bool useV2)
             {
