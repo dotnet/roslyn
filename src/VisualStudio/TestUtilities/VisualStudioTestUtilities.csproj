@@ -49,6 +49,7 @@
     <Compile Include="Workspace\Workspace.cs" />
   </ItemGroup>
   <ItemGroup>
+    <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TestImpact.VisualStudio.IntegrationTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Setup" />
   </ItemGroup>
   <ItemGroup>

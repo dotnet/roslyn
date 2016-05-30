@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CompilerServer
                 : RunServer(pipeName, cancellationToken: cancellationTokenSource.Token);
         }
 
-        protected abstract TimeSpan? GetKeepAliveTimeout();
+        protected internal abstract TimeSpan? GetKeepAliveTimeout();
 
         protected abstract string GetDefaultPipeName();
 

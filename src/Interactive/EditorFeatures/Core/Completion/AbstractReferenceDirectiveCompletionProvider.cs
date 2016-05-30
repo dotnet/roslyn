@@ -40,7 +40,8 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
 
         private static readonly ImmutableArray<CharacterSetModificationRule> s_filterRules = ImmutableArray<CharacterSetModificationRule>.Empty;
 
-        private static readonly CompletionItemRules s_rules = CompletionItemRules.Create(filterCharacterRules: s_filterRules, commitCharacterRules: s_commitRules);
+        private static readonly CompletionItemRules s_rules = CompletionItemRules.Create(
+            filterCharacterRules: s_filterRules, commitCharacterRules: s_commitRules, enterKeyRule: EnterKeyRule.Never);
 
         public override async Task ProvideCompletionsAsync(CompletionContext context)
         {

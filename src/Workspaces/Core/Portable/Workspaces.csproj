@@ -287,6 +287,9 @@
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
+    <InternalsVisibleToTypeScript Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" />
+    <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.LanguageServices.TypeScript" />
+    <InternalsVisibleToTypeScript Include="Roslyn.Services.Editor.TypeScript.UnitTests" />
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
@@ -341,15 +344,22 @@
     <Compile Include="CodeGeneration\CodeGenerationOptions.cs" />
     <Compile Include="CodeGeneration\CodeGenerationSymbolFactory.cs" />
     <Compile Include="CodeGeneration\CodeGenerator.cs" />
+    <Compile Include="CodeStyle\CodeStyleOptions.cs" />
+    <Compile Include="CodeStyle\NotificationOption.cs" />
+    <Compile Include="CodeStyle\CodeStyleOption.cs" />
     <Compile Include="Diagnostics\DiagnosticData.cs" />
     <Compile Include="Diagnostics\DiagnosticProvider.cs" />
     <Compile Include="Diagnostics\Extensions.cs" />
     <Compile Include="Diagnostics\InternalDiagnosticsOptions.cs" />
     <Compile Include="Diagnostics\InternalRuntimeDiagnosticOptions.cs" />
+    <Compile Include="FindSymbols\SyntaxTree\IDeclarationInfo.cs" />
+    <Compile Include="LanguageServices\SyntaxFactsService\AbstractSyntaxFactsService.cs" />
     <Compile Include="SolutionCrawler\ExportIncrementalAnalyzerProviderAttribute.cs" />
     <Compile Include="SolutionCrawler\IIncrementalAnalyzer.cs" />
     <Compile Include="SolutionCrawler\IIncrementalAnalyzerProvider.cs" />
     <Compile Include="SolutionCrawler\IncrementalAnalyzerProviderMetadata.cs" />
+    <Compile Include="SolutionCrawler\InvocationReasons.cs" />
+    <Compile Include="SolutionCrawler\InvocationReasons_Constants.cs" />
     <Compile Include="SolutionCrawler\ISolutionCrawlerRegistrationService.cs" />
     <Compile Include="Diagnostics\IWorkspaceVenusSpanMappingService.cs" />
     <Compile Include="Diagnostics\WellKnownDiagnosticPropertyNames.cs" />
@@ -414,6 +424,7 @@
     <Compile Include="Options\DocumentOptionSet.cs" />
     <Compile Include="Options\OptionSet.cs" />
     <Compile Include="Packaging\IPackageInstallerService.cs" />
+    <Compile Include="SolutionCrawler\PredefinedInvocationReasons.cs" />
     <Compile Include="SymbolSearch\ISymbolSearchService.cs" />
     <Compile Include="FindSymbols\SymbolTree\ISymbolTreeInfoCacheService.cs" />
     <Compile Include="FindSymbols\FindReferences\MetadataUnifyingEquivalenceComparer.cs" />

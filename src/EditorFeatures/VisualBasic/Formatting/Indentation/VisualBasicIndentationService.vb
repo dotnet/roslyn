@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Text
@@ -22,13 +23,14 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
             Return s_instance
         End Function
 
-        Protected Overrides Async Function GetIndenterAsync(document As Document, lineToBeIndented As ITextSnapshotLine, formattingRules As IEnumerable(Of IFormattingRule), optionSet As OptionSet, cancellationToken As CancellationToken) As Tasks.Task(Of AbstractIndenter)
+        Protected Overrides Async Function GetIndenterAsync(document As Document, lineToBeIndented As TextLine, formattingRules As IEnumerable(Of IFormattingRule), optionSet As OptionSet, cancellationToken As CancellationToken) As Tasks.Task(Of AbstractIndenter)
             Dim synDocument = Await SyntacticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(False)
             Return New Indenter(synDocument, formattingRules, optionSet, lineToBeIndented, cancellationToken)
         End Function
 
         Protected Overrides Function ShouldUseSmartTokenFormatterInsteadOfIndenter(formattingRules As IEnumerable(Of IFormattingRule),
-                                                                                   root As SyntaxNode, line As ITextSnapshotLine,
+                                                                                   root As SyntaxNode,
+                                                                                   line As TextLine,
                                                                                    optionSet As OptionSet,
                                                                                    cancellationToken As CancellationToken) As Boolean
             Return ShouldUseSmartTokenFormatterInsteadOfIndenter(formattingRules, DirectCast(root, CompilationUnitSyntax), line, optionSet, cancellationToken)
@@ -37,7 +39,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
         Public Overloads Shared Function ShouldUseSmartTokenFormatterInsteadOfIndenter(
                 formattingRules As IEnumerable(Of IFormattingRule),
                 root As CompilationUnitSyntax,
-                line As ITextSnapshotLine,
+                line As TextLine,
                 optionSet As OptionSet,
                 CancellationToken As CancellationToken,
                 Optional neverUseWhenHavingMissingToken As Boolean = True) As Boolean

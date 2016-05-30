@@ -898,7 +898,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' produce a unique method ordinal for the corresponding state machine type, whose name includes the (unique) method name.
             Const methodOrdinal As Integer = -1
 
-            Dim slotAllocatorOpt = CompilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method, method.TopLevelMethod)
+            Dim slotAllocatorOpt = CompilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method, method.TopLevelMethod, Diagnostics)
             Return Rewriter.RewriteIteratorAndAsync(loweredBody, method, methodOrdinal, CompilationState, Diagnostics, slotAllocatorOpt, stateMachineTypeOpt)
         End Function
 

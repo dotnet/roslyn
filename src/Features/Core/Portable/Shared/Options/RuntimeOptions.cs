@@ -12,5 +12,6 @@ namespace Microsoft.CodeAnalysis.Shared.Options
         public const string OptionName = "Runtime";
 
         public static readonly Option<bool> FullSolutionAnalysis = new Option<bool>(OptionName, "Full Solution Analysis", defaultValue: true);
+        public static readonly Option<bool> FullSolutionAnalysisInfoBarShown = new Option<bool>(OptionName, "Full Solution Analysis Info Bar Shown", defaultValue: false);
     }
 }

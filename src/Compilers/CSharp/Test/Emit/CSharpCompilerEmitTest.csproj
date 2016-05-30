@@ -59,21 +59,17 @@
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <CodeAnalysisRuleSet>..\..\..\..\..\build\TestProjectRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <CodeAnalysisRuleSet>..\..\..\..\..\build\TestProjectRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|ARM' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PlatformTarget>ARM</PlatformTarget>
-    <CodeAnalysisRuleSet>..\..\..\..\..\build\TestProjectRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|ARM' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PlatformTarget>ARM</PlatformTarget>
-    <CodeAnalysisRuleSet>..\..\..\..\..\build\TestProjectRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Attributes\AttributeTests.cs" />
