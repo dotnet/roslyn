@@ -483,9 +483,9 @@ class C
 
         private void TestRoundTrip(ISymbol symbol, Compilation compilation, Func<ISymbol, object> fnId = null)
         {
-            var id = SymbolKey.Create(symbol).Serialize();
+            var id = SymbolKey.ToString(symbol);
             Assert.NotNull(id);
-            var found = SymbolKey.Deserialize(id).Resolve(compilation).GetAnySymbol();
+            var found = SymbolKey.Resolve(id, compilation).GetAnySymbol();
             Assert.NotNull(found);
 
             if (fnId != null)
