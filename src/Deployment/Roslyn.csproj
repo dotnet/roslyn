@@ -50,6 +50,10 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
       <IncludeOutputGroupsInVSIX>VSIXContainerProjectOutputGroup%3b</IncludeOutputGroupsInVSIX>
     </ProjectReference>
+    <ProjectReference Include="..\VisualStudio\Setup.Next\VisualStudioSetup.Next.csproj">
+      <Project>{143fe684-6e1c-41df-9c60-84c7772dc49c}</Project>
+      <Name>VisualStudioSetup.Next</Name>
+    </ProjectReference>
     <ProjectReference Include="..\VisualStudio\SetupInteractive\VisualStudioSetupInteractive.csproj">
       <Project>{C467FEFA-337D-4705-BB5A-BDF41A555FDC}</Project>
       <Name>VisualStudioSetupInteractive</Name>
