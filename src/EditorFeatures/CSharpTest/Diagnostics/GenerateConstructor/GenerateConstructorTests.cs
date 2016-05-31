@@ -907,5 +907,36 @@ class D {
     }
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WorkItem(11563, "https://github.com/dotnet/roslyn/issues/11563")]
+        public async Task DoNotStripSingleUnderscore()
+        {
+            await TestAsync(
+@"class C { 
+    int _;
+    void M() {
+        new [|D|](_);
+    }
+}
+
+class D {
+}",
+@"class C { 
+    int _;
+
+    void M() {
+        new D(_);
+    }
+}
+
+class D {
+    private int _;
+
+    public D(int _) {
+        this._ = _;
+    }
+}");
+        }
     }
 }
