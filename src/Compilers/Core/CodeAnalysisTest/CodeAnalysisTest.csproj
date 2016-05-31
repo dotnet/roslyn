@@ -15,7 +15,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\Shared\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
@@ -48,10 +48,15 @@
     <Compile Include="MetadataReferences\AssemblyIdentityMapTests.cs" />
     <Compile Include="PEWriter\BlobUtilitiesTests.cs" />
     <Compile Include="PEWriter\BlobTests.cs" />
+    <Compile Include="PEWriter\LabelHandleTests.cs" />
+    <Compile Include="PEWriter\MethodBodyEncoderTests.cs" />
+    <Compile Include="PEWriter\MetadataBuilderTests.cs" />
+    <Compile Include="PEWriter\PEBuilderTests.cs" />
     <Compile Include="PEWriter\UsedNamespaceOrTypeTests.cs" />
     <Compile Include="RealParserTests.cs" />
     <Compile Include="SimpleAnalyzerAssemblyLoaderTests.cs" />
     <Compile Include="SourceFileResolverTest.cs" />
+    <Compile Include="SourceGeneratorTests.cs" />
     <Compile Include="Text\LargeTextTests.cs" />
     <Compile Include="Text\SourceTextStreamTests.cs" />
     <Compile Include="XmlDocumentationCommentTextReaderTests.cs" />

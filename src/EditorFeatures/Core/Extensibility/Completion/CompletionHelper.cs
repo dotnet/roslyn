@@ -7,9 +7,7 @@ using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
@@ -162,7 +160,9 @@ namespace Microsoft.CodeAnalysis.Editor
                 PatternMatcher patternMatcher;
                 if (!_patternMatcherMap.TryGetValue(value, out patternMatcher))
                 {
-                    patternMatcher = new PatternMatcher(value, culture, verbatimIdentifierPrefixIsWordCharacter: true);
+                    patternMatcher = new PatternMatcher(value, culture, 
+                        verbatimIdentifierPrefixIsWordCharacter: true, 
+                        allowFuzzyMatching: false);
                     _patternMatcherMap.Add(value, patternMatcher);
                 }
 
@@ -177,7 +177,9 @@ namespace Microsoft.CodeAnalysis.Editor
                 PatternMatcher patternMatcher;
                 if (!_fallbackPatternMatcherMap.TryGetValue(value, out patternMatcher))
                 {
-                    patternMatcher = new PatternMatcher(value, EnUSCultureInfo, verbatimIdentifierPrefixIsWordCharacter: true);
+                    patternMatcher = new PatternMatcher(
+                        value, EnUSCultureInfo, verbatimIdentifierPrefixIsWordCharacter: true,
+                        allowFuzzyMatching: false);
                     _fallbackPatternMatcherMap.Add(value, patternMatcher);
                 }
 

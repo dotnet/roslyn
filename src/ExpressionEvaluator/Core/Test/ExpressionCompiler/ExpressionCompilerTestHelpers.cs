@@ -347,8 +347,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             var names = ArrayBuilder<string>.GetInstance();
             foreach (var scope in scopes)
             {
-                var locals = scope.GetLocals();
-                foreach (var local in locals)
+                foreach (var local in scope.GetLocals())
                 {
                     var name = local.GetName();
                     int slot;
@@ -414,7 +413,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator.UnitTests
             }
             var scopes = ArrayBuilder<ISymUnmanagedScope>.GetInstance();
             method.GetAllScopes(scopes);
-            var result = scopes.SelectAsArray(s => new Scope(s.GetStartOffset(), s.GetEndOffset(), s.GetLocals().SelectAsArray(l => l.GetName()), isEndInclusive));
+            var result = scopes.SelectAsArray(s => new Scope(s.GetStartOffset(), s.GetEndOffset(), ImmutableArray.CreateRange(s.GetLocals().Select(l => l.GetName())), isEndInclusive));
             scopes.Free();
             return result;
         }

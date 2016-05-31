@@ -1,10 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.GenerateFromMembers.GenerateConstructor;
-using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Simplification;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -93,7 +92,7 @@ index: 0);
             await TestAsync(
 @"class Z { [|public int A { get ; private set ; } public string B { get ; private set ; }|] } ",
 @"class Z { public Z ( int a , string b ) { this . A = a ; this . B = b ; } public int A { get ; private set ; } public string B { get ; private set ; } } ",
-index: 0, options: new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.QualifyMemberAccessWithThisOrMe, "C#"), true } });
+index: 0, options: Option(CodeStyleOptions.QualifyPropertyAccess, true, NotificationOption.Error));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
@@ -179,6 +178,18 @@ index: 1);
         {
             await TestMissingAsync(
 "using System ; class X { public X ( string v ) { } static void Test ( ) { new X ( new [|string|] ( ) ) ; } } ");
+        }
+
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        public async Task Tuple()
+        {
+            await TestAsync(
+@"using System . Collections . Generic ; class Z { [|(int, string) a ;|] } ",
+@"using System . Collections . Generic ; class Z { (int, string) a ; public Z ( (int, string) a ) { this . a = a ; } } ",
+index: 0,
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
         }
     }
 }

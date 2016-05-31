@@ -38,8 +38,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (statement.Kind == BoundKind.ExpressionStatement)
             {
                 BoundExpression expression = ((BoundExpressionStatement)statement).Expression;
+                if (expression.Kind == BoundKind.Sequence && ((BoundSequence)expression).SideEffects.IsDefaultOrEmpty)
+                {
+                    // in case there is a pattern variable declared in a ctor-initializer, it gets wrapped in a bound sequence.
+                    expression = ((BoundSequence)expression).Value;
+                }
+
                 return expression.Kind == BoundKind.Call && ((BoundCall)expression).IsConstructorInitializer();
             }
+
             return false;
         }
 

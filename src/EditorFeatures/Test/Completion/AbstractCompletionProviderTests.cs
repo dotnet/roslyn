@@ -65,14 +65,14 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         }
 
         internal static async Task<CompletionContext> GetCompletionListContextAsync(
-            CompletionService service,
             CompletionProvider provider,
             Document document,
             int position,
             CompletionTrigger triggerInfo,
             OptionSet options = null)
         {
-            options = options ?? document.Project.Solution.Workspace.Options;
+            options = options ?? document.Options;
+            var service = document.Project.LanguageServices.GetService<CompletionService>();
             var text = await document.GetTextAsync();
             var span = service.GetDefaultItemSpan(text, position);
             var context = new CompletionContext(provider, document, position, span, triggerInfo, options, CancellationToken.None);
@@ -541,13 +541,12 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         {
             using (var testWorkspace = await TestWorkspace.CreateAsync(xmlString))
             {
-                var optionsService = testWorkspace.Services.GetService<IOptionService>();
                 var position = testWorkspace.Documents.Single(d => d.Name == "SourceDocument").CursorPosition.Value;
                 var solution = testWorkspace.CurrentSolution;
                 var documentId = testWorkspace.Documents.Single(d => d.Name == "SourceDocument").Id;
                 var document = solution.GetDocument(documentId);
 
-                optionsService.SetOptions(optionsService.GetOptions().WithChangedOption(CompletionOptions.HideAdvancedMembers, document.Project.Language, hideAdvancedMembers));
+                testWorkspace.Options = testWorkspace.Options.WithChangedOption(CompletionOptions.HideAdvancedMembers, document.Project.Language, hideAdvancedMembers);
 
                 var triggerInfo = CompletionTrigger.Default;
 
@@ -630,7 +629,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         {
             using (var testWorkspace = await TestWorkspace.CreateAsync(xmlString))
             {
-                var optionsService = testWorkspace.Services.GetService<IOptionService>();
                 var position = testWorkspace.Documents.First().CursorPosition.Value;
                 var solution = testWorkspace.CurrentSolution;
                 var textContainer = testWorkspace.Documents.First().TextBuffer.AsTextContainer();

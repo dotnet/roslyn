@@ -227,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var semantic = state.GetAnalysisData(AnalysisKind.Semantic);
 
                 var project = document.Project;
-                var fullAnalysis = ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(project.Solution.Workspace, project.Language);
+                var fullAnalysis = ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(project);
 
                 // keep from build flag if full analysis is off
                 var fromBuild = fullAnalysis ? false : lastResult.FromBuild;

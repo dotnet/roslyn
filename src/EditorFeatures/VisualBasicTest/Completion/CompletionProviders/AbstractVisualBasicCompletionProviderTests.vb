@@ -122,7 +122,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 Dim item = completionList.Items.First(Function(i) i.DisplayText.StartsWith(textTypedSoFar))
 
                 Dim helper = CompletionHelper.GetHelper(document, service)
-                Assert.Equal(expected, helper.SendEnterThroughToEditor(item, textTypedSoFar, workspace.Options))
+                Assert.Equal(expected, helper.SendEnterThroughToEditor(item, textTypedSoFar, document.Options))
             End Using
         End Function
 

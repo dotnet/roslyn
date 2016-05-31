@@ -116,9 +116,9 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             return result;
         }
 
-        internal static IMethodSymbol CreateMethodSymbol(INamedTypeSymbol containingType, IList<AttributeData> attributes, Accessibility accessibility, DeclarationModifiers modifiers, ITypeSymbol returnType, IMethodSymbol explicitInterfaceSymbol, string name, IList<ITypeParameterSymbol> typeParameters, IList<IParameterSymbol> parameters, IList<SyntaxNode> statements = null, IList<SyntaxNode> handlesExpressions = null, IList<AttributeData> returnTypeAttributes = null, MethodKind methodKind = MethodKind.Ordinary)
+        internal static IMethodSymbol CreateMethodSymbol(INamedTypeSymbol containingType, IList<AttributeData> attributes, Accessibility accessibility, DeclarationModifiers modifiers, ITypeSymbol returnType, IMethodSymbol explicitInterfaceSymbol, string name, IList<ITypeParameterSymbol> typeParameters, IList<IParameterSymbol> parameters, IList<SyntaxNode> statements = null, IList<SyntaxNode> handlesExpressions = null, IList<AttributeData> returnTypeAttributes = null, MethodKind methodKind = MethodKind.Ordinary, bool returnsByRef = false)
         {
-            var result = new CodeGenerationMethodSymbol(containingType, attributes, accessibility, modifiers, returnType, explicitInterfaceSymbol, name, typeParameters, parameters, returnTypeAttributes, methodKind);
+            var result = new CodeGenerationMethodSymbol(containingType, attributes, accessibility, modifiers, returnType, returnsByRef, explicitInterfaceSymbol, name, typeParameters, parameters, returnTypeAttributes, methodKind);
             CodeGenerationMethodInfo.Attach(result, modifiers.IsNew, modifiers.IsUnsafe, modifiers.IsPartial, modifiers.IsAsync, statements, handlesExpressions);
             return result;
         }

@@ -20,6 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Private ReadOnly _containingType As PENamedTypeSymbol
         Private ReadOnly _signatureHeader As SignatureHeader
         Private ReadOnly _parameters As ImmutableArray(Of ParameterSymbol)
+        Private ReadOnly _returnsByRef As Boolean
         Private ReadOnly _propertyType As TypeSymbol
         Private ReadOnly _getMethod As PEMethodSymbol
         Private ReadOnly _setMethod As PEMethodSymbol
@@ -69,14 +70,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Dim metadataDecoder = New MetadataDecoder(moduleSymbol, containingType)
             Dim propEx As BadImageFormatException = Nothing
-            Dim propertyParams = MetadataDecoder.GetSignatureForProperty(handle, _signatureHeader, propEx)
+            Dim propertyParams = metadataDecoder.GetSignatureForProperty(handle, _signatureHeader, propEx, allowByRefReturn:=True)
             Debug.Assert(propertyParams.Length > 0)
 
             Dim unusedSignatureHeader As SignatureHeader = Nothing
             Dim getEx As BadImageFormatException = Nothing
-            Dim getParams = If(_getMethod Is Nothing, Nothing, MetadataDecoder.GetSignatureForMethod(_getMethod.Handle, unusedSignatureHeader, getEx))
+            Dim getParams = If(_getMethod Is Nothing, Nothing, metadataDecoder.GetSignatureForMethod(_getMethod.Handle, unusedSignatureHeader, getEx, allowByRefReturn:=True))
             Dim setEx As BadImageFormatException = Nothing
-            Dim setParams = If(_setMethod Is Nothing, Nothing, MetadataDecoder.GetSignatureForMethod(_setMethod.Handle, unusedSignatureHeader, setEx))
+            Dim setParams = If(_setMethod Is Nothing, Nothing, metadataDecoder.GetSignatureForMethod(_setMethod.Handle, unusedSignatureHeader, setEx, allowByRefReturn:=False))
 
             Dim signaturesMatch = DoSignaturesMatch(metadataDecoder, propertyParams, _getMethod, getParams, _setMethod, setParams)
             Dim parametersMatch = True
@@ -95,6 +96,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
                 _setMethod.SetAssociatedProperty(Me, MethodKind.PropertySet)
             End If
 
+            _returnsByRef = propertyParams(0).IsByRef
             _propertyType = propertyParams(0).Type
             _typeCustomModifiers = VisualBasicCustomModifier.Convert(propertyParams(0).CustomModifiers)
         End Sub
@@ -215,6 +217,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
         Public Overrides ReadOnly Property Parameters As ImmutableArray(Of ParameterSymbol)
             Get
                 Return _parameters
+            End Get
+        End Property
+
+        Public Overrides ReadOnly Property ReturnsByRef As Boolean
+            Get
+                Return _returnsByRef
             End Get
         End Property
 

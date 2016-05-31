@@ -2,7 +2,9 @@
 
 using System;
 using System.Runtime.InteropServices;
+using System.Xml.Linq;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Completion;
@@ -18,11 +20,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
     [ComVisible(true)]
     public class AutomationObject
     {
-        private readonly IOptionService _optionService;
+        private readonly Workspace _workspace;
 
-        internal AutomationObject(IOptionService optionService)
+        internal AutomationObject(Workspace workspace)
         {
-            _optionService = optionService;
+            _workspace = workspace;
         }
 
         public int AutoComment
@@ -146,15 +148,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             get
             {
-                var option = _optionService.GetOption(CSharpFormattingOptions.LabelPositioning);
+                var option = _workspace.Options.GetOption(CSharpFormattingOptions.LabelPositioning);
                 return option == LabelPositionOptions.LeftMost ? 1 : 0;
             }
 
             set
             {
-                var optionSet = _optionService.GetOptions();
-                optionSet = optionSet.WithChangedOption(CSharpFormattingOptions.LabelPositioning, value == 1 ? LabelPositionOptions.LeftMost : LabelPositionOptions.NoIndent);
-                _optionService.SetOptions(optionSet);
+                _workspace.Options = _workspace.Options.WithChangedOption(CSharpFormattingOptions.LabelPositioning, value == 1 ? LabelPositionOptions.LeftMost : LabelPositionOptions.NoIndent);
             }
         }
 
@@ -162,15 +162,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             get
             {
-                var option = _optionService.GetOption(CSharpFormattingOptions.LabelPositioning);
-                return (int)option;
+                return (int)_workspace.Options.GetOption(CSharpFormattingOptions.LabelPositioning);
             }
 
             set
             {
-                var optionSet = _optionService.GetOptions();
-                optionSet = optionSet.WithChangedOption(CSharpFormattingOptions.LabelPositioning, value);
-                _optionService.SetOptions(optionSet);
+                _workspace.Options = _workspace.Options.WithChangedOption(CSharpFormattingOptions.LabelPositioning, value);
             }
         }
 
@@ -364,16 +361,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             get
             {
-                var option = _optionService.GetOption(CSharpFormattingOptions.SpacingAroundBinaryOperator);
+                var option = _workspace.Options.GetOption(CSharpFormattingOptions.SpacingAroundBinaryOperator);
                 return option == BinaryOperatorSpacingOptions.Single ? 1 : 0;
             }
 
             set
             {
                 var option = value == 1 ? BinaryOperatorSpacingOptions.Single : BinaryOperatorSpacingOptions.Ignore;
-                var optionSet = _optionService.GetOptions();
-                optionSet = optionSet.WithChangedOption(CSharpFormattingOptions.SpacingAroundBinaryOperator, option);
-                _optionService.SetOptions(optionSet);
+                _workspace.Options = _workspace.Options.WithChangedOption(CSharpFormattingOptions.SpacingAroundBinaryOperator, option);
             }
         }
 
@@ -479,10 +474,41 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, value); }
         }
 
-        public int Style_QualifyMemberAccessWithThisOrMe
+        public string Style_NamingPreferences
         {
-            get { return GetBooleanOption(SimplificationOptions.QualifyMemberAccessWithThisOrMe); }
-            set { SetBooleanOption(SimplificationOptions.QualifyMemberAccessWithThisOrMe, value); }
+            get
+            {
+                return _workspace.Options.GetOption(SimplificationOptions.NamingPreferences, LanguageNames.CSharp);
+            }
+
+            set
+            {
+                _workspace.Options = _workspace.Options.WithChangedOption(SimplificationOptions.NamingPreferences, LanguageNames.CSharp, value);
+            }
+        }
+
+        public string Style_QualifyFieldAccess
+        {
+            get { return GetXmlOption(CodeStyleOptions.QualifyFieldAccess); }
+            set { SetXmlOption(CodeStyleOptions.QualifyFieldAccess, value); }
+        }
+
+        public string Style_QualifyPropertyAccess
+        {
+            get { return GetXmlOption(CodeStyleOptions.QualifyPropertyAccess); }
+            set { SetXmlOption(CodeStyleOptions.QualifyPropertyAccess, value); }
+        }
+
+        public string Style_QualifyMethodAccess
+        {
+            get { return GetXmlOption(CodeStyleOptions.QualifyMethodAccess); }
+            set { SetXmlOption(CodeStyleOptions.QualifyMethodAccess, value); }
+        }
+
+        public string Style_QualifyEventAccess
+        {
+            get { return GetXmlOption(CodeStyleOptions.QualifyEventAccess); }
+            set { SetXmlOption(CodeStyleOptions.QualifyEventAccess, value); }
         }
 
         public int Style_UseVarWhenDeclaringLocals
@@ -491,19 +517,34 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals, value); }
         }
 
+        public string Style_UseImplicitTypeWherePossible
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible); }
+            set { SetXmlOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, value); }
+        }
+
+        public string Style_UseImplicitTypeWhereApparent
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent); }
+            set { SetXmlOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, value); }
+        }
+
+        public string Style_UseImplicitTypeForIntrinsicTypes
+        {
+            get { return GetXmlOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes); }
+            set { SetXmlOption(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, value); }
+        }
+
         public int Wrapping_IgnoreSpacesAroundBinaryOperators
         {
             get
             {
-                var option = _optionService.GetOption(CSharpFormattingOptions.SpacingAroundBinaryOperator);
-                return (int)option;
+                return (int)_workspace.Options.GetOption(CSharpFormattingOptions.SpacingAroundBinaryOperator);
             }
 
             set
             {
-                var optionSet = _optionService.GetOptions();
-                optionSet = optionSet.WithChangedOption(CSharpFormattingOptions.SpacingAroundBinaryOperator, value);
-                _optionService.SetOptions(optionSet);
+                _workspace.Options = _workspace.Options.WithChangedOption(CSharpFormattingOptions.SpacingAroundBinaryOperator, value);
             }
         }
 
@@ -527,31 +568,27 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         private int GetBooleanOption(Option<bool> key)
         {
-            return _optionService.GetOption(key) ? 1 : 0;
+            return _workspace.Options.GetOption(key) ? 1 : 0;
         }
 
         private int GetBooleanOption(PerLanguageOption<bool> key)
         {
-            return _optionService.GetOption(key, LanguageNames.CSharp) ? 1 : 0;
+            return _workspace.Options.GetOption(key, LanguageNames.CSharp) ? 1 : 0;
         }
 
         private void SetBooleanOption(Option<bool> key, int value)
         {
-            var optionSet = _optionService.GetOptions();
-            optionSet = optionSet.WithChangedOption(key, value != 0);
-            _optionService.SetOptions(optionSet);
+            _workspace.Options = _workspace.Options.WithChangedOption(key, value != 0);
         }
 
         private void SetBooleanOption(PerLanguageOption<bool> key, int value)
         {
-            var optionSet = _optionService.GetOptions();
-            optionSet = optionSet.WithChangedOption(key, LanguageNames.CSharp, value != 0);
-            _optionService.SetOptions(optionSet);
+            _workspace.Options = _workspace.Options.WithChangedOption(key, LanguageNames.CSharp, value != 0);
         }
 
         private int GetBooleanOption(PerLanguageOption<bool?> key)
         {
-            var option = _optionService.GetOption(key, LanguageNames.CSharp);
+            var option = _workspace.Options.GetOption(key, LanguageNames.CSharp);
             if (!option.HasValue)
             {
                 return -1;
@@ -560,12 +597,32 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             return option.Value ? 1 : 0;
         }
 
+        private string GetXmlOption(Option<CodeStyleOption<bool>> option)
+        {
+            return _workspace.Options.GetOption(option).ToXElement().ToString();
+        }
+
         private void SetBooleanOption(PerLanguageOption<bool?> key, int value)
         {
             bool? boolValue = (value < 0) ? (bool?)null : (value > 0);
-            var optionSet = _optionService.GetOptions();
-            optionSet = optionSet.WithChangedOption(key, LanguageNames.CSharp, boolValue);
-            _optionService.SetOptions(optionSet);
+            _workspace.Options = _workspace.Options.WithChangedOption(key, LanguageNames.CSharp, boolValue);
+        }
+
+        private string GetXmlOption(PerLanguageOption<CodeStyleOption<bool>> option)
+        {
+            return _workspace.Options.GetOption(option, LanguageNames.CSharp).ToXElement().ToString();
+        }
+
+        private void SetXmlOption(Option<CodeStyleOption<bool>> option, string value)
+        {
+            var convertedValue = CodeStyleOption<bool>.FromXElement(XElement.Parse(value));
+            _workspace.Options = _workspace.Options.WithChangedOption(option, convertedValue);
+        }
+
+        private void SetXmlOption(PerLanguageOption<CodeStyleOption<bool>> option, string value)
+        {
+            var convertedValue = CodeStyleOption<bool>.FromXElement(XElement.Parse(value));
+            _workspace.Options = _workspace.Options.WithChangedOption(option, LanguageNames.CSharp, convertedValue);
         }
     }
 }

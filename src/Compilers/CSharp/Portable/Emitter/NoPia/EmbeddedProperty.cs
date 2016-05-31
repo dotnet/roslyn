@@ -65,7 +65,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit.NoPia
         {
             get
             {
-                return UnderlyingProperty.Type is ByRefReturnErrorTypeSymbol;
+                return UnderlyingProperty.RefKind == RefKind.Ref;
             }
         }
 

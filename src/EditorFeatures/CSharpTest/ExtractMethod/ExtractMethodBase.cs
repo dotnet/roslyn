@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -15,9 +16,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
 {
     public class ExtractMethodBase
     {
-        protected async Task ExpectExtractMethodToFailAsync(string codeWithMarker, bool allowMovingDeclaration = true, bool dontPutOutOrRefOnStruct = true)
+        protected async Task ExpectExtractMethodToFailAsync(string codeWithMarker, bool allowMovingDeclaration = true, bool dontPutOutOrRefOnStruct = true, string[] features = null)
         {
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(codeWithMarker))
+            ParseOptions parseOptions = null;
+            if (features != null)
+            {
+                var featuresMapped = features.Select(x => new KeyValuePair<string, string>(x, string.Empty));
+                parseOptions = new CSharpParseOptions().WithFeatures(featuresMapped);
+            }
+
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(codeWithMarker, parseOptions: parseOptions))
             {
                 var testDocument = workspace.Documents.First();
                 var textSpan = testDocument.SelectedSpans.Single();
@@ -103,9 +111,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
             var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
             Assert.NotNull(document);
 
-            var options = document.Project.Solution.Workspace.Options
-                                  .WithChangedOption(ExtractMethodOptions.AllowMovingDeclaration, document.Project.Language, allowMovingDeclaration)
-                                  .WithChangedOption(ExtractMethodOptions.DontPutOutOrRefOnStruct, document.Project.Language, dontPutOutOrRefOnStruct);
+            var options = document.Options.WithChangedOption(ExtractMethodOptions.AllowMovingDeclaration, document.Project.Language, allowMovingDeclaration)
+                                          .WithChangedOption(ExtractMethodOptions.DontPutOutOrRefOnStruct, document.Project.Language, dontPutOutOrRefOnStruct);
 
             var semanticDocument = await SemanticDocument.CreateAsync(document, CancellationToken.None);
             var validator = new CSharpSelectionValidator(semanticDocument, testDocument.SelectedSpans.Single(), options);
@@ -137,8 +144,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
                 var document = workspace.CurrentSolution.GetDocument(testDocument.Id);
                 Assert.NotNull(document);
 
-                var options = document.Project.Solution.Workspace.Options
-                                      .WithChangedOption(ExtractMethodOptions.AllowMovingDeclaration, document.Project.Language, true);
+                var options = document.Options.WithChangedOption(ExtractMethodOptions.AllowMovingDeclaration, document.Project.Language, true);
 
                 var semanticDocument = await SemanticDocument.CreateAsync(document, CancellationToken.None);
                 var validator = new CSharpSelectionValidator(semanticDocument, namedSpans["b"].Single(), options);
@@ -164,8 +170,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.ExtractMethod
                 var root = await document.GetSyntaxRootAsync();
                 var iterator = root.DescendantNodesAndSelf().Cast<SyntaxNode>();
 
-                var options = document.Project.Solution.Workspace.Options
-                                      .WithChangedOption(ExtractMethodOptions.AllowMovingDeclaration, document.Project.Language, true);
+                var options = document.Options.WithChangedOption(ExtractMethodOptions.AllowMovingDeclaration, document.Project.Language, true);
 
                 foreach (var node in iterator)
                 {

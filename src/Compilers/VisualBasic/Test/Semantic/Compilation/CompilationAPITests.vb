@@ -1207,6 +1207,20 @@ BC2014: the value '_' is invalid for option 'RootNamespace'
         End Sub
 
         <Fact()>
+        <CompilerTrait(CompilerFeature.Tuples)>
+        Public Sub TuplesNotSupported2()
+            Dim compilation = VisualBasicCompilation.Create("HelloWorld")
+            Assert.Throws(Of NotSupportedException)(Function() compilation.CreateTupleTypeSymbol(New ImmutableArray(Of ITypeSymbol), New ImmutableArray(Of String)))
+        End Sub
+
+        <Fact()>
+        <CompilerTrait(CompilerFeature.Tuples)>
+        Public Sub TuplesNotSupported()
+            Dim compilation = VisualBasicCompilation.Create("HelloWorld")
+            Assert.Throws(Of NotSupportedException)(Function() compilation.CreateTupleTypeSymbol(underlyingType:=Nothing, elementNames:=New ImmutableArray(Of String)))
+        End Sub
+
+        <Fact()>
         Public Sub GetEntryPoint_Exe()
             Dim source = <compilation name="Name1">
                              <file name="a.vb"><![CDATA[

@@ -1955,6 +1955,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATURE_PartialModules
         FEATURE_PartialInterfaces
         FEATURE_ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
-        FEATURE_IOperation
+        FEATURE_DigitSeparators
+        FEATURE_BinaryLiterals
     End Enum
 End Namespace

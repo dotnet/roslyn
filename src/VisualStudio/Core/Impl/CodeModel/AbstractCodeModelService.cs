@@ -547,10 +547,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.CodeModel
                 nodeKeyValidation.AddProject(project);
             }
 
-            var optionSet = workspace.Services.GetService<IOptionService>().GetOptions();
-
             // Rename symbol.
-            var newSolution = Renamer.RenameSymbolAsync(solution, symbol, newName, optionSet).WaitAndGetResult_CodeModel(CancellationToken.None);
+            var newSolution = Renamer.RenameSymbolAsync(solution, symbol, newName, solution.Options).WaitAndGetResult_CodeModel(CancellationToken.None);
             var changedDocuments = newSolution.GetChangedDocuments(solution);
 
             // Notify third parties of the coming rename operation and let exceptions propagate out

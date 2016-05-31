@@ -29,15 +29,26 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UserDiagnos
             symbolKindsWithNoCodeBlocks.Add(SymbolKind.Property);
             symbolKindsWithNoCodeBlocks.Add(SymbolKind.NamedType);
 
+            // AllInOneCSharpCode has no pattern matching.
+            var syntaxKindsPatterns = new HashSet<SyntaxKind>();
+            syntaxKindsPatterns.Add(SyntaxKind.IsPatternExpression);
+            syntaxKindsPatterns.Add(SyntaxKind.DeclarationPattern);
+            syntaxKindsPatterns.Add(SyntaxKind.ConstantPattern);
+            syntaxKindsPatterns.Add(SyntaxKind.WhenClause);
+            syntaxKindsPatterns.Add(SyntaxKind.CasePatternSwitchLabel);
+
+            // AllInOneCSharpCode has no replace/original.
+            syntaxKindsPatterns.Add(SyntaxKind.OriginalExpression);
+
             var analyzer = new CSharpTrackingDiagnosticAnalyzer();
-            using (var workspace = await TestWorkspace.CreateCSharpAsync(source, TestOptions.Regular))
+            using (var workspace = await TestWorkspace.CreateCSharpAsync(source, TestOptions.ExperimentalParseOptions))
             {
                 var document = workspace.CurrentSolution.Projects.Single().Documents.Single();
                 AccessSupportedDiagnostics(analyzer);
                 await DiagnosticProviderTestUtilities.GetAllDiagnosticsAsync(analyzer, document, new Text.TextSpan(0, document.GetTextAsync().Result.Length));
                 analyzer.VerifyAllAnalyzerMembersWereCalled();
                 analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds();
-                analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds();
+                analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(syntaxKindsPatterns);
                 analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds(symbolKindsWithNoCodeBlocks, true);
             }
         }

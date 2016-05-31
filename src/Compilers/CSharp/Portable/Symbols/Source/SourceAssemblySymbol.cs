@@ -352,10 +352,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        /// <summary>
-        /// Raw assembly version as specified in the AssemblyVersionAttribute, or null if none specified.
-        /// If the string passed to AssemblyVersionAttribute contains * the version build and/or revision numbers are set to <see cref="ushort.MaxValue"/>.
-        /// </summary>
         private Version AssemblyVersionAttributeSetting
         {
             get
@@ -428,11 +424,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// This represents what the user claimed in source through the AssemblyFlagsAttribute.
         /// It may be modified as emitted due to presence or absence of the public key.
         /// </summary>
-        internal AssemblyNameFlags Flags
+        internal AssemblyFlags Flags
         {
             get
             {
-                var defaultValue = default(AssemblyNameFlags);
+                var defaultValue = default(AssemblyFlags);
                 var fieldValue = defaultValue;
 
                 var data = GetSourceDecodedWellKnownAttributeData();
@@ -504,8 +500,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            return StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance);
-        }
+                return StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance);
+            }
 
         // A collection of assemblies to which we were granted internals access by only checking matches for assembly name
         // and ignoring public key. This just acts as a set. The bool is ignored.
@@ -2216,15 +2212,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if ((signature = attribute.GetTargetAttributeSignatureIndex(this, AttributeDescription.AssemblyFlagsAttribute)) != -1)
             {
                 object value = attribute.CommonConstructorArguments[0].Value;
-                System.Reflection.AssemblyNameFlags nameFlags;
+                AssemblyFlags nameFlags;
 
                 if (signature == 0 || signature == 1)
                 {
-                    nameFlags = (System.Reflection.AssemblyNameFlags)value;
+                    nameFlags = (AssemblyFlags)(AssemblyNameFlags)value;
                 }
                 else
                 {
-                    nameFlags = (System.Reflection.AssemblyNameFlags)(uint)value;
+                    nameFlags = (AssemblyFlags)(uint)value;
                 }
 
                 arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().AssemblyFlagsAttributeSetting = nameFlags;

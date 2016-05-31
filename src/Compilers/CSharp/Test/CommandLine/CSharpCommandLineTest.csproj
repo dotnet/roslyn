@@ -14,7 +14,7 @@
     <AssemblyName>Roslyn.Compilers.CSharp.CommandLine.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <PlatformTarget>x86</PlatformTarget>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Dependencies\xUnit.net\xUnit.net.csproj">
@@ -85,6 +85,7 @@
     </Compile>
     <Compile Include="ErrorLoggerTests.cs" />
     <Compile Include="MiscTests.cs" />
+    <Compile Include="SourceGeneratorTests.cs" />
     <Compile Include="TouchedFileLoggingTests.cs" />
   </ItemGroup>
   <ItemGroup>

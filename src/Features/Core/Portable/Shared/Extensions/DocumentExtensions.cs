@@ -14,8 +14,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
     {
         public static bool ShouldHideAdvancedMembers(this Document document)
         {
-            return document.Project.Solution.Workspace.Options
-                .GetOption(CompletionOptions.HideAdvancedMembers, document.Project.Language);
+            return document.Options.GetOption(CompletionOptions.HideAdvancedMembers);
         }
 
         public static async Task<Document> ReplaceNodeAsync<TNode>(this Document document, TNode oldNode, TNode newNode, CancellationToken cancellationToken) where TNode : SyntaxNode

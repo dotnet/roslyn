@@ -380,6 +380,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                         yield return
                                 SyntaxFactory.LocalDeclarationStatement(
                                     declarationStatement.Modifiers,
+                                    declarationStatement.RefKeyword,
                                         SyntaxFactory.VariableDeclaration(
                                             declarationStatement.Declaration.Type,
                                             SyntaxFactory.SeparatedList(list)),

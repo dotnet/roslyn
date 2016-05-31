@@ -80,8 +80,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
             if (compilation.Compile(
                 moduleBeingBuilt,
-                win32Resources: null,
-                xmlDocStream: null,
                 emittingPdb: true,
                 diagnostics: diagnostics,
                 filterOpt: changes.RequiresCompilation,

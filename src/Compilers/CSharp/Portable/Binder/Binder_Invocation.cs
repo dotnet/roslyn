@@ -1,14 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -326,8 +323,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arguments.GetNames(),
                 arguments.RefKinds.ToImmutableOrNull(),
                 applicableMethods,
-                Compilation.DynamicType,
-                hasErrors);
+                type: Compilation.DynamicType,
+                hasErrors: hasErrors);
         }
 
         private ImmutableArray<BoundExpression> BuildArgumentsForDynamicInvocation(AnalyzedArguments arguments, DiagnosticBag diagnostics)
@@ -513,9 +510,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // If overload resolution found one or more applicable methods and at least one argument
                     // was dynamic then treat this as a dynamic call.
-                    if (resolution.AnalyzedArguments.HasDynamicArgument && resolution.OverloadResolutionResult.HasAnyApplicableMember)
+                    if (resolution.AnalyzedArguments.HasDynamicArgument &&
+                        resolution.OverloadResolutionResult.HasAnyApplicableMember)
                     {
-                        if (resolution.IsExtensionMethodGroup)
+                        if (resolution.IsLocalFunctionInvocation)
+                        {
+                            result = BindLocalFunctionInvocationWithDynamicArgument(
+                                syntax, expression, methodName, methodGroup,
+                                diagnostics, queryClause, resolution);
+                        }
+                        else if (resolution.IsExtensionMethodGroup)
                         {
                             // error CS1973: 'T' has no applicable method named 'M' but appears to have an
                             // extension method by that name. Extension methods cannot be dynamically dispatched. Consider
@@ -567,6 +571,81 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             resolution.Free();
             return result;
+        }
+
+        private BoundExpression BindLocalFunctionInvocationWithDynamicArgument(
+            CSharpSyntaxNode syntax,
+            CSharpSyntaxNode expression,
+            string methodName,
+            BoundMethodGroup boundMethodGroup,
+            DiagnosticBag diagnostics,
+            CSharpSyntaxNode queryClause,
+            MethodGroupResolution resolution)
+        {
+            // Invocations of local functions with dynamic arguments
+            // don't need to be dispatched as dynamic invocations
+            // since they cannot be overloaded.  Instead, we'll just
+            // emit a standard call with dynamic implicit conversions
+            // for any dynamic arguments. The one exception is params
+            // arguments which cannot be targeted by dynamic arguments
+            // because there is an ambiguity between an array target
+            // and the params element target. See
+            // https://github.com/dotnet/roslyn/issues/10708
+
+            Debug.Assert(resolution.IsLocalFunctionInvocation);
+            Debug.Assert(resolution.OverloadResolutionResult.Succeeded);
+            Debug.Assert(queryClause == null);
+
+            var validResult = resolution.OverloadResolutionResult.ValidResult;
+
+            var args = resolution.AnalyzedArguments.Arguments;
+            var localFunction = validResult.Member;
+            var methodResult = validResult.Result;
+
+            // We're only in trouble if a dynamic argument is passed to the
+            // params parameter and is ambiguous at compile time between
+            // normal and expanded form i.e., there is exactly one dynamic
+            // argument to a params parameter
+            if (OverloadResolution.IsValidParams(localFunction) &&
+                methodResult.Kind == MemberResolutionKind.ApplicableInNormalForm)
+            {
+                var parameters = localFunction.Parameters;
+
+                Debug.Assert(parameters.Last().IsParams);
+
+                var lastParamIndex = parameters.Length - 1;
+
+                for (int i = 0; i < args.Count; ++i)
+                {
+                    var arg = args[i];
+                    if (arg.HasDynamicType() &&
+                        methodResult.ParameterFromArgument(i) == lastParamIndex)
+                    {
+                        Error(diagnostics,
+                            ErrorCode.ERR_DynamicLocalFunctionParamsParameter,
+                            syntax, parameters.Last().Name, localFunction.Name);
+                        return BindDynamicInvocation(
+                            syntax,
+                            boundMethodGroup,
+                            resolution.AnalyzedArguments,
+                            resolution.OverloadResolutionResult.GetAllApplicableMembers(),
+                            diagnostics,
+                            queryClause);
+                    }
+                }
+            }
+
+            return BindInvocationExpressionContinued(
+                node: syntax,
+                expression: expression,
+                methodName: methodName,
+                result: resolution.OverloadResolutionResult,
+                analyzedArguments: resolution.AnalyzedArguments,
+                methodGroup: resolution.MethodGroup,
+                delegateTypeOpt: null,
+                diagnostics: diagnostics,
+                extensionMethodsOfSameViabilityAreAvailable: resolution.ExtensionMethodsOfSameViabilityAreAvailable,
+                queryClause: queryClause);
         }
 
         private ImmutableArray<MethodSymbol> GetCandidatesPassingFinalValidation(CSharpSyntaxNode syntax, OverloadResolutionResult<MethodSymbol> overloadResolutionResult, BoundMethodGroup methodGroup, DiagnosticBag diagnostics)

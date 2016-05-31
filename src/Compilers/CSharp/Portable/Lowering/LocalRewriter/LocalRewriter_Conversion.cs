@@ -224,6 +224,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                case ConversionKind.ImplicitTuple:
+                    {
+                        // we keep ImplicitTuple conversions in the tree
+                        // for the purpose of semantic model (for example when they are casts in the source)
+                        // for the purpose of lowering/codegeneration thay are identity conversions.
+
+                        Debug.Assert(rewrittenOperand.Type.Equals(rewrittenType, ignoreDynamic: true));
+                        conversionKind = ConversionKind.Identity;
+                        break;
+                    }
+
                 case ConversionKind.ImplicitEnumeration:
                     // A conversion from constant zero to nullable is actually classified as an 
                     // implicit enumeration conversion, not an implicit nullable conversion. 

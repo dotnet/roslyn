@@ -164,7 +164,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     _compilationEndActionsMap = MakeCompilationActionsByAnalyzer(this.analyzerActions.CompilationEndActions);
                 }, cancellationToken);
 
-                // create the primary driver task.
+                // create the primary driver task. 
                 cancellationToken.ThrowIfCancellationRequested();
 
                 _initializeSucceeded = true;
@@ -841,8 +841,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
-                    if (CompilationEventQueue.Count == 0 &&
-                        (prePopulatedEventQueue || CompilationEventQueue.IsCompleted))
+                    // NOTE: IsCompleted guarantees that Count will not increase
+                    //       the reverse is not true, so we need to check IsCompleted first and then check the Count
+                    if ((prePopulatedEventQueue || CompilationEventQueue.IsCompleted) &&
+                        CompilationEventQueue.Count == 0)
                     {
                         break;
                     }
@@ -1495,7 +1497,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             var symbol = symbolEvent.Symbol;
             var executeSyntaxNodeActions = ShouldExecuteSyntaxNodeActions(analysisScope);
             var executeCodeBlockActions = ShouldExecuteCodeBlockActions(analysisScope, symbol);
-            var executeOperationActions = this.analyzerExecutor.Compilation.IsIOperationFeatureEnabled() && ShouldExecuteOperationActions(analysisScope);
+            var executeOperationActions = ShouldExecuteOperationActions(analysisScope);
             var executeOperationBlockActions = ShouldExecuteOperationBlockActions(analysisScope, symbol);
 
             if (executeSyntaxNodeActions || executeOperationActions || executeCodeBlockActions || executeOperationBlockActions)

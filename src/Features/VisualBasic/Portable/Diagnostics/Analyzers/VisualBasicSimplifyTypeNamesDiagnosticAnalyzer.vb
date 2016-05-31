@@ -78,7 +78,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             If expression.Kind = SyntaxKind.SimpleMemberAccessExpression Then
                 Dim memberAccess = DirectCast(expression, MemberAccessExpressionSyntax)
                 diagnosticId = If(memberAccess.Expression.Kind = SyntaxKind.MeExpression,
-                    IDEDiagnosticIds.SimplifyThisOrMeDiagnosticId,
+                    IDEDiagnosticIds.RemoveQualificationDiagnosticId,
                     IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId)
             End If
 

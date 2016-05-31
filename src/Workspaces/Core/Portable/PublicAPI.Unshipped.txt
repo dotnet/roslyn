@@ -1,2 +1,48 @@
+Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>
+Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.CodeStyleOption(T value, Microsoft.CodeAnalysis.CodeStyle.NotificationOption notification) -> void
+Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.Notification.get -> Microsoft.CodeAnalysis.CodeStyle.NotificationOption
+Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.Notification.set -> void
+Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.ToXElement() -> System.Xml.Linq.XElement
+Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.Value.get -> T
+Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.Value.set -> void
+Microsoft.CodeAnalysis.CodeStyle.CodeStyleOptions
+Microsoft.CodeAnalysis.CodeStyle.CodeStyleOptions.CodeStyleOptions() -> void
+Microsoft.CodeAnalysis.CodeStyle.NotificationOption
+Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Name.get -> string
+Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Name.set -> void
+Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Value.get -> Microsoft.CodeAnalysis.DiagnosticSeverity
+Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Value.set -> void
+Microsoft.CodeAnalysis.Document.Options.get -> Microsoft.CodeAnalysis.Options.DocumentOptionSet
+Microsoft.CodeAnalysis.Editing.SyntaxGenerator.AddSwitchSections(Microsoft.CodeAnalysis.SyntaxNode switchStatement, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> switchSections) -> Microsoft.CodeAnalysis.SyntaxNode
+Microsoft.CodeAnalysis.Options.DocumentOptionSet
+Microsoft.CodeAnalysis.Options.DocumentOptionSet.GetOption<T>(Microsoft.CodeAnalysis.Options.PerLanguageOption<T> option) -> T
+Microsoft.CodeAnalysis.Options.OptionSet.OptionSet() -> void
+Microsoft.CodeAnalysis.Solution.Options.get -> Microsoft.CodeAnalysis.Options.OptionSet
+Microsoft.CodeAnalysis.Workspace.UpdateGeneratedDocumentsIfNecessary(Microsoft.CodeAnalysis.ProjectId projectId) -> void
+abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.GetSwitchSections(Microsoft.CodeAnalysis.SyntaxNode switchStatement) -> System.Collections.Generic.IReadOnlyList<Microsoft.CodeAnalysis.SyntaxNode>
+abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.InsertSwitchSections(Microsoft.CodeAnalysis.SyntaxNode switchStatement, int index, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> switchSections) -> Microsoft.CodeAnalysis.SyntaxNode
 abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.NameOfExpression(Microsoft.CodeAnalysis.SyntaxNode expression) -> Microsoft.CodeAnalysis.SyntaxNode
+override Microsoft.CodeAnalysis.CodeStyle.NotificationOption.ToString() -> string
+override Microsoft.CodeAnalysis.Options.DocumentOptionSet.GetOption(Microsoft.CodeAnalysis.Options.OptionKey optionKey) -> object
+override Microsoft.CodeAnalysis.Options.DocumentOptionSet.GetOption<T>(Microsoft.CodeAnalysis.Options.Option<T> option) -> T
+override Microsoft.CodeAnalysis.Options.DocumentOptionSet.GetOption<T>(Microsoft.CodeAnalysis.Options.PerLanguageOption<T> option, string language) -> T
+override Microsoft.CodeAnalysis.Options.DocumentOptionSet.WithChangedOption(Microsoft.CodeAnalysis.Options.OptionKey optionAndLanguage, object value) -> Microsoft.CodeAnalysis.Options.OptionSet
+override Microsoft.CodeAnalysis.Options.DocumentOptionSet.WithChangedOption<T>(Microsoft.CodeAnalysis.Options.Option<T> option, T value) -> Microsoft.CodeAnalysis.Options.OptionSet
+override Microsoft.CodeAnalysis.Options.DocumentOptionSet.WithChangedOption<T>(Microsoft.CodeAnalysis.Options.PerLanguageOption<T> option, string language, T value) -> Microsoft.CodeAnalysis.Options.OptionSet
 static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.TryParse(string value, out Microsoft.CodeAnalysis.Editing.DeclarationModifiers modifiers) -> bool
+static Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.Default.get -> Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>
+static Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.FromXElement(System.Xml.Linq.XElement element) -> Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>
+static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.NamingPreferences.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<string>
+static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.QualifyEventAccess.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>
+static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.QualifyFieldAccess.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>
+static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.QualifyMethodAccess.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>
+static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.QualifyPropertyAccess.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>
+static readonly Microsoft.CodeAnalysis.CodeStyle.CodeStyleOptions.QualifyEventAccess -> Microsoft.CodeAnalysis.Options.PerLanguageOption<Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<bool>>
+static readonly Microsoft.CodeAnalysis.CodeStyle.CodeStyleOptions.QualifyFieldAccess -> Microsoft.CodeAnalysis.Options.PerLanguageOption<Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<bool>>
+static readonly Microsoft.CodeAnalysis.CodeStyle.CodeStyleOptions.QualifyMethodAccess -> Microsoft.CodeAnalysis.Options.PerLanguageOption<Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<bool>>
+static readonly Microsoft.CodeAnalysis.CodeStyle.CodeStyleOptions.QualifyPropertyAccess -> Microsoft.CodeAnalysis.Options.PerLanguageOption<Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<bool>>
+static readonly Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Error -> Microsoft.CodeAnalysis.CodeStyle.NotificationOption
+static readonly Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Info -> Microsoft.CodeAnalysis.CodeStyle.NotificationOption
+static readonly Microsoft.CodeAnalysis.CodeStyle.NotificationOption.None -> Microsoft.CodeAnalysis.CodeStyle.NotificationOption
+static readonly Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Warning -> Microsoft.CodeAnalysis.CodeStyle.NotificationOption
+virtual Microsoft.CodeAnalysis.Workspace.UpdateGeneratedDocuments(Microsoft.CodeAnalysis.ProjectId projectId, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentInfo> documentsRemoved, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentInfo> documentsAdded) -> void

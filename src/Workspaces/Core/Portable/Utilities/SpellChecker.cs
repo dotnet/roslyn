@@ -120,7 +120,7 @@ namespace Roslyn.Utilities
 
         public void Dispose()
         {
-            _editDistance.Dispose();
+            _editDistance?.Dispose();
             _editDistance = null;
         }
 

@@ -69,6 +69,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary
                 return;
             }
 
+            if (variableDeclarator.Initializer.RefKeyword.Kind() != SyntaxKind.None)
+            {
+                // TODO: inlining byref temps is NYI
+                return;
+            }
+
             if (localDeclarationStatement.ContainsDiagnostics)
             {
                 return;

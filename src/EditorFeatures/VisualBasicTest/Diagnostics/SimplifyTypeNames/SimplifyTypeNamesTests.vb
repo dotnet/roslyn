@@ -2,8 +2,8 @@
 
 Option Strict Off
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Options
@@ -1641,7 +1641,7 @@ End Module
 </Code>
 
             Using workspace = Await CreateWorkspaceFromFileAsync(source, Nothing, Nothing)
-                Dim diagnostics = (Await GetDiagnosticsAsync(workspace)).Where(Function(d) d.Id = IDEDiagnosticIds.SimplifyThisOrMeDiagnosticId)
+                Dim diagnostics = (Await GetDiagnosticsAsync(workspace)).Where(Function(d) d.Id = IDEDiagnosticIds.RemoveQualificationDiagnosticId)
                 Assert.Equal(1, diagnostics.Count)
             End Using
         End Function
@@ -1703,5 +1703,16 @@ End Module")
 NewLines("Class C \n Dim x = 7 \n Sub M() \n [|Me|].x = Nothing \n End Sub \n End Class"),
 NewLines("Class C \n Dim x = 7 \n Sub M() \n x = Nothing \n End Sub \n End Class"))
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)>
+        Public Async Function TestAppropriateDiagnosticOnMissingQualifier() As Task
+            Await TestDiagnosticSeverityAndCountAsync(
+                "Class C : Property SomeProperty As Integer : Sub M() : [|Me|].SomeProperty = 1 : End Sub : End Class",
+                options:=OptionsSet(Tuple.Create(CodeStyleOptions.QualifyPropertyAccess, False, NotificationOption.Error)),
+                diagnosticCount:=1,
+                diagnosticId:=IDEDiagnosticIds.RemoveQualificationDiagnosticId,
+                diagnosticSeverity:=DiagnosticSeverity.Error)
+        End Function
+
     End Class
 End Namespace

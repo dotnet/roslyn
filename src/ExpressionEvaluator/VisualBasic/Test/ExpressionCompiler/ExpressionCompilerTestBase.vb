@@ -360,7 +360,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator.UnitTests
             Dim peModule = DirectCast(peMethod.ContainingModule, PEModuleSymbol)
             Dim symReader = runtime.Modules.Single(Function(mi) mi.ModuleVersionId = peModule.Module.GetModuleVersionIdOrThrow()).SymReader
             Dim symbolProvider = New VisualBasicEESymbolProvider(peModule, peMethod)
-            Return MethodDebugInfo(Of TypeSymbol, LocalSymbol).ReadMethodDebugInfo(DirectCast(symReader, ISymUnmanagedReader), symbolProvider, MetadataTokens.GetToken(peMethod.Handle), methodVersion:=1, ilOffset:=ilOffset, isVisualBasicMethod:=True)
+            Return MethodDebugInfo(Of TypeSymbol, LocalSymbol).ReadMethodDebugInfo(DirectCast(symReader, ISymUnmanagedReader3), symbolProvider, MetadataTokens.GetToken(peMethod.Handle), methodVersion:=1, ilOffset:=ilOffset, isVisualBasicMethod:=True)
         End Function
     End Class
 End Namespace

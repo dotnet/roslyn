@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal override void GetRows(
             ResultProvider resultProvider,
-            ArrayBuilder<EvalResultDataItem> rows,
+            ArrayBuilder<EvalResult> rows,
             DkmInspectionContext inspectionContext,
             EvalResultDataItem parent,
             DkmClrValue value,
@@ -50,14 +50,13 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             int offset = startIndex2 - index;
             for (int i = 0; i < count2; i++)
             {
-                rows.Add(GetRow(resultProvider, inspectionContext, value, i + offset, parent));
+                rows.Add(GetRow(inspectionContext, value, i + offset, parent));
             }
 
             index += _typeArguments.Length;
         }
 
-        private EvalResultDataItem GetRow(
-            ResultProvider resultProvider,
+        private EvalResult GetRow(
             DkmInspectionContext inspectionContext,
             DkmClrValue value,
             int index,
@@ -67,12 +66,12 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             var typeArgument = _typeArguments[index];
             var typeArgumentInfo = _dynamicFlagsMap.SubstituteDynamicFlags(typeParameter, default(DynamicFlagsCustomTypeInfo)).GetCustomTypeInfo();
             var formatSpecifiers = Formatter.NoFormatSpecifiers;
-            return new EvalResultDataItem(
+            return new EvalResult(
                 ExpansionKind.TypeVariable,
                 typeParameter.Name,
                 typeDeclaringMemberAndInfo: default(TypeAndCustomInfo),
-                declaredTypeAndInfo: new TypeAndCustomInfo(typeArgument, typeArgumentInfo),
-                parent: parent,
+                declaredTypeAndInfo: new TypeAndCustomInfo(DkmClrType.Create(value.Type.AppDomain, typeArgument), typeArgumentInfo),
+                useDebuggerDisplay: parent != null,
                 value: value,
                 displayValue: inspectionContext.GetTypeName(DkmClrType.Create(value.Type.AppDomain, typeArgument), typeArgumentInfo, formatSpecifiers),
                 expansion: null,
