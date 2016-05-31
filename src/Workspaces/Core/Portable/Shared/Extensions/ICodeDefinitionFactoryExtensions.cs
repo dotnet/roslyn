@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -197,10 +198,14 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     if (TryGetValue(parameterToExistingFieldMap, parameterName, out fieldName) ||
                         TryGetValue(parameterToNewFieldMap, parameterName, out fieldName))
                     {
+                        var fieldReference = factory.IdentifierName(fieldName);
+
+                        var qualifiedFieldReference = StringComparer.OrdinalIgnoreCase.Equals(parameterName, fieldName)
+                            ? factory.MemberAccessExpression(factory.ThisExpression(), fieldReference)
+                            : fieldReference;
+
                         var assignExpression = factory.AssignmentStatement(
-                            factory.MemberAccessExpression(
-                                factory.ThisExpression(),
-                                factory.IdentifierName(fieldName)),
+                            qualifiedFieldReference,
                             factory.IdentifierName(parameterName));
                         var statement = factory.ExpressionStatement(assignExpression);
                         yield return statement;

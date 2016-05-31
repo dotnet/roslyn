@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -91,6 +92,45 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 default:
                     return false;
+            }
+        }
+
+        private struct ParameterName : IEquatable<ParameterName>
+        {
+            /// <summary>
+            /// The name the underlying naming system came up with based on the argument itself.
+            /// This might be a name like "_value".  We pass this along because it can help
+            /// later parts of the GenerateConstructor process when doing things like field hookup.
+            /// </summary>
+            public readonly string NameBasedOnArgument;
+
+            /// <summary>
+            /// The name we think should actually be used for this parameter.  This will include
+            /// stripping the name of things like underscores.
+            /// </summary>
+            public readonly string BestNameForParameter;
+
+            public ParameterName(string nameBasedOnArgument)
+            {
+                NameBasedOnArgument = nameBasedOnArgument;
+
+                var trimmed = nameBasedOnArgument.TrimStart('_');
+                BestNameForParameter = trimmed.Length > 0 ? trimmed.ToCamelCase() : nameBasedOnArgument;
+            }
+
+            public override bool Equals(object obj)
+            {
+                return Equals((ParameterName)obj);
+            }
+
+            public bool Equals(ParameterName other)
+            {
+                return NameBasedOnArgument.Equals(other.NameBasedOnArgument);
+            }
+
+            public override int GetHashCode()
+            {
+                return NameBasedOnArgument.GetHashCode();
             }
         }
     }

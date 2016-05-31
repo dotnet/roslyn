@@ -872,5 +872,40 @@ withScriptOption: true);
 parseOptions: TestOptions.Regular.WithTuplesFeature(),
 withScriptOption: true);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [WorkItem(11563, "https://github.com/dotnet/roslyn/issues/11563")]
+        public async Task StripUnderscoresFromParameterNames()
+        {
+            await TestAsync(
+@"class C { 
+    int _i;
+    string _s;
+    void M() {
+        new [|D|](_i, _s);
+    }
+}
+
+class D {
+}",
+@"class C { 
+    int _i;
+    string _s;
+
+    void M() {
+        new D(_i, _s);
+    }
+}
+
+class D {
+    private int _i;
+    private string _s;
+
+    public D(int i, string s) {
+        _i = i;
+        _s = s;
+    }
+}");
+        }
     }
 }
