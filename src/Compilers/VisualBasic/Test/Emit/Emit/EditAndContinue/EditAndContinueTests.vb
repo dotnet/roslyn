@@ -53,7 +53,7 @@ End Class
                     generation0,
                     ImmutableArray.Create(New SemanticEdit(SemanticEditKind.Update, method0, method1)))
 
-                Dim methods = diff1.TestData.Methods
+                Dim methods = diff1.TestData.GetMethodsByName()
                 Assert.Equal(methods.Count, 1)
                 Assert.True(methods.ContainsKey("C.M2()"))
 

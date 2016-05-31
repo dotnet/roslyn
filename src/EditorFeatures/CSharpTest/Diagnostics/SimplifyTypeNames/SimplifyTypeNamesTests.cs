@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.SimplifyTypeNames;
 using Microsoft.CodeAnalysis.Diagnostics;
@@ -2746,7 +2747,7 @@ class Attribute : System.Attribute
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
-        public async Task ThisQualificationOption()
+        public async Task ThisQualificationOnFieldOption()
         {
             await TestMissingAsync(
 @"
@@ -2758,7 +2759,7 @@ class C
         [|this|].x = 4;
     }
 }
-", new Dictionary<OptionKey, object> { { new OptionKey(SimplificationOptions.QualifyMemberAccessWithThisOrMe, "C#"), true } });
+", Option(CodeStyleOptions.QualifyFieldAccess, true, NotificationOption.Error));
         }
 
         [WorkItem(942568, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/942568")]
@@ -3203,7 +3204,7 @@ class C
 }";
             using (var workspace = await CreateWorkspaceFromFileAsync(source, null, null))
             {
-                var diagnostics = (await GetDiagnosticsAsync(workspace)).Where(d => d.Id == IDEDiagnosticIds.SimplifyThisOrMeDiagnosticId);
+                var diagnostics = (await GetDiagnosticsAsync(workspace)).Where(d => d.Id == IDEDiagnosticIds.RemoveQualificationDiagnosticId);
                 Assert.Equal(1, diagnostics.Count());
             }
         }
@@ -3295,6 +3296,17 @@ class Program
             await TestAsync(
 @"class Program { dynamic x = 7 ; static void Main ( string [ ] args ) { [|this|] . x = default(dynamic) ; } } ",
 @"class Program { dynamic x = 7 ; static void Main ( string [ ] args ) { x = default(dynamic) ; } } ");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsSimplifyTypeNames)]
+        public async Task TestAppropriateDiagnosticOnMissingQualifier()
+        {
+            await TestDiagnosticSeverityAndCountAsync(
+                @"class C { int SomeProperty { get; set; } void M() { [|this|].SomeProperty = 1; } }",
+                options: OptionsSet(Tuple.Create(CodeStyleOptions.QualifyPropertyAccess, false, NotificationOption.Warning)),
+                diagnosticCount: 1,
+                diagnosticId: IDEDiagnosticIds.RemoveQualificationDiagnosticId,
+                diagnosticSeverity: DiagnosticSeverity.Warning);
         }
     }
 }

@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     break;
 
                 case BoundKind.SwitchSection:
-                    foreach (var boundSwitchLabel in ((BoundSwitchSection)node).BoundSwitchLabels)
+                    foreach (var boundSwitchLabel in ((BoundSwitchSection)node).SwitchLabels)
                     {
                         if (boundSwitchLabel.Label == label)
                         {

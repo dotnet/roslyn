@@ -3,7 +3,7 @@
     "Microsoft.CodeAnalysis.Test.Resources.Proprietary": "1.2.0-beta1-20160105-04",
   },
   "frameworks": {
-    "net45": {}
+    "net46": {}
   },
   "runtimes": {
     "win7": { },

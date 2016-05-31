@@ -5,8 +5,10 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateVariable;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
@@ -20,6 +22,21 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateVar
         {
             return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
                 null, new GenerateVariableCodeFixProvider());
+        }
+
+        private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Info);
+
+        // specify all options explicitly to override defaults.
+        private IDictionary<OptionKey, object> ImplicitTypingEverywhere() =>
+            OptionSet(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, onWithInfo)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, onWithInfo)
+            .With(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, onWithInfo);
+
+        internal IDictionary<OptionKey, object> OptionSet(OptionKey option, object value)
+        {
+            var options = new Dictionary<OptionKey, object>();
+            options.Add(option, value);
+            return options;
         }
 
         protected override IList<CodeAction> MassageActions(IList<CodeAction> actions)
@@ -704,7 +721,7 @@ compareTokens: false);
         }
 
         [WorkItem(539536, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539536")]
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        [Fact(Skip = "Tuples"), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
         public async Task BugFix5538()
         {
             await TestAsync(
@@ -1777,7 +1794,7 @@ index: 3);
             await TestAsync(
 @"class Program { void Main ( ) { [|undefined|] = 1 ; } } ",
 @"class Program { void Main ( ) { var undefined = 1 ; } } ",
-index: 2);
+index: 2, options: ImplicitTypingEverywhere());
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -1859,7 +1876,7 @@ class C
 #line default
 #line hidden
 }
-");
+", options: ImplicitTypingEverywhere());
         }
 
         [WorkItem(546027, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546027")]
@@ -2923,6 +2940,46 @@ class C
         [|_field|] = 42;
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TupleRead()
+        {
+            await TestAsync(
+@"class Class { void Method((int, string) i) { Method([|tuple|]); } }",
+@"class Class { private (int, string) tuple; void Method((int, string) i) { Method(tuple); } }",
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TupleWithOneNameRead()
+        {
+            await TestAsync(
+@"class Class { void Method((int a, string) i) { Method([|tuple|]); } }",
+@"class Class { private (int a, string Item2) tuple; void Method((int a, string) i) { Method(tuple); } }",
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TupleWrite()
+        {
+            await TestAsync(
+@"class Class { void Method() { [|tuple|] = (1, ""hello""); } }",
+@"class Class { private (int, string) tuple; void Method() { tuple = (1, ""hello""); } }",
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TupleWithOneNameWrite()
+        {
+            await TestAsync(
+@"class Class { void Method() { [|tuple|] = (a: 1, ""hello""); } }",
+@"class Class { private (int a, string Item2) tuple; void Method() { tuple = (a: 1, ""hello""); } }",
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
         }
     }
 }

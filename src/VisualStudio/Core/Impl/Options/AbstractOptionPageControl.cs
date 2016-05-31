@@ -24,18 +24,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             var workspace = componentModel.GetService<VisualStudioWorkspace>();
             this.OptionService = workspace.Services.GetService<IOptionService>();
 
-            var groupBoxStyle = new Style(typeof(GroupBox));
+            var groupBoxStyle = new System.Windows.Style(typeof(GroupBox));
             groupBoxStyle.Setters.Add(new Setter(GroupBox.PaddingProperty, new Thickness() { Left = 7, Right = 7, Top = 7 }));
             groupBoxStyle.Setters.Add(new Setter(GroupBox.MarginProperty, new Thickness() { Bottom = 3 }));
             groupBoxStyle.Setters.Add(new Setter(GroupBox.ForegroundProperty, new DynamicResourceExtension(SystemColors.WindowTextBrushKey)));
             Resources.Add(typeof(GroupBox), groupBoxStyle);
 
-            var checkBoxStyle = new Style(typeof(CheckBox));
+            var checkBoxStyle = new System.Windows.Style(typeof(CheckBox));
             checkBoxStyle.Setters.Add(new Setter(CheckBox.MarginProperty, new Thickness() { Bottom = 7 }));
             checkBoxStyle.Setters.Add(new Setter(CheckBox.ForegroundProperty, new DynamicResourceExtension(SystemColors.WindowTextBrushKey)));
             Resources.Add(typeof(CheckBox), checkBoxStyle);
 
-            var textBoxStyle = new Style(typeof(TextBox));
+            var textBoxStyle = new System.Windows.Style(typeof(TextBox));
             textBoxStyle.Setters.Add(new Setter(TextBox.MarginProperty, new Thickness() { Left = 7, Right = 7 }));
             textBoxStyle.Setters.Add(new Setter(TextBox.ForegroundProperty, new DynamicResourceExtension(SystemColors.WindowTextBrushKey)));
             Resources.Add(typeof(TextBox), textBoxStyle);

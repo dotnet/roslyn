@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         // used by DllImportAttribute
-        public void SetDllImport(int attributeIndex, string moduleName, string entryPointName, Cci.PInvokeAttributes flags, bool preserveSig)
+        public void SetDllImport(int attributeIndex, string moduleName, string entryPointName, MethodImportAttributes flags, bool preserveSig)
         {
             VerifySealed(expected: false);
             Debug.Assert(attributeIndex >= 0);

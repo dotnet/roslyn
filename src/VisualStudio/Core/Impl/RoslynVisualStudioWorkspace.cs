@@ -6,6 +6,7 @@ using System.ComponentModel.Composition;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Editor.Implementation.GoToDefinition;
 using Microsoft.CodeAnalysis.Editor.Undo;
@@ -27,13 +28,15 @@ namespace Microsoft.VisualStudio.LanguageServices
     {
         private readonly IEnumerable<Lazy<INavigableItemsPresenter>> _navigableItemsPresenters;
         private readonly IEnumerable<Lazy<IReferencedSymbolsPresenter>> _referencedSymbolsPresenters;
+        private readonly IEnumerable<Lazy<INavigableDefinitionProvider>> _externalDefinitionProviders;
 
         [ImportingConstructor]
         private RoslynVisualStudioWorkspace(
             SVsServiceProvider serviceProvider,
             SaveEventsService saveEventsService,
             [ImportMany] IEnumerable<Lazy<INavigableItemsPresenter>> navigableItemsPresenters,
-            [ImportMany] IEnumerable<Lazy<IReferencedSymbolsPresenter>> referencedSymbolsPresenters)
+            [ImportMany] IEnumerable<Lazy<IReferencedSymbolsPresenter>> referencedSymbolsPresenters,
+            [ImportMany] IEnumerable<Lazy<INavigableDefinitionProvider>> externalDefinitionProviders)
             : base(
                 serviceProvider,
                 backgroundWork: WorkspaceBackgroundWork.ParseAndCompile)
@@ -44,6 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices
 
             _navigableItemsPresenters = navigableItemsPresenters;
             _referencedSymbolsPresenters = referencedSymbolsPresenters;
+            _externalDefinitionProviders = externalDefinitionProviders;
         }
 
         public override EnvDTE.FileCodeModel GetFileCodeModel(DocumentId documentId)
@@ -186,7 +190,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
 
             return GoToDefinitionHelpers.TryGoToDefinition(
-                searchSymbol, searchProject, _navigableItemsPresenters, cancellationToken: cancellationToken);
+                searchSymbol, searchProject, _externalDefinitionProviders, _navigableItemsPresenters, cancellationToken: cancellationToken);
         }
 
         public override bool TryFindAllReferences(ISymbol symbol, Project project, CancellationToken cancellationToken)

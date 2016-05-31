@@ -452,6 +452,12 @@ Done:
             End Get
         End Property
 
+        Private ReadOnly Property ITypeSymbol_IsTupleSymbol As Boolean Implements ITypeSymbol.IsTupleType
+            Get
+                Return False
+            End Get
+        End Property
+
         Private ReadOnly Property ITypeSymbol_TypeKind As TypeKind Implements ITypeSymbol.TypeKind
             Get
                 Return Me.TypeKind.ToCommon()

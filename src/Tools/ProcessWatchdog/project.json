@@ -3,7 +3,7 @@
     "CommandLineParser": "2.0.273-beta"
   },
   "frameworks": {
-    "net45": {}
+    "net46": {}
   },
   "runtimes": {
     "win7": {}

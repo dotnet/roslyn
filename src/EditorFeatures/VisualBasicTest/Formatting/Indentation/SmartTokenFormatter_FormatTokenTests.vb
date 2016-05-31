@@ -5,6 +5,7 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
 Imports Microsoft.CodeAnalysis.Formatting
+Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Text.Editor
@@ -193,9 +194,10 @@ End Class
                 Dim previousToken = token.GetPreviousToken(includeZeroWidth:=True)
                 Dim ignoreMissingToken = previousToken.IsMissing AndAlso line.Start.Position = position
 
-                Assert.True(VisualBasicIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(formattingRules, root, line, workspace.Options, Nothing, ignoreMissingToken))
+                Assert.True(VisualBasicIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
+                            formattingRules, root, line.AsTextLine, workspace.Options, Nothing, ignoreMissingToken))
 
-                Dim smartFormatter = New SmartTokenFormatter(workspace.Options, formattingRules, root)
+                Dim smartFormatter = New SmartTokenFormatter(document.Options, formattingRules, root)
                 Dim changes = Await smartFormatter.FormatTokenAsync(workspace, token, Nothing)
 
                 Using edit = buffer.CreateEdit()

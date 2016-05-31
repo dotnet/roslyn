@@ -1286,7 +1286,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_BlockBodyAndExpressionBody = 8057,
         ERR_FeatureIsExperimental = 8058,
         ERR_FeatureNotAvailableInVersion6 = 8059,
-        // available 8060-8069
+        ERR_FeatureIsUnimplemented = 8060,
+        // available 8061-8069
         ERR_SwitchFallOut = 8070,
         // ERR_UnexpectedBoundGenericName = 8071, // for nameof - used in an early prototype
         ERR_NullPropagatingOpInExpressionTree = 8072,
@@ -1324,5 +1325,74 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PeWritingFailure = 8104,
         WRN_AttributeIgnoredWhenPublicSigning = 8105,
         ERR_OptionMustBeAbsolutePath = 8106,
+        ERR_ReturnTypesDontMatch = 8107,
+        ERR_DynamicLocalFunctionParamsParameter = 8108,
+        ERR_CantInferVoid = 8109,
+        ERR_ExpressionTreeContainsLocalFunction = 8110,
+
+        // gap here
+
+        // diagnostics for pattern-matching
+        ERR_PatternNullableType = 8150,
+        ERR_BadIsPatternExpression = 8151,
+        // Please reserve IDs up to 8199 for pattern-matching
+
+        // huge gap here???
+
+        // diagnostics for ref locals and ref returns
+        ERR_AutoPropertyCannotBeRefReturning = 8890,
+        ERR_RefPropertyMustHaveGetAccessor = 8891,
+        ERR_RefPropertyCannotHaveSetAccessor = 8892,
+        ERR_CantChangeRefReturnOnOverride = 8893,
+        ERR_MustNotHaveRefReturn = 8894,
+        ERR_MustHaveRefReturn = 8895,
+        ERR_RefReturnMustHaveIdentityConversion = 8896,
+        ERR_CloseUnimplementedInterfaceMemberWrongRefReturn = 8897,
+        ERR_VoidReturningMethodCannotReturnByRef = 8898,
+        ERR_BadIteratorReturnRef = 8899,
+        ERR_BadRefReturnExpressionTree = 8900,
+        ERR_RefReturningCallInExpressionTree = 8901,
+
+        // more diagnostics for ref locals and ref returns
+        ERR_RefReturnLvalueExpected = 8910,
+        ERR_RefReturnNonreturnableLocal = 8911,
+        ERR_RefReturnNonreturnableLocal2 = 8912,
+        ERR_RefReturnRangeVariable = 8913,
+        ERR_RefReturnRangeVariable2 = 8914,
+        ERR_RefReturnReadonly = 8916,
+        ERR_RefReturnReadonlyStatic = 8917,
+        ERR_RefReturnReadonly2 = 8918,
+        ERR_RefReturnReadonlyStatic2 = 8919,
+        ERR_RefReturnCall = 8920,
+        ERR_RefReturnCall2 = 8921,
+        ERR_RefReturnParameter = 8922,
+        ERR_RefReturnParameter2 = 8923,
+        ERR_RefReturnLocal = 8924,
+        ERR_RefReturnLocal2 = 8925,
+        ERR_RefReturnStructThis = 8926,
+
+        // more diagnostics for ref locals and ref returns
+        ERR_MustBeRefAssignable = 8930,
+        ERR_MustBeRefAssignableLocal = 8931,
+        ERR_InitializeByValueVariableWithReference = 8932,
+        ERR_InitializeByReferenceVariableWithValue = 8933,
+        ERR_RefAssignmentMustHaveIdentityConversion = 8934,
+        ERR_ByReferenceVariableMustBeInitialized = 8935,
+
+        // more diagnostics for ref locals and ref returns
+        ERR_AnonDelegateCantUseLocal = 8940,
+        ERR_BadIteratorLocalType = 8941,
+        ERR_BadAsyncLocalType = 8942,
+        ERR_RefReturningCallAndAwait = 8943,
+        ERR_NoOriginalMember = 8944,
+        ERR_DuplicateReplace = 8945,
+        ERR_PartialReplace = 8946,
+        ERR_TupleTooFewElements = 8200,
+        ERR_TupleReservedMemberName = 8201,
+        ERR_TupleReservedMemberNameAnyPosition = 8202,
+        ERR_TupleDuplicateMemberName = 8203,
+        ERR_TupleExplicitNamesOnAllMembersOrNone = 8204,
+
+        ERR_PredefinedTypeMemberNotFoundInAssembly = 8205,
     }
 }

@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.SolutionCrawler;
 using Microsoft.CodeAnalysis.Versions;
 using Microsoft.VisualStudio.Designer.Interfaces;
 using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
@@ -21,7 +22,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 {
     internal abstract partial class AbstractDesignerAttributeIncrementalAnalyzer : ForegroundThreadAffinitizedObject
     {
-        private readonly IOptionService _optionService;
         private readonly IForegroundNotificationService _notificationService;
 
         private readonly IServiceProvider _serviceProvider;
@@ -37,14 +37,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
 
         public AbstractDesignerAttributeIncrementalAnalyzer(
             IServiceProvider serviceProvider,
-            IOptionService optionService,
             IForegroundNotificationService notificationService,
             IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
         {
             _serviceProvider = serviceProvider;
             Contract.ThrowIfNull(_serviceProvider);
 
-            _optionService = optionService;
             _notificationService = notificationService;
 
             _listener = new AggregateAsynchronousOperationListener(asyncListeners, FeatureAttribute.DesignerAttribute);
@@ -66,13 +64,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             return false;
         }
 
-        public async System.Threading.Tasks.Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken)
+        public async System.Threading.Tasks.Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
         {
             Contract.ThrowIfFalse(document.IsFromPrimaryBranch());
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (!_optionService.GetOption(InternalFeatureOnOffOptions.DesignerAttributes))
+            if (!document.Project.Solution.Workspace.Options.GetOption(InternalFeatureOnOffOptions.DesignerAttributes))
             {
                 return;
             }
@@ -313,12 +311,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
             return SpecializedTasks.EmptyTask;
         }
 
-        public System.Threading.Tasks.Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
+        public System.Threading.Tasks.Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
         {
             return SpecializedTasks.EmptyTask;
         }
 
-        public System.Threading.Tasks.Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
+        public System.Threading.Tasks.Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
         {
             return SpecializedTasks.EmptyTask;
         }

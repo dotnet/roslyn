@@ -26,7 +26,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         {
             get
             {
-                return ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(_optionService, _languageName) &&
+                return ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(_optionService.GetOptions(), _languageName) &&
                        _optionService.GetOption(_fullSolutionAnalysis);
             }
 

@@ -21,6 +21,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return node != null && CodeAnalysis.CSharpExtensions.IsKind(node.Parent, kind);
         }
 
+        public static bool IsParentKind(this SyntaxNode node, SyntaxKind kind1, SyntaxKind kind2)
+        {
+            return node != null && IsKind(node.Parent, kind1, kind2);
+        }
+
+        public static bool IsParentKind(this SyntaxNode node, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3)
+        {
+            return node != null && IsKind(node.Parent, kind1, kind2, kind3);
+        }
+
         public static bool IsKind(this SyntaxNode node, SyntaxKind kind1, SyntaxKind kind2)
         {
             if (node == null)
@@ -63,6 +73,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
             var csharpKind = node.Kind();
             return csharpKind == kind1 || csharpKind == kind2 || csharpKind == kind3 || csharpKind == kind4 || csharpKind == kind5;
+        }
+
+        public static bool IsKind(this SyntaxNode node, SyntaxKind kind1, SyntaxKind kind2, SyntaxKind kind3, SyntaxKind kind4, SyntaxKind kind5, SyntaxKind kind6)
+        {
+            if (node == null)
+            {
+                return false;
+            }
+
+            var csharpKind = node.Kind();
+            return csharpKind == kind1 || csharpKind == kind2 || csharpKind == kind3 || csharpKind == kind4 || csharpKind == kind5 || csharpKind == kind6;
         }
 
         /// <summary>
@@ -251,6 +272,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 case SyntaxKind.AnonymousMethodExpression:
                 case SyntaxKind.SimpleLambdaExpression:
                 case SyntaxKind.ParenthesizedLambdaExpression:
+                case SyntaxKind.LocalFunctionStatement:
                 case SyntaxKind.MethodDeclaration:
                 case SyntaxKind.ConstructorDeclaration:
                 case SyntaxKind.DestructorDeclaration:
@@ -718,7 +740,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsLeftSideOfAnyAssignExpression(this SyntaxNode node)
         {
-            return node.Parent.IsAnyAssignExpression() &&
+            return node != null &&
+                node.Parent.IsAnyAssignExpression() &&
                 ((AssignmentExpressionSyntax)node.Parent).Left == node;
         }
 

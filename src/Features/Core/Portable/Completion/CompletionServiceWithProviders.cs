@@ -176,7 +176,7 @@ namespace Microsoft.CodeAnalysis.Completion
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var defaultItemSpan = this.GetDefaultItemSpan(text, caretPosition);
 
-            options = options ?? document.Project.Solution.Workspace.Options;
+            options = options ?? document.Options;
             var providers = GetProviders(roles, trigger);
 
             var completionProviderToIndex = GetCompletionProviderToIndex(providers);

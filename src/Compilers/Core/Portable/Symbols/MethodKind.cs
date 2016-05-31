@@ -94,6 +94,11 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Declare Sub or Function.
         /// </summary>
-        DeclareMethod = 16
+        DeclareMethod = 16,
+
+        /// <summary>
+        /// Method is declared inside of another method.
+        /// </summary>
+        LocalFunction = 17
     }
 }

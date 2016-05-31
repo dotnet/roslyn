@@ -184,9 +184,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
         {
             // Initialize the error list toggle state based on full solution analysis state for all supported languages.
             var fullAnalysisState = workspace.Options.GetOption(RuntimeOptions.FullSolutionAnalysis) && 
-                ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(workspace, LanguageNames.CSharp) &&
-                ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(workspace, LanguageNames.VisualBasic) &&
-                ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(workspace, TypeScriptLanguageName);
+                ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(workspace.Options, LanguageNames.CSharp) &&
+                ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(workspace.Options, LanguageNames.VisualBasic) &&
+                ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(workspace.Options, TypeScriptLanguageName);
             errorList2.AnalysisToggleState = fullAnalysisState;
         }
 

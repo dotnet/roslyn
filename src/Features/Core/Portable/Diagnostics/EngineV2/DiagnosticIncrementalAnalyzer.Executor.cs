@@ -401,16 +401,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
             private static async Task<bool> FullAnalysisEnabledAsync(Project project, bool ignoreFullAnalysisOptions, CancellationToken cancellationToken)
             {
-                var workspace = project.Solution.Workspace;
-                var language = project.Language;
-
                 if (ignoreFullAnalysisOptions)
                 {
                     return await project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false);
                 }
 
-                if (!ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(workspace, language) ||
-                    !workspace.Options.GetOption(RuntimeOptions.FullSolutionAnalysis))
+                if (!ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(project) ||
+                    !project.Solution.Options.GetOption(RuntimeOptions.FullSolutionAnalysis))
                 {
                     return false;
                 }

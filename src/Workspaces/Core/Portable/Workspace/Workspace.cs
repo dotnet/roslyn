@@ -618,22 +618,76 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <summary>
+        /// Call this method when generated documents may have changed in a project in the host environment.
+        /// </summary>
+        protected internal void UpdateGeneratedDocumentsIfNecessary(ProjectId projectId)
+        {
+            ImmutableArray<DocumentInfo> documentsRemoved;
+            ImmutableArray<DocumentInfo> documentsAdded;
+
+            using (_serializationLock.DisposableWait())
+            {
+                CheckProjectIsInCurrentSolution(projectId);
+
+                var solution = this.CurrentSolution;
+                var projectInfo = solution.GetProjectState(projectId).ProjectInfo;
+                var oldDocuments = projectInfo.Documents.Where(d => d.IsGenerated).ToImmutableArray();
+                var newDocuments = solution.GetGeneratedDocuments(projectId);
+                var oldDocumentPaths = GetFilePaths(oldDocuments);
+                var newDocumentPaths = GetFilePaths(newDocuments);
+
+                documentsRemoved = oldDocuments.WhereAsArray(d => !newDocumentPaths.Contains(d.FilePath));
+                documentsAdded = newDocuments.WhereAsArray(d => !oldDocumentPaths.Contains(d.FilePath));
+
+                foreach (var info in documentsRemoved)
+                {
+                    OnDocumentRemoved_NoLock(info.Id);
+                }
+                foreach (var info in documentsAdded)
+                {
+                    OnDocumentAdded_NoLock(info);
+                }
+            }
+
+            UpdateGeneratedDocuments(projectId, documentsRemoved, documentsAdded);
+        }
+
+        protected virtual void UpdateGeneratedDocuments(ProjectId projectId, ImmutableArray<DocumentInfo> documentsRemoved, ImmutableArray<DocumentInfo> documentsAdded)
+        {
+        }
+
+        private static ImmutableHashSet<string> GetFilePaths(ImmutableArray<DocumentInfo> documents)
+        {
+            var map = ImmutableHashSet<string>.Empty.WithComparer(StringComparer.OrdinalIgnoreCase);
+            foreach (var document in documents)
+            {
+                map = map.Add(document.FilePath);
+            }
+            return map;
+        }
+
+        /// <summary>
         /// Call this method when a document is added to a project in the host environment.
         /// </summary>
         protected internal void OnDocumentAdded(DocumentInfo documentInfo)
         {
             using (_serializationLock.DisposableWait())
             {
-                var documentId = documentInfo.Id;
-
-                CheckProjectIsInCurrentSolution(documentId.ProjectId);
-                CheckDocumentIsNotInCurrentSolution(documentId);
-
-                var oldSolution = this.CurrentSolution;
-                var newSolution = this.SetCurrentSolution(oldSolution.AddDocument(documentInfo));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentAdded, oldSolution, newSolution, documentId: documentId);
+                OnDocumentAdded_NoLock(documentInfo);
             }
+        }
+
+        private void OnDocumentAdded_NoLock(DocumentInfo documentInfo)
+        {
+            var documentId = documentInfo.Id;
+
+            CheckProjectIsInCurrentSolution(documentId.ProjectId);
+            CheckDocumentIsNotInCurrentSolution(documentId);
+
+            var oldSolution = this.CurrentSolution;
+            var newSolution = this.SetCurrentSolution(oldSolution.AddDocument(documentInfo));
+
+            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentAdded, oldSolution, newSolution, documentId: documentId);
         }
 
         /// <summary>
@@ -662,18 +716,23 @@ namespace Microsoft.CodeAnalysis
         {
             using (_serializationLock.DisposableWait())
             {
-                CheckDocumentIsInCurrentSolution(documentId);
-
-                this.CheckDocumentCanBeRemoved(documentId);
-
-                var oldSolution = this.CurrentSolution;
-
-                this.ClearDocumentData(documentId);
-
-                var newSolution = this.SetCurrentSolution(oldSolution.RemoveDocument(documentId));
-
-                this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentRemoved, oldSolution, newSolution, documentId: documentId);
+                OnDocumentRemoved_NoLock(documentId);
             }
+        }
+
+        private void OnDocumentRemoved_NoLock(DocumentId documentId)
+        {
+            CheckDocumentIsInCurrentSolution(documentId);
+
+            this.CheckDocumentCanBeRemoved(documentId);
+
+            var oldSolution = this.CurrentSolution;
+
+            this.ClearDocumentData(documentId);
+
+            var newSolution = this.SetCurrentSolution(oldSolution.RemoveDocument(documentId));
+
+            this.RaiseWorkspaceChangedEventAsync(WorkspaceChangeKind.DocumentRemoved, oldSolution, newSolution, documentId: documentId);
         }
 
         protected virtual void CheckDocumentCanBeRemoved(DocumentId documentId)

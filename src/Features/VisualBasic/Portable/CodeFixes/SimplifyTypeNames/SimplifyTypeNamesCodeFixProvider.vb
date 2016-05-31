@@ -22,7 +22,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             Get
                 Return ImmutableArray.Create(IDEDiagnosticIds.SimplifyNamesDiagnosticId,
                     IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId,
-                    IDEDiagnosticIds.SimplifyThisOrMeDiagnosticId)
+                    IDEDiagnosticIds.RemoveQualificationDiagnosticId)
             End Get
         End Property
 
@@ -50,10 +50,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
             Dim cancellationToken = context.CancellationToken
 
             Dim root = Await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(False)
-            Dim optionSet = document.Project.Solution.Workspace.Options
             Dim model = Await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(False)
             Dim diagnosticId As String = Nothing
-            Dim node = GetNodeToSimplify(root, model, span, optionSet, diagnosticId, cancellationToken)
+            Dim node = GetNodeToSimplify(root, model, span, document.Options, diagnosticId, cancellationToken)
             If node Is Nothing Then
                 Return
             End If
@@ -76,8 +75,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
                 Case IDEDiagnosticIds.SimplifyMemberAccessDiagnosticId
                     Return String.Format(VBFeaturesResources.SimplifyMemberAccess, nodeText)
 
-                Case IDEDiagnosticIds.SimplifyThisOrMeDiagnosticId
-                    Return VBFeaturesResources.SimplifyMeQualification
+                Case IDEDiagnosticIds.RemoveQualificationDiagnosticId
+                    Return VBFeaturesResources.RemoveMeQualification
 
                 Case Else
                     Throw ExceptionUtilities.Unreachable

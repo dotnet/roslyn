@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -14,7 +12,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public virtual object Display
         {
-            get { return this.Type; }
+            get
+            {
+                Debug.Assert((object)this.Type != null, $"Unexpected null type in {this.GetType().Name}");
+                return this.Type;
+            }
         }
     }
 
@@ -55,6 +57,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override object Display
         {
             get { return MessageID.IDS_MethodGroup.Localize(); }
+        }
+    }
+
+    internal partial class BoundTupleExpression
+    {
+        public override object Display
+        {
+            get { return (object)this.Type ?? "<tuple>"; }
         }
     }
 

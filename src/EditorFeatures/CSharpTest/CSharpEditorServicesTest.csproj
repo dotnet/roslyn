@@ -117,6 +117,8 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="AddBraces\AddBracesFixAllTests.cs" />
+    <Compile Include="AddBraces\AddBracesTests.cs" />
     <Compile Include="AutomaticCompletion\AutomaticBraceCompletionTests.cs" />
     <Compile Include="AutomaticCompletion\AutomaticBracketCompletionTests.cs" />
     <Compile Include="AutomaticCompletion\AutomaticLessAndGreaterThanCompletionTests.cs" />
@@ -153,7 +155,9 @@
     <Compile Include="CodeActions\IntroduceVariable\IntroduceVariableTests.cs" />
     <Compile Include="CodeActions\InvertIf\InvertIfTests.cs" />
     <Compile Include="CodeActions\LambdaSimplifier\LambdaSimplifierTests.cs" />
+    <Compile Include="CodeActions\ReplacePropertyWithMethods\ReplacePropertyWithMethodsTests.cs" />
     <Compile Include="Diagnostics\AddUsing\AddUsingTests_NuGet.cs" />
+    <Compile Include="Diagnostics\GenerateMethod\GenerateConversionTests.cs" />
     <Compile Include="Diagnostics\MakeMethodSynchronous\MakeMethodSynchronousTests.cs" />
     <Compile Include="CodeActions\MoveDeclarationNearReference\MoveDeclarationNearReferenceTests.cs" />
     <Compile Include="CodeActions\Preview\ErrorCases\ExceptionInCodeAction.cs" />
@@ -161,6 +165,8 @@
     <Compile Include="CodeActions\Preview\PreviewTests.cs" />
     <Compile Include="CodeActions\ReplaceMethodWithProperty\ReplaceMethodWithPropertyTests.cs" />
     <Compile Include="Diagnostics\InvokeDelegateWithConditionalAccess\InvokeDelegateWithConditionalAccessTests.cs" />
+    <Compile Include="Diagnostics\QualifyMemberAccess\QualifyMemberAccessTests.cs" />
+    <Compile Include="Diagnostics\QualifyMemberAccess\QualifyMemberAccessTests_FixAllTests.cs" />
     <Compile Include="Diagnostics\SpellCheck\SpellCheckTests.cs" />
     <Compile Include="Diagnostics\Suppression\RemoveSuppressionTests.cs" />
     <Compile Include="Diagnostics\Suppression\SuppressionTest_FixMultipleTests.cs" />
@@ -187,6 +193,10 @@
     <Compile Include="Completion\CompletionProviders\XmlDocumentationCommentCompletionProviderTests.cs" />
     <Compile Include="Completion\LoadDirectiveCompletionProviderTests.cs" />
     <Compile Include="Completion\ReferenceDirectiveCompletionProviderTests.cs" />
+    <Compile Include="Diagnostics\UseImplicitOrExplicitType\UseExplicitTypeTests.cs" />
+    <Compile Include="Diagnostics\UseImplicitOrExplicitType\UseExplicitTypeTests_FixAllTests.cs" />
+    <Compile Include="Diagnostics\UseImplicitOrExplicitType\UseImplicitTypeTests_FixAllTests.cs" />
+    <Compile Include="Diagnostics\UseImplicitOrExplicitType\UseImplicitTypeTests.cs" />
     <Compile Include="GoToAdjacentMember\CSharpGoToAdjacentMemberTests.cs" />
     <Compile Include="Diagnostics\AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest.cs" />
     <Compile Include="Diagnostics\AddUsing\AddUsingTests.cs" />
@@ -339,6 +349,7 @@
     <Compile Include="SignatureHelp\GenericNameSignatureHelpProviderTests.cs" />
     <Compile Include="SignatureHelp\InvocationExpressionSignatureHelpProviderTests.cs" />
     <Compile Include="SignatureHelp\ObjectCreationExpressionSignatureHelpProviderTests.cs" />
+    <Compile Include="SplitStringLiteral\SplitStringLiteralCommandHandlerTests.cs" />
     <Compile Include="Squiggles\ErrorSquiggleProducerTests.cs" />
     <Compile Include="SymbolId\SymbolKeyCompilationsTests.cs" />
     <Compile Include="SymbolId\SymbolKeyMetadataVsSourceTests.cs" />
@@ -347,6 +358,7 @@
     <Compile Include="TodoComment\TodoCommentTests.cs" />
     <Compile Include="Utilities\CodeSnippets.cs" />
     <Compile Include="Utilities\CSharpServiceTestExtensions.cs" />
+    <Compile Include="Utilities\OptionExtensions.cs" />
     <Compile Include="Utilities\Options.cs" />
     <Compile Include="TypeInferrer\TypeInferrerTests.Delegate.cs" />
     <Compile Include="TypeInferrer\TypeInferrerTests.cs" />

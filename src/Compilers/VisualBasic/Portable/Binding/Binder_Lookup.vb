@@ -418,7 +418,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 If (options And LookupOptions.AllowIntrinsicAliases) <> 0 AndAlso arity = 0 Then
                     Dim containingNs = container.ContainingNamespace
 
-                    If containingNs IsNot Nothing AndAlso containingNs.IsGlobalNamespace AndAlso CaseInsensitiveComparison.Equals(container.Name, "System") Then
+                    If containingNs IsNot Nothing AndAlso containingNs.IsGlobalNamespace AndAlso CaseInsensitiveComparison.Equals(container.Name, MetadataHelpers.SystemString) Then
                         Dim specialType = GetTypeForIntrinsicAlias(name)
 
                         If specialType <> SpecialType.None Then

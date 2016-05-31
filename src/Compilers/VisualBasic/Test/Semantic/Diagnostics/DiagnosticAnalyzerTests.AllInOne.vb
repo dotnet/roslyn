@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
             CreateCompilationWithMscorlib({source}).VerifyAnalyzerDiagnostics({analyzer})
             analyzer.VerifyAllAnalyzerMembersWereCalled()
             analyzer.VerifyAnalyzeSymbolCalledForAllSymbolKinds()
-            analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds()
+            analyzer.VerifyAnalyzeNodeCalledForAllSyntaxKinds(New HashSet(Of SyntaxKind)())
             analyzer.VerifyOnCodeBlockCalledForAllSymbolAndMethodKinds()
         End Sub
 
