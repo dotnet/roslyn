@@ -31,11 +31,6 @@ Partial Friend Class ConvertToInterpolatedStringRefactoringProvider
         Return TryCast(arguments(0)?.GetExpression(), LiteralExpressionSyntax)
     End Function
 
-    Protected Overrides Function GetFormattingRules(document As Document) As IEnumerable(Of IFormattingRule)
-        ' VB does not have multiline comments so we don't need to format them
-        Return Nothing
-    End Function
-
     Protected Overrides Function GetInterpolatedString(text As String) As InterpolatedStringExpressionSyntax
         Return CType(ParseExpression("$" + text), InterpolatedStringExpressionSyntax)
     End Function
@@ -75,7 +70,23 @@ Partial Friend Class ConvertToInterpolatedStringRefactoringProvider
     End Function
 
     Protected Overrides Function VisitArguments(expandedArguments As ImmutableArray(Of ExpressionSyntax), interpolatedString As InterpolatedStringExpressionSyntax) As InterpolatedStringExpressionSyntax
-        Return InterpolatedStringRewriter.Visit(interpolatedString, expandedArguments)
+        Return interpolatedString.ReplaceNodes(interpolatedString.Contents,
+            Function(oldNode, newNode)
+                Dim node = TryCast(newNode, InterpolationSyntax)
+                If node Is Nothing Then
+                    Return newNode
+                End If
+
+                Dim literalExpression = CType(node.Expression, LiteralExpressionSyntax)
+                If literalExpression IsNot Nothing AndAlso literalExpression.IsKind(SyntaxKind.NumericLiteralExpression) Then
+                    Dim index = CType(literalExpression.Token.Value, Integer)
+                    If index >= 0 AndAlso index < expandedArguments.Length Then
+                        Return node.WithExpression(expandedArguments(index))
+                    End If
+                End If
+
+                Return newNode
+            End Function)
     End Function
 
     Private Shared Function CastAndParenthesize(expression As ExpressionSyntax, semanticModel As SemanticModel) As ExpressionSyntax

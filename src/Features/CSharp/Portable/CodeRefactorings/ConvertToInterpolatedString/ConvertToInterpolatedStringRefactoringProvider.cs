@@ -1,13 +1,11 @@
-﻿using System.Collections.Generic;
-using System.Collections.Immutable;
+﻿using System.Collections.Immutable;
 using System.Composition;
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Simplification;
 using static Microsoft.CodeAnalysis.CSharp.SyntaxFactory;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToInterpolatedString
 {
@@ -33,14 +31,6 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToInterpolatedSt
 
         protected override LiteralExpressionSyntax GetFirstArgument(SeparatedSyntaxList<ArgumentSyntax> arguments) =>
             arguments[0]?.Expression as LiteralExpressionSyntax;
-
-        protected override IEnumerable<IFormattingRule> GetFormattingRules(Document document)
-        {
-            var rules = new List<IFormattingRule> { new MultiLineCommentInInterpolatedStringFormattingRule() };
-            rules.AddRange(Formatter.GetDefaultFormattingRules(document));
-
-            return rules;
-        }
 
         protected override InterpolatedStringExpressionSyntax GetInterpolatedString(string text) =>
             (InterpolatedStringExpressionSyntax)ParseExpression("$" + text);
@@ -91,8 +81,45 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ConvertToInterpolatedSt
 
         protected override InterpolatedStringExpressionSyntax VisitArguments(
             ImmutableArray<ExpressionSyntax> expandedArguments,
-            InterpolatedStringExpressionSyntax interpolatedString) =>
-            InterpolatedStringRewriter.Visit(interpolatedString, expandedArguments);
+            InterpolatedStringExpressionSyntax interpolatedString)
+        {
+            return interpolatedString.ReplaceNodes(interpolatedString.Contents, (oldNode, newNode) =>
+            {
+                var node = newNode as InterpolationSyntax;
+                if (node == null)
+                {
+                    return newNode;
+                }
+
+                var literalExpression = node.Expression as LiteralExpressionSyntax;
+                if (literalExpression != null && literalExpression.IsKind(SyntaxKind.NumericLiteralExpression))
+                {
+                    var index = (int)literalExpression.Token.Value;
+                    if (index >= 0 && index < expandedArguments.Length)
+                    {
+                        return node.WithExpression(FixTrivia(expandedArguments[index]));
+                    }
+                }
+
+                return newNode;
+            });
+        }
+
+        /// <summary>
+        /// Since C# interpolations cannot be on more than one line, we need to remove newlines if possible.
+        /// </summary>
+        public static ExpressionSyntax FixTrivia(ExpressionSyntax node) =>
+            node.ReplaceTokens(node.DescendantTokens(descendIntoTrivia: true), RemoveTriviaForTokens);
+
+        private static SyntaxToken RemoveTriviaForTokens(SyntaxToken originalToken, SyntaxToken rewrittenToken) =>
+            rewrittenToken
+                .WithLeadingTrivia(
+                    ReplaceSyntaxKindsWithElasticSpace(rewrittenToken.LeadingTrivia, SyntaxKind.WhitespaceTrivia, SyntaxKind.EndOfLineTrivia))
+                .WithTrailingTrivia(
+                    ReplaceSyntaxKindsWithElasticSpace(rewrittenToken.TrailingTrivia, SyntaxKind.WhitespaceTrivia, SyntaxKind.EndOfLineTrivia));
+
+        private static SyntaxTriviaList ReplaceSyntaxKindsWithElasticSpace(SyntaxTriviaList trivialList, params SyntaxKind[] kinds) =>
+            trivialList.Select(x => kinds.Any(y => x.IsKind(y)) ? SyntaxFactory.ElasticSpace : x).ToSyntaxTriviaList();
 
         private static ExpressionSyntax CastAndParenthesize(ExpressionSyntax expression, SemanticModel semanticModel) =>
             Parenthesize(Cast(expression, semanticModel.GetTypeInfo(expression).ConvertedType));

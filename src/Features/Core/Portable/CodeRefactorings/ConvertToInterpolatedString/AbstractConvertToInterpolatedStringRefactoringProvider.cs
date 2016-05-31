@@ -1,12 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
-using Microsoft.CodeAnalysis.Formatting;
-using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.CodeRefactorings
@@ -18,11 +15,9 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
         where TArgumentSyntax : SyntaxNode
         where TLiteralExpressionSyntax : SyntaxNode
     {
-        protected static SyntaxAnnotation SpecializedFormattingAnnotation = new SyntaxAnnotation();
         protected abstract SeparatedSyntaxList<TArgumentSyntax>? GetArguments(TInvocationExpressionSyntax invocation);
         protected abstract ImmutableArray<TExpressionSyntax> GetExpandedArguments(SemanticModel semanticModel, SeparatedSyntaxList<TArgumentSyntax> arguments);
         protected abstract TLiteralExpressionSyntax GetFirstArgument(SeparatedSyntaxList<TArgumentSyntax> arguments);
-        protected abstract IEnumerable<IFormattingRule> GetFormattingRules(Document document);
         protected abstract TInterpolatedStringExpressionSyntax GetInterpolatedString(string text);
         protected abstract string GetText(SeparatedSyntaxList<TArgumentSyntax> arguments);
         protected abstract bool IsArgumentListCorrect(TInvocationExpressionSyntax invocation, ISymbol invocationSymbol, ImmutableArray<ISymbol> formatMethods, SemanticModel semanticModel, CancellationToken cancellationToken);
@@ -107,25 +102,7 @@ namespace Microsoft.CodeAnalysis.CodeRefactorings
             var newInterpolatedString = VisitArguments(expandedArguments, interpolatedString);
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
             var newRoot = root.ReplaceNode(invocation, newInterpolatedString.WithTriviaFrom(invocation));
-            newRoot = await FormatAsync(newRoot, document, cancellationToken).ConfigureAwait(false);
             return document.WithSyntaxRoot(newRoot);
-        }
-
-        private async Task<SyntaxNode> FormatAsync(SyntaxNode newRoot, Document document, CancellationToken cancellationToken)
-        {
-            var formattingRules = GetFormattingRules(document);
-            if (formattingRules == null)
-            {
-                return newRoot;
-            }
-
-            return await Formatter.FormatAsync(
-                newRoot,
-                SpecializedFormattingAnnotation,
-                document.Project.Solution.Workspace,
-                options: null,
-                rules: formattingRules,
-                cancellationToken: cancellationToken).ConfigureAwait(false);
         }
 
         private static bool ShouldRemoveStringFormatMethod(ISymbol symbol)
