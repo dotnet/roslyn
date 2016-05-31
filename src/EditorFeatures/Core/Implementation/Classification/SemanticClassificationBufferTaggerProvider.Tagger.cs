@@ -24,7 +24,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
             private readonly ITaggerEventSource _eventSource;
 
             private TagSpanIntervalTree<IClassificationTag> _cachedTags_doNotAccessDirectly;
-            private SnapshotSpan _cachedTaggedSpan_doNotAccessDirectly;
+            private SnapshotSpan? _cachedTaggedSpan_doNotAccessDirectly;
 
             private IEditorClassificationService _classificationService;
 
@@ -62,7 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 }
             }
 
-            private SnapshotSpan CachedTaggedSpan
+            private SnapshotSpan? CachedTaggedSpan
             {
                 get
                 {
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
 
                 // When something changes, clear the cached data we have.
                 this.CachedTags = null;
-                this.CachedTaggedSpan = default(SnapshotSpan);
+                this.CachedTaggedSpan = null;
 
                 // And notify any concerned parties that we have new tags.
                 this.TagsChanged?.Invoke(this, new SnapshotSpanEventArgs(_subjectBuffer.CurrentSnapshot.GetFullSpan()));
@@ -131,8 +131,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Classification
                 // of the last classification we performed.
                 var cachedTaggedSpan = this.CachedTaggedSpan;
                 var canReuseCache =
-                    cachedTaggedSpan.Snapshot == snapshot &&
-                    spanToTag.Intersection(cachedTaggedSpan) == spanToTag;
+                    cachedTaggedSpan?.Snapshot == snapshot &&
+                    cachedTaggedSpan.Value.Contains(spanToTag);
 
                 if (!canReuseCache)
                 {
