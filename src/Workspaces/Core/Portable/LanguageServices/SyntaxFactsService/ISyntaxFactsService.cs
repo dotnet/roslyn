@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsThisConstructorInitializer(SyntaxToken token);
         bool IsBaseConstructorInitializer(SyntaxToken token);
-        bool IsConstructorIdentifier(SyntaxToken token);
+        bool IsConstructorToken(SyntaxToken token);
         bool IsQueryExpression(SyntaxNode node);
         bool IsElementAccessExpression(SyntaxNode node);
         bool IsIndexerMemberCRef(SyntaxNode node);

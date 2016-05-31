@@ -1304,7 +1304,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                       TryCast(node, MemberAccessExpressionSyntax)?.Name)
         End Function
 
-        Public Function IsConstructorIdentifier(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsConstructorIdentifier
+        Public Function IsConstructorToken(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsConstructorToken
             Return token.Parent.IsKind(SyntaxKind.SubNewStatement)
         End Function
     End Class

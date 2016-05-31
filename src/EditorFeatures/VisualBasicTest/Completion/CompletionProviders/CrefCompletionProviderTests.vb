@@ -833,7 +833,7 @@ End Class]]></a>.Value.NormalizeLineEndings()
                 Throw New NotImplementedException()
             End Function
 
-            Public Function IsConstructorIdentifier(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsConstructorIdentifier
+            Public Function IsConstructorToken(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsConstructorToken
                 Throw New NotImplementedException()
             End Function
         End Class

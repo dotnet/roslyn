@@ -38,7 +38,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 if (identifierInfo.ProbablyContainsIdentifier(symbol.ContainingType.Name))
                 {
                     var declaredInfo = await SyntaxTreeInfo.GetDeclarationInfoAsync(d, c).ConfigureAwait(false);
-                    if (contextInfo.ContainsThisConstructorInitializer || declaredInfo.DeclaredSymbolInfos.Any(i => i.Kind == DeclaredSymbolInfoKind.Constructor))
+                    if (contextInfo.ContainsThisConstructorInitializer 
+                        || declaredInfo.DeclaredSymbolInfos.Any(i => i.Kind == DeclaredSymbolInfoKind.Constructor))
                     {
                         return true;
                     }
@@ -78,16 +79,13 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 {
                     return true;
                 }
-                else if (semanticModel.Language == LanguageNames.CSharp && syntaxFactsService.IsConstructorIdentifier(t))
+                else if (semanticModel.Language == LanguageNames.CSharp && syntaxFactsService.IsConstructorToken(t))
                 {
                     var containingType = semanticModel.GetEnclosingNamedType(t.SpanStart, cancellationToken);
-                    if (((ConstructorDeclarationSyntax)t.Parent).Initializer == null
+                    return ((ConstructorDeclarationSyntax)t.Parent).Initializer == null
                         && containingType != null
                         && containingType.BaseType != null
-                        && containingType.BaseType.Name == typeName)
-                    {
-                        return true;
-                    }
+                        && containingType.BaseType.Name == typeName;
                 }
 
                 return false;
@@ -122,7 +120,8 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var standardSymbolsMatch = GetStandardSymbolsMatchFunction(symbol, findParentNode, document.Project.Solution, cancellationToken);
             Func<SyntaxToken, SemanticModel, ValueTuple<bool, CandidateReason>> ctorMatch = (t, model) =>
             {
-                if (syntaxFactsService.IsConstructorIdentifier(t))
+                // tokens are already filtered by base type and without initializer
+                if (syntaxFactsService.IsConstructorToken(t))
                 {
                     return ValueTuple.Create(true, CandidateReason.None);
                 }

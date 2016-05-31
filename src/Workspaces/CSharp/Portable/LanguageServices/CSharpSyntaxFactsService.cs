@@ -245,7 +245,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ((ConstructorInitializerSyntax)token.Parent).ThisOrBaseKeyword == token;
         }
 
-        public bool IsConstructorIdentifier(SyntaxToken token)
+        public bool IsConstructorToken(SyntaxToken token)
         {
             return token.Parent.IsKind(SyntaxKind.ConstructorDeclaration);
         }
