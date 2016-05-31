@@ -3052,6 +3052,55 @@ t => Process(tt => Process(null))
         End Sub
 
         <Fact()>
+        Public Sub Relaxation05ET()
+            Dim file = <file name="expr.vb"><![CDATA[
+
+Imports System
+Imports System.Linq.Expressions
+Imports System.Reflection
+
+Module Module1
+
+    Sub Main()
+        Dim o As New C1(Of String)
+    End Sub
+
+End Module
+
+Class C0
+    Public Shared Function Process(arg As Expression(Of Action(Of Integer))) As Boolean
+        Return False
+    End Function
+
+    Public Shared Sub ProcessSub(arg As Expression(Of Action(Of Integer)))
+    End Sub
+End Class
+
+Class C1(Of T)
+    Public ProcessMethodSub As MethodInfo = RegisterMethod(Sub(t As Integer) C0.ProcessSub(Sub(tt As Integer) C0.ProcessSub(Nothing)))
+    Public ProcessMethod As MethodInfo = RegisterMethod(Function(t As Integer) C0.Process(Function(tt As Integer) C0.Process(Nothing)))
+
+    Public Function RegisterMethod(methodLambdaExpression As Expression(Of Action(Of Integer))) As MethodInfo
+
+        System.Console.WriteLine(methodLambdaExpression.ToString())
+
+        methodLambdaExpression.Compile()(Nothing)
+
+        Return Nothing
+    End Function
+
+End Class
+
+]]></file>
+
+            TestExpressionTrees(file,
+            <![CDATA[
+t => ProcessSub(tt => ProcessSub(null))
+t => Process(tt => Process(null))
+]]>)
+        End Sub
+
+        <Fact()>
         Public Sub Relaxation06()
             Dim file = <file name="expr.vb"><![CDATA[
 
