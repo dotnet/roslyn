@@ -1,15 +1,15 @@
 ﻿{
   "dependencies": {
     "Microsoft.CSharp": "4.0.0",
-    "Microsoft.NETCore.Platforms": "1.0.1-rc3-24126-00",
+    "Microsoft.NETCore.Platforms": "1.0.1-rc3-24128-00",
     "Microsoft.NETCore.Portable.Compatibility": "1.0.0",
     "System.Collections.Concurrent": "4.0.10",    
-    "System.Console": "4.0.0-rc3-24126-00",
+    "System.Console": "4.0.0-rc3-24128-00",
     "System.Diagnostics.Debug": "4.0.10",
     "System.Diagnostics.Tools": "4.0.0",
     "System.IO.FileSystem": "4.0.0",
     "System.Reflection.TypeExtensions": "4.0.0",
-    "System.Threading.Thread": "4.0.0-rc3-24126-00",
+    "System.Threading.Thread": "4.0.0-rc3-24128-00",
     "System.Xml.XDocument": "4.0.10",
     "System.Xml.XmlDocument": "4.0.0"
   },
