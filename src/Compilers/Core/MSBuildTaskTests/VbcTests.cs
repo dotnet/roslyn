@@ -99,6 +99,11 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
             vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
             vbc.ChecksumAlgorithm = null;
             Assert.Equal("/optionstrict:custom /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.ChecksumAlgorithm = "";
+            Assert.Equal("/optionstrict:custom /out:test.exe /checksumalgorithm: test.vb", vbc.GenerateResponseFileContents());
         }
 
         [Fact]
