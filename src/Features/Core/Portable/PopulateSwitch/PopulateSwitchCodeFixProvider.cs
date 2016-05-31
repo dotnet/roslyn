@@ -19,6 +19,7 @@ namespace Microsoft.CodeAnalysis.PopulateSwitch
 {
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = PredefinedCodeFixProviderNames.PopulateSwitch), Shared]
     [ExtensionOrder(After = PredefinedCodeFixProviderNames.ImplementInterface)]
+    [ExtensionOrder(After = PredefinedCodeFixProviderNames.GenerateMethod)]
     internal class PopulateSwitchCodeFixProvider : CodeFixProvider
     {
         public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(IDEDiagnosticIds.PopulateSwitchDiagnosticId);
