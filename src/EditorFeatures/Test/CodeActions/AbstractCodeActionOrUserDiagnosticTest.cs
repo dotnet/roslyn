@@ -152,41 +152,44 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        protected async Task TestAsync(
+        internal async Task TestAsync(
             string initialMarkup, string expectedMarkup,
             int index = 0, bool compareTokens = true,
             IDictionary<OptionKey, object> options = null,
             string fixAllActionEquivalenceKey = null,
-            object fixProviderData = null)
+            object fixProviderData = null,
+            CodeActionPriority? priority = null)
         {
-            await TestAsync(initialMarkup, expectedMarkup, null, index, compareTokens, options, fixAllActionEquivalenceKey, fixProviderData);
-            await TestAsync(initialMarkup, expectedMarkup, GetScriptOptions(), index, compareTokens, options, fixAllActionEquivalenceKey, fixProviderData);
+            await TestAsync(initialMarkup, expectedMarkup, null, index, compareTokens, options, fixAllActionEquivalenceKey, fixProviderData, priority: priority);
+            await TestAsync(initialMarkup, expectedMarkup, GetScriptOptions(), index, compareTokens, options, fixAllActionEquivalenceKey, fixProviderData, priority: priority);
         }
 
-        protected async Task TestAsync(
+        internal async Task TestAsync(
             string initialMarkup, string expectedMarkup,
             ParseOptions parseOptions,
             int index = 0, bool compareTokens = true,
             IDictionary<OptionKey, object> options = null,
             string fixAllActionEquivalenceKey = null,
             object fixProviderData = null,
-            bool withScriptOption = false)
+            bool withScriptOption = false,
+            CodeActionPriority? priority = null)
         {
-            await TestAsync(initialMarkup, expectedMarkup, parseOptions, null, index, compareTokens, options, fixAllActionEquivalenceKey, fixProviderData);
+            await TestAsync(initialMarkup, expectedMarkup, parseOptions, null, index, compareTokens, options, fixAllActionEquivalenceKey, fixProviderData, priority);
 
             if (withScriptOption)
             {
-                await TestAsync(initialMarkup, expectedMarkup, parseOptions.WithKind(SourceCodeKind.Script), null, index, compareTokens, options, fixAllActionEquivalenceKey, fixProviderData);
+                await TestAsync(initialMarkup, expectedMarkup, parseOptions.WithKind(SourceCodeKind.Script), null, index, compareTokens, options, fixAllActionEquivalenceKey, fixProviderData, priority);
             }
         }
 
-        protected async Task TestAsync(
+        internal async Task TestAsync(
             string initialMarkup, string expectedMarkup,
             ParseOptions parseOptions, CompilationOptions compilationOptions,
             int index = 0, bool compareTokens = true,
             IDictionary<OptionKey, object> options = null,
             string fixAllActionEquivalenceKey = null,
-            object fixProviderData = null)
+            object fixProviderData = null,
+            CodeActionPriority? priority = null)
         {
             string expected;
             IDictionary<string, IList<TextSpan>> spanMap;
@@ -208,18 +211,20 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
                     actions,
                     conflictSpans, renameSpans, warningSpans,
                     compareTokens: compareTokens,
-                    parseOptions: parseOptions);
+                    parseOptions: parseOptions,
+                    priority: priority);
             }
         }
 
-        protected async Task<Tuple<Solution, Solution>> TestActionsAsync(
+        internal async Task<Tuple<Solution, Solution>> TestActionsAsync(
             TestWorkspace workspace, string expected,
             int index, IList<CodeAction> actions,
             IList<TextSpan> conflictSpans, IList<TextSpan> renameSpans, IList<TextSpan> warningSpans,
             bool compareTokens,
-            ParseOptions parseOptions = null)
+            ParseOptions parseOptions = null,
+            CodeActionPriority? priority = null)
         {
-            var operations = await VerifyInputsAndGetOperationsAsync(index, actions);
+            var operations = await VerifyInputsAndGetOperationsAsync(index, actions, priority);
             return await TestOperationsAsync(workspace, expected, operations.ToList(), conflictSpans, renameSpans, warningSpans, compareTokens, expectedChangedDocumentId: null, parseOptions: parseOptions);
         }
 
@@ -312,7 +317,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             }
         }
 
-        protected static async Task<IEnumerable<CodeActionOperation>> VerifyInputsAndGetOperationsAsync(int index, IList<CodeAction> actions)
+        internal static async Task<IEnumerable<CodeActionOperation>> VerifyInputsAndGetOperationsAsync(
+            int index, IList<CodeAction> actions, CodeActionPriority? priority = null)
         {
             Assert.NotNull(actions);
             if (actions.Count == 1)
@@ -327,6 +333,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions
             Assert.InRange(index, 0, actions.Count - 1);
 
             var action = actions[index];
+            if (priority != null)
+            {
+                Assert.Equal(priority.Value, action.Priority);
+            }
             return await action.GetOperationsAsync(CancellationToken.None);
         }
 
