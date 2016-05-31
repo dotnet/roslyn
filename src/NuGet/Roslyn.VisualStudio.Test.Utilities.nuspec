@@ -2,9 +2,9 @@
 <package >
   <metadata>
     <id>Roslyn.VisualStudio.Test.Utilities</id>
-    <description>Roslyn VisualStudio Test Utilities.</description>
+    <description>Utility methods used to run Roslyn Visual Studio integration tests.</description>
     <dependencies>
-      <dependency id="Microsoft.VisualStudio.LanguageServices" version="[$version$]" />
+      <dependency id="Microsoft.VisualStudio.LanguageServices" version="$version$" />
     </dependencies>
     
     <language>en-US</language>
