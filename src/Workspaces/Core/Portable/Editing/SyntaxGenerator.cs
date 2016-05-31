@@ -1720,6 +1720,11 @@ namespace Microsoft.CodeAnalysis.Editing
         public abstract SyntaxNode CoalesceExpression(SyntaxNode left, SyntaxNode right);
 
         /// <summary>
+        /// Creates an expression that denotes a conditional access operation.
+        /// </summary>
+        public abstract SyntaxNode ConditionalAccessExpression(SyntaxNode expression, SyntaxNode whenNotNull);
+
+        /// <summary>
         /// Creates a member access expression.
         /// </summary>
         public virtual SyntaxNode MemberAccessExpression(SyntaxNode expression, SyntaxNode memberName)
