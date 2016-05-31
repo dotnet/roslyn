@@ -33,6 +33,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
             End If
 
             Dim typeInferenceService = document.Project.LanguageServices.GetService(Of ITypeInferenceService)()
+            Contract.ThrowIfNull(typeInferenceService, NameOf(typeInferenceService))
+
             Dim types = typeInferenceService.InferTypes(context.SemanticModel, context.Position, cancellationToken)
 
             Return types.Any(Function(t) t.SpecialType = SpecialType.System_Boolean)

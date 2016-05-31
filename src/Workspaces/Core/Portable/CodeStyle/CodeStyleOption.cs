@@ -6,44 +6,45 @@ using System.Xml.Linq;
 namespace Microsoft.CodeAnalysis.CodeStyle
 {
     /// <summary>
-    /// Represents a code style option that typically 
-    /// offers two choices as preferences and a set of 
-    /// notification styles. the preference is then 
-    /// simply recorded as a boolean.
+    /// Represents a code style option and an associated notification option.
     /// </summary>
-    internal class SimpleCodeStyleOption
+    public class CodeStyleOption<T>
     {
-        private const int SerializationVersion = 1;
-        public static readonly SimpleCodeStyleOption Default = new SimpleCodeStyleOption(false, NotificationOption.None);
+        public static CodeStyleOption<T> Default => new CodeStyleOption<T>(default(T), NotificationOption.None);
 
-        public SimpleCodeStyleOption(bool isChecked, NotificationOption notification)
+        private const int SerializationVersion = 1;
+
+        public CodeStyleOption(T value, NotificationOption notification)
         {
-            IsChecked = isChecked;
+            Value = value;
             Notification = notification;
         }
 
-        public bool IsChecked { get; set; }
+        public T Value { get; set; }
 
         public NotificationOption Notification { get; set; }
 
         public XElement ToXElement() => 
-            new XElement(nameof(SimpleCodeStyleOption),
+            new XElement(nameof(CodeStyleOption<T>), // `nameof()` returns just "CodeStyleOption"
                 new XAttribute(nameof(SerializationVersion), SerializationVersion),
-                new XAttribute(nameof(IsChecked), IsChecked),
+                new XAttribute("Type", typeof(T).Name),
+                new XAttribute(nameof(Value), Value),
                 new XAttribute(nameof(DiagnosticSeverity), Notification.Value));
 
-        public static SimpleCodeStyleOption FromXElement(XElement element)
+        public static CodeStyleOption<T> FromXElement(XElement element)
         {
-            var isCheckedAttribute = element.Attribute(nameof(IsChecked));
+            var typeAttribute = element.Attribute("Type");
+            var valueAttribute = element.Attribute(nameof(Value));
             var severityAttribute = element.Attribute(nameof(DiagnosticSeverity));
 
-            if (isCheckedAttribute == null || severityAttribute == null)
+            if (typeAttribute == null || valueAttribute == null || severityAttribute == null)
             {
                 // data from storage is corrupt, or nothing has been stored yet.
                 return Default;
             }
 
-            var isChecked = bool.Parse(isCheckedAttribute.Value);
+            var parser = GetParser(typeAttribute.Value);
+            var value = (T)parser(valueAttribute.Value);
             var severity = (DiagnosticSeverity)Enum.Parse(typeof(DiagnosticSeverity), severityAttribute.Value);
 
             NotificationOption notificationOption;
@@ -65,7 +66,18 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     throw new ArgumentException(nameof(element));
             }
 
-            return new SimpleCodeStyleOption(isChecked, notificationOption);
+            return new CodeStyleOption<T>(value, notificationOption);
+        }
+
+        private static Func<string, object> GetParser(string type)
+        {
+            switch (type)
+            {
+                case nameof(Boolean):
+                    return v => bool.Parse(v);
+                default:
+                    throw new ArgumentException(nameof(type));
+            }
         }
     }
 }

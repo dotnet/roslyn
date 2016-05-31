@@ -213,8 +213,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
             Return anonymousTypes
         End Function
 
-        Friend Overrides Function TryCreateVariableSlotAllocator(method As MethodSymbol, topLevelMethod As MethodSymbol) As VariableSlotAllocator
-            Return _previousDefinitions.TryCreateVariableSlotAllocator(_previousGeneration, method, topLevelMethod)
+        Friend Overrides Function TryCreateVariableSlotAllocator(method As MethodSymbol, topLevelMethod As MethodSymbol, diagnostics As DiagnosticBag) As VariableSlotAllocator
+            Return _previousDefinitions.TryCreateVariableSlotAllocator(_previousGeneration, Compilation, method, topLevelMethod, diagnostics)
         End Function
 
         Friend Overrides Function GetPreviousAnonymousTypes() As ImmutableArray(Of AnonymousTypeKey)

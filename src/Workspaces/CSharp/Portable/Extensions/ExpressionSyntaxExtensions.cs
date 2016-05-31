@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsInRefContext(this ExpressionSyntax expression)
         {
-            var argument = expression.Parent as ArgumentSyntax;
+            var argument = expression?.Parent as ArgumentSyntax;
             return
                 argument != null &&
                 argument.Expression == expression &&
@@ -345,8 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         return true;
                     }
 
-                    var nameEquals = expression.Parent as NameEqualsSyntax;
-                    if (nameEquals != null && nameEquals.IsParentKind(SyntaxKind.AttributeArgument))
+                    if (expression.IsAttributeNamedArgumentIdentifier())
                     {
                         return true;
                     }
@@ -354,6 +353,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             return false;
+        }
+
+        public static bool IsAttributeNamedArgumentIdentifier(this ExpressionSyntax expression)
+        {
+            var nameEquals = expression?.Parent as NameEqualsSyntax;
+            return nameEquals.IsParentKind(SyntaxKind.AttributeArgument);
         }
 
         public static bool IsWrittenTo(this ExpressionSyntax expression)
@@ -368,29 +373,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 expression = expression.Parent as ExpressionSyntax;
             }
 
+            if (expression.IsInRefContext())
+            {
+                return true;
+            }
+
+            // We're written if we're used in a ++, or -- expression.
+            if (expression.IsOperandOfIncrementOrDecrementExpression())
+            {
+                return true;
+            }
+
+            if (expression.IsLeftSideOfAnyAssignExpression())
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool IsOperandOfIncrementOrDecrementExpression(this ExpressionSyntax expression)
+        {
             if (expression != null)
             {
-                if (expression.IsInRefContext())
+                switch (expression.Parent.Kind())
                 {
-                    return true;
-                }
-
-                // We're written if we're used in a ++, or -- expression.
-                if (expression.Parent != null)
-                {
-                    switch (expression.Parent.Kind())
-                    {
-                        case SyntaxKind.PostIncrementExpression:
-                        case SyntaxKind.PreIncrementExpression:
-                        case SyntaxKind.PostDecrementExpression:
-                        case SyntaxKind.PreDecrementExpression:
-                            return true;
-                    }
-
-                    if (expression.IsLeftSideOfAnyAssignExpression())
-                    {
+                    case SyntaxKind.PostIncrementExpression:
+                    case SyntaxKind.PreIncrementExpression:
+                    case SyntaxKind.PostDecrementExpression:
+                    case SyntaxKind.PreDecrementExpression:
                         return true;
-                    }
                 }
             }
 

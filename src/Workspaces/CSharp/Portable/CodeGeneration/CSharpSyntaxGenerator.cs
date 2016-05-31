@@ -701,7 +701,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 : default(SyntaxList<MemberDeclarationSyntax>);
         }
 
-        private SyntaxNode AsInterfaceMember(SyntaxNode m)
+        internal override SyntaxNode AsInterfaceMember(SyntaxNode m)
         {
             return Isolate(m, member =>
             {
@@ -2356,32 +2356,35 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private SyntaxNode AsIsolatedDeclaration(SyntaxNode declaration)
         {
-            switch (declaration.Kind())
+            if (declaration != null)
             {
-                case SyntaxKind.VariableDeclaration:
-                    var vd = (VariableDeclarationSyntax)declaration;
-                    if (vd.Parent != null && vd.Variables.Count == 1)
-                    {
-                        return AsIsolatedDeclaration(vd.Parent);
-                    }
-                    break;
+                switch (declaration.Kind())
+                {
+                    case SyntaxKind.VariableDeclaration:
+                        var vd = (VariableDeclarationSyntax)declaration;
+                        if (vd.Parent != null && vd.Variables.Count == 1)
+                        {
+                            return AsIsolatedDeclaration(vd.Parent);
+                        }
+                        break;
 
-                case SyntaxKind.VariableDeclarator:
-                    var v = (VariableDeclaratorSyntax)declaration;
-                    if (v.Parent != null && v.Parent.Parent != null)
-                    {
-                        return this.ClearTrivia(this.WithVariable(v.Parent.Parent, v));
-                    }
-                    break;
+                    case SyntaxKind.VariableDeclarator:
+                        var v = (VariableDeclaratorSyntax)declaration;
+                        if (v.Parent != null && v.Parent.Parent != null)
+                        {
+                            return this.ClearTrivia(this.WithVariable(v.Parent.Parent, v));
+                        }
+                        break;
 
-                case SyntaxKind.Attribute:
-                    var attr = (AttributeSyntax)declaration;
-                    if (attr.Parent != null)
-                    {
-                        var attrList = (AttributeListSyntax)attr.Parent;
-                        return attrList.WithAttributes(SyntaxFactory.SingletonSeparatedList(attr)).WithTarget(null);
-                    }
-                    break;
+                    case SyntaxKind.Attribute:
+                        var attr = (AttributeSyntax)declaration;
+                        if (attr.Parent != null)
+                        {
+                            var attrList = (AttributeListSyntax)attr.Parent;
+                            return attrList.WithAttributes(SyntaxFactory.SingletonSeparatedList(attr)).WithTarget(null);
+                        }
+                        break;
+                }
             }
 
             return declaration;
@@ -4077,6 +4080,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return list;
         }
+
+        internal override SyntaxNode IdentifierName(SyntaxToken identifier)
+        {
+            return SyntaxFactory.IdentifierName(identifier);
+        }
+
+        internal override SyntaxToken Identifier(string identifier)
+        {
+            return SyntaxFactory.Identifier(identifier);
+        }
+
+        internal override SyntaxNode NamedAnonymousObjectMemberDeclarator(SyntaxNode identifier, SyntaxNode expression)
+        {
+            return SyntaxFactory.AnonymousObjectMemberDeclarator(
+                SyntaxFactory.NameEquals((IdentifierNameSyntax)identifier),
+                (ExpressionSyntax)expression);
+        }
+
         #endregion
     }
 }
