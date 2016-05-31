@@ -241,6 +241,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        public override bool MightContainExtensionMembers
+        {
+            get
+            {
+                // See note in MightContainExtensionMethods
+                return true;
+            }
+        }
+
         internal PEModuleSymbol PrimaryModule
         {
             get

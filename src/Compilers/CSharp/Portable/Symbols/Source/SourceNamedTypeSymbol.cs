@@ -1094,7 +1094,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             if (!this.IsExtensionClass)
             {
-                return symbol;
+                return null;
             }
 
             var underlyingMembersMap = _underlyingMembersMap;
@@ -1115,26 +1115,51 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // TODO(t-evhau): Fill in the rest of the extension class possible members.
             switch (symbol.Kind)
             {
+                case SymbolKind.Property:
+                    // TODO(t-evhau): this is weird.
+                    result = symbol;
+                    {
+                        var property = (PropertySymbol)symbol;
+                        if (property.IsStatic)
+                        {
+                            result = property;
+                        }
+                        else
+                        {
+                            result = new ExpandedExtensionClassPropertySymbol(property);
+                        }
+                    }
+                    break;
                 case SymbolKind.Method:
                     {
                         var method = (MethodSymbol)symbol;
                         switch (method.MethodKind)
                         {
                             case MethodKind.Ordinary:
-                                result = ExpandedExtensionClassMethodSymbol.Create(method);
+                            case MethodKind.PropertyGet:
+                            case MethodKind.PropertySet:
+                                if (method.IsStatic)
+                                {
+                                    result = method;
+                                }
+                                else
+                                {
+                                    result = ExpandedExtensionClassMethodSymbol.Create(method);
+                                }
                                 // TODO(t-evhau): Generics/construction of result?
                                 break;
                             case MethodKind.ExpandedExtensionClass:
+                            case MethodKind.ReducedExtension:
                                 Debug.Assert(false);
                                 goto default;
                             default:
-                                result = symbol;
+                                result = null;
                                 break;
                         }
                     }
                     break;
                 default:
-                    result = symbol;
+                    result = null;
                     break;
             }
 

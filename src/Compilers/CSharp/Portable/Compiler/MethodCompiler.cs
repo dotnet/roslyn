@@ -377,7 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // so we can decide to synthesize a static constructor.
             bool hasStaticConstructor = false;
 
-            var members = containingType.GetMembers();
+            var members = containingType.GetUnderlyingMembers();
             // 'extendedOrdinal' is used for replaced methods, to ensure all methods
             // defined in source in the containing type have unique ordinals.
             int extendedOrdinal = members.Length;
@@ -425,13 +425,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 {
                                     continue;
                                 }
-                            }
-
-                            // TODO(t-evhau): Fix this (not just MethodKind.Ordinary)
-                            if (method.IsInExtensionClass && method.MethodKind == MethodKind.Ordinary)
-                            {
-                                method = method.ExpandExtensionClassMethod();
-                                Debug.Assert(method != null);
                             }
 
                             Binder.ProcessedFieldInitializers processedInitializers =
@@ -1498,12 +1491,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundBlock body;
 
-            var expandedExtensionClassMethod = method as ExpandedExtensionClassMethodSymbol;
-            if ((object)expandedExtensionClassMethod != null)
-            {
-                // TODO(t-evhau): Is this the right place to put this?
-                method = expandedExtensionClassMethod.ExpandedFrom;
-            }
+            method = (method as ExpandedExtensionClassMethodSymbol)?.ExpandedFrom ?? method;
 
             var sourceMethod = method as SourceMethodSymbol;
             if ((object)sourceMethod != null)

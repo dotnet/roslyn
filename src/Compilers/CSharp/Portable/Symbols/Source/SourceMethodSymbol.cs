@@ -537,8 +537,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     cc |= Cci.CallingConvention.Generic;
                 }
 
-                // TODO(t-evhau): Fix this (more than just MethodKind.Ordinary)
-                if (!IsStatic && !(IsInExtensionClass && MethodKind == MethodKind.Ordinary))
+                // IsInExtensionClass is equivalent to IsStatic here.
+                if (!IsStatic && !IsInExtensionClass)
                 {
                     cc |= Cci.CallingConvention.HasThis;
                 }

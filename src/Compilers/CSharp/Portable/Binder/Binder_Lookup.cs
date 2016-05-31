@@ -391,6 +391,27 @@ namespace Microsoft.CodeAnalysis.CSharp
             methods.Free();
         }
 
+        private void LookupExtensionMembersInSingleBinder(ExtensionMethodScope scope, LookupResult result, string name, int arity, LookupOptions options, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            var members = ArrayBuilder<Symbol>.GetInstance();
+            var binder = scope.Binder;
+            binder.GetCandidateExtensionMembers(scope.SearchUsingsNotNamespace, members, name, arity, options, this);
+
+            foreach (var originalMember in members)
+            {
+                var member = originalMember;
+                if (member is ExpandedExtensionClassPropertySymbol)
+                {
+                    // TODO(t-evhau): Generalize this.
+                    member = ((ExpandedExtensionClassPropertySymbol)member).ExpandedFrom;
+                }
+                var resultOfThisMember = this.CheckViability(member, arity, options, null, diagnose: true, useSiteDiagnostics: ref useSiteDiagnostics);
+                result.MergeEqual(resultOfThisMember);
+            }
+
+            members.Free();
+        }
+
         #region "AttributeTypeLookup"
 
         /// <summary>
@@ -658,6 +679,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
         }
 
+        internal virtual void GetCandidateExtensionMembers(
+            bool searchUsingsNotNamespace,
+            ArrayBuilder<Symbol> members,
+            string name,
+            int arity,
+            LookupOptions options,
+            Binder originalBinder)
+        {
+        }
+
         // Does a member lookup in a single type, without considering inheritance.
         protected static void LookupMembersWithoutInheritance(LookupResult result, TypeSymbol type, string name, int arity,
             LookupOptions options, Binder originalBinder, TypeSymbol accessThroughType, bool diagnose, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved = null)
@@ -739,8 +770,26 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            if (!result.IsMultiViable)
+            {
+                originalBinder.LookupExtensionMembers(result, name, arity, options, ref useSiteDiagnostics);
+            }
+
             visited?.Free();
             tmp.Free();
+        }
+
+        private void LookupExtensionMembers(
+            LookupResult result,
+            string name,
+            int arity,
+            LookupOptions options,
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            foreach (var scope in new ExtensionMethodScopes(this))
+            {
+                this.LookupExtensionMembersInSingleBinder(scope, result, name, arity, options, ref useSiteDiagnostics);
+            }
         }
 
         /// <summary>

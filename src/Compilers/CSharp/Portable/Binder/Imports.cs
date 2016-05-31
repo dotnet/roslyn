@@ -800,6 +800,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal void LookupExtensionMembersInUsings(
+            ArrayBuilder<Symbol> members,
+            string name,
+            int arity,
+            LookupOptions options,
+            Binder originalBinder)
+        {
+            // TODO(t-evhau): implement this
+        }
+
         // Note: we do not mark nodes when looking up arities or names.  This is because these two
         // types of lookup are only around to make the public
         // SemanticModel.LookupNames/LookupSymbols work and do not count as usages of the directives

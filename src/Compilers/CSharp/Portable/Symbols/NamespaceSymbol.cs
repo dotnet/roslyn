@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     {
         // PERF: initialization of the following fields will allocate, so we make them lazy
         private ImmutableArray<NamedTypeSymbol> _lazyTypesMightContainExtensionMethods;
+        private ImmutableArray<NamedTypeSymbol> _lazyTypesMightContainExtensionMembers;
         private string _lazyQualifiedName;
         
         // !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -330,6 +331,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        private ImmutableArray<NamedTypeSymbol> TypesMightContainExtensionMembers
+        {
+            get
+            {
+                var typesWithExtensionMembers = this._lazyTypesMightContainExtensionMembers;
+                if (typesWithExtensionMembers.IsDefault)
+                {
+                    this._lazyTypesMightContainExtensionMembers = this.GetTypeMembersUnordered().WhereAsArray(t => t.IsExtensionClass);
+                    typesWithExtensionMembers = this._lazyTypesMightContainExtensionMembers;
+                }
+
+                return typesWithExtensionMembers;
+            }
+        }
+
 
         /// <summary>
         /// Add all extension methods in this namespace to the given list. If name or arity
@@ -357,6 +373,27 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             foreach (var type in typesWithExtensionMethods)
             {
                 type.DoGetExtensionMethods(methods, nameOpt, arity, options);
+            }
+        }
+
+        internal virtual void GetExtensionMembers(ArrayBuilder<Symbol> members, string nameOpt, int arity, LookupOptions options)
+        {
+            var assembly = this.ContainingAssembly;
+
+            // Only MergedAssemblySymbol should have a null ContainingAssembly
+            // and MergedAssemblySymbol overrides GetExtensionMembers.
+            Debug.Assert((object)assembly != null);
+
+            if (!assembly.MightContainExtensionMembers)
+            {
+                return;
+            }
+
+            var typesWithExtensionMembers = this.TypesMightContainExtensionMembers;
+
+            foreach (var type in typesWithExtensionMembers)
+            {
+                type.DoGetExtensionMembers(members, nameOpt, arity, options);
             }
         }
 

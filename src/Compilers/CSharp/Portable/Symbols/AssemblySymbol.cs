@@ -461,6 +461,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract bool MightContainExtensionMethods { get; }
 
         /// <summary>
+        /// Returns true if this assembly might contain extension members (`extension class`).
+        /// If this property returns false, there are no extension members in this assembly.
+        /// </summary>
+        /// <remarks>
+        /// This property allows the search for extension methods to be narrowed quickly.
+        /// See also: <see cref="MightContainExtensionMethods"/>
+        /// </remarks>
+        public abstract bool MightContainExtensionMembers { get; }
+
+        /// <summary>
         /// Gets the symbol for the pre-defined type from core library associated with this assembly.
         /// </summary>
         /// <returns>The symbol for the pre-defined type or an error type if the type is not defined in the core library.</returns>

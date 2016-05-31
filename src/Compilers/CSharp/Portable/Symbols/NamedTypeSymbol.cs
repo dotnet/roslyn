@@ -364,12 +364,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         //     static void Sum(List<int> @this);
         // This method works with all supported extension class member types.
         /// <summary>
-        /// For extension classes, returns the form of the member when used for emitting IL. Otherwise, returns <paramref name="symbol"/> without change.
+        /// For extension classes, returns the form of the member when used for emitting IL. Otherwise, returns null.
         /// </summary>
         public virtual Symbol GetUnderlyingMember(Symbol symbol)
         {
             Debug.Assert(symbol.ContainingType == this);
-            return symbol;
+            return null;
+        }
+
+        /// <summary>
+        /// Equivalent to <see cref="NamespaceOrTypeSymbol.GetMembers()"/>, except for extension classes.
+        /// In extension classes, replaces all members with their expanded forms.
+        /// </summary>
+        public ImmutableArray<Symbol> GetUnderlyingMembers()
+        {
+            var members = this.GetMembers();
+            // TODO(t-evhau): Remove SourceNamedTypeSymbol cast
+            if (!this.IsExtensionClass)
+            {
+                return members;
+            }
+            var builder = ArrayBuilder<Symbol>.GetInstance(members.Length);
+            foreach (var member in members)
+            {
+                var converted = this.GetUnderlyingMember(member) ?? member;
+                builder.Add(converted);
+            }
+            return builder.ToImmutableAndFree();
         }
 
         /// <summary>
@@ -417,6 +438,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             methods.Add(expanded);
                         }
                     }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Returns true if this type might contain extension methods. If this property
+        /// returns false, there are no extension methods in this type.
+        /// </summary>
+        /// <remarks>
+        /// This property allows the search for extension methods to be narrowed quickly.
+        /// </remarks>
+        public abstract bool MightContainExtensionMembers { get; }
+
+        internal void GetExtensionMembers(ArrayBuilder<Symbol> members, string nameOpt, int arity, LookupOptions options)
+        {
+            if (this.MightContainExtensionMembers)
+            {
+                DoGetExtensionMembers(members, nameOpt, arity, options);
+            }
+        }
+
+        internal void DoGetExtensionMembers(ArrayBuilder<Symbol> members, string nameOpt, int arity, LookupOptions options)
+        {
+            if (!this.IsExtensionClass)
+            {
+                return;
+            }
+            var allMembers = nameOpt == null
+                ? this.GetMembersUnordered()
+                : this.GetSimpleNonTypeMembers(nameOpt);
+
+            foreach (var member in allMembers)
+            {
+                // TODO(t-evhau): `if member.Kind == memberTypeSearchingFor` ?
+                // TODO(t-evhau): This assumes source methods. What about loaded symbols from disk?
+                var underlying = this.GetUnderlyingMember(member);
+                if ((object)underlying != null)
+                {
+                    // TODO(t-evhau): return `member` instead?
+                    members.Add(underlying);
                 }
             }
         }

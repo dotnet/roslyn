@@ -268,6 +268,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return false; }
         }
 
+        public override bool MightContainExtensionMembers
+        {
+            get { return false; }
+        }
+
         public override int Arity
         {
             get { return TypeParameters.Length; }

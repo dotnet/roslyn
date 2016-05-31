@@ -643,7 +643,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             CheckDefinitionInvariant();
 
-            foreach (var m in this.GetMembers())
+            foreach (var m in this.GetUnderlyingMembers())
             {
                 if (m.Kind == SymbolKind.Method)
                 {
@@ -661,13 +661,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     else if (method.IsDefaultValueTypeConstructor())
                     {
                         continue;
-                    }
-
-                    // TODO(t-evhau): don't do the MethodKind.Ordinary comparison
-                    if (this.IsExtensionClass && method.MethodKind == MethodKind.Ordinary)
-                    {
-                        method = method.ExpandExtensionClassMethod();
-                        Debug.Assert(method != null);
                     }
 
                     yield return method;
@@ -726,7 +719,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             CheckDefinitionInvariant();
 
-            foreach (var m in this.GetMembers())
+            foreach (var m in this.GetUnderlyingMembers())
             {
                 if (m.Kind == SymbolKind.Property)
                 {

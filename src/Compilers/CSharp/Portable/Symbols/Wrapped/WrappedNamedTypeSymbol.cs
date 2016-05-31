@@ -94,6 +94,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool MightContainExtensionMembers
+        {
+            get
+            {
+                return _underlyingType.MightContainExtensionMembers;
+            }
+        }
+
         public override string Name
         {
             get

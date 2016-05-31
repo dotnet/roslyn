@@ -227,6 +227,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             underlyingMethods.Free();
         }
 
+        internal override void GetExtensionMembers(ArrayBuilder<Symbol> members, string nameOpt, int arity, LookupOptions options)
+        {
+            var underlyingMembers = ArrayBuilder<Symbol>.GetInstance();
+            _underlyingNamespace.GetExtensionMembers(underlyingMembers, nameOpt, arity, options);
+            foreach (var underlyingMember in underlyingMembers)
+            {
+                members.Add(this.RetargetingTranslator.Retarget(underlyingMember));
+            }
+            underlyingMembers.Free();
+        }
+
         internal sealed override CSharpCompilation DeclaringCompilation // perf, not correctness
         {
             get { return null; }

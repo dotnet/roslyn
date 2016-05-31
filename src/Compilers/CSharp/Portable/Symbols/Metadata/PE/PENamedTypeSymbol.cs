@@ -1590,6 +1590,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
+        public override bool MightContainExtensionMembers
+        {
+            get
+            {
+                // TODO(t-evhau): Implement this.
+                return false;
+            }
+        }
+
         public override TypeKind TypeKind
         {
             get

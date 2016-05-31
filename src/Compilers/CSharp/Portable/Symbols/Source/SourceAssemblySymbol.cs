@@ -1662,6 +1662,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
+        public override bool MightContainExtensionMembers
+        {
+            get
+            {
+                // TODO(t-evhau): Implement this.
+                return true;
+            }
+        }
+
         private bool HasDebuggableAttribute
         {
             get

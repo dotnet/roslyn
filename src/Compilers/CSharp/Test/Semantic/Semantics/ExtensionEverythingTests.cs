@@ -18,10 +18,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         // TODO(t-evhau): Test extending struct/interface/other odd types (types that aren't NamedTypeSymbol? - array, pointer, type parameter, dynamic). Also test no "base type" at all.
         // TODO(t-evhau): "extension struct" etc. syntax
+        // TODO(t-evhau): extend static class (e.g. Math). Test both calling and defining (e.g. define instance method)
         // TODO(t-evhau): Extending a COM class (LocalRewriter.MakeArguments special-cases it)
         // TODO(t-evhau): Extension .Add collection initializer, foreach and other duck typing calls
         // TODO(t-evhau): Extension method with params array
         // TODO(t-evhau): Extension method converted to delegate
+        // TODO(t-evhau): `using` all the things
+        // TODO(t-evhau): DllImport/extern on things in ext class
 
         [Fact]
         public void SuccessTest()
@@ -78,11 +81,11 @@ extension class ExtClass : BaseClass
     {
         get { return 2; }
     }
-    public int ExtStaticMethod()
+    public static int ExtStaticMethod()
     {
         return 2;
     }
-    public int ExtStaticProp
+    public static int ExtStaticProp
     {
         get { return 2; }
     }

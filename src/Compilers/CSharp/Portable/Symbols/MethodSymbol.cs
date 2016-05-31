@@ -83,17 +83,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract bool IsExtensionMethod { get; }
 
         /// <summary>
-        /// Returns true if this method is in an extension class
-        /// </summary>
-        public bool IsInExtensionClass
-        {
-            get
-            {
-                return this.ContainingType?.IsExtensionClass ?? false;
-            }
-        }
-
-        /// <summary>
         /// True if this symbol has a special name (metadata flag SpecialName is set).
         /// </summary>
         internal abstract bool HasSpecialName { get; }
@@ -692,16 +681,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public MethodSymbol ExpandExtensionClassMethod()
         {
             Debug.Assert(this.MethodKind != MethodKind.ExpandedExtensionClass);
-            Debug.Assert(this.MethodKind == MethodKind.Ordinary); // TODO(t-evhau): fix this.
-            if (!this.IsInExtensionClass || this.MethodKind == MethodKind.ExpandedExtensionClass)
+            if (!this.IsInExtensionClass)
                 return null;
 
             var containingType = this.ContainingType;
             Debug.Assert(containingType != null);
             var underlying = containingType.GetUnderlyingMember(this);
-            Debug.Assert(underlying.Kind == SymbolKind.Method);
+            Debug.Assert(underlying != null && underlying.Kind == SymbolKind.Method);
             var underlyingMethod = (MethodSymbol)underlying;
-            Debug.Assert(underlyingMethod.MethodKind == MethodKind.ExpandedExtensionClass);
+            Debug.Assert(underlyingMethod.IsStatic || underlyingMethod.MethodKind == MethodKind.ExpandedExtensionClass);
             return underlyingMethod;
         }
 

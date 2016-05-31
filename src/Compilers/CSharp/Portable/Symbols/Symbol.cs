@@ -453,6 +453,17 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Returns true if this symbol is in an extension class
+        /// </summary>
+        public bool IsInExtensionClass
+        {
+            get
+            {
+                return this.ContainingType?.IsExtensionClass ?? false;
+            }
+        }
+
+        /// <summary>
         /// Returns true if this symbol can be referenced by its name in code. Examples of symbols
         /// that cannot be referenced by name are:
         ///    constructors, destructors, operators, explicit interface implementations,

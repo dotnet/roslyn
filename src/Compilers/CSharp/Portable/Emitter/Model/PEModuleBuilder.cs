@@ -219,10 +219,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         location = GetSmallestSourceLocationOrNull(symbol);
                         if (location != null)
                         {
+                            var namedType = (NamedTypeSymbol)symbol;
                             //  add this named type location
-                            AddSymbolLocation(result, location, (Cci.IDefinition)symbol);
+                            AddSymbolLocation(result, location, namedType);
 
-                            foreach (var member in symbol.GetMembers())
+                            foreach (var member in namedType.GetUnderlyingMembers())
                             {
                                 switch (member.Kind)
                                 {
@@ -240,14 +241,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                                             break;
                                         }
 
-
-                                        // TODO(t-evhau): This is probably the incorrect place to put this? Not sure
-                                        // TODO(t-evhau): checking SourceMemberMethodSymbol and static is definitely wrong
-                                        if (method is SourceMemberMethodSymbol && !method.IsStatic && method.IsInExtensionClass)
-                                        {
-                                            method = method.ExpandExtensionClassMethod();
-                                            Debug.Assert(method != null);
-                                        }
                                         AddSymbolLocation(result, method);
                                         break;
 

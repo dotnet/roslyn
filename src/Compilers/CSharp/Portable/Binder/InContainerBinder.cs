@@ -162,6 +162,25 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal override void GetCandidateExtensionMembers(bool searchUsingsNotNamespace, ArrayBuilder<Symbol> members, string name, int arity, LookupOptions options, Binder originalBinder)
+        {
+            if (searchUsingsNotNamespace)
+            {
+                this.GetImports(basesBeingResolved: null).LookupExtensionMembersInUsings(members, name, arity, options, originalBinder);
+            }
+            else if (_container?.Kind == SymbolKind.Namespace)
+            {
+                ((NamespaceSymbol)_container).GetExtensionMembers(members, name, arity, options);
+            }
+            else if (IsSubmissionClass)
+            {
+                for (var submission = this.Compilation; submission != null; submission = submission.PreviousSubmission)
+                {
+                    submission.ScriptClass?.GetExtensionMembers(members, name, arity, options);
+                }
+            }
+        }
+
         internal override TypeSymbol GetIteratorElementType(YieldStatementSyntax node, DiagnosticBag diagnostics)
         {
             if (IsScriptClass)
