@@ -10054,8 +10054,6 @@ class Program
         [Fact]
         public void MixedDecisionTree()
         {
-            // Constant value "object" forms do not distinguish (int)1 from (short)1, so we end up
-            // thinking that the following program has duplicate case labels.
             var source =
 @"
 using System;

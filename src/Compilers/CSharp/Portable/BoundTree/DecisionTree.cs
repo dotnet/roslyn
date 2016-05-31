@@ -236,7 +236,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal DecisionTree ComputeDecisionTree()
         {
-            var expressionIsNull = Binder.ExpressionIsNull(_switchStatement.Expression) != false;
+            var expression = _switchStatement.Expression;
+            var expressionCouldBeNull = Binder.ExpressionIsNull(expression) != false;
+            if (expression.ConstantValue == null && expression.Kind != BoundKind.Local)
+            {
+                // unless the expression is simple enough, copy it into a local
+                var localSymbol = new SynthesizedLocal(_enclosingSymbol as MethodSymbol, expression.Type, SynthesizedLocalKind.PatternMatchingTemp, _switchStatement.Syntax, false, RefKind.None);
+                expression = new BoundLocal(expression.Syntax, localSymbol, null, expression.Type);
+            }
             var result = DecisionTree.Create(_switchStatement.Expression, _switchStatement.Expression.Type);
             BoundPatternSwitchLabel defaultLabel = null;
             foreach (var section in _switchStatement.SwitchSections)
@@ -257,7 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     else
                     {
                         this._syntax = label.Syntax;
-                        var subsumedErrorCode = CheckSubsumed(label.Pattern, result, expressionIsNull);
+                        var subsumedErrorCode = CheckSubsumed(label.Pattern, result, expressionCouldBeNull);
                         if (subsumedErrorCode != 0 && subsumedErrorCode != ErrorCode.ERR_NoImplicitConvCast)
                         {
                             if (!label.HasErrors)
@@ -697,7 +704,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var result = makeDecision(Expression, type);
             result.Parent = byType;
             byType.TypeAndDecision.Add(new KeyValuePair<TypeSymbol, DecisionTree>(type, result));
-            byType.Temps.Add(localSymbol);
             if (_conversions.ExpressionOfTypeMatchesPatternType(byType.Type, type) == true && result.MatchIsComplete && byType.WhenNull?.MatchIsComplete == true)
             {
                 byType.MatchIsComplete = true;
@@ -921,6 +927,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public static DecisionTree Create(BoundExpression expression, TypeSymbol type)
         {
+            Debug.Assert(expression.Type == type);
             if (expression.Type.CanBeAssignedNull())
             {
                 // we need the ByType decision tree to separate null from non-null values
@@ -938,8 +945,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             public DecisionTree WhenNull;
             public readonly ArrayBuilder<KeyValuePair<TypeSymbol, DecisionTree>> TypeAndDecision =
                 new ArrayBuilder<KeyValuePair<TypeSymbol, DecisionTree>>();
-            public readonly ArrayBuilder<LocalSymbol> Temps =
-                new ArrayBuilder<LocalSymbol>();
             public DecisionTree Default;
             public override DecisionKind Kind => DecisionKind.ByType;
             public ByType(BoundExpression expression, TypeSymbol type) : base(expression, type) { }
