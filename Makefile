@@ -8,7 +8,7 @@ RESTORE_SEMAPHORE_PATH = $(TOOLSET_PATH)/restore.semaphore
 BOOTSTRAP_PATH = $(BINARIES_PATH)/Bootstrap
 BUILD_LOG_PATH =
 HOME_DIR = $(shell cd ~ && pwd)
-DOTNET_VERSION = 1.0.0-preview2-002733
+DOTNET_VERSION = 1.0.0-preview2-002911
 
 MSBUILD_ADDITIONALARGS := /v:m /fl /fileloggerparameters:Verbosity=normal /p:Configuration=$(BUILD_CONFIGURATION)
 
