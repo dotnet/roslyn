@@ -107,6 +107,7 @@
           Resources="@(_CoreCompileResourceInputs);@(CompiledLicenseFile)"
           ResponseFiles="$(CompilerResponseFile)"
           RootNamespace="$(RootNamespace)"
+          RuntimeMetadataVersion="$(RuntimeMetadataVersion)"
           SdkPath="$(FrameworkPathOverride)"
           SkipCompilerExecution="$(SkipCompilerExecution)"
           Sources="@(Compile)"
