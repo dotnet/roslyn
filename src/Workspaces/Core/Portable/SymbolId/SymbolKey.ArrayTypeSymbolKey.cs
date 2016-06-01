@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial class SymbolKey
     {
-        private struct ArrayTypeSymbolKey
+        private static class ArrayTypeSymbolKey
         {
             public static void Create(IArrayTypeSymbol symbol, Visitor visitor)
             {

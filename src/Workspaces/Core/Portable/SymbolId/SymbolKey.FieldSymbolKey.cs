@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial class SymbolKey
     {
-        private struct FieldSymbolKey
+        private static class FieldSymbolKey
         {
             public static void Create(IFieldSymbol symbol, Visitor visitor)
             {

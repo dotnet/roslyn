@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial class SymbolKey
     {
-        private class NamedTypeSymbolKey
+        private static class NamedTypeSymbolKey
         {
             public static void Create(INamedTypeSymbol symbol, Visitor visitor)
             {

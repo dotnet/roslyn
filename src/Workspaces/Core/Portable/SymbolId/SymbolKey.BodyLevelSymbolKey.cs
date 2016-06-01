@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial class SymbolKey
     {
-        private struct BodyLevelSymbolKey
+        private static class BodyLevelSymbolKey
         {
             public static void Create(ISymbol symbol, Visitor visitor)
             {

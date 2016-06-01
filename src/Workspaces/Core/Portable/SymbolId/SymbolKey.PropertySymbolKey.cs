@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial class SymbolKey
     {
-        private struct PropertySymbolKey
+        private static class PropertySymbolKey
         {
             public static void Create(IPropertySymbol symbol, Visitor visitor)
             {

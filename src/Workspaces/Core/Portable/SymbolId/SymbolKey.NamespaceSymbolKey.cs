@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial class SymbolKey
     {
-        private class NamespaceSymbolKey
+        private static class NamespaceSymbolKey
         {
             // The containing symbol can be one of many things. 
             // 1) Null when this is the global namespace for a compilation.  

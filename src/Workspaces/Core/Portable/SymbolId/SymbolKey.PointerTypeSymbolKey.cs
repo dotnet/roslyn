@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial class SymbolKey
     {
-        private class PointerTypeSymbolKey
+        private static class PointerTypeSymbolKey
         {
             public static void Create(IPointerTypeSymbol symbol, Visitor visitor)
             {

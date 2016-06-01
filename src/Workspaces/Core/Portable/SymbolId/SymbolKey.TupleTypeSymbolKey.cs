@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial class SymbolKey
     {
-        private struct TupleTypeSymbolKey
+        private static class TupleTypeSymbolKey
         {
             public static void Create(INamedTypeSymbol symbol, Visitor visitor)
             {

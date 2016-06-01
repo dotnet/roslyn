@@ -4,7 +4,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial class SymbolKey
     {
-        private class DynamicTypeSymbolKey
+        private static class DynamicTypeSymbolKey
         {
             private static readonly object instance = new object();
 
