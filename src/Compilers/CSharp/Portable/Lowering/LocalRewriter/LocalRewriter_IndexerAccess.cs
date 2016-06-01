@@ -110,13 +110,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
             else
             {
+                indexer = indexer.ExpandExtensionClassProperty() ?? indexer;
+
                 var getMethod = indexer.GetOwnOrInheritedGetMethod();
                 Debug.Assert((object)getMethod != null);
 
                 // We have already lowered each argument, but we may need some additional rewriting for the arguments,
                 // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
                 ImmutableArray<LocalSymbol> temps;
-                rewrittenArguments = MakeArguments(syntax, rewrittenArguments, indexer, getMethod, expanded, argsToParamsOpt, ref argumentRefKindsOpt, out temps, enableCallerInfo: ThreeState.True);
+                rewrittenArguments = MakeArguments(syntax, rewrittenArguments, indexer, getMethod, expanded, argsToParamsOpt, ref rewrittenReceiver, ref argumentRefKindsOpt, out temps, enableCallerInfo: ThreeState.True);
 
                 BoundExpression call = MakePropertyGetAccess(syntax, rewrittenReceiver, indexer, rewrittenArguments, getMethod);
 

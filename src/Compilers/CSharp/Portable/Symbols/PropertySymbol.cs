@@ -280,6 +280,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract ImmutableArray<PropertySymbol> ExplicitInterfaceImplementations { get; }
 
         /// <summary>
+        /// If this is an extension class property, returns an expanded extension
+        /// property symbol representing the property. Otherwise, returns null.
+        /// </summary>
+        public PropertySymbol ExpandExtensionClassProperty()
+        {
+            Debug.Assert(!(this is ExpandedExtensionClassPropertySymbol));
+            if (!this.IsInExtensionClass)
+                return null;
+
+            var containingType = this.ContainingType;
+            Debug.Assert(containingType != null);
+            var underlying = containingType.GetUnderlyingMember(this);
+            Debug.Assert(underlying != null);
+            var underlyingProperty = (PropertySymbol)underlying;
+            return underlyingProperty;
+        }
+
+        /// <summary>
         /// Gets the kind of this symbol.
         /// </summary>
         public sealed override SymbolKind Kind

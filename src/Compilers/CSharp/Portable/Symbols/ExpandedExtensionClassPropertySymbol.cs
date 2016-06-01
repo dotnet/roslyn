@@ -59,7 +59,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsSealed => _expandedFrom.IsSealed;
 
-        public override bool IsStatic => _expandedFrom.IsStatic;
+        public override bool IsStatic => true;
 
         public override bool IsVirtual => _expandedFrom.IsVirtual;
 
@@ -113,7 +113,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private sealed class ExpandedExtensionClassPropertyThisParameterSymbol : SynthesizedParameterSymbol
         {
             public ExpandedExtensionClassPropertyThisParameterSymbol(ExpandedExtensionClassPropertySymbol containingProperty) :
-                base(containingProperty, containingProperty.ContainingType, 0, RefKind.None)
+                base(containingProperty, containingProperty.ContainingType.ExtensionClassType, 0, RefKind.None)
             {
             }
 

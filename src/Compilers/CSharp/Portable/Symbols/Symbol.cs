@@ -464,6 +464,33 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
+        /// Returns true of this symbol is an expanded member from an extension class.
+        /// "Expanded" means that it is a static member that came from an instance extension member,
+        /// whether it was generated from source or loaded from symbols.
+        /// </summary>
+        public bool IsExpandedExtensionClassMember
+        {
+            get
+            {
+                switch (this.Kind)
+                {
+                    case SymbolKind.Method:
+                        switch (((MethodSymbol)this).MethodKind)
+                        {
+                            case MethodKind.ExpandedExtensionClass:
+                                return true;
+                            default:
+                                return false;
+                        }
+                    case SymbolKind.Property:
+                        return this is ExpandedExtensionClassPropertySymbol;
+                    default:
+                        return false;
+                }
+            }
+        }
+
+        /// <summary>
         /// Returns true if this symbol can be referenced by its name in code. Examples of symbols
         /// that cannot be referenced by name are:
         ///    constructors, destructors, operators, explicit interface implementations,

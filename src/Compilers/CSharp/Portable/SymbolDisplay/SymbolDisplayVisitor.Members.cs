@@ -269,13 +269,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                         includeType = true;
                         Debug.Assert(containingType != null);
                     }
-                    else if (symbol.MethodKind == MethodKind.ExpandedExtensionClass)
-                    {
-                        // TODO(t-evhau): Is this right?
-                        containingType = symbol.Parameters[0].Type;
-                        includeType = true;
-                        Debug.Assert(containingType != null);
-                    }
                     else
                     {
                         containingType = symbol.ContainingType;

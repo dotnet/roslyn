@@ -155,11 +155,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
             ImmutableArray<LocalSymbol> temps;
             var argumentRefKindsOpt = default(ImmutableArray<RefKind>);
-            rewrittenArguments = MakeArguments(syntax, rewrittenArguments, addMethod, addMethod, initializer.Expanded, initializer.ArgsToParamsOpt, ref argumentRefKindsOpt, out temps, enableCallerInfo: ThreeState.True);
+            rewrittenArguments = MakeArguments(syntax, rewrittenArguments, addMethod, addMethod, initializer.Expanded, initializer.ArgsToParamsOpt, ref rewrittenReceiver, ref argumentRefKindsOpt, out temps, enableCallerInfo: ThreeState.True);
             Debug.Assert(argumentRefKindsOpt.IsDefault);
 
             if (initializer.InvokedAsExtensionMethod)
             {
+                // TODO(t-evhau): Extension class interaction?
                 // the add method was found as an extension method.  Replace the implicit receiver (first argument) with the rewritten receiver.
                 Debug.Assert(addMethod.IsStatic && addMethod.IsExtensionMethod);
                 Debug.Assert(rewrittenArguments[0].Kind == BoundKind.ImplicitReceiver);

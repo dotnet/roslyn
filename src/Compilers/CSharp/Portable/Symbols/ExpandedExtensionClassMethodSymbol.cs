@@ -104,19 +104,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // TODO(t-evhau): Do we need to return something from here? (return null is same as base virtual property)
-        internal override MethodSymbol CallsiteReducedFromMethod
-        {
-            get { return null; }
-        }
+        internal override MethodSymbol CallsiteReducedFromMethod => null;
 
-        public override TypeSymbol ReceiverType
-        {
-            get
-            {
-                // TODO(t-evhau): typemap this?
-                return _expandedFrom.ContainingType.ExtensionClassType;
-            }
-        }
+        public override TypeSymbol ReceiverType => null;
 
         // TODO(t-evhau): Same comment as CallsiteReducedFromMethod
         public override TypeSymbol GetTypeInferredDuringReduction(TypeParameterSymbol reducedFromTypeParameter)
@@ -135,16 +125,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // TODO(t-evhau): Same comment as CallsiteReducedFromMethod
-        public override MethodSymbol ReducedFrom
-        {
-            get { return null; }
-        }
+        public override MethodSymbol ReducedFrom => null;
 
         // TODO(t-evhau): Maybe this should virtual, like ReducedFrom (or merged with ReducedFrom)
-        public MethodSymbol ExpandedFrom
-        {
-            get { return _expandedFrom; }
-        }
+        public MethodSymbol ExpandedFrom => _expandedFrom;
 
         public override MethodSymbol ConstructedFrom
         {
@@ -155,224 +139,96 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override ImmutableArray<TypeParameterSymbol> TypeParameters
-        {
-            get { return _typeParameters; }
-        }
+        public override ImmutableArray<TypeParameterSymbol> TypeParameters => _typeParameters;
 
-        public override ImmutableArray<TypeSymbol> TypeArguments
-        {
-            get { return _typeArguments; }
-        }
+        public override ImmutableArray<TypeSymbol> TypeArguments => _typeArguments;
 
-        internal override Microsoft.Cci.CallingConvention CallingConvention
-        {
-            get { return _expandedFrom.CallingConvention; }
-        }
+        internal override Microsoft.Cci.CallingConvention CallingConvention => _expandedFrom.CallingConvention;
 
-        public override int Arity
-        {
-            get { return _expandedFrom.Arity; }
-        }
+        public override int Arity => _expandedFrom.Arity;
 
-        public override string Name
-        {
-            get { return _expandedFrom.Name; }
-        }
+        public override string Name => _expandedFrom.Name;
 
-        internal override bool HasSpecialName
-        {
-            get { return _expandedFrom.HasSpecialName; }
-        }
+        internal override bool HasSpecialName => _expandedFrom.HasSpecialName;
 
-        internal override System.Reflection.MethodImplAttributes ImplementationAttributes
-        {
-            get { return _expandedFrom.ImplementationAttributes; }
-        }
+        internal override System.Reflection.MethodImplAttributes ImplementationAttributes => _expandedFrom.ImplementationAttributes;
 
-        internal override bool RequiresSecurityObject
-        {
-            get { return _expandedFrom.RequiresSecurityObject; }
-        }
+        internal override bool RequiresSecurityObject => _expandedFrom.RequiresSecurityObject;
 
-        public override DllImportData GetDllImportData()
-        {
-            return _expandedFrom.GetDllImportData();
-        }
+        public override DllImportData GetDllImportData() => _expandedFrom.GetDllImportData();
 
-        internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation
-        {
-            get { return _expandedFrom.ReturnValueMarshallingInformation; }
-        }
+        internal override MarshalPseudoCustomAttributeData ReturnValueMarshallingInformation => _expandedFrom.ReturnValueMarshallingInformation;
 
-        internal override bool HasDeclarativeSecurity
-        {
-            get { return _expandedFrom.HasDeclarativeSecurity; }
-        }
+        internal override bool HasDeclarativeSecurity => _expandedFrom.HasDeclarativeSecurity;
 
-        internal override IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation()
-        {
-            return _expandedFrom.GetSecurityInformation();
-        }
+        internal override IEnumerable<Microsoft.Cci.SecurityAttribute> GetSecurityInformation() => _expandedFrom.GetSecurityInformation();
 
-        internal override ImmutableArray<string> GetAppliedConditionalSymbols()
-        {
-            return _expandedFrom.GetAppliedConditionalSymbols();
-        }
+        internal override ImmutableArray<string> GetAppliedConditionalSymbols() => _expandedFrom.GetAppliedConditionalSymbols();
 
-        public override AssemblySymbol ContainingAssembly
-        {
-            get { return _expandedFrom.ContainingAssembly; }
-        }
+        public override AssemblySymbol ContainingAssembly => _expandedFrom.ContainingAssembly;
 
-        public override ImmutableArray<Location> Locations
-        {
-            get { return _expandedFrom.Locations; }
-        }
+        public override ImmutableArray<Location> Locations => _expandedFrom.Locations;
 
-        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences
-        {
-            get { return _expandedFrom.DeclaringSyntaxReferences; }
-        }
+        public override ImmutableArray<SyntaxReference> DeclaringSyntaxReferences => _expandedFrom.DeclaringSyntaxReferences;
 
         public override string GetDocumentationCommentXml(CultureInfo preferredCulture = null, bool expandIncludes = false, CancellationToken cancellationToken = default(CancellationToken))
         {
             return _expandedFrom.GetDocumentationCommentXml(preferredCulture, expandIncludes, cancellationToken);
         }
 
-        public override MethodSymbol OriginalDefinition
-        {
-            get { return this; }
-        }
+        public override MethodSymbol OriginalDefinition => this;
 
-        public override bool IsExtern
-        {
-            get { return _expandedFrom.IsExtern; }
-        }
+        public override bool IsExtern => _expandedFrom.IsExtern;
 
-        public override bool IsSealed
-        {
-            get { return _expandedFrom.IsSealed; }
-        }
+        public override bool IsSealed => _expandedFrom.IsSealed;
 
-        public override bool IsVirtual
-        {
-            get { return _expandedFrom.IsVirtual; }
-        }
+        public override bool IsVirtual => _expandedFrom.IsVirtual;
 
-        public override bool IsAbstract
-        {
-            get { return _expandedFrom.IsAbstract; }
-        }
+        public override bool IsAbstract => _expandedFrom.IsAbstract;
 
-        public override bool IsOverride
-        {
-            get { return _expandedFrom.IsOverride; }
-        }
+        public override bool IsOverride => _expandedFrom.IsOverride;
 
-        public override bool IsStatic
-        {
-            get { return true; }
-        }
+        public override bool IsStatic => true;
 
-        public override bool IsAsync
-        {
-            get { return _expandedFrom.IsAsync; }
-        }
+        public override bool IsAsync => _expandedFrom.IsAsync;
 
         // TODO(t-evhau): This probably needs to change.
-        public override bool IsExtensionMethod
-        {
-            get { return true; }
-        }
+        public override bool IsExtensionMethod => true;
 
-        internal sealed override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false)
-        {
-            return false;
-        }
+        internal sealed override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => false;
 
-        internal sealed override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false)
-        {
-            return false;
-        }
+        internal sealed override bool IsMetadataVirtual(bool ignoreInterfaceImplementationChanges = false) => false;
 
-        internal override bool IsMetadataFinal
-        {
-            get
-            {
-                return false;
-            }
-        }
+        internal override bool IsMetadataFinal => false;
 
-        internal sealed override ObsoleteAttributeData ObsoleteAttributeData
-        {
-            get { return _expandedFrom.ObsoleteAttributeData; }
-        }
+        internal sealed override ObsoleteAttributeData ObsoleteAttributeData => _expandedFrom.ObsoleteAttributeData;
 
-        public override Accessibility DeclaredAccessibility
-        {
-            get { return _expandedFrom.DeclaredAccessibility; }
-        }
+        public override Accessibility DeclaredAccessibility => _expandedFrom.DeclaredAccessibility;
 
-        public override Symbol ContainingSymbol
-        {
-            get { return _expandedFrom.ContainingSymbol; }
-        }
+        public override Symbol ContainingSymbol => _expandedFrom.ContainingSymbol;
 
-        public override ImmutableArray<CSharpAttributeData> GetAttributes()
-        {
-            return _expandedFrom.GetAttributes();
-        }
+        public override ImmutableArray<CSharpAttributeData> GetAttributes() => _expandedFrom.GetAttributes();
 
-        public override Symbol AssociatedSymbol
-        {
-            get { return null; }
-        }
+        public override Symbol AssociatedSymbol => _expandedFrom.AssociatedSymbol;
 
-        public override MethodKind MethodKind
-        {
-            get { return MethodKind.ExpandedExtensionClass; }
-        }
+        public override MethodKind MethodKind => MethodKind.ExpandedExtensionClass;
 
-        public override bool ReturnsVoid
-        {
-            get { return _expandedFrom.ReturnsVoid; }
-        }
+        public override bool ReturnsVoid => _expandedFrom.ReturnsVoid;
 
-        public override bool IsGenericMethod
-        {
-            get { return _expandedFrom.IsGenericMethod; }
-        }
+        public override bool IsGenericMethod => _expandedFrom.IsGenericMethod;
 
-        public override bool IsVararg
-        {
-            get { return _expandedFrom.IsVararg; }
-        }
+        public override bool IsVararg => _expandedFrom.IsVararg;
 
-        internal override RefKind RefKind
-        {
-            get { return _expandedFrom.RefKind; }
-        }
+        internal override RefKind RefKind => _expandedFrom.RefKind;
 
-        public override TypeSymbol ReturnType
-        {
-            get { return _typeMap.SubstituteType(_expandedFrom.ReturnType).Type; }
-        }
+        public override TypeSymbol ReturnType => _typeMap.SubstituteType(_expandedFrom.ReturnType).Type;
 
-        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers
-        {
-            get { return _typeMap.SubstituteCustomModifiers(_expandedFrom.ReturnType, _expandedFrom.ReturnTypeCustomModifiers); }
-        }
+        public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers =>
+            _typeMap.SubstituteCustomModifiers(_expandedFrom.ReturnType, _expandedFrom.ReturnTypeCustomModifiers);
 
-        internal override int ParameterCount
-        {
-            get { return _expandedFrom.ParameterCount + 1; }
-        }
+        internal override int ParameterCount => _expandedFrom.ParameterCount + 1;
 
-        internal override bool GenerateDebugInfo
-        {
-            get { return _expandedFrom.GenerateDebugInfo; }
-        }
+        internal override bool GenerateDebugInfo => _expandedFrom.GenerateDebugInfo;
 
         public override ImmutableArray<ParameterSymbol> Parameters
         {
@@ -387,25 +243,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         // TODO(t-evhau): Not here, but need to test explicit interface impls in extension class (should produce error)
-        internal override bool IsExplicitInterfaceImplementation
-        {
-            get { return false; }
-        }
+        internal override bool IsExplicitInterfaceImplementation => false;
 
-        public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations
-        {
-            get { return ImmutableArray<MethodSymbol>.Empty; }
-        }
+        public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations => ImmutableArray<MethodSymbol>.Empty;
 
-        public override bool HidesBaseMethodsByName
-        {
-            get { return false; }
-        }
+        public override bool HidesBaseMethodsByName => false;
 
-        internal override bool CallsAreOmitted(SyntaxTree syntaxTree)
-        {
-            return _expandedFrom.CallsAreOmitted(syntaxTree);
-        }
+        internal override bool CallsAreOmitted(SyntaxTree syntaxTree) => _expandedFrom.CallsAreOmitted(syntaxTree);
 
         private ImmutableArray<ParameterSymbol> MakeParameters()
         {
@@ -443,7 +287,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private sealed class ExpandedExtensionClassMethodThisParameterSymbol : SynthesizedParameterSymbol
         {
             public ExpandedExtensionClassMethodThisParameterSymbol(ExpandedExtensionClassMethodSymbol containingMethod) :
-                base(containingMethod, containingMethod.ReceiverType, 0, RefKind.None)
+                base(containingMethod, containingMethod.ContainingType.ExtensionClassType, 0, RefKind.None)
             {
             }
 
@@ -460,28 +304,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 _containingMethod = containingMethod;
             }
 
-            public override Symbol ContainingSymbol
-            {
-                get { return _containingMethod; }
-            }
+            public override Symbol ContainingSymbol => _containingMethod;
 
-            public override int Ordinal
-            {
-                get { return this._underlyingParameter.Ordinal - 1; }
-            }
+            public override int Ordinal => this._underlyingParameter.Ordinal - 1;
 
-            public override TypeSymbol Type
-            {
-                get { return _containingMethod._typeMap.SubstituteType(this._underlyingParameter.Type).Type; }
-            }
+            public override TypeSymbol Type => _containingMethod._typeMap.SubstituteType(this._underlyingParameter.Type).Type;
 
-            public override ImmutableArray<CustomModifier> CustomModifiers
-            {
-                get
-                {
-                    return _containingMethod._typeMap.SubstituteCustomModifiers(this._underlyingParameter.Type, this._underlyingParameter.CustomModifiers);
-                }
-            }
+            public override ImmutableArray<CustomModifier> CustomModifiers =>
+                _containingMethod._typeMap.SubstituteCustomModifiers(this._underlyingParameter.Type, this._underlyingParameter.CustomModifiers);
 
             public sealed override bool Equals(object obj)
             {

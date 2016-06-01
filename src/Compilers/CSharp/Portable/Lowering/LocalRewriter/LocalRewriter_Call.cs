@@ -165,10 +165,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeSymbol type,
             BoundCall nodeOpt = null)
         {
+            if (invokedAsExtensionMethod)
+            {
+                method = method.ExpandExtensionClassMethod() ?? method;
+            }
+
             // We have already lowered each argument, but we may need some additional rewriting for the arguments,
             // such as generating a params array, re-ordering arguments based on argsToParamsOpt map, inserting arguments for optional parameters, etc.
             ImmutableArray<LocalSymbol> temps;
-            rewrittenArguments = MakeArguments(syntax, rewrittenArguments, method, method, expanded, argsToParamsOpt, ref argumentRefKindsOpt, out temps, invokedAsExtensionMethod);
+            rewrittenArguments = MakeArguments(syntax, rewrittenArguments, method, method, expanded, argsToParamsOpt, ref rewrittenReceiver, ref argumentRefKindsOpt, out temps, invokedAsExtensionMethod);
 
             return MakeCall(nodeOpt, syntax, rewrittenReceiver, method, rewrittenArguments, argumentRefKindsOpt, invokedAsExtensionMethod, resultKind, type, temps);
         }
@@ -186,11 +191,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<LocalSymbol> temps = default(ImmutableArray<LocalSymbol>))
         {
             BoundExpression rewrittenBoundCall;
-
-            if (invokedAsExtensionMethod && method.IsInExtensionClass)
-            {
-                method = RewriteExtensionClassCall(syntax, method, ref rewrittenReceiver, ref rewrittenArguments);
-            }
 
             if (method.IsStatic &&
                 method.ContainingType.IsObjectType() &&
@@ -356,6 +356,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol optionalParametersMethod,
             bool expanded,
             ImmutableArray<int> argsToParamsOpt,
+            ref BoundExpression rewrittenRecieverOpt,
             ref ImmutableArray<RefKind> argumentRefKindsOpt,
             out ImmutableArray<LocalSymbol> temps,
             bool invokedAsExtensionMethod = false,
@@ -419,6 +420,19 @@ namespace Microsoft.CodeAnalysis.CSharp
                 temps = default(ImmutableArray<LocalSymbol>);
                 return rewrittenArguments;
             }
+            else if (methodOrIndexer.IsExpandedExtensionClassMember &&
+                rewrittenArguments.Length + 1 == methodOrIndexer.GetParameterCount() &&
+                argsToParamsOpt.IsDefault &&
+                !expanded &&
+                !isComReceiver)
+            {
+                temps = default(ImmutableArray<LocalSymbol>);
+                var builder = ArrayBuilder<BoundExpression>.GetInstance(rewrittenArguments.Length + 1);
+                builder.Add(rewrittenRecieverOpt);
+                builder.AddRange(rewrittenArguments);
+                rewrittenRecieverOpt = null;
+                return builder.ToImmutableAndFree();
+            }
 
 
             // We have:
@@ -470,15 +484,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We start by binding everything that is not obviously reorderable as a temporary, and
             // then run an optimizer to remove unnecessary temporaries.
 
+            var needsExtensionExpanding = methodOrIndexer.IsExpandedExtensionClassMember;
             ImmutableArray<ParameterSymbol> parameters = methodOrIndexer.GetParameters();
             BoundExpression[] actualArguments = new BoundExpression[parameters.Length]; // The actual arguments that will be passed; one actual argument per formal parameter.
             ArrayBuilder<BoundAssignmentOperator> storesToTemps = ArrayBuilder<BoundAssignmentOperator>.GetInstance(rewrittenArguments.Length);
-            ArrayBuilder<RefKind> refKinds = ArrayBuilder<RefKind>.GetInstance(parameters.Length, RefKind.None);
+            ArrayBuilder<RefKind> refKinds = ArrayBuilder<RefKind>.GetInstance(actualArguments.Length, RefKind.None);
 
             // Step one: Store everything that is non-trivial into a temporary; record the
             // stores in storesToTemps and make the actual argument a reference to the temp.
             // Do not yet attempt to deal with params arrays or optional arguments.
-            BuildStoresToTemps(expanded, argsToParamsOpt, argumentRefKindsOpt, rewrittenArguments, actualArguments, refKinds, storesToTemps);
+            BuildStoresToTemps(expanded, needsExtensionExpanding, argsToParamsOpt, argumentRefKindsOpt, rewrittenArguments, actualArguments, refKinds, storesToTemps, ref rewrittenRecieverOpt);
 
 
             // all the formal arguments, except missing optionals, are now in place. 
@@ -531,20 +546,29 @@ namespace Microsoft.CodeAnalysis.CSharp
         // This fills in the arguments, refKinds and storesToTemps arrays.
         private void BuildStoresToTemps(
             bool expanded,
+            bool needsExtensionExpanding,
             ImmutableArray<int> argsToParamsOpt,
             ImmutableArray<RefKind> argumentRefKinds,
             ImmutableArray<BoundExpression> rewrittenArguments,
             /* out */ BoundExpression[] arguments,
             /* out */ ArrayBuilder<RefKind> refKinds,
-            /* out */ ArrayBuilder<BoundAssignmentOperator> storesToTemps)
+            /* out */ ArrayBuilder<BoundAssignmentOperator> storesToTemps,
+            ref BoundExpression rewrittenReceiverOpt)
         {
             Debug.Assert(refKinds.Count == arguments.Length);
             Debug.Assert(storesToTemps.Count == 0);
 
+            if (needsExtensionExpanding)
+            {
+                Debug.Assert(rewrittenReceiverOpt != null);
+                arguments[0] = rewrittenReceiverOpt;
+                rewrittenReceiverOpt = null;
+            }
+
             for (int a = 0; a < rewrittenArguments.Length; ++a)
             {
                 BoundExpression argument = rewrittenArguments[a];
-                int p = (!argsToParamsOpt.IsDefault) ? argsToParamsOpt[a] : a;
+                int p = ((!argsToParamsOpt.IsDefault) ? argsToParamsOpt[a] : a) + (needsExtensionExpanding ? 1 : 0);
                 RefKind refKind = argumentRefKinds.RefKinds(a);
                 Debug.Assert(arguments[p] == null);
 

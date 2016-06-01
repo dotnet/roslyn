@@ -1146,7 +1146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 {
                                     result = ExpandedExtensionClassMethodSymbol.Create(method);
                                 }
-                                // TODO(t-evhau): Generics/construction of result?
+                                // TODO(t-evhau): Generics/construction of result? (probably put in Create method)
                                 break;
                             case MethodKind.ExpandedExtensionClass:
                             case MethodKind.ReducedExtension:

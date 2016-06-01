@@ -21,10 +21,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         // TODO(t-evhau): extend static class (e.g. Math). Test both calling and defining (e.g. define instance method)
         // TODO(t-evhau): Extending a COM class (LocalRewriter.MakeArguments special-cases it)
         // TODO(t-evhau): Extension .Add collection initializer, foreach and other duck typing calls
-        // TODO(t-evhau): Extension method with params array
+        // TODO(t-evhau): Extension method/indexer with params array
         // TODO(t-evhau): Extension method converted to delegate
         // TODO(t-evhau): `using` all the things
         // TODO(t-evhau): DllImport/extern on things in ext class
+        // TODO(t-evhau): Call extension methods directly (so priority to ext method). Both on imported and source methods.
+        // TODO(t-evhau): Extension methods/indexers (static/instance) with argument order oddness and default params
 
         [Fact]
         public void SuccessTest()
@@ -80,6 +82,7 @@ extension class ExtClass : BaseClass
     public int ExtProp
     {
         get { return 2; }
+        set { Console.Write(value); }
     }
     public static int ExtStaticMethod()
     {
@@ -88,6 +91,7 @@ extension class ExtClass : BaseClass
     public static int ExtStaticProp
     {
         get { return 2; }
+        set { Console.Write(value); }
     }
 }
 
@@ -98,17 +102,38 @@ class Program
         var obj = new BaseClass();
         Console.Write(obj.ExtMethod());
         Console.Write(obj.ExtProp);
+        obj.ExtProp = 2;
         Console.Write(BaseClass.ExtStaticMethod());
         Console.Write(BaseClass.ExtStaticProp);
+        BaseClass.ExtStaticProp = 2;
     }
 }
 ";
 
             var comp = CreateCompilationWithMscorlibAndSystemCore(text, parseOptions: parseOptions);
-            comp.VerifyDiagnostics();
             CompileAndVerify(source: text,
                 parseOptions: parseOptions,
-                additionalRefs: new[] { SystemCoreRef }, expectedOutput: "2222");
+                additionalRefs: new[] { SystemCoreRef }, expectedOutput: "222222")
+                .VerifyIL("Program.Main", @"{
+  // Code size       60 (0x3c)
+  .maxstack  2
+  IL_0000:  newobj     ""BaseClass..ctor()""
+  IL_0005:  dup
+  IL_0006:  call       ""int ExtClass.ExtMethod(BaseClass)""
+  IL_000b:  call       ""void System.Console.Write(int)""
+  IL_0010:  dup
+  IL_0011:  call       ""int ExtClass.get_ExtProp(BaseClass)""
+  IL_0016:  call       ""void System.Console.Write(int)""
+  IL_001b:  ldc.i4.2
+  IL_001c:  call       ""void ExtClass.set_ExtProp(BaseClass, int)""
+  IL_0021:  call       ""int ExtClass.ExtStaticMethod()""
+  IL_0026:  call       ""void System.Console.Write(int)""
+  IL_002b:  call       ""int ExtClass.ExtStaticProp.get""
+  IL_0030:  call       ""void System.Console.Write(int)""
+  IL_0035:  ldc.i4.2
+  IL_0036:  call       ""void ExtClass.ExtStaticProp.set""
+  IL_003b:  ret
+}");
         }
 
         [Fact]

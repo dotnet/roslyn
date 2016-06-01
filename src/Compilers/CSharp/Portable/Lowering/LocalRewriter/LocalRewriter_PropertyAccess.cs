@@ -52,6 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This is a property set access. We return a BoundPropertyAccess node here.
                 // This node will be rewritten with MakePropertyAssignment when rewriting the enclosing BoundAssignmentOperator.
 
+                // TODO(t-evhau): Handle extension properties
                 return oldNodeOpt != null ?
                     oldNodeOpt.Update(rewrittenReceiverOpt, propertySymbol, resultKind, type) :
                     new BoundPropertyAccess(syntax, rewrittenReceiverOpt, propertySymbol, resultKind, type);
@@ -65,7 +66,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundExpression MakePropertyGetAccess(CSharpSyntaxNode syntax, BoundExpression rewrittenReceiver, PropertySymbol property, BoundPropertyAccess oldNodeOpt)
         {
-            return MakePropertyGetAccess(syntax, rewrittenReceiver, property, ImmutableArray<BoundExpression>.Empty, null, oldNodeOpt);
+            var rewrittenArguments = ImmutableArray<BoundExpression>.Empty;
+
+            property = property.ExpandExtensionClassProperty() ?? property;
+
+            var getMethod = property.GetOwnOrInheritedGetMethod();
+            // need to use MakeArguments in the case of an extension class property.
+            ImmutableArray<LocalSymbol> temps;
+            ImmutableArray<RefKind> argumentRefKindsOpt = default(ImmutableArray<RefKind>);
+            rewrittenArguments = MakeArguments(syntax, rewrittenArguments, property, getMethod, false, default(ImmutableArray<int>), ref rewrittenReceiver, ref argumentRefKindsOpt, out temps, enableCallerInfo: ThreeState.True);
+            Debug.Assert(temps.IsDefault); // shouldn't ever require temps (which are used to reorder arguments from source order to method order)
+            
+            return MakePropertyGetAccess(syntax, rewrittenReceiver, property, rewrittenArguments, getMethod, oldNodeOpt);
         }
 
         private BoundExpression MakePropertyGetAccess(
@@ -96,6 +108,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                     getMethod,
                     rewrittenArguments);
             }
+        }
+
+        private void RewritePossibleExtensionPropertyDonotuse(ref PropertySymbol property, ref BoundExpression receiver, ref ImmutableArray<BoundExpression> arguments)
+        {
+            // Rewrite extension class properties to their expanded forms.
+            // ExpandExtensionClassProperty has a check for IsInExtensionClass, so no need to check that twice.
+            var expandedProperty = property.ExpandExtensionClassProperty() ?? property;
+            if (expandedProperty.IsStatic && !property.IsStatic)
+            {
+                Debug.Assert(receiver != null);
+                // Method was rewritten from instance to static. Transfer receiver to first argument.
+                var builder = ArrayBuilder<BoundExpression>.GetInstance();
+                builder.Add(receiver);
+                builder.AddRange(arguments);
+                receiver = null;
+                arguments = builder.ToImmutableAndFree();
+            }
+            property = expandedProperty;
         }
     }
 }
