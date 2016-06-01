@@ -11,6 +11,7 @@ Imports System.Composition
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateMethod
     <ExportCodeFixProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeFixProviderNames.GenerateMethod), [Shared]>
+    <ExtensionOrder(Before:=PredefinedCodeFixProviderNames.PopulateSwitch)>
     <ExtensionOrder(After:=PredefinedCodeFixProviderNames.GenerateEvent)>
     Friend Class GenerateParameterizedMemberCodeFixProvider
         Inherits AbstractGenerateMemberCodeFixProvider
