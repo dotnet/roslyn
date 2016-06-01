@@ -76,7 +76,6 @@ var ThirdPartyNoticesPath = Path.Combine(NuGetAdditionalFilesPath, "ThirdPartyNo
 var NetCompilersPropsPath = Path.Combine(NuGetAdditionalFilesPath, "Microsoft.Net.Compilers.props");
 
 string[] RedistPackageNames = {
-    "Microsoft.CodeAnalysis.BuildTask.Portable",
     "Microsoft.CodeAnalysis.Common",
     "Microsoft.CodeAnalysis.Compilers",
     "Microsoft.CodeAnalysis.CSharp.Features",
