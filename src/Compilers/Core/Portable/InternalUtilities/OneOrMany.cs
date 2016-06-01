@@ -105,6 +105,29 @@ namespace Roslyn.Utilities
                 get { return _collection[_index]; }
             }
         }
+
+        public static bool operator ==(OneOrMany<T> first, OneOrMany<T> second)
+        {
+            if (first.Count != second.Count)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < first.Count; i++)
+            {
+                if (first[i].Equals(second[i]))
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
+
+        public static bool operator !=(OneOrMany<T> first, OneOrMany<T> second)
+        {
+            return !(first == second);
+        }
     }
 
     internal static class OneOrMany
@@ -117,6 +140,18 @@ namespace Roslyn.Utilities
         public static OneOrMany<T> Create<T>(ImmutableArray<T> many)
         {
             return new OneOrMany<T>(many);
+        }
+
+        public static OneOrMany<T> Create<T>(ArrayBuilder<T> some)
+        {
+            if (some.Count == 1)
+            {
+                return new OneOrMany<T>(some[0]);
+            }
+            else
+            {
+                return new OneOrMany<T>(some.ToImmutable());
+            }
         }
     }
 }

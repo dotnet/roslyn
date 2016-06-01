@@ -1518,10 +1518,34 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (BoundExpression variable in node.LeftVariables)
             {
-                VisitLvalue(variable);
+                if (variable.Kind == BoundKind.DeconstructionVariables)
+                {
+                    VisitDeconstructionVariables((BoundDeconstructionVariables)variable);
+                }
+                else
+                {
+                    VisitLvalue(variable);
+                }
             }
 
             VisitRvalue(node.Right);
+
+            return null;
+        }
+
+        public override BoundNode VisitDeconstructionVariables(BoundDeconstructionVariables node)
+        {
+            foreach (BoundExpression variable in node.Variables)
+            {
+                if (variable.Kind == BoundKind.DeconstructionVariables)
+                {
+                    VisitDeconstructionVariables((BoundDeconstructionVariables)variable);
+                }
+                else
+                {
+                    VisitLvalue(variable);
+                }
+            }
 
             return null;
         }

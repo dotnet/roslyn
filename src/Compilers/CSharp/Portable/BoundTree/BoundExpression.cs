@@ -280,11 +280,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal sealed partial class BoundDeconstructionAssignmentOperator : BoundExpression
     {
-        internal class AssignmentInfo
+        internal class AssignmentStep
         {
             public BoundAssignmentOperator Assignment;
-            public BoundLValuePlaceholder LValuePlaceholder;
-            public BoundRValuePlaceholder RValuePlaceholder;
+            public BoundDeconstructValuePlaceholder OutputPlaceholder;
+            public BoundDeconstructValuePlaceholder TargetPlaceholder;
+        }
+
+        internal class DeconstructStep
+        {
+            public MethodSymbol DeconstructMemberOpt; // the deconstruct member, or null if tuple deconstruction
+            public BoundDeconstructValuePlaceholder TargetPlaceholder;
+            public ImmutableArray<BoundDeconstructValuePlaceholder> OutputPlaceholders; // placeholders for the outputs produced by this deconstruction
         }
     }
 
