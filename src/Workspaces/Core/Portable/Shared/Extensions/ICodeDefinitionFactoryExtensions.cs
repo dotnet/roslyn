@@ -198,14 +198,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions
                     if (TryGetValue(parameterToExistingFieldMap, parameterName, out fieldName) ||
                         TryGetValue(parameterToNewFieldMap, parameterName, out fieldName))
                     {
-                        var fieldReference = factory.IdentifierName(fieldName);
-
-                        var qualifiedFieldReference = StringComparer.OrdinalIgnoreCase.Equals(parameterName, fieldName)
-                            ? factory.MemberAccessExpression(factory.ThisExpression(), fieldReference)
-                            : fieldReference;
-
                         var assignExpression = factory.AssignmentStatement(
-                            qualifiedFieldReference,
+                            factory.MemberAccessExpression(factory.ThisExpression(), factory.IdentifierName(fieldName)),
                             factory.IdentifierName(parameterName));
                         var statement = factory.ExpressionStatement(assignExpression);
                         yield return statement;
