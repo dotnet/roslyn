@@ -1,22 +1,48 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+using Roslyn.Test.Performance.Utilities;
+using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.IO;
 using System.Xml;
 using static Roslyn.Test.Performance.Utilities.TestUtilities;
+using static Roslyn.Test.Performance.Runner.Tools;
 
-namespace Roslyn.Test.Performance.Utilities
+namespace Roslyn.Test.Performance.Runner
 {
-    internal class Tools
+    public static class Benchview 
     {
+        public static readonly string CPCDirectoryPath = Environment.ExpandEnvironmentVariables(@"%SYSTEMDRIVE%\CPC");
+        private const string s_BenchviewPath = @"\\vcbench-srv4\benchview\uploads\vibench";
+
+        public static void UploadBenchviewReport()
+        {
+            // Convert the produced consumptionTempResults.xml file to consumptionTempResults.csv file
+            var elapsedTimeCsvFilePath = Path.Combine(CPCDirectoryPath, "consumptionTempResults_ElapsedTime.csv");
+            var result = ConvertConsumptionToCsv(Path.Combine(CPCDirectoryPath, "consumptionTempResults.xml"), elapsedTimeCsvFilePath, "Duration_TotalElapsedTime");
+
+            if (result)
+            {
+                var elapsedTimeViBenchJsonFilePath = GetViBenchJsonFromCsv(elapsedTimeCsvFilePath, null, null);
+                string jsonFileName = Path.GetFileName(elapsedTimeViBenchJsonFilePath);
+
+                Log("Copying the json file to the share");
+                File.Copy(elapsedTimeViBenchJsonFilePath, Path.Combine(s_BenchviewPath, jsonFileName));
+                Log("Done Copying");
+            }
+            else
+            {
+                Log("Conversion from Consumption to csv failed.");
+            }
+        }
+
         /// Takes a consumptionTempResults file and converts to csv file
         /// Each info contains the {ScenarioName, Metric Key, Metric value}
-        public static bool ConvertConsumptionToCsv(string source, string destination, string requiredMetricKey, ILogger logger)
+        private static bool ConvertConsumptionToCsv(string source, string destination, string requiredMetricKey)
         {
-            logger.Log("Entering ConvertConsumptionToCsv");
+            Log("Entering ConvertConsumptionToCsv");
             if (!File.Exists(source))
             {
-                logger.Log($"File {source} does not exist");
+                Log($"File {source} does not exist");
                 return false;
             }
 
@@ -61,8 +87,8 @@ namespace Roslyn.Test.Performance.Utilities
             }
             catch (System.Exception e)
             {
-                System.Console.WriteLine(e.Message);
-                System.Console.WriteLine(e.StackTrace);
+                Log(e.Message);
+                Log(e.StackTrace);
                 return false;
             }
 
@@ -70,15 +96,15 @@ namespace Roslyn.Test.Performance.Utilities
         }
 
         /// Gets a csv file with metrics and converts them to ViBench supported JSON file
-        public static string GetViBenchJsonFromCsv(string compilerTimeCsvFilePath, string execTimeCsvFilePath, string fileSizeCsvFilePath, bool verbose, ILogger logger)
+        private static string GetViBenchJsonFromCsv(string compilerTimeCsvFilePath, string execTimeCsvFilePath, string fileSizeCsvFilePath)
         {
-            logger.Log("Convert the csv to JSON using ViBench tool");
-            string branch = StdoutFrom("git", verbose, logger, "rev-parse --abbrev-ref HEAD");
-            string date = FirstLine(StdoutFrom("git", verbose, logger, $"show --format=\"%aI\" {branch} --"));
-            string hash = FirstLine(StdoutFrom("git", verbose, logger, $"show --format=\"%h\" {branch} --"));
-            string longHash = FirstLine(StdoutFrom("git", verbose, logger, $"show --format=\"%H\" {branch} --"));
-            string username = StdoutFrom("whoami", verbose, logger);
-            string machineName = StdoutFrom("hostname", verbose, logger);
+            RuntimeSettings.logger.Log("Convert the csv to JSON using ViBench tool");
+            string branch = StdoutFrom("git", "rev-parse --abbrev-ref HEAD");
+            string date = FirstLine(StdoutFrom("git", $"show --format=\"%aI\" {branch} --"));
+            string hash = FirstLine(StdoutFrom("git", $"show --format=\"%h\" {branch} --"));
+            string longHash = FirstLine(StdoutFrom("git", $"show --format=\"%H\" {branch} --"));
+            string username = StdoutFrom("whoami");
+            string machineName = StdoutFrom("hostname");
             string architecture = System.Environment.Is64BitOperatingSystem ? "x86-64" : "x86";
 
             // File locations
@@ -119,63 +145,9 @@ namespace Roslyn.Test.Performance.Utilities
 
             arguments = arguments.Replace("\r\n", " ").Replace("\n", "");
 
-            ShellOutVital(Path.Combine(GetCPCDirectoryPath(), "ViBenchToJson.exe"), arguments, verbose, logger, workingDirectory: "");
+            ShellOutVital(Path.Combine(GetCPCDirectoryPath(), "ViBenchToJson.exe"), arguments, workingDirectory: "");
 
             return outJson;
         }
-
-        public static string FirstLine(string input)
-        {
-            return input.Split(new[] { "\r\n", "\r", "\n" }, System.StringSplitOptions.None)[0];
-        }
-
-        public static void UploadTraces(string sourceFolderPath, string destinationFolderPath, ILogger logger)
-        {
-            logger.Log("Uploading traces");
-            if (Directory.Exists(sourceFolderPath))
-            {
-                var directoriesToUpload = new DirectoryInfo(sourceFolderPath).GetDirectories("DataBackup*");
-                if (directoriesToUpload.Count() == 0)
-                {
-                    logger.Log($"There are no trace directory starting with DataBackup in {sourceFolderPath}");
-                    return;
-                }
-
-                var perfResultDestinationFolderName = string.Format("PerfResults-{0:yyyy-MM-dd_hh-mm-ss-tt}", DateTime.Now);
-
-                var destination = Path.Combine(destinationFolderPath, perfResultDestinationFolderName);
-                foreach (var directoryToUpload in directoriesToUpload)
-                {
-                    var destinationDataBackupDirectory = Path.Combine(destination, directoryToUpload.Name);
-                    if (Directory.Exists(destinationDataBackupDirectory))
-                    {
-                        Directory.CreateDirectory(destinationDataBackupDirectory);
-                    }
-
-                    CopyDirectory(directoryToUpload.FullName, logger, destinationDataBackupDirectory);
-                }
-
-                foreach (var file in new DirectoryInfo(sourceFolderPath).GetFiles().Where(f => f.Name.StartsWith("ConsumptionTemp", StringComparison.OrdinalIgnoreCase) || f.Name.StartsWith("Roslyn-", StringComparison.OrdinalIgnoreCase)))
-                {
-                    File.Copy(file.FullName, Path.Combine(destination, file.Name));
-                }
-            }
-            else
-            {
-                logger.Log($"sourceFolderPath: {sourceFolderPath} does not exist");
-            }
-        }
-
-        public static void CopyDirectory(string source, ILogger logger, string destination, string argument = @"/mir")
-        {
-            var result = ShellOut("Robocopy", $"{argument} {source} {destination}", verbose: true, logger: logger, workingDirectory: "");
-
-            // Robocopy has a success exit code from 0 - 7
-            if (result.Code > 7)
-            {
-                throw new IOException($"Failed to copy \"{source}\" to \"{destination}\".");
-            }
-        }
-
     }
 }
