@@ -73,11 +73,10 @@
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\Core\Implementation\IntelliSense\Completion\Presentation\RoslynCompletionSet.cs">
-      <Link>IntelliSense\Completion\Presentation\RoslynCompletionSet.cs</Link>
-    </Compile>
     <Compile Include="IntelliSense\Completion\Presentation\IntellisenseFilter2.cs" />
+    <Compile Include="IntelliSense\Completion\Presentation\RoslynCompletionSet15.cs" />
     <Compile Include="IntelliSense\Completion\Presentation\VisualStudio15CompletionSetFactory.cs" />
+    <Compile Include="IntelliSense\Completion\Presentation\VsCompletionSet15.cs" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
