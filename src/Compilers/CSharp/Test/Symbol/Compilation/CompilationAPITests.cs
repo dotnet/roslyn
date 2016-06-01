@@ -1484,6 +1484,33 @@ class A
             Assert.Equal("ModuleAssemblyName", compilation.Assembly.Identity.Name);
         }
 
+        [WorkItem(8506, "https://github.com/dotnet/roslyn/issues/8506")]
+        [Fact]
+        public void CrossCorlibSystemObjectReturnType_Script()
+        {
+            // MinAsyncCorlibRef corlib is used since it provides just enough corlib type definitions
+            // and Task APIs necessary for script hosting are provided by MinAsyncRef. This ensures that
+            // `System.Object, mscorlib, Version=4.0.0.0` will not be provided (since it's unversioned).
+            //
+            // In the original bug, Xamarin iOS, Android, and Mac Mobile profile corlibs were
+            // realistic cross-compilation targets.
+            var compilation = CSharpCompilation.CreateScriptCompilation(
+                "submission-assembly",
+                references: new [] { MinAsyncCorlibRef },
+                syntaxTree: Parse("true", options: TestOptions.Script)
+            ).VerifyDiagnostics();
+
+            Assert.True(compilation.IsSubmission);
+
+            var taskOfT = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
+            var taskOfObject = taskOfT.Construct(compilation.ObjectType);
+            var entryPoint = compilation.GetEntryPoint(default(CancellationToken));
+
+            Assert.Same(compilation.ObjectType.ContainingAssembly, taskOfT.ContainingAssembly);
+            Assert.Same(compilation.ObjectType.ContainingAssembly, taskOfObject.ContainingAssembly);
+            Assert.Equal(taskOfObject, entryPoint.ReturnType);
+        }
+
         [WorkItem(3719, "https://github.com/dotnet/roslyn/issues/3719")]
         [Fact]
         public void GetEntryPoint_Script()
