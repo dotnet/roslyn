@@ -1,28 +1,63 @@
-﻿using System.IO;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+using Roslyn.Test.Performance.Utilities;
+using System.IO;
 using static Roslyn.Test.Performance.Utilities.TestUtilities;
 
-namespace Roslyn.Test.Performance.Utilities
+namespace Roslyn.Test.Performance.Runner
 {
-    internal class TraceManager : ITraceManager
+    public class TraceManagerFactory
+    {
+        public static ITraceManager GetTraceManager()
+        {
+            var cpcFullPath = Path.Combine(TestUtilities.GetCPCDirectoryPath(), "CPC.exe");
+            var scenarioPath = TestUtilities.GetCPCDirectoryPath();
+            if (File.Exists(cpcFullPath))
+            {
+                return new TraceManager(
+                    cpcFullPath,
+                    scenarioPath);
+            }
+            else
+            {
+                return new NoOpTraceManager();
+            }
+        }
+    }
+
+    public interface ITraceManager
+    {
+        bool HasWarmUpIteration { get; }
+
+        void Initialize();
+        void Cleanup();
+        void EndEvent();
+        void EndScenario();
+        void EndScenarios();
+        void ResetScenarioGenerator();
+        void Setup();
+        void Start();
+        void StartEvent();
+        void StartScenario(string scenarioName, string processName);
+        void StartScenarios();
+        void Stop();
+        void WriteScenarios(string[] scenarios);
+        void WriteScenariosFileToDisk();
+    }
+
+    public class TraceManager : ITraceManager
     {
         private readonly ScenarioGenerator _scenarioGenerator;
         private readonly string _cpcPath;
-        private readonly bool _verbose;
-        private readonly ILogger _logger;
 
         private int _startEventAbsoluteInstance = 1;
         private int _stopEventAbsoluteInstance = 1;
 
         public TraceManager(
             string cpcPath,
-            string scenarioPath,
-            bool verbose,
-            ILogger logger) : base()
+            string scenarioPath) : base()
         {
             _cpcPath = cpcPath;
             _scenarioGenerator = new ScenarioGenerator(scenarioPath);
-            _verbose = verbose;
-            _logger = logger;
         }
 
         public bool HasWarmUpIteration
@@ -54,24 +89,24 @@ namespace Roslyn.Test.Performance.Utilities
 
         public void Setup()
         {
-            ShellOutVital(_cpcPath, "/Setup /DisableArchive", _verbose, _logger, workingDirectory: "");
+            ShellOutVital(_cpcPath, "/Setup /DisableArchive", workingDirectory: "");
         }
 
         public void Start()
         {
-            ShellOutVital(_cpcPath, "/Start /DisableArchive", _verbose, _logger, workingDirectory: "");
+            ShellOutVital(_cpcPath, "/Start /DisableArchive", workingDirectory: "");
         }
 
         public void Stop()
         {
             var scenariosXmlPath = Path.Combine(GetCPCDirectoryPath(), "scenarios.xml");
             var consumptionTempResultsPath = Path.Combine(GetCPCDirectoryPath(), "ConsumptionTempResults.xml");
-            ShellOutVital(_cpcPath, $"/Stop /DisableArchive /ScenarioPath=\"{scenariosXmlPath}\" /ConsumptionTempResultsPath=\"{consumptionTempResultsPath}\"", _verbose, _logger, workingDirectory: "");
+            ShellOutVital(_cpcPath, $"/Stop /DisableArchive /ScenarioPath=\"{scenariosXmlPath}\" /ConsumptionTempResultsPath=\"{consumptionTempResultsPath}\"", workingDirectory: "");
         }
 
         public void Cleanup()
         {
-            ShellOutVital(_cpcPath, "/Cleanup /DisableArchive", _verbose, _logger, workingDirectory: "");
+            ShellOutVital(_cpcPath, "/Cleanup /DisableArchive", workingDirectory: "");
         }
 
         public void StartScenarios()
@@ -124,6 +159,77 @@ namespace Roslyn.Test.Performance.Utilities
             _scenarioGenerator.Initialize();
             _startEventAbsoluteInstance = 1;
             _stopEventAbsoluteInstance = 1;
+        }
+    }
+
+    public class NoOpTraceManager : ITraceManager
+    {
+        public NoOpTraceManager()
+        {
+        }
+
+        public bool HasWarmUpIteration
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        public void Initialize()
+        {
+        }
+
+        public void Cleanup()
+        {
+        }
+
+        public void EndEvent()
+        {
+        }
+
+        public void EndScenario()
+        {
+        }
+
+        public void EndScenarios()
+        {
+        }
+
+        public void ResetScenarioGenerator()
+        {
+        }
+
+        public void Setup()
+        {
+        }
+
+        public void Start()
+        {
+        }
+
+        public void StartEvent()
+        {
+        }
+
+        public void StartScenarios()
+        {
+        }
+
+        public void StartScenario(string scenarioName, string processName)
+        {
+        }
+
+        public void Stop()
+        {
+        }
+
+        public void WriteScenarios(string[] scenarios)
+        {
+        }
+
+        public void WriteScenariosFileToDisk()
+        {
         }
     }
 }

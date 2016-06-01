@@ -1,9 +1,10 @@
+// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 using System.Collections.Generic;
 using System.IO;
 
-namespace Roslyn.Test.Performance.Utilities
+namespace Roslyn.Test.Performance.Runner
 {
-    internal class ScenarioGenerator
+    public class ScenarioGenerator
     {
         private const string KernelProviderGuid = @"{9e814aad-3204-11d2-9a82-006008a86939}";
         private string _fullPath = "scenarios.xml";

@@ -2,6 +2,7 @@
 
 using System.Collections;
 using System.Collections.ObjectModel;
+using System.Linq;
 using Microsoft.CodeAnalysis;
 using Microsoft.VisualStudio.Shell;
 
@@ -23,12 +24,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             _commandHandler = commandHandler;
 
             _folderItems = new ObservableCollection<AnalyzersFolderItem>();
-            _folderItems.Add(
-                new AnalyzersFolderItem(
-                    _workspace,
-                    _projectId,
-                    _projectHierarchyItem,
-                    _commandHandler.AnalyzerFolderContextMenuController));
+
+            Update();
         }
 
         public bool HasItems
@@ -53,6 +50,22 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
             {
                 return _projectHierarchyItem;
             }
+        }
+
+        internal void Update()
+        {
+            // Don't create the item a 2nd time.
+            if (_folderItems.Any())
+            {
+                return;
+            }
+
+            _folderItems.Add(
+                new AnalyzersFolderItem(
+                    _workspace,
+                    _projectId,
+                    _projectHierarchyItem,
+                    _commandHandler.AnalyzerFolderContextMenuController));
         }
     }
 }
