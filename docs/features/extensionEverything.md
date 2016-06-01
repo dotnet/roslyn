@@ -6,10 +6,12 @@ Basic syntax:
     {
     }
 
-* Must be `class`, `OtherType` must not be extension class.
-* Modifiers allowed on a class with `extension`: access modifiers, `unsafe`, `partial`
-* Modifiers not allowed: `abstract`, `sealed`, `static`
-* Unresolved question: NamedTypeSymbols are all fine. What about arrays, pointers, and type parameters? (`dynamic` is not allowed) - Also, what about static classes? (and only allowing static extensions) - e.g. `Math.Sinf` (float math library)
+* Must be `class`
+* If the `extension` keyword is present, the extends clause must be present (does not default to `object`)
+* `OtherType` must not be extension class.
+* `OtherType` may be a class, static class, struct, interface, or enum.
+* Modifiers allowed on a class with `extension`: access modifiers, `unsafe`, `partial` (i.e. not `abstract`, `sealed`, `static`)
+* Unresolved question: NamedTypeSymbols are all fine. What about arrays, pointers, and type parameters? (`dynamic` is not allowed)
 
 Members defined on ExtClass behave like they're defined on OtherType (with some exceptions).
 
@@ -20,17 +22,18 @@ The member kinds currently planned on being supported are:
 * Instance properties
 * Static properties
 * Indexers
+* Events (possibly)
 * Constructors (possibly)
+* Operators (specifics to be nailed down later - might want to disallow implicit conversions?)
 
 Other member kinds are valid to be defined in an extension class, but do not project onto the extended class. Such kinds are:
 
-* Static fields
 * Nested class (maybe?)
 
 Other kinds are forbidden and produce an error:
 
+* Static fields (maybe? Might go into "not projected" category.)
 * Instance fields
-* Events
 * Old-style extension methods
 * Static constructors
 * Methods with `override`, etc.
@@ -57,7 +60,115 @@ Basic process:
 5. Emit some representation of the extended type so we can load it later.
 6. When loading, detect that representation from the previous step and run the inverse of `GetUnderlyingMember` to report in symbol tables.
 
-## IL member transformations:
+## IL member transformations (examples):
+
+    extension class IntDictionaryExtensions<T> : Dictionary<int, T>
+        where T : class
+    {
+        public void AddWithDoubleKey(double key, T value)
+        {
+            this.Add((int)key, value);
+        }
+        
+        public void ConvertAndAdd<TOther>(Dictionary<int, TOther> others)
+        {
+            foreach (var other in others)
+            {
+                this.Add(other.Key, (T)other.Value);
+            }
+        }
+        
+        public int SumOfKeys => this.Keys.Sum();
+        
+        public static int UselessProperty
+        {
+            set
+            {
+                Console.WriteLine(value);
+            }
+        }
+        
+        public int this[double index]
+        {
+            get
+            {
+                return this[(int)index];
+            }
+            set
+            {
+                this[(int)index] = value;
+            }
+        }
+        
+        public Dictionary<int, T>(List<T> items) : this(items.Count)
+        {
+            foreach (var item in items)
+            {
+                this.Add(item.GetHashCode(), item);
+            }
+        }
+    }
+
+### is transformed into:
+
+    static class IntDictionaryExtensions<T>
+        where T : class
+    {
+        // needed for the case where, for example, we only had UselessProperty defined
+        // (i.e. Dictionary<int, T> appears nowhere in any members)
+        private void ExtensionClassMarker(Dictionary<int, T> extendedType)
+        {
+        }
+        
+        public static void AddWithDoubleKey(Dictionary<int, T> @this, double key, T value)
+        {
+            @this.Add((int)key, value);
+        }
+        
+        public static void ConvertAndAdd<TOther>(Dictionary<int, T> @this, Dictionary<int, TOther> others)
+        {
+            foreach (var other in others)
+            {
+                @this.Add(other.Key, (T)other.Value);
+            }
+        }
+        
+        // indexers are basically properties with more parameters in their accessors.
+        // (the @this parameter is just inserted as the first arg of the property accessor)
+        public static int SumOfKeys[Dictionary<int, T> @this] => @this.Keys.Sum();
+        
+        // no change
+        public static int UselessProperty
+        {
+            set
+            {
+                Console.WriteLine(value);
+            }
+        }
+        
+        public static int this[Dictionary<int, T> @this, double index]
+        {
+            get
+            {
+                return @this[(int)index];
+            }
+            set
+            {
+                @this[(int)index] = value;
+            }
+        }
+        
+        public static Dictionary<int, T> New(List<T> items)
+        {
+            var @this = new Dictionary<int, T>(items.Count);
+            foreach (var item in items)
+            {
+                @this.Add(item.GetHashCode(), item);
+            }
+        }
+    }
+
+## IL member transformations (formal):
 
     extension class Ext<Tp1, ...> : BaseType<Ta1, ...> where Tp1 : ..., <<constraints>>
     {
@@ -65,16 +176,13 @@ Basic process:
     -->
     [Extension] // or a new attribute
     static class Ext<Tp1, ...>
+            where Tp1 : ..., <<constraints>>
     {
-        void <>_UnspeakableSpecialName<Tp1_rename, ...>(BaseType<Ta1, replace refs to Tp1, ...> param)
-            where Tp1_rename : ..., <<constraints>>
+        void <>_UnspeakableSpecialName(BaseType<Ta1, ...> param)
         {
             // never called, just to record BaseType.
             // While the CLR spec allows base types on static (abstract&sealed) classes,
             // can't use that because extending from array, type param, etc.
-            // Also can't re-use class "Tp1, ..." params,
-            // since constraints need to be specified.
-            // (although maybe leave constraints on class, and transfer only type to param?)
         }
     }
     
@@ -118,7 +226,7 @@ Basic process:
     static RetType get_InstanceProperty(BaseType<Ta1, ...> @this, ParamType p1, ...);
     static void set_InstanceProperty(BaseType<Ta1, ...> @this, ParamType p1, ..., RetType @value);
     
-    // MUST call `this(...)`
+    // If `this()` not specified, uses standard lookup rules for empty constructor.
     BaseType(ParamType p1, ...) : this(arg1, ...)
     {
         statements;
