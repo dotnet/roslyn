@@ -7,6 +7,6 @@ namespace Microsoft.CodeAnalysis.Remote
 {
     internal interface ICompilationFactoryService
     {
-        Compilation GetCompilationAsync(SolutionSnapshotId snapshot, SolutionSnapshotId.ProjectId projectId, CancellationToken cancellationToken);
+        Compilation GetCompilationAsync(SolutionSnapshotId snapshot, ProjectId projectId, CancellationToken cancellationToken);
     }
 }

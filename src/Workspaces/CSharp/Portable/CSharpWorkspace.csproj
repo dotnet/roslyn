@@ -91,6 +91,7 @@
     <Compile Include="CodeGeneration\UsingDirectivesAdder.cs" />
     <Compile Include="CodeGeneration\UsingDirectivesAdder.Rewriter.cs" />
     <Compile Include="Composition\CSharpWorkspaceFeatures.cs" />
+    <Compile Include="Execution\CSharpLanguageSpecificSerializationService.cs" />
     <Compile Include="Extensions\SemanticModelExtensions.cs" />
     <Compile Include="LanguageServices\CSharpCommandLineParserService.cs" />
     <Compile Include="CSharpWorkspaceResources.Designer.cs">
