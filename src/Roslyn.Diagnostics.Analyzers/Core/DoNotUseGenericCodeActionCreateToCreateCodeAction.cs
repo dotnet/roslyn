@@ -17,8 +17,8 @@ namespace Roslyn.Diagnostics.Analyzers
         private static readonly LocalizableString s_localizableTitle = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.DoNotUseGenericCodeActionCreateToCreateCodeActionTitle), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(RoslynDiagnosticsAnalyzersResources.DoNotUseGenericCodeActionCreateToCreateCodeActionMessage), RoslynDiagnosticsAnalyzersResources.ResourceManager, typeof(RoslynDiagnosticsAnalyzersResources));
 
-        internal static readonly DiagnosticDescriptor DontUseCodeActionCreateRule = new DiagnosticDescriptor(
-            RoslynDiagnosticIds.DontUseCodeActionCreateRuleId,
+        internal static readonly DiagnosticDescriptor DoNotUseCodeActionCreateRule = new DiagnosticDescriptor(
+            RoslynDiagnosticIds.DoNotUseCodeActionCreateRuleId,
             s_localizableTitle,
             s_localizableMessage,
             "Performance",
@@ -28,25 +28,28 @@ namespace Roslyn.Diagnostics.Analyzers
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
         {
-            get { return ImmutableArray.Create(DontUseCodeActionCreateRule); }
+            get { return ImmutableArray.Create(DoNotUseCodeActionCreateRule); }
         }
 
         public override void Initialize(AnalysisContext context)
         {
-            context.RegisterCompilationStartAction(CreateAnalyzerWithinCompilation);
+            context.EnableConcurrentExecution();
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+
+            context.RegisterCompilationStartAction(OnCompilationStart);
         }
 
-        private void CreateAnalyzerWithinCompilation(CompilationStartAnalysisContext context)
+        private void OnCompilationStart(CompilationStartAnalysisContext context)
         {
             context.CancellationToken.ThrowIfCancellationRequested();
 
-            INamedTypeSymbol codeActionSymbol = context.Compilation.GetTypeByMetadataName(CodeActionMetadataName);
+            var codeActionSymbol = context.Compilation.GetTypeByMetadataName(CodeActionMetadataName);
             if (codeActionSymbol == null)
             {
                 return;
             }
 
-            System.Collections.Generic.IEnumerable<ISymbol> createSymbols = codeActionSymbol.GetMembers(CreateMethodName).Where(m => m is IMethodSymbol);
+            var createSymbols = codeActionSymbol.GetMembers(CreateMethodName).Where(m => m is IMethodSymbol);
             if (createSymbols == null)
             {
                 return;
@@ -97,7 +100,7 @@ namespace Roslyn.Diagnostics.Analyzers
                     return;
                 }
 
-                addDiagnostic(Diagnostic.Create(DontUseCodeActionCreateRule, name.Parent.GetLocation()));
+                addDiagnostic(Diagnostic.Create(DoNotUseCodeActionCreateRule, name.Parent.GetLocation()));
             }
         }
     }

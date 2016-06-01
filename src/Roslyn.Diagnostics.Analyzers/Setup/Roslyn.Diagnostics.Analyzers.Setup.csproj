@@ -59,9 +59,9 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Core\Roslyn.Diagnostics.Analyzers.csproj">
-      <Project>{36755424-5267-478c-9434-37a507e22711}</Project>
-      <Name>Roslyn.Diagnostics.Analyzers</Name>
+    <ProjectReference Include="..\Core\Roslyn.Diagnostics.Analyzers.Core.csproj">
+      <Project>{B475C173-A39D-4A75-93FF-69C3D2742CAD}</Project>
+      <Name>Roslyn.Diagnostics.Analyzers.Core</Name>
       <IncludeOutputGroupsInVSIX>BuiltProjectOutputGroup</IncludeOutputGroupsInVSIX>
       <IncludeOutputGroupsInVSIXLocalOnly>DebugSymbolsProjectOutputGroup</IncludeOutputGroupsInVSIXLocalOnly>
       <ForceIncludeInVSIX>true</ForceIncludeInVSIX>

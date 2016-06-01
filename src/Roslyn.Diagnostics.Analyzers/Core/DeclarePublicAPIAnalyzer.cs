@@ -18,6 +18,8 @@ namespace Roslyn.Diagnostics.Analyzers
         internal const string UnshippedFileName = "PublicAPI.Unshipped.txt";
         internal const string PublicApiNamePropertyBagKey = "PublicAPIName";
         internal const string MinimalNamePropertyBagKey = "MinimalName";
+        internal const string PublicApiNamesOfSiblingsToRemovePropertyBagKey = "PublicApiNamesOfSiblingsToRemove";
+        internal const string PublicApiNamesOfSiblingsToRemovePropertyBagValueSeparator = ";;";
         internal const string RemovedApiPrefix = "*REMOVED*";
         internal const string InvalidReasonShippedCantHaveRemoved = "The shipped API file can't have removed members";
 
@@ -68,6 +70,26 @@ namespace Roslyn.Diagnostics.Analyzers
             isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
+        internal static readonly DiagnosticDescriptor AvoidMultipleOverloadsWithOptionalParameters = new DiagnosticDescriptor(
+            id: RoslynDiagnosticIds.AvoidMultipleOverloadsWithOptionalParameters,
+            title: RoslynDiagnosticsAnalyzersResources.AvoidMultipleOverloadsWithOptionalParametersTitle,
+            messageFormat: RoslynDiagnosticsAnalyzersResources.AvoidMultipleOverloadsWithOptionalParametersMessage,
+            category: "ApiDesign",
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            helpLinkUri: @"https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md",
+            customTags: WellKnownDiagnosticTags.Telemetry);
+
+        internal static readonly DiagnosticDescriptor OverloadWithOptionalParametersShouldHaveMostParameters = new DiagnosticDescriptor(
+            id: RoslynDiagnosticIds.OverloadWithOptionalParametersShouldHaveMostParameters,
+            title: RoslynDiagnosticsAnalyzersResources.OverloadWithOptionalParametersShouldHaveMostParametersTitle,
+            messageFormat: RoslynDiagnosticsAnalyzersResources.OverloadWithOptionalParametersShouldHaveMostParametersMessage,
+            category: "ApiDesign",
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true,
+            helpLinkUri: @"https://github.com/dotnet/roslyn/blob/master/docs/Adding%20Optional%20Parameters%20in%20Public%20API.md",
+            customTags: WellKnownDiagnosticTags.Telemetry);
+
         internal static readonly SymbolDisplayFormat ShortSymbolNameFormat =
             new SymbolDisplayFormat(
                 globalNamespaceStyle: SymbolDisplayGlobalNamespaceStyle.OmittedAsContaining,
@@ -102,34 +124,25 @@ namespace Roslyn.Diagnostics.Analyzers
                 miscellaneousOptions:
                     SymbolDisplayMiscellaneousOptions.UseSpecialTypes);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DeclareNewApiRule, RemoveDeletedApiRule, ExposedNoninstantiableType, PublicApiFilesInvalid, DuplicateSymbolInApiFiles);
-
-        private readonly ImmutableArray<AdditionalText> _extraAdditionalFiles;
-
-        /// <summary>
-        /// This API is used for testing to allow arguments to be passed to the analyzer.
-        /// </summary>
-        public DeclarePublicAPIAnalyzer(ImmutableArray<AdditionalText> extraAdditionalFiles)
-        {
-            _extraAdditionalFiles = extraAdditionalFiles;
-        }
-
-        public DeclarePublicAPIAnalyzer()
-        {
-        }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics =>
+            ImmutableArray.Create(DeclareNewApiRule, RemoveDeletedApiRule, ExposedNoninstantiableType,
+                PublicApiFilesInvalid, DuplicateSymbolInApiFiles, AvoidMultipleOverloadsWithOptionalParameters,
+                OverloadWithOptionalParametersShouldHaveMostParameters);
 
         public override void Initialize(AnalysisContext context)
         {
+            // TODO: Make the analyzer thread-safe.
+            //context.EnableConcurrentExecution();
+
+            // Analyzer needs to get callbacks for generated code, and might report diagnostics in generated code.
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze | GeneratedCodeAnalysisFlags.ReportDiagnostics);
+
             context.RegisterCompilationStartAction(OnCompilationStart);
         }
 
         private void OnCompilationStart(CompilationStartAnalysisContext compilationContext)
         {
-            ImmutableArray<AdditionalText> additionalFiles = compilationContext.Options.AdditionalFiles;
-            if (!_extraAdditionalFiles.IsDefaultOrEmpty)
-            {
-                additionalFiles = additionalFiles.AddRange(_extraAdditionalFiles);
-            }
+            var additionalFiles = compilationContext.Options.AdditionalFiles;
 
             ApiData shippedData;
             ApiData unshippedData;
@@ -189,10 +202,15 @@ namespace Roslyn.Diagnostics.Analyzers
                 publicApiName = publicApiName + " -> " + memberType.ToDisplayString(s_publicApiFormat);
             }
 
+            if (((symbol as INamespaceSymbol)?.IsGlobalNamespace).GetValueOrDefault())
+            {
+                return string.Empty;
+            }
+
             return publicApiName;
         }
 
-        private static ApiData ReadApiData(string path, SourceText sourceText)
+        private static ApiData ReadApiData(string path, SourceText sourceText, bool isShippedApi)
         {
             ImmutableArray<ApiLine>.Builder apiBuilder = ImmutableArray.CreateBuilder<ApiLine>();
             ImmutableArray<RemovedApiLine>.Builder removedBuilder = ImmutableArray.CreateBuilder<RemovedApiLine>();
@@ -205,7 +223,7 @@ namespace Roslyn.Diagnostics.Analyzers
                     continue;
                 }
 
-                var apiLine = new ApiLine(text, line.Span, sourceText, path);
+                var apiLine = new ApiLine(text, line.Span, sourceText, path, isShippedApi);
                 if (text.StartsWith(RemovedApiPrefix, StringComparison.Ordinal))
                 {
                     string removedtext = text.Substring(RemovedApiPrefix.Length);
@@ -231,8 +249,8 @@ namespace Roslyn.Diagnostics.Analyzers
                 return false;
             }
 
-            shippedData = ReadApiData(ShippedFileName, shippedText.GetText(cancellationToken));
-            unshippedData = ReadApiData(UnshippedFileName, unshippedText.GetText(cancellationToken));
+            shippedData = ReadApiData(shippedText.Path, shippedText.GetText(cancellationToken), isShippedApi: true);
+            unshippedData = ReadApiData(unshippedText.Path, unshippedText.GetText(cancellationToken), isShippedApi: false);
             return true;
         }
 

@@ -264,7 +264,7 @@ End Class
                     break;
 
                 default:
-                    throw new ArgumentException("kind");
+                    throw new ArgumentException("Unsupported argument kind", "kind");
             }
 
             string fileName = language == LanguageNames.CSharp ? "Test0.cs" : "Test0.vb";

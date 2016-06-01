@@ -10,7 +10,7 @@ Namespace Roslyn.Diagnostics.Analyzers
     Public Class BasicSymbolDeclaredEventAnalyzer
         Inherits SymbolDeclaredEventAnalyzer(Of SyntaxKind)
 
-        Private Shared ReadOnly s_sourceModuleTypeFullName As String = "Microsoft.CodeAnalysis.VisualBasic.Symbols.SourceModuleSymbol"
+        Private Const SourceModuleTypeFullName As String = "Microsoft.CodeAnalysis.VisualBasic.Symbols.SourceModuleSymbol"
 
         Protected Overrides Function GetCompilationAnalyzer(compilation As Compilation, symbolType As INamedTypeSymbol) As CompilationAnalyzer
             Dim compilationType = compilation.GetTypeByMetadataName(GetType(VisualBasicCompilation).FullName)
@@ -18,7 +18,7 @@ Namespace Roslyn.Diagnostics.Analyzers
                 Return Nothing
             End If
 
-            Dim sourceModuleType = compilation.GetTypeByMetadataName(s_sourceModuleTypeFullName)
+            Dim sourceModuleType = compilation.GetTypeByMetadataName(SourceModuleTypeFullName)
             If sourceModuleType Is Nothing Then
                 Return Nothing
             End If
@@ -68,7 +68,6 @@ Namespace Roslyn.Diagnostics.Analyzers
                 If invocationSymbol.Name.Equals(s_atomicSetFlagAndRaiseSymbolDeclaredEventName, StringComparison.OrdinalIgnoreCase) AndAlso
                     _sourceModuleType.Equals(invocationSymbol.ContainingType) Then
 
-                    Dim argumentOpt As SyntaxNode = Nothing
                     Dim invocationExp = DirectCast(context.Node, InvocationExpressionSyntax)
                     If invocationExp.ArgumentList IsNot Nothing Then
                         For Each argument In invocationExp.ArgumentList.Arguments

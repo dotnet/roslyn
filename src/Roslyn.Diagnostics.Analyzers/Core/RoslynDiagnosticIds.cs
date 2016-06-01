@@ -8,7 +8,7 @@ namespace Roslyn.Diagnostics.Analyzers
         public const string UseSingletonEnumerableRuleId = "RS0002";
         // public const string DirectlyAwaitingTaskAnalyzerRuleId = "RS0003";           // Now CA2007 => Microsoft.ApiDesignGuidelines.Analyzers.DoNotDirectlyAwaitATaskAnalyzer
         public const string UseSiteDiagnosticsCheckerRuleId = "RS0004";
-        public const string DontUseCodeActionCreateRuleId = "RS0005";
+        public const string DoNotUseCodeActionCreateRuleId = "RS0005";
         // public const string MixedVersionsOfMefAttributesRuleId = "RS0006";           // Now RS0006 => Microsoft.Composition.Analyzers.DoNotMixAttributesFromDifferentVersionsOfMEFAnalyzer
         // public const string UseArrayEmptyRuleId = "RS0007";                          // Now CA1825 => System.Runtime.Analyzers.AvoidZeroLengthArrayAllocationsAnalyzer
         // public const string ImplementIEquatableRuleId = "RS0008";                    // Now CA1067 => Microsoft.ApiDesignGuidelines.Analyzers.EquatableAnalyzer
@@ -29,5 +29,7 @@ namespace Roslyn.Diagnostics.Analyzers
         // public const string MissingSharedAttributeRuleId = "RS0023";                 // Now RS0023 => Microsoft.Composition.Analyzers.PartsExportedWithMEFv2MustBeMarkedAsSharedAnalyzer
         public const string PublicApiFilesInvalid = "RS0024";
         public const string DuplicatedSymbolInPublicApiFiles = "RS0025";
+        public const string AvoidMultipleOverloadsWithOptionalParameters = "RS0026";
+        public const string OverloadWithOptionalParametersShouldHaveMostParameters = "RS0027";
     }
 }

@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static readonly LocalizableString s_localizableMessageMissingAttribute = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.MissingAttributeMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources), DiagnosticAnalyzerAttributeFullName);
         private static readonly LocalizableString s_localizableDescriptionMissingAttribute = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.MissingDiagnosticAnalyzerAttributeDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
-        public static DiagnosticDescriptor MissingDiagnosticAnalyzerAttributeRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor MissingDiagnosticAnalyzerAttributeRule = new DiagnosticDescriptor(
             DiagnosticIds.MissingDiagnosticAnalyzerAttributeRuleId,
             s_localizableTitleMissingAttribute,
             s_localizableMessageMissingAttribute,
@@ -29,7 +29,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static readonly LocalizableString s_localizableMessageAddLanguageSupportToAnalyzer = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.AddLanguageSupportToAnalyzerMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableDescriptionAddLanguageSupportToAnalyzer = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.AddLanguageSupportToAnalyzerDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
-        public static DiagnosticDescriptor AddLanguageSupportToAnalyzerRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor AddLanguageSupportToAnalyzerRule = new DiagnosticDescriptor(
             DiagnosticIds.AddLanguageSupportToAnalyzerRuleId,
             s_localizableTitleAddLanguageSupportToAnalyzer,
             s_localizableMessageAddLanguageSupportToAnalyzer,
@@ -55,8 +55,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         private sealed class AttributeAnalyzer : DiagnosticAnalyzerSymbolAnalyzer
         {
-            private static readonly string s_csharpCompilationFullName = @"Microsoft.CodeAnalysis.CSharp.CSharpCompilation";
-            private static readonly string s_basicCompilationFullName = @"Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation";
+            private const string CSharpCompilationFullName = @"Microsoft.CodeAnalysis.CSharp.CSharpCompilation";
+            private const string BasicCompilationFullName = @"Microsoft.CodeAnalysis.VisualBasic.VisualBasicCompilation";
 
             public AttributeAnalyzer(INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
                 : base(diagnosticAnalyzer, diagnosticAnalyzerAttribute)
@@ -79,11 +79,18 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 bool supportsCSharp = false;
                 bool supportsVB = false;
 
-                System.Collections.Generic.IEnumerable<AttributeData> namedTypeAttributes = namedType.GetApplicableAttributes();
+                var namedTypeAttributes = namedType.GetApplicableAttributes();
+
                 foreach (AttributeData attribute in namedTypeAttributes)
                 {
                     if (attribute.AttributeClass.DerivesFrom(DiagnosticAnalyzerAttribute))
                     {
+                        // Bail out for the case where analyzer type derives from a sub-type in different assembly, and the sub-type has the diagnostic analyzer attribute.
+                        if (attribute.ApplicationSyntaxReference == null)
+                        {
+                            return;
+                        }
+
                         hasAttribute = true;
 
                         // The attribute constructor's signature is "(string, params string[])",
@@ -117,7 +124,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                     // If the analyzer assembly doesn't reference either C# or VB CodeAnalysis assemblies, 
                     // then the analyzer is pretty likely a language-agnostic analyzer.
                     Compilation compilation = symbolContext.Compilation;
-                    string compilationTypeNameToCheck = supportsCSharp ? s_csharpCompilationFullName : s_basicCompilationFullName;
+                    string compilationTypeNameToCheck = supportsCSharp ? CSharpCompilationFullName : BasicCompilationFullName;
                     INamedTypeSymbol compilationType = compilation.GetTypeByMetadataName(compilationTypeNameToCheck);
                     if (compilationType == null)
                     {

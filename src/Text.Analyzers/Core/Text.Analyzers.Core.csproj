@@ -8,11 +8,11 @@
     <MinimumVisualStudioVersion>12.0</MinimumVisualStudioVersion>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{0EA928BE-51C1-4087-B48A-ECE9C5E0C5B0}</ProjectGuid>
+    <ProjectGuid>{730C2D1C-0276-4132-85EA-675CE60068BB}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AnalyzerProject>true</AnalyzerProject>
-    <RootNamespace>Text.CSharp.Analyzers</RootNamespace>
-    <AssemblyName>Text.CSharp.Analyzers</AssemblyName>
+    <RootNamespace>Text.Analyzers</RootNamespace>
+    <AssemblyName>Text.Analyzers</AssemblyName>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
@@ -26,23 +26,44 @@
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Core\Text.Analyzers.Core.csproj">
-      <Project>{730C2D1C-0276-4132-85EA-675CE60068BB}</Project>
-      <Name>Text.Analyzers.Core</Name>
-    </ProjectReference>
+    <InternalsVisibleTo Include="Text.CSharp.Analyzers" />
+    <InternalsVisibleTo Include="Text.VisualBasic.Analyzers" />
+    <InternalsVisibleToTest Include="Text.Analyzers.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="Text.CSharp.Analyzers.props">
+    <None Include="app.config" />
+    <None Include="install.ps1" />
+    <Content Include="project.json" />
+    <None Include="Text.Analyzers.nuspec" />
+    <None Include="ThirdPartyNotices.rtf" />
+    <Content Include="Text.Analyzers.props">
+      <SubType>Designer</SubType>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
-    <None Include="app.config" />
-    <Content Include="project.json" />
+    <None Include="uninstall.ps1" />
   </ItemGroup>
-  <ItemGroup />
   <ItemGroup>
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="CSharpIdentifiersShouldBeSpelledCorrectly.cs" />
-    <Compile Include="CSharpIdentifiersShouldBeSpelledCorrectly.Fixer.cs" />
+    <Compile Include="TextAnalyzersResources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>TextAnalyzersResources.resx</DependentUpon>
+    </Compile>
+    <Compile Include="IdentifiersShouldBeSpelledCorrectly.cs" />
+    <Compile Include="IdentifiersShouldBeSpelledCorrectly.Fixer.cs" />
+    <Compile Include="DiagnosticCategory.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="TextAnalyzersResources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>TextAnalyzersResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Dependencies\CodeAnalysis\CodeAnalysis.csproj">
+      <Project>{434fa01f-b8cb-41f7-88d1-7906003f23bc}</Project>
+      <Name>CodeAnalysis</Name>
+    </ProjectReference>
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\Analyzers.Imports.targets" />

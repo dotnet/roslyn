@@ -1,11 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Linq;
+using System;
 using System.Collections.Immutable;
-using Microsoft.CodeAnalysis.Analyzers;
-using Microsoft.CodeAnalysis.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
+using System.Linq;
 using Analyzer.Utilities;
+using Microsoft.CodeAnalysis.Analyzers;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp.Analyzers
 {
@@ -17,7 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
         private static readonly LocalizableString s_localizableMessage = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationMessage), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
         private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotIgnoreReturnValueOnImmutableObjectMethodInvocationDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources));
 
-        public static DiagnosticDescriptor DoNotIgnoreReturnValueDiagnosticRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor DoNotIgnoreReturnValueDiagnosticRule = new DiagnosticDescriptor(
             DiagnosticIds.DoNotIgnoreReturnValueOnImmutableObjectMethodInvocation,
             s_localizableTitle,
             s_localizableMessage,
@@ -29,32 +30,30 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
 
         public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DoNotIgnoreReturnValueDiagnosticRule);
 
-        private static readonly string s_solutionFullName = @"Microsoft.CodeAnalysis.Solution";
-        private static readonly string s_projectFullName = @"Microsoft.CodeAnalysis.Project";
-        private static readonly string s_documentFullName = @"Microsoft.CodeAnalysis.Document";
-        private static readonly string s_syntaxNodeFullName = @"Microsoft.CodeAnalysis.SyntaxNode";
-        private static readonly string s_compilationFullName = @"Microsoft.CodeAnalysis.Compilation";
-
-        private static readonly string s_Add = "Add";
-        private static readonly string s_Remove = "Remove";
-        private static readonly string s_Replace = "Replace";
-        private static readonly string s_With = "With";
+        private const string SolutionFullName = @"Microsoft.CodeAnalysis.Solution";
+        private const string ProjectFullName = @"Microsoft.CodeAnalysis.Project";
+        private const string DocumentFullName = @"Microsoft.CodeAnalysis.Document";
+        private const string SyntaxNodeFullName = @"Microsoft.CodeAnalysis.SyntaxNode";
+        private const string CompilationFullName = @"Microsoft.CodeAnalysis.Compilation";
 
         private static readonly ImmutableArray<string> s_immutableMethodNames = ImmutableArray.Create(
-            s_Add,
-            s_Remove,
-            s_Replace,
-            s_With);
+            "Add",
+            "Remove",
+            "Replace",
+            "With");
 
         public override void Initialize(AnalysisContext context)
         {
+            context.EnableConcurrentExecution();
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None);
+
             context.RegisterCompilationStartAction(compilationContext =>
             {
-                INamedTypeSymbol solutionSymbol = compilationContext.Compilation.GetTypeByMetadataName(s_solutionFullName);
-                INamedTypeSymbol projectSymbol = compilationContext.Compilation.GetTypeByMetadataName(s_projectFullName);
-                INamedTypeSymbol documentSymbol = compilationContext.Compilation.GetTypeByMetadataName(s_documentFullName);
-                INamedTypeSymbol syntaxNodeSymbol = compilationContext.Compilation.GetTypeByMetadataName(s_syntaxNodeFullName);
-                INamedTypeSymbol compilationSymbol = compilationContext.Compilation.GetTypeByMetadataName(s_compilationFullName);
+                INamedTypeSymbol solutionSymbol = compilationContext.Compilation.GetTypeByMetadataName(SolutionFullName);
+                INamedTypeSymbol projectSymbol = compilationContext.Compilation.GetTypeByMetadataName(ProjectFullName);
+                INamedTypeSymbol documentSymbol = compilationContext.Compilation.GetTypeByMetadataName(DocumentFullName);
+                INamedTypeSymbol syntaxNodeSymbol = compilationContext.Compilation.GetTypeByMetadataName(SyntaxNodeFullName);
+                INamedTypeSymbol compilationSymbol = compilationContext.Compilation.GetTypeByMetadataName(CompilationFullName);
 
                 ImmutableArray<INamedTypeSymbol> immutableSymbols = ImmutableArray.Create(solutionSymbol, projectSymbol, documentSymbol, syntaxNodeSymbol, compilationSymbol);
                 //Only register our node action if we can find the symbols for our immutable types
@@ -62,6 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
                 {
                     return;
                 }
+
                 compilationContext.RegisterSyntaxNodeAction(sc => AnalyzeInvocationForIgnoredReturnValue(sc, immutableSymbols), SyntaxKind.InvocationExpression);
             });
         }
@@ -86,7 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
 
             //If the method doesn't start with something like "With" or "Replace", quit
             string methodName = methodSymbol.Name;
-            if (!s_immutableMethodNames.Any(n => methodName.StartsWith(n)))
+            if (!s_immutableMethodNames.Any(n => methodName.StartsWith(n, StringComparison.Ordinal)))
             {
                 return;
             }
@@ -98,7 +98,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers
                 return;
             }
 
-            System.Collections.Generic.List<INamedTypeSymbol> baseTypesAndSelf = methodSymbol.ReceiverType.GetBaseTypes().ToList();
+            var baseTypesAndSelf = methodSymbol.ReceiverType.GetBaseTypes().ToList();
             baseTypesAndSelf.Add(parentType);
 
             if (!baseTypesAndSelf.Any(n => immutableTypeSymbols.Contains(n)))

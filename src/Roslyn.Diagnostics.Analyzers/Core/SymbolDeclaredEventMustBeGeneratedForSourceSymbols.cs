@@ -41,6 +41,12 @@ namespace Roslyn.Diagnostics.Analyzers
 
         public sealed override void Initialize(AnalysisContext context)
         {
+            // TODO: Make the analyzer thread-safe
+            //context.EnableConcurrentExecution();
+
+            // We need to analyze generated code, but don't intend to report diagnostics on generated code.
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze);
+
             context.RegisterCompilationStartAction(compilationContext =>
             {
                 INamedTypeSymbol symbolType = compilationContext.Compilation.GetTypeByMetadataName(s_fullNameOfSymbol);
@@ -94,7 +100,7 @@ namespace Roslyn.Diagnostics.Analyzers
 
             internal virtual void AnalyzeMethodInvocation(IMethodSymbol invocationSymbol, SyntaxNodeAnalysisContext context)
             {
-                if (invocationSymbol.Name.Equals(SymbolDeclaredEventName) &&
+                if (invocationSymbol.Name.Equals(SymbolDeclaredEventName, StringComparison.Ordinal) &&
                     _compilationType.Equals(invocationSymbol.ContainingType))
                 {
                     SyntaxNode argument = GetFirstArgumentOfInvocation(context.Node);
@@ -117,7 +123,7 @@ namespace Roslyn.Diagnostics.Analyzers
             {
                 if (type != null &&
                     type.Kind == SymbolKind.NamedType &&
-                    !type.Name.Equals("Symbol"))
+                    !type.Name.Equals("Symbol", StringComparison.Ordinal))
                 {
                     var namedType = (INamedTypeSymbol)type;
                     if (namedType.AllInterfaces.Contains(_symbolType))

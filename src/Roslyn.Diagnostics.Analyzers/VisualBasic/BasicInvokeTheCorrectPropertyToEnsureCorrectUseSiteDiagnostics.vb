@@ -1,8 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports System.Runtime.InteropServices
-Imports System.Threading
 Imports Analyzer.Utilities
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -27,15 +25,18 @@ Namespace Roslyn.Diagnostics.Analyzers
                                                                              Nothing,
                                                                              WellKnownDiagnosticTags.Telemetry)
 
-        Private Shared ReadOnly s_propertiesToValidateMap As Dictionary(Of String, String) = New Dictionary(Of String, String)(StringComparer.OrdinalIgnoreCase) From
+        Private Shared ReadOnly s_propertiesToValidateMap As ImmutableDictionary(Of String, String) = New Dictionary(Of String, String)(StringComparer.OrdinalIgnoreCase) From
                 {
                     {s_baseTypeString, s_typeSymbolFullyQualifiedName},
                     {s_interfacesString, s_typeSymbolFullyQualifiedName},
                     {s_allInterfacesString, s_typeSymbolFullyQualifiedName},
                     {s_typeArgumentsString, s_namedTypeSymbolFullyQualifiedName},
                     {s_constraintTypesString, s_typeParameterSymbolFullyQualifiedName}
-                }
+                }.ToImmutableDictionary()
 
+        ' CA1823: AvoidUnusedPrivateFieldsAnalyzer 
+        ' TODO: Remove the below suppression once https://github.com/dotnet/roslyn-analyzers/issues/933 is fixed.
+#Disable Warning CA1823
         Private Const s_baseTypeString = "BaseType"
         Private Const s_interfacesString = "Interfaces"
         Private Const s_allInterfacesString = "AllInterfaces"
@@ -45,6 +46,7 @@ Namespace Roslyn.Diagnostics.Analyzers
         Private Const s_typeSymbolFullyQualifiedName = "Microsoft.CodeAnalysis.VisualBasic.Symbols.TypeSymbol"
         Private Const s_namedTypeSymbolFullyQualifiedName = "Microsoft.CodeAnalysis.VisualBasic.Symbols.NamedTypeSymbol"
         Private Const s_typeParameterSymbolFullyQualifiedName = "Microsoft.CodeAnalysis.VisualBasic.Symbols.TypeParameterSymbol"
+#Enable Warning CA1823
 
         Public Overrides ReadOnly Property SupportedDiagnostics As ImmutableArray(Of DiagnosticDescriptor)
             Get
@@ -53,10 +55,13 @@ Namespace Roslyn.Diagnostics.Analyzers
         End Property
 
         Public Overrides Sub Initialize(context As AnalysisContext)
-            context.RegisterSyntaxNodeAction(Of SyntaxKind)(AddressOf AnalyzeNode, SyntaxKind.SimpleMemberAccessExpression)
+            context.EnableConcurrentExecution()
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.None)
+
+            context.RegisterSyntaxNodeAction(AddressOf AnalyzeNode, SyntaxKind.SimpleMemberAccessExpression)
         End Sub
 
-        Private Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
+        Private Shared Sub AnalyzeNode(context As SyntaxNodeAnalysisContext)
             Dim name = DirectCast(context.Node, MemberAccessExpressionSyntax).Name
             If name.Kind = SyntaxKind.IdentifierName Then
                 Dim identifier = DirectCast(name, IdentifierNameSyntax)

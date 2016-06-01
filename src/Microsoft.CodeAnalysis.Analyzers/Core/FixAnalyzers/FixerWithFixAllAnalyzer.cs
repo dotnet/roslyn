@@ -20,8 +20,8 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
     public abstract class FixerWithFixAllAnalyzer<TLanguageKindEnum> : DiagnosticAnalyzer
         where TLanguageKindEnum : struct
     {
-        private static readonly string s_codeFixProviderMetadataName = "Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider";
-        private static readonly string s_codeActionMetadataName = "Microsoft.CodeAnalysis.CodeActions.CodeAction";
+        private const string CodeFixProviderMetadataName = "Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider";
+        private const string CodeActionMetadataName = "Microsoft.CodeAnalysis.CodeActions.CodeAction";
         private const string GetFixAllProviderMethodName = "GetFixAllProvider";
         private const string CreateMethodName = "Create";
         private const string EquivalenceKeyPropertyName = "EquivalenceKey";
@@ -62,6 +62,12 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
 
         public override void Initialize(AnalysisContext context)
         {
+            // TODO: Make analyzer thread-safe.
+            //context.EnableConcurrentExecution();
+
+            // We need to analyze generated code, but don't intend to report diagnostics on generated code.
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze);
+
             context.RegisterCompilationStartAction(CreateAnalyzerWithinCompilation);
         }
 
@@ -69,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
         {
             context.CancellationToken.ThrowIfCancellationRequested();
 
-            INamedTypeSymbol codeFixProviderSymbol = context.Compilation.GetTypeByMetadataName(s_codeFixProviderMetadataName);
+            INamedTypeSymbol codeFixProviderSymbol = context.Compilation.GetTypeByMetadataName(CodeFixProviderMetadataName);
             if (codeFixProviderSymbol == null)
             {
                 return;
@@ -81,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                 return;
             }
 
-            INamedTypeSymbol codeActionSymbol = context.Compilation.GetTypeByMetadataName(s_codeActionMetadataName);
+            INamedTypeSymbol codeActionSymbol = context.Compilation.GetTypeByMetadataName(CodeActionMetadataName);
             if (codeActionSymbol == null)
             {
                 return;
@@ -324,7 +330,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                     {
                         foreach (NodeAndSymbol nodeAndSymbol in nodeAndSymbolSet)
                         {
-                            if (IsViolatingCodeActionObjectCreation(nodeAndSymbol.Node, nodeAndSymbol.Symbol))
+                            if (IsViolatingCodeActionObjectCreation(nodeAndSymbol.Symbol))
                             {
                                 Diagnostic diagnostic = Diagnostic.Create(OverrideCodeActionEquivalenceKeyRule, nodeAndSymbol.Node.GetLocation(), nodeAndSymbol.Symbol.ContainingType, EquivalenceKeyPropertyName);
                                 context.ReportDiagnostic(diagnostic);
@@ -346,7 +352,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.FixAnalyzers
                 return !HasNonNullArgumentForParameter(invocation, param, index, model, cancellationToken);
             }
 
-            private bool IsViolatingCodeActionObjectCreation(SyntaxNode objectCreation, IMethodSymbol constructor)
+            private bool IsViolatingCodeActionObjectCreation(IMethodSymbol constructor)
             {
                 return _codeActionsWithEquivalenceKey == null ||
                     !constructor.ContainingType.GetBaseTypesAndThis().Any(_codeActionsWithEquivalenceKey.Contains);

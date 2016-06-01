@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Analyzers.FixAnalyzers
     {
         #region CSharp tests
 
-        private static readonly string s_CSharpCustomCodeActions = @"
+        private const string CSharpCustomCodeActions = @"
 public class MyCodeActionNoEquivalenceKey : CodeAction
 {
     public override string Title
@@ -56,7 +56,7 @@ public class MyCodeActionWithEquivalenceKey : CodeAction
 
             if (withCustomCodeActions)
             {
-                sourceSuffix = sourceSuffix + s_CSharpCustomCodeActions;
+                sourceSuffix = sourceSuffix + CSharpCustomCodeActions;
             }
 
             // Verify expected diagnostics for fixer that supports FixAllProvider.
@@ -102,7 +102,7 @@ class C1 : CodeFixProvider
     }
 ";
 
-            var expected = new DiagnosticResult[]
+            var expected = new[]
             {
                 // Test0.cs(21,29): warning RS1010: Provide an explicit argument for optional parameter 'equivalenceKey', which is non-null and unique across all code actions created by this fixer.
                 GetCSharpCodeActionCreateExpectedDiagnostic(21, 29),
@@ -198,7 +198,7 @@ class C1 : CodeFixProvider
     }
 ";
 
-            var expected = new DiagnosticResult[]
+            var expected = new[]
             {
                 // Test0.cs(20,26): warning RS1011: 'MyCodeActionNoEquivalenceKey' has the default value of 'null' for property 'EquivalenceKey'. Either override this property on 'MyCodeActionNoEquivalenceKey' to return a non-null and unique value across all code actions per-fixer or use such an existing code action.
                 GetCSharpCustomCodeActionExpectedDiagnostic(20, 26, "MyCodeActionNoEquivalenceKey")
@@ -247,7 +247,7 @@ class C1 : CodeFixProvider
 
         #region VisualBasic tests
 
-        private static readonly string s_VisualBasicCustomCodeActions = @"
+        private const string VisualBasicCustomCodeActions = @"
 
 Public Class MyCodeActionNoEquivalenceKey
 	Inherits CodeAction
@@ -286,7 +286,7 @@ End Class
 
             if (withCustomCodeActions)
             {
-                sourceSuffix = sourceSuffix + s_VisualBasicCustomCodeActions;
+                sourceSuffix = sourceSuffix + VisualBasicCustomCodeActions;
             }
 
             // Verify expected diagnostics for fixer that supports FixAllProvider.
@@ -329,7 +329,7 @@ Class C1
 	End Function
 ";
 
-            var expected = new DiagnosticResult[]
+            var expected = new[]
             {
                 // Test0.vb(18,23): warning RS1010: Provide an explicit argument for optional parameter 'equivalenceKey', which is non-null and unique across all code actions created by this fixer.
                 GetBasicCodeActionCreateExpectedDiagnostic(18, 23),
@@ -418,7 +418,7 @@ Class C1
 	End Function
 ";
 
-            var expected = new DiagnosticResult[]
+            var expected = new[]
             {
                 // Test0.vb(17,20): warning RS1011: 'MyCodeActionNoEquivalenceKey' has the default value of 'null' for property 'EquivalenceKey'. Either override this property on 'MyCodeActionNoEquivalenceKey' to return a non-null and unique value across all code actions per-fixer or use such an existing code action.
                 GetBasicCustomCodeActionExpectedDiagnostic(17, 20, "MyCodeActionNoEquivalenceKey")

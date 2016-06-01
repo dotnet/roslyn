@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Immutable;
 using System.Threading;
 using Microsoft.CodeAnalysis.Analyzers.FixAnalyzers;
@@ -52,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.FixAnalyzers
                     if (argument.NameColon != null)
                     {
                         seenNamedArgument = true;
-                        if (parameter.Name.Equals(argument.NameColon.Name.Identifier.ValueText))
+                        if (parameter.Name.Equals(argument.NameColon.Name.Identifier.ValueText, StringComparison.Ordinal))
                         {
                             return !HasNullConstantValue(argument.Expression, model, cancellationToken);
                         }

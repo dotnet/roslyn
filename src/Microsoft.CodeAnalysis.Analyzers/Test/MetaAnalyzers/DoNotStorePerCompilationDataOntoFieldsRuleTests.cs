@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.VisualBasic;
 using Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers;
 using Xunit;
@@ -23,6 +24,7 @@ using System.Collections.Immutable;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Semantics;
 using MyNamedType = Microsoft.CodeAnalysis.INamedTypeSymbol;
 
 class MyCompilation : Compilation
@@ -36,6 +38,7 @@ class MyAnalyzer : DiagnosticAnalyzer
     public static readonly CSharpCompilation x2;
     private readonly List<MyNamedType> x3;
     private static Dictionary<MyCompilation, MyNamedType> x4;
+    private static readonly IBinaryOperatorExpression x5;
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
     {
@@ -51,10 +54,11 @@ class MyAnalyzer : DiagnosticAnalyzer
 }";
             DiagnosticResult[] expected = new[]
             {
-                GetCSharpExpectedDiagnostic(17, 29, violatingTypeName: typeof(ITypeSymbol).FullName),
-                GetCSharpExpectedDiagnostic(18, 28, violatingTypeName: typeof(CSharpCompilation).FullName),
-                GetCSharpExpectedDiagnostic(19, 27, violatingTypeName: typeof(INamedTypeSymbol).FullName),
-                GetCSharpExpectedDiagnostic(20, 31, violatingTypeName: "MyCompilation")
+                GetCSharpExpectedDiagnostic(18, 29, violatingTypeName: typeof(ITypeSymbol).FullName),
+                GetCSharpExpectedDiagnostic(19, 28, violatingTypeName: typeof(CSharpCompilation).FullName),
+                GetCSharpExpectedDiagnostic(20, 27, violatingTypeName: typeof(INamedTypeSymbol).FullName),
+                GetCSharpExpectedDiagnostic(21, 31, violatingTypeName: "MyCompilation"),
+                GetCSharpExpectedDiagnostic(22, 29, violatingTypeName: typeof(IBinaryOperatorExpression).FullName)
             };
 
             VerifyCSharp(source, expected);
@@ -68,6 +72,7 @@ Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
+Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports MyNamedType = Microsoft.CodeAnalysis.INamedTypeSymbol
 
@@ -83,6 +88,7 @@ Class MyAnalyzer
     Public Shared ReadOnly x2 As VisualBasicCompilation
     Private ReadOnly x3 As List(Of MyNamedType)
     Private Shared x4 As Dictionary(Of MyCompilation, MyNamedType)
+    Private Shared ReadOnly x5 As IBinaryOperatorExpression
 
     Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
         Get
@@ -96,10 +102,11 @@ End Class
 ";
             DiagnosticResult[] expected = new[]
             {
-                GetBasicExpectedDiagnostic(17, 35, violatingTypeName: typeof(ITypeSymbol).FullName),
-                GetBasicExpectedDiagnostic(18, 34, violatingTypeName: typeof(VisualBasicCompilation).FullName),
-                GetBasicExpectedDiagnostic(19, 36, violatingTypeName: typeof(INamedTypeSymbol).FullName),
-                GetBasicExpectedDiagnostic(20, 40, violatingTypeName: "MyCompilation")
+                GetBasicExpectedDiagnostic(18, 35, violatingTypeName: typeof(ITypeSymbol).FullName),
+                GetBasicExpectedDiagnostic(19, 34, violatingTypeName: typeof(VisualBasicCompilation).FullName),
+                GetBasicExpectedDiagnostic(20, 36, violatingTypeName: typeof(INamedTypeSymbol).FullName),
+                GetBasicExpectedDiagnostic(21, 40, violatingTypeName: "MyCompilation"),
+                GetBasicExpectedDiagnostic(22, 35, violatingTypeName: typeof(IBinaryOperatorExpression).FullName)
             };
 
             VerifyBasic(source, expected);

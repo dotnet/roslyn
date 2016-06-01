@@ -19,8 +19,9 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
         private static readonly LocalizableString s_localizableDescription = new LocalizableResourceString(nameof(CodeAnalysisDiagnosticsResources.DoNotStorePerCompilationDataOntoFieldsDescription), CodeAnalysisDiagnosticsResources.ResourceManager, typeof(CodeAnalysisDiagnosticsResources), nameof(AnalysisContext), DiagnosticAnalyzerCorrectnessAnalyzer.RegisterCompilationStartActionName);
         private static readonly string s_compilationTypeFullName = typeof(Compilation).FullName;
         private static readonly string s_symbolTypeFullName = typeof(ISymbol).FullName;
+        private static readonly string s_operationTypeFullName = typeof(IOperation).FullName;
 
-        public static DiagnosticDescriptor DoNotStorePerCompilationDataOntoFieldsRule = new DiagnosticDescriptor(
+        public static readonly DiagnosticDescriptor DoNotStorePerCompilationDataOntoFieldsRule = new DiagnosticDescriptor(
             DiagnosticIds.DoNotStorePerCompilationDataOntoFieldsRuleId,
             s_localizableTitle,
             s_localizableMessage,
@@ -55,19 +56,27 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
                 return null;
             }
 
-            return new FieldsAnalyzer(compilationType, symbolType, diagnosticAnalyzer, diagnosticAnalyzerAttribute);
+            INamedTypeSymbol operationType = compilation.GetTypeByMetadataName(s_operationTypeFullName);
+            if (operationType == null)
+            {
+                return null;
+            }
+
+            return new FieldsAnalyzer(compilationType, symbolType, operationType, diagnosticAnalyzer, diagnosticAnalyzerAttribute);
         }
 
         private sealed class FieldsAnalyzer : SyntaxNodeWithinAnalyzerTypeCompilationAnalyzer<TClassDeclarationSyntax, TFieldDeclarationSyntax>
         {
             private readonly INamedTypeSymbol _compilationType;
             private readonly INamedTypeSymbol _symbolType;
+            private readonly INamedTypeSymbol _operationType;
 
-            public FieldsAnalyzer(INamedTypeSymbol compilationType, INamedTypeSymbol symbolType, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
+            public FieldsAnalyzer(INamedTypeSymbol compilationType, INamedTypeSymbol symbolType, INamedTypeSymbol operationType, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
                 : base(diagnosticAnalyzer, diagnosticAnalyzerAttribute)
             {
                 _compilationType = compilationType;
                 _symbolType = symbolType;
+                _operationType = operationType;
             }
 
             protected override void AnalyzeDiagnosticAnalyzer(SymbolAnalysisContext symbolContext)
@@ -105,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
                         foreach (INamedTypeSymbol iface in type.AllInterfaces)
                         {
-                            if (iface.Equals(_symbolType))
+                            if (iface.Equals(_symbolType) || iface.Equals(_operationType))
                             {
                                 ReportDiagnostic(type, typeNode, symbolContext);
                                 return;

@@ -44,6 +44,11 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
 
         public override void Initialize(AnalysisContext context)
         {
+            // CONSIDER: Make all the subtypes thread safe to enable concurrent analyzer callbacks.
+            //context.EnableConcurrentExecution();
+
+            context.ConfigureGeneratedCodeAnalysis(GeneratedCodeAnalysisFlags.Analyze);
+
             context.RegisterCompilationStartAction(compilationContext =>
             {
                 INamedTypeSymbol diagnosticAnalyzer = compilationContext.Compilation.GetTypeByMetadataName(DiagnosticAnalyzerTypeFullName);

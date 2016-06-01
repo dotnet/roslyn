@@ -11,8 +11,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CSharpRegisterActionAnalyzer : RegisterActionAnalyzer<ClassDeclarationSyntax, InvocationExpressionSyntax, ArgumentSyntax, SyntaxKind>
     {
-        internal static readonly string CSharpSyntaxKindName = typeof(SyntaxKind).FullName;
-        internal static readonly string BasicSyntaxKindName = @"Microsoft.CodeAnalysis.VisualBasic.SyntaxKind";
+        internal const string CSharpSyntaxKindName = @"Microsoft.CodeAnalysis.CSharp.SyntaxKind";
+        internal const string BasicSyntaxKindName = @"Microsoft.CodeAnalysis.VisualBasic.SyntaxKind";
 
         protected override RegisterActionCodeBlockAnalyzer GetCodeBlockAnalyzer(
             Compilation compilation,
@@ -20,14 +20,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
             INamedTypeSymbol compilationStartAnalysisContext,
             INamedTypeSymbol codeBlockStartAnalysisContext,
             INamedTypeSymbol operationBlockStartAnalysisContext,
-            INamedTypeSymbol symbolKind,
-            INamedTypeSymbol diagnosticAnalyzer,
-            INamedTypeSymbol diagnosticAnalyzerAttribute)
+            INamedTypeSymbol symbolKind)
         {
             INamedTypeSymbol csharpSyntaxKind = compilation.GetTypeByMetadataName(CSharpSyntaxKindName);
             INamedTypeSymbol basicSyntaxKind = compilation.GetTypeByMetadataName(BasicSyntaxKindName);
             return new CSharpRegisterActionCodeBlockAnalyzer(csharpSyntaxKind, basicSyntaxKind, analysisContext, compilationStartAnalysisContext,
-                codeBlockStartAnalysisContext, operationBlockStartAnalysisContext, symbolKind, diagnosticAnalyzer, diagnosticAnalyzerAttribute);
+                codeBlockStartAnalysisContext, operationBlockStartAnalysisContext, symbolKind);
         }
 
         private sealed class CSharpRegisterActionCodeBlockAnalyzer : RegisterActionCodeBlockAnalyzer
@@ -41,10 +39,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
                 INamedTypeSymbol compilationStartAnalysisContext,
                 INamedTypeSymbol codeBlockStartAnalysisContext,
                 INamedTypeSymbol operationBlockStartAnalysisContext,
-                INamedTypeSymbol symbolKind,
-                INamedTypeSymbol diagnosticAnalyzer,
-                INamedTypeSymbol diagnosticAnalyzerAttribute)
-                : base(analysisContext, compilationStartAnalysisContext, codeBlockStartAnalysisContext, operationBlockStartAnalysisContext, symbolKind, diagnosticAnalyzer, diagnosticAnalyzerAttribute)
+                INamedTypeSymbol symbolKind)
+                : base(analysisContext, compilationStartAnalysisContext, codeBlockStartAnalysisContext, operationBlockStartAnalysisContext, symbolKind)
             {
                 _csharpSyntaxKind = csharpSyntaxKind;
                 _basicSyntaxKind = basicSyntaxKind;
