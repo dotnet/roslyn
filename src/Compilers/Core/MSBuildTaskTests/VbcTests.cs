@@ -107,6 +107,31 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
+        public void AdditionalArgumentsOption()
+        {
+            var vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.AdditionalArguments = "/publicsign+";
+            Assert.Equal("/optionstrict:custom /out:test.exe test.vb /publicsign+", vbc.GenerateResponseFileContents());
+
+            vbc.PublicSign = false;
+            // "AdditionalArguments" should go at the end (except if there's a response file)
+            Assert.Equal("/optionstrict:custom /out:test.exe /publicsign- test.vb /publicsign+", vbc.GenerateResponseFileContents());
+            vbc.ResponseFiles = MSBuildUtil.CreateTaskItems("test.rsp");
+            Assert.Equal("/optionstrict:custom /out:test.exe /publicsign- test.vb /publicsign+ @test.rsp", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.AdditionalArguments = null;
+            Assert.Equal("/optionstrict:custom /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+
+            vbc = new Vbc();
+            vbc.Sources = MSBuildUtil.CreateTaskItems("test.vb");
+            vbc.AdditionalArguments = "";
+            Assert.Equal("/optionstrict:custom /out:test.exe test.vb", vbc.GenerateResponseFileContents());
+        }
+
+        [Fact]
         public void TargetTypeDll()
         {
             var vbc = new Vbc();

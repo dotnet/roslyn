@@ -110,6 +110,31 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
         }
 
         [Fact]
+        public void AdditionalArgumentsOption()
+        {
+            var csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.AdditionalArguments = "/publicsign+";
+            Assert.Equal("/out:test.exe test.cs /publicsign+", csc.GenerateResponseFileContents());
+
+            csc.PublicSign = false;
+            // "AdditionalArguments" should go at the end (except if there's a response file)
+            Assert.Equal("/out:test.exe /publicsign- test.cs /publicsign+", csc.GenerateResponseFileContents());
+            csc.ResponseFiles = MSBuildUtil.CreateTaskItems("test.rsp");
+            Assert.Equal("/out:test.exe /publicsign- test.cs /publicsign+ @test.rsp", csc.GenerateResponseFileContents());
+
+            csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.AdditionalArguments = null;
+            Assert.Equal("/out:test.exe test.cs", csc.GenerateResponseFileContents());
+
+            csc = new Csc();
+            csc.Sources = MSBuildUtil.CreateTaskItems("test.cs");
+            csc.AdditionalArguments = "";
+            Assert.Equal("/out:test.exe test.cs", csc.GenerateResponseFileContents());
+        }
+
+        [Fact]
         public void TargetTypeDll()
         {
             var csc = new Csc();

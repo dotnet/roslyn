@@ -56,6 +56,7 @@
     <Vbc  Condition=" '%(_CoreCompileResourceInputs.WithCulture)' != 'true' "
           AdditionalLibPaths="$(AdditionalLibPaths)"
           AddModules="@(AddModules)"
+          AdditionalArguments="$(VbcAdditionalArguments)"
           AdditionalFiles="@(AdditionalFiles)"
           Analyzers="@(Analyzer)"
           BaseAddress="$(BaseAddress)"

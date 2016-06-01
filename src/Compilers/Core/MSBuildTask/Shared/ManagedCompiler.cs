@@ -45,6 +45,12 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             get { return (string[])_store[nameof(AddModules)]; }
         }
 
+        public string AdditionalArguments
+        {
+            set { _store[nameof(AdditionalArguments)] = value; }
+            get { return (string)_store[nameof(AdditionalArguments)]; }
+        }
+
         public ITaskItem[] AdditionalFiles
         {
             set { _store[nameof(AdditionalFiles)] = value; }
@@ -707,6 +713,19 @@ namespace Microsoft.CodeAnalysis.BuildTasks
             commandLine.AppendSwitchIfNotNull("/checksumalgorithm:", ChecksumAlgorithm);
 
             AddFeatures(commandLine, Features);
+        }
+
+        /// <summary>
+        /// Adds arguments passed as "AdditionalArguments" to the command line.
+        /// It should be done near the end of command line construction to allow
+        /// "AdditionalArguments" the flexibility to override earlier switches.
+        /// </summary>
+        protected void AddAdditionalArguments(CommandLineBuilderExtension commandLine)
+        {
+            if (!string.IsNullOrWhiteSpace(AdditionalArguments))
+            {
+                commandLine.AppendSwitch(AdditionalArguments);
+            }
         }
 
         /// <summary>
