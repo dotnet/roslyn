@@ -149,7 +149,7 @@ NewLines("Class SomeClass \n Sub Foo(Of [|SomeClass|])(x As SomeClass) \n End Su
 NewLines("Class SomeClass \n Sub Foo(Of SomeClass)(x As [|SomeClass|]) \n End Sub \n End Class \n Namespace SomeNamespace \n Class SomeClass \n End Class \n End Namespace"))
         End Function
 
-        <WorkItem(540543, "http//vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540543")>
+        <WorkItem(540543, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540543")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestCaseSensitivity1() As Task
             Await TestAsync(
@@ -226,7 +226,7 @@ NewLines("Imports System \n Namespace NS \n Class Foo \n Sub Test() \n Dim x As 
 NewLines("Imports System \n Imports System.Collections.Generic \n Namespace NS \n Class Foo \n Sub Test() \n Dim x As New List(Of Integer) \n End Sub \n End Class \n End Namespace"))
         End Function
 
-        <WorkItem(540519, "http//vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540519")>
+        <WorkItem(540519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540519")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestCodeIssueCountInExistingUsing() As Task
             Await TestActionCountAsync(
@@ -234,7 +234,7 @@ NewLines("Imports System.Collections.Generic \n Namespace NS \n Class Foo \n Fun
 count:=1)
         End Function
 
-        <WorkItem(540519, "http//vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540519")>
+        <WorkItem(540519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540519")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestFixInExistingUsing() As Task
             Await TestAsync(
@@ -242,7 +242,7 @@ NewLines("Imports System.Collections.Generic \n Namespace NS \n Class Foo \n Fun
 NewLines("Imports System.Collections \n Imports System.Collections.Generic \n Namespace NS \n Class Foo \n Function Test() As IDictionary \n End Function \n End Class \n End Namespace"))
         End Function
 
-        <WorkItem(541731, "http//vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541731")>
+        <WorkItem(541731, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541731")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestGenericExtensionMethod() As Task
             Await TestAsync(
@@ -257,7 +257,7 @@ NewLines("Imports System \n Imports System.Collections.Generic \n Imports System
 NewLines("Imports System \n Imports System.Collections.Generic \n Imports System.IO \n Imports System.Linq \n Module Program \n Sub Main(args As String(), f As FileMode) \n End Sub \n End Module"))
         End Function
 
-        <WorkItem(540519, "http//vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540519")>
+        <WorkItem(540519, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540519")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestAddWithExistingConflictWithDifferentArity() As Task
             Await TestAsync(
@@ -265,7 +265,7 @@ NewLines("Imports System.Collections.Generic \n Namespace NS \n Class Foo \n Fun
 NewLines("Imports System.Collections \n Imports System.Collections.Generic \n Namespace NS \n Class Foo \n Function Test() As IDictionary \n End Function \n End Class \n End Namespace"))
         End Function
 
-        <WorkItem(540673, "http//vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540673")>
+        <WorkItem(540673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540673")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestImportNamespace() As Task
             Await TestAsync(
@@ -280,7 +280,7 @@ NewLines("Class FOo \n Sub bar() \n Dim q As [|innernamespace|].someClass \n End
 NewLines("Imports SomeNamespace \n Class FOo \n Sub bar() \n Dim q As InnerNamespace.SomeClass \n End Sub \n End Class \n Namespace SomeNamespace \n Namespace InnerNamespace \n Class SomeClass \n End Class \n End Namespace \n End Namespace"))
         End Function
 
-        <WorkItem(540745, "http//vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540745")>
+        <WorkItem(540745, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/540745")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestCaseSensitivity3() As Task
             Await TestAsync(
@@ -288,7 +288,7 @@ NewLines("Module Program \n Sub Main(args As String()) \n Dim x As [|foo|] \n En
 NewLines("Imports OUTER.INNER \n Module Program \n Sub Main(args As String()) \n Dim x As FOO \n End Sub \n End Module \n Namespace OUTER \n Namespace INNER \n Friend Class FOO \n End Class \n End Namespace \n End Namespace"))
         End Function
 
-        <WorkItem(541746, "http//vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541746")>
+        <WorkItem(541746, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541746")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestAddBlankLineAfterLastImports() As Task
             Await TestAsync(
@@ -345,14 +345,14 @@ NewLines("Imports System.Collections.Generic \n Class Program \n Public Sub Linq
 NewLines("Imports System.Collections.Generic \n Imports System.Linq \n Class Program \n Public Sub Linq1() \n Dim numbers() As Integer = New Integer(9) {5, 4, 1, 3, 9, 8, 6, 7, 2, 0} \n Dim greaterNums = Aggregate n In numbers \n Into greaterThan5 = All(n > 5) \n End Sub \n End Class"))
         End Function
 
-        <WorkItem(543107, "http//vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543107")>
+        <WorkItem(543107, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543107")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestNoCrashOnMissingLeftSide() As Task
             Await TestMissingAsync(
 NewLines("Imports System \n Class C1 \n Sub foo() \n Dim s = .[|first|] \n End Sub \n End Class"))
         End Function
 
-        <WorkItem(544335, "http//vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544335")>
+        <WorkItem(544335, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544335")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestOnCallWithoutArgumentList() As Task
             Await TestAsync(
@@ -373,7 +373,7 @@ NewLines("#ExternalSource (""Default.aspx"", 1) \n Imports System \n Imports Sys
 NewLines("Imports System \n #ExternalSource (""Default.aspx"", 2) \n Class C \n Sub Foo() \n Dim x As New [|StreamReader|] \n #End ExternalSource \n End Sub \n End Class"))
         End Function
 
-        <WorkItem(546369, "http//vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546369")>
+        <WorkItem(546369, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546369")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestFormattingAfterImports() As Task
             Await TestAsync(
@@ -398,7 +398,7 @@ End Module
 compareTokens:=False)
         End Function
 
-        <WorkItem(775448, "http//vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")>
+        <WorkItem(775448, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/775448")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestShouldTriggerOnBC32045() As Task
             ' BC32045: 'A' has no type parameters and so cannot have type arguments.
@@ -422,7 +422,7 @@ index:=0,
 compareTokens:=False)
         End Function
 
-        <WorkItem(867425, "http//vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867425")>
+        <WorkItem(867425, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/867425")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestUnknownIdentifierInModule() As Task
             Await TestAsync(
@@ -430,7 +430,7 @@ compareTokens:=False)
     NewLines("Imports System.IO \n Module Foo \n Sub Bar(args As String()) \n Dim a = From f In args \n Let ext = Path \n End Sub \n End Module"))
         End Function
 
-        <WorkItem(872908, "http//vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/872908")>
+        <WorkItem(872908, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/872908")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestConflictedGenericName() As Task
             Await TestAsync(
@@ -438,7 +438,7 @@ compareTokens:=False)
     NewLines("Imports System.IO \n Module Foo \n Sub Bar(args As String()) \n Dim a = From f In args \n Let ext = Path \n End Sub \n End Module"))
         End Function
 
-        <WorkItem(838253, "http//vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838253")>
+        <WorkItem(838253, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/838253")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestConflictedInaccessibleType() As Task
             Await TestAsync(
@@ -446,7 +446,7 @@ compareTokens:=False)
     NewLines("Imports System.Diagnostics \n Imports N \n Namespace N \n Public Class Log \n End Class \n End Namespace \n Class C \n Public Function Foo() \n Log \n End Function \n End Class"), 1)
         End Function
 
-        <WorkItem(858085, "http//vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858085")>
+        <WorkItem(858085, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/858085")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestConflictedAttributeName() As Task
             Await TestAsync(
@@ -454,7 +454,7 @@ compareTokens:=False)
     NewLines("Imports System.ComponentModel \n <[|Description|]> Public Class Description \n End Class"))
         End Function
 
-        <WorkItem(772321, "http//vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")>
+        <WorkItem(772321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestExtensionWithThePresenceOfTheSameNameNonExtensionMethod() As Task
             Await TestAsync(
@@ -462,8 +462,8 @@ compareTokens:=False)
     NewLines("Option Strict On \n Imports System.Runtime.CompilerServices \n Imports NS2 \n Namespace NS1 \n Class Program \n Sub main() \n Dim c = New C() \n c.Foo(4) \n End Sub \n End Class \n Class C \n Sub Foo(ByVal m As String) \n End Sub \n End Class \n End Namespace \n Namespace NS2 \n Module A \n <Extension()> \n Sub Foo(ByVal ec As NS1.C, ByVal n As Integer) \n End Sub \n End Module \n End Namespace "))
         End Function
 
-        <WorkItem(772321, "http//vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")>
-        <WorkItem(920398, "http//vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/920398")>
+        <WorkItem(772321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")>
+        <WorkItem(920398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/920398")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestExtensionWithThePresenceOfTheSameNameNonExtensionPrivateMethod() As Task
             Await TestAsync(
@@ -471,8 +471,8 @@ compareTokens:=False)
     NewLines("Option Strict On \n Imports System.Runtime.CompilerServices \n Imports NS2 \n Namespace NS1 \n Class Program \n Sub main() \n Dim c = New C() \n c.Foo(4) \n End Sub \n End Class \n Class C \n Private Sub Foo(ByVal m As Integer) \n End Sub \n End Class \n End Namespace \n Namespace NS2 \n Module A \n <Extension()> \n Sub Foo(ByVal ec As NS1.C, ByVal n As Integer) \n End Sub \n End Module \n End Namespace "))
         End Function
 
-        <WorkItem(772321, "http//vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")>
-        <WorkItem(920398, "http//vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/920398")>
+        <WorkItem(772321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/772321")>
+        <WorkItem(920398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/920398")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestExtensionWithThePresenceOfTheSameNameExtensionPrivateMethod() As Task
             Await TestAsync(
@@ -480,7 +480,7 @@ compareTokens:=False)
     NewLines("Option Strict On \n Imports System.Runtime.CompilerServices \n Imports NS2 \n Imports NS3 \n Namespace NS1 \n Class Program \n Sub main() \n Dim c = New C() \n [|c.Foo(4)|] \n End Sub \n End Class \n Class C \n Sub Foo(ByVal m As String) \n End Sub \n End Class \n End Namespace \n Namespace NS2 \n Module A \n <Extension()> \n Private Sub Foo(ByVal ec As NS1.C, ByVal n As Integer) \n End Sub \n End Module \n End Namespace \n \n Namespace NS3 \n Module A \n <Extension()> \n Sub Foo(ByVal ec As NS1.C, ByVal n As Integer) \n End Sub \n End Module \n End Namespace "))
         End Function
 
-        <WorkItem(916368, "http//vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")>
+        <WorkItem(916368, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/916368")>
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
         Public Async Function TestAddImportForCref() As Task
             Dim initialText As String = NewLines("''' <summary>\n''' This is just like <see cref=[|""INotifyPropertyChanged""|]/>, but this one is mine.\n''' </summary>\nInterface IMyInterface\nEnd Interface")
