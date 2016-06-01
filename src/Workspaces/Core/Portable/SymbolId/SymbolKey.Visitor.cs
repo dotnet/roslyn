@@ -1,12 +1,8 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
@@ -71,9 +67,17 @@ namespace Microsoft.CodeAnalysis
 
             public override SymbolKey VisitNamedType(INamedTypeSymbol namedTypeSymbol)
             {
-                return namedTypeSymbol.TypeKind == TypeKind.Error
-                    ? new ErrorTypeSymbolKey(namedTypeSymbol, this)
-                    : (SymbolKey)new NamedTypeSymbolKey(namedTypeSymbol, this);
+                if (namedTypeSymbol.TypeKind == TypeKind.Error)
+                {
+                    return new ErrorTypeSymbolKey(namedTypeSymbol, this);
+                }
+
+                if (namedTypeSymbol.IsTupleType)
+                {
+                    return new TupleTypeSymbolKey(namedTypeSymbol, this);
+                }
+
+                return new NamedTypeSymbolKey(namedTypeSymbol, this);
             }
 
             public override SymbolKey VisitNamespace(INamespaceSymbol namespaceSymbol)

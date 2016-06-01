@@ -90,7 +90,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Friend ReadOnly Property IsMarshalAsObject As Boolean
             Get
                 Select Case Me.MarshallingType
-                    Case UnmanagedType.Interface, UnmanagedType.IUnknown, UnmanagedType.IDispatch
+                    Case UnmanagedType.Interface, UnmanagedType.IUnknown, Cci.Constants.UnmanagedType_IDispatch
                         Return True
                 End Select
 

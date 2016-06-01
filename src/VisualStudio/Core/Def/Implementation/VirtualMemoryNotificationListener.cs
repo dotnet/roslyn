@@ -136,7 +136,7 @@ namespace Microsoft.VisualStudio.LanguageServices
             var languages = _workspace.CurrentSolution.Projects.Select(p => p.Language).Distinct();
             foreach (var language in languages)
             {
-                if (ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(_workspace, language))
+                if (ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(_workspace.Options, language))
                 {
                     return true;
                 }

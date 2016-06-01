@@ -112,7 +112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateVariable
             Return expression.CanReplaceWithLValue(semanticModel, cancellationToken)
         End Function
 
-        Protected Overrides Function TryConvertToLocalDeclaration(type As ITypeSymbol, identifierToken As SyntaxToken, options As OptionSet, ByRef newRoot As SyntaxNode) As Boolean
+        Protected Overrides Function TryConvertToLocalDeclaration(type As ITypeSymbol, identifierToken As SyntaxToken, options As OptionSet, semanticModel As SemanticModel, cancellationToken As CancellationToken, ByRef newRoot As SyntaxNode) As Boolean
             Return False
         End Function
     End Class

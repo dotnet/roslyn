@@ -61,7 +61,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>ImplementNotifyPropertyChangedCS</RootNamespace>
     <AssemblyName>ImplementNotifyPropertyChangedCS</AssemblyName>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <UseCodeBase>true</UseCodeBase>
     <GeneratePkgDefFile>false</GeneratePkgDefFile>
     <IncludeAssemblyInVSIXContainer>true</IncludeAssemblyInVSIXContainer>

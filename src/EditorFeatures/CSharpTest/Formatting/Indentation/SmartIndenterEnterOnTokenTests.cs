@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1299,6 +1300,49 @@ Program.number}"";
                 expectedIndentation: 8);
         }
 
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public async Task IndentPatternPropertyFirst()
+        {
+            var code = @"
+class C
+{
+    void Main(object o)
+    {
+        var y = o is Point
+        {
+
+        }
+    }
+}";
+            await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+                code,
+                indentationLine: 7,
+                expectedIndentation: 12);
+        }
+
+        [Fact]
+        [Trait(Traits.Feature, Traits.Features.SmartIndent)]
+        public async Task IndentPatternPropertySecond()
+        {
+            var code = @"
+class C
+{
+    void Main(object o)
+    {
+        var y = o is Point
+        {
+            X is 13,
+
+        }
+    }
+}";
+            await AssertIndentNotUsingSmartTokenFormatterButUsingIndenterAsync(
+                code,
+                indentationLine: 8,
+                expectedIndentation: 12);
+        }
+
         private async Task AssertIndentUsingSmartTokenFormatterAsync(
             string code,
             char ch,
@@ -1322,7 +1366,7 @@ Program.number}"";
                 Assert.True(
                     CSharpIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
                         Formatter.GetDefaultFormattingRules(workspace, root.Language),
-                        root, line, workspace.Options, CancellationToken.None));
+                        root, line.AsTextLine(), document.Options, CancellationToken.None));
 
                 var actualIndentation = await GetSmartTokenFormatterIndentationWorkerAsync(workspace, buffer, indentationLine, ch);
                 Assert.Equal(expectedIndentation.Value, actualIndentation);
@@ -1349,7 +1393,7 @@ Program.number}"";
                 Assert.False(
                     CSharpIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
                         Formatter.GetDefaultFormattingRules(workspace, root.Language),
-                        root, line, workspace.Options, CancellationToken.None));
+                        root, line.AsTextLine(), document.Options, CancellationToken.None));
 
                 await TestIndentationAsync(indentationLine, expectedIndentation, workspace);
             }

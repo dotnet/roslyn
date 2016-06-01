@@ -1,10 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Diagnostics;
-using Microsoft.VisualStudio.Debugger.Clr;
+using Microsoft.VisualStudio.Debugger.ComponentInterfaces;
 using Microsoft.VisualStudio.Debugger.Evaluation;
 using Microsoft.VisualStudio.Debugger.Evaluation.ClrCompilation;
-using Microsoft.VisualStudio.Debugger.Metadata;
 
 namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 {
@@ -20,7 +19,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
 
         internal override void GetRows(
             ResultProvider resultProvider,
-            ArrayBuilder<EvalResultDataItem> rows,
+            ArrayBuilder<EvalResult> rows,
             DkmInspectionContext inspectionContext,
             EvalResultDataItem parent,
             DkmClrValue value,
@@ -37,7 +36,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
             index++;
         }
 
-        private static EvalResultDataItem GetRow(
+        private static EvalResult GetRow(
             ResultProvider resultProvider,
             DkmInspectionContext inspectionContext,
             DkmClrValue pointer,
@@ -52,16 +51,16 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 resultProvider.GetTypeExpansion(inspectionContext, elementTypeAndInfo, value, ExpansionFlags.None);
             var parentFullName = parent.ChildFullNamePrefix;
             var fullName = parentFullName == null ? null : $"*{parentFullName}";
-            var editableValue = resultProvider.Formatter.GetEditableValue(value, inspectionContext);
+            var editableValue = resultProvider.Formatter2.GetEditableValueString(value, inspectionContext, elementTypeAndInfo.Info);
 
             // NB: Full name is based on the real (i.e. not DebuggerDisplay) name.  This is a change from dev12, 
             // which used the DebuggerDisplay name, causing surprising results in "Add Watch" scenarios.
-            return new EvalResultDataItem(
+            return new EvalResult(
                 ExpansionKind.PointerDereference,
                 name: fullName ?? $"*{parent.Name}",
                 typeDeclaringMemberAndInfo: default(TypeAndCustomInfo),
                 declaredTypeAndInfo: elementTypeAndInfo,
-                parent: null,
+                useDebuggerDisplay: false,
                 value: value,
                 displayValue: wasExceptionThrown ? string.Format(Resources.InvalidPointerDereference, fullName ?? parent.Name) : null,
                 expansion: expansion,

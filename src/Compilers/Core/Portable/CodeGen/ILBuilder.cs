@@ -922,7 +922,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
                             int curBlockEnd = block.Start + block.TotalSize;
                             int offset = target - curBlockEnd;
 
-                            if (block.BranchCode.BranchOperandSize() == 1)
+                            if (block.BranchCode.GetBranchOperandSize() == 1)
                             {
                                 sbyte btOffset = (sbyte)offset;
                                 Debug.Assert(btOffset == offset);

@@ -36,6 +36,11 @@ namespace Microsoft.CodeAnalysis
         bool IsWithEvents { get; }
 
         /// <summary>
+        /// Returns true if this property returns by reference.
+        /// </summary>
+        bool ReturnsByRef { get; }
+
+        /// <summary>
         /// The type of the property. 
         /// </summary>
         ITypeSymbol Type { get; }

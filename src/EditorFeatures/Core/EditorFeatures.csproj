@@ -82,6 +82,7 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.CSharp" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Implementation" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.SolutionExplorer" />
+    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.ExternalDependencyServices" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Telemetry" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.VisualBasic" />
     <InternalsVisibleTo Include="csi" />
@@ -263,6 +264,8 @@
     <Compile Include="Implementation\CodeFixes\CodeFixService.cs" />
     <Compile Include="Implementation\CodeFixes\CodeFixService.ProjectCodeFixProvider.cs" />
     <Compile Include="Implementation\CodeFixes\ICodeFixService.cs" />
+    <Compile Include="Implementation\FindReferences\IFindReferencesNavigableItemResultProvider.cs" />
+    <Compile Include="Implementation\GoToDefinition\INavigableDefinitionProvider.cs" />
     <Compile Include="Implementation\GoToImplementation\AbstractGoToImplementationService.cs" />
     <Compile Include="Implementation\GoToImplementation\IGoToImplementationService.cs" />
     <Compile Include="Implementation\Intellisense\Completion\BraceCompletionMetadata.cs" />
@@ -277,6 +280,8 @@
     <Compile Include="Implementation\Intellisense\Completion\Presentation\ICompletionSet.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\VisualStudio14CompletionSetFactory.cs" />
     <Compile Include="Implementation\Interactive\IAbstractResetInteractiveCommand.cs" />
+    <Compile Include="Implementation\NavigateTo\NavigateToSearchResultProvider.cs" />
+    <Compile Include="Implementation\NavigateTo\INavigateToSearchResultProvider.cs" />
     <Compile Include="Implementation\Outlining\AbstractSyntaxOutliner.cs" />
     <Compile Include="Implementation\Outlining\InvalidOutliningRegionException.cs" />
     <Compile Include="Implementation\Suggestions\FixMultipleOccurrencesService.cs" />
@@ -551,7 +556,6 @@
     <Compile Include="Implementation\NavigateTo\NavigateToItemProvider.NavigateToItemDisplay.cs" />
     <Compile Include="Implementation\NavigateTo\NavigateToItemProvider.Searcher.cs" />
     <Compile Include="Implementation\NavigateTo\NavigateToItemProviderFactory.cs" />
-    <Compile Include="Implementation\NavigateTo\NavigateToSymbolFinder.cs" />
     <Compile Include="Implementation\NavigationBar\NavigationBarController.cs" />
     <Compile Include="Implementation\NavigationBar\NavigationBarController_ModelComputation.cs" />
     <Compile Include="Implementation\NavigationBar\NavigationBarControllerFactoryService.cs" />

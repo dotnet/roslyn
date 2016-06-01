@@ -42,6 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Scripting.UnitTests
                 responseFile,
                 workingDirectory ?? AppContext.BaseDirectory,
                 null,
+                AppContext.BaseDirectory,
                 args ?? s_defaultArgs,
                 new NotImplementedAnalyzerLoader());
 

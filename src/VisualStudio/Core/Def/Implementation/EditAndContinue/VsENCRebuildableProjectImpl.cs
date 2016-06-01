@@ -87,7 +87,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
         /// </summary>
         private ModuleMetadata _metadata;
 
-        private ISymUnmanagedReader _pdbReader;
+        private ISymUnmanagedReader3 _pdbReader;
 
         private IntPtr _pdbReaderObjAsStream;
 
@@ -996,7 +996,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 SetFileUpdates(updater, delta.LineEdits);
 
                 updater.SetDeltaIL(delta.IL.Value, (uint)delta.IL.Value.Length);
-                updater.SetDeltaPdb(new ComStreamWrapper(delta.Pdb.Stream));
+                updater.SetDeltaPdb(SymUnmanagedStreamFactory.CreateStream(delta.Pdb.Stream));
                 updater.SetRemapMethods(delta.Pdb.UpdatedMethods, (uint)delta.Pdb.UpdatedMethods.Length);
                 updater.SetDeltaMetadata(delta.Metadata.Bytes, (uint)delta.Metadata.Bytes.Length);
 
@@ -1086,7 +1086,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     log.Write("Error unmarshaling object from stream.");
                     return default(EditAndContinueMethodDebugInformation);
                 }
-                _pdbReader = (ISymUnmanagedReader)pdbReaderObjMta;
+                _pdbReader = (ISymUnmanagedReader3)pdbReaderObjMta;
             }
 
             int methodToken = MetadataTokens.GetToken(methodHandle);

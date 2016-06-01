@@ -13,7 +13,6 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis.Text.Shared.Extensions;
 using Microsoft.VisualStudio.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 {
@@ -23,7 +22,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
         {
             protected readonly OptionSet OptionSet;
             protected readonly SyntacticDocument Document;
-            protected readonly ITextSnapshotLine LineToBeIndented;
+            protected readonly TextLine LineToBeIndented;
             protected readonly int TabSize;
             protected readonly CancellationToken CancellationToken;
 
@@ -34,7 +33,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
             private static readonly Func<SyntaxToken, bool> s_tokenHasDirective = tk => tk.ContainsDirectives &&
                                                   (tk.LeadingTrivia.Any(tr => tr.IsDirective) || tk.TrailingTrivia.Any(tr => tr.IsDirective));
 
-            public AbstractIndenter(SyntacticDocument document, IEnumerable<IFormattingRule> rules, OptionSet optionSet, ITextSnapshotLine lineToBeIndented, CancellationToken cancellationToken)
+            public AbstractIndenter(
+                SyntacticDocument document,
+                IEnumerable<IFormattingRule> rules,
+                OptionSet optionSet,
+                TextLine lineToBeIndented,
+                CancellationToken cancellationToken)
             {
                 this.OptionSet = optionSet;
                 this.Document = document;
@@ -66,23 +70,23 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 
             protected IndentationResult GetIndentationOfToken(SyntaxToken token, int addedSpaces)
             {
-                return GetIndentationOfPosition(new SnapshotPoint(LineToBeIndented.Snapshot, token.SpanStart), addedSpaces);
+                return GetIndentationOfPosition(token.SpanStart, addedSpaces);
             }
 
-            protected IndentationResult GetIndentationOfLine(ITextSnapshotLine lineToMatch)
+            protected IndentationResult GetIndentationOfLine(TextLine lineToMatch)
             {
                 return GetIndentationOfLine(lineToMatch, addedSpaces: 0);
             }
 
-            protected IndentationResult GetIndentationOfLine(ITextSnapshotLine lineToMatch, int addedSpaces)
+            protected IndentationResult GetIndentationOfLine(TextLine lineToMatch, int addedSpaces)
             {
                 var firstNonWhitespace = lineToMatch.GetFirstNonWhitespacePosition();
-                firstNonWhitespace = firstNonWhitespace ?? lineToMatch.End.Position;
+                firstNonWhitespace = firstNonWhitespace ?? lineToMatch.End;
 
-                return GetIndentationOfPosition(new SnapshotPoint(lineToMatch.Snapshot, firstNonWhitespace.Value), addedSpaces);
+                return GetIndentationOfPosition(firstNonWhitespace.Value, addedSpaces);
             }
 
-            protected IndentationResult GetIndentationOfPosition(SnapshotPoint position, int addedSpaces)
+            protected IndentationResult GetIndentationOfPosition(int position, int addedSpaces)
             {
                 var tree = Document.SyntaxTree;
 
@@ -100,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                 return new IndentationResult(position, addedSpaces);
             }
 
-            private TextSpan GetNormalizedSpan(SnapshotPoint position)
+            private TextSpan GetNormalizedSpan(int position)
             {
                 if (LineToBeIndented.Start < position)
                 {
@@ -110,7 +114,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                 return TextSpan.FromBounds(position, LineToBeIndented.Start);
             }
 
-            protected ITextSnapshotLine GetPreviousNonBlankOrPreprocessorLine()
+            protected TextLine? GetPreviousNonBlankOrPreprocessorLine()
             {
                 if (Tree == null)
                 {
@@ -123,15 +127,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                 }
 
                 var syntaxFacts = this.Document.Document.GetLanguageService<ISyntaxFactsService>();
-                var snapshot = this.LineToBeIndented.Snapshot;
+                var sourceText = this.LineToBeIndented.Text;
 
                 var lineNumber = this.LineToBeIndented.LineNumber - 1;
                 while (lineNumber >= 0)
                 {
-                    var actualLine = snapshot.GetLineFromLineNumber(lineNumber);
+                    var actualLine = sourceText.Lines[lineNumber];
 
                     // Empty line, no indentation to match.
-                    if (string.IsNullOrWhiteSpace(actualLine.GetText()))
+                    if (string.IsNullOrWhiteSpace(actualLine.ToString()))
                     {
                         lineNumber--;
                         continue;
@@ -142,34 +146,34 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                     var root = Tree.GetRoot(CancellationToken);
                     if (!root.ContainsDirectives)
                     {
-                        return snapshot.GetLineFromLineNumber(lineNumber);
+                        return sourceText.Lines[lineNumber];
                     }
 
                     // This line is inside an inactive region. Examine the 
                     // first preceding line not in an inactive region.
-                    var disabledSpan = syntaxFacts.GetInactiveRegionSpanAroundPosition(this.Tree, actualLine.Extent.Start, CancellationToken);
+                    var disabledSpan = syntaxFacts.GetInactiveRegionSpanAroundPosition(this.Tree, actualLine.Span.Start, CancellationToken);
                     if (disabledSpan != default(TextSpan))
                     {
-                        var targetLine = snapshot.GetLineNumberFromPosition(disabledSpan.Start);
+                        var targetLine = sourceText.Lines.GetLineFromPosition(disabledSpan.Start).LineNumber;
                         lineNumber = targetLine - 1;
                         continue;
                     }
 
                     // A preprocessor directive starts on this line.
                     if (HasPreprocessorCharacter(actualLine) &&
-                        root.DescendantTokens(actualLine.Extent.Span.ToTextSpan(), tk => tk.FullWidth() > 0).Any(s_tokenHasDirective))
+                        root.DescendantTokens(actualLine.Span, tk => tk.FullWidth() > 0).Any(s_tokenHasDirective))
                     {
                         lineNumber--;
                         continue;
                     }
 
-                    return snapshot.GetLineFromLineNumber(lineNumber);
+                    return sourceText.Lines[lineNumber];
                 }
 
                 return null;
             }
 
-            protected abstract bool HasPreprocessorCharacter(ITextSnapshotLine currentLine);
+            protected abstract bool HasPreprocessorCharacter(TextLine currentLine);
         }
     }
 }

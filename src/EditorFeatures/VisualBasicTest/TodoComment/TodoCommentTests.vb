@@ -185,7 +185,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.TodoComment
 
                 Dim document = workspace.Documents.First()
                 Dim documentId = document.Id
-                Await worker.AnalyzeSyntaxAsync(workspace.CurrentSolution.GetDocument(documentId), CancellationToken.None)
+                Await worker.AnalyzeSyntaxAsync(workspace.CurrentSolution.GetDocument(documentId), InvocationReasons.Empty, CancellationToken.None)
 
                 Dim todoLists = worker.GetItems_TestingOnly(documentId)
 

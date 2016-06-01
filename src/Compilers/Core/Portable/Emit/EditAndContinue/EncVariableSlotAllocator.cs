@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
@@ -135,7 +136,7 @@ namespace Microsoft.CodeAnalysis.Emit
             string nameOpt,
             SynthesizedLocalKind kind,
             LocalDebugId id,
-            uint pdbAttributes,
+            LocalVariableAttributes pdbAttributes,
             LocalSlotConstraints constraints,
             bool isDynamic,
             ImmutableArray<TypedConstant> dynamicTransformFlags)
@@ -190,11 +191,9 @@ namespace Microsoft.CodeAnalysis.Emit
             DiagnosticBag diagnostics, 
             out int slotIndex)
         {
-            // Well-formed state machine attribute wasn't found in the baseline (the type is missing or bad).
-            // Should rarely happen since the IDE reports a rude edit if the attribute type doesn't exist.
+            // The previous method was not a state machine (it is allowed to change non-state machine to a state machine):
             if (_hoistedLocalSlotsOpt == null)
             {
-                ReportMissingStateMachineAttribute(diagnostics);
                 slotIndex = -1;
                 return false;
             }
@@ -225,27 +224,15 @@ namespace Microsoft.CodeAnalysis.Emit
 
         public override bool TryGetPreviousAwaiterSlotIndex(Cci.ITypeReference currentType, DiagnosticBag diagnostics, out int slotIndex)
         {
-            // Well-formed state machine attribute wasn't found in the baseline (the type is missing or bad).
-            // Should rarely happen since the IDE reports a rude edit if the attribute type doesn't exist.
+            // The previous method was not a state machine (it is allowed to change non-state machine to a state machine):
             if (_awaiterMapOpt == null)
             {
-                ReportMissingStateMachineAttribute(diagnostics);
                 slotIndex = -1;
                 return false;
             }
 
             return _awaiterMapOpt.TryGetValue(_symbolMap.MapReference(currentType), out slotIndex);
         }
-
-        private void ReportMissingStateMachineAttribute(DiagnosticBag diagnostics)
-        {
-            diagnostics.Add(_messageProvider.CreateDiagnostic(
-                _messageProvider.ERR_EncUpdateFailedMissingAttribute,
-                NoLocation.Singleton, 
-                _messageProvider.GetErrorDisplayString(_previousTopLevelMethod),
-                (_previousTopLevelMethod.IsAsync ? AttributeDescription.AsyncStateMachineAttribute : AttributeDescription.IteratorStateMachineAttribute).FullName));
-        }
-
 
         private bool TryGetPreviousSyntaxOffset(SyntaxNode currentSyntax, out int previousSyntaxOffset)
         {

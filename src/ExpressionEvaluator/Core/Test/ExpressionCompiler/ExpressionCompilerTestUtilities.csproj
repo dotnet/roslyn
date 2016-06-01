@@ -14,7 +14,7 @@
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <UseCommonOutputDirectory>True</UseCommonOutputDirectory>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
   </PropertyGroup>
   <ItemGroup Label="File References">
@@ -68,9 +68,6 @@
     <InternalsVisibleToTest Include="Roslyn.ExpressionEvaluator.VisualBasic.ExpressionCompiler.UnitTests" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\..\..\..\Test\PdbUtilities\Shared\SymUnmanagedReaderTestExtensions.cs">
-      <Link>SymUnmanagedReaderTestExtensions.cs</Link>
-    </Compile>
     <Compile Include="CustomDiagnosticFormatter.cs" />
     <Compile Include="ExpressionCompilerTestHelpers.cs" />
     <Compile Include="MethodDebugInfoBytes.cs" />

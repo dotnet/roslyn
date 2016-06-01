@@ -393,6 +393,44 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return document;
         }
 
+        public void UpdateGeneratedDocuments(ImmutableArray<DocumentInfo> documentsRemoved, ImmutableArray<DocumentInfo> documentsAdded)
+        {
+            foreach (var info in documentsRemoved)
+            {
+                RemoveGeneratedDocument(info.Id);
+            }
+            foreach (var info in documentsAdded)
+            {
+                AddGeneratedDocument(info.Id, info.FilePath);
+            }
+        }
+
+        private IVisualStudioHostDocument AddGeneratedDocument(DocumentId id, string filePath)
+        {
+            IVisualStudioHostDocument document;
+            using (this.DocumentProvider.ProvideDocumentIdHint(filePath, id))
+            {
+                document = this.DocumentProvider.TryGetDocumentForFile(
+                    this,
+                    (uint)VSConstants.VSITEMID.Nil,
+                    filePath,
+                    SourceCodeKind.Regular,
+                    isGenerated: true,
+                    canUseTextBuffer: _ => true);
+            }
+            AddGeneratedDocument(document, isCurrentContext: LinkedFileUtilities.IsCurrentContextHierarchy(document, RunningDocumentTable));
+            return document;
+        }
+
+        private void RemoveGeneratedDocument(DocumentId id)
+        {
+            IVisualStudioHostDocument doc;
+            if (_documents.TryGetValue(id, out doc))
+            {
+                RemoveGeneratedDocument(doc);
+            }
+        }
+
         public bool HasMetadataReference(string filename)
         {
             return _metadataReferences.Any(r => StringComparer.OrdinalIgnoreCase.Equals(r.FilePath, filename));
@@ -754,7 +792,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         protected void AddFile(string filename, SourceCodeKind sourceCodeKind, uint itemId, Func<ITextBuffer, bool> canUseTextBuffer)
         {
-            var document = this.DocumentProvider.TryGetDocumentForFile(this, itemId, filePath: filename, sourceCodeKind: sourceCodeKind, canUseTextBuffer: canUseTextBuffer);
+            var document = this.DocumentProvider.TryGetDocumentForFile(
+                this,
+                itemId,
+                filePath: filename,
+                sourceCodeKind: sourceCodeKind,
+                isGenerated: false,
+                canUseTextBuffer: canUseTextBuffer);
 
             if (document == null)
             {
@@ -768,7 +812,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
             AddDocument(
                 document,
-                isCurrentContext: document.Project.Hierarchy == LinkedFileUtilities.GetContextHierarchy(document, RunningDocumentTable));
+                isCurrentContext: LinkedFileUtilities.IsCurrentContextHierarchy(document, RunningDocumentTable));
         }
 
         protected void AddUntrackedFile(string filename)
@@ -870,6 +914,53 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             _documentMonikers.Remove(document.Key.Moniker);
 
             UninitializeAdditionalDocument(document);
+        }
+
+        internal void UpdateGeneratedFiles()
+        {
+            this.ProjectTracker.NotifyWorkspaceHosts(host => (host as IVisualStudioWorkspaceHost2)?.UpdateGeneratedDocumentsIfNecessary(_id));
+        }
+
+        private void AddGeneratedDocument(IVisualStudioHostDocument document, bool isCurrentContext)
+        {
+            // We do not want to allow message pumping/reentrancy when processing project system changes.
+            using (Dispatcher.CurrentDispatcher.DisableProcessing())
+            {
+                _documents.Add(document.Id, document);
+                _documentMonikers.Add(document.Key.Moniker, document);
+
+                if (_pushingChangesToWorkspaceHosts)
+                {
+                    if (document.IsOpen)
+                    {
+                        this.ProjectTracker.NotifyWorkspaceHosts(host => host.OnDocumentOpened(document.Id, document.GetOpenTextBuffer(), isCurrentContext));
+                    }
+                }
+
+                document.Opened += s_documentOpenedEventHandler;
+                document.Closing += s_documentClosingEventHandler;
+                document.UpdatedOnDisk += s_documentUpdatedOnDiskEventHandler;
+
+                DocumentProvider.NotifyDocumentRegisteredToProject(document);
+
+                if (!_pushingChangesToWorkspaceHosts && document.IsOpen)
+                {
+                    StartPushingToWorkspaceAndNotifyOfOpenDocuments();
+                }
+            }
+        }
+
+        private void RemoveGeneratedDocument(IVisualStudioHostDocument document)
+        {
+            // We do not want to allow message pumping/reentrancy when processing project system changes.
+            using (Dispatcher.CurrentDispatcher.DisableProcessing())
+            {
+                _documents.Remove(document.Id);
+                _documentMonikers.Remove(document.Key.Moniker);
+
+                UninitializeDocument(document);
+                OnDocumentRemoved(document.Key.Moniker);
+            }
         }
 
         public virtual void Disconnect()

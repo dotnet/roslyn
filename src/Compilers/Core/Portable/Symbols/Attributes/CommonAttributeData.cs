@@ -183,7 +183,15 @@ namespace Microsoft.CodeAnalysis
 
         internal ConstantValue DecodeDateTimeConstantValue()
         {
-            return ConstantValue.Create(new DateTime(this.CommonConstructorArguments[0].DecodeValue<long>(SpecialType.System_Int64)));
+            long value = this.CommonConstructorArguments[0].DecodeValue<long>(SpecialType.System_Int64);
+
+            // if value is outside this range, DateTime would throw when constructed
+            if (value < DateTime.MinValue.Ticks || value > DateTime.MaxValue.Ticks)
+            {
+                return ConstantValue.Bad;
+            }
+
+            return ConstantValue.Create(new DateTime(value));
         }
 
         #endregion
@@ -231,6 +239,7 @@ namespace Microsoft.CodeAnalysis
             {
                 // DeprecatedAttribute(String, DeprecationType, UInt32) 
                 // DeprecatedAttribute(String, DeprecationType, UInt32, Platform) 
+                // DeprecatedAttribute(String, DeprecationType, UInt32, String) 
 
                 message = (string)args[0].Value;
                 isError = ((int)args[1].Value == 1);

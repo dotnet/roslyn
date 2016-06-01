@@ -239,7 +239,7 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 var constructorSyntaxes = GetConstructorNodes(field.ContainingType).ToSet();
                 if (finalFieldName != field.Name && constructorSyntaxes.Count > 0)
                 {
-                    solution = await Renamer.RenameSymbolAsync(solution, field, finalFieldName, solution.Workspace.Options,
+                    solution = await Renamer.RenameSymbolAsync(solution, field, finalFieldName, solution.Options,
                         location => constructorSyntaxes.Any(c => c.Span.IntersectsWith(location.SourceSpan)), cancellationToken: cancellationToken).ConfigureAwait(false);
                     document = solution.GetDocument(document.Id);
 
@@ -249,13 +249,13 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
                 }
 
                 // Outside the constructor we want to rename references to the field to final property name.
-                return await Renamer.RenameSymbolAsync(solution, field, generatedPropertyName, solution.Workspace.Options,
+                return await Renamer.RenameSymbolAsync(solution, field, generatedPropertyName, solution.Options,
                     location => !constructorSyntaxes.Any(c => c.Span.IntersectsWith(location.SourceSpan)), cancellationToken: cancellationToken).ConfigureAwait(false);
             }
             else
             {
                 // Just rename everything.
-                return await Renamer.RenameSymbolAsync(solution, field, generatedPropertyName, solution.Workspace.Options, cancellationToken).ConfigureAwait(false);
+                return await Renamer.RenameSymbolAsync(solution, field, generatedPropertyName, solution.Options, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -332,8 +332,14 @@ namespace Microsoft.CodeAnalysis.EncapsulateField
 
         protected IMethodSymbol CreateGet(string originalFieldName, IFieldSymbol field, SyntaxGenerator factory)
         {
+            var value = !field.IsStatic
+                ? factory.MemberAccessExpression(
+                    factory.ThisExpression(),
+                    factory.IdentifierName(originalFieldName))
+                : factory.IdentifierName(originalFieldName);
+
             var body = factory.ReturnStatement(
-                factory.IdentifierName(originalFieldName));
+                value.WithAdditionalAnnotations(Simplifier.Annotation));
 
             return CodeGenerationSymbolFactory.CreateAccessorSymbol(SpecializedCollections.EmptyList<AttributeData>(),
                 Accessibility.NotApplicable,

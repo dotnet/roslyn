@@ -54,8 +54,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
                 return;
             }
 
-            var options = document.Project.Solution.Workspace.Options;
-            if (!options.GetOption(FeatureOnOffOptions.LineSeparator, document.Project.Language))
+            if (!document.Options.GetOption(FeatureOnOffOptions.LineSeparator))
             {
                 return;
             }

@@ -1,7 +1,10 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Generic;
+using System.Windows.Data;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
@@ -9,51 +12,109 @@ using Microsoft.VisualStudio.LanguageServices.Implementation.Options;
 
 namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options.Formatting
 {
+    /// <summary>
+    /// This is the view model for CodeStyle options page.
+    /// </summary>
+    /// <remarks>
+    /// The codestyle options page is defined in <see cref="CodeStylePage"/>
+    /// </remarks>
     internal class StyleViewModel : AbstractOptionPreviewViewModel
     {
         internal override bool ShouldPersistOption(OptionKey key)
         {
-            return key.Option.Feature == CSharpCodeStyleOptions.FeatureName || key.Option.Feature == SimplificationOptions.PerLanguageFeatureName;
+            return key.Option.Feature == CSharpCodeStyleOptions.FeatureName ||
+                key.Option.Feature == CodeStyleOptions.PerLanguageCodeStyleOption ||
+                key.Option.Feature == SimplificationOptions.PerLanguageFeatureName;
         }
 
-        private static readonly string s_declarationPreviewTrue = @"
+        #region "Preview Text"
+
+        private static readonly string s_fieldDeclarationPreviewTrue = @"
 class C{
-    int x;
-    void foo()
+    int capacity;
+    void Method()
     {
 //[
-        this.x = 0;
+        this.capacity = 0;
 //]
     }
 }";
 
-        private static readonly string s_declarationPreviewFalse = @"
+        private static readonly string s_fieldDeclarationPreviewFalse = @"
 class C{
-    int x;
-    void foo()
+    int capacity;
+    void Method()
     {
 //[
-        x = 0;
+        capacity = 0;
 //]
     }
 }";
 
-        private static readonly string s_varPreviewTrue = @"
+        private static readonly string s_propertyDeclarationPreviewTrue = @"
 class C{
-    void foo()
+    public int Id { get; set; }
+    void Method()
     {
 //[
-        var x = 0;
+        this.Id = 0;
 //]
     }
 }";
 
-        private static readonly string s_varPreviewFalse = @"
+        private static readonly string s_propertyDeclarationPreviewFalse = @"
 class C{
-    void foo()
+    public int Id { get; set; }
+    void Method()
     {
 //[
-        int x = 0;
+        Id = 0;
+//]
+    }
+}";
+
+        private static readonly string s_eventDeclarationPreviewTrue = @"
+using System;
+class C{
+    event EventHandler Elapsed;
+    void Handler(object sender, EventArgs args)
+    {
+//[
+        this.Elapsed += Handler;
+//]
+    }
+}";
+
+        private static readonly string s_eventDeclarationPreviewFalse = @"
+using System;
+class C{
+    event EventHandler Elapsed;
+    void Handler(object sender, EventArgs args)
+    {
+//[
+        Elapsed += Handler;
+//]
+    }
+}";
+
+        private static readonly string s_methodDeclarationPreviewTrue = @"
+using System;
+class C{
+    void Display()
+    {
+//[
+        this.Display();
+//]
+    }
+}";
+
+        private static readonly string s_methodDeclarationPreviewFalse = @"
+using System;
+class C{
+    void Display()
+    {
+//[
+        Display();
 //]
     }
 }";
@@ -106,12 +167,111 @@ class Program
 //]
 }";
 
+        private static readonly string s_varForIntrinsicsPreviewFalse = @"
+using System;
+class C{
+    void Method()
+    {
+//[
+        int x = 5; // built-in types
+//]
+    }
+}";
+
+        private static readonly string s_varForIntrinsicsPreviewTrue = @"
+using System;
+class C{
+    void Method()
+    {
+//[
+        var x = 5; // built-in types
+//]
+    }
+}";
+
+        private static readonly string s_varWhereApparentPreviewFalse = @"
+using System;
+class C{
+    void Method()
+    {
+//[
+        C cobj = new C(); // type is apparent from assignment expression
+//]
+    }
+}";
+
+        private static readonly string s_varWhereApparentPreviewTrue = @"
+using System;
+class C{
+    void Method()
+    {
+//[
+        var cobj = new C(); // type is apparent from assignment expression
+//]
+    }
+}";
+
+        private static readonly string s_varWherePossiblePreviewFalse = @"
+using System;
+class C{
+    void Init()
+    {
+//[
+        Action f = this.Init(); // everywhere else.
+//]
+    }
+}";
+
+        private static readonly string s_varWherePossiblePreviewTrue = @"
+using System;
+class C{
+    void Init()
+    {
+//[
+        var f = this.Init(); // everywhere else.
+//]
+    }
+}";
+        #endregion
+
         internal StyleViewModel(OptionSet optionSet, IServiceProvider serviceProvider) : base(optionSet, serviceProvider, LanguageNames.CSharp)
         {
-            Items.Add(new CheckBoxOptionViewModel(SimplificationOptions.QualifyMemberAccessWithThisOrMe, CSharpVSResources.QualifyMemberAccessWithThis, s_declarationPreviewTrue, s_declarationPreviewFalse, this, optionSet));
-            Items.Add(new CheckBoxOptionViewModel(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, CSharpVSResources.PreferIntrinsicPredefinedTypeKeywordInDeclaration, s_intrinsicPreviewDeclarationTrue, s_intrinsicPreviewDeclarationFalse, this, optionSet));
-            Items.Add(new CheckBoxOptionViewModel(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, CSharpVSResources.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, s_intrinsicPreviewMemberAccessTrue, s_intrinsicPreviewMemberAccessFalse, this, optionSet));
-            Items.Add(new CheckBoxOptionViewModel(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals, CSharpVSResources.UseVarWhenGeneratingLocals, s_varPreviewTrue, s_varPreviewFalse, this, optionSet));
+            var collectionView = (ListCollectionView)CollectionViewSource.GetDefaultView(CodeStyleItems);
+            collectionView.GroupDescriptions.Add(new PropertyGroupDescription(nameof(AbstractCodeStyleOptionViewModel.GroupName)));
+
+            var qualifyGroupTitle = CSharpVSResources.QualifyGroupTitle;
+            var predefinedTypesGroupTitle = CSharpVSResources.PredefinedTypesGroupTitle;
+            var varGroupTitle = CSharpVSResources.VarGroupTitle;
+
+            var qualifyMemberAccessPreferences = new List<CodeStylePreference>
+            {
+                new CodeStylePreference(CSharpVSResources.PreferThis, isChecked: true),
+                new CodeStylePreference(CSharpVSResources.DoNotPreferThis, isChecked: false),
+            };
+
+            var predefinedTypesPreferences = new List<CodeStylePreference>
+            {
+                new CodeStylePreference(ServicesVSResources.PreferPredefinedType, isChecked: true),
+                new CodeStylePreference(ServicesVSResources.PreferFrameworkType, isChecked: false),
+            };
+
+            var typeStylePreferences = new List<CodeStylePreference>
+            {
+                new CodeStylePreference(CSharpVSResources.PreferVar, isChecked: true),
+                new CodeStylePreference(CSharpVSResources.PreferExplicitType, isChecked: false),
+            };
+
+            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.QualifyFieldAccess, CSharpVSResources.QualifyFieldAccessWithThis, s_fieldDeclarationPreviewTrue, s_fieldDeclarationPreviewFalse, this, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences));
+            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.QualifyPropertyAccess, CSharpVSResources.QualifyPropertyAccessWithThis, s_propertyDeclarationPreviewTrue, s_propertyDeclarationPreviewFalse, this, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences));
+            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.QualifyMethodAccess, CSharpVSResources.QualifyMethodAccessWithThis, s_methodDeclarationPreviewTrue, s_methodDeclarationPreviewFalse, this, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences));
+            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CodeStyleOptions.QualifyEventAccess, CSharpVSResources.QualifyEventAccessWithThis, s_eventDeclarationPreviewTrue, s_eventDeclarationPreviewFalse, this, optionSet, qualifyGroupTitle, qualifyMemberAccessPreferences));
+
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration, CSharpVSResources.PreferIntrinsicPredefinedTypeKeywordInDeclaration, s_intrinsicPreviewDeclarationTrue, s_intrinsicPreviewDeclarationFalse, this, optionSet, predefinedTypesGroupTitle, predefinedTypesPreferences));
+            CodeStyleItems.Add(new BooleanCodeStyleOptionViewModel(SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, CSharpVSResources.PreferIntrinsicPredefinedTypeKeywordInMemberAccess, s_intrinsicPreviewMemberAccessTrue, s_intrinsicPreviewMemberAccessFalse, this, optionSet, predefinedTypesGroupTitle, predefinedTypesPreferences));
+
+            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes, CSharpVSResources.UseImplicitTypeForIntrinsicTypes, s_varForIntrinsicsPreviewTrue, s_varForIntrinsicsPreviewFalse, this, optionSet, varGroupTitle, typeStylePreferences));
+            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent, CSharpVSResources.UseImplicitTypeWhenTypeIsApparent, s_varWhereApparentPreviewTrue, s_varWhereApparentPreviewFalse, this, optionSet, varGroupTitle, typeStylePreferences));
+            CodeStyleItems.Add(new SimpleCodeStyleOptionViewModel(CSharpCodeStyleOptions.UseImplicitTypeWherePossible, CSharpVSResources.UseImplicitTypeWhenPossible, s_varWherePossiblePreviewTrue, s_varWherePossiblePreviewFalse, this, optionSet, varGroupTitle, typeStylePreferences));
         }
     }
 }

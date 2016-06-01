@@ -7,9 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Classification;
 using Microsoft.CodeAnalysis.CSharp;
-using Microsoft.CodeAnalysis.Editor.CSharp.Classification;
 using Microsoft.CodeAnalysis.Editor.Implementation.Classification;
-using Microsoft.CodeAnalysis.Editor.Shared.Tagging;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Extensions;
@@ -25,6 +23,7 @@ using Roslyn.Test.Utilities;
 using Roslyn.Utilities;
 using Xunit;
 using Microsoft.CodeAnalysis.Editor.UnitTests;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Classification
 {
@@ -1470,5 +1469,13 @@ class C
         }
 
         private class Waiter : AsynchronousOperationListener { }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Classification)]
+        public async Task Tuples()
+        {
+            await TestAsync(@"class C { (int a, int b) x; }",
+                TestOptions.Regular.WithTuplesFeature(),
+                Options.Script.WithTuplesFeature());
+        }
     }
 }

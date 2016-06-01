@@ -13,10 +13,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.SimplifyTypeNames
 
             Friend Shared Shadows ReadOnly Instance As SimplifyTypeNamesFixAllProvider = New SimplifyTypeNamesFixAllProvider
 
-            Protected Overrides Function GetNodeToSimplify(root As SyntaxNode, model As SemanticModel, diagnostic As Diagnostic, workspace As Workspace, ByRef codeActionId As String, cancellationToken As CancellationToken) As SyntaxNode
+            Protected Overrides Function GetNodeToSimplify(root As SyntaxNode, model As SemanticModel, diagnostic As Diagnostic, document As Document, ByRef codeActionId As String, cancellationToken As CancellationToken) As SyntaxNode
                 codeActionId = Nothing
                 Dim diagnosticId As String = Nothing
-                Dim node = SimplifyTypeNamesCodeFixProvider.GetNodeToSimplify(root, model, diagnostic.Location.SourceSpan, workspace.Options, diagnosticId, cancellationToken)
+                Dim node = SimplifyTypeNamesCodeFixProvider.GetNodeToSimplify(root, model, diagnostic.Location.SourceSpan, document.Options, diagnosticId, cancellationToken)
                 If node IsNot Nothing Then
                     codeActionId = GetCodeActionId(diagnosticId, node.ToString)
                 End If

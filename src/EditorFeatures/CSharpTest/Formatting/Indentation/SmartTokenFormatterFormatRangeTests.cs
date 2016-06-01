@@ -3234,7 +3234,6 @@ class Program{
             {
                 var subjectDocument = workspace.Documents.Single();
 
-                var optionService = workspace.Services.GetService<IOptionService>();
                 var textUndoHistory = new Mock<ITextUndoHistoryRegistry>();
                 var editorOperationsFactory = new Mock<IEditorOperationsFactoryService>();
                 var editorOperations = new Mock<IEditorOperations>();

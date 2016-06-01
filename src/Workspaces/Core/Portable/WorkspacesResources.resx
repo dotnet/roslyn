@@ -468,4 +468,10 @@
   <data name="PopulateSwitch" xml:space="preserve">
     <value>Populate switch</value>
   </data>
+  <data name="MemberAccessShouldBeQualified" xml:space="preserve">
+    <value>Member access should be qualified.</value>
+  </data>
+  <data name="AddBraces" xml:space="preserve">
+    <value>Add braces to '{0}' statement.</value>
+  </data>
 </root>

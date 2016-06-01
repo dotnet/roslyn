@@ -6,8 +6,6 @@ Public Class TestOptions
     Public Shared ReadOnly Script As New VisualBasicParseOptions(kind:=SourceCodeKind.Script)
     Public Shared ReadOnly Regular As New VisualBasicParseOptions(kind:=SourceCodeKind.Regular)
 
-    Public Shared ReadOnly RegularWithIOperationFeature As VisualBasicParseOptions = Regular.WithIOperationFeature()
-
     Public Shared ReadOnly ReleaseDll As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel:=OptimizationLevel.Release).WithExtendedCustomDebugInformation(True)
     Public Shared ReadOnly ReleaseExe As VisualBasicCompilationOptions = New VisualBasicCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel:=OptimizationLevel.Release).WithExtendedCustomDebugInformation(True)
 
@@ -46,10 +44,5 @@ Friend Module TestOptionExtensions
     <Extension()>
     Public Function WithDeterministicFeature(options As VisualBasicParseOptions) As VisualBasicParseOptions
         Return options.WithFeature("Deterministic", "true")
-    End Function
-
-    <Extension()>
-    Public Function WithIOperationFeature(options As VisualBasicParseOptions) As VisualBasicParseOptions
-        Return options.WithFeature("IOperation", "true")
     End Function
 End Module

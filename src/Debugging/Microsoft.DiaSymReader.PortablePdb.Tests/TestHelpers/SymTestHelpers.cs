@@ -2,11 +2,10 @@
 
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection.Metadata;
-using Roslyn.Test.PdbUtilities;
+using System.Runtime.InteropServices;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -14,9 +13,57 @@ namespace Microsoft.DiaSymReader.PortablePdb.UnitTests
 {
     internal static class SymTestHelpers
     {
+        [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory)]
+        [DllImport("Microsoft.DiaSymReader.Native.x86.dll", EntryPoint = "CreateSymReader")]
+        private extern static void CreateSymReader32(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)]out object symReader);
+
+        [DefaultDllImportSearchPaths(DllImportSearchPath.AssemblyDirectory)]
+        [DllImport("Microsoft.DiaSymReader.Native.amd64.dll", EntryPoint = "CreateSymReader")]
+        private extern static void CreateSymReader64(ref Guid id, [MarshalAs(UnmanagedType.IUnknown)]out object symReader);
+
+        private static ISymUnmanagedReader3 CreateNativeSymReader(Stream pdbStream, object metadataImporter)
+        {
+            object symReader = null;
+
+            var guid = default(Guid);
+            if (IntPtr.Size == 4)
+            {
+                CreateSymReader32(ref guid, out symReader);
+            }
+            else
+            {
+                CreateSymReader64(ref guid, out symReader);
+            }
+
+            var reader = (ISymUnmanagedReader3)symReader;
+            reader.Initialize(pdbStream, metadataImporter);
+            return reader;
+        }
+
+        private static ISymUnmanagedReader3 CreatePortableSymReader(Stream pdbStream, object metadataImporter)
+        {
+            return (ISymUnmanagedReader3)new SymBinder().GetReaderFromStream(pdbStream, metadataImporter);
+        }
+
+        public static ISymUnmanagedReader3 CreateReader(Stream pdbStream, object metadataImporter)
+        {
+            pdbStream.Position = 0;
+            bool isPortable = pdbStream.ReadByte() == 'B' && pdbStream.ReadByte() == 'S' && pdbStream.ReadByte() == 'J' && pdbStream.ReadByte() == 'B';
+            pdbStream.Position = 0;
+
+            if (isPortable)
+            {
+                return CreatePortableSymReader(pdbStream, metadataImporter);
+            }
+            else
+            {
+                return CreateNativeSymReader(pdbStream, metadataImporter);
+            }
+        }
+
         public static ISymUnmanagedReader CreateSymReaderFromResource(KeyValuePair<byte[], byte[]> peAndPdb)
         {
-            return SymReaderFactory.CreateReaderImpl(new MemoryStream(peAndPdb.Value), metadataImporter: new SymMetadataImport(new MemoryStream(peAndPdb.Key)));
+            return CreateReader(new MemoryStream(peAndPdb.Value), metadataImporter: new SymMetadataImport(new MemoryStream(peAndPdb.Key)));
         }
 
         public static void ValidateDocumentUrl(ISymUnmanagedDocument document, string url)

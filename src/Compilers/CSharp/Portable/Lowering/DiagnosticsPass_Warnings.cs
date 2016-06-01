@@ -848,12 +848,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return base.VisitFieldAccess(node);
         }
 
-        public override BoundNode VisitPropertyAccess(BoundPropertyAccess node)
-        {
-            CheckReceiverIfField(node.ReceiverOpt);
-            return base.VisitPropertyAccess(node);
-        }
-
         public override BoundNode VisitPropertyGroup(BoundPropertyGroup node)
         {
             CheckReceiverIfField(node.ReceiverOpt);
