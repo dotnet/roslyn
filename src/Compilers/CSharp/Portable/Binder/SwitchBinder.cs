@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // compatible with the existing syntax and semantics, we will remove *this* binder
             // and use the new one for binding all switch statements.
             return
-                true || ((switchSyntax?.SyntaxTree?.Options as CSharpParseOptions)?.IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching) != false)
+                ((switchSyntax?.SyntaxTree?.Options as CSharpParseOptions)?.IsFeatureEnabled(MessageID.IDS_FeaturePatternMatching) != false)
                 ? new PatternSwitchBinder(next, switchSyntax)
                 : new SwitchBinder(next, switchSyntax);
         }

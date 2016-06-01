@@ -4830,14 +4830,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_ExpressionTreeContainsLocalFunction" xml:space="preserve">
     <value>An expression tree may not contain a reference to a local function</value>
   </data>
-  <data name="ERR_ReturnTypesDontMatch" xml:space="preserve">
-    <value>Cannot infer the return type of '{0}' due to differing return types.</value>
-  </data>
   <data name="ERR_DynamicLocalFunctionParamsParameter" xml:space="preserve">
     <value>Cannot pass argument with dynamic type to params parameter '{0}' of local function '{1}'.</value>
-  </data>
-  <data name="ERR_CantInferVoid" xml:space="preserve">
-    <value>Cannot infer the type of '{0}' as it does not return a value.</value>
   </data>
   <data name="SyntaxTreeIsNotASubmission" xml:space="preserve">
     <value>Syntax tree should be created from a submission.</value>
@@ -4880,5 +4874,14 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_PatternWrongType" xml:space="preserve">
     <value>An expression of type {0} cannot be handled by a pattern of type {1}.</value>
+  </data>
+  <data name="WRN_AttributeIgnoredWhenPublicSigning" xml:space="preserve">
+    <value>Attribute '{0}' is ignored when public signing is specified.</value>
+  </data>
+  <data name="WRN_AttributeIgnoredWhenPublicSigning_Title" xml:space="preserve">
+    <value>Attribute is ignored when public signing is specified.</value>
+  </data>
+  <data name="ERR_OptionMustBeAbsolutePath" xml:space="preserve">
+    <value>Option '{0}' must be an absolute path.</value>
   </data>
 </root>

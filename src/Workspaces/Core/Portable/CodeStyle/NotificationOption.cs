@@ -9,7 +9,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     /// <remarks>
     /// This also supports various properties for databinding.
     /// </remarks>
-    internal class NotificationOption
+    public class NotificationOption
     {
         public string Name { get; set; }
 

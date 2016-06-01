@@ -14,11 +14,21 @@ using System.Threading.Tasks;
 using System.Globalization;
 using Microsoft.CodeAnalysis.CommandLine;
 using System.Runtime.InteropServices;
+using System.Collections.Specialized;
 
 namespace Microsoft.CodeAnalysis.CompilerServer
 {
     internal class DesktopBuildServerController : BuildServerController
     {
+        internal const string KeepAliveSettingName = "keepalive";
+
+        private readonly NameValueCollection _appSettings;
+
+        internal DesktopBuildServerController(NameValueCollection appSettings = null)
+        {
+            _appSettings = appSettings ?? ConfigurationManager.AppSettings;
+        }
+
         protected override IClientConnectionHost CreateClientConnectionHost(string pipeName)
         {
             // VBCSCompiler is installed in the same directory as csc.exe and vbc.exe which is also the 
@@ -29,12 +39,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer
             return new NamedPipeClientConnectionHost(compilerServerHost, pipeName);
         }
 
-        protected override TimeSpan? GetKeepAliveTimeout()
+        protected internal override TimeSpan? GetKeepAliveTimeout()
         {
             try
             {
                 int keepAliveValue;
-                string keepAliveStr = ConfigurationManager.AppSettings["keepalive"];
+                string keepAliveStr = _appSettings[KeepAliveSettingName];
                 if (int.TryParse(keepAliveStr, NumberStyles.Integer, CultureInfo.InvariantCulture, out keepAliveValue) &&
                     keepAliveValue >= 0)
                 {

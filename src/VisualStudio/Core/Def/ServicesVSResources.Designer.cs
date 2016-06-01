@@ -547,7 +547,7 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Low memory detected. Full solution analysis disabled for this solution..
+        ///   Looks up a localized string similar to Visual Studio has suspended some advanced features to improve performance..
         /// </summary>
         internal static string FullSolutionAnalysisOff {
             get {
@@ -778,6 +778,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string Kind {
             get {
                 return ResourceManager.GetString("Kind", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Learn more.
+        /// </summary>
+        internal static string LearnMore {
+            get {
+                return ResourceManager.GetString("LearnMore", resourceCulture);
             }
         }
         
@@ -1180,6 +1189,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer framework type.
+        /// </summary>
+        internal static string PreferFrameworkType {
+            get {
+                return ResourceManager.GetString("PreferFrameworkType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer predefined type.
+        /// </summary>
+        internal static string PreferPredefinedType {
+            get {
+                return ResourceManager.GetString("PreferPredefinedType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [+] .
         /// </summary>
         internal static string PreviewChangesAddedPrefix {
@@ -1288,6 +1315,15 @@ namespace Microsoft.VisualStudio.LanguageServices {
         internal static string ProjectNavBarTooltipWithShortcut {
             get {
                 return ResourceManager.GetString("ProjectNavBarTooltipWithShortcut", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Re-enable.
+        /// </summary>
+        internal static string Reenable {
+            get {
+                return ResourceManager.GetString("Reenable", resourceCulture);
             }
         }
         

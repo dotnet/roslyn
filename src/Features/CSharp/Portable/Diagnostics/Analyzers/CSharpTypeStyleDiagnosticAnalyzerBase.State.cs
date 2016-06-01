@@ -136,17 +136,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle
                 _styleToSeverityMap.Add(TypeStylePreference.ImplicitTypeWhereApparent, styleForApparent.Notification.Value);
                 _styleToSeverityMap.Add(TypeStylePreference.ImplicitTypeWherePossible, styleForElsewhere.Notification.Value);
 
-                if (styleForIntrinsicTypes.IsChecked)
+                if (styleForIntrinsicTypes.Value)
                 {
                     stylePreferences |= TypeStylePreference.ImplicitTypeForIntrinsicTypes;
                 }
 
-                if (styleForApparent.IsChecked)
+                if (styleForApparent.Value)
                 {
                     stylePreferences |= TypeStylePreference.ImplicitTypeWhereApparent;
                 }
 
-                if (styleForElsewhere.IsChecked)
+                if (styleForElsewhere.Value)
                 {
                     stylePreferences |= TypeStylePreference.ImplicitTypeWherePossible;
                 }

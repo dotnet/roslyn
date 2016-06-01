@@ -740,7 +740,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsLeftSideOfAnyAssignExpression(this SyntaxNode node)
         {
-            return node.Parent.IsAnyAssignExpression() &&
+            return node != null &&
+                node.Parent.IsAnyAssignExpression() &&
                 ((AssignmentExpressionSyntax)node.Parent).Left == node;
         }
 

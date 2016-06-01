@@ -655,6 +655,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 ElseIf underlyingTypeTo.IsReferenceType Then
                     result = RewriteAsDirectCast(rewrittenConversion)
 
+                ElseIf underlyingTypeFrom.IsReferenceType AndAlso underlyingTypeTo.IsIntrinsicValueType() Then
+                    result = RewriteFromObjectConversion(rewrittenConversion, Compilation.GetSpecialType(SpecialType.System_Object), underlyingTypeTo)
+
                 Else
                     Debug.Assert(underlyingTypeTo.IsValueType)
                     ' Find the parameterless constructor to be used in emit phase, see 'CodeGenerator.EmitConversionExpression'
@@ -800,6 +803,19 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     End If
 
                     Dim operand = node.Operand
+
+                    If Not operand.Type.IsObjectType() Then
+                        Debug.Assert(typeFrom.IsObjectType())
+                        Debug.Assert(operand.Type.IsReferenceType)
+                        Debug.Assert(underlyingTypeTo.IsIntrinsicValueType())
+
+                        Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
+                        operand = New BoundDirectCast(operand.Syntax,
+                                                      operand,
+                                                      Conversions.ClassifyDirectCastConversion(operand.Type, typeFrom, useSiteDiagnostics),
+                                                      typeFrom)
+                        _diagnostics.Add(node, useSiteDiagnostics)
+                    End If
 
                     Debug.Assert(memberSymbol.ReturnType.IsSameTypeIgnoringCustomModifiers(underlyingTypeTo))
                     Debug.Assert(memberSymbol.Parameters(0).Type Is typeFrom)

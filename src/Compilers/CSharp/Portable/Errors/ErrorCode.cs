@@ -1330,13 +1330,19 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_PublicSignButNoKey = 8102,
         ERR_TooManyUserStrings = 8103,
         ERR_PeWritingFailure = 8104,
-        ERR_ReturnTypesDontMatch = 8105,
-        ERR_DynamicLocalFunctionParamsParameter = 8106,
-        ERR_CantInferVoid = 8107,
-        ERR_ExpressionTreeContainsLocalFunction = 8108,
         #endregion diagnostics introduced in Roslyn (C# 6)
 
-        // gap here; available 8109-8115
+        #region diagnostics introduced in C# 6 updates
+        WRN_AttributeIgnoredWhenPublicSigning = 8105,
+        ERR_OptionMustBeAbsolutePath = 8106,
+        #endregion diagnostics introduced in C# 6 updates
+
+        #region diagnostics for local functions introduced in C# 7
+        ERR_DynamicLocalFunctionParamsParameter = 8108,
+        ERR_ExpressionTreeContainsLocalFunction = 8110,
+        #endregion diagnostics for local functions introduced in C# 7
+
+        // gap here; available 8111-8115
 
         #region diagnostics for pattern-matching introduced in C# 7
         ERR_PatternNullableType = 8116,

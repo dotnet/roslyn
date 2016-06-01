@@ -1480,10 +1480,24 @@ namespace Microsoft.CodeAnalysis
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken);
 
+        /// <summary>
+        /// Reports all unused imports/usings so far (and thus it must be called as a last step of Emit)
+        /// </summary>
         internal abstract void ReportUnusedImports(
             SyntaxTree filterTree,
             DiagnosticBag diagnostics,
             CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Signals the event queue, if any, that we are done compiling.
+        /// There should not be more compiling actions after this step.
+        /// NOTE: once we signal about completion to analyzers they will cancel and thus in some cases we 
+        ///       may be effectively cutting off some diagnostics.
+        ///       It is not clear if behavior is desirable.
+        ///       See: https://github.com/dotnet/roslyn/issues/11470
+        /// </summary>
+        /// <param name="filterTree">What tree to complete. null means complete all trees. </param>
+        internal abstract void CompleteTrees(SyntaxTree filterTree);
 
         internal bool Compile(
             CommonPEModuleBuilder moduleBuilder,
@@ -1695,7 +1709,7 @@ namespace Microsoft.CodeAnalysis
                         {
                             ReportUnusedImports(null, diagnostics, cancellationToken);
                         }
-                    }
+                   }
                 }
                 finally
                 {
@@ -2034,6 +2048,12 @@ namespace Microsoft.CodeAnalysis
                     try
                     {
                         Options.StrongNameProvider.SignAssembly(StrongNameKeys, signingInputStream, peStream);
+                    }
+                    catch (DesktopStrongNameProvider.ClrStrongNameMissingException)
+                    {
+                        diagnostics.Add(StrongNameKeys.GetError(StrongNameKeys.KeyFilePath, StrongNameKeys.KeyContainer,
+                            new CodeAnalysisResourcesLocalizableErrorArgument(nameof(CodeAnalysisResources.AssemblySigningNotSupported)), MessageProvider));
+                        return false;
                     }
                     catch (IOException ex)
                     {

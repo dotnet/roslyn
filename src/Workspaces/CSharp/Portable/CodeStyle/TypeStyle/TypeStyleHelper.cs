@@ -234,17 +234,17 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeStyle.TypeStyle
             var styleForApparent = optionSet.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWhereApparent);
             var styleForElsewhere = optionSet.GetOption(CSharpCodeStyleOptions.UseImplicitTypeWherePossible);
 
-            if (styleForIntrinsicTypes.IsChecked)
+            if (styleForIntrinsicTypes.Value)
             {
                 stylePreferences |= TypeStylePreference.ImplicitTypeForIntrinsicTypes;
             }
 
-            if (styleForApparent.IsChecked)
+            if (styleForApparent.Value)
             {
                 stylePreferences |= TypeStylePreference.ImplicitTypeWhereApparent;
             }
 
-            if (styleForElsewhere.IsChecked)
+            if (styleForElsewhere.Value)
             {
                 stylePreferences |= TypeStylePreference.ImplicitTypeWherePossible;
             }

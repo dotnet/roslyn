@@ -1733,6 +1733,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
+            CompleteTrees(filterTree);
+        }
+
+        internal override void CompleteTrees(SyntaxTree filterTree)
+        {
             // By definition, a tree is complete when all of its compiler diagnostics have been reported.
             // Since unused imports are the last thing we compute and report, a tree is complete when
             // the unused imports have been reported.

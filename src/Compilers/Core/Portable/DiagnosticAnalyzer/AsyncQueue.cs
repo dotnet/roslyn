@@ -168,15 +168,24 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return false;
                 }
 
-                existingWaiters = _waiters;
                 _completed = true;
+
+                existingWaiters = _waiters;
                 _waiters = null;
             }
 
             Task.Run(() =>
             {
-                if (existingWaiters != null)
+                if (existingWaiters?.Count > 0)
                 {
+                    // cancel waiters.
+                    // NOTE: AsyncQueue has an invariant that 
+                    //       the queue can either have waiters or items, not both
+                    //       adding an item would "unwait" the waiters
+                    //       the fact that we _had_ waiters at the time we completed the queue
+                    //       guarantees that there is no items in the queue now or in the future, 
+                    //       so it is safe to cancel waiters with no loss of diagnostics
+                    Debug.Assert(this.Count == 0, "we should not be cancelling the waiters when we have items in the queue");
                     foreach (var tcs in existingWaiters)
                     {
                         tcs.SetCanceled();

@@ -1,9 +1,6 @@
-﻿using System;
-using System.Diagnostics;
-using System.IO;
-namespace Roslyn.Test.Performance.Utilities
+﻿namespace Roslyn.Test.Performance.Utilities
 {
-    public interface ITraceManager
+    internal interface ITraceManager
     {
         bool HasWarmUpIteration { get; }
 

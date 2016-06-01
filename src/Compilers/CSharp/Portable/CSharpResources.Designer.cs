@@ -2438,15 +2438,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Cannot infer the type of &apos;{0}&apos; as it does not return a value..
-        /// </summary>
-        internal static string ERR_CantInferVoid {
-            get {
-                return ResourceManager.GetString("ERR_CantInferVoid", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Cannot create temporary file -- {0}.
         /// </summary>
         internal static string ERR_CantMakeTempFile {
@@ -3631,15 +3622,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_EncReferenceToAddedMember {
             get {
                 return ResourceManager.GetString("ERR_EncReferenceToAddedMember", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cannot update &apos;{0}&apos;; attribute &apos;{1}&apos; is missing..
-        /// </summary>
-        internal static string ERR_EncUpdateFailedMissingAttribute {
-            get {
-                return ResourceManager.GetString("ERR_EncUpdateFailedMissingAttribute", resourceCulture);
             }
         }
         
@@ -6857,6 +6839,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Option &apos;{0}&apos; must be an absolute path..
+        /// </summary>
+        internal static string ERR_OptionMustBeAbsolutePath {
+            get {
+                return ResourceManager.GetString("ERR_OptionMustBeAbsolutePath", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot specify only Out attribute on a ref parameter. Use both In and Out attributes, or neither..
         /// </summary>
         internal static string ERR_OutAttrOnRefParam {
@@ -8104,15 +8095,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_ReturnTypeIsStaticClass {
             get {
                 return ResourceManager.GetString("ERR_ReturnTypeIsStaticClass", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Cannot infer the return type of &apos;{0}&apos; due to differing return types..
-        /// </summary>
-        internal static string ERR_ReturnTypesDontMatch {
-            get {
-                return ResourceManager.GetString("ERR_ReturnTypesDontMatch", resourceCulture);
             }
         }
         
@@ -10643,6 +10625,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string WRN_AsyncLacksAwaits_Title {
             get {
                 return ResourceManager.GetString("WRN_AsyncLacksAwaits_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Attribute &apos;{0}&apos; is ignored when public signing is specified..
+        /// </summary>
+        internal static string WRN_AttributeIgnoredWhenPublicSigning {
+            get {
+                return ResourceManager.GetString("WRN_AttributeIgnoredWhenPublicSigning", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Attribute is ignored when public signing is specified..
+        /// </summary>
+        internal static string WRN_AttributeIgnoredWhenPublicSigning_Title {
+            get {
+                return ResourceManager.GetString("WRN_AttributeIgnoredWhenPublicSigning_Title", resourceCulture);
             }
         }
         
