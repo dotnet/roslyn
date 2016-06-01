@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial class SymbolKey
     {
-        private class EventSymbolKey
+        private static class EventSymbolKey
         {
             public static void Create(IEventSymbol symbol, Visitor visitor)
             {

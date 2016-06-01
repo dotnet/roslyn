@@ -6,7 +6,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial class SymbolKey
     {
-        private struct TypeParameterOrdinalSymbolKey
+        private static class TypeParameterOrdinalSymbolKey
         {
             public static void Create(ITypeParameterSymbol symbol, Visitor visitor)
             {

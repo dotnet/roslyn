@@ -8,7 +8,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial class SymbolKey
     {
-        private class ParameterSymbolKey
+        private static class ParameterSymbolKey
         {
             public static void Create(IParameterSymbol symbol, Visitor visitor)
             {

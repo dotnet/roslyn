@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial class SymbolKey
     {
-        private struct ReducedExtensionMethodSymbolKey
+        private static class ReducedExtensionMethodSymbolKey
         {
             public static void Create(IMethodSymbol symbol, Visitor visitor)
             {
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis
 
     internal partial class SymbolKey
     {
-        private struct ConstructedMethodSymbolKey
+        private static class ConstructedMethodSymbolKey
         {
             public static void Create(IMethodSymbol symbol, Visitor visitor)
             {
@@ -70,7 +70,7 @@ namespace Microsoft.CodeAnalysis
 
     internal partial class SymbolKey
     {
-        private class MethodSymbolKey 
+        private static class MethodSymbolKey 
         {
             public static void Create(IMethodSymbol symbol, Visitor visitor)
             {

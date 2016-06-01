@@ -7,7 +7,7 @@ namespace Microsoft.CodeAnalysis
 {
     internal partial class SymbolKey
     {
-        private struct AliasSymbolKey
+        private static class AliasSymbolKey
         {
             public static void Create(IAliasSymbol symbol, Visitor visitor)
             {
