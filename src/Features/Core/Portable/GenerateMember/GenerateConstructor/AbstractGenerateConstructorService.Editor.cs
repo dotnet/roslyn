@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.CodeGeneration;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
@@ -182,20 +183,17 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 // Find the names of the parameters that will follow the parameters we're
                 // delegating.
-                var remainingParameterNameStrings = _service.GenerateParameterNames(
+                var remainingParameterNames = _service.GenerateParameterNames(
                     _document.SemanticModel, remainingArguments,
                     delegatedConstructor.Parameters.Select(p => p.Name).ToList());
 
                 // Can't generate the constructor if the parameter names we're copying over forcibly
                 // conflict with any names we generated.
-                if (delegatedConstructor.Parameters.Select(p => p.Name).Intersect(remainingParameterNameStrings).Any())
+                if (delegatedConstructor.Parameters.Select(p => p.Name)
+                    .Intersect(remainingParameterNames.Select(n => n.BestNameForParameter)).Any())
                 {
                     return null;
                 }
-
-                var remainingParameterNames = remainingParameterNameStrings
-                    .Select(n => new ParameterName(n))
-                    .ToList();
 
                 // Try to map those parameters to fields.
                 Dictionary<string, ISymbol> parameterToExistingFieldMap;
@@ -271,12 +269,12 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                 return result;
             }
 
-            private IList<ParameterName> GetParameterNames(List<TArgumentSyntax> arguments, List<string> typeParametersNames)
+            private IList<ParameterName> GetParameterNames(
+                List<TArgumentSyntax> arguments, List<string> typeParametersNames)
             {
-                var parameterNames = _state.AttributeArguments != null
+                return _state.AttributeArguments != null
                     ? _service.GenerateParameterNames(_document.SemanticModel, _state.AttributeArguments, typeParametersNames)
                     : _service.GenerateParameterNames(_document.SemanticModel, arguments, typeParametersNames);
-                return parameterNames.Select(p => new ParameterName(p)).ToList();
             }
 
             private void GetParameters(
@@ -370,7 +368,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
                                 else
                                 {
                                     // Can change the parameter name, so do so.
-                                    var newParameterName = new ParameterName(newFieldName);
+                                    var newParameterName = new ParameterName(newFieldName, isFixed: false);
                                     parameterNames[index] = newParameterName;
                                     parameterToNewFieldMap[newParameterName.BestNameForParameter] = newFieldName;
                                 }

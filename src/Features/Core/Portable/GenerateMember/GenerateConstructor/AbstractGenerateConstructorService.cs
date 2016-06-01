@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
@@ -29,8 +29,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
         protected abstract bool TryInitializeClassDeclarationGenerationState(SemanticDocument document, SyntaxNode classDeclaration, CancellationToken cancellationToken, out SyntaxToken token, out IMethodSymbol constructor, out INamedTypeSymbol typeToGenerateIn);
         protected abstract bool TryInitializeConstructorInitializerGeneration(SemanticDocument document, SyntaxNode constructorInitializer, CancellationToken cancellationToken, out SyntaxToken token, out IList<TArgumentSyntax> arguments, out INamedTypeSymbol typeToGenerateIn);
         protected abstract bool TryInitializeSimpleAttributeNameGenerationState(SemanticDocument document, SyntaxNode simpleName, CancellationToken cancellationToken, out SyntaxToken token, out IList<TArgumentSyntax> arguments, out IList<TAttributeArgumentSyntax> attributeArguments, out INamedTypeSymbol typeToGenerateIn);
-        protected abstract IList<string> GenerateParameterNames(SemanticModel semanticModel, IEnumerable<TArgumentSyntax> arguments, IList<string> reservedNames = null);
-        protected virtual IList<string> GenerateParameterNames(SemanticModel semanticModel, IEnumerable<TAttributeArgumentSyntax> arguments, IList<string> reservedNames = null) { return null; }
+        protected abstract IList<ParameterName> GenerateParameterNames(SemanticModel semanticModel, IEnumerable<TArgumentSyntax> arguments, IList<string> reservedNames = null);
+        protected virtual IList<ParameterName> GenerateParameterNames(SemanticModel semanticModel, IEnumerable<TAttributeArgumentSyntax> arguments, IList<string> reservedNames = null) { return null; }
         protected abstract string GenerateNameForArgument(SemanticModel semanticModel, TArgumentSyntax argument);
         protected virtual string GenerateNameForArgument(SemanticModel semanticModel, TAttributeArgumentSyntax argument) { return null; }
         protected abstract RefKind GetRefKind(TArgumentSyntax argument);
@@ -92,45 +92,6 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
 
                 default:
                     return false;
-            }
-        }
-
-        private struct ParameterName : IEquatable<ParameterName>
-        {
-            /// <summary>
-            /// The name the underlying naming system came up with based on the argument itself.
-            /// This might be a name like "_value".  We pass this along because it can help
-            /// later parts of the GenerateConstructor process when doing things like field hookup.
-            /// </summary>
-            public readonly string NameBasedOnArgument;
-
-            /// <summary>
-            /// The name we think should actually be used for this parameter.  This will include
-            /// stripping the name of things like underscores.
-            /// </summary>
-            public readonly string BestNameForParameter;
-
-            public ParameterName(string nameBasedOnArgument)
-            {
-                NameBasedOnArgument = nameBasedOnArgument;
-
-                var trimmed = nameBasedOnArgument.TrimStart('_');
-                BestNameForParameter = trimmed.Length > 0 ? trimmed.ToCamelCase() : nameBasedOnArgument;
-            }
-
-            public override bool Equals(object obj)
-            {
-                return Equals((ParameterName)obj);
-            }
-
-            public bool Equals(ParameterName other)
-            {
-                return NameBasedOnArgument.Equals(other.NameBasedOnArgument);
-            }
-
-            public override int GetHashCode()
-            {
-                return NameBasedOnArgument.GetHashCode();
             }
         }
     }
