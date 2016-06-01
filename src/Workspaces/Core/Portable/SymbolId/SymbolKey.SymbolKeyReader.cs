@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal partial class SymbolKey
+    internal partial struct SymbolKey
     {
         private abstract class Reader<TStringResult> : IDisposable
         {
@@ -274,51 +274,39 @@ namespace Microsoft.CodeAnalysis
             private static readonly ObjectPool<GetHashCodeReader> s_pool = 
                 new ObjectPool<GetHashCodeReader>(() => new GetHashCodeReader());
 
-            public ComparisonOptions Options { get; private set; }
-
             private GetHashCodeReader()
             {
             }
 
-            public static GetHashCodeReader GetReader(string data, ComparisonOptions options)
+            public static GetHashCodeReader GetReader(string data)
             {
                 var reader = s_pool.Allocate();
-                reader.Initialize(data, options);
+                reader.Initialize(data);
                 return reader;
             }
 
             public override void Dispose()
             {
                 base.Dispose();
-                Options = default(ComparisonOptions);
 
                 s_pool.Free(this);
             }
 
-            private void Initialize(string data, ComparisonOptions options)
+            private void Initialize(string data)
             {
                 base.Initialize(data, CancellationToken.None);
-                Options = options;
             }
 
             protected override int CreateResultForString(int start, int end, bool hasEmbeddedQuote)
             {
                 var result = 1;
-                if (Options.IgnoreCase)
-                {
-                    for (var i = start; i < end; i++)
-                    {
-                        result = Hash.Combine((int)char.ToLower(Data[i]), result);
-                    }
-                }
-                else
-                {
-                    for (var i = start; i < end; i++)
-                    {
-                        result = Hash.Combine((int)Data[i], result);
-                    }
-                }
 
+                // Note: we hash all strings to lowercase. It will mean more collisions, but
+                // it provides a uniform hashing strategy for all keys.
+                for (var i = start; i < end; i++)
+                {
+                    result = Hash.Combine((int)char.ToLower(Data[i]), result);
+                }
                 return result;
             }
 

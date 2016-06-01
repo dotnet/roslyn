@@ -73,7 +73,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.SymbolId
 
             ' Verify that serialization works.
             Dim serialized = sid.ToString()
-            Dim deserialized = SymbolKey.FromString(serialized)
+            Dim deserialized = New SymbolKey(serialized)
 
             Dim comparer = SymbolKey.GetComparer(ignoreCase:=False, ignoreAssemblyKeys:=False)
             Assert.True(comparer.Equals(sid, deserialized))

@@ -4,11 +4,11 @@ using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal partial class SymbolKey
+    internal partial struct SymbolKey
     {
         private static class TypeParameterOrdinalSymbolKey
         {
-            public static void Create(ITypeParameterSymbol symbol, Visitor visitor)
+            public static void Create(ITypeParameterSymbol symbol, SymbolKeyWriter visitor)
             {
                 Debug.Assert(visitor.WritingSignature);
                 Debug.Assert(symbol.TypeParameterKind == TypeParameterKind.Method);

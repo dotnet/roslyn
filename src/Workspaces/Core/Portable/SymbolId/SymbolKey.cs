@@ -76,25 +76,26 @@ namespace Microsoft.CodeAnalysis
     /// </para>
     /// </para>
     /// </summary>
-    internal partial class SymbolKey
+    internal partial struct SymbolKey
     {
         private readonly static Func<ITypeSymbol, bool> s_typeIsNull = t => t == null;
 
         private readonly string _symbolKeyData;
+        private readonly int _hashCode;
 
-        private SymbolKey(string symbolKeyData)
+        public SymbolKey(string symbolKeyData)
         {
             if (symbolKeyData == null)
             {
                 throw new ArgumentNullException();
-
             }
-            _symbolKeyData = symbolKeyData;
-        }
 
-        public static SymbolKey FromString(string data)
-        {
-            return new SymbolKey(data);
+            _symbolKeyData = symbolKeyData;
+
+            using (var reader = GetHashCodeReader.GetReader(_symbolKeyData))
+            {
+                _hashCode = reader.ReadFirstSymbolKey();
+            }
         }
 
         public static IEqualityComparer<SymbolKey> GetComparer(bool ignoreCase, bool ignoreAssemblyKeys)
@@ -108,14 +109,6 @@ namespace Microsoft.CodeAnalysis
             reader.Initialize(data);
             return reader.RemoveAssemblySymbolKeys();
         };
-
-        private static int GetHashCode(SymbolKey key, ComparisonOptions options)
-        {
-            using (var reader = GetHashCodeReader.GetReader(key._symbolKeyData, options))
-            {
-                return reader.ReadFirstSymbolKey();
-            }
-        }
 
         public static SymbolKeyResolution Resolve(
             string symbolKey, Compilation compilation,
@@ -136,10 +129,10 @@ namespace Microsoft.CodeAnalysis
         {
             var compilation = (symbol.ContainingAssembly as ISourceAssemblySymbol)?.Compilation;
 
-            using (var visitor = Visitor.GetVisitor(compilation, cancellationToken))
+            using (var writer = SymbolKeyWriter.GetWriter(compilation, cancellationToken))
             {
-                visitor.WriteFirstSymbolKey(symbol);
-                return visitor.CreateKey();
+                writer.WriteFirstSymbolKey(symbol);
+                return writer.CreateKey();
             }
         }
 
@@ -255,6 +248,11 @@ namespace Microsoft.CodeAnalysis
             }
 
             return true;
+        }
+
+        public override int GetHashCode()
+        {
+            return _hashCode;
         }
     }
 }

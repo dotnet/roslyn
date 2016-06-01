@@ -2,13 +2,13 @@
 
 namespace Microsoft.CodeAnalysis
 {
-    internal partial class SymbolKey
+    internal partial struct SymbolKey
     {
         private static class DynamicTypeSymbolKey
         {
             private static readonly object instance = new object();
 
-            public static void Create(Visitor visitor)
+            public static void Create(SymbolKeyWriter visitor)
             {
             }
 

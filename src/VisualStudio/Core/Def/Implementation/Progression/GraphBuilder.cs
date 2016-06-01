@@ -115,8 +115,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
                 _nodeToContextProjectMap.Add(inputNode, project);
 
                 var compilation = await project.GetCompilationAsync(_cancellationToken).ConfigureAwait(false);
-                var symbolId = inputNode[RoslynGraphProperties.SymbolId] as SymbolKey;
-                var symbol = symbolId.Resolve(compilation).Symbol;
+                var symbolId = (SymbolKey?)inputNode[RoslynGraphProperties.SymbolId];
+                var symbol = symbolId.Value.Resolve(compilation).Symbol;
                 if (symbol != null)
                 {
                     _nodeToSymbolMap.Add(inputNode, symbol);
@@ -205,7 +205,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Progression
             {
                 GraphNode node = await GetOrCreateNodeAsync(_graph, symbol, _solution, _cancellationToken).ConfigureAwait(false);
 
-                node[RoslynGraphProperties.SymbolId] = symbol.GetSymbolKey();
+                node[RoslynGraphProperties.SymbolId] = (SymbolKey?)symbol.GetSymbolKey();
                 node[RoslynGraphProperties.ContextProjectId] = GetContextProjectId(contextProject, symbol);
                 node[RoslynGraphProperties.ExplicitInterfaceImplementations] = symbol.ExplicitInterfaceImplementations().Select(s => s.GetSymbolKey()).ToList();
                 node[RoslynGraphProperties.DeclaredAccessibility] = symbol.DeclaredAccessibility;

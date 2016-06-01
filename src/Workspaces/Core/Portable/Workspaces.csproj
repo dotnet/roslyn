@@ -445,7 +445,7 @@
     <Compile Include="SymbolId\SymbolKey.FieldSymbolKey.cs" />
     <Compile Include="SymbolId\SymbolKey.DynamicTypeSymbolKey.cs" />
     <Compile Include="SymbolId\SymbolKey.ArrayTypeSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.Visitor.cs" />
+    <Compile Include="SymbolId\SymbolKey.SymbolKeyWriter.cs" />
     <Compile Include="SymbolId\SymbolKey.cs" />
     <Compile Include="SymbolSearch\ISymbolSearchService.cs" />
     <Compile Include="FindSymbols\SymbolTree\ISymbolTreeInfoCacheService.cs" />

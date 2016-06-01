@@ -6,11 +6,11 @@ using System.Linq;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal partial class SymbolKey
+    internal partial struct SymbolKey
     {
         private static class TupleTypeSymbolKey
         {
-            public static void Create(INamedTypeSymbol symbol, Visitor visitor)
+            public static void Create(INamedTypeSymbol symbol, SymbolKeyWriter visitor)
             {
                 Debug.Assert(symbol.IsTupleType);
                 visitor.WriteSymbolKey(symbol.TupleUnderlyingType);

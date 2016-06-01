@@ -6,11 +6,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal partial class SymbolKey
+    internal partial struct SymbolKey
     {
         private static class ParameterSymbolKey
         {
-            public static void Create(IParameterSymbol symbol, Visitor visitor)
+            public static void Create(IParameterSymbol symbol, SymbolKeyWriter visitor)
             {
                 visitor.WriteString(symbol.MetadataName);
                 visitor.WriteSymbolKey(symbol.ContainingSymbol);

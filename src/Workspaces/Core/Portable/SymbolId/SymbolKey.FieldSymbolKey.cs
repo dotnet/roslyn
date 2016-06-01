@@ -5,11 +5,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal partial class SymbolKey
+    internal partial struct SymbolKey
     {
         private static class FieldSymbolKey
         {
-            public static void Create(IFieldSymbol symbol, Visitor visitor)
+            public static void Create(IFieldSymbol symbol, SymbolKeyWriter visitor)
             {
                 visitor.WriteString(symbol.MetadataName);
                 visitor.WriteSymbolKey(symbol.ContainingType);

@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.SymbolId
 
             // Verify that serialization works.
             var serialized = sid.ToString();
-            var deserialized = SymbolKey.FromString(serialized);
+            var deserialized = new SymbolKey(serialized);
             var comparer = SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: false);
             Assert.True(comparer.Equals(sid, deserialized));
 

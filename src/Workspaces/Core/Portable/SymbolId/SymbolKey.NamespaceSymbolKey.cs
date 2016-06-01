@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal partial class SymbolKey
+    internal partial struct SymbolKey
     {
         private static class NamespaceSymbolKey
         {
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis
             // 4) The SymbolId for the containing namespace symbol if this is not a global
             //    namespace.
 
-            public static void Create(INamespaceSymbol symbol, Visitor visitor)
+            public static void Create(INamespaceSymbol symbol, SymbolKeyWriter visitor)
             {
                 visitor.WriteString(symbol.MetadataName);
 

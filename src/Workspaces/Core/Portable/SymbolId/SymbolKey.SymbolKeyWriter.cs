@@ -10,7 +10,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal partial class SymbolKey
+    internal partial struct SymbolKey
     {
         private enum SymbolKeyType
         {
@@ -41,10 +41,10 @@ namespace Microsoft.CodeAnalysis
             TypeParameterOrdinal = '@',
         }
 
-        private class Visitor : SymbolVisitor<object>, IDisposable
+        private class SymbolKeyWriter : SymbolVisitor<object>, IDisposable
         {
-            private static readonly ObjectPool<Visitor> s_visitorPool =
-                new ObjectPool<Visitor>(() => new Visitor());
+            private static readonly ObjectPool<SymbolKeyWriter> s_writerPool =
+                new ObjectPool<SymbolKeyWriter>(() => new SymbolKeyWriter());
 
             private readonly Action<ISymbol> _writeSymbolKey;
             private readonly Action<string> _writeString;
@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis
             internal int _nestingCount;
             private int _nextId;
 
-            private Visitor()
+            private SymbolKeyWriter()
             {
                 _writeSymbolKey = WriteSymbolKey;
                 _writeString = WriteString;
@@ -79,12 +79,12 @@ namespace Microsoft.CodeAnalysis
                 _nextId = 0;
 
                 // Place us back in the pool for future use.
-                s_visitorPool.Free(this);
+                s_writerPool.Free(this);
             }
 
-            public static Visitor GetVisitor(Compilation compilation, CancellationToken cancellationToken)
+            public static SymbolKeyWriter GetWriter(Compilation compilation, CancellationToken cancellationToken)
             {
-                var visitor = s_visitorPool.Allocate();
+                var visitor = s_writerPool.Allocate();
                 visitor.Initialize(compilation, cancellationToken);
                 return visitor;
             }

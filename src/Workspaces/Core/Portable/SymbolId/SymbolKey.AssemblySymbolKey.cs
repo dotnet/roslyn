@@ -5,11 +5,11 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal partial class SymbolKey
+    internal partial struct SymbolKey
     {
         private static class AssemblySymbolKey
         {
-            public static void Create(IAssemblySymbol symbol, Visitor visitor)
+            public static void Create(IAssemblySymbol symbol, SymbolKeyWriter visitor)
             {
                 // If the format of this ever changed, then it's necessary to fixup the
                 // SymbolKeyComparer.RemoveAssemblyKeys function.
@@ -19,9 +19,10 @@ namespace Microsoft.CodeAnalysis
             public static int GetHashCode(GetHashCodeReader reader)
             {
                 var value = reader.ReadString();
-                // isCaseSensitive doesn't apply here as AssemblyIdentity is always case
-                // insensitive.
-                return reader.Options.IgnoreAssemblyKey ? 1 : value;
+
+                // Hash all assembly keys to the same bucket.  That way we're a uniform 
+                // hash regardless if clients care about assembly IDs or not.
+                return 1;
             }
 
             public static SymbolKeyResolution Resolve(SymbolKeyReader reader)

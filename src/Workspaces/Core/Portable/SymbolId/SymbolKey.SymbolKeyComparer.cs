@@ -8,7 +8,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal partial class SymbolKey
+    internal partial struct SymbolKey
     {
         private class SymbolKeyComparer : IEqualityComparer<SymbolKey>
         {
@@ -21,16 +21,6 @@ namespace Microsoft.CodeAnalysis
 
             public bool Equals(SymbolKey x, SymbolKey y)
             {
-                if (x == y)
-                {
-                    return true;
-                }
-
-                if (x == null || y == null)
-                {
-                    return false;
-                }
-
                 var comparer = _options.IgnoreCase
                     ? StringComparer.OrdinalIgnoreCase
                     : StringComparer.Ordinal;
@@ -60,12 +50,7 @@ namespace Microsoft.CodeAnalysis
 
             public int GetHashCode(SymbolKey obj)
             {
-                if (obj == null)
-                {
-                    return 0;
-                }
-
-                return SymbolKey.GetHashCode(obj, _options);
+                return obj.GetHashCode();
             }
 
             public static IEqualityComparer<SymbolKey> GetComparer(bool ignoreCase, bool ignoreAssemblyKey)

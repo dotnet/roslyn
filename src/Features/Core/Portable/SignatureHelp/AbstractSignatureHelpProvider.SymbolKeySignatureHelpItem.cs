@@ -10,7 +10,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
     {
         internal class SymbolKeySignatureHelpItem : SignatureHelpItem, IEquatable<SymbolKeySignatureHelpItem>
         {
-            public SymbolKey SymbolKey { get; }
+            public SymbolKey? SymbolKey { get; }
 
             public SymbolKeySignatureHelpItem(
                 ISymbol symbol,
@@ -22,7 +22,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 IEnumerable<SignatureHelpParameter> parameters,
                 IEnumerable<SymbolDisplayPart> descriptionParts) : base(isVariadic, documentationFactory, prefixParts, separatorParts, suffixParts, parameters, descriptionParts)
             {
-                this.SymbolKey = symbol == null ? null : symbol.GetSymbolKey();
+                this.SymbolKey = symbol?.GetSymbolKey();
             }
 
             public override bool Equals(object obj)
@@ -33,9 +33,9 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
             public bool Equals(SymbolKeySignatureHelpItem obj)
             {
                 return ReferenceEquals(this, obj) ||
-                    (obj != null &&
-                    this.SymbolKey != null &&
-                    SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: false).Equals(this.SymbolKey, obj.SymbolKey));
+                    (obj?.SymbolKey != null &&
+                     this.SymbolKey != null &&
+                     CodeAnalysis.SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: false).Equals(this.SymbolKey.Value, obj.SymbolKey.Value));
             }
 
             public override int GetHashCode()
@@ -45,8 +45,8 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                     return 0;
                 }
 
-                var comparer = SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: false);
-                return comparer.GetHashCode(this.SymbolKey);
+                var comparer = CodeAnalysis.SymbolKey.GetComparer(ignoreCase: false, ignoreAssemblyKeys: false);
+                return comparer.GetHashCode(this.SymbolKey.Value);
             }
         }
     }

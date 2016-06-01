@@ -8,11 +8,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal partial class SymbolKey
+    internal partial struct SymbolKey
     {
         private static class ReducedExtensionMethodSymbolKey
         {
-            public static void Create(IMethodSymbol symbol, Visitor visitor)
+            public static void Create(IMethodSymbol symbol, SymbolKeyWriter visitor)
             {
                 Debug.Assert(symbol.Equals(symbol.ConstructedFrom));
 
@@ -41,11 +41,11 @@ namespace Microsoft.CodeAnalysis
         }
     }
 
-    internal partial class SymbolKey
+    internal partial struct SymbolKey
     {
         private static class ConstructedMethodSymbolKey
         {
-            public static void Create(IMethodSymbol symbol, Visitor visitor)
+            public static void Create(IMethodSymbol symbol, SymbolKeyWriter visitor)
             {
                 visitor.WriteSymbolKey(symbol.ConstructedFrom);
                 visitor.WriteSymbolKeyArray(symbol.TypeArguments);
@@ -81,11 +81,11 @@ namespace Microsoft.CodeAnalysis
         }
     }
 
-    internal partial class SymbolKey
+    internal partial struct SymbolKey
     {
         private static class MethodSymbolKey 
         {
-            public static void Create(IMethodSymbol symbol, Visitor visitor)
+            public static void Create(IMethodSymbol symbol, SymbolKeyWriter visitor)
             {
                 Debug.Assert(symbol.Equals(symbol.ConstructedFrom));
 

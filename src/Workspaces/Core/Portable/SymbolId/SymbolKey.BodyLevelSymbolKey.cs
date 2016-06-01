@@ -7,11 +7,11 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal partial class SymbolKey
+    internal partial struct SymbolKey
     {
         private static class BodyLevelSymbolKey
         {
-            public static void Create(ISymbol symbol, Visitor visitor)
+            public static void Create(ISymbol symbol, SymbolKeyWriter visitor)
             {
                 var containingSymbol = symbol.ContainingSymbol;
 
