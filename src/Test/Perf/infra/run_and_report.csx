@@ -22,9 +22,10 @@ await RunFile(Path.Combine(directoryUtil.MyWorkingDirectory, "..", "runner.csx")
 var elapsedTimeCsvFilePath = Path.Combine(directoryUtil.CPCDirectoryPath, "consumptionTempResults_ElapsedTime.csv");
 var result = ConvertConsumptionToCsv(Path.Combine(directoryUtil.CPCDirectoryPath, "consumptionTempResults.xml"), elapsedTimeCsvFilePath, "Duration_TotalElapsedTime", logger);
 
+string elapsedTimeViBenchJsonFilePath = null;
 if (result)
 {
-    var elapsedTimeViBenchJsonFilePath = GetViBenchJsonFromCsv(elapsedTimeCsvFilePath, null, null, IsVerbose(), logger);
+    elapsedTimeViBenchJsonFilePath = GetViBenchJsonFromCsv(elapsedTimeCsvFilePath, null, null, IsVerbose(), logger);
     string jsonFileName = Path.GetFileName(elapsedTimeViBenchJsonFilePath);
 
     // Move the json file to a file-share
@@ -38,3 +39,9 @@ else
 
 // Move the traces to mlangfs1 share
 UploadTraces(directoryUtil.CPCDirectoryPath, @"\\mlangfs1\public\basoundr\PerfTraces", logger);
+
+// Delete the Json file that was created
+if (elapsedTimeViBenchJsonFilePath != null)
+{
+    File.Delete(elapsedTimeViBenchJsonFilePath);
+}
