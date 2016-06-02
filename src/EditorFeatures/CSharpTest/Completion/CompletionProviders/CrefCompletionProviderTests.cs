@@ -455,11 +455,6 @@ class C
                 throw new NotImplementedException();
             }
 
-            public SyntaxNode ConvertToSingleLine(SyntaxNode node)
-            {
-                throw new NotImplementedException();
-            }
-
             public SyntaxToken FindTokenOnLeftOfPosition(SyntaxNode node, int position, bool includeSkipped = true, bool includeDirectives = false, bool includeDocumentationComments = false)
             {
                 throw new NotImplementedException();
@@ -807,7 +802,7 @@ class C
                 throw new NotImplementedException();
             }
 
-            public bool IsStringLiteral(SyntaxToken token)
+            public bool IsStringLiteralOrInterpolatedStringLiteral(SyntaxToken token)
             {
                 throw new NotImplementedException();
             }
@@ -958,6 +953,36 @@ class C
             }
 
             public bool IsOperandOfIncrementExpression(SyntaxNode node)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsNumericLiteralExpression(SyntaxNode node)
+            {
+                throw new NotImplementedException();
+            }
+
+            public SyntaxNode GetExpressionOfInterpolation(SyntaxNode node)
+            {
+                throw new NotImplementedException();
+            }
+
+            public SyntaxList<SyntaxNode> GetContentsOfInterpolatedString(SyntaxNode interpolatedString)
+            {
+                throw new NotImplementedException();
+            }
+
+            public bool IsStringLiteral(SyntaxToken token)
+            {
+                throw new NotImplementedException();
+            }
+
+            public SeparatedSyntaxList<SyntaxNode> GetArgumentsForInvocationExpression(SyntaxNode invocationExpression)
+            {
+                throw new NotImplementedException();
+            }
+
+            public SyntaxNode ConvertToSingleLine(SyntaxNode node, bool useElasticTrivia = false)
             {
                 throw new NotImplementedException();
             }

@@ -417,26 +417,4 @@ Module T
 End Module</File>.ConvertTestSourceTag()
         Await TestMissingAsync(text)
     End Function
-
-    <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)>
-    Public Async Function TestMultilineStringLiteral() As Task
-        Dim text = <File>
-Imports System
-Module T
-    Sub M(args As String())
-        Dim s = [|String.Format("The text has {0} '{' characters and {1} '}' characters.",
-                              "{"c, "}"c)|]
-    End Sub
-End Module</File>.ConvertTestSourceTag()
-
-        Dim expected = <File>
-Imports System
-Module T
-    Sub M(args As String())
-        Dim s = $"The text has {"{"c} '{{' characters and {"}"c} '}}' characters."
-    End Sub
-End Module</File>.ConvertTestSourceTag()
-
-        Await TestAsync(text, expected)
-    End Function
 End Class

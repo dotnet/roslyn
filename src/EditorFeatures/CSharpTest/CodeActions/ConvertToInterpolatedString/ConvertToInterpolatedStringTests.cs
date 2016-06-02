@@ -281,7 +281,7 @@ class T
     void M()
     {
         Decimal pricePerOunce = 17.36m;
-        String s = $""The current price is {  pricePerOunce:C2} per ounce."";
+        String s = $""The current price is { pricePerOunce:C2} per ounce."";
     }
 }");
         }
@@ -334,7 +334,7 @@ class T
         int[] population = { 1025632, 1105967, 1148203 };
         String s = String.Format(""{0,6} {1,15}\n\n"", ""Year"", ""Population"");
         for (int index = 0; index < years.Length; index++)
-            s += $""{ years[index],6} {population[index],15:N0}\n"";
+            s += $""{years[index],6} {population[index],15:N0}\n"";
     }
 }");
         }
@@ -405,7 +405,7 @@ public class T
         string output;
         foreach (var city in cities)
         {
-            output = $""{ city.Item1,-12}{city.Item2,8:yyyy}{city.Item3,12:N0}{city.Item4,8:yyyy}{city.Item5,12:N0}{ (city.Item5 - city.Item3) / (double)city.Item3,14:P1}"";
+            output = $""{city.Item1,-12}{city.Item2,8:yyyy}{city.Item3,12:N0}{city.Item4,8:yyyy}{city.Item5,12:N0}{(city.Item5 - city.Item3) / (double)city.Item3,14:P1}"";
         }
     }
 }");
@@ -469,7 +469,7 @@ public class T
         int value1 = 16932;
         int value2 = 15421;
         string result = $@""
-    { value1,10} ({ value1,8:X8})
+    {value1,10} ({value1,8:X8})
 And {value2,10} ({value2,8:X8})
   = {value1 & value2,10} ({value1 & value2,8:X8})"";
     }
@@ -501,7 +501,7 @@ public class T
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsConvertToInterpolatedString)]
-        public async Task TestBraceEscape()
+        public async Task TestInvalidInteger()
         {
             await TestAsync(
 @"using System;
@@ -510,8 +510,7 @@ public class T
 {
     public static void M()
     {
-        string result = [|String.Format(@""The text has {0} '{' characters and {1} '}' characters."",
-                       '{', '}')|];
+        string result = [|String.Format(""{0L}"", 5)|];
     }
 }",
 @"using System;
@@ -520,7 +519,7 @@ public class T
 {
     public static void M()
     {
-        string result = $@""The text has { '{'} '{{' characters and {'}'} '}}' characters."";
+        string result = $""{5}"";
     }
 }");
         }
