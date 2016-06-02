@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Generates a new <see cref="BoundBadExpression"/> with no known type, and the given bound children.
         /// </summary>
-        private BoundBadExpression BadExpression(CSharpSyntaxNode syntax, params BoundNode[] childNodes)
+        private BoundBadExpression BadExpression(CSharpSyntaxNode syntax, ImmutableArray<BoundNode> childNodes)
         {
             return BadExpression(syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, childNodes);
         }
@@ -131,14 +131,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected BoundBadExpression BadExpression(CSharpSyntaxNode syntax, LookupResultKind lookupResultKind, BoundNode childNode)
         {
             return BadExpression(syntax, lookupResultKind, ImmutableArray<Symbol>.Empty, childNode);
-        }
-
-        /// <summary>
-        /// Generates a new <see cref="BoundBadExpression"/> with no known type, given lookup resultKind and the given bound children.
-        /// </summary>
-        protected BoundBadExpression BadExpression(CSharpSyntaxNode syntax, LookupResultKind lookupResultKind, params BoundNode[] childNodes)
-        {
-            return BadExpression(syntax, lookupResultKind, ImmutableArray<Symbol>.Empty, childNodes);
         }
 
         /// <summary>
@@ -170,12 +162,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Generates a new <see cref="BoundBadExpression"/> with no known type, given lookupResultKind and given symbols for GetSemanticInfo API,
         /// and the given bound children.
         /// </summary>
-        private BoundBadExpression BadExpression(CSharpSyntaxNode syntax, LookupResultKind resultKind, ImmutableArray<Symbol> symbols, params BoundNode[] childNodes)
+        private BoundBadExpression BadExpression(CSharpSyntaxNode syntax, LookupResultKind resultKind, ImmutableArray<Symbol> symbols, ImmutableArray<BoundNode> childNodes)
         {
             return new BoundBadExpression(syntax,
                 resultKind,
                 symbols,
-                ImmutableArray.Create(childNodes),
+                childNodes,
                 CreateErrorType());
         }
 
@@ -655,8 +647,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // this should be a parse error already.
                 var args = numElements == 1 ?
-                    new BoundExpression[] { BindValue(arguments[0].Expression, diagnostics, BindValueKind.RValue) } :
-                    SpecializedCollections.EmptyArray<BoundExpression>();
+                    ImmutableArray.Create<BoundNode>(BindValue(arguments[0].Expression, diagnostics, BindValueKind.RValue)) :
+                    ImmutableArray<BoundNode>.Empty;
 
                 return BadExpression(node, args);
             }
@@ -674,7 +666,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int countOfExplicitNames = 0;
 
             // prepare and check element names and types
-            for (int i = 0, l = numElements; i < l; i++)
+            for (int i = 0; i < numElements; i++)
             {
                 ArgumentSyntax argumentSyntax = arguments[i];
                 string name = null;
@@ -6156,7 +6148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(diagnostics, ErrorCode.ERR_PtrIndexSingle, node);
                 }
-                return new BoundPointerElementAccess(node, expr, BadExpression(node, BuildArgumentsForErrorRecovery(analyzedArguments).ToArray()), CheckOverflowAtRuntime, pointedAtType, hasErrors: true);
+                return new BoundPointerElementAccess(node, expr, BadExpression(node, StaticCast<BoundNode>.From(BuildArgumentsForErrorRecovery(analyzedArguments))), CheckOverflowAtRuntime, pointedAtType, hasErrors: true);
             }
 
             if (pointedAtType.SpecialType == SpecialType.System_Void)
