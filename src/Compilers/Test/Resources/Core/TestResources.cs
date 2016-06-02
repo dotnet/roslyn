@@ -165,6 +165,9 @@ namespace TestResources.NetFX
 
         private static byte[] s_minasync;
         public static byte[] minasync => ResourceLoader.GetOrCreateResource(ref s_minasync, "NetFX.Minimal.minasync.dll");
+
+        private static byte [] s_minasynccorlib;
+        public static byte [] minasynccorlib => ResourceLoader.GetOrCreateResource(ref s_minasynccorlib, "NetFX.Minimal.minasynccorlib.dll");
     }
 
     public static class ValueTuple
