@@ -25,7 +25,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         public IReadOnlyList<IntellisenseFilter2> Filters;
 
         public Roslyn15CompletionSet(
-            IVsCompletionSet vsCompletionSet,
+            IVisualStudioCompletionSet vsCompletionSet,
             CompletionPresenterSession completionPresenterSession,
             ITextView textView,
             ITextBuffer subjectBuffer)

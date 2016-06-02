@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
     /// </summary>
     internal class Roslyn14CompletionSet : ForegroundThreadAffinitizedObject
     {
-        protected readonly IVsCompletionSet VsCompletionSet;
+        protected readonly IVisualStudioCompletionSet VsCompletionSet;
 
         private readonly ITextView _textView;
 
@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         protected IReadOnlyDictionary<CompletionItem, string> CompletionItemToFilterText;
 
         public Roslyn14CompletionSet(
-            IVsCompletionSet vsCompletionSet,
+            IVisualStudioCompletionSet vsCompletionSet,
             CompletionPresenterSession completionPresenterSession,
             ITextView textView,
             ITextBuffer subjectBuffer)
