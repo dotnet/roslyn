@@ -292,7 +292,35 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 cancellationToken.ThrowIfCancellationRequested();
 
                 Log("Attempt to connect named pipe '{0}'", pipeName);
-                pipeStream.Connect(timeoutMs);
+
+                // .NET 4.5 implementation of NamedPipeStream.Connect busy waits the entire time.
+                // Work around is to spin wait.
+                const int maxWaitInterval = 50;
+                int elapsed = 0;
+                var sw = new SpinWait();
+                while (true)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+
+                    int waitTime = Math.Min(timeoutMs - elapsed, maxWaitInterval);
+                    if (timeoutMs != Timeout.Infinite && waitTime <= 0)
+                    {
+                        Log($"Connecting to server timed out after {timeoutMs} ms");
+                        break;
+                    }
+
+                    try
+                    {
+                        pipeStream.Connect(waitTime);
+                        break;
+                    }
+                    catch (Exception e) when (e is IOException || e is TimeoutException)
+                    {
+                        // Ignore timeout
+                    }
+                    elapsed += waitTime;
+                    sw.SpinOnce();
+                }
                 Log("Named pipe '{0}' connected", pipeName);
 
                 cancellationToken.ThrowIfCancellationRequested();
