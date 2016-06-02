@@ -822,7 +822,7 @@ Assembly '{libBaseName}, Version=0.0.0.0' has already been loaded from '{fileBas
 > ", runner.Console.Out.ToString());
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/11716")]
         [WorkItem(6580, "https://github.com/dotnet/roslyn/issues/6580")]
         public void PreservingDeclarationsOnException()
         {
