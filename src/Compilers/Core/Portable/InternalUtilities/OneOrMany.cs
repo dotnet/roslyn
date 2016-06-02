@@ -105,44 +105,6 @@ namespace Roslyn.Utilities
                 get { return _collection[_index]; }
             }
         }
-
-        public static bool operator ==(OneOrMany<T> first, OneOrMany<T> second)
-        {
-            return first.Equals(second);
-        }
-
-        public static bool operator !=(OneOrMany<T> first, OneOrMany<T> second)
-        {
-            return !(first == second);
-        }
-
-        public bool Equals(OneOrMany<T> other)
-        {
-            if (Count != other.Count)
-            {
-                return false;
-            }
-
-            for (int i = 0; i < Count; i++)
-            {
-                if (this[i].Equals(other[i]))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        public override bool Equals(object obj)
-        {
-            return obj is OneOrMany<T> && Equals((OneOrMany<T>)obj);
-        }
-
-        public override int GetHashCode()
-        {
-            return base.GetHashCode();
-        }
     }
 
     internal static class OneOrMany
@@ -155,18 +117,6 @@ namespace Roslyn.Utilities
         public static OneOrMany<T> Create<T>(ImmutableArray<T> many)
         {
             return new OneOrMany<T>(many);
-        }
-
-        public static OneOrMany<T> Create<T>(ArrayBuilder<T> some)
-        {
-            if (some.Count == 1)
-            {
-                return new OneOrMany<T>(some[0]);
-            }
-            else
-            {
-                return new OneOrMany<T>(some.ToImmutable());
-            }
         }
     }
 }

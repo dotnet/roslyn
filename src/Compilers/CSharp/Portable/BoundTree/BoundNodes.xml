@@ -397,7 +397,7 @@
 
     <Field Name="Right" Type="BoundExpression"/>
 
-    <Field Name="DeconstructSteps" Type="OneOrMany&lt;BoundDeconstructionAssignmentOperator.DeconstructStep&gt;" Null="NotApplicable" SkipInVisitor="true" />
+    <Field Name="DeconstructSteps" Type="ImmutableArray&lt;BoundDeconstructionAssignmentOperator.DeconstructStep&gt;" Null="NotApplicable" SkipInVisitor="true" />
 
     <!-- The assignments have placeholders for the left and right part of the assignment -->
     <Field Name="AssignmentSteps" Type="ImmutableArray&lt;BoundDeconstructionAssignmentOperator.AssignmentStep&gt;" Null="NotApplicable" SkipInVisitor="true"/>
