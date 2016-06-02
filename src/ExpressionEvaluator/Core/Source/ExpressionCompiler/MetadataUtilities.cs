@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.ExpressionEvaluator
                 }
                 if (modulesByName == null)
                 {
-                    modulesByName = new Dictionary<string, ModuleMetadata>(); // Requires case-insensitive comparison?
+                    modulesByName = new Dictionary<string, ModuleMetadata>(StringComparer.OrdinalIgnoreCase); // Requires case-insensitive comparison
                 }
                 var name = metadata.Name;
                 modulesByName[name] = modulesByName.ContainsKey(name) ? null : metadata;
