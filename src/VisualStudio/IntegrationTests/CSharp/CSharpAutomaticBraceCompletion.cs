@@ -19,39 +19,42 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Braces_InsertionAndTabCompleting()
         {
-            SetUpEditor(@"class C {
+            SetUpEditor(@"
+class C {
     void Foo() {
         $$
     }
 }");
 
             SendKeys("if (true) {");
-            VerifyCurrentLineText("        if (true) { $$}");
+            VerifyCurrentLineText("if (true) { $$}");
 
             SendKeys(VirtualKey.Tab);
-            VerifyCurrentLineText("        if (true) { }$$");
+            VerifyCurrentLineText("if (true) { }$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Braces_Overtyping()
         {
-            SetUpEditor(@"class C {
+            SetUpEditor(@"
+class C {
     void Foo() {
         $$
     }
 }");
 
             SendKeys("if (true) {");
-            VerifyCurrentLineText("        if (true) { $$}");
+            VerifyCurrentLineText("if (true) { $$}");
 
             SendKeys("}");
-            VerifyCurrentLineText("        if (true) { }$$");
+            VerifyCurrentLineText("if (true) { }$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Braces_OnReturnNoFormattingOnlyIndentationBeforeCloseBrace()
         {
-            SetUpEditor(@"class C {
+            SetUpEditor(@"
+class C {
     void Foo() {
         $$
     }
@@ -62,13 +65,22 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
                 VirtualKey.Enter,
                 "var a = 1;");
 
-            VerifyCurrentLineText("            var a = 1;$$");
+            VerifyTextContains(@"
+class C {
+    void Foo() {
+        if (true)
+        {
+            var a = 1;$$
+        }
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Braces_OnReturnOvertypingTheClosingBrace()
         {
-            SetUpEditor(@"class C {
+            SetUpEditor(@"
+class C {
     void Foo() {
         $$
     }
@@ -77,14 +89,18 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
             SendKeys(
                 "if (true) {",
                 VirtualKey.Enter,
-                "var a = 1;}");
+                "var a = 1;",
+                '}');
 
-            VerifyCurrentLineText("        }$$");
-
-            VerifyTextContains(@"if (true)
+            VerifyTextContains(@"
+class C {
+    void Foo() {
+        if (true)
         {
             var a = 1;
-        }");
+        }$$
+    }
+}");
         }
 
         [WorkItem(653540, "DevDiv")]
@@ -97,30 +113,30 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
                 "class A { int i;",
                 VirtualKey.Enter);
 
-            VerifyCurrentLineText("$$}");
-
             VerifyTextContains(@"class A { int i;
-}");
+$$}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Paren_InsertionAndTabCompleting()
         {
-            SetUpEditor(@"class C {
+            SetUpEditor(@"
+class C {
     $$
 }");
 
             SendKeys("void Foo(");
-            VerifyCurrentLineText("    void Foo($$)");
+            VerifyCurrentLineText("void Foo($$)");
 
             SendKeys("int x", VirtualKey.Tab);
-            VerifyCurrentLineText("    void Foo(int x)$$");
+            VerifyCurrentLineText("void Foo(int x)$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Paren_Overtyping()
         {
-            SetUpEditor(@"class C {
+            SetUpEditor(@"
+class C {
     $$
 }");
 
@@ -129,79 +145,86 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
                 VirtualKey.Escape,
                 ")");
 
-            VerifyCurrentLineText("    void Foo()$$");
+            VerifyCurrentLineText("void Foo()$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void SquareBracket_Insertion()
         {
-            SetUpEditor(@"class C {
+            SetUpEditor(@"
+class C {
     $$
 }");
 
             SendKeys("int [");
-            VerifyCurrentLineText("    int [$$]");
+            VerifyCurrentLineText("int [$$]");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void SquareBracket_Overtyping()
         {
-            SetUpEditor(@"class C {
+            SetUpEditor(@"
+class C {
     $$
 }");
 
             SendKeys("int [", ']');
-            VerifyCurrentLineText("    int []$$");
+            VerifyCurrentLineText("int []$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void DoubleQuote_InsertionAndTabCompletion()
         {
-            SetUpEditor(@"class C {
+            SetUpEditor(@"
+class C {
     $$
 }");
 
             SendKeys("string str = \"", VirtualKey.Tab);
-            VerifyCurrentLineText("    string str = \"\"$$");
+            VerifyCurrentLineText("string str = \"\"$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void DoubleQuote_InsertionAndOvertyping()
         {
-            SetUpEditor(@"class C {
+            SetUpEditor(@"
+class C {
     $$
 }");
 
             SendKeys("string str = \"Hi Roslyn!", '"');
-            VerifyCurrentLineText("    string str = \"Hi Roslyn!\"$$");
+            VerifyCurrentLineText("string str = \"Hi Roslyn!\"$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void AngleBracket_PossibleGenerics_InsertionAndCompletion()
         {
-            SetUpEditor(@"class C {
+            SetUpEditor(@"
+class C {
     //field
     $$
 }");
 
             SendKeys("System.Action<", VirtualKey.Tab);
-            VerifyCurrentLineText("    System.Action<>$$");
+            VerifyCurrentLineText("System.Action<>$$");
 
-            SetUpEditor(@"class C {
+            SetUpEditor(@"
+class C {
     //method decl
     $$
 }");
 
             SendKeys("void GenericMethod<", VirtualKey.Tab);
-            VerifyCurrentLineText("    void GenericMethod<>$$");
+            VerifyCurrentLineText("void GenericMethod<>$$");
 
-            SetUpEditor(@"class C {
+            SetUpEditor(@"
+class C {
     //delegate
     $$
 }");
 
             SendKeys("delegate void Del<");
-            VerifyCurrentLineText("    delegate void Del<$$>");
+            VerifyCurrentLineText("delegate void Del<$$>");
 
             SetUpEditor(@"
 //using directive
@@ -223,23 +246,25 @@ $$
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void SingleQuote_InsertionAndCompletion()
         {
-            SetUpEditor(@"class C {
+            SetUpEditor(@"
+class C {
     $$
 }");
 
             SendKeys("char c = '");
-            VerifyCurrentLineText("    char c = '$$'");
+            VerifyCurrentLineText("char c = '$$'");
 
             SendKeys(VirtualKey.Delete, VirtualKey.Backspace);
             SendKeys("'\u6666", "'");
 
-            VerifyCurrentLineText("    char c = '\u6666'$$");
+            VerifyCurrentLineText("char c = '\u6666'$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Nested_AllKinds()
         {
-            SetUpEditor(@"class Bar<U>
+            SetUpEditor(@"
+class Bar<U>
 {
     T Foo<T>(T t) { return t; }
     void M()
@@ -260,52 +285,55 @@ $$
                 VirtualKey.Tab,
                 ';');
 
-            VerifyCurrentLineText("        var arr = new object[,] { { Foo(0) }, { Foo(Foo(\"hello\")) } };$$");
+            VerifyCurrentLineText("var arr = new object[,] { { Foo(0) }, { Foo(Foo(\"hello\")) } };$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Negative_NoCompletionInSingleLineComments()
         {
-            SetUpEditor(@"class C {
+            SetUpEditor(@"
+class C {
     // $$
 }");
 
             SendKeys("{([\"'");
-            VerifyCurrentLineText("    // {([\"'$$");
+            VerifyCurrentLineText("// {([\"'$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Negative_NoCompletionInMultiLineComments()
         {
-            SetUpEditor(@"class C {
+            SetUpEditor(@"
+class C {
     /*
      $$
     */
 }");
 
             SendKeys("{([\"'");
-            VerifyCurrentLineText("     {([\"'$$");
+            VerifyCurrentLineText("{([\"'$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
         public void Negative_NoCompletionStringVerbatimStringOrCharLiterals()
         {
-            SetUpEditor(@"class C {
+            SetUpEditor(@"
+class C {
     $$
 }");
 
             SendKeys("string s = \"{([<'");
-            VerifyCurrentLineText("    string s = \"{([<'\"$$");
+            VerifyCurrentLineText("string s = \"{([<'\"$$");
 
             SendKeys(VirtualKey.End, ';', VirtualKey.Enter);
 
             SendKeys("string y = @\"{([<'");
-            VerifyCurrentLineText("    string y = @\"{([<'\"$$");
+            VerifyCurrentLineText("string y = @\"{([<'\"$$");
 
             SendKeys(VirtualKey.End, ';', VirtualKey.Enter);
 
             SendKeys("char ch = '{([<\"");
-            VerifyCurrentLineText("    char ch = '{([<\"'$$");
+            VerifyCurrentLineText("char ch = '{([<\"'$$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
@@ -402,7 +430,8 @@ class B : A
 
             SendKeys("override Foo(");
 
-            VerifyTextContains(@"class B : A
+            VerifyTextContains(@"
+class B : A
 {
     // type ""override Foo(""
     public override void Foo()
@@ -428,7 +457,7 @@ class C
 ");
 
             SendKeys("new Li(", VirtualKey.Tab);
-            VerifyCurrentLineText("        List<int> li = new List<int>($$)");
+            VerifyCurrentLineText("List<int> li = new List<int>($$)");
         }
 
         [WorkItem(823958, "DevDiv")]
@@ -446,7 +475,7 @@ class C
 ");
 
             SendKeys("new int[]{");
-            VerifyCurrentLineText("        var x = new int[] {$$}");
+            VerifyCurrentLineText("var x = new int[] {$$}");
         }
 
         [WorkItem(823958, "DevDiv")]
@@ -464,7 +493,7 @@ class C
 ");
 
             SendKeys("new {");
-            VerifyCurrentLineText("        var x = new {$$}");
+            VerifyCurrentLineText("var x = new {$$}");
         }
 
         [WorkItem(823958, "DevDiv")]

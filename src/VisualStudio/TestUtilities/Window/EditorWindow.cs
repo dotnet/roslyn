@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Threading.Tasks;
 using Roslyn.VisualStudio.Test.Utilities.InProcess;
 using Roslyn.VisualStudio.Test.Utilities.Input;
 
@@ -36,25 +35,6 @@ namespace Roslyn.VisualStudio.Test.Utilities
         public string GetLineTextAfterCaret() => _inProcessEditor.GetLineTextAfterCaret();
 
         public void MoveCaret(int position) => _inProcessEditor.MoveCaret(position);
-
-        public async Task TypeTextAsync(string text, int wordsPerMinute = 120)
-        {
-            Activate();
-
-            var normalizedText = text
-                .Replace("\r\n", "\r")
-                .Replace("\n", "\r");
-
-            var charactersPerSecond = (wordsPerMinute * 4.5) / 60;
-            var delayBetweenCharacters = (int)((1 / charactersPerSecond) * 1000);
-
-            foreach (var character in normalizedText)
-            {
-                _visualStudioInstance.SendKeys.Send(character);
-
-                await Task.Delay(0);
-            }
-        }
 
         public void SendKeys(params object[] textOrVirtualKeys)
         {

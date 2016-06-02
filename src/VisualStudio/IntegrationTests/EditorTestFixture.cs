@@ -58,7 +58,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
             _editorWindow.SendKeys(textOrVirtualKeys);
         }
 
-        protected void VerifyCurrentLineText(string expectedText, bool trimWhitespace = false)
+        protected void VerifyCurrentLineText(string expectedText, bool trimWhitespace = true)
         {
             var caretStartIndex = expectedText.IndexOf("$$");
 
