@@ -15,6 +15,7 @@ using Microsoft.VisualStudio;
 using Microsoft.VisualStudio.OLE.Interop;
 using Microsoft.Win32;
 using Roslyn.Utilities;
+using Roslyn.VisualStudio.Test.Utilities.Input;
 using Roslyn.VisualStudio.Test.Utilities.Interop;
 
 using Process = System.Diagnostics.Process;
@@ -432,10 +433,10 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
         private static void AppendVirtualKey(byte virtualKey, StringBuilder builder)
         {
-            if (Enum.IsDefined(typeof(EditorWindow.VirtualKey), virtualKey))
+            if (Enum.IsDefined(typeof(VirtualKey), virtualKey))
             {
                 builder.Append('(');
-                builder.Append(Enum.GetName(typeof(EditorWindow.VirtualKey), virtualKey));
+                builder.Append(Enum.GetName(typeof(VirtualKey), virtualKey));
                 builder.Append(") ");
             }
         }

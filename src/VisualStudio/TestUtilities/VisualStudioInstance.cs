@@ -8,6 +8,7 @@ using System.Runtime.Remoting.Channels.Ipc;
 using System.Threading.Tasks;
 using System.Windows.Automation;
 using EnvDTE;
+using Roslyn.VisualStudio.Test.Utilities.Input;
 using Roslyn.VisualStudio.Test.Utilities.Remoting;
 
 using Process = System.Diagnostics.Process;
@@ -17,6 +18,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
     public class VisualStudioInstance
     {
         public DTE DTE { get; }
+        public SendKeys SendKeys { get; }
 
         private readonly Process _hostProcess;
         private readonly IntegrationService _integrationService;
@@ -52,6 +54,8 @@ namespace Roslyn.VisualStudio.Test.Utilities
             _solutionExplorer = new Lazy<SolutionExplorer>(() => new SolutionExplorer(this));
             _workspace = new Lazy<Workspace>(() => new Workspace(this));
 
+            this.SendKeys = new SendKeys(this);
+
             // Ensure we are in a known 'good' state by cleaning up anything changed by the previous instance
             Cleanup();
         }
@@ -76,6 +80,13 @@ namespace Roslyn.VisualStudio.Test.Utilities
             }
 
             return (T)Activator.GetObject(typeof(T), $"{_integrationService.BaseUri}/{objectUri}");
+        }
+
+        public void WaitForApplicationIdle()
+        {
+            ExecuteInHostProcess(
+                type: typeof(RemotingHelper),
+                methodName: nameof(RemotingHelper.WaitForApplicationIdle));
         }
 
         public bool IsRunning => !_hostProcess.HasExited;
@@ -222,7 +233,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
         {
             try
             {
-                if ((IntegrationHelper.RetryRpcCall(() => this.DTE?.Commands.Item(VisualStudioCommandNames.VsStopServiceCommand).IsAvailable).GetValueOrDefault()))
+                if (IntegrationHelper.RetryRpcCall(() => this.DTE?.Commands.Item(VisualStudioCommandNames.VsStopServiceCommand).IsAvailable).GetValueOrDefault())
                 {
                     this.DTE.ExecuteCommandAsync(VisualStudioCommandNames.VsStopServiceCommand).GetAwaiter().GetResult();
                 }

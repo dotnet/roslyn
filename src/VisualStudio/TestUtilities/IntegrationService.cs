@@ -27,7 +27,6 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
         public IntegrationService()
         {
-            // Make the channel name well-known by using a static base and appending the process ID of the host
             this.PortName = GetPortName(Process.GetCurrentProcess().Id);
             this.BaseUri = "ipc://" + this.PortName;
         }

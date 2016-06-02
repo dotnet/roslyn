@@ -19,9 +19,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Extensions\DteExtensions.cs" />
+    <Compile Include="InProcess\BaseInProcessComponent.cs" />
+    <Compile Include="Input\SendKeys.cs" />
+    <Compile Include="Input\ShiftState.cs" />
+    <Compile Include="Input\VirtualKey.cs" />
     <Compile Include="IntegrationHelper.cs" />
     <Compile Include="Interop\Kernel32.cs" />
-    <Compile Include="Remoting\EditorWindowWrapper.cs" />
+    <Compile Include="InProcess\InProcessEditor.cs" />
     <Compile Include="Remoting\RemotingHelper.cs" />
     <Compile Include="Remoting\WorkspaceWrapper.cs" />
     <Compile Include="VisualStudioCommandNames.cs" />
@@ -39,7 +43,6 @@
     <Compile Include="VisualStudioInstanceFactory.cs" />
     <Compile Include="Window\CSharpInteractiveWindow.cs" />
     <Compile Include="Window\EditorWindow.cs" />
-    <Compile Include="Window\EditorWindow_SendKeys.cs" />
     <Compile Include="Window\InteractiveWindow.cs" />
     <Compile Include="Workspace\Project.cs" />
     <Compile Include="Workspace\ProjectLanguage.cs" />

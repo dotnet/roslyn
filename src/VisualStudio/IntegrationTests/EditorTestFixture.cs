@@ -13,7 +13,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
         private readonly Workspace _workspace;
         private readonly Solution _solution;
         private readonly Project _project;
-        protected readonly EditorWindow EditorWindow;
+        private readonly EditorWindow _editorWindow;
 
         protected EditorTestFixture(VisualStudioInstanceFactory instanceFactory, string solutionName)
         {
@@ -25,7 +25,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
             _workspace = _visualStudio.Instance.Workspace;
             _workspace.UseSuggestionMode = false;
 
-            EditorWindow = _visualStudio.Instance.EditorWindow;
+            _editorWindow = _visualStudio.Instance.EditorWindow;
         }
 
         public void Dispose()
@@ -49,11 +49,16 @@ namespace Roslyn.VisualStudio.IntegrationTests
             int caretPosition;
             MarkupTestFile.GetPosition(markupCode, out code, out caretPosition);
 
-            EditorWindow.SetText(code);
-            EditorWindow.MoveCaret(caretPosition);
+            _editorWindow.SetText(code);
+            _editorWindow.MoveCaret(caretPosition);
         }
 
-        protected void VerifyCurrentLine(string expectedText, bool trimWhitespace = false)
+        protected void SendKeys(params object[] textOrVirtualKeys)
+        {
+            _editorWindow.SendKeys(textOrVirtualKeys);
+        }
+
+        protected void VerifyCurrentLineText(string expectedText, bool trimWhitespace = false)
         {
             var caretStartIndex = expectedText.IndexOf("$$");
 
@@ -69,7 +74,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
                     ? expectedText.Substring(caretEndIndex)
                     : string.Empty;
 
-                var lineText = EditorWindow.GetCurrentLineText();
+                var lineText = _editorWindow.GetCurrentLineText();
 
                 if (trimWhitespace)
                 {
@@ -90,7 +95,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
             }
             else
             {
-                var lineText = EditorWindow.GetCurrentLineText();
+                var lineText = _editorWindow.GetCurrentLineText();
                 Assert.Equal(expectedText, lineText);
             }
         }
@@ -113,17 +118,17 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
                 var expectedTextWithoutCaret = expectedTextBeforeCaret + expectedTextAfterCaret;
 
-                var editorText = EditorWindow.GetText();
+                var editorText = _editorWindow.GetText();
                 Assert.Contains(expectedTextWithoutCaret, editorText);
 
                 var index = editorText.IndexOf(expectedTextWithoutCaret);
 
-                var caretPosition = EditorWindow.GetCaretPosition();
+                var caretPosition = _editorWindow.GetCaretPosition();
                 Assert.Equal(caretStartIndex + index, caretPosition);
             }
             else
             {
-                var editorText = EditorWindow.GetText();
+                var editorText = _editorWindow.GetText();
                 Assert.Contains(expectedText, editorText);
             }
         }

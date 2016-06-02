@@ -1,6 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Roslyn.VisualStudio.Test.Utilities.Remoting;
+using System;
+using System.Threading.Tasks;
+using Roslyn.VisualStudio.Test.Utilities.InProcess;
+using Roslyn.VisualStudio.Test.Utilities.Input;
 
 namespace Roslyn.VisualStudio.Test.Utilities
 {
@@ -10,34 +13,85 @@ namespace Roslyn.VisualStudio.Test.Utilities
     public partial class EditorWindow
     {
         private readonly VisualStudioInstance _visualStudioInstance;
-        private readonly EditorWindowWrapper _editorWindowWrapper;
+        private readonly InProcessEditor _inProcessEditor;
 
         internal EditorWindow(VisualStudioInstance visualStudioInstance)
         {
             _visualStudioInstance = visualStudioInstance;
 
             // Create MarshalByRefObject that can be used to execute code in the VS process.
-            _editorWindowWrapper = _visualStudioInstance.ExecuteInHostProcess<EditorWindowWrapper>(
-                type: typeof(EditorWindowWrapper),
-                methodName: nameof(EditorWindowWrapper.Create));
+            _inProcessEditor = _visualStudioInstance.ExecuteInHostProcess<InProcessEditor>(
+                type: typeof(InProcessEditor),
+                methodName: nameof(InProcessEditor.Create));
         }
 
-        public string GetText() => _editorWindowWrapper.GetText();
-        public void SetText(string value) => _editorWindowWrapper.SetText(value);
+        public void Activate() => _inProcessEditor.Activate();
 
-        public string GetCurrentLineText() => _editorWindowWrapper.GetCurrentLineText();
-        public int GetCaretPosition() => _editorWindowWrapper.GetCaretPosition();
-        public string GetLineTextBeforeCaret() => _editorWindowWrapper.GetLineTextBeforeCaret();
-        public string GetLineTextAfterCaret() => _editorWindowWrapper.GetLineTextAfterCaret();
+        public string GetText() => _inProcessEditor.GetText();
+        public void SetText(string value) => _inProcessEditor.SetText(value);
 
-        public void MoveCaret(int position) => _editorWindowWrapper.MoveCaret(position);
+        public string GetCurrentLineText() => _inProcessEditor.GetCurrentLineText();
+        public int GetCaretPosition() => _inProcessEditor.GetCaretPosition();
+        public string GetLineTextBeforeCaret() => _inProcessEditor.GetLineTextBeforeCaret();
+        public string GetLineTextAfterCaret() => _inProcessEditor.GetLineTextAfterCaret();
 
-        public void Activate()
+        public void MoveCaret(int position) => _inProcessEditor.MoveCaret(position);
+
+        public async Task TypeTextAsync(string text, int wordsPerMinute = 120)
         {
-            IntegrationHelper.RetryRpcCall(() =>
+            Activate();
+
+            var normalizedText = text
+                .Replace("\r\n", "\r")
+                .Replace("\n", "\r");
+
+            var charactersPerSecond = (wordsPerMinute * 4.5) / 60;
+            var delayBetweenCharacters = (int)((1 / charactersPerSecond) * 1000);
+
+            foreach (var character in normalizedText)
             {
-                _visualStudioInstance.DTE.ActiveDocument.Activate();
-            });
+                _visualStudioInstance.SendKeys.Send(character);
+
+                await Task.Delay(0);
+            }
+        }
+
+        public void SendKeys(params object[] textOrVirtualKeys)
+        {
+            Activate();
+
+            foreach (var textOrVirtualKey in textOrVirtualKeys)
+            {
+                if (textOrVirtualKey is string)
+                {
+                    var text = ((string)textOrVirtualKey)
+                        .Replace("\r\n", "\r")
+                        .Replace("\n", "\r");
+
+                    foreach (var ch in text)
+                    {
+                        _visualStudioInstance.SendKeys.Send(ch);
+                    }
+                }
+                else if (textOrVirtualKey is char)
+                {
+                    _visualStudioInstance.SendKeys.Send((char)textOrVirtualKey);
+                }
+                else if (textOrVirtualKey is VirtualKey)
+                {
+                    _visualStudioInstance.SendKeys.Send((VirtualKey)textOrVirtualKey);
+                }
+                else if (textOrVirtualKey == null)
+                {
+                    throw new ArgumentNullException(nameof(textOrVirtualKeys));
+                }
+                else
+                {
+                    throw new ArgumentException($"Unexpected type encountered: {textOrVirtualKey.GetType()}", nameof(textOrVirtualKeys));
+                }
+            }
+
+            _visualStudioInstance.WaitForApplicationIdle();
         }
     }
 }

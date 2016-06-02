@@ -1,7 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.ObjectModel;
 using System.ComponentModel.Composition.Hosting;
 using System.Diagnostics;
 using System.Linq;
@@ -10,17 +9,14 @@ using System.Windows;
 using System.Windows.Threading;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.InteractiveWindow;
 using Microsoft.VisualStudio.InteractiveWindow.Shell;
-using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.CSharp.Interactive;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Hosting.Diagnostics.Waiters;
 
@@ -34,68 +30,15 @@ namespace Roslyn.VisualStudio.Test.Utilities.Remoting
     /// </remarks>
     internal static class RemotingHelper
     {
-        private static readonly Guid IWpfTextViewId = new Guid("8C40265E-9FDB-4F54-A0FD-EBB72B7D0476");
         private static readonly Guid RoslynPackageId = new Guid("6cf2e545-6109-4730-8883-cf43d7aec3e1");
 
         private static readonly string[] SupportedLanguages = new string[] { LanguageNames.CSharp, LanguageNames.VisualBasic };
-
-        public static void ExecuteOnActiveView(Action<ITextView> action)
-        {
-            InvokeOnUIThread(() =>
-            {
-                var view = GetActiveTextView();
-                action(view);
-            });
-        }
-
-        public static T ExecuteOnActiveView<T>(Func<ITextView, T> action)
-        {
-            return InvokeOnUIThread(() =>
-            {
-                var view = GetActiveTextView();
-                return action(view);
-            });
-        }
-
-        public static IWpfTextViewMargin GetTextViewMargin(string marginName)
-        {
-            return InvokeOnUIThread(() =>
-            {
-                return GetActiveTextViewHost().GetTextViewMargin(marginName);
-            });
-        }
-
-        public static ReadOnlyCollection<ICompletionSession> ActiveTextViewCompletionSessions => CompletionBroker.GetSessions(GetActiveTextView());
 
         public static IComponentModel ComponentModel => GetGlobalService<IComponentModel>(typeof(SComponentModel));
 
         public static IInteractiveWindow CSharpInteractiveWindow => CSharpVsInteractiveWindow.InteractiveWindow;
 
         public static VisualStudioWorkspace VisualStudioWorkspace => ComponentModel.GetService<VisualStudioWorkspace>();
-
-        private static ITextView GetActiveTextView()
-        {
-            return GetActiveTextViewHost().TextView;
-        }
-
-        private static IWpfTextViewHost GetActiveTextViewHost()
-        {
-            // The active text view might not have finished composing yet, waiting for the application to 'idle'
-            // means that it is done pumping messages (including WM_PAINT) and the window should return the correct text view
-            WaitForApplicationIdle();
-
-            var activeVsTextView = (IVsUserData)(VsTextManagerActiveView);
-
-            var wpfTextViewId = IWpfTextViewId;
-            object wpfTextViewHost = null;
-
-            var hresult = activeVsTextView.GetData(ref wpfTextViewId, out wpfTextViewHost);
-            Marshal.ThrowExceptionForHR(hresult);
-
-            return (IWpfTextViewHost)(wpfTextViewHost);
-        }
-
-        private static ICompletionBroker CompletionBroker => ComponentModel.GetService<ICompletionBroker>();
 
         private static IVsInteractiveWindow CSharpVsInteractiveWindow => InvokeOnUIThread(() => CSharpVsInteractiveWindowProvider.Open(0, true));
 
@@ -111,24 +54,9 @@ namespace Roslyn.VisualStudio.Test.Utilities.Remoting
 
         private static ServiceProvider GlobalServiceProvider => ServiceProvider.GlobalProvider;
 
-        private static HostWorkspaceServices VisualStudioWorkspaceServices => VisualStudioWorkspace.Services;
-
         private static IVsShell VsShell => GetGlobalService<IVsShell>(typeof(SVsShell));
 
         private static IVsTextManager VsTextManager => GetGlobalService<IVsTextManager>(typeof(SVsTextManager));
-
-        private static IVsTextView VsTextManagerActiveView
-        {
-            get
-            {
-                IVsTextView vsTextView = null;
-
-                var hresult = VsTextManager.GetActiveView(fMustHaveFocus: 1, pBuffer: null, ppView: out vsTextView);
-                Marshal.ThrowExceptionForHR(hresult);
-
-                return vsTextView;
-            }
-        }
 
         public static void ActivateMainWindow()
         {
@@ -182,6 +110,9 @@ namespace Roslyn.VisualStudio.Test.Utilities.Remoting
             CurrentApplicationDispatcher.Invoke(() => { }, DispatcherPriority.SystemIdle);
         }
 
+        /// <summary>
+        /// Waiting for the application to 'idle' means that it is done pumping messages (including WM_PAINT).
+        /// </summary>
         public static void WaitForApplicationIdle()
         {
             CurrentApplicationDispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
