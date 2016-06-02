@@ -4,7 +4,7 @@ The scripting APIs enable .NET applications to instatiate a C# engine and execut
 
 Scripting APIs require desktop .NET Framework 4.6+. 
 
-Scripting APIs can't be used within Universal Windows Applications and .NET Native since the application model doesn't support loading new code at runtime. 
+Scripting APIs can't be used within Universal Windows Applications and .NET Native since the application model doesn't support loading code generated at runtime. 
 
 ## Getting Started
 Install the [Scripting API NuGet Package](https://www.nuget.org/packages/Microsoft.CodeAnalysis.CSharp.Scripting/):
