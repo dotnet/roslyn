@@ -322,6 +322,8 @@ namespace Microsoft.CodeAnalysis.CommandLine
                                                                 int timeoutMs,
                                                                 CancellationToken cancellationToken)
         {
+            Debug.Assert(timeoutMs == Timeout.Infinite || timeoutMs > 0);
+
             // .NET 4.5 implementation of NamedPipeStream.Connect busy waits the entire time.
             // Work around is to spin wait.
             const int maxWaitIntervalMs = 50;
