@@ -1,0 +1,30 @@
+﻿<options:AbstractOptionPageControl
+    x:Class="Microsoft.VisualStudio.LanguageServices.VisualBasic.Options.IntelliSenseOptionPageControl"
+    x:ClassModifier="friend"
+    x:Uid="VisualBasicIntelliSenseOptionPageControl"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+    xmlns:options="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Options;assembly=Microsoft.VisualStudio.LanguageServices.Implementation"
+    xmlns:local="clr-namespace:Microsoft.VisualStudio.LanguageServices.VisualBasic.Options"
+    mc:Ignorable="d" d:DesignHeight="350" d:DesignWidth="460">
+
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel>
+            <GroupBox x:Uid="CompletionListsGroupBox"
+                      Header="{x:Static local:IntelliSenseOptionPageStrings.Option_CompletionLists}">
+                <StackPanel>
+
+                    <CheckBox x:Uid="Highlight_matching_portions_of_completion_list_items"
+                                  x:Name="Highlight_matching_portions_of_completion_list_items"
+                                  Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Highlight_matching_portions_of_completion_list_items}" />
+                    <CheckBox x:Uid="Show_completion_item_filters"
+                                  x:Name="Show_completion_item_filters"
+                                  Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Show_completion_item_filters}" />
+
+                </StackPanel>
+            </GroupBox>
+        </StackPanel>
+    </ScrollViewer>
+</options:AbstractOptionPageControl>
