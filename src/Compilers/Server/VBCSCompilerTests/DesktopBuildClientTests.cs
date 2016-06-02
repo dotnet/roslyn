@@ -14,6 +14,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
 using System.Threading;
+using System.IO.Pipes;
 
 namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
 {
@@ -55,6 +56,12 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                 }
 
                 return base.RunServerCompilation(arguments, buildPaths, sessionKey, keepAlive, libDirectory, cancellationToken);
+            }
+
+            public bool TryConnectToNamedPipeWithSpinWait(int timeoutMs)
+            {
+                var pipeStream = new NamedPipeClientStream(".", _pipeName, PipeDirection.InOut, PipeOptions.Asynchronous);
+                return TryConnectToNamedPipeWithSpinWait(pipeStream, timeoutMs, default(CancellationToken));
             }
         }
 
@@ -134,6 +141,19 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                     Assert.Equal(0, exitCode);
                     Assert.True(ranLocal);
                 }
+            }
+
+            [Fact]
+            public void ConnectToPipeWithSpinWait()
+            {
+                // No server should be started with the current pipe name
+                var client = CreateClient();
+                var oneSecondInMs = (int)TimeSpan.FromSeconds(1).TotalMilliseconds;
+                Assert.False(client.TryConnectToNamedPipeWithSpinWait(oneSecondInMs));
+
+                // Create server and try again
+                Assert.True(TryCreateServer(_pipeName));
+                Assert.True(client.TryConnectToNamedPipeWithSpinWait(oneSecondInMs));
             }
 
             [Fact]
