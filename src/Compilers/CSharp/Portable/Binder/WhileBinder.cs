@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var node = (WhileStatementSyntax)_syntax;
 
-            var condition = BindBooleanExpression(node.Condition, diagnostics);
+            var condition = originalBinder.BindBooleanExpression(node.Condition, diagnostics);
             var body = originalBinder.BindPossibleEmbeddedStatement(node.Statement, diagnostics);
             Debug.Assert(this.Locals.IsDefaultOrEmpty);
             return new BoundWhileStatement(node, condition, body, this.BreakLabel, this.ContinueLabel);
@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var node = (DoStatementSyntax)_syntax;
 
-            var condition = BindBooleanExpression(node.Condition, diagnostics);
+            var condition = originalBinder.BindBooleanExpression(node.Condition, diagnostics);
             var body = originalBinder.BindPossibleEmbeddedStatement(node.Statement, diagnostics);
             Debug.Assert(this.Locals.IsDefaultOrEmpty);
             return new BoundDoStatement(node, condition, body, this.BreakLabel, this.ContinueLabel);

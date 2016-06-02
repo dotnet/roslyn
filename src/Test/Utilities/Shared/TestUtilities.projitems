@@ -85,5 +85,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Mocks\TestReferences.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Mocks\TestStream.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Traits\ComilerTraitDiscoverer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Traits\CompilerFeature.cs" />
   </ItemGroup>
 </Project>

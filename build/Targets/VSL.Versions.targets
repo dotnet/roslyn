@@ -1,14 +1,14 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <RoslynSemanticVersion Condition="'$(RoslynSemanticVersion)' == ''">1.3.0</RoslynSemanticVersion>
+    <RoslynSemanticVersion Condition="'$(RoslynSemanticVersion)' == '' AND '$(UseVisualStudioVersion)' == 'true'">15.0.0</RoslynSemanticVersion>
+    <RoslynSemanticVersion Condition="'$(RoslynSemanticVersion)' == ''">2.0.0</RoslynSemanticVersion>
     <!-- Currently we version IW the same as Roslyn. -->
     <MicrosoftVisualStudioInteractiveWindowVersion>$(RoslynSemanticVersion)</MicrosoftVisualStudioInteractiveWindowVersion>
     <!-- These are the versions of dependencies we insert into VS -->
-    <SystemReflectionMetadataVersion>1.2.0</SystemReflectionMetadataVersion>
-    <SystemCollectionsImmutableVersion>1.1.37</SystemCollectionsImmutableVersion>
-    <MicrosoftDiaSymReaderVersion>1.0.7</MicrosoftDiaSymReaderVersion>
-    <MicrosoftDiaSymReaderNativeVersion>1.3.3</MicrosoftDiaSymReaderNativeVersion>
-    <MicrosoftDiaSymReaderPortablePdbVersion>1.0.0</MicrosoftDiaSymReaderPortablePdbVersion>
+    <SystemReflectionMetadataVersion>1.3.0-rc3-24102-00</SystemReflectionMetadataVersion>
+    <SystemCollectionsImmutableVersion>1.2.0-rc3-24102-00</SystemCollectionsImmutableVersion>
+    <MicrosoftDiaSymReaderVersion>1.0.8-rc3-60429-03</MicrosoftDiaSymReaderVersion>
+    <MicrosoftDiaSymReaderNativeVersion>1.4.0-rc</MicrosoftDiaSymReaderNativeVersion>
     <MicrosoftCodeAnalysisElfieVersion>0.10.6-rc2</MicrosoftCodeAnalysisElfieVersion>
     <ManagedEsentVersion>1.9.2</ManagedEsentVersion>
     <CodeAnalysisAnalyzersVersion>1.1.0</CodeAnalysisAnalyzersVersion>
@@ -72,6 +72,10 @@
     -->
     <NuGetPreReleaseVersion>$(RoslynSemanticVersion)-beta1</NuGetPreReleaseVersion>
     <NuGetPerBuildPreReleaseVersion Condition="'$(BuildNumberSuffix)' != ''">$(NuGetPreReleaseVersion)-$(BuildNumberPart1.Trim())-$(BuildNumberPart2.Trim())</NuGetPerBuildPreReleaseVersion>
+
+    <!-- TODO: change to a fixed version once we move this component to a separate repo -->
+    <MicrosoftDiaSymReaderPortablePdbVersion>1.1.0-beta1</MicrosoftDiaSymReaderPortablePdbVersion>
+    <MicrosoftDiaSymReaderPortablePdbVersion Condition="'$(BuildNumber)' != ''">$(MicrosoftDiaSymReaderPortablePdbVersion)-$(BuildNumber.Split('.')[0])-$(BuildNumber.Split('.')[1].PadLeft(2,'0'))</MicrosoftDiaSymReaderPortablePdbVersion>
   </PropertyGroup>
   
 </Project>

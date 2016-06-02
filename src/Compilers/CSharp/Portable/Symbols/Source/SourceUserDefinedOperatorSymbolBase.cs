@@ -118,7 +118,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         protected override void MethodChecks(DiagnosticBag diagnostics)
         {
             var binder = this.DeclaringCompilation.
-                GetBinderFactory(syntaxReferenceOpt.SyntaxTree).GetBinder(ReturnTypeSyntax);
+                GetBinderFactory(syntaxReferenceOpt.SyntaxTree).GetBinder(ReturnTypeSyntax, GetSyntax(), this);
 
             SyntaxToken arglistToken;
 
@@ -130,7 +130,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 ParameterListSyntax,
                 true,
                 out arglistToken,
-                diagnostics);
+                diagnostics,
+                false);
 
             if (arglistToken.Kind() == SyntaxKind.ArgListKeyword)
             {
@@ -286,7 +287,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             if (source0 != this.ContainingType && target0 != this.ContainingType &&
                 // allow conversion between T and Nullable<T> in declaration of Nullable<T>
-                source != this.ContainingType && target != this.ContainingType)
+                source.TupleUnderlyingTypeOrSelf() != this.ContainingType &&
+                target.TupleUnderlyingTypeOrSelf() != this.ContainingType)
             {
                 // CS0556: User-defined conversion must convert to or from the enclosing type
                 diagnostics.Add(ErrorCode.ERR_ConversionNotInvolvingContainedType, this.Locations[0]);
@@ -415,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // SPEC: A unary + - ! ~ operator must take a single parameter of type
             // SPEC: T or T? and can return any type.
 
-            if (this.ParameterTypes[0].StrippedType() != this.ContainingType)
+            if (this.ParameterTypes[0].StrippedType().TupleUnderlyingTypeOrSelf() != this.ContainingType)
             {
                 // The parameter of a unary operator must be the containing type
                 diagnostics.Add(ErrorCode.ERR_BadUnaryOperatorSignature, this.Locations[0]);
@@ -440,7 +442,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 diagnostics.Add(ErrorCode.ERR_OpTFRetType, this.Locations[0]);
             }
 
-            if (this.ParameterTypes[0].StrippedType() != this.ContainingType)
+            if (this.ParameterTypes[0].StrippedType().TupleUnderlyingTypeOrSelf() != this.ContainingType)
             {
                 // The parameter of a unary operator must be the containing type
                 diagnostics.Add(ErrorCode.ERR_BadUnaryOperatorSignature, this.Locations[0]);
@@ -490,7 +492,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var parameterType = this.ParameterTypes[0];
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
-            if (parameterType.StrippedType() != this.ContainingType)
+            if (parameterType.StrippedType().TupleUnderlyingTypeOrSelf() != this.ContainingType)
             {
                 // CS0559: The parameter type for ++ or -- operator must be the containing type
                 diagnostics.Add(ErrorCode.ERR_BadIncDecSignature, this.Locations[0]);
@@ -511,7 +513,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // SPEC: of which must have type T or T? and the second of which must
             // SPEC: have type int or int?, and can return any type.
 
-            if (this.ParameterTypes[0].StrippedType() != this.ContainingType ||
+            if (this.ParameterTypes[0].StrippedType().TupleUnderlyingTypeOrSelf() != this.ContainingType ||
                 this.ParameterTypes[1].StrippedType().SpecialType != SpecialType.System_Int32)
             {
                 // CS0546: The first operand of an overloaded shift operator must have the 
@@ -532,9 +534,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             // SPEC: A binary nonshift operator must take two parameters, at least
             // SPEC: one of which must have the type T or T?, and can return any type.
-
-            if (this.ParameterTypes[0].StrippedType() != this.ContainingType &&
-                this.ParameterTypes[1].StrippedType() != this.ContainingType)
+            if (this.ParameterTypes[0].StrippedType().TupleUnderlyingTypeOrSelf() != this.ContainingType &&
+                this.ParameterTypes[1].StrippedType().TupleUnderlyingTypeOrSelf() != this.ContainingType)
             {
                 // CS0563: One of the parameters of a binary operator must be the containing type
                 diagnostics.Add(ErrorCode.ERR_BadBinaryOperatorSignature, this.Locations[0]);
@@ -609,6 +610,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public sealed override ImmutableArray<TypeParameterSymbol> TypeParameters
         {
             get { return ImmutableArray<TypeParameterSymbol>.Empty; }
+        }
+
+        internal override RefKind RefKind
+        {
+            get { return RefKind.None; }
         }
 
         public sealed override TypeSymbol ReturnType

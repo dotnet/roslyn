@@ -186,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue.UnitTests
                     generation0,
                     ImmutableArray.Create(new SemanticEdit(SemanticEditKind.Update, method0, method1)));
 
-                var methods = diff1.TestData.Methods;
+                var methods = diff1.TestData.GetMethodsByName();
                 Assert.Equal(methods.Count, 1);
                 Assert.True(methods.ContainsKey("C.M2()"));
 

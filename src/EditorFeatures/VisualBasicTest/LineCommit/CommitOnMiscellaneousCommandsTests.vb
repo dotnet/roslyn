@@ -132,11 +132,7 @@ End Module
                                                               </Workspace>)
 
                 ' Turn off pretty listing
-                Dim optionService = testData.Workspace.GetService(Of IOptionService)()
-                Dim optionSet = optionService.GetOptions()
-                Dim prettyListing = optionSet.WithChangedOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, False)
-                optionService.SetOptions(prettyListing)
-
+                testData.Workspace.Options = testData.Workspace.Options.WithChangedOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, False)
                 testData.CommandHandler.ExecuteCommand(New FormatDocumentCommandArgs(testData.View, testData.Buffer), Sub() Exit Sub)
                 Assert.Equal("    Sub Main()", testData.Buffer.CurrentSnapshot.GetLineFromLineNumber(1).GetText())
             End Using

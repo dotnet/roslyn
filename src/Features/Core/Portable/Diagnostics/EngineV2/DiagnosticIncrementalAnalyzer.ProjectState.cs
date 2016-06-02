@@ -99,7 +99,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 if (!await TryDeserializeAsync(serializer, project, project.Id, _owner.NonLocalStateName, builder.AddOthers, cancellationToken).ConfigureAwait(false))
                 {
-                    Contract.Requires(false, "How this can happen?");
+                    // this can happen if SaveAsync is not yet called but active file merge happened. one of case is if user did build before the very first
+                    // analysis happened.
                 }
 
                 return builder.ToResult();
@@ -178,7 +179,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 if (!await TryDeserializeAsync(serializer, project, project.Id, _owner.NonLocalStateName, builder.AddOthers, cancellationToken).ConfigureAwait(false))
                 {
-                    Contract.Requires(false, "How this can happen?");
+                    // this can happen if SaveAsync is not yet called but active file merge happened. one of case is if user did build before the very first
+                    // analysis happened.
                 }
 
                 return builder.ToResult();
@@ -225,7 +227,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var semantic = state.GetAnalysisData(AnalysisKind.Semantic);
 
                 var project = document.Project;
-                var fullAnalysis = ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(project.Solution.Workspace, project.Language);
+                var fullAnalysis = ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(project);
 
                 // keep from build flag if full analysis is off
                 var fromBuild = fullAnalysis ? false : lastResult.FromBuild;

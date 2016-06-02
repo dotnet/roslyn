@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
         {
             return s_analyzers.GetValue(workspace, w =>
-               new TodoCommentIncrementalAnalyzer(w, w.Services.GetService<IOptionService>(), this, _todoCommentTokens));
+               new TodoCommentIncrementalAnalyzer(w, this, _todoCommentTokens));
         }
 
         internal void RaiseTaskListUpdated(object id, Workspace workspace, Solution solution, ProjectId projectId, DocumentId documentId, ImmutableArray<TodoItem> items)

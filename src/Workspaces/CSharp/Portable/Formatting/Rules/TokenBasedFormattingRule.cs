@@ -264,6 +264,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             if (currentToken.IsKind(SyntaxKind.ColonToken))
             {
                 if (currentToken.Parent.IsKind(SyntaxKind.CaseSwitchLabel,
+                                               SyntaxKind.CasePatternSwitchLabel,
                                                SyntaxKind.DefaultSwitchLabel,
                                                SyntaxKind.LabeledStatement,
                                                SyntaxKind.AttributeTargetSpecifier,

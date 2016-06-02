@@ -150,8 +150,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             this.Compilation.Compile(
                 module,
-                win32Resources: null,
-                xmlDocStream: null,
                 emittingPdb: false,
                 diagnostics: diagnostics,
                 filterOpt: null,
@@ -213,8 +211,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             this.Compilation.Compile(
                 module,
-                win32Resources: null,
-                xmlDocStream: null,
                 emittingPdb: false,
                 diagnostics: diagnostics,
                 filterOpt: null,
@@ -308,7 +304,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                                 var aliasMethod = this.CreateMethod(container, methodName, syntax, (method, diags) =>
                                 {
                                     var expression = new BoundLocal(syntax, local, constantValueOpt: null, type: local.Type);
-                                    return new BoundReturnStatement(syntax, expression) { WasCompilerGenerated = true };
+                                    return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
                                 });
                                 var flags = local.IsWritable ? DkmClrCompilationResultFlags.None : DkmClrCompilationResultFlags.ReadOnlyResult;
                                 localBuilder.Add(MakeLocalAndMethod(local, aliasMethod, flags));
@@ -404,8 +400,6 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             this.Compilation.Compile(
                 module,
-                win32Resources: null,
-                xmlDocStream: null,
                 emittingPdb: false,
                 diagnostics: diagnostics,
                 filterOpt: null,
@@ -497,7 +491,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 var local = method.LocalsForBinding[localIndex];
                 var expression = new BoundLocal(syntax, local, constantValueOpt: local.GetConstantValue(null, null, diagnostics), type: local.Type);
-                return new BoundReturnStatement(syntax, expression) { WasCompilerGenerated = true };
+                return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
             });
         }
 
@@ -508,7 +502,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 var parameter = method.Parameters[parameterIndex];
                 var expression = new BoundParameter(syntax, parameter);
-                return new BoundReturnStatement(syntax, expression) { WasCompilerGenerated = true };
+                return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
             });
         }
 
@@ -518,7 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             return this.CreateMethod(container, methodName, syntax, (method, diagnostics) =>
             {
                 var expression = new BoundThisReference(syntax, GetNonDisplayClassContainer(container.SubstitutedSourceType));
-                return new BoundReturnStatement(syntax, expression) { WasCompilerGenerated = true };
+                return new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
             });
         }
 
@@ -529,7 +523,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             {
                 var type = method.TypeMap.SubstituteNamedType(typeVariablesType);
                 var expression = new BoundObjectCreationExpression(syntax, type.InstanceConstructors[0]);
-                var statement = new BoundReturnStatement(syntax, expression) { WasCompilerGenerated = true };
+                var statement = new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true };
                 return statement;
             });
         }
@@ -537,6 +531,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
         private static BoundStatement BindExpression(Binder binder, ExpressionSyntax syntax, DiagnosticBag diagnostics, out ResultProperties resultProperties)
         {
             var flags = DkmClrCompilationResultFlags.None;
+
+            binder = binder.GetBinder(syntax);
+            Debug.Assert(binder != null);
 
             // In addition to C# expressions, the native EE also supports
             // type names which are bound to a representation of the type
@@ -570,6 +567,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     syntax,
                     diagnostics,
                     expression,
+                    RefKind.None,
                     binder.Compilation.GetSpecialType(SpecialType.System_Object));
                 if (diagnostics.HasAnyErrors())
                 {
@@ -595,7 +593,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
             }
 
             resultProperties = expression.ExpressionSymbol.GetResultProperties(flags, expression.ConstantValue != null);
-            return new BoundReturnStatement(syntax, expression) { WasCompilerGenerated = true };
+            return binder.WrapWithVariablesIfAny(syntax,
+                                                 new BoundReturnStatement(syntax, RefKind.None, expression) { WasCompilerGenerated = true });
         }
 
         private static BoundStatement BindStatement(Binder binder, StatementSyntax syntax, DiagnosticBag diagnostics, out ResultProperties properties)
@@ -619,13 +618,17 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         private static BoundStatement BindAssignment(Binder binder, ExpressionSyntax syntax, DiagnosticBag diagnostics)
         {
+            binder = binder.GetBinder(syntax);
+            Debug.Assert(binder != null);
+
             var expression = binder.BindValue(syntax, diagnostics, Binder.BindValueKind.RValue);
             if (diagnostics.HasAnyErrors())
             {
                 return null;
             }
 
-            return new BoundExpressionStatement(expression.Syntax, expression) { WasCompilerGenerated = true };
+            return binder.WrapWithVariablesIfAny(syntax,
+                                                 new BoundExpressionStatement(expression.Syntax, expression) { WasCompilerGenerated = true });
         }
 
         private static Binder CreateBinderChain(
@@ -831,6 +834,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 binder = new SimpleLocalScopeBinder(method.LocalsForBinding, binder);
             }
 
+            binder = new ExecutableCodeBinder(syntax, binder.ContainingMemberOrLambda, binder);
             return binder;
         }
 
@@ -1480,11 +1484,13 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             string desiredMethodName;
             if (GeneratedNames.TryParseSourceMethodNameFromGeneratedName(candidateSubstitutedSourceType.Name, GeneratedNameKind.StateMachineType, out desiredMethodName) ||
-                GeneratedNames.TryParseSourceMethodNameFromGeneratedName(candidateSubstitutedSourceMethod.Name, GeneratedNameKind.LambdaMethod, out desiredMethodName))
+                GeneratedNames.TryParseSourceMethodNameFromGeneratedName(candidateSubstitutedSourceMethod.Name, GeneratedNameKind.LambdaMethod, out desiredMethodName) ||
+                GeneratedNames.TryParseSourceMethodNameFromGeneratedName(candidateSubstitutedSourceMethod.Name, GeneratedNameKind.LocalFunction, out desiredMethodName))
             {
                 // We could be in the MoveNext method of an async lambda.
                 string tempMethodName;
-                if (GeneratedNames.TryParseSourceMethodNameFromGeneratedName(desiredMethodName, GeneratedNameKind.LambdaMethod, out tempMethodName))
+                if (GeneratedNames.TryParseSourceMethodNameFromGeneratedName(desiredMethodName, GeneratedNameKind.LambdaMethod, out tempMethodName) ||
+                    GeneratedNames.TryParseSourceMethodNameFromGeneratedName(desiredMethodName, GeneratedNameKind.LocalFunction, out tempMethodName))
                 {
                     desiredMethodName = tempMethodName;
                     var containing = candidateSubstitutedSourceType.ContainingType;

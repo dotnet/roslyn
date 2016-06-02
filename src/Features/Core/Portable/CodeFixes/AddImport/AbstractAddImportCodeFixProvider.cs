@@ -77,9 +77,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return;
             }
 
-            var options = document.Project.Solution.Workspace.Options;
-            var placeSystemNamespaceFirst = options.GetOption(
-                OrganizerOptions.PlaceSystemNamespaceFirst, document.Project.Language);
+            var placeSystemNamespaceFirst = document.Options.GetOption(
+                OrganizerOptions.PlaceSystemNamespaceFirst);
 
             using (Logger.LogBlock(FunctionId.Refactoring_AddImport, cancellationToken))
             {

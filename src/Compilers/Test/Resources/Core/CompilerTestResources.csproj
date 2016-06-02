@@ -136,7 +136,10 @@
     <Content Include="NetFX\Minimal\build.cmd" />
     <Content Include="NetFX\Minimal\Key.snk" />
     <Content Include="NetFX\Minimal\minasync.cs" />
+    <EmbeddedResource Include="NetFX\Minimal\minasynccorlib.dll" />
     <Content Include="NetFX\Minimal\mincorlib.cs" />
+    <EmbeddedResource Include="NetFX\ValueTuple\System.ValueTuple.dll" />
+    <EmbeddedResource Include="SymbolsTests\Metadata\public-and-private.dll" />
     <Content Include="SymbolsTests\NoPia\ParametersWithoutNames.cs" />
     <EmbeddedResource Include="PerfTests\CSPerfTest.cs" />
     <Content Include="Resources\License.txt" />
@@ -417,7 +420,9 @@
     <EmbeddedResource Include="PerfTests\VBPerfTest.vb" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="NetFX\ValueTuple\ValueTuple.cs" />
     <Compile Include="ResourceLoader.cs" />
+    <None Include="SymbolsTests\Metadata\public-and-private.cs" />
     <Compile Include="TestKeys.cs" />
     <Compile Include="TestResources.cs" />
   </ItemGroup>

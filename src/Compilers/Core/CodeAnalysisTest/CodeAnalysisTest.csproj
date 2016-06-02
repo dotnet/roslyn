@@ -15,7 +15,7 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
     <RestorePackages>true</RestorePackages>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Linked Files">
     <Compile Include="..\..\Shared\GlobalAssemblyCacheHelpers\FusionAssemblyIdentity.cs">
@@ -28,6 +28,7 @@
     <Compile Include="Collections\BoxesTest.cs" />
     <Compile Include="Collections\ByteSequenceComparerTests.cs" />
     <Compile Include="CryptoBlobParserTests.cs" />
+    <Compile Include="Diagnostics\CompilationWithAnalyzersTests.cs" />
     <Compile Include="Diagnostics\ErrorLoggerTests.cs" />
     <Compile Include="Diagnostics\AnalysisContextInfoTests.cs" />
     <Compile Include="Diagnostics\BoxingOperationAnalyzer.cs" />
@@ -47,10 +48,15 @@
     <Compile Include="MetadataReferences\AssemblyIdentityMapTests.cs" />
     <Compile Include="PEWriter\BlobUtilitiesTests.cs" />
     <Compile Include="PEWriter\BlobTests.cs" />
+    <Compile Include="PEWriter\LabelHandleTests.cs" />
+    <Compile Include="PEWriter\MethodBodyEncoderTests.cs" />
+    <Compile Include="PEWriter\MetadataBuilderTests.cs" />
+    <Compile Include="PEWriter\PEBuilderTests.cs" />
     <Compile Include="PEWriter\UsedNamespaceOrTypeTests.cs" />
     <Compile Include="RealParserTests.cs" />
     <Compile Include="SimpleAnalyzerAssemblyLoaderTests.cs" />
     <Compile Include="SourceFileResolverTest.cs" />
+    <Compile Include="SourceGeneratorTests.cs" />
     <Compile Include="Text\LargeTextTests.cs" />
     <Compile Include="Text\SourceTextStreamTests.cs" />
     <Compile Include="XmlDocumentationCommentTextReaderTests.cs" />
@@ -95,7 +101,7 @@
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <NoWarn>1591;RS0007</NoWarn>
+    <NoWarn>1591</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
   </PropertyGroup>

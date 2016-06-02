@@ -28,10 +28,6 @@
       <Project>{8635cb8f-d210-41ed-b4ff-71502cdb475c}</Project>
       <Name>xUnit.net</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Test\PdbUtilities\PdbUtilities.csproj">
-      <Project>{afde6bea-5038-4a4a-a88e-dbd2e4088eed}</Project>
-      <Name>PdbUtilities</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Microsoft.DiaSymReader.PortablePdb\Microsoft.DiaSymReader.PortablePdb.csproj">
       <Project>{f83343ba-b4ea-451c-b6db-5d645e6171bc}</Project>
       <Name>Microsoft.DiaSymReader.PortablePdb</Name>
@@ -93,12 +89,6 @@
     <Compile Include="SymBinderTests.cs" />
     <Compile Include="TestHelpers\SymTestHelpers.cs" />
     <Compile Include="TestResources.cs" />
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ComStreamWrapper.cs">
-      <Link>TestHelpers\ComStreamWrapper.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\StreamExtensions.cs">
-      <Link>TestHelpers\StreamExtensions.cs</Link>
-    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="TestHelpers\AssertEx.cs" />
@@ -108,6 +98,9 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="project.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />

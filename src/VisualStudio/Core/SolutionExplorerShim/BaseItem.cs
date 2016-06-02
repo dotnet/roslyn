@@ -32,7 +32,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     {
         public virtual event PropertyChangedEventHandler PropertyChanged { add { } remove { } }
 
-        private string _name;
+        private readonly string _name;
 
         public BaseItem(string name)
         {

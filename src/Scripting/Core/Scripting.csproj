@@ -39,7 +39,7 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- Workaround for https://github.com/NuGet/Home/issues/1471 -->
-    <Reference Include="$(NuGetPackageRoot)\System.Runtime.Loader\4.0.0-rc2-24027\ref\netstandard1.5\System.Runtime.Loader.dll">
+    <Reference Include="$(NuGetPackageRoot)\System.Runtime.Loader\4.0.0-rc3-24102-00\ref\netstandard1.5\System.Runtime.Loader.dll">
       <Private>False</Private>
     </Reference>
   </ItemGroup>

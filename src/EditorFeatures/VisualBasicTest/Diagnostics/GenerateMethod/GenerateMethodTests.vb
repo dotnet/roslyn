@@ -2232,6 +2232,52 @@ End Namespace
 </text>.Value.Replace(vbLf, vbCrLf))
         End Function
 
+        <WorkItem(11461, "https://github.com/dotnet/roslyn/issues/11461")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestGenerateMethodOffOfExistingProperty() As Task
+            Await TestAsync(
+<text>
+Imports System
+
+Public NotInheritable Class Repository
+    Shared ReadOnly Property agreementtype As AgreementType
+        Get
+        End Get
+    End Property
+End Class
+
+Public Class Agreementtype
+End Class
+
+Class C
+    Shared Sub TestError()
+        [|Repository.AgreementType.NewFunction|]("", "")
+    End Sub
+End Class
+</text>.Value.Replace(vbLf, vbCrLf),
+<text>
+Imports System
+
+Public NotInheritable Class Repository
+    Shared ReadOnly Property agreementtype As AgreementType
+        Get
+        End Get
+    End Property
+End Class
+
+Public Class Agreementtype
+    Friend Sub NewFunction(v1 As String, v2 As String)
+        Throw New NotImplementedException()
+    End Sub
+End Class
+
+Class C
+    Shared Sub TestError()
+        Repository.AgreementType.NewFunction("", "")
+    End Sub
+End Class</text>.Value.Replace(vbLf, vbCrLf))
+        End Function
+
         Public Class GenerateConversionTests
             Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 

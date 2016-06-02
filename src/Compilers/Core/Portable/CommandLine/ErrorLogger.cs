@@ -37,24 +37,20 @@ namespace Microsoft.CodeAnalysis
             _culture = culture;
 
             _writer.WriteObjectStart(); // root
-            _writer.Write("$schema", "http://json.schemastore.org/sarif-1.0.0-beta.5");
-            _writer.Write("version", "1.0.0-beta.5");
+            _writer.Write("$schema", "http://json.schemastore.org/sarif-1.0.0");
+            _writer.Write("version", "1.0.0");
             _writer.WriteArrayStart("runs");
             _writer.WriteObjectStart(); // run
 
-            WriteToolInfo(toolName, toolFileVersion, toolAssemblyVersion);
+            _writer.WriteObjectStart("tool");
+            _writer.Write("name", toolName);
+            _writer.Write("version", toolAssemblyVersion.ToString());
+            _writer.Write("fileVersion", toolFileVersion);
+            _writer.Write("semanticVersion", toolAssemblyVersion.ToString(fieldCount: 3));
+            _writer.Write("language", culture.Name);
+            _writer.WriteObjectEnd(); // tool
 
             _writer.WriteArrayStart("results");
-        }
-
-        private void WriteToolInfo(string name, string fileVersion, Version assemblyVersion)
-        {
-            _writer.WriteObjectStart("tool");
-            _writer.Write("name", name);
-            _writer.Write("version", assemblyVersion.ToString());
-            _writer.Write("fileVersion", fileVersion);
-            _writer.Write("semanticVersion", assemblyVersion.ToString(fieldCount: 3));
-            _writer.WriteObjectEnd();
         }
 
         public void LogDiagnostic(Diagnostic diagnostic)
@@ -155,22 +151,36 @@ namespace Microsoft.CodeAnalysis
             return !string.IsNullOrEmpty(location.GetLineSpan().Path);
         }
 
+        private static readonly Uri _fileRoot = new Uri("file:///");
+
         private static string GetUri(string path)
         {
             Debug.Assert(!string.IsNullOrEmpty(path));
 
+            // Note that in general, these "paths" are opaque strings to be 
+            // interpreted by resolvers (see SyntaxTree.FilePath documentation).
+            
+            // Common case: absolute path -> absolute URI
             Uri uri;
-
-            if (!Uri.TryCreate(path, UriKind.RelativeOrAbsolute, out uri))
+            if (Uri.TryCreate(path, UriKind.Absolute, out uri))
             {
-                // The only constraint on paths are that they can be interpreted by
-                // various resolvers so there is no guarantee we can turn the arbitrary string
-                // in to a URI. If our attempt to do so fails, use the original string as the
-                // "URI".
-                return path;
+                // We use Uri.AbsoluteUri and not Uri.ToString() because Uri.ToString() 
+                // is unescaped (e.g. spaces remain unreplaced by %20) and therefore 
+                // not well-formed.
+                return uri.AbsoluteUri;
             }
 
-            return uri.ToString();
+            // First fallback attempt: attempt to interpret as relative path/URI.
+            // (Perhaps the resolver works that way.)
+            if (Uri.TryCreate(path, UriKind.Relative, out uri))
+            {
+                // There is no AbsoluteUri equivalent for relative URI references and ToString() 
+                // won't escape without this relative -> absolute -> relative trick.
+                return _fileRoot.MakeRelativeUri(new Uri(_fileRoot, uri)).ToString();
+            }
+
+            // Last resort: UrlEncode the whole opaque string.
+            return System.Net.WebUtility.UrlEncode(path);
         }
 
         private void WriteProperties(Diagnostic diagnostic)
@@ -317,7 +327,7 @@ namespace Microsoft.CodeAnalysis
             private Dictionary<string, int> _counters = new Dictionary<string, int>();
 
             // DiagnosticDescriptor -> unique key
-            private Dictionary<DiagnosticDescriptor, string> _keys = new Dictionary<DiagnosticDescriptor, string>();
+            private Dictionary<DiagnosticDescriptor, string> _keys = new Dictionary<DiagnosticDescriptor, string>(new Comparer());
 
             /// <summary>
             /// The total number of descriptors in the set.
@@ -355,7 +365,7 @@ namespace Microsoft.CodeAnalysis
                 do
                 {
                     _counters[descriptor.Id] = ++counter;
-                    key = descriptor.Id + "." + counter.ToString("000", CultureInfo.InvariantCulture);
+                    key = descriptor.Id + "-" + counter.ToString("000", CultureInfo.InvariantCulture);
                 } while (_counters.ContainsKey(key));
 
                 _keys.Add(descriptor, key);
@@ -380,6 +390,72 @@ namespace Microsoft.CodeAnalysis
                 Debug.Assert(list.Capacity == list.Count);
                 list.Sort((x, y) => string.CompareOrdinal(x.Key, y.Key));
                 return list;
+            }
+
+            /// <summary>
+            /// Compares descriptors by the values that we write to the log and nothing else.
+            ///
+            /// We cannot just use <see cref="DiagnosticDescriptor"/>'s built-in implementation
+            /// of <see cref="IEquatable{DiagnosticDescriptor}"/> for two reasons:
+            ///
+            /// 1. <see cref="DiagnosticDescriptor.MessageFormat"/> is part of that built-in 
+            ///    equatability, but we do not write it out, and so descriptors differing only
+            ///    by MessageFormat (common) would lead to duplicate rule metadata entries in
+            ///    the log.
+            ///
+            /// 2. <see cref="DiagnosticDescriptor.CustomTags"/> is *not* part of that built-in
+            ///    equatability, but we do write them out, and so descriptors differening only
+            ///    by CustomTags (rare) would cause only one set of tags to be reported in the
+            ///    log.
+            /// </summary>
+            private sealed class Comparer : IEqualityComparer<DiagnosticDescriptor>
+            {
+                public bool Equals(DiagnosticDescriptor x, DiagnosticDescriptor y)
+                {
+                    if (ReferenceEquals(x, y))
+                    {
+                        return true;
+                    }
+
+                    if (ReferenceEquals(x, null) || ReferenceEquals(y, null))
+                    {
+                        return false;
+                    }
+
+                    // The properties are guaranteed to be non-null by DiagnosticDescriptor invariants.
+                    Debug.Assert(x.Description != null && x.Title != null && x.CustomTags != null);
+                    Debug.Assert(y.Description != null && y.Title != null && y.CustomTags != null);
+
+                    return (x.Category == y.Category
+                        && x.DefaultSeverity == y.DefaultSeverity
+                        && x.Description.Equals(y.Description)
+                        && x.HelpLinkUri == y.HelpLinkUri
+                        && x.Id == y.Id
+                        && x.IsEnabledByDefault == y.IsEnabledByDefault
+                        && x.Title.Equals(y.Title)
+                        && x.CustomTags.SequenceEqual(y.CustomTags));
+                }
+
+                public int GetHashCode(DiagnosticDescriptor obj)
+                {
+                    if (ReferenceEquals(obj, null))
+                    {
+                        return 0;
+                    }
+
+                    // The properties are guaranteed to be non-null by DiagnosticDescriptor invariants.
+                    Debug.Assert(obj.Category != null && obj.Description != null && obj.HelpLinkUri != null 
+                        && obj.Id != null && obj.Title != null && obj.CustomTags != null);
+
+                    return Hash.Combine(obj.Category.GetHashCode(),
+                        Hash.Combine(obj.DefaultSeverity.GetHashCode(),
+                        Hash.Combine(obj.Description.GetHashCode(),
+                        Hash.Combine(obj.HelpLinkUri.GetHashCode(),
+                        Hash.Combine(obj.Id.GetHashCode(),
+                        Hash.Combine(obj.IsEnabledByDefault.GetHashCode(),
+                        Hash.Combine(obj.Title.GetHashCode(),
+                        Hash.CombineValues(obj.CustomTags))))))));
+                }
             }
         }
     }

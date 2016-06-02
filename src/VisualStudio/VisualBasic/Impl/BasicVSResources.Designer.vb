@@ -65,6 +65,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Do not prefer &apos;Me.&apos;.
+        '''</summary>
+        Friend Shared ReadOnly Property DoNotPreferMe() As String
+            Get
+                Return ResourceManager.GetString("DoNotPreferMe", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Insert Snippet.
         '''</summary>
         Friend Shared ReadOnly Property InsertSnippet() As String
@@ -333,6 +342,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                 Return ResourceManager.GetString("Option_Suggest_imports_for_types_in_reference_assemblies", resourceCulture)
             End Get
         End Property
+
+        '''<summary>
+        '''  Looks up a localized string similar to predefined type preferences:.
+        '''</summary>
+        Friend Shared ReadOnly Property PredefinedTypesGroupTitle() As String
+            Get
+                Return ResourceManager.GetString("PredefinedTypesGroupTitle", resourceCulture)
+            End Get
+        End Property
         
         '''<summary>
         '''  Looks up a localized string similar to Prefer intrinsic predefined type keyword when declaring locals, parameters and members.
@@ -353,11 +371,56 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Qualify member access with &apos;Me&apos;.
+        '''  Looks up a localized string similar to Prefer &apos;Me.&apos;.
         '''</summary>
-        Friend Shared ReadOnly Property QualifyMemberAccessWithMe() As String
+        Friend Shared ReadOnly Property PreferMe() As String
             Get
-                Return ResourceManager.GetString("QualifyMemberAccessWithMe", resourceCulture)
+                Return ResourceManager.GetString("PreferMe", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Qualify event access with &apos;Me&apos;.
+        '''</summary>
+        Friend Shared ReadOnly Property QualifyEventAccessWithMe() As String
+            Get
+                Return ResourceManager.GetString("QualifyEventAccessWithMe", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Qualify field access with &apos;Me&apos;.
+        '''</summary>
+        Friend Shared ReadOnly Property QualifyFieldAccessWithMe() As String
+            Get
+                Return ResourceManager.GetString("QualifyFieldAccessWithMe", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to &apos;Me.&apos; preferences.
+        '''</summary>
+        Friend Shared ReadOnly Property QualifyGroupTitle() As String
+            Get
+                Return ResourceManager.GetString("QualifyGroupTitle", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Qualify method access with &apos;Me&apos;.
+        '''</summary>
+        Friend Shared ReadOnly Property QualifyMethodAccessWithMe() As String
+            Get
+                Return ResourceManager.GetString("QualifyMethodAccessWithMe", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Qualify property access with &apos;Me&apos;.
+        '''</summary>
+        Friend Shared ReadOnly Property QualifyPropertyAccessWithMe() As String
+            Get
+                Return ResourceManager.GetString("QualifyPropertyAccessWithMe", resourceCulture)
             End Get
         End Property
     End Class

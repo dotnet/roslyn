@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
+using Microsoft.CodeAnalysis.Diagnostics.Telemetry;
 using Microsoft.CodeAnalysis.ErrorReporting;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Options;
@@ -152,10 +153,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 if (analyzerDriverOpt != null)
                 {
                     // calculate regular diagnostic analyzers diagnostics
-                    result = await analyzerDriverOpt.AnalyzeAsync(project, cancellationToken).ConfigureAwait(false);
+                    var compilerResult = await analyzerDriverOpt.AnalyzeAsync(project, cancellationToken).ConfigureAwait(false);
+                    result = compilerResult.AnalysisResult;
 
                     // record telemetry data
-                    await UpdateAnalyzerTelemetryDataAsync(analyzerDriverOpt, project, cancellationToken).ConfigureAwait(false);
+                    UpdateAnalyzerTelemetryData(compilerResult, project, cancellationToken);
                 }
 
                 // check whether there is IDE specific project diagnostic analyzer
@@ -323,30 +325,38 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             private async Task<IEnumerable<Diagnostic>> ComputeDocumentDiagnosticAnalyzerDiagnosticsAsync(
                 Document document, DocumentDiagnosticAnalyzer analyzer, AnalysisKind kind, Compilation compilationOpt, CancellationToken cancellationToken)
             {
-                using (var pooledObject = SharedPools.Default<List<Diagnostic>>().GetPooledObject())
-                {
-                    var diagnostics = pooledObject.Object;
-                    cancellationToken.ThrowIfCancellationRequested();
+                cancellationToken.ThrowIfCancellationRequested();
 
-                    try
+                try
+                {
+                    Task<ImmutableArray<Diagnostic>> analyzeAsync;
+
+                    switch (kind)
                     {
-                        switch (kind)
-                        {
-                            case AnalysisKind.Syntax:
-                                await analyzer.AnalyzeSyntaxAsync(document, diagnostics.Add, cancellationToken).ConfigureAwait(false);
-                                return compilationOpt == null ? diagnostics.ToImmutableArrayOrEmpty() : CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilationOpt);
-                            case AnalysisKind.Semantic:
-                                await analyzer.AnalyzeSemanticsAsync(document, diagnostics.Add, cancellationToken).ConfigureAwait(false);
-                                return compilationOpt == null ? diagnostics.ToImmutableArrayOrEmpty() : CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilationOpt);
-                            default:
-                                return Contract.FailWithReturn<ImmutableArray<Diagnostic>>("shouldn't reach here");
-                        }
+                        case AnalysisKind.Syntax:
+                            analyzeAsync = analyzer.AnalyzeSyntaxAsync(document, cancellationToken);
+                            break;
+
+                        case AnalysisKind.Semantic:
+                            analyzeAsync = analyzer.AnalyzeSemanticsAsync(document, cancellationToken);
+                            break;
+
+                        default:
+                            throw ExceptionUtilities.UnexpectedValue(kind);
                     }
-                    catch (Exception e) when (!IsCanceled(e, cancellationToken))
+
+                    var diagnostics = (await analyzeAsync.ConfigureAwait(false)).NullToEmpty();
+                    if (compilationOpt != null)
                     {
-                        OnAnalyzerException(analyzer, document.Project.Id, compilationOpt, e);
-                        return ImmutableArray<Diagnostic>.Empty;
+                        return CompilationWithAnalyzers.GetEffectiveDiagnostics(diagnostics, compilationOpt);
                     }
+
+                    return diagnostics;
+                }
+                catch (Exception e) when (!IsCanceled(e, cancellationToken))
+                {
+                    OnAnalyzerException(analyzer, document.Project.Id, compilationOpt, e);
+                    return ImmutableArray<Diagnostic>.Empty;
                 }
             }
 
@@ -381,39 +391,23 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 }
             }
 
-            private async Task UpdateAnalyzerTelemetryDataAsync(CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
+            private void UpdateAnalyzerTelemetryData(CompilerAnalysisResult analysisResult, Project project, CancellationToken cancellationToken)
             {
-                foreach (var analyzer in analyzerDriver.Analyzers)
+                foreach (var kv in analysisResult.TelemetryInfo)
                 {
-                    await UpdateAnalyzerTelemetryDataAsync(analyzerDriver, analyzer, project, cancellationToken).ConfigureAwait(false);
-                }
-            }
-
-            private async Task UpdateAnalyzerTelemetryDataAsync(CompilationWithAnalyzers analyzerDriver, DiagnosticAnalyzer analyzer, Project project, CancellationToken cancellationToken)
-            {
-                try
-                {
-                    var analyzerTelemetryInfo = await analyzerDriver.GetAnalyzerTelemetryInfoAsync(analyzer, cancellationToken).ConfigureAwait(false);
-                    DiagnosticAnalyzerLogger.UpdateAnalyzerTypeCount(analyzer, analyzerTelemetryInfo, project, _owner.DiagnosticLogAggregator);
-                }
-                catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
-                {
-                    throw ExceptionUtilities.Unreachable;
+                    DiagnosticAnalyzerLogger.UpdateAnalyzerTypeCount(kv.Key, kv.Value, project, _owner.DiagnosticLogAggregator);
                 }
             }
 
             private static async Task<bool> FullAnalysisEnabledAsync(Project project, bool ignoreFullAnalysisOptions, CancellationToken cancellationToken)
             {
-                var workspace = project.Solution.Workspace;
-                var language = project.Language;
-
                 if (ignoreFullAnalysisOptions)
                 {
                     return await project.HasSuccessfullyLoadedAsync(cancellationToken).ConfigureAwait(false);
                 }
 
-                if (!ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(workspace, language) ||
-                    !workspace.Options.GetOption(RuntimeOptions.FullSolutionAnalysis))
+                if (!ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(project) ||
+                    !project.Solution.Options.GetOption(RuntimeOptions.FullSolutionAnalysis))
                 {
                     return false;
                 }

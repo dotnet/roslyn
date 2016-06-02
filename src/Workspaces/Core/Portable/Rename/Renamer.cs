@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Rename
 
             cancellationToken.ThrowIfCancellationRequested();
 
-            options = options ?? solution.Workspace.Options;
+            options = options ?? solution.Options;
             return RenameLocations.FindAsync(symbol, solution, options, cancellationToken);
         }
 

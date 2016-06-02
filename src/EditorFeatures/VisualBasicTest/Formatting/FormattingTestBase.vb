@@ -38,7 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Formatting
                 Dim changes = Formatter.GetFormattedTextChanges(
                     Await syntaxTree.GetRootAsync(),
                     workspace.Documents.First(Function(d) d.SelectedSpans.Any()).SelectedSpans,
-                    workspace, workspace.Options, rules, CancellationToken.None)
+                    workspace, document.Options, rules, CancellationToken.None)
                 AssertResult(expected, clonedBuffer, changes)
             End Using
         End Function

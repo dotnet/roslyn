@@ -218,15 +218,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                return this.ReturnType is ByRefReturnErrorTypeSymbol;
+                return this.RefKind == RefKind.Ref;
             }
         }
 
         Cci.ITypeReference Cci.ISignature.GetType(EmitContext context)
         {
-            ByRefReturnErrorTypeSymbol byRefType = this.ReturnType as ByRefReturnErrorTypeSymbol;
-            return ((PEModuleBuilder)context.Module).Translate(
-                (object)byRefType == null ? this.ReturnType : byRefType.ReferencedType,
+            return ((PEModuleBuilder)context.Module).Translate(this.ReturnType,
                 syntaxNodeOpt: (CSharpSyntaxNode)context.SyntaxNodeOpt,
                 diagnostics: context.Diagnostics);
         }

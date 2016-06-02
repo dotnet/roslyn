@@ -115,17 +115,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
 
             var commandHandlerFactory = Package.ComponentModel.GetService<ICommandHandlerServiceFactory>();
             var workspace = Package.ComponentModel.GetService<VisualStudioWorkspace>();
-            var optionsService = workspace.Services.GetService<IOptionService>();
 
             // The lifetime of CommandFilter is married to the view
             wpfTextView.GetOrCreateAutoClosingProperty(v =>
                 new StandaloneCommandFilter<TPackage, TLanguageService, TProject>(
-                    (TLanguageService)this, v, commandHandlerFactory, optionsService, EditorAdaptersFactoryService).AttachToVsTextView());
+                    (TLanguageService)this, v, commandHandlerFactory, EditorAdaptersFactoryService).AttachToVsTextView());
 
             var openDocument = wpfTextView.TextBuffer.AsTextContainer().GetRelatedDocuments().FirstOrDefault();
             var isOpenMetadataAsSource = openDocument != null && openDocument.Project.Solution.Workspace.Kind == WorkspaceKind.MetadataAsSource;
 
-            ConditionallyCollapseOutliningRegions(textView, wpfTextView, optionsService, isOpenMetadataAsSource);
+            ConditionallyCollapseOutliningRegions(textView, wpfTextView, workspace, isOpenMetadataAsSource);
 
             // If this is a metadata-to-source view, we want to consider the file read-only
             IVsTextLines vsTextLines;
@@ -144,7 +143,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
             }
         }
 
-        private void ConditionallyCollapseOutliningRegions(IVsTextView textView, IWpfTextView wpfTextView, IOptionService optionsService, bool isOpenMetadataAsSource)
+        private void ConditionallyCollapseOutliningRegions(IVsTextView textView, IWpfTextView wpfTextView, Workspace workspace, bool isOpenMetadataAsSource)
         {
             var outliningManagerService = this.Package.ComponentModel.GetService<IOutliningManagerService>();
             var outliningManager = outliningManagerService.GetOutliningManager(wpfTextView);
@@ -153,7 +152,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.LanguageService
                 return;
             }
 
-            if (!optionsService.GetOption(FeatureOnOffOptions.Outlining, this.RoslynLanguageName))
+            if (!workspace.Options.GetOption(FeatureOnOffOptions.Outlining, this.RoslynLanguageName))
             {
                 outliningManager.Enabled = false;
             }

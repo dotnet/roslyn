@@ -29,6 +29,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private readonly object _guard = new object();
 
+        private readonly DiagnosticDescriptor _analyzerChangedRule = new DiagnosticDescriptor(
+            id: IDEDiagnosticIds.AnalyzerChangedId,
+            title: ServicesVSResources.WRN_AnalyzerChangedTitle,
+            messageFormat: ServicesVSResources.WRN_AnalyzerChangedMessage,
+            category: FeaturesResources.ErrorCategory,
+            defaultSeverity: DiagnosticSeverity.Warning,
+            isEnabledByDefault: true);
+
         [ImportingConstructor]
         public AnalyzerFileWatcherService(
             VisualStudioWorkspaceImpl workspace,
@@ -67,21 +75,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation
 
         private void RaiseAnalyzerChangedWarning(ProjectId projectId, string analyzerPath)
         {
-            string message = string.Format(ServicesVSResources.WRN_AnalyzerChangedMessage, analyzerPath);
-
-            DiagnosticData data = new DiagnosticData(
-                IDEDiagnosticIds.AnalyzerChangedId,
-                FeaturesResources.ErrorCategory,
-                message,
-                ServicesVSResources.WRN_AnalyzerChangedMessage,
-                severity: DiagnosticSeverity.Warning,
-                isEnabledByDefault: true,
-                warningLevel: 0,
-                workspace: _workspace,
-                projectId: projectId,
-                title: ServicesVSResources.WRN_AnalyzerChangedTitle);
-
-            _updateSource.UpdateDiagnosticsForProject(projectId, Tuple.Create(s_analyzerChangedErrorId, analyzerPath), SpecializedCollections.SingletonEnumerable(data));
+            var messageArguments = new string[] { analyzerPath };
+            DiagnosticData diagnostic;
+            if (DiagnosticData.TryCreate(_analyzerChangedRule, messageArguments, projectId, _workspace, out diagnostic))
+            {
+                _updateSource.UpdateDiagnosticsForProject(projectId, Tuple.Create(s_analyzerChangedErrorId, analyzerPath), SpecializedCollections.SingletonEnumerable(diagnostic));
+            }
         }
 
         private DateTime? GetLastUpdateTimeUtc(string fullPath)

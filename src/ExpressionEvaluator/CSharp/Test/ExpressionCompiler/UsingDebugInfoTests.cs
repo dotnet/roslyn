@@ -335,7 +335,7 @@ namespace D
             const int methodToken3 = 0x6000540; // Has a using
             const string importString = "USystem";
 
-            ISymUnmanagedReader reader = new MockSymUnmanagedReader(new Dictionary<int, MethodDebugInfoBytes>
+            var symReader = new MockSymUnmanagedReader(new Dictionary<int, MethodDebugInfoBytes>
             {
                 { methodToken1, new MethodDebugInfoBytes.Builder().AddForward(methodToken2).Build() },
                 { methodToken2, new MethodDebugInfoBytes.Builder().AddForward(methodToken3).Build() },
@@ -343,15 +343,15 @@ namespace D
             }.ToImmutableDictionary());
 
             ImmutableArray<string> externAliasStrings;
-            var importStrings = reader.GetCSharpGroupedImportStrings(methodToken1, methodVersion, out externAliasStrings);
+            var importStrings = symReader.GetCSharpGroupedImportStrings(methodToken1, methodVersion, out externAliasStrings);
             Assert.True(importStrings.IsDefault);
             Assert.True(externAliasStrings.IsDefault);
 
-            importStrings = reader.GetCSharpGroupedImportStrings(methodToken2, methodVersion, out externAliasStrings);
+            importStrings = symReader.GetCSharpGroupedImportStrings(methodToken2, methodVersion, out externAliasStrings);
             Assert.Equal(importString, importStrings.Single().Single());
             Assert.Equal(0, externAliasStrings.Length);
 
-            importStrings = reader.GetCSharpGroupedImportStrings(methodToken2, methodVersion, out externAliasStrings);
+            importStrings = symReader.GetCSharpGroupedImportStrings(methodToken2, methodVersion, out externAliasStrings);
             Assert.Equal(importString, importStrings.Single().Single());
             Assert.Equal(0, externAliasStrings.Length);
         }
@@ -362,13 +362,13 @@ namespace D
             const int methodVersion = 1;
             const int methodToken1 = 0x600057a; // Forwards to itself
 
-            ISymUnmanagedReader reader = new MockSymUnmanagedReader(new Dictionary<int, MethodDebugInfoBytes>
+            var symReader = new MockSymUnmanagedReader(new Dictionary<int, MethodDebugInfoBytes>
             {
                 { methodToken1, new MethodDebugInfoBytes.Builder().AddForward(methodToken1).Build() },
             }.ToImmutableDictionary());
 
             ImmutableArray<string> externAliasStrings;
-            var importStrings = reader.GetCSharpGroupedImportStrings(methodToken1, methodVersion, out externAliasStrings);
+            var importStrings = symReader.GetCSharpGroupedImportStrings(methodToken1, methodVersion, out externAliasStrings);
             Assert.True(importStrings.IsDefault);
             Assert.True(externAliasStrings.IsDefault);
         }

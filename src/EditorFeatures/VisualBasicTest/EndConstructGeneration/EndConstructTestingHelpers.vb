@@ -38,9 +38,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.EndConstructGenera
         End Property
 
         Private Sub DisableLineCommit(workspace As Workspace)
-            ' Disable line commit
-            Dim optionsService = workspace.Services.GetService(Of IOptionService)()
-            optionsService.SetOptions(optionsService.GetOptions().WithChangedOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, False))
+            workspace.Options = workspace.Options.WithChangedOption(FeatureOnOffOptions.PrettyListing, LanguageNames.VisualBasic, False)
         End Sub
 
         Private Async Function VerifyTypedCharAppliedAsync(doFunc As Func(Of VisualBasicEndConstructService, ITextView, ITextBuffer, Boolean),

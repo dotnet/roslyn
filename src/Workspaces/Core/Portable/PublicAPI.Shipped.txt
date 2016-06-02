@@ -37,18 +37,22 @@ Microsoft.CodeAnalysis.CodeActions.ApplyChangesOperation
 Microsoft.CodeAnalysis.CodeActions.ApplyChangesOperation.ApplyChangesOperation(Microsoft.CodeAnalysis.Solution changedSolution) -> void
 Microsoft.CodeAnalysis.CodeActions.ApplyChangesOperation.ChangedSolution.get -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.CodeActions.CodeAction
+Microsoft.CodeAnalysis.CodeActions.CodeAction.CodeAction() -> void
 Microsoft.CodeAnalysis.CodeActions.CodeAction.GetOperationsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CodeActions.CodeActionOperation>>
 Microsoft.CodeAnalysis.CodeActions.CodeAction.GetPreviewOperationsAsync(System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CodeActions.CodeActionOperation>>
 Microsoft.CodeAnalysis.CodeActions.CodeAction.PostProcessAsync(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.CodeActions.CodeActionOperation> operations, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.CodeActions.CodeActionOperation>>
 Microsoft.CodeAnalysis.CodeActions.CodeAction.PostProcessChangesAsync(Microsoft.CodeAnalysis.Solution changedSolution, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Solution>
 Microsoft.CodeAnalysis.CodeActions.CodeActionOperation
+Microsoft.CodeAnalysis.CodeActions.CodeActionOperation.CodeActionOperation() -> void
 Microsoft.CodeAnalysis.CodeActions.CodeActionWithOptions
+Microsoft.CodeAnalysis.CodeActions.CodeActionWithOptions.CodeActionWithOptions() -> void
 Microsoft.CodeAnalysis.CodeActions.CodeActionWithOptions.GetOperationsAsync(object options, System.Threading.CancellationToken cancellationToken) -> System.Threading.Tasks.Task<System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.CodeActions.CodeActionOperation>>
 Microsoft.CodeAnalysis.CodeActions.ConflictAnnotation
 Microsoft.CodeAnalysis.CodeActions.OpenDocumentOperation
 Microsoft.CodeAnalysis.CodeActions.OpenDocumentOperation.DocumentId.get -> Microsoft.CodeAnalysis.DocumentId
 Microsoft.CodeAnalysis.CodeActions.OpenDocumentOperation.OpenDocumentOperation(Microsoft.CodeAnalysis.DocumentId documentId, bool activateIfAlreadyOpen = false) -> void
 Microsoft.CodeAnalysis.CodeActions.PreviewOperation
+Microsoft.CodeAnalysis.CodeActions.PreviewOperation.PreviewOperation() -> void
 Microsoft.CodeAnalysis.CodeActions.RenameAnnotation
 Microsoft.CodeAnalysis.CodeActions.WarningAnnotation
 Microsoft.CodeAnalysis.CodeFixes.CodeFixContext
@@ -62,6 +66,7 @@ Microsoft.CodeAnalysis.CodeFixes.CodeFixContext.RegisterCodeFix(Microsoft.CodeAn
 Microsoft.CodeAnalysis.CodeFixes.CodeFixContext.RegisterCodeFix(Microsoft.CodeAnalysis.CodeActions.CodeAction action, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.Diagnostic> diagnostics) -> void
 Microsoft.CodeAnalysis.CodeFixes.CodeFixContext.Span.get -> Microsoft.CodeAnalysis.Text.TextSpan
 Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider
+Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider.CodeFixProvider() -> void
 Microsoft.CodeAnalysis.CodeFixes.ExportCodeFixProviderAttribute
 Microsoft.CodeAnalysis.CodeFixes.ExportCodeFixProviderAttribute.ExportCodeFixProviderAttribute(string firstLanguage, params string[] additionalLanguages) -> void
 Microsoft.CodeAnalysis.CodeFixes.ExportCodeFixProviderAttribute.Languages.get -> string[]
@@ -73,6 +78,7 @@ Microsoft.CodeAnalysis.CodeFixes.FixAllContext.CodeActionEquivalenceKey.get -> s
 Microsoft.CodeAnalysis.CodeFixes.FixAllContext.CodeFixProvider.get -> Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider
 Microsoft.CodeAnalysis.CodeFixes.FixAllContext.DiagnosticIds.get -> System.Collections.Immutable.ImmutableHashSet<string>
 Microsoft.CodeAnalysis.CodeFixes.FixAllContext.DiagnosticProvider
+Microsoft.CodeAnalysis.CodeFixes.FixAllContext.DiagnosticProvider.DiagnosticProvider() -> void
 Microsoft.CodeAnalysis.CodeFixes.FixAllContext.Document.get -> Microsoft.CodeAnalysis.Document
 Microsoft.CodeAnalysis.CodeFixes.FixAllContext.FixAllContext(Microsoft.CodeAnalysis.Document document, Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider codeFixProvider, Microsoft.CodeAnalysis.CodeFixes.FixAllScope scope, string codeActionEquivalenceKey, System.Collections.Generic.IEnumerable<string> diagnosticIds, Microsoft.CodeAnalysis.CodeFixes.FixAllContext.DiagnosticProvider fixAllDiagnosticProvider, System.Threading.CancellationToken cancellationToken) -> void
 Microsoft.CodeAnalysis.CodeFixes.FixAllContext.FixAllContext(Microsoft.CodeAnalysis.Project project, Microsoft.CodeAnalysis.CodeFixes.CodeFixProvider codeFixProvider, Microsoft.CodeAnalysis.CodeFixes.FixAllScope scope, string codeActionEquivalenceKey, System.Collections.Generic.IEnumerable<string> diagnosticIds, Microsoft.CodeAnalysis.CodeFixes.FixAllContext.DiagnosticProvider fixAllDiagnosticProvider, System.Threading.CancellationToken cancellationToken) -> void
@@ -84,6 +90,7 @@ Microsoft.CodeAnalysis.CodeFixes.FixAllContext.Scope.get -> Microsoft.CodeAnalys
 Microsoft.CodeAnalysis.CodeFixes.FixAllContext.Solution.get -> Microsoft.CodeAnalysis.Solution
 Microsoft.CodeAnalysis.CodeFixes.FixAllContext.WithCancellationToken(System.Threading.CancellationToken cancellationToken) -> Microsoft.CodeAnalysis.CodeFixes.FixAllContext
 Microsoft.CodeAnalysis.CodeFixes.FixAllProvider
+Microsoft.CodeAnalysis.CodeFixes.FixAllProvider.FixAllProvider() -> void
 Microsoft.CodeAnalysis.CodeFixes.FixAllScope
 Microsoft.CodeAnalysis.CodeFixes.FixAllScope.Custom = 3 -> Microsoft.CodeAnalysis.CodeFixes.FixAllScope
 Microsoft.CodeAnalysis.CodeFixes.FixAllScope.Document = 0 -> Microsoft.CodeAnalysis.CodeFixes.FixAllScope
@@ -97,6 +104,7 @@ Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringContext.Document.get -> M
 Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringContext.RegisterRefactoring(Microsoft.CodeAnalysis.CodeActions.CodeAction action) -> void
 Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringContext.Span.get -> Microsoft.CodeAnalysis.Text.TextSpan
 Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringProvider
+Microsoft.CodeAnalysis.CodeRefactorings.CodeRefactoringProvider.CodeRefactoringProvider() -> void
 Microsoft.CodeAnalysis.CodeRefactorings.ExportCodeRefactoringProviderAttribute
 Microsoft.CodeAnalysis.CodeRefactorings.ExportCodeRefactoringProviderAttribute.ExportCodeRefactoringProviderAttribute(string firstLanguage, params string[] additionalLanguages) -> void
 Microsoft.CodeAnalysis.CodeRefactorings.ExportCodeRefactoringProviderAttribute.Languages.get -> string[]
@@ -372,6 +380,7 @@ Microsoft.CodeAnalysis.Editing.SyntaxGenerator.RemoveAllAttributes(Microsoft.Cod
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.RemoveNodes(Microsoft.CodeAnalysis.SyntaxNode root, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> declarations) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.SwitchSection(Microsoft.CodeAnalysis.SyntaxNode caseExpression, System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> statements) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.SwitchStatement(Microsoft.CodeAnalysis.SyntaxNode expression, params Microsoft.CodeAnalysis.SyntaxNode[] sections) -> Microsoft.CodeAnalysis.SyntaxNode
+Microsoft.CodeAnalysis.Editing.SyntaxGenerator.SyntaxGenerator() -> void
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.TrueLiteralExpression() -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.TryCastExpression(Microsoft.CodeAnalysis.SyntaxNode expression, Microsoft.CodeAnalysis.ITypeSymbol type) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.Editing.SyntaxGenerator.TryCatchStatement(System.Collections.Generic.IEnumerable<Microsoft.CodeAnalysis.SyntaxNode> tryStatements, params Microsoft.CodeAnalysis.SyntaxNode[] catchClauses) -> Microsoft.CodeAnalysis.SyntaxNode
@@ -429,9 +438,12 @@ Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentStyle.None = 0 -> Micr
 Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentStyle.Smart = 2 -> Microsoft.CodeAnalysis.Formatting.FormattingOptions.IndentStyle
 Microsoft.CodeAnalysis.Host.HostLanguageServices
 Microsoft.CodeAnalysis.Host.HostLanguageServices.GetRequiredService<TLanguageService>() -> TLanguageService
+Microsoft.CodeAnalysis.Host.HostLanguageServices.HostLanguageServices() -> void
 Microsoft.CodeAnalysis.Host.HostServices
+Microsoft.CodeAnalysis.Host.HostServices.HostServices() -> void
 Microsoft.CodeAnalysis.Host.HostWorkspaceServices
 Microsoft.CodeAnalysis.Host.HostWorkspaceServices.GetRequiredService<TWorkspaceService>() -> TWorkspaceService
+Microsoft.CodeAnalysis.Host.HostWorkspaceServices.HostWorkspaceServices() -> void
 Microsoft.CodeAnalysis.Host.HostWorkspaceServices.MetadataFilter
 Microsoft.CodeAnalysis.Host.IAnalyzerService
 Microsoft.CodeAnalysis.Host.IAnalyzerService.GetLoader() -> Microsoft.CodeAnalysis.IAnalyzerAssemblyLoader
@@ -502,12 +514,12 @@ Microsoft.CodeAnalysis.Options.OptionKey.Language.get -> string
 Microsoft.CodeAnalysis.Options.OptionKey.Option.get -> Microsoft.CodeAnalysis.Options.IOption
 Microsoft.CodeAnalysis.Options.OptionKey.OptionKey(Microsoft.CodeAnalysis.Options.IOption option, string language = null) -> void
 Microsoft.CodeAnalysis.Options.OptionSet
-Microsoft.CodeAnalysis.Options.OptionSet.GetOption(Microsoft.CodeAnalysis.Options.OptionKey optionKey) -> object
-Microsoft.CodeAnalysis.Options.OptionSet.GetOption<T>(Microsoft.CodeAnalysis.Options.Option<T> option) -> T
-Microsoft.CodeAnalysis.Options.OptionSet.GetOption<T>(Microsoft.CodeAnalysis.Options.PerLanguageOption<T> option, string language) -> T
-Microsoft.CodeAnalysis.Options.OptionSet.WithChangedOption(Microsoft.CodeAnalysis.Options.OptionKey optionAndLanguage, object value) -> Microsoft.CodeAnalysis.Options.OptionSet
-Microsoft.CodeAnalysis.Options.OptionSet.WithChangedOption<T>(Microsoft.CodeAnalysis.Options.Option<T> option, T value) -> Microsoft.CodeAnalysis.Options.OptionSet
-Microsoft.CodeAnalysis.Options.OptionSet.WithChangedOption<T>(Microsoft.CodeAnalysis.Options.PerLanguageOption<T> option, string language, T value) -> Microsoft.CodeAnalysis.Options.OptionSet
+abstract Microsoft.CodeAnalysis.Options.OptionSet.GetOption(Microsoft.CodeAnalysis.Options.OptionKey optionKey) -> object
+abstract Microsoft.CodeAnalysis.Options.OptionSet.GetOption<T>(Microsoft.CodeAnalysis.Options.Option<T> option) -> T
+abstract Microsoft.CodeAnalysis.Options.OptionSet.GetOption<T>(Microsoft.CodeAnalysis.Options.PerLanguageOption<T> option, string language) -> T
+abstract Microsoft.CodeAnalysis.Options.OptionSet.WithChangedOption(Microsoft.CodeAnalysis.Options.OptionKey optionAndLanguage, object value) -> Microsoft.CodeAnalysis.Options.OptionSet
+abstract Microsoft.CodeAnalysis.Options.OptionSet.WithChangedOption<T>(Microsoft.CodeAnalysis.Options.Option<T> option, T value) -> Microsoft.CodeAnalysis.Options.OptionSet
+abstract Microsoft.CodeAnalysis.Options.OptionSet.WithChangedOption<T>(Microsoft.CodeAnalysis.Options.PerLanguageOption<T> option, string language, T value) -> Microsoft.CodeAnalysis.Options.OptionSet
 Microsoft.CodeAnalysis.Options.PerLanguageOption<T>
 Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.DefaultValue.get -> T
 Microsoft.CodeAnalysis.Options.PerLanguageOption<T>.Feature.get -> string
@@ -742,6 +754,7 @@ Microsoft.CodeAnalysis.TextDocument.TextDocument() -> void
 Microsoft.CodeAnalysis.TextDocument.TryGetText(out Microsoft.CodeAnalysis.Text.SourceText text) -> bool
 Microsoft.CodeAnalysis.TextDocument.TryGetTextVersion(out Microsoft.CodeAnalysis.VersionStamp version) -> bool
 Microsoft.CodeAnalysis.TextLoader
+Microsoft.CodeAnalysis.TextLoader.TextLoader() -> void
 Microsoft.CodeAnalysis.VersionStamp
 Microsoft.CodeAnalysis.VersionStamp.Equals(Microsoft.CodeAnalysis.VersionStamp version) -> bool
 Microsoft.CodeAnalysis.VersionStamp.GetNewerVersion() -> Microsoft.CodeAnalysis.VersionStamp

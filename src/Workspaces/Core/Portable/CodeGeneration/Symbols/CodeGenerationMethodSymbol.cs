@@ -14,6 +14,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
     internal partial class CodeGenerationMethodSymbol : CodeGenerationAbstractMethodSymbol
     {
         private readonly ITypeSymbol _returnType;
+        private readonly bool _returnsByRef;
         private readonly ImmutableArray<ITypeParameterSymbol> _typeParameters;
         private readonly ImmutableArray<IParameterSymbol> _parameters;
         private readonly ImmutableArray<IMethodSymbol> _explicitInterfaceImplementations;
@@ -25,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             Accessibility declaredAccessibility,
             DeclarationModifiers modifiers,
             ITypeSymbol returnType,
+            bool returnsByRef,
             IMethodSymbol explicitInterfaceSymbolOpt,
             string name,
             IList<ITypeParameterSymbol> typeParameters,
@@ -34,6 +36,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             : base(containingType, attributes, declaredAccessibility, modifiers, name, returnTypeAttributes)
         {
             _returnType = returnType;
+            _returnsByRef = returnsByRef;
             _typeParameters = typeParameters.AsImmutableOrEmpty();
             _parameters = parameters.AsImmutableOrEmpty();
             _explicitInterfaceImplementations = explicitInterfaceSymbolOpt == null
@@ -80,7 +83,7 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
         {
             var result = new CodeGenerationMethodSymbol(this.ContainingType,
                 this.GetAttributes(), this.DeclaredAccessibility, this.Modifiers,
-                this.ReturnType, this.ExplicitInterfaceImplementations.FirstOrDefault(),
+                this.ReturnType, this.ReturnsByRef, this.ExplicitInterfaceImplementations.FirstOrDefault(),
                 this.Name, this.TypeParameters, this.Parameters, this.GetReturnTypeAttributes());
 
             CodeGenerationMethodInfo.Attach(result,
@@ -107,6 +110,14 @@ namespace Microsoft.CodeAnalysis.CodeGeneration
             get
             {
                 return this.ReturnType == null || this.ReturnType.SpecialType == SpecialType.System_Void;
+            }
+        }
+
+        public override bool ReturnsByRef
+        {
+            get
+            {
+                return _returnsByRef;
             }
         }
 

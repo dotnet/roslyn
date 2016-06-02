@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -72,19 +71,7 @@ namespace Microsoft.CodeAnalysis
         /// <returns></returns>
         public IOperation GetOperation(SyntaxNode node, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (this.Compilation.IsIOperationFeatureEnabled())
-            {
-                try
-                {
-                    return GetOperationCore(node, cancellationToken);
-                }
-                catch (Exception e) when (FatalError.ReportWithoutCrashUnlessCanceled(e))
-                {
-                    // Log a Non-fatal-watson and then ignore the crash in the attempt of getting operation
-                }
-                return null;
-            }
-            throw new InvalidOperationException(CodeAnalysisResources.IOperationFeatureDisabled);
+            return this.GetOperationCore(node, cancellationToken);
         }
 
         protected abstract IOperation GetOperationCore(SyntaxNode node, CancellationToken cancellationToken);

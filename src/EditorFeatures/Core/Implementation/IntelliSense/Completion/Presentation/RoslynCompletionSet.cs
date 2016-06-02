@@ -12,7 +12,6 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using VSCompletion = Microsoft.VisualStudio.Language.Intellisense.Completion;
-using Microsoft.CodeAnalysis.Snippets;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.Presentation
 {
@@ -88,12 +87,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
                 var applicableToText = this.ApplicableTo.GetText(this.ApplicableTo.TextBuffer.CurrentSnapshot);
 
-                var filteredSuggestionModeItem = new SimplePresentationItem(
+                SimplePresentationItem filteredSuggestionModeItem = null;
+                if (selectedItem != null)
+                {
+                    filteredSuggestionModeItem = new SimplePresentationItem(
                         CompletionItem.Create(
                             displayText: applicableToText,
                             span: this.ApplicableTo.GetSpan(this.ApplicableTo.TextBuffer.CurrentSnapshot).Span.ToTextSpan()),
                         selectedItem.CompletionService,
                         isSuggestionModeItem: true);
+                }
 
                 var showBuilder = suggestionMode || presetBuilder != null;
                 var bestSuggestionModeItem = applicableToText.Length > 0 ? filteredSuggestionModeItem : presetBuilder ?? filteredSuggestionModeItem;
@@ -205,7 +208,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 var document = _subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
                 if (document != null)
                 {
-                    _completionHelper = CompletionHelper.GetHelper(document);
+                    _completionHelper = CompletionHelper.GetHelper(document,
+                        document.Project.LanguageServices.GetService<CompletionService>());
                 }
             }
 

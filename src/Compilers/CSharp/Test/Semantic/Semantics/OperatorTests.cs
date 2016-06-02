@@ -6405,7 +6405,7 @@ struct TestStr
             var model = (CSharpSemanticModel)compilation.GetSemanticModel(tree);
             var binder = model.GetEnclosingBinder(methodBody.SpanStart);
             var diagnostics = DiagnosticBag.GetInstance();
-            var block = binder.BindBlock(methodBody, diagnostics);
+            var block = binder.BindEmbeddedBlock(methodBody, diagnostics);
             diagnostics.Free();
 
             // Rewriter should use Equals.

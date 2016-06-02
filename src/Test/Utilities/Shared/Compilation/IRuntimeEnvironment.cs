@@ -215,7 +215,6 @@ namespace Roslyn.Test.Utilities
                         options: EmitOptions.Default,
                         debugEntryPoint: null,
                         testData: testData,
-                        getHostDiagnostics: null,
                         cancellationToken: default(CancellationToken));
                 }
                 finally

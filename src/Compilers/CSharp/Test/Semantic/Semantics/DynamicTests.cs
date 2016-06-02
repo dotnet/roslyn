@@ -3461,6 +3461,32 @@ class Program
             );
         }
 
+        [Fact, WorkItem(9945, "https://github.com/dotnet/roslyn/issues/9945")]
+        public void DynamicGetOnlyPropertyIndexer()
+        {
+            string source = @"
+class Program
+{
+    static void Main()
+    {
+        I i = null;
+        System.Type t = i[null].GetType();
+    }
+
+    interface I
+    {
+        dynamic this[string s] { set; }
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlib(source, new[] { CSharpRef, SystemCoreRef }, options: TestOptions.DebugDll);
+            compilation.VerifyEmitDiagnostics(
+                // (7,25): error CS0154: The property or indexer 'Program.I.this[string]' cannot be used in this context because it lacks the get accessor
+                //         System.Type t = i[null].GetType();
+                Diagnostic(ErrorCode.ERR_PropertyLacksGet, "i[null]").WithArguments("Program.I.this[string]").WithLocation(7, 25)
+            );
+        }
+
         [ClrOnlyFact(ClrOnlyReason.Ilasm)]
         public void IncorrectArrayLength()
         {
