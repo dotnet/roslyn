@@ -2,6 +2,7 @@
 using System.Windows;
 using System.Windows.Threading;
 using EnvDTE;
+using Microsoft.VisualStudio.ComponentModelHost;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -27,6 +28,8 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
         }
 
         protected static TInterface GetGlobalService<TService, TInterface>()
+            where TService : class
+            where TInterface : class
         {
             return InvokeOnUIThread(() =>
             {
@@ -34,9 +37,23 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
             });
         }
 
+        protected static TService GetComponentModelService<TService>()
+            where TService : class
+        {
+            return InvokeOnUIThread(() =>
+            {
+                return GetComponentModel().GetService<TService>();
+            });
+        }
+
         protected static DTE GetDTE()
         {
             return GetGlobalService<SDTE, DTE>();
+        }
+
+        protected static IComponentModel GetComponentModel()
+        {
+            return GetGlobalService<SComponentModel, IComponentModel>();
         }
 
         /// <summary>

@@ -89,6 +89,11 @@ namespace Roslyn.VisualStudio.Test.Utilities
                 methodName: nameof(RemotingHelper.WaitForApplicationIdle));
         }
 
+        public async Task ExecuteCommandAsync(string commandName)
+        {
+            await this.DTE.ExecuteCommandAsync(commandName);
+        }
+
         public bool IsRunning => !_hostProcess.HasExited;
 
         public CSharpInteractiveWindow CSharpInteractiveWindow => _csharpInteractiveWindow.Value;

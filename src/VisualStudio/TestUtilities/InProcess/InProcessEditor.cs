@@ -1,8 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
+using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
@@ -150,6 +152,42 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
                 var point = new SnapshotPoint(subjectBuffer.CurrentSnapshot, position);
 
                 view.Caret.MoveTo(point);
+            });
+        }
+
+        public string[] GetCompletionItems()
+        {
+            return ExecuteOnActiveView(view =>
+            {
+                var broker = GetComponentModelService<ICompletionBroker>();
+
+                var sessions = broker.GetSessions(view);
+                if (sessions.Count != 1)
+                {
+                    throw new InvalidOperationException($"Expected exactly one session in the completion list, but found {sessions.Count}");
+                }
+
+                var selectedCompletionSet = sessions[0].SelectedCompletionSet;
+
+                return selectedCompletionSet.Completions.Select(c => c.DisplayText).ToArray();
+            });
+        }
+
+        public string GetCurrentCompletionItem()
+        {
+            return ExecuteOnActiveView(view =>
+            {
+                var broker = GetComponentModelService<ICompletionBroker>();
+
+                var sessions = broker.GetSessions(view);
+                if (sessions.Count != 1)
+                {
+                    throw new InvalidOperationException($"Expected exactly one session in the completion list, but found {sessions.Count}");
+                }
+
+                var selectedCompletionSet = sessions[0].SelectedCompletionSet;
+
+                return selectedCompletionSet.SelectionStatus.Completion.DisplayText;
             });
         }
     }

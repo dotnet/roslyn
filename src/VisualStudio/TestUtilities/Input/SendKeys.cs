@@ -15,6 +15,11 @@ namespace Roslyn.VisualStudio.Test.Utilities.Input
             _visualStudioInstance = visualStudioInstance;
         }
 
+        public void Send(KeyPress keyPress)
+        {
+            Send(keyPress.VirtualKey, keyPress.ShiftState);
+        }
+
         public void Send(VirtualKey virtualKey, ShiftState shiftState = 0)
         {
             var foregroundWindow = IntPtr.Zero;

@@ -20,6 +20,7 @@
   <ItemGroup>
     <Compile Include="Extensions\DteExtensions.cs" />
     <Compile Include="InProcess\BaseInProcessComponent.cs" />
+    <Compile Include="Input\KeyPress.cs" />
     <Compile Include="Input\SendKeys.cs" />
     <Compile Include="Input\ShiftState.cs" />
     <Compile Include="Input\VirtualKey.cs" />

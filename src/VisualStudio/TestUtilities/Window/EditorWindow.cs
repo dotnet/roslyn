@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Collections.Immutable;
 using Roslyn.VisualStudio.Test.Utilities.InProcess;
 using Roslyn.VisualStudio.Test.Utilities.Input;
 
@@ -36,15 +37,18 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
         public void MoveCaret(int position) => _inProcessEditor.MoveCaret(position);
 
-        public void SendKeys(params object[] textOrVirtualKeys)
+        public string[] GetCompletionItems() => _inProcessEditor.GetCompletionItems();
+        public string GetCurrentCompletionItem() => _inProcessEditor.GetCurrentCompletionItem();
+
+        public void SendKeys(params object[] keys)
         {
             Activate();
 
-            foreach (var textOrVirtualKey in textOrVirtualKeys)
+            foreach (var key in keys)
             {
-                if (textOrVirtualKey is string)
+                if (key is string)
                 {
-                    var text = ((string)textOrVirtualKey)
+                    var text = ((string)key)
                         .Replace("\r\n", "\r")
                         .Replace("\n", "\r");
 
@@ -53,21 +57,25 @@ namespace Roslyn.VisualStudio.Test.Utilities
                         _visualStudioInstance.SendKeys.Send(ch);
                     }
                 }
-                else if (textOrVirtualKey is char)
+                else if (key is char)
                 {
-                    _visualStudioInstance.SendKeys.Send((char)textOrVirtualKey);
+                    _visualStudioInstance.SendKeys.Send((char)key);
                 }
-                else if (textOrVirtualKey is VirtualKey)
+                else if (key is VirtualKey)
                 {
-                    _visualStudioInstance.SendKeys.Send((VirtualKey)textOrVirtualKey);
+                    _visualStudioInstance.SendKeys.Send((VirtualKey)key);
                 }
-                else if (textOrVirtualKey == null)
+                else if (key is KeyPress)
                 {
-                    throw new ArgumentNullException(nameof(textOrVirtualKeys));
+                    _visualStudioInstance.SendKeys.Send((KeyPress)key);
+                }
+                else if (key == null)
+                {
+                    throw new ArgumentNullException(nameof(keys));
                 }
                 else
                 {
-                    throw new ArgumentException($"Unexpected type encountered: {textOrVirtualKey.GetType()}", nameof(textOrVirtualKeys));
+                    throw new ArgumentException($"Unexpected type encountered: {key.GetType()}", nameof(keys));
                 }
             }
 

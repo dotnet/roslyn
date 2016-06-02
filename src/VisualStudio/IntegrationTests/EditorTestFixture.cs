@@ -1,8 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.Test.Utilities;
+using Roslyn.VisualStudio.Test.Utilities.Input;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests
@@ -38,6 +41,11 @@ namespace Roslyn.VisualStudio.IntegrationTests
             _workspace.WaitForAsyncOperations("Workspace");
         }
 
+        public void WaitForAsyncOperations(string featuresToWaitFor)
+        {
+            _workspace.WaitForAsyncOperations(featuresToWaitFor);
+        }
+
         protected void WaitForAllAsyncOperations()
         {
             _workspace.WaitForAllAsyncOperations();
@@ -53,9 +61,29 @@ namespace Roslyn.VisualStudio.IntegrationTests
             _editorWindow.MoveCaret(caretPosition);
         }
 
-        protected void SendKeys(params object[] textOrVirtualKeys)
+        protected void SendKeys(params object[] keys)
         {
-            _editorWindow.SendKeys(textOrVirtualKeys);
+            _editorWindow.SendKeys(keys);
+        }
+
+        protected KeyPress KeyPress(VirtualKey virtualKey, ShiftState shiftState)
+        {
+            return new KeyPress(virtualKey, shiftState);
+        }
+
+        protected void DisableSuggestionMode()
+        {
+            _workspace.UseSuggestionMode = false;
+        }
+
+        protected void EnableSuggestionMode()
+        {
+            _workspace.UseSuggestionMode = true;
+        }
+
+        protected void InvokeVisualStudioCommand(string commandName)
+        {
+            _visualStudio.Instance.ExecuteCommandAsync("Edit.ToggleCompletionMode").Wait();
         }
 
         protected void VerifyCurrentLineText(string expectedText, bool trimWhitespace = true)
@@ -78,7 +106,18 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
                 if (trimWhitespace)
                 {
-                    lineText = lineText.Trim();
+                    if (caretStartIndex == 0)
+                    {
+                        lineText = lineText.TrimEnd();
+                    }
+                    else if (caretEndIndex == expectedText.Length)
+                    {
+                        lineText = lineText.TrimStart();
+                    }
+                    else
+                    {
+                        lineText = lineText.Trim();
+                    }
                 }
 
                 var lineTextBeforeCaret = caretStartIndex < lineText.Length
@@ -96,6 +135,12 @@ namespace Roslyn.VisualStudio.IntegrationTests
             else
             {
                 var lineText = _editorWindow.GetCurrentLineText();
+
+                if (trimWhitespace)
+                {
+                    lineText = lineText.Trim();
+                }
+
                 Assert.Equal(expectedText, lineText);
             }
         }
@@ -131,6 +176,25 @@ namespace Roslyn.VisualStudio.IntegrationTests
                 var editorText = _editorWindow.GetText();
                 Assert.Contains(expectedText, editorText);
             }
+        }
+
+        protected void VerifyCompletionItemExists(params string[] expectedItems)
+        {
+            WaitForAsyncOperations(FeatureAttribute.CompletionSet);
+
+            var completionItems = _editorWindow.GetCompletionItems();
+            foreach (var expectedItem in expectedItems)
+            {
+                Assert.Contains(expectedItem, completionItems);
+            }
+        }
+
+        protected void VerifyCurrentCompletionItem(string expectedItem)
+        {
+            WaitForAsyncOperations(FeatureAttribute.CompletionSet);
+
+            var currentItem = _editorWindow.GetCurrentCompletionItem();
+            Assert.Equal(expectedItem, currentItem);
         }
     }
 }

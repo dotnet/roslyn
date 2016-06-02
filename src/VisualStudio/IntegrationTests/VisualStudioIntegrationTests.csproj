@@ -17,6 +17,7 @@
   <ItemGroup>
     <Compile Include="CSharp\CSharpAutomaticBraceCompletion.cs" />
     <Compile Include="CSharp\CSharpBuild.cs" />
+    <Compile Include="CSharp\CSharpIntelliSense.cs" />
     <Compile Include="CSharp\CSharpInteractiveDemo.cs" />
     <Compile Include="EditorTestFixture.cs" />
     <Compile Include="SharedIntegrationHostFixture.cs" />
@@ -36,6 +37,10 @@
     <ProjectReference Include="..\..\EditorFeatures\TestUtilities\ServicesTestUtilities.csproj">
       <Project>{76c6f005-c89d-4348-bb4a-39189ddbeb52}</Project>
       <Name>ServicesTestUtilities</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Features\Core\Portable\Features.csproj">
+      <Project>{EDC68A0E-C68D-4A74-91B7-BF38EC909888}</Project>
+      <Name>Features</Name>
     </ProjectReference>
     <ProjectReference Include="..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
       <Project>{76c6f005-c89d-4348-bb4a-391898dbeb52}</Project>
