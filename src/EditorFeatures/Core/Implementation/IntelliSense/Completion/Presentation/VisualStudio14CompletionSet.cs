@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
     /// See comment on VisualStudio15CompletionSet for an explanation of how these types 
     /// fit together and where code should go in them.
     /// </summary>
-    internal class VisualStudio14CompletionSet : CompletionSet, IVsCompletionSet
+    internal class VisualStudio14CompletionSet : CompletionSet, IVisualStudioCompletionSet
     {
         private readonly Roslyn14CompletionSet _roslynCompletionSet;
 
@@ -65,31 +65,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         #region IVsCompletionSet - Forward to base type.
 
-        string IVsCompletionSet.DisplayName
+        string IVisualStudioCompletionSet.DisplayName
         {
             get { return base.DisplayName; }
             set { base.DisplayName = value; }
         }
 
-        string IVsCompletionSet.Moniker
+        string IVisualStudioCompletionSet.Moniker
         {
             get { return base.Moniker; }
             set { base.Moniker = value; }
         }
 
-        ITrackingSpan IVsCompletionSet.ApplicableTo
+        ITrackingSpan IVisualStudioCompletionSet.ApplicableTo
         {
             get { return base.ApplicableTo; }
             set { base.ApplicableTo = value; }
         }
 
-        BulkObservableCollection<VSCompletion> IVsCompletionSet.WritableCompletionBuilders =>
+        BulkObservableCollection<VSCompletion> IVisualStudioCompletionSet.WritableCompletionBuilders =>
             base.WritableCompletionBuilders;
 
-        BulkObservableCollection<VSCompletion> IVsCompletionSet.WritableCompletions =>
+        BulkObservableCollection<VSCompletion> IVisualStudioCompletionSet.WritableCompletions =>
             base.WritableCompletions;
 
-        CompletionSelectionStatus IVsCompletionSet.SelectionStatus
+        CompletionSelectionStatus IVisualStudioCompletionSet.SelectionStatus
         {
             get { return base.SelectionStatus; }
             set { base.SelectionStatus = value; }

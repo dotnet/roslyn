@@ -274,7 +274,7 @@
     <Compile Include="Implementation\Intellisense\Completion\OptionSetExtensions.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\ClassificationTags.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\ImageMonikers.cs" />
-    <Compile Include="Implementation\Intellisense\Completion\Presentation\IVsCompletionSet.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\Presentation\IVisualStudioCompletionSet.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\Roslyn14CompletionSet.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\VisualStudio14CompletionSet.cs" />
     <Compile Include="Implementation\Intellisense\Completion\SimplePresentationItem.cs" />

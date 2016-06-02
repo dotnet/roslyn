@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
     /// us to encapulate logic in our own inheritance hierarchy without having to fit into the
     /// editor's inheritance hierarchy.
     /// </summary>
-    internal interface IVsCompletionSet : ICompletionSet
+    internal interface IVisualStudioCompletionSet : ICompletionSet
     {
         string DisplayName { get; set; }
         string Moniker { get; set; }

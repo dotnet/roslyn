@@ -29,9 +29,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
     /// Important! Do not put any actual logic into this type.  Instead, forward any work to
     /// <see cref="VisualStudio15CompletionSet._roslynCompletionSet"/>.  If that code then
     /// needs information from this <see cref="CompletionSet2"/> then expose that data through
-    /// the <see cref="IVsCompletionSet"/> interface.
+    /// the <see cref="IVisualStudioCompletionSet"/> interface.
     /// </summary>
-    internal class VisualStudio15CompletionSet : CompletionSet2, IVsCompletionSet
+    internal class VisualStudio15CompletionSet : CompletionSet2, IVisualStudioCompletionSet
     {
         private readonly Roslyn15CompletionSet _roslynCompletionSet;
 
@@ -95,31 +95,31 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         // not settable except through the subclass.  Here we essentially make those properties
         // available so that Roslyn15CompletionSet and Roslyn14CompletionSet can read/write them.
 
-        string IVsCompletionSet.DisplayName
+        string IVisualStudioCompletionSet.DisplayName
         {
             get { return base.DisplayName; }
             set { base.DisplayName = value; }
         }
 
-        string IVsCompletionSet.Moniker
+        string IVisualStudioCompletionSet.Moniker
         {
             get { return base.Moniker; }
             set { base.Moniker = value; }
         }
 
-        ITrackingSpan IVsCompletionSet.ApplicableTo
+        ITrackingSpan IVisualStudioCompletionSet.ApplicableTo
         {
             get { return base.ApplicableTo; }
             set { base.ApplicableTo = value; }
         }
 
-        BulkObservableCollection<VSCompletion> IVsCompletionSet.WritableCompletionBuilders =>
+        BulkObservableCollection<VSCompletion> IVisualStudioCompletionSet.WritableCompletionBuilders =>
             base.WritableCompletionBuilders;
 
-        BulkObservableCollection<VSCompletion> IVsCompletionSet.WritableCompletions =>
+        BulkObservableCollection<VSCompletion> IVisualStudioCompletionSet.WritableCompletions =>
             base.WritableCompletions;
 
-        CompletionSelectionStatus IVsCompletionSet.SelectionStatus
+        CompletionSelectionStatus IVisualStudioCompletionSet.SelectionStatus
         {
             get { return base.SelectionStatus; }
             set { base.SelectionStatus = value; }
