@@ -460,9 +460,9 @@
     <value>Split string literals on _enter</value>
   </data>
   <data name="Option_Highlight_matching_portions_of_completion_list_items" xml:space="preserve">
-    <value>Highlight matching portions of completion list items</value>
+    <value>_Highlight matching portions of completion list items</value>
   </data>
   <data name="Option_Show_completion_item_filters" xml:space="preserve">
-    <value>Show completion item filters</value>
+    <value>Show completion item _filters</value>
   </data>
 </root>

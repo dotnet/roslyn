@@ -484,7 +484,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Highlight matching portions of completion list items.
+        ///   Looks up a localized string similar to _Highlight matching portions of completion list items.
         /// </summary>
         internal static string Option_Highlight_matching_portions_of_completion_list_items {
             get {
@@ -601,7 +601,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Show completion item filters.
+        ///   Looks up a localized string similar to Show completion item _filters.
         /// </summary>
         internal static string Option_Show_completion_item_filters {
             get {
