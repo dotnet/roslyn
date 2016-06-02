@@ -1,11 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.Test.Utilities;
 using Roslyn.VisualStudio.Test.Utilities.Input;
+using Roslyn.VisualStudio.Test.Utilities.OutOfProcess;
 using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests
@@ -13,22 +14,20 @@ namespace Roslyn.VisualStudio.IntegrationTests
     public abstract class EditorTestFixture : IDisposable
     {
         private readonly VisualStudioInstanceContext _visualStudio;
-        private readonly Workspace _workspace;
-        private readonly Solution _solution;
-        private readonly Project _project;
-        private readonly EditorWindow _editorWindow;
+        private readonly VisualStudioWorkspace_OutOfProc _visualStudioWorkspace;
+        private readonly Editor_OutOfProc _editor;
 
         protected EditorTestFixture(VisualStudioInstanceFactory instanceFactory, string solutionName)
         {
             _visualStudio = instanceFactory.GetNewOrUsedInstance();
 
-            _solution = _visualStudio.Instance.SolutionExplorer.CreateSolution(solutionName);
-            _project = _solution.AddProject("TestProj", ProjectTemplate.ClassLibrary, ProjectLanguage.CSharp);
+            _visualStudio.Instance.SolutionExplorer.CreateSolution(solutionName);
+            _visualStudio.Instance.SolutionExplorer.AddProject("TestProj", WellKnownProjectTemplates.ClassLibrary, WellKnownLanguageNames.CSharp);
 
-            _workspace = _visualStudio.Instance.Workspace;
-            _workspace.UseSuggestionMode = false;
+            _visualStudioWorkspace = _visualStudio.Instance.VisualStudioWorkspace;
+            _visualStudioWorkspace.UseSuggestionMode = false;
 
-            _editorWindow = _visualStudio.Instance.EditorWindow;
+            _editor = _visualStudio.Instance.Editor;
         }
 
         public void Dispose()
@@ -38,17 +37,17 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected void WaitForWorkspace()
         {
-            _workspace.WaitForAsyncOperations("Workspace");
+            _visualStudioWorkspace.WaitForAsyncOperations("Workspace");
         }
 
         public void WaitForAsyncOperations(string featuresToWaitFor)
         {
-            _workspace.WaitForAsyncOperations(featuresToWaitFor);
+            _visualStudioWorkspace.WaitForAsyncOperations(featuresToWaitFor);
         }
 
         protected void WaitForAllAsyncOperations()
         {
-            _workspace.WaitForAllAsyncOperations();
+            _visualStudioWorkspace.WaitForAllAsyncOperations();
         }
 
         protected void SetUpEditor(string markupCode)
@@ -57,13 +56,13 @@ namespace Roslyn.VisualStudio.IntegrationTests
             int caretPosition;
             MarkupTestFile.GetPosition(markupCode, out code, out caretPosition);
 
-            _editorWindow.SetText(code);
-            _editorWindow.MoveCaret(caretPosition);
+            _editor.SetText(code);
+            _editor.MoveCaret(caretPosition);
         }
 
         protected void SendKeys(params object[] keys)
         {
-            _editorWindow.SendKeys(keys);
+            _editor.SendKeys(keys);
         }
 
         protected KeyPress KeyPress(VirtualKey virtualKey, ShiftState shiftState)
@@ -73,12 +72,12 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected void DisableSuggestionMode()
         {
-            _workspace.UseSuggestionMode = false;
+            _visualStudioWorkspace.UseSuggestionMode = false;
         }
 
         protected void EnableSuggestionMode()
         {
-            _workspace.UseSuggestionMode = true;
+            _visualStudioWorkspace.UseSuggestionMode = true;
         }
 
         protected void InvokeVisualStudioCommand(string commandName)
@@ -102,7 +101,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
                     ? expectedText.Substring(caretEndIndex)
                     : string.Empty;
 
-                var lineText = _editorWindow.GetCurrentLineText();
+                var lineText = _editor.GetCurrentLineText();
 
                 if (trimWhitespace)
                 {
@@ -134,7 +133,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
             }
             else
             {
-                var lineText = _editorWindow.GetCurrentLineText();
+                var lineText = _editor.GetCurrentLineText();
 
                 if (trimWhitespace)
                 {
@@ -163,17 +162,17 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
                 var expectedTextWithoutCaret = expectedTextBeforeCaret + expectedTextAfterCaret;
 
-                var editorText = _editorWindow.GetText();
+                var editorText = _editor.GetText();
                 Assert.Contains(expectedTextWithoutCaret, editorText);
 
                 var index = editorText.IndexOf(expectedTextWithoutCaret);
 
-                var caretPosition = _editorWindow.GetCaretPosition();
+                var caretPosition = _editor.GetCaretPosition();
                 Assert.Equal(caretStartIndex + index, caretPosition);
             }
             else
             {
-                var editorText = _editorWindow.GetText();
+                var editorText = _editor.GetText();
                 Assert.Contains(expectedText, editorText);
             }
         }
@@ -182,7 +181,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
             WaitForAsyncOperations(FeatureAttribute.CompletionSet);
 
-            var completionItems = _editorWindow.GetCompletionItems();
+            var completionItems = _editor.GetCompletionItems();
             foreach (var expectedItem in expectedItems)
             {
                 Assert.Contains(expectedItem, completionItems);
@@ -193,7 +192,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
         {
             WaitForAsyncOperations(FeatureAttribute.CompletionSet);
 
-            var currentItem = _editorWindow.GetCurrentCompletionItem();
+            var currentItem = _editor.GetCurrentCompletionItem();
             Assert.Equal(expectedItem, currentItem);
         }
     }

@@ -1,4 +1,6 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Windows;
 using System.Windows.Threading;
 using EnvDTE;
@@ -9,11 +11,12 @@ using Microsoft.VisualStudio.Shell.Interop;
 namespace Roslyn.VisualStudio.Test.Utilities.InProcess
 {
     /// <summary>
-    /// Base class for all components that run inside of the Visual Studio process.
+    /// Base class for all components that run inside of the Visual Studio process. Every in-proc component
+    /// must provide a public, static, parameterless "Create" method.
     /// </summary>
-    public abstract class BaseInProcessComponent : MarshalByRefObject
+    public abstract class InProcComponent : MarshalByRefObject
     {
-        protected BaseInProcessComponent() { }
+        protected InProcComponent() { }
 
         private static Dispatcher CurrentApplicationDispatcher => Application.Current.Dispatcher;
 
@@ -54,6 +57,11 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
         protected static IComponentModel GetComponentModel()
         {
             return GetGlobalService<SComponentModel, IComponentModel>();
+        }
+
+        protected static void ExecuteVisualStudioCommand(string commandName, string args = "")
+        {
+            GetDTE().ExecuteCommand(commandName, args);
         }
 
         /// <summary>

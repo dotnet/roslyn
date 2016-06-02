@@ -16,8 +16,8 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
         {
             _visualStudio = instanceFactory.GetNewOrUsedInstance();
 
-            var solution = _visualStudio.Instance.SolutionExplorer.CreateSolution(nameof(CSharpBuild));
-            var project = solution.AddProject("TestProj", ProjectTemplate.ConsoleApplication, ProjectLanguage.CSharp);
+            _visualStudio.Instance.SolutionExplorer.CreateSolution(nameof(CSharpBuild));
+            _visualStudio.Instance.SolutionExplorer.AddProject("TestProj", WellKnownProjectTemplates.ConsoleApplication, WellKnownLanguageNames.CSharp);
         }
 
         public void Dispose()
@@ -38,7 +38,7 @@ class Program
     }
 }";
 
-            _visualStudio.Instance.EditorWindow.SetText(editorText);
+            _visualStudio.Instance.Editor.SetText(editorText);
 
             // TODO: Validate build works as expected
         }

@@ -19,16 +19,19 @@
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Extensions\DteExtensions.cs" />
-    <Compile Include="InProcess\BaseInProcessComponent.cs" />
+    <Compile Include="InProcess\InProcComponent.cs" />
+    <Compile Include="InProcess\SolutionExplorer_InProc.cs" />
     <Compile Include="Input\KeyPress.cs" />
     <Compile Include="Input\SendKeys.cs" />
     <Compile Include="Input\ShiftState.cs" />
     <Compile Include="Input\VirtualKey.cs" />
     <Compile Include="IntegrationHelper.cs" />
     <Compile Include="Interop\Kernel32.cs" />
-    <Compile Include="InProcess\InProcessEditor.cs" />
+    <Compile Include="InProcess\Editor_InProc.cs" />
+    <Compile Include="OutOfProcess\OutOfProcComponent.cs" />
+    <Compile Include="OutOfProcess\SolutionExplorer_OutOfProc.cs" />
     <Compile Include="Remoting\RemotingHelper.cs" />
-    <Compile Include="Remoting\WorkspaceWrapper.cs" />
+    <Compile Include="InProcess\VisualStudioWorkspace_InProc.cs" />
     <Compile Include="VisualStudioCommandNames.cs" />
     <Compile Include="VisualStudioInstance.cs" />
     <Compile Include="IntegrationService.cs" />
@@ -42,15 +45,12 @@
     </Compile>
     <Compile Include="VisualStudioInstanceContext.cs" />
     <Compile Include="VisualStudioInstanceFactory.cs" />
+    <Compile Include="WellKnownLanguageNames.cs" />
     <Compile Include="Window\CSharpInteractiveWindow.cs" />
-    <Compile Include="Window\EditorWindow.cs" />
+    <Compile Include="OutOfProcess\Editor_OutOfProc.cs" />
     <Compile Include="Window\InteractiveWindow.cs" />
-    <Compile Include="Workspace\Project.cs" />
-    <Compile Include="Workspace\ProjectLanguage.cs" />
-    <Compile Include="Workspace\ProjectTemplate.cs" />
-    <Compile Include="Workspace\Solution.cs" />
-    <Compile Include="Window\SolutionExplorer.cs" />
-    <Compile Include="Workspace\Workspace.cs" />
+    <Compile Include="WellKnownProjectTemplates.cs" />
+    <Compile Include="OutOfProcess\VisualStudioWorkspace_OutOfProc.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.TestImpact.VisualStudio.IntegrationTests" />
@@ -132,5 +132,6 @@
       <Name>VisualStudioInteractiveServices</Name>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup />
   <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
 </Project>

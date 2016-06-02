@@ -11,15 +11,15 @@ using Microsoft.VisualStudio.TextManager.Interop;
 
 namespace Roslyn.VisualStudio.Test.Utilities.InProcess
 {
-    internal class InProcessEditor : BaseInProcessComponent
+    public class Editor_InProc : InProcComponent
     {
         private static readonly Guid IWpfTextViewId = new Guid("8C40265E-9FDB-4F54-A0FD-EBB72B7D0476");
 
-        private InProcessEditor() { }
+        private Editor_InProc() { }
 
-        public static InProcessEditor Create()
+        public static Editor_InProc Create()
         {
-            return new InProcessEditor();
+            return new Editor_InProc();
         }
 
         private static ITextView GetActiveTextView()

@@ -24,7 +24,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
         {
             try
             {
-                this.Instance.Cleanup();
+                this.Instance.CleanUp();
                 _instanceFactory.NotifyCurrentInstanceContextDisposed(canReuse: true);
             }
             catch (Exception)

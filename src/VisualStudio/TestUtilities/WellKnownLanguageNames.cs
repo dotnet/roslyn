@@ -2,9 +2,9 @@
 
 namespace Roslyn.VisualStudio.Test.Utilities
 {
-    public enum ProjectLanguage
+    public static class WellKnownLanguageNames
     {
-        CSharp,
-        VisualBasic
+        public const string CSharp = nameof(CSharp);
+        public const string VisualBasic = nameof(VisualBasic);
     }
 }

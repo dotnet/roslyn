@@ -15,8 +15,8 @@ namespace Roslyn.VisualStudio.Basic.IntegrationTests
         {
             _visualStudio = instanceFactory.GetNewOrUsedInstance();
 
-            var solution = _visualStudio.Instance.SolutionExplorer.CreateSolution(nameof(BasicBuild));
-            var project = solution.AddProject("TestProj", ProjectTemplate.ConsoleApplication, ProjectLanguage.VisualBasic);
+            _visualStudio.Instance.SolutionExplorer.CreateSolution(nameof(BasicBuild));
+            _visualStudio.Instance.SolutionExplorer.AddProject("TestProj", WellKnownProjectTemplates.ConsoleApplication, WellKnownLanguageNames.VisualBasic);
         }
 
         [Fact]
@@ -30,7 +30,7 @@ namespace Roslyn.VisualStudio.Basic.IntegrationTests
 
 End Module";
 
-            _visualStudio.Instance.EditorWindow.SetText(editorText);
+            _visualStudio.Instance.Editor.SetText(editorText);
 
             // TODO: Validate build works as expected
         }

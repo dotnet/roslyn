@@ -17,7 +17,6 @@ using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.LanguageServices.CSharp.Interactive;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Microsoft.VisualStudio.TextManager.Interop;
 using Roslyn.Hosting.Diagnostics.Waiters;
 
 namespace Roslyn.VisualStudio.Test.Utilities.Remoting
@@ -30,15 +29,11 @@ namespace Roslyn.VisualStudio.Test.Utilities.Remoting
     /// </remarks>
     internal static class RemotingHelper
     {
-        private static readonly Guid RoslynPackageId = new Guid("6cf2e545-6109-4730-8883-cf43d7aec3e1");
-
         private static readonly string[] SupportedLanguages = new string[] { LanguageNames.CSharp, LanguageNames.VisualBasic };
 
         public static IComponentModel ComponentModel => GetGlobalService<IComponentModel>(typeof(SComponentModel));
 
         public static IInteractiveWindow CSharpInteractiveWindow => CSharpVsInteractiveWindow.InteractiveWindow;
-
-        public static VisualStudioWorkspace VisualStudioWorkspace => ComponentModel.GetService<VisualStudioWorkspace>();
 
         private static IVsInteractiveWindow CSharpVsInteractiveWindow => InvokeOnUIThread(() => CSharpVsInteractiveWindowProvider.Open(0, true));
 
@@ -53,10 +48,6 @@ namespace Roslyn.VisualStudio.Test.Utilities.Remoting
         public static DTE DTE => GetGlobalService<DTE>(typeof(SDTE));
 
         private static ServiceProvider GlobalServiceProvider => ServiceProvider.GlobalProvider;
-
-        private static IVsShell VsShell => GetGlobalService<IVsShell>(typeof(SVsShell));
-
-        private static IVsTextManager VsTextManager => GetGlobalService<IVsTextManager>(typeof(SVsTextManager));
 
         public static void ActivateMainWindow()
         {
@@ -73,36 +64,6 @@ namespace Roslyn.VisualStudio.Test.Utilities.Remoting
 
                 IntegrationHelper.SetForegroundWindow(activeVisualStudioWindow);
             });
-        }
-
-        private static TestingOnly_WaitingService WaitingService => DefaultComponentModelExportProvider.GetExport<TestingOnly_WaitingService>().Value;
-
-        public static void WaitForAsyncOperations(string featuresToWaitFor, bool waitForWorkspaceFirst = true)
-        {
-            WaitingService.WaitForAsyncOperations(featuresToWaitFor, waitForWorkspaceFirst);
-        }
-
-        public static void WaitForAllAsyncOperations()
-        {
-            WaitingService.WaitForAllAsyncOperations();
-        }
-
-        public static void CleanupWaitingService()
-        {
-            var asynchronousOperationWaiterExports = DefaultComponentModelExportProvider.GetExports<IAsynchronousOperationWaiter>();
-
-            if (!asynchronousOperationWaiterExports.Any())
-            {
-                throw new InvalidOperationException("The test waiting service could not be located.");
-            }
-
-            WaitingService.EnableActiveTokenTracking(true);
-        }
-
-        public static void CleanupWorkspace()
-        {
-            LoadRoslynPackage();
-            VisualStudioWorkspace.TestHookPartialSolutionsDisabled = true;
         }
 
         public static void WaitForSystemIdle()
@@ -134,15 +95,6 @@ namespace Roslyn.VisualStudio.Test.Utilities.Remoting
         public static T InvokeOnUIThread<T>(Func<T> action)
         {
             return CurrentApplicationDispatcher.Invoke(action);
-        }
-
-        private static void LoadRoslynPackage()
-        {
-            var roslynPackageGuid = RoslynPackageId;
-            IVsPackage roslynPackage = null;
-
-            var hresult = VsShell.LoadPackage(ref roslynPackageGuid, out roslynPackage);
-            Marshal.ThrowExceptionForHR(hresult);
         }
     }
 }
