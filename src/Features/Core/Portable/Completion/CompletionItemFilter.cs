@@ -27,7 +27,15 @@ namespace Microsoft.CodeAnalysis.Completion
 
         public bool Matches(CompletionItem item)
         {
-            return this.Tags.Any(item.Tags.Contains);
+            foreach (var tag in this.Tags)
+            {
+                if (item.Tags.Contains(tag))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public static readonly CompletionItemFilter NamespaceFilter = new CompletionItemFilter(FeaturesResources.Namespaces, CompletionTags.Namespace, 'n');
