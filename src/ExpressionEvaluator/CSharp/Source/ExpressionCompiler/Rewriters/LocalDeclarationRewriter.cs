@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
             if (hasChanged)
             {
-                node = new BoundBlock(node.Syntax, ImmutableArray<LocalSymbol>.Empty, builder.ToImmutable()) { WasCompilerGenerated = true };
+                node = BoundBlock.SynthesizedNoLocals(node.Syntax, builder.ToImmutable());
             }
 
             builder.Free();

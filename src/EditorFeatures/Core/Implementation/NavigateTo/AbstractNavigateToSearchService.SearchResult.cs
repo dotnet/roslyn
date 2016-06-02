@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.Language.NavigateTo.Interfaces;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.NavigateTo
 {
-    internal abstract partial class AbstractNavigateToSearchService
+    internal sealed partial class NavigateToSearchResultProvider
     {
         private class SearchResult : INavigateToSearchResult
         {

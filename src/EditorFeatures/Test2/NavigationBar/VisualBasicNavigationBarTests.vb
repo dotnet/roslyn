@@ -3,8 +3,6 @@
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic
 
-#Disable Warning RS0007 ' Avoid zero-length array allocations. This is non-shipping test code.
-
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
     Partial Public Class VisualBasicNavigationBarTests
         <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(545000, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545000")>
@@ -302,6 +300,26 @@ End Class
                 Item("C", Glyph.ClassInternal, bolded:=True, children:={
                     Item(NavigationItemNew, Glyph.MethodPublic, hasNavigationSymbolId:=False),
                     Item("Finalize", Glyph.MethodProtected, bolded:=True)}))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(556, "https://github.com/dotnet/roslyn/issues/556")>
+        Public Async Function TestFieldsAndConstants() As Task
+            Await AssertItemsAreAsync(
+                <Workspace>
+                    <Project Language="Visual Basic" CommonReferences="true">
+                        <Document>
+                            Class C
+                                    Private Const Co = 1
+                                    Private F As Integer
+                            End Class
+                        </Document>
+                    </Project>
+                </Workspace>,
+                Item("C", Glyph.ClassInternal, bolded:=True, children:={
+                    Item(NavigationItemNew, Glyph.MethodPublic, hasNavigationSymbolId:=False),
+                    Item("Finalize", Glyph.MethodProtected, hasNavigationSymbolId:=False),
+                    Item("Co", Glyph.ConstantPrivate, bolded:=True),
+                    Item("F", Glyph.FieldPrivate, bolded:=True)}))
         End Function
 
         <WpfFact, Trait(Traits.Feature, Traits.Features.NavigationBar), WorkItem(544988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/544988")>

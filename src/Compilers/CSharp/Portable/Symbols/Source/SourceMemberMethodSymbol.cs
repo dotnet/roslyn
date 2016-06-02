@@ -2,8 +2,8 @@
 
 using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
 using System.Globalization;
+using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -17,6 +17,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         private readonly TypeSymbol _explicitInterfaceType;
         private readonly string _name;
         private readonly bool _isExpressionBodied;
+        private readonly RefKind _refKind;
 
         private ImmutableArray<MethodSymbol> _lazyExplicitInterfaceImplementations;
         private ImmutableArray<CustomModifier> _lazyReturnTypeCustomModifiers;
@@ -106,6 +107,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 CheckModifiersForBody(location, diagnostics);
             }
 
+            _refKind = syntax.RefKeyword.Kind().GetRefKind();
+
             var info = ModifierUtils.CheckAccessibility(this.DeclarationModifiers);
             if (info != null)
             {
@@ -133,7 +136,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // instance). Constraints are checked in AfterAddingTypeMembersChecks.
             var signatureBinder = withTypeParamsBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.SuppressConstraintChecks, this);
 
-            _lazyParameters = ParameterHelpers.MakeParameters(signatureBinder, this, syntax.ParameterList, true, out arglistToken, diagnostics);
+            _lazyParameters = ParameterHelpers.MakeParameters(signatureBinder, this, syntax.ParameterList, true, out arglistToken, diagnostics, false);
             _lazyIsVararg = (arglistToken.Kind() == SyntaxKind.ArgListKeyword);
             _lazyReturnType = signatureBinder.BindType(syntax.ReturnType, diagnostics);
 
@@ -151,8 +154,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            var returnsVoid = _lazyReturnType.SpecialType == SpecialType.System_Void;
+            if (this.RefKind != RefKind.None && returnsVoid)
+            {
+                diagnostics.Add(ErrorCode.ERR_VoidReturningMethodCannotReturnByRef, syntax.RefKeyword.GetLocation());
+            }
+
             // set ReturnsVoid flag
-            this.SetReturnsVoid(_lazyReturnType.SpecialType == SpecialType.System_Void);
+            this.SetReturnsVoid(returnsVoid);
 
             var location = this.Locations[0];
             this.CheckEffectiveAccessibility(_lazyReturnType, _lazyParameters, diagnostics);
@@ -368,6 +377,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             DiagnosticBag diagnostics = DiagnosticBag.GetInstance();
             Location errorLocation = this.Locations[0];
 
+            Debug.Assert(this.RefKind == RefKind.None);
             if (!this.IsGenericTaskReturningAsync(this.DeclaringCompilation) && !this.IsTaskReturningAsync(this.DeclaringCompilation) && !this.IsVoidReturningAsync())
             {
                 // The return type of an async method must be void, Task or Task<T>
@@ -516,6 +526,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 LazyMethodChecks();
                 return _lazyParameters;
             }
+        }
+
+        internal override RefKind RefKind
+        {
+            get { return _refKind; }
         }
 
         public override TypeSymbol ReturnType
@@ -726,7 +741,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             if (!isInterface)
             {
                 allowedModifiers |= DeclarationModifiers.Extern |
-                    DeclarationModifiers.Async;
+                    DeclarationModifiers.Async |
+                    DeclarationModifiers.Replace;
             }
 
             var mods = ModifierUtils.MakeAndCheckNontypeMemberModifiers(modifiers, defaultAccess, allowedModifiers, location, diagnostics, out modifierErrors);
@@ -852,6 +868,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 // '{0}' cannot be sealed because it is not an override
                 diagnostics.Add(ErrorCode.ERR_SealedNonOverride, location, this);
+            }
+            else if (IsSealed && ContainingType.TypeKind == TypeKind.Struct)
+            {
+                // The modifier '{0}' is not valid for this item
+                diagnostics.Add(ErrorCode.ERR_BadMemberFlag, location, SyntaxFacts.GetText(SyntaxKind.SealedKeyword));
             }
             else if (!ContainingType.IsInterfaceType() && _lazyReturnType.IsStatic)
             {

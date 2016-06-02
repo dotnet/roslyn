@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -42,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
                 {
                     return CreateSuggestionModeItem(CSharpFeaturesResources.LambdaExpression, itemSpan, CSharpFeaturesResources.AutoselectDisabledDueToPotentialLambdaDeclaration);
                 }
-                else if (IsAnonymousObjectCreation(token))
+                else if (IsAnonymousObjectCreation(token) || IsPossibleTupleExpression(token))
                 {
                     return CreateSuggestionModeItem(CSharpFeaturesResources.MemberName, itemSpan, CSharpFeaturesResources.AutoselectDisabledDueToPossibleExplicitlyNamesAnonTypeMemCreation);
                 }
@@ -81,6 +82,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
                 // We'll show the builder after an open brace or comma, because that's where the
                 // user can start declaring new named parts. 
                 return token.Kind() == SyntaxKind.OpenBraceToken || token.Kind() == SyntaxKind.CommaToken;
+            }
+
+            return false;
+        }
+
+        private bool IsPossibleTupleExpression(SyntaxToken token)
+        {
+            // first element in an autocompleted tuple will look like a parenthesized expression (foo )
+            // so we need to conservatively treat parenthesized expression as apotential tuple
+            if (token.Parent.IsKind(SyntaxKind.TupleExpression, SyntaxKind.ParenthesizedExpression))
+            {
+                // We'll show the builder after an open paren or comma, because that's where the
+                // user can start declaring new named parts. 
+                return token.Kind() == SyntaxKind.OpenParenToken || token.Kind() == SyntaxKind.CommaToken;
             }
 
             return false;

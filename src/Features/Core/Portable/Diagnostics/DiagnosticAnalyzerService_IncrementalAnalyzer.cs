@@ -17,7 +17,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 {
     [ExportIncrementalAnalyzerProvider(
         highPriorityForActiveFile: true, name: WellKnownSolutionCrawlerAnalyzers.Diagnostic, 
-        workspaceKinds: new string[] { WorkspaceKind.Host, WorkspaceKind.Interactive })]
+        workspaceKinds: new string[] { WorkspaceKind.Host, WorkspaceKind.Interactive, WorkspaceKind.AnyCodeRoslynWorkspace })]
     internal partial class DiagnosticAnalyzerService : IIncrementalAnalyzerProvider
     {
         private readonly ConditionalWeakTable<Workspace, BaseDiagnosticIncrementalAnalyzer> _map;
@@ -31,9 +31,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         public IIncrementalAnalyzer CreateIncrementalAnalyzer(Workspace workspace)
         {
-            var optionService = workspace.Services.GetService<IOptionService>();
-
-            if (!optionService.GetOption(ServiceComponentOnOffOptions.DiagnosticProvider))
+            if (!workspace.Options.GetOption(ServiceComponentOnOffOptions.DiagnosticProvider))
             {
                 return null;
             }
@@ -78,19 +76,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             #region IIncrementalAnalyzer
-            public override Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
+            public override Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
             {
-                return Analyzer.AnalyzeSyntaxAsync(document, cancellationToken);
+                return Analyzer.AnalyzeSyntaxAsync(document, reasons, cancellationToken);
             }
 
-            public override Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken)
+            public override Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
             {
-                return Analyzer.AnalyzeDocumentAsync(document, bodyOpt, cancellationToken);
+                return Analyzer.AnalyzeDocumentAsync(document, bodyOpt, reasons, cancellationToken);
             }
 
-            public override Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
+            public override Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
             {
-                return Analyzer.AnalyzeProjectAsync(project, semanticsChanged, cancellationToken);
+                return Analyzer.AnalyzeProjectAsync(project, semanticsChanged, reasons, cancellationToken);
             }
 
             public override Task DocumentOpenAsync(Document document, CancellationToken cancellationToken)
@@ -187,6 +185,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return Analyzer.SynchronizeWithBuildAsync(workspace, diagnostics);
             }
             #endregion
+
+            public override void LogAnalyzerCountSummary()
+            {
+                Analyzer.LogAnalyzerCountSummary();
+            }
 
             public void TurnOff(bool useV2)
             {

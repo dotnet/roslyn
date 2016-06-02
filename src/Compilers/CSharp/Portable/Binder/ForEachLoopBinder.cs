@@ -61,7 +61,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundForEachStatement BindForEachPartsWorker(DiagnosticBag diagnostics, Binder originalBinder)
         {
-            BoundExpression collectionExpr = this.Next.BindValue(_syntax.Expression, diagnostics, BindValueKind.RValue); //bind with next to avoid seeing iteration variable
+            // Use the right binder to avoid seeing iteration variable
+            BoundExpression collectionExpr = originalBinder.GetBinder(_syntax.Expression).BindValue(_syntax.Expression, diagnostics, BindValueKind.RValue); 
 
             ForEachEnumeratorInfo.Builder builder = new ForEachEnumeratorInfo.Builder();
             TypeSymbol inferredType;
@@ -75,7 +76,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Check for local variable conflicts in the *enclosing* binder; obviously the *current*
             // binder has a local that matches!
-            var hasNameConflicts = this.ValidateDeclarationNameConflictsInScope(IterationVariable, diagnostics);
+            var hasNameConflicts = originalBinder.ValidateDeclarationNameConflictsInScope(IterationVariable, diagnostics);
 
             // If the type in syntax is "var", then the type should be set explicitly so that the
             // Type property doesn't fail.
@@ -215,8 +216,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal TypeSymbol InferCollectionElementType(DiagnosticBag diagnostics, ExpressionSyntax collectionSyntax)
         {
-            // Bind with next to avoid seeing iteration variable
-            BoundExpression collectionExpr = this.Next.BindValue(collectionSyntax, diagnostics, BindValueKind.RValue);
+            // Use the right binder to avoid seeing iteration variable
+            BoundExpression collectionExpr = this.GetBinder(collectionSyntax).BindValue(collectionSyntax, diagnostics, BindValueKind.RValue);
 
             ForEachEnumeratorInfo.Builder builder = new ForEachEnumeratorInfo.Builder();
             TypeSymbol inferredType;
@@ -343,26 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // The spec specifically lists the collection, enumerator, and element types for arrays and dynamic.
             if (collectionExprType.Kind == SymbolKind.ArrayType || collectionExprType.Kind == SymbolKind.DynamicType)
             {
-                // NOTE: for arrays, we won't actually use any of these members - they're just for the API.
-                builder.CollectionType = GetSpecialType(SpecialType.System_Collections_IEnumerable, diagnostics, _syntax);
-                builder.ElementType =
-                    collectionExprType.IsDynamic() ?
-                    (_syntax.Type.IsVar ? (TypeSymbol)DynamicTypeSymbol.Instance : GetSpecialType(SpecialType.System_Object, diagnostics, _syntax)) :
-                    ((ArrayTypeSymbol)collectionExprType).ElementType;
-
-                // CONSIDER: 
-                // For arrays none of these members will actually be emitted, so it seems strange to prevent compilation if they can't be found.
-                // skip this work in the batch case? (If so, also special case string, which won't use the pattern methods.)
-                builder.GetEnumeratorMethod = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerable__GetEnumerator, diagnostics, _syntax);
-                builder.CurrentPropertyGetter = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__get_Current, diagnostics, _syntax);
-                builder.MoveNextMethod = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext, diagnostics, _syntax);
-
-                Debug.Assert((object)builder.GetEnumeratorMethod == null ||
-                    builder.GetEnumeratorMethod.ReturnType == this.Compilation.GetSpecialType(SpecialType.System_Collections_IEnumerator));
-
-                // We don't know the runtime type, so we will have to insert a runtime check for IDisposable (with a conditional call to IDisposable.Dispose).
-                builder.NeedsDisposeMethod = true;
-
+                builder = GetDefaultEnumeratorInfo(builder, diagnostics, collectionExprType);
                 return true;
             }
 
@@ -462,12 +444,56 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
+            // COMPAT:
+            // In some rare cases, like MicroFramework, System.String does not implement foreach pattern.
+            // For compat reasons we must still treat System.String as valid to use in a foreach
+            // Similarly to the cases with array and dynamic, we will default to IEnumerable for binding purposes.
+            // Lowering will not use iterator info with strings, so it is ok.
+            if (collectionExprType.SpecialType == SpecialType.System_String)
+            {
+                builder = GetDefaultEnumeratorInfo(builder, diagnostics, collectionExprType);
+                return true;
+            }
 
             if (!string.IsNullOrEmpty(collectionExprType.Name) || !collectionExpr.HasErrors)
             {
                 diagnostics.Add(ErrorCode.ERR_ForEachMissingMember, _syntax.Expression.Location, collectionExprType.ToDisplayString(), GetEnumeratorMethodName);
             }
             return false;
+        }
+
+        private ForEachEnumeratorInfo.Builder GetDefaultEnumeratorInfo(ForEachEnumeratorInfo.Builder builder, DiagnosticBag diagnostics, TypeSymbol collectionExprType)
+        {
+            // NOTE: for arrays, we won't actually use any of these members - they're just for the API.
+            builder.CollectionType = GetSpecialType(SpecialType.System_Collections_IEnumerable, diagnostics, _syntax);
+
+            if (collectionExprType.IsDynamic())
+            {
+                builder.ElementType = _syntax.Type.IsVar ?
+                    (TypeSymbol)DynamicTypeSymbol.Instance :
+                    GetSpecialType(SpecialType.System_Object, diagnostics, _syntax);
+            }
+            else
+            {
+                builder.ElementType = collectionExprType.SpecialType == SpecialType.System_String?
+                    GetSpecialType(SpecialType.System_Char, diagnostics, _syntax) :
+                    ((ArrayTypeSymbol)collectionExprType).ElementType;
+            }
+
+
+            // CONSIDER: 
+            // For arrays and string none of these members will actually be emitted, so it seems strange to prevent compilation if they can't be found.
+            // skip this work in the batch case?
+            builder.GetEnumeratorMethod = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerable__GetEnumerator, diagnostics, _syntax);
+            builder.CurrentPropertyGetter = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__get_Current, diagnostics, _syntax);
+            builder.MoveNextMethod = (MethodSymbol)GetSpecialTypeMember(SpecialMember.System_Collections_IEnumerator__MoveNext, diagnostics, _syntax);
+
+            Debug.Assert((object)builder.GetEnumeratorMethod == null ||
+                builder.GetEnumeratorMethod.ReturnType == this.Compilation.GetSpecialType(SpecialType.System_Collections_IEnumerator));
+
+            // We don't know the runtime type, so we will have to insert a runtime check for IDisposable (with a conditional call to IDisposable.Dispose).
+            builder.NeedsDisposeMethod = true;
+            return builder;
         }
 
         /// <summary>
@@ -873,6 +899,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 diagnostics.Add(ErrorCode.ERR_NoSuchMember, _syntax.Expression.Location, patternType, memberName);
             }
+        }
+
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode scopeDesignator)
+        {
+            if (_syntax == scopeDesignator)
+            {
+                return this.Locals;
+            }
+
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
+        {
+            throw ExceptionUtilities.Unreachable;
         }
     }
 }

@@ -6,6 +6,12 @@
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
   </PropertyGroup>
   <ItemGroup>
+    <ProjectReference Include="..\Immutable\Immutable.csproj">
+      <Project>{030f8ab1-d06d-4526-adec-8e6010899c71}</Project>
+      <Name>Immutable</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
     <Content Include="project.json" />
   </ItemGroup>
   <Import Project="..\..\..\build\Targets\ProducesNoOutput.Imports.targets" />

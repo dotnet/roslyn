@@ -368,8 +368,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Symbols.Metadata.PE
             Assert.False(csharpModifiers3_M4.IsOverride);
 
             var byrefReturnMethod = byrefReturn.GlobalNamespace.GetTypeMembers("ByRefReturn").Single().GetMembers("M").OfType<MethodSymbol>().Single();
-            Assert.Equal(TypeKind.Error, byrefReturnMethod.ReturnType.TypeKind);
-            Assert.IsType<ByRefReturnErrorTypeSymbol>(byrefReturnMethod.ReturnType);
+            Assert.Equal(RefKind.Ref, byrefReturnMethod.RefKind);
+            Assert.Equal(TypeKind.Struct, byrefReturnMethod.ReturnType.TypeKind);
         }
 
         [Fact]
@@ -1345,6 +1345,39 @@ class P
             var type = comp.GlobalNamespace.GetMember<NamedTypeSymbol>("Test");
             var method = type.GetMember<MethodSymbol>("M");
             Assert.NotNull(method.ReturnType);
+        }
+
+        [Fact, WorkItem(217681, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?id=217681")]
+        public void LoadingMethodWithPublicAndPrivateAccessibility()
+        {
+            string source =
+@"
+public class D
+{
+   public static void Main()
+   {
+      new C().M();
+      System.Console.WriteLine(new C().F);
+      new C.C2().M2();
+   }
+}
+";
+            var references = new[] { MetadataReference.CreateFromImage(TestResources.SymbolsTests.Metadata.PublicAndPrivateFlags) };
+
+            var comp = CreateCompilationWithMscorlib(source, references: references);
+
+            // The method, field and nested type with public and private accessibility flags get loaded as private.
+            comp.VerifyDiagnostics(
+                // (6,15): error CS0122: 'C.M()' is inaccessible due to its protection level
+                //       new C().M();
+                Diagnostic(ErrorCode.ERR_BadAccess, "M").WithArguments("C.M()").WithLocation(6, 15),
+                // (7,40): error CS0122: 'C.F' is inaccessible due to its protection level
+                //       System.Console.WriteLine(new C().F);
+                Diagnostic(ErrorCode.ERR_BadAccess, "F").WithArguments("C.F").WithLocation(7, 40),
+                // (8,13): error CS0122: 'C.C2' is inaccessible due to its protection level
+                //       new C.C2().M2();
+                Diagnostic(ErrorCode.ERR_BadAccess, "C2").WithArguments("C.C2").WithLocation(8, 13)
+                );
         }
     }
 }

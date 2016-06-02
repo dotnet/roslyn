@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.VisualStudio.Imaging;
@@ -163,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                         return KnownMonikers.Label;
 
                     case CompletionTags.Local:
-                        return KnownMonikers.FieldPublic;
+                        return KnownMonikers.LocalVariable;
 
                     case CompletionTags.Namespace:
                         return KnownMonikers.Namespace;
@@ -205,7 +204,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                         return KnownMonikers.Operator;
 
                     case CompletionTags.Parameter:
-                        return KnownMonikers.FieldPublic;
+                        return KnownMonikers.LocalVariable;
 
                     case CompletionTags.Property:
                         switch (GetAccessibility(tags))

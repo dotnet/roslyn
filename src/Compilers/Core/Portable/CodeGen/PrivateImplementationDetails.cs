@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public ImmutableArray<byte> MarshallingDescriptor => default(ImmutableArray<byte>);
 
-        public uint Offset
+        public int Offset
         {
             get { throw ExceptionUtilities.Unreachable; }
         }

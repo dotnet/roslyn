@@ -79,6 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return AddCleanupAnnotationsTo(SyntaxFactory.MethodDeclaration(
                 attributeLists: GenerateAttributes(method, options, explicitInterfaceSpecifier != null),
                 modifiers: GenerateModifiers(method, destination, options),
+                refKeyword: method.ReturnsByRef ? SyntaxFactory.Token(SyntaxKind.RefKeyword) : default(SyntaxToken),
                 returnType: method.ReturnType.GenerateTypeSyntax(),
                 explicitInterfaceSpecifier: explicitInterfaceSpecifier,
                 identifier: method.Name.ToIdentifierToken(),
@@ -86,6 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 parameterList: ParameterGenerator.GenerateParameterList(method.Parameters, explicitInterfaceSpecifier != null, options),
                 constraintClauses: GenerateConstraintClauses(method),
                 body: hasNoBody ? null : StatementGenerator.GenerateBlock(method),
+                expressionBody: default(ArrowExpressionClauseSyntax),
                 semicolonToken: hasNoBody ? SyntaxFactory.Token(SyntaxKind.SemicolonToken) : new SyntaxToken()));
         }
 

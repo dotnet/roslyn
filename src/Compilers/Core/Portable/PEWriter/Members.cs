@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Reflection;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.Emit;
@@ -23,47 +24,47 @@ namespace Microsoft.Cci
         /// C/C++ style calling convention for unmanaged methods. The call stack is cleaned up by the caller, 
         /// which makes this convention suitable for calling methods that accept extra arguments.
         /// </summary>
-        C = 1,
+        C = SignatureCallingConvention.CDecl,
 
         /// <summary>
         /// The convention for calling managed methods with a fixed number of arguments.
         /// </summary>
-        Default = 0,
+        Default = SignatureCallingConvention.Default,
 
         /// <summary>
         /// The convention for calling managed methods that accept extra arguments.
         /// </summary>
-        ExtraArguments = 5,
+        ExtraArguments = SignatureCallingConvention.VarArgs,
 
         /// <summary>
         /// Arguments are passed in registers when possible. This calling convention is not yet supported.
         /// </summary>
-        FastCall = 4,
+        FastCall = SignatureCallingConvention.FastCall,
 
         /// <summary>
         /// Win32 API calling convention for calling unmanaged methods via PlatformInvoke. The call stack is cleaned up by the callee.
         /// </summary>
-        Standard = 2,
+        Standard = SignatureCallingConvention.StdCall,
 
         /// <summary>
         /// C++ member unmanaged method (non-vararg) calling convention. The callee cleans the stack and the this pointer is pushed on the stack last.
         /// </summary>
-        ThisCall = 3,
+        ThisCall = SignatureCallingConvention.ThisCall,
 
         /// <summary>
         /// The convention for calling a generic method.
         /// </summary>
-        Generic = 0x10,
+        Generic = SignatureAttributes.Generic,
 
         /// <summary>
         /// The convention for calling an instance method with an implicit this parameter (the method does not have an explicit parameter definition for this).
         /// </summary>
-        HasThis = 0x20,
+        HasThis = SignatureAttributes.Instance,
 
         /// <summary>
         /// The convention for calling an instance method that explicitly declares its first parameter to correspond to the this instance.
         /// </summary>
-        ExplicitThis = 0x40
+        ExplicitThis = SignatureAttributes.ExplicitThis
     }
 
     /// <summary>
@@ -184,7 +185,7 @@ namespace Microsoft.Cci
         /// <summary>
         /// Offset of the field.
         /// </summary>
-        uint Offset
+        int Offset
         {
             get;
             // ^ requires this.ContainingTypeDefinition.Layout == LayoutKind.Explicit;
@@ -262,16 +263,17 @@ namespace Microsoft.Cci
 
         /// <summary>
         /// Each local has an attributes field in the PDB.  To match the native compiler,
-        /// we emit "1" for locals that should definitely not bind in the debugger and "0"
+        /// we emit <see cref="LocalVariableAttributes.DebuggerHidden"/> for locals that should 
+        /// definitely not bind in the debugger and <see cref="LocalVariableAttributes.None"/>
         /// for all other locals.
         /// </summary>
         /// <remarks>
-        /// A value of "1" is a sufficient, but not a necessary, condition for hiding the
-        /// local in the debugger.  Locals with value "0" may also be hidden.
+        /// A value of <see cref="LocalVariableAttributes.DebuggerHidden"/> is a sufficient, but not a necessary, condition for hiding the
+        /// local in the debugger.  Locals with value <see cref="LocalVariableAttributes.None"/> may also be hidden.
         /// 
         /// Hidden locals must still be emitted because they participate in evaluation.
         /// </remarks>
-        uint PdbAttributes { get; }
+        LocalVariableAttributes PdbAttributes { get; }
 
         /// <summary>
         /// Should return the synthesized dynamic attributes of the local definition if any. Else null.
@@ -954,16 +956,6 @@ namespace Microsoft.Cci
         /// The name of the method.
         /// </summary>
         new string Name { get; }
-    }
-
-    internal enum EncFuncCode
-    {
-        Default = 0,
-        AddMethod = 1,
-        AddField = 2,
-        AddParameter = 3,
-        AddProperty = 4,
-        AddEvent = 5
     }
 
     internal static class Extensions

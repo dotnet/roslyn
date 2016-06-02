@@ -14,7 +14,7 @@
     <RootNamespace>Roslyn.Test.Utilities</RootNamespace>
     <AssemblyName>Roslyn.Test.Utilities.Desktop</AssemblyName>
     <CopyNuGetImplementations>false</CopyNuGetImplementations>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <CopyNuGetImplementations>true</CopyNuGetImplementations>
   </PropertyGroup>
   <ItemGroup Label="Project References">
@@ -104,6 +104,7 @@
     </Compile>
     <Compile Include="AppDomainUtils.cs" />
     <Compile Include="CLRHelpers.cs" />
+    <Compile Include="CompilerTraitAttribute.cs" />
     <Compile Include="ConditionalFactAttribute.cs" />
     <Compile Include="ProcessUtilities.cs" />
     <Compile Include="AppDomainAssemblyCache.cs" />

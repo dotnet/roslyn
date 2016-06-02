@@ -2,3 +2,4 @@
 
 csc /target:library /nostdlib /noconfig /keyfile:Key.snk /out:mincorlib.dll mincorlib.cs
 csc /target:library /nostdlib /noconfig /keyfile:Key.snk /r:mincorlib.dll /out:minasync.dll minasync.cs
+csc /target:library /nostdlib /noconfig /keyfile:Key.snk /out:minasynccorlib.dll mincorlib.cs minasync.cs

@@ -1,7 +1,6 @@
 ﻿{
   "dependencies": {
     "Microsoft.CSharp": "4.0.0",
-    "System.AppContext": "4.0.0",
     "System.Dynamic.Runtime": "4.0.10"
   },
   "frameworks": {

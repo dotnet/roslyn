@@ -1,5 +1,8 @@
-﻿using System;
+﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
+
+using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Metadata;
@@ -13,6 +16,18 @@ namespace Microsoft.CodeAnalysis.FindSymbols
 {
     internal partial class SymbolTreeInfo
     {
+        private static Metadata GetMetadataNoThrow(PortableExecutableReference reference)
+        {
+            try
+            {
+                return reference.GetMetadata();
+            }
+            catch (Exception e) when (e is BadImageFormatException || e is IOException)
+            {
+                return null;
+            }
+        }
+
         /// <summary>
         /// this gives you SymbolTreeInfo for a metadata
         /// </summary>
@@ -22,7 +37,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             bool loadOnly,
             CancellationToken cancellationToken)
         {
-            var metadata = reference.GetMetadata();
+            var metadata = GetMetadataNoThrow(reference);
             if (metadata == null)
             {
                 return null;
@@ -76,7 +91,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         {
             var unsortedNodes = new List<Node> { new Node("", Node.RootNodeParentIndex) };
 
-            foreach (var moduleMetadata in GetModuleMetadata(reference.GetMetadata()))
+            foreach (var moduleMetadata in GetModuleMetadata(GetMetadataNoThrow(reference)))
             {
                 MetadataReader reader;
                 try

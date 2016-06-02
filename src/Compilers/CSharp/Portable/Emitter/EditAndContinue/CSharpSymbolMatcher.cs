@@ -387,34 +387,42 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                 return null;
             }
 
-            public override Symbol VisitAssembly(AssemblySymbol symbol)
+            public override Symbol VisitAssembly(AssemblySymbol assembly)
             {
-                if (symbol.IsLinked)
+                if (assembly.IsLinked)
                 {
-                    return symbol;
+                    return assembly;
                 }
 
-                // the current source assembly:
-                if (symbol.Identity.Equals(_sourceAssembly.Identity))
+                // When we map synthesized symbols from previous generations to the latest compilation 
+                // we might encounter a symbol that is defined in arbitrary preceding generation, 
+                // not just the immediately preceding generation. If the source assembly uses time-based 
+                // versioning assemblies of preceding generations might differ in their version number.
+                if (IdentityEqualIgnoringVersionWildcard(assembly, _sourceAssembly))
                 {
                     return _otherAssembly;
                 }
 
-                // find a referenced assembly with the exactly same source identity:
+                // find a referenced assembly with the same source identity (modulo assembly version patterns):
                 foreach (var otherReferencedAssembly in _otherAssembly.Modules[0].ReferencedAssemblySymbols)
                 {
-                    var identity = symbol.Identity;
-                    var otherIdentity = otherReferencedAssembly.Identity;
-
-                    if (AssemblyIdentityComparer.SimpleNameComparer.Equals(identity.Name, otherIdentity.Name) &&
-                        (symbol.AssemblyVersionPattern ?? symbol.Identity.Version).Equals(otherReferencedAssembly.AssemblyVersionPattern ?? otherReferencedAssembly.Identity.Version) &&
-                        AssemblyIdentity.EqualIgnoringNameAndVersion(identity, otherIdentity))
+                    if (IdentityEqualIgnoringVersionWildcard(assembly, otherReferencedAssembly))
                     {
                         return otherReferencedAssembly;
                     }
                 }
 
                 return null;
+            }
+
+            private static bool IdentityEqualIgnoringVersionWildcard(AssemblySymbol left, AssemblySymbol right)
+            {
+                var leftIdentity = left.Identity;
+                var rightIdentity = right.Identity;
+
+                return AssemblyIdentityComparer.SimpleNameComparer.Equals(leftIdentity.Name, rightIdentity.Name) &&
+                       (left.AssemblyVersionPattern ?? leftIdentity.Version).Equals(right.AssemblyVersionPattern ?? rightIdentity.Version) &&
+                       AssemblyIdentity.EqualIgnoringNameAndVersion(leftIdentity, rightIdentity);
             }
 
             public override Symbol VisitNamespace(NamespaceSymbol @namespace)

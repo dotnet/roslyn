@@ -8,6 +8,6 @@
     "RoslynDependencies.Microsoft.VisualStudio.Text.Internal": "14.2.25123"
   },
   "frameworks": {
-    ".NETFramework,Version=v4.5": { }
+    ".NETFramework,Version=v4.6": { }
   }
 }

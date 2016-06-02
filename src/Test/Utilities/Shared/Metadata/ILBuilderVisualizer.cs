@@ -3,13 +3,13 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Reflection.Metadata;
 using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGen;
 using Roslyn.Test.MetadataUtilities;
 using Roslyn.Utilities;
 using Cci = Microsoft.Cci;
+using ILOpCode = Microsoft.CodeAnalysis.CodeGen.ILOpCode;
 
 namespace Roslyn.Test.Utilities
 {
@@ -70,7 +70,7 @@ namespace Roslyn.Test.Utilities
             {
                 HandlerSpan span;
 
-                if (region.HandlerKind == ExceptionRegionKind.Filter)
+                if (region.HandlerKind == System.Reflection.Metadata.ExceptionRegionKind.Filter)
                 {
                     span = new HandlerSpan(HandlerKind.Filter, null, region.FilterDecisionStartOffset, region.HandlerEndOffset, region.HandlerStartOffset);
                 }
@@ -80,13 +80,13 @@ namespace Roslyn.Test.Utilities
 
                     switch (region.HandlerKind)
                     {
-                        case ExceptionRegionKind.Catch:
+                        case System.Reflection.Metadata.ExceptionRegionKind.Catch:
                             kind = HandlerKind.Catch;
                             break;
-                        case ExceptionRegionKind.Fault:
+                        case System.Reflection.Metadata.ExceptionRegionKind.Fault:
                             kind = HandlerKind.Fault;
                             break;
-                        case ExceptionRegionKind.Filter:
+                        case System.Reflection.Metadata.ExceptionRegionKind.Filter:
                             kind = HandlerKind.Filter;
                             break;
                         default:
@@ -197,7 +197,7 @@ namespace Roslyn.Test.Utilities
                 sb.Append(string.Format("  IL_{0:x4}:", block.RegularInstructionsLength + block.Start));
                 sb.Append(string.Format("  {0,-10}", GetInstructionName(block.BranchCode)));
 
-                if (block.BranchCode.IsBranchToLabel())
+                if (block.BranchCode.IsBranch())
                 {
                     var branchBlock = block.BranchBlock;
                     if (branchBlock == null)

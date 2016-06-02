@@ -2,11 +2,13 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Windows.Data;
 using Microsoft.CodeAnalysis;
+using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.Editor;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
 using Microsoft.CodeAnalysis.Editor.Shared.Preview;
@@ -39,13 +41,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
         private IContentTypeRegistryService _contentTypeRegistryService;
 
         public List<object> Items { get; set; }
+        public ObservableCollection<AbstractCodeStyleOptionViewModel> CodeStyleItems { get; set; }
 
-        public OptionSet Options { get; private set; }
+        public OptionSet Options { get; set; }
+        private readonly OptionSet _originalOptions;
 
         protected AbstractOptionPreviewViewModel(OptionSet options, IServiceProvider serviceProvider, string language)
         {
             this.Options = options;
+            _originalOptions = options;
             this.Items = new List<object>();
+            this.CodeStyleItems = new ObservableCollection<AbstractCodeStyleOptionViewModel>();
 
             _componentModel = (IComponentModel)serviceProvider.GetService(typeof(SComponentModel));
 
@@ -61,7 +67,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         internal OptionSet ApplyChangedOptions(OptionSet optionSet)
         {
-            foreach (var optionKey in this.Options.GetAccessedOptions())
+            foreach (var optionKey in this.Options.GetChangedOptions(_originalOptions))
             {
                 if (ShouldPersistOption(optionKey))
                 {
@@ -74,13 +80,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         public void SetOptionAndUpdatePreview<T>(T value, IOption option, string preview)
         {
-            if (option is PerLanguageOption<T>)
+            if (option is Option<CodeStyleOption<T>>)
+            {
+                var opt = Options.GetOption((Option<CodeStyleOption<T>>)option);
+                opt.Value = value;
+                Options = Options.WithChangedOption((Option<CodeStyleOption<T>>)option, opt);
+            }
+            else if (option is PerLanguageOption<CodeStyleOption<T>>)
+            {
+                var opt = Options.GetOption((PerLanguageOption<CodeStyleOption<T>>)option, Language);
+                opt.Value = value;
+                Options = Options.WithChangedOption((PerLanguageOption<CodeStyleOption<T>>)option, Language, opt);
+            }
+            else if (option is Option<T>)
+            {
+                Options = Options.WithChangedOption((Option<T>)option, value);
+            }
+            else if (option is PerLanguageOption<T>)
             {
                 Options = Options.WithChangedOption((PerLanguageOption<T>)option, Language, value);
             }
             else
             {
-                Options = Options.WithChangedOption((Option<T>)option, value);
+                throw new InvalidOperationException("Unexpected option type");
             }
 
             UpdateDocument(preview);

@@ -1,10 +1,9 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.ObjectModel
-Imports System.Globalization
 Imports System.Text
 Imports Microsoft.CodeAnalysis.Collections
-Imports Microsoft.CodeAnalysis.ExpressionEvaluator
+Imports Microsoft.VisualStudio.Debugger.Clr
 Imports Roslyn.Utilities
 Imports Type = Microsoft.VisualStudio.Debugger.Metadata.Type
 
@@ -29,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             builder.Append(name)
         End Sub
 
-        Friend Overrides Function GetArrayDisplayString(lmrType As Type, sizes As ReadOnlyCollection(Of Integer), lowerBounds As ReadOnlyCollection(Of Integer), options As ObjectDisplayOptions) As String
+        Friend Overrides Function GetArrayDisplayString(appDomain As DkmClrAppDomain, lmrType As Type, sizes As ReadOnlyCollection(Of Integer), lowerBounds As ReadOnlyCollection(Of Integer), options As ObjectDisplayOptions) As String
             Debug.Assert(lmrType.IsArray)
 
             ' Strip off additional array types (jagged arrays).  We'll only show the size of the "first" array.
@@ -76,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.ExpressionEvaluator
             Return pooled.ToStringAndFree()
         End Function
 
-        Friend Overrides Function GetCastExpression(argument As String, type As String, Optional parenthesizeArgument As Boolean = False, Optional parenthesizeEntireExpression As Boolean = False) As String
+        Friend Overrides Function GetCastExpression(argument As String, type As String, parenthesizeArgument As Boolean, parenthesizeEntireExpression As Boolean) As String
             Debug.Assert(Not String.IsNullOrEmpty(argument))
             Debug.Assert(Not String.IsNullOrEmpty(type))
 

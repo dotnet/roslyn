@@ -2,11 +2,6 @@
 
 #r "../../../Roslyn.Test.Performance.Utilities.dll"
 
-// TestThisPlease()
-#load "../../util/test_util.csx"
-// IsVerbose()
-#load "../../util/tools_util.csx"
-
 using System.IO;
 using Roslyn.Test.Performance.Utilities;
 using static Roslyn.Test.Performance.Utilities.TestUtilities;
@@ -31,7 +26,7 @@ class HelloWorldTest : PerfTest
     
     public override void Test() 
     {
-        ShellOutVital(Path.Combine(MyBinaries(), "csc.exe"), _pathToHelloWorld + " /out:" + _pathToOutput, IsVerbose(), _logger, workingDirectory: MyWorkingDirectory);
+        ShellOutVital(Path.Combine(MyBinaries(), "csc.exe"), _pathToHelloWorld + " /out:" + _pathToOutput, MyWorkingDirectory);
         _logger.Flush();
     }
     

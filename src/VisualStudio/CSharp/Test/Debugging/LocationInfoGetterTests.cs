@@ -443,11 +443,11 @@ class C1
 {
     class C1
     {
-        static void (int x)
+        static void (ref int x)
         {
         $$}
     }
-}", "N1.C1", 4);
+}", "N1.C1.x)", 2);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.DebuggingLocationName)]
