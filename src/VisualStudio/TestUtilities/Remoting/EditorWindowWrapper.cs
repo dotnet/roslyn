@@ -45,6 +45,17 @@ namespace Roslyn.VisualStudio.Test.Utilities.Remoting
             });
         }
 
+        public int GetCaretPosition()
+        {
+            return RemotingHelper.ExecuteOnActiveView(view =>
+            {
+                var subjectBuffer = view.GetBufferContainingCaret();
+                var bufferPosition = view.Caret.Position.BufferPosition;
+
+                return bufferPosition.Position;
+            });
+        }
+
         public string GetLineTextBeforeCaret()
         {
             return RemotingHelper.ExecuteOnActiveView(view =>

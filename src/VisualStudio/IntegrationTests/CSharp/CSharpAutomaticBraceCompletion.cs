@@ -93,6 +93,7 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
 
             await EditorWindow.TypeTextAsync("class A { int i;");
             EditorWindow.SendKey(EditorWindow.VirtualKey.Enter);
+            WaitForAllAsyncOperations();
 
             VerifyCurrentLine("$$}");
 
@@ -276,7 +277,235 @@ $$
             EditorWindow.SendKey(EditorWindow.VirtualKey.Tab);
             await EditorWindow.TypeTextAsync(";");
 
-            VerifyTextContains("        var arr = new object[,] { { Foo(0) }, { Foo(Foo(\"hello\")) } };");
+            VerifyCurrentLine("        var arr = new object[,] { { Foo(0) }, { Foo(Foo(\"hello\")) } };$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task Negative_NoCompletionInSingleLineComments()
+        {
+            SetUpEditor(@"class C {
+    // $$
+}");
+
+            await EditorWindow.TypeTextAsync("{([\"'");
+            VerifyCurrentLine("    // {([\"'$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task Negative_NoCompletionInMultiLineComments()
+        {
+            SetUpEditor(@"class C {
+    /*
+     $$
+    */
+}");
+
+            await EditorWindow.TypeTextAsync("{([\"'");
+            VerifyCurrentLine("     {([\"'$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task Negative_NoCompletionStringVerbatimStringOrCharLiterals()
+        {
+            SetUpEditor(@"class C {
+    $$
+}");
+
+            await EditorWindow.TypeTextAsync("string s = \"{([<'");
+            VerifyCurrentLine("    string s = \"{([<'\"$$");
+
+            EditorWindow.SendKey(EditorWindow.VirtualKey.End);
+            await EditorWindow.TypeTextAsync(";");
+            EditorWindow.SendKey(EditorWindow.VirtualKey.Enter);
+
+            await EditorWindow.TypeTextAsync("string y = @\"{([<'");
+            VerifyCurrentLine("    string y = @\"{([<'\"$$");
+
+            EditorWindow.SendKey(EditorWindow.VirtualKey.End);
+            await EditorWindow.TypeTextAsync(";");
+            EditorWindow.SendKey(EditorWindow.VirtualKey.Enter);
+
+            await EditorWindow.TypeTextAsync("char ch = '{([<\"");
+            VerifyCurrentLine("    char ch = '{([<\"'$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task Negative_NoCompletionInXmlDocComments()
+        {
+            SetUpEditor(@"
+$$
+class C { }");
+
+            await EditorWindow.TypeTextAsync("///");
+            await EditorWindow.TypeTextAsync("{([<\"'");
+            VerifyCurrentLine("/// {([<\"'$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task Negative_NoCompletionInDisabledPreprocesser()
+        {
+            SetUpEditor(@"
+class C {
+#if false
+$$
+#endif
+}");
+
+            await EditorWindow.TypeTextAsync("void Foo(");
+            VerifyCurrentLine("void Foo($$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task Negative_NoCompletionAfterRegionPreprocesser()
+        {
+            SetUpEditor(@"
+#region $$
+
+#endregion
+");
+
+            await EditorWindow.TypeTextAsync("{([<\"'");
+            VerifyCurrentLine("#region {([<\"'$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task Negative_NoCompletionAfterEndregionPreprocesser()
+        {
+            SetUpEditor(@"
+#region
+
+#endregion $$
+");
+
+            await EditorWindow.TypeTextAsync("{([<\"'");
+            VerifyCurrentLine("#endregion {([<\"'$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task Negative_NoCompletionAfterIfPreprocesser()
+        {
+            SetUpEditor(@"
+#if $$
+");
+
+            await EditorWindow.TypeTextAsync("{([<\"'");
+            VerifyCurrentLine("#if {([<\"'$$");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task Negative_NoCompletionAfterPragmaPreprocesser()
+        {
+            SetUpEditor(@"
+#pragma $$
+");
+
+            await EditorWindow.TypeTextAsync("{([<\"'");
+            VerifyCurrentLine("#pragma {([<\"'$$");
+        }
+
+        [WorkItem(651954, "DevDiv")]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task InteractionWithOverrideStubGeneration()
+        {
+            SetUpEditor(@"
+class A
+{
+    public virtual void Foo() { }
+}
+class B : A
+{
+    // type ""override Foo(""
+    $$
+}
+");
+
+            await EditorWindow.TypeTextAsync("override Foo(");
+
+            VerifyTextContains(@"class B : A
+{
+    // type ""override Foo(""
+    public override void Foo()
+    {
+        base.Foo();
+    }
+}");
+        }
+
+        [WorkItem(531107, "DevDiv")]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task InteractionWithCompletionList()
+        {
+            SetUpEditor(@"
+using System.Collections.Generic;
+class C 
+{
+    void M()
+    {
+        List<int> li = $$
+    }
+}
+");
+
+            await EditorWindow.TypeTextAsync("new Li(");
+            EditorWindow.SendKey(EditorWindow.VirtualKey.Tab);
+            VerifyCurrentLine("        List<int> li = new List<int>($$)");
+        }
+
+        [WorkItem(823958, "DevDiv")]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task AutoBraceCompleteDoesNotFormatBracePairInInitializers()
+        {
+            SetUpEditor(@"
+class C 
+{
+    void M()
+    {
+        var x = $$
+    }
+}
+");
+
+            await EditorWindow.TypeTextAsync("new int[]{");
+            VerifyCurrentLine("        var x = new int[] {$$}");
+        }
+
+        [WorkItem(823958, "DevDiv")]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task AutoBraceCompleteDoesNotFormatBracePairInObjectCreationExpression()
+        {
+            SetUpEditor(@"
+class C 
+{
+    void M()
+    {
+        var x = $$
+    }
+}
+");
+
+            await EditorWindow.TypeTextAsync("new {");
+            VerifyCurrentLine("        var x = new {$$}");
+        }
+
+        [WorkItem(823958, "DevDiv")]
+        [Fact, Trait(Traits.Feature, Traits.Features.AutomaticCompletion)]
+        public async Task AutoBraceCompleteFormatsBracePairInClassDeclarationAndAutoProperty()
+        {
+            SetUpEditor(@"
+class $$
+");
+
+            await EditorWindow.TypeTextAsync("C{");
+            VerifyCurrentLine("class C { $$}");
+
+            EditorWindow.SendKey(EditorWindow.VirtualKey.Enter);
+            await EditorWindow.TypeTextAsync("int Prop {");
+
+            VerifyTextContains(@"
+class C
+{
+    int Prop { $$}
+}");
         }
     }
 }

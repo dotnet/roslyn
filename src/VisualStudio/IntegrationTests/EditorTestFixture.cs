@@ -53,25 +53,79 @@ namespace Roslyn.VisualStudio.IntegrationTests
             EditorWindow.MoveCaret(caretPosition);
         }
 
-        protected void VerifyCurrentLine(string text)
+        protected void VerifyCurrentLine(string expectedText, bool trimWhitespace = false)
         {
-            var caretIndex = text.IndexOf("$$");
-            if (caretIndex >= 0)
+            var caretStartIndex = expectedText.IndexOf("$$");
+
+            if (caretStartIndex >= 0)
             {
-                var firstPart = text.Substring(0, caretIndex);
-                var secondPart = text.Substring(caretIndex + "$$".Length);
+                var caretEndIndex = caretStartIndex + "$$".Length;
+
+                var expectedTextBeforeCaret = caretStartIndex < expectedText.Length
+                    ? expectedText.Substring(0, caretStartIndex)
+                    : expectedText;
+
+                var expectedTextAfterCaret = caretEndIndex < expectedText.Length
+                    ? expectedText.Substring(caretEndIndex)
+                    : string.Empty;
 
                 var lineText = EditorWindow.GetCurrentLineText();
 
-                Assert.Equal(firstPart.Length + secondPart.Length, lineText.Length);
-                Assert.Equal(firstPart, lineText.Substring(0, caretIndex));
-                Assert.Equal(secondPart, lineText.Substring(caretIndex));
+                if (trimWhitespace)
+                {
+                    lineText = lineText.Trim();
+                }
+
+                var lineTextBeforeCaret = caretStartIndex < lineText.Length
+                    ? lineText.Substring(0, caretStartIndex)
+                    : lineText;
+
+                var lineTextAfterCaret = caretStartIndex < lineText.Length
+                    ? lineText.Substring(caretStartIndex)
+                    : string.Empty;
+
+                Assert.Equal(expectedTextBeforeCaret, lineTextBeforeCaret);
+                Assert.Equal(expectedTextAfterCaret, lineTextAfterCaret);
+                Assert.Equal(expectedTextBeforeCaret.Length + expectedTextAfterCaret.Length, lineText.Length);
+            }
+            else
+            {
+                var lineText = EditorWindow.GetCurrentLineText();
+                Assert.Equal(expectedText, lineText);
             }
         }
 
-        protected void VerifyTextContains(string text)
+        protected void VerifyTextContains(string expectedText)
         {
-            Assert.Contains(text, EditorWindow.GetText());
+            var caretStartIndex = expectedText.IndexOf("$$");
+
+            if (caretStartIndex >= 0)
+            {
+                var caretEndIndex = caretStartIndex + "$$".Length;
+
+                var expectedTextBeforeCaret = caretStartIndex < expectedText.Length
+                    ? expectedText.Substring(0, caretStartIndex)
+                    : expectedText;
+
+                var expectedTextAfterCaret = caretEndIndex < expectedText.Length
+                    ? expectedText.Substring(caretEndIndex)
+                    : string.Empty;
+
+                var expectedTextWithoutCaret = expectedTextBeforeCaret + expectedTextAfterCaret;
+
+                var editorText = EditorWindow.GetText();
+                Assert.Contains(expectedTextWithoutCaret, editorText);
+
+                var index = editorText.IndexOf(expectedTextWithoutCaret);
+
+                var caretPosition = EditorWindow.GetCaretPosition();
+                Assert.Equal(caretStartIndex + index, caretPosition);
+            }
+            else
+            {
+                var editorText = EditorWindow.GetText();
+                Assert.Contains(expectedText, editorText);
+            }
         }
     }
 }

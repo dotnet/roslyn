@@ -26,6 +26,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
         public void SetText(string value) => _editorWindowWrapper.SetText(value);
 
         public string GetCurrentLineText() => _editorWindowWrapper.GetCurrentLineText();
+        public int GetCaretPosition() => _editorWindowWrapper.GetCaretPosition();
         public string GetLineTextBeforeCaret() => _editorWindowWrapper.GetLineTextBeforeCaret();
         public string GetLineTextAfterCaret() => _editorWindowWrapper.GetLineTextAfterCaret();
 
