@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -12,6 +11,9 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
         {
+            Debug.Assert(node.DeconstructSteps != null);
+            Debug.Assert(node.AssignmentSteps != null);
+
             var temps = ArrayBuilder<LocalSymbol>.GetInstance();
             var stores = ArrayBuilder<BoundExpression>.GetInstance();
             var placeholders = ArrayBuilder<BoundValuePlaceholderBase>.GetInstance();
@@ -23,6 +25,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression loweredRight = VisitExpression(node.Right);
             AddPlaceholderReplacement(node.DeconstructSteps[0].TargetPlaceholder, loweredRight);
             placeholders.Add(node.DeconstructSteps[0].TargetPlaceholder);
+
             foreach (var deconstruction in node.DeconstructSteps)
             {
                 if (deconstruction.DeconstructMemberOpt == null)
@@ -39,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int numAssignments = node.AssignmentSteps.Length;
             for (int i = 0; i < numAssignments; i++)
             {
-                // lower the assignment and replace the placeholders for source and target in the process
+                // lower the assignment and replace the placeholders for its outputs in the process
                 var assignmentInfo = node.AssignmentSteps[i];
                 AddPlaceholderReplacement(assignmentInfo.OutputPlaceholder, lhsTemps[i]);
 
@@ -86,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             CSharpSyntaxNode syntax = node.Syntax;
 
-            // save the loweredRight as we need to access it multiple times
+            // save the target as we need to access it multiple times
             BoundAssignmentOperator assignmentToTemp;
             var savedTuple = _factory.StoreToTemp(target, out assignmentToTemp);
             stores.Add(assignmentToTemp);

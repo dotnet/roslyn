@@ -108,14 +108,24 @@ namespace Roslyn.Utilities
 
         public static bool operator ==(OneOrMany<T> first, OneOrMany<T> second)
         {
-            if (first.Count != second.Count)
+            return first.Equals(second);
+        }
+
+        public static bool operator !=(OneOrMany<T> first, OneOrMany<T> second)
+        {
+            return !(first == second);
+        }
+
+        public bool Equals(OneOrMany<T> other)
+        {
+            if (Count != other.Count)
             {
                 return false;
             }
 
-            for (int i = 0; i < first.Count; i++)
+            for (int i = 0; i < Count; i++)
             {
-                if (first[i].Equals(second[i]))
+                if (this[i].Equals(other[i]))
                 {
                     return false;
                 }
@@ -124,9 +134,14 @@ namespace Roslyn.Utilities
             return true;
         }
 
-        public static bool operator !=(OneOrMany<T> first, OneOrMany<T> second)
+        public override bool Equals(object obj)
         {
-            return !(first == second);
+            return obj is OneOrMany<T> && Equals((OneOrMany<T>)obj);
+        }
+
+        public override int GetHashCode()
+        {
+            return base.GetHashCode();
         }
     }
 
