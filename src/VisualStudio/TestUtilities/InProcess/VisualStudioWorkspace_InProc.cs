@@ -69,20 +69,26 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
 
         public void CleanUpWorkspace()
         {
-            LoadRoslynPackage();
-            _visualStudioWorkspace.TestHookPartialSolutionsDisabled = true;
+            InvokeOnUIThread(() =>
+            {
+                LoadRoslynPackage();
+                _visualStudioWorkspace.TestHookPartialSolutionsDisabled = true;
+            });
         }
 
         public void CleanUpWaitingService()
         {
-            var asynchronousOperationWaiterExports = GetComponentModel().DefaultExportProvider.GetExports<IAsynchronousOperationWaiter>();
-
-            if (!asynchronousOperationWaiterExports.Any())
+            InvokeOnUIThread(() =>
             {
-                throw new InvalidOperationException("The test waiting service could not be located.");
-            }
+                var asynchronousOperationWaiterExports = GetComponentModel().DefaultExportProvider.GetExports<IAsynchronousOperationWaiter>();
 
-            GetWaitingService().EnableActiveTokenTracking(true);
+                if (!asynchronousOperationWaiterExports.Any())
+                {
+                    throw new InvalidOperationException("The test waiting service could not be located.");
+                }
+
+                GetWaitingService().EnableActiveTokenTracking(true);
+            });
         }
     }
 }

@@ -1,23 +1,13 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.ComponentModel.Composition.Hosting;
 using System.Diagnostics;
-using System.Linq;
-using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Threading;
 using EnvDTE;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.TestHooks;
-using Microsoft.VisualStudio.ComponentModelHost;
-using Microsoft.VisualStudio.InteractiveWindow;
-using Microsoft.VisualStudio.InteractiveWindow.Shell;
-using Microsoft.VisualStudio.LanguageServices;
-using Microsoft.VisualStudio.LanguageServices.CSharp.Interactive;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
-using Roslyn.Hosting.Diagnostics.Waiters;
 
 namespace Roslyn.VisualStudio.Test.Utilities.Remoting
 {
@@ -31,19 +21,9 @@ namespace Roslyn.VisualStudio.Test.Utilities.Remoting
     {
         private static readonly string[] SupportedLanguages = new string[] { LanguageNames.CSharp, LanguageNames.VisualBasic };
 
-        public static IComponentModel ComponentModel => GetGlobalService<IComponentModel>(typeof(SComponentModel));
-
-        public static IInteractiveWindow CSharpInteractiveWindow => CSharpVsInteractiveWindow.InteractiveWindow;
-
-        private static IVsInteractiveWindow CSharpVsInteractiveWindow => InvokeOnUIThread(() => CSharpVsInteractiveWindowProvider.Open(0, true));
-
-        private static CSharpVsInteractiveWindowProvider CSharpVsInteractiveWindowProvider => ComponentModel.GetService<CSharpVsInteractiveWindowProvider>();
-
         private static Application CurrentApplication => Application.Current;
 
         private static Dispatcher CurrentApplicationDispatcher => CurrentApplication.Dispatcher;
-
-        private static ExportProvider DefaultComponentModelExportProvider => ComponentModel.DefaultExportProvider;
 
         public static DTE DTE => GetGlobalService<DTE>(typeof(SDTE));
 

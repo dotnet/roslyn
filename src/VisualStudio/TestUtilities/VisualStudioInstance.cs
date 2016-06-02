@@ -23,8 +23,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
         private readonly IntegrationService _integrationService;
         private readonly IpcClientChannel _integrationServiceChannel;
 
-        // TODO: We could probably expose all the windows/services/features of the host process in a better manner
-        private readonly Lazy<CSharpInteractiveWindow> _csharpInteractiveWindow;
+        public CSharpInteractiveWindow_OutOfProc CSharpInteractiveWindow { get; }
         public Editor_OutOfProc Editor { get; }
         public SolutionExplorer_OutOfProc SolutionExplorer { get; }
         public VisualStudioWorkspace_OutOfProc VisualStudioWorkspace { get; }
@@ -48,7 +47,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
                 type: typeof(RemotingHelper),
                 methodName: nameof(RemotingHelper.WaitForSystemIdle));
 
-            _csharpInteractiveWindow = new Lazy<CSharpInteractiveWindow>(() => new CSharpInteractiveWindow(this));
+            this.CSharpInteractiveWindow = new CSharpInteractiveWindow_OutOfProc(this);
             this.Editor = new Editor_OutOfProc(this);
             this.SolutionExplorer = new SolutionExplorer_OutOfProc(this);
             this.VisualStudioWorkspace = new VisualStudioWorkspace_OutOfProc(this);
@@ -95,8 +94,6 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
         public bool IsRunning => !_hostProcess.HasExited;
 
-        public CSharpInteractiveWindow CSharpInteractiveWindow => _csharpInteractiveWindow.Value;
-
         public async Task ClickAutomationElementAsync(string elementName, bool recursive = false)
         {
             var element = await FindAutomationElementAsync(elementName, recursive).ConfigureAwait(false);
@@ -138,16 +135,10 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
         public void CleanUp()
         {
-            SolutionExplorer.CleanUpOpenSolution();
-            CleanUpInteractiveWindow();
             VisualStudioWorkspace.CleanUpWaitingService();
             VisualStudioWorkspace.CleanUpWorkspace();
-        }
-
-        private void CleanUpInteractiveWindow()
-        {
-            var csharpInteractiveWindow = this.DTE.LocateWindow(CSharpInteractiveWindow.DteWindowTitle);
-            IntegrationHelper.RetryRpcCall(() => csharpInteractiveWindow?.Close());
+            SolutionExplorer.CleanUpOpenSolution();
+            CSharpInteractiveWindow.CleanUpInteractiveWindow();
         }
 
         public void Close()
