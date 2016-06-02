@@ -211,7 +211,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                         }
 
                     case CompletionTags.RangeVariable:
-                        return KnownMonikers.FieldPublic;
+                        return KnownMonikers.LocalVariable;
 
                     case CompletionTags.Reference:
                         return KnownMonikers.Reference;
