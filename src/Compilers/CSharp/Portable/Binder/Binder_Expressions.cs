@@ -6333,9 +6333,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (analyzedArguments.HasDynamicArgument && overloadResolutionResult.HasAnyApplicableMember)
             {
-                var result = BindDynamicIndexer(syntax, receiverOpt, analyzedArguments, overloadResolutionResult.GetAllApplicableMembers(), diagnostics);
+                // Note that the runtime binder may consider candidates that haven't passed compile-time final validation 
+                // and an ambiguity error may be reported. Also additional checks are performed in runtime final validation 
+                // that are not performed at compile-time.
+                // Only if the set of final applicable candidates is empty we know for sure the call will fail at runtime.
+                var finalApplicableCandidates = GetCandidatesPassingFinalValidation(syntax, overloadResolutionResult, receiverOpt, default(ImmutableArray<TypeSymbol>), diagnostics);
                 overloadResolutionResult.Free();
-                return result;
+                return BindDynamicIndexer(syntax, receiverOpt, analyzedArguments, finalApplicableCandidates, diagnostics);
             }
 
             if (!overloadResolutionResult.Succeeded)
