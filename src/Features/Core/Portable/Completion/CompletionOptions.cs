@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using Microsoft.CodeAnalysis.Options;
 
 namespace Microsoft.CodeAnalysis.Completion
@@ -21,5 +22,11 @@ namespace Microsoft.CodeAnalysis.Completion
         // Dev15 options
         public static readonly PerLanguageOption<bool> ShowCompletionItemFilters = new PerLanguageOption<bool>(FeatureName, nameof(ShowCompletionItemFilters), defaultValue: false);
         public static readonly PerLanguageOption<bool> HighlightMatchingPortionsOfCompletionListItems = new PerLanguageOption<bool>(FeatureName, nameof(HighlightMatchingPortionsOfCompletionListItems), defaultValue: false);
+
+        public static IEnumerable<PerLanguageOption<bool>> GetDev15CompletionOptions()
+        {
+            yield return ShowCompletionItemFilters;
+            yield return HighlightMatchingPortionsOfCompletionListItems;
+        }
     }
 }
