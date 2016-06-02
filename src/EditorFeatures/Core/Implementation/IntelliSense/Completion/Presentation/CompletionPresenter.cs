@@ -44,9 +44,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             AssertIsForeground();
 
             var document = subjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            var options = document?.Project.Solution.Workspace.Options;
 
-            var completionSetFactory = document != null && NeedsDev15CompletionSetFactory(options, document.Project.Language)
+            var completionSetFactory = document != null && NeedsDev15CompletionSetFactory(document.Options, document.Project.Language)
                 ? VersionSelector.SelectHighest(_completionSetFactories)
                 : VersionSelector.SelectVersion(_completionSetFactories, VisualStudioVersion.Dev14);
 
