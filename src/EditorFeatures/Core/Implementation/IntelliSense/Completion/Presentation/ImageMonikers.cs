@@ -155,7 +155,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                         return KnownMonikers.Label;
 
                     case CompletionTags.Local:
-                        return KnownMonikers.FieldPublic;
+                        return KnownMonikers.LocalVariable;
 
                     case CompletionTags.Namespace:
                         return KnownMonikers.Namespace;
@@ -195,7 +195,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                         return KnownMonikers.Operator;
 
                     case CompletionTags.Parameter:
-                        return KnownMonikers.FieldPublic;
+                        return KnownMonikers.LocalVariable;
 
                     case CompletionTags.Property:
                         switch (GetAccessibility(tags))
@@ -212,7 +212,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                         }
 
                     case CompletionTags.RangeVariable:
-                        return KnownMonikers.FieldPublic;
+                        return KnownMonikers.LocalVariable;
 
                     case CompletionTags.Reference:
                         return KnownMonikers.Reference;
