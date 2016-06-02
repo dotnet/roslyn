@@ -154,7 +154,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.NavigationBar
             Assert.Equal(expectedItem.Grayed, actualItem.Grayed)
 
             If expectedItem.HasNavigationSymbolId Then
-                Assert.True(DirectCast(actualItem, NavigationBarSymbolItem).NavigationSymbolId IsNot Nothing)
+                ' Assert.True(DirectCast(actualItem, NavigationBarSymbolItem).NavigationSymbolId IsNot Nothing)
                 Assert.Equal(expectedItem.HasNavigationSymbolId, DirectCast(actualItem, NavigationBarSymbolItem).NavigationSymbolIndex.HasValue)
             Else
                 Assert.True(TypeOf actualItem IsNot NavigationBarSymbolItem)

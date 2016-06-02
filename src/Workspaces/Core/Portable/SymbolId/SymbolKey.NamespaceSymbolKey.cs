@@ -5,36 +5,31 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
-using Microsoft.CodeAnalysis.Text;
+using Newtonsoft.Json;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal abstract partial class SymbolKey
+    internal partial struct SymbolKey
     {
-        private class NamespaceSymbolKey : AbstractSymbolKey<NamespaceSymbolKey>
+        private static class NamespaceSymbolKey
         {
-            // This can be one of many things. 
+            // The containing symbol can be one of many things. 
             // 1) Null when this is the global namespace for a compilation.  
             // 2) The SymbolId for an assembly symbol if this is the global namespace for an
             //    assembly.
             // 3) The SymbolId for a module symbol if this is the global namespace for a module.
             // 4) The SymbolId for the containing namespace symbol if this is not a global
             //    namespace.
-            private readonly SymbolKey _containerKeyOpt;
-            private readonly string _metadataName;
 
-            internal NamespaceSymbolKey(INamespaceSymbol symbol, Visitor visitor)
+            public static void Create(INamespaceSymbol symbol, SymbolKeyWriter visitor)
             {
-                _containerKeyOpt = DetermineContainerKey(symbol, visitor);
-                _metadataName = symbol.MetadataName;
-            }
+                visitor.WriteString(symbol.MetadataName);
 
-            private SymbolKey DetermineContainerKey(INamespaceSymbol symbol, Visitor visitor)
-            {
                 if (symbol.ContainingNamespace != null)
                 {
-                    return GetOrCreate(symbol.ContainingNamespace, visitor);
+                    visitor.WriteBoolean(false);
+                    visitor.WriteSymbolKey(symbol.ContainingNamespace);
                 }
                 else
                 {
@@ -43,67 +38,67 @@ namespace Microsoft.CodeAnalysis
                     switch (symbol.NamespaceKind)
                     {
                         case NamespaceKind.Module:
-                            return GetOrCreate(symbol.ContainingModule, visitor);
-                        case NamespaceKind.Assembly:
-                            return GetOrCreate(symbol.ContainingAssembly, visitor);
-                        case NamespaceKind.Compilation:
-                            // Store nothing in this case.
+                            visitor.WriteBoolean(false);
+                            visitor.WriteSymbolKey(symbol.ContainingModule);
                             break;
+                        case NamespaceKind.Assembly:
+                            visitor.WriteBoolean(false);
+                            visitor.WriteSymbolKey(symbol.ContainingAssembly);
+                            break;
+                        case NamespaceKind.Compilation:
+                            visitor.WriteBoolean(true);
+                            visitor.WriteSymbolKey(null);
+                            break;
+                        default:
+                            throw new NotImplementedException();
                     }
-
-                    return null;
                 }
             }
 
-            public override SymbolKeyResolution Resolve(Compilation compilation, bool ignoreAssemblyKey, CancellationToken cancellationToken)
+            public static int GetHashCode(GetHashCodeReader reader)
             {
-                if (ReferenceEquals(_containerKeyOpt, null))
+                return Hash.Combine(reader.ReadString(),
+                       Hash.Combine(reader.ReadBoolean(),
+                                    reader.ReadSymbolKey()));
+            }
+
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            {
+                var metadataName = reader.ReadString();
+                var isCompilationGlobalNamespace = reader.ReadBoolean();
+                var containingSymbolResolution = reader.ReadSymbolKey();
+
+                if (isCompilationGlobalNamespace)
                 {
-                    return new SymbolKeyResolution(compilation.GlobalNamespace);
+                    return new SymbolKeyResolution(reader.Compilation.GlobalNamespace);
                 }
 
-                var container = _containerKeyOpt.Resolve(compilation, ignoreAssemblyKey, cancellationToken);
-                var namespaces = GetAllSymbols(container).SelectMany(s => Resolve(compilation, s, ignoreAssemblyKey));
+                var namespaces = GetAllSymbols(containingSymbolResolution).SelectMany(
+                    s => Resolve(s, metadataName));
 
                 return CreateSymbolInfo(namespaces);
             }
 
-            private IEnumerable<INamespaceSymbol> Resolve(Compilation compilation, ISymbol container, bool ignoreAssemblyKey)
+            private static IEnumerable<INamespaceSymbol> Resolve(ISymbol container, string metadataName)
             {
                 if (container is IAssemblySymbol)
                 {
-                    Debug.Assert(_metadataName == string.Empty);
+                    Debug.Assert(metadataName == string.Empty);
                     return SpecializedCollections.SingletonEnumerable(((IAssemblySymbol)container).GlobalNamespace);
                 }
                 else if (container is IModuleSymbol)
                 {
-                    Debug.Assert(_metadataName == string.Empty);
+                    Debug.Assert(metadataName == string.Empty);
                     return SpecializedCollections.SingletonEnumerable(((IModuleSymbol)container).GlobalNamespace);
                 }
                 else if (container is INamespaceSymbol)
                 {
-                    return ((INamespaceSymbol)container).GetMembers(_metadataName).OfType<INamespaceSymbol>();
+                    return ((INamespaceSymbol)container).GetMembers(metadataName).OfType<INamespaceSymbol>();
                 }
                 else
                 {
                     return SpecializedCollections.EmptyEnumerable<INamespaceSymbol>();
                 }
-            }
-
-            internal override bool Equals(NamespaceSymbolKey other, ComparisonOptions options)
-            {
-                var comparer = SymbolKeyComparer.GetComparer(options);
-                return
-                    Equals(options.IgnoreCase, other._metadataName, _metadataName) &&
-                    comparer.Equals(other._containerKeyOpt, _containerKeyOpt);
-            }
-
-            internal override int GetHashCode(ComparisonOptions options)
-            {
-                var comparer = SymbolKeyComparer.GetComparer(options);
-                return Hash.Combine(
-                    GetHashCode(options.IgnoreCase, _metadataName),
-                    comparer.GetHashCode(_containerKeyOpt));
             }
         }
     }
