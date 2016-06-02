@@ -1,6 +1,5 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Composition;
 using System.Linq;
@@ -10,8 +9,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateConstructor
 {
@@ -162,13 +161,13 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateConstructor
             return false;
         }
 
-        protected override IList<string> GenerateParameterNames(
+        protected override IList<ParameterName> GenerateParameterNames(
             SemanticModel semanticModel, IEnumerable<ArgumentSyntax> arguments, IList<string> reservedNames)
         {
             return semanticModel.GenerateParameterNames(arguments, reservedNames);
         }
 
-        protected override IList<string> GenerateParameterNames(
+        protected override IList<ParameterName> GenerateParameterNames(
             SemanticModel semanticModel, IEnumerable<AttributeArgumentSyntax> arguments, IList<string> reservedNames)
         {
             return semanticModel.GenerateParameterNames(arguments, reservedNames);
