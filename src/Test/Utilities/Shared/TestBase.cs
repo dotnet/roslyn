@@ -325,6 +325,8 @@ namespace Roslyn.Test.Utilities
 
         public static MetadataReference MinCorlibRef => TestReferences.NetFx.Minimal.mincorlib;
 
+        public static MetadataReference MinAsyncCorlibRef => TestReferences.NetFx.Minimal.minasynccorlib;
+
         private static MetadataReference s_msvbRef;
         public static MetadataReference MsvbRef
         {
