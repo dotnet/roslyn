@@ -17,6 +17,7 @@ This document reflects the status, and planned work, for the compiler team.  It 
 | [Throw Expr](https://github.com/dotnet/roslyn/blob/features/patterns/docs/features/patterns.md) | [features/patterns](https://github.com/dotnet/roslyn/tree/features/patterns) | Finishing | [agocke](https://github.com/agocke), [tyoverby](https://github.com/tyoverby), [gafter](https://github.com/gafter) | [gafter](https://github.com/gafter) |
 | [Tuples](https://github.com/dotnet/roslyn/issues/347) | [features/tuples](https://github.com/dotnet/roslyn/tree/features/tuples) | Finishing | [vsadov](https://github.com/vsadov), [jcouv](https://github.com/jcouv) | [madstorgersen](https://github.com/MadsTorgersen) |
 | [Out var](https://github.com/dotnet/roslyn/blob/features/outvar/docs/features/outvar.md) | [features/outvar](https://github.com/dotnet/roslyn/tree/features/outvar) | Prototyping | [alekseyts](https://github.com/alekseyts) | [gafter](https://github.com/gafter) |
+| [ValueTask<T>](https://github.com/ljw1004/roslyn/blob/features/async-return/docs/specs/feature%20-%20arbitrary%20async%20returns.md) | None | Prototyping | [alekseyts](https://github.com/alekseyts) | [lucian](https://github.com/ljw1004) |
 
 ## (C# 7.0 and VB 15) + 1
 
