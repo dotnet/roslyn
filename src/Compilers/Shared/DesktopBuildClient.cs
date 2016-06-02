@@ -324,17 +324,25 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             // .NET 4.5 implementation of NamedPipeStream.Connect busy waits the entire time.
             // Work around is to spin wait.
-            const int maxWaitInterval = 50;
-            int elapsed = 0;
+            const int maxWaitIntervalMs = 50;
+            int elapsedMs = 0;
             var sw = new SpinWait();
             while (true)
             {
                 cancellationToken.ThrowIfCancellationRequested();
 
-                int waitTime = Math.Min(timeoutMs - elapsed, maxWaitInterval);
-                if (timeoutMs != Timeout.Infinite && waitTime <= 0)
+                int waitTime;
+                if (timeoutMs == Timeout.Infinite)
                 {
-                    return false;
+                    waitTime = maxWaitIntervalMs;
+                }
+                else
+                {
+                    waitTime = Math.Min(timeoutMs - elapsedMs, maxWaitIntervalMs);
+                    if (waitTime <= 0)
+                    {
+                        return false;
+                    }
                 }
 
                 try
@@ -345,8 +353,14 @@ namespace Microsoft.CodeAnalysis.CommandLine
                 catch (Exception e) when (e is IOException || e is TimeoutException)
                 {
                     // Ignore timeout
+
+                    // Note: IOException can also indicate timeout. From docs:
+                    // TimeoutException: Could not connect to the server within the
+                    //                   specified timeout period.
+                    // IOException: The server is connected to another client and the
+                    //              time-out period has expired.
                 }
-                elapsed += waitTime;
+                unchecked { elapsedMs += waitTime; }
                 sw.SpinOnce();
             }
             return true;
