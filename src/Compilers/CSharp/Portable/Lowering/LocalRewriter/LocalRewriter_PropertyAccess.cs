@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<LocalSymbol> temps;
             ImmutableArray<RefKind> argumentRefKindsOpt = default(ImmutableArray<RefKind>);
             rewrittenArguments = MakeArguments(syntax, rewrittenArguments, property, getMethod, false, default(ImmutableArray<int>), ref rewrittenReceiver, ref argumentRefKindsOpt, out temps, enableCallerInfo: ThreeState.True);
-            Debug.Assert(temps.IsDefault); // shouldn't ever require temps (which are used to reorder arguments from source order to method order)
+            Debug.Assert(temps.IsDefaultOrEmpty); // shouldn't ever require temps (which are used to reorder arguments from source order to method order)
             
             return MakePropertyGetAccess(syntax, rewrittenReceiver, property, rewrittenArguments, getMethod, oldNodeOpt);
         }

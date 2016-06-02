@@ -408,6 +408,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 receiverNamedType = methodOrIndexer.ContainingType;
+                if (methodOrIndexer.IsInExtensionClass)
+                {
+                    // PROTOTYPE: NamedTypeSymbol cast might be wrong depending on design decisions
+                    receiverNamedType = (NamedTypeSymbol)receiverNamedType.ExtensionClassType;
+                }
             }
 
             bool isComReceiver = (object)receiverNamedType != null && receiverNamedType.IsComImport;
@@ -568,6 +573,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int a = 0; a < rewrittenArguments.Length; ++a)
             {
                 BoundExpression argument = rewrittenArguments[a];
+                // PROTOTYPE: There are very weird things with argsToParamsOpt and extension methods.
                 int p = ((!argsToParamsOpt.IsDefault) ? argsToParamsOpt[a] : a) + (needsExtensionExpanding ? 1 : 0);
                 RefKind refKind = argumentRefKinds.RefKinds(a);
                 Debug.Assert(arguments[p] == null);
