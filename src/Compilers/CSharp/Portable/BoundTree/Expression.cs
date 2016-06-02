@@ -100,15 +100,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 IArgument argument = DeriveArgument(parameterIndex, argumentIndex, boundArguments, argumentNames, argumentRefKinds, parameters, invocationSyntax);
                 evaluationOrderArguments.Add(argument);
                 matchedParameters.Add(parameterIndex);
-                if ((uint)parameterIndex < parameters.Length && parameters[parameterIndex].IsParams)
+                if ((uint)parameterIndex < parameters.Length && parameters[parameterIndex].IsParams && (argumentNames.IsDefaultOrEmpty || argumentNames[argumentIndex] == null))
                 {
                     break;
-                    }
                 }
+            }
 
             // Include implicit arguments after the explicit arguments.
             foreach (Symbols.ParameterSymbol parameter in parameters)
-                {
+            {
                 if (!matchedParameters.Contains(parameter.Ordinal))
                 {
                     evaluationOrderArguments.Add(DeriveArgument(parameter.Ordinal, -1, boundArguments, argumentNames, argumentRefKinds, parameters, invocationSyntax));

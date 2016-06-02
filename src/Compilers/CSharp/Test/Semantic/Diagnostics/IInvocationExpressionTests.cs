@@ -36,62 +36,42 @@ class C
 
             // M2(1, 2)
 
-            IInvocationExpression invocation = CheckInvocation(nodes[0], model, "M2(1, 2)", "M2", SpecialType.System_Void);
+            IInvocationExpression invocation = CheckInvocation(nodes[0], model, "M2(1, 2)", "M2", 2, SpecialType.System_Void);
             CheckInstanceReference(invocation.Instance, InstanceReferenceKind.Implicit, "C");
-            
-            ImmutableArray<IArgument> arguments = invocation.ArgumentsInParameterOrder;
-            Assert.Equal(arguments.Length, 2);
-            ImmutableArray<IArgument> evaluationOrderArguments = invocation.ArgumentsInEvaluationOrder;
-            Assert.Equal(evaluationOrderArguments.Length, 2);
 
             // 1
 
-            IArgument argument = arguments[0];
-            Assert.True(argument == evaluationOrderArguments[0]);
+            IArgument argument = GetArgument(invocation, 0, 0);
             CheckConstantArgument(invocation, argument, "a", 1);
 
             // 2
 
-            argument = arguments[1];
-            Assert.True(argument == evaluationOrderArguments[1]);
+            argument = GetArgument(invocation, 1, 1);
             CheckConstantArgument(invocation, argument, "b", 2);
 
             // local.M2(b: 2, a: 1)
 
-            invocation = CheckInvocation(nodes[1], model, "local.M2(b: 2, a: 1)", "M2", SpecialType.System_Void);
+            invocation = CheckInvocation(nodes[1], model, "local.M2(b: 2, a: 1)", "M2", 2, SpecialType.System_Void);
             CheckLocalReference(invocation.Instance, "local", "C");
-
-            arguments = invocation.ArgumentsInParameterOrder;
-            Assert.Equal(arguments.Length, 2);
-            evaluationOrderArguments = invocation.ArgumentsInEvaluationOrder;
-            Assert.Equal(evaluationOrderArguments.Length, 2);
 
             // a: 1
 
-            argument = arguments[0];
-            Assert.True(argument == evaluationOrderArguments[1]);
+            argument = GetArgument(invocation, 0, 1);
             CheckConstantArgument(invocation, argument, "a", 1);
 
             // b: 2
 
-            argument = arguments[1];
-            Assert.True(argument == evaluationOrderArguments[0]);
+            argument = GetArgument(invocation, 1, 0);
             CheckConstantArgument(invocation, argument, "b", 2);
 
             // M3(x)
 
-            invocation = CheckInvocation(nodes[2], model, "M3(x)", "M3", SpecialType.System_Double);
+            invocation = CheckInvocation(nodes[2], model, "M3(x)", "M3", 1, SpecialType.System_Double);
             Assert.Null(invocation.Instance);
-
-            arguments = invocation.ArgumentsInParameterOrder;
-            Assert.Equal(arguments.Length, 1);
-            evaluationOrderArguments = invocation.ArgumentsInEvaluationOrder;
-            Assert.Equal(evaluationOrderArguments.Length, 1);
 
             // x
 
-            argument = arguments[0];
-            Assert.True(argument == evaluationOrderArguments[0]);
+            argument = GetArgument(invocation, 0, 0);
             IOperation argumentValue = CheckArgument(invocation, argument, "d");
 
             Assert.Equal(argumentValue.Kind, OperationKind.ConversionExpression);
@@ -111,105 +91,94 @@ class C
         M2(1);
         M2();
         M2(1, new int[] { 2, 3 });
+        M2(c: new int[] { 2, 3 }, a: 1);
     }
 
     static void M2(int a, params int[] c) { }
 }";
 
             SemanticModel model;
-            InvocationExpressionSyntax[] nodes = GetInvocations(source, 4, out model);
+            InvocationExpressionSyntax[] nodes = GetInvocations(source, 5, out model);
 
             // M2(1, 2, 3)
 
-            IInvocationExpression invocation = CheckInvocation(nodes[0], model, "M2(1, 2, 3)", "M2", SpecialType.System_Void);
+            IInvocationExpression invocation = CheckInvocation(nodes[0], model, "M2(1, 2, 3)", "M2", 2, SpecialType.System_Void);
             Assert.Null(invocation.Instance);
-
-            ImmutableArray<IArgument> arguments = invocation.ArgumentsInParameterOrder;
-            Assert.Equal(arguments.Length, 2);
-            ImmutableArray<IArgument> evaluationOrderArguments = invocation.ArgumentsInEvaluationOrder;
-            Assert.Equal(evaluationOrderArguments.Length, 2);
 
             // 1
 
-            IArgument argument = arguments[0];
-            Assert.True(argument == evaluationOrderArguments[0]);
+            IArgument argument = GetArgument(invocation, 0, 0);
             CheckConstantArgument(invocation, argument, "a", 1);
 
             // 2, 3
 
-            argument = arguments[1];
-            Assert.True(argument == evaluationOrderArguments[1]);
+            argument = GetArgument(invocation, 1, 1);
             IOperation argumentValue = CheckArgument(invocation, argument, "c");
             CheckArrayCreation(argumentValue, 2, 3);
 
             // M2(1)
 
-            invocation = CheckInvocation(nodes[1], model, "M2(1)", "M2", SpecialType.System_Void);
+            invocation = CheckInvocation(nodes[1], model, "M2(1)", "M2", 2, SpecialType.System_Void);
             Assert.Null(invocation.Instance);
-
-            arguments = invocation.ArgumentsInParameterOrder;
-            Assert.Equal(arguments.Length, 2);
-            evaluationOrderArguments = invocation.ArgumentsInEvaluationOrder;
-            Assert.Equal(evaluationOrderArguments.Length, 2);
 
             // 1
 
-            argument = arguments[0];
-            Assert.True(argument == evaluationOrderArguments[0]);
+            argument = GetArgument(invocation, 0, 0);
             CheckConstantArgument(invocation, argument, "a", 1);
 
             // ()
 
-            argument = arguments[1];
-            Assert.True(argument == evaluationOrderArguments[1]);
+            argument = GetArgument(invocation, 1, 1);
             argumentValue = CheckArgument(invocation, argument, "c");
             CheckArrayCreation(argumentValue);
 
             // M2()
 
-            invocation = CheckInvocation(nodes[2], model, "M2()", "M2", SpecialType.System_Void, isInvalid: true);
+            invocation = CheckInvocation(nodes[2], model, "M2()", "M2", 2, SpecialType.System_Void, isInvalid: true);
             Assert.Null(invocation.Instance);
-            
-            arguments = invocation.ArgumentsInParameterOrder;
-            Assert.Equal(arguments.Length, 2);
-            evaluationOrderArguments = invocation.ArgumentsInEvaluationOrder;
-            Assert.Equal(evaluationOrderArguments.Length, 2);
 
             // ,
 
-            argument = arguments[0];
-            Assert.True(argument == evaluationOrderArguments[0]);
+            argument = GetArgument(invocation, 0, 0);
             argumentValue = CheckArgument(invocation, argument, "a", isInvalid: true);
             Assert.Equal(argumentValue.Kind, OperationKind.InvalidExpression);
             Assert.True(argumentValue.IsInvalid);
 
             // ()
 
-            argument = arguments[1];
-            Assert.True(argument == evaluationOrderArguments[1]);
+            argument = GetArgument(invocation, 1, 1);
             argumentValue = CheckArgument(invocation, argument, "c");
             CheckArrayCreation(argumentValue);
 
             // M2(1, new int[] { 2, 3 })
 
-            invocation = CheckInvocation(nodes[3], model, "M2(1, new int[] { 2, 3 })", "M2", SpecialType.System_Void);
+            invocation = CheckInvocation(nodes[3], model, "M2(1, new int[] { 2, 3 })", "M2", 2, SpecialType.System_Void);
             Assert.Null(invocation.Instance);
-
-            arguments = invocation.ArgumentsInParameterOrder;
-            Assert.Equal(arguments.Length, 2);
-            evaluationOrderArguments = invocation.ArgumentsInEvaluationOrder;
-            Assert.Equal(evaluationOrderArguments.Length, 2);
 
             // 1
 
-            argument = arguments[0];
-            Assert.True(argument == evaluationOrderArguments[0]);
+            argument = GetArgument(invocation, 0, 0);
             CheckConstantArgument(invocation, argument, "a", 1);
 
             // new int [] { 2, 3 }
 
-            argument = arguments[1];
-            Assert.True(argument == evaluationOrderArguments[1]);
+            argument = GetArgument(invocation, 1, 1);
+            argumentValue = CheckArgument(invocation, argument, "c");
+            CheckArrayCreation(argumentValue, 2, 3);
+
+            // M2(c: new int[] { 2, 3 }, a: 1)
+
+            invocation = CheckInvocation(nodes[4], model, "M2(c: new int[] { 2, 3 }, a: 1)", "M2", 2, SpecialType.System_Void);
+            Assert.Null(invocation.Instance);
+
+            // 1
+
+            argument = GetArgument(invocation, 0, 1);
+            CheckConstantArgument(invocation, argument, "a", 1);
+
+            // new int [] { 2, 3 }
+
+            argument = GetArgument(invocation, 1, 0);
             argumentValue = CheckArgument(invocation, argument, "c");
             CheckArrayCreation(argumentValue, 2, 3);
         }
@@ -240,17 +209,17 @@ class Derived : Base
 
             // M2()
 
-            IInvocationExpression invocation = CheckInvocation(nodes[0], model, "M2()", "M2", SpecialType.System_Void, isVirtual: true);
+            IInvocationExpression invocation = CheckInvocation(nodes[0], model, "M2()", "M2", 0, SpecialType.System_Void, isVirtual: true);
             CheckInstanceReference(invocation.Instance, InstanceReferenceKind.Implicit, "Derived");
 
             // this.M2()
 
-            invocation = CheckInvocation(nodes[1], model, "this.M2()", "M2", SpecialType.System_Void, isVirtual: true);
+            invocation = CheckInvocation(nodes[1], model, "this.M2()", "M2", 0, SpecialType.System_Void, isVirtual: true);
             CheckInstanceReference(invocation.Instance, InstanceReferenceKind.Explicit, "Derived");
 
             // base.M2()
 
-            invocation = CheckInvocation(nodes[2], model, "base.M2()", "M2", SpecialType.System_Void, isVirtual: false);
+            invocation = CheckInvocation(nodes[2], model, "base.M2()", "M2", 0, SpecialType.System_Void, isVirtual: false);
             CheckInstanceReference(invocation.Instance, InstanceReferenceKind.BaseClass, "Base");
         }
 
@@ -274,58 +243,42 @@ class C
 
             //  M2(1, c: 3)
 
-            IInvocationExpression invocation = CheckInvocation(nodes[0], model, "M2(1, c: 3)", "M2", SpecialType.System_Void);
+            IInvocationExpression invocation = CheckInvocation(nodes[0], model, "M2(1, c: 3)", "M2", 3, SpecialType.System_Void);
             CheckInstanceReference(invocation.Instance, InstanceReferenceKind.Implicit, "C");
 
-            ImmutableArray<IArgument> arguments = invocation.ArgumentsInParameterOrder;
-            Assert.Equal(arguments.Length, 3);
-            ImmutableArray<IArgument> evaluationOrderArguments = invocation.ArgumentsInEvaluationOrder;
-            Assert.Equal(evaluationOrderArguments.Length, 3);
-            
             // 1
 
-            IArgument argument = arguments[0];
-            Assert.True(argument == evaluationOrderArguments[0]);
+            IArgument argument = GetArgument(invocation, 0, 0);
             CheckConstantArgument(invocation, argument, "a", 1);
 
             // 20
 
-            argument = arguments[1];
-            Assert.True(argument == evaluationOrderArguments[2]);
+            argument = GetArgument(invocation, 1, 2);
             CheckConstantArgument(invocation, argument, "b", 20);
 
             // c: 3
 
-            argument = arguments[2];
-            Assert.True(argument == evaluationOrderArguments[1]);
+            argument = GetArgument(invocation, 2, 1);
             CheckConstantArgument(invocation, argument, "c", 3);
 
             //  M2(b: 2)
 
-            invocation = CheckInvocation(nodes[1], model, "M2(b: 2)", "M2", SpecialType.System_Void);
+            invocation = CheckInvocation(nodes[1], model, "M2(b: 2)", "M2", 3, SpecialType.System_Void);
             CheckInstanceReference(invocation.Instance, InstanceReferenceKind.Implicit, "C");
-
-            arguments = invocation.ArgumentsInParameterOrder;
-            Assert.Equal(arguments.Length, 3);
-            evaluationOrderArguments = invocation.ArgumentsInEvaluationOrder;
-            Assert.Equal(evaluationOrderArguments.Length, 3);
 
             // 10
 
-            argument = arguments[0];
-            Assert.True(argument == evaluationOrderArguments[1]);
+            argument = GetArgument(invocation, 0, 1);
             CheckConstantArgument(invocation, argument, "a", 10);
 
             // b: 2
 
-            argument = arguments[1];
-            Assert.True(argument == evaluationOrderArguments[0]);
+            argument = GetArgument(invocation, 1, 0);
             CheckConstantArgument(invocation, argument, "b", 2);
 
             // 30
 
-            argument = arguments[2];
-            Assert.True(argument == evaluationOrderArguments[2]);
+            argument = GetArgument(invocation, 2, 2);
             CheckConstantArgument(invocation, argument, "c", 30);
         }
 
@@ -347,23 +300,16 @@ class C
 
             //  f(1, 2)
 
-            IInvocationExpression invocation = CheckInvocation(nodes[0], model, "f(1, 2)", "Invoke", SpecialType.System_Boolean, isVirtual: true);
-           
-            ImmutableArray<IArgument> arguments = invocation.ArgumentsInParameterOrder;
-            Assert.Equal(arguments.Length, 2);
-            ImmutableArray<IArgument> evaluationOrderArguments = invocation.ArgumentsInEvaluationOrder;
-            Assert.Equal(evaluationOrderArguments.Length, 2);
+            IInvocationExpression invocation = CheckInvocation(nodes[0], model, "f(1, 2)", "Invoke", 2, SpecialType.System_Boolean, isVirtual: true);
 
             // 1
 
-            IArgument argument = arguments[0];
-            Assert.True(argument == evaluationOrderArguments[0]);
+            IArgument argument = GetArgument(invocation, 0, 0);
             CheckConstantArgument(invocation, argument, "arg1", 1);
 
             // 2
 
-            argument = arguments[1];
-            Assert.True(argument == evaluationOrderArguments[1]);
+            argument = GetArgument(invocation, 1, 1);
             CheckConstantArgument(invocation, argument, "arg2", 2);
         }
 
@@ -389,31 +335,24 @@ class C
 
             //  F(ref x, out y)
 
-            IInvocationExpression invocation = CheckInvocation(nodes[0], model, "F(ref x, out y)", "F", SpecialType.System_Void);
-
-            ImmutableArray<IArgument> arguments = invocation.ArgumentsInParameterOrder;
-            Assert.Equal(arguments.Length, 2);
-            ImmutableArray<IArgument> evaluationOrderArguments = invocation.ArgumentsInEvaluationOrder;
-            Assert.Equal(evaluationOrderArguments.Length, 2);
+            IInvocationExpression invocation = CheckInvocation(nodes[0], model, "F(ref x, out y)", "F", 2, SpecialType.System_Void);
 
             // ref x
 
-            IArgument argument = arguments[0];
-            Assert.True(argument == evaluationOrderArguments[0]);
+            IArgument argument = GetArgument(invocation, 0, 0);
             IOperation argumentValue = CheckArgument(invocation, argument, "xx");
             CheckLocalReference(argumentValue, "x", "Int32");
 
             // ref y
 
-            argument = arguments[1];
-            Assert.True(argument == evaluationOrderArguments[1]);
+            argument = GetArgument(invocation, 1, 1);
             argumentValue = CheckArgument(invocation, argument, "yy");
             CheckLocalReference(argumentValue, "y", "Int32");
         }
 
         private static InvocationExpressionSyntax[] GetInvocations(string source, int invocationsCount, out SemanticModel model)
         {
-            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.RegularWithIOperationFeature);
+            var compilation = CreateCompilationWithMscorlib45(source, parseOptions: TestOptions.Regular);
             var tree = compilation.SyntaxTrees.Single();
             model = compilation.GetSemanticModel(tree);
             var nodes = tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>().ToArray();
@@ -422,7 +361,7 @@ class C
             return nodes;
         }
 
-        private static IInvocationExpression CheckInvocation(InvocationExpressionSyntax node, SemanticModel model, string expressionText, string methodName, SpecialType resultType, bool isInvalid = false, bool isVirtual = false)
+        private static IInvocationExpression CheckInvocation(InvocationExpressionSyntax node, SemanticModel model, string expressionText, string methodName, int argumentCount, SpecialType resultType, bool isInvalid = false, bool isVirtual = false)
         {
             Assert.Equal(expressionText, node.ToString());
             IOperation operation = model.GetOperation(node);
@@ -432,9 +371,18 @@ class C
             Assert.False(invocation.ConstantValue.HasValue);
             Assert.Equal(isVirtual, invocation.IsVirtual);
             Assert.Equal(methodName, invocation.TargetMethod.Name);
+            Assert.Equal(argumentCount, invocation.ArgumentsInParameterOrder.Length);
+            Assert.Equal(argumentCount, invocation.ArgumentsInEvaluationOrder.Length);
             Assert.Equal(resultType, invocation.Type.SpecialType);
 
             return invocation;
+        }
+
+        private static IArgument GetArgument(IInvocationExpression invocation, int parameterIndex, int evaluationOrderIndex)
+        {
+            IArgument argument = invocation.ArgumentsInParameterOrder[parameterIndex];
+            Assert.True(argument == invocation.ArgumentsInEvaluationOrder[evaluationOrderIndex]);
+            return argument;
         }
 
         private static IOperation CheckArgument(IInvocationExpression invocation, IArgument argument, string parameterName, bool isInvalid = false)
