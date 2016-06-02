@@ -14,6 +14,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             InitializeComponent();
 
+            BindToOption(Show_completion_item_filters, CompletionOptions.ShowCompletionItemFilters, LanguageNames.CSharp);
+            BindToOption(Highlight_matching_portions_of_completion_list_items, CompletionOptions.HighlightMatchingPortionsOfCompletionListItems, LanguageNames.CSharp);
             BindToOption(InsertNewlineOnEnterWithWholeWord, CSharpCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord);
             BindToOption(ShowSnippets, CSharpCompletionOptions.IncludeSnippets);
             BindToOption(ShowKeywords, CompletionOptions.IncludeKeywords, LanguageNames.CSharp);
