@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
 
-            // TODO(t-evhau): fix this, left over from ReducedExtensionMethodSymbol
+            // PROTOTYPE: fix this, left over from ReducedExtensionMethodSymbol
             method = method.InferExtensionMethodTypeArguments(receiverType, compilation, ref useSiteDiagnostics);
             if ((object)method == null)
             {
@@ -103,12 +103,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-        // TODO(t-evhau): Do we need to return something from here? (return null is same as base virtual property)
+        // PROTOTYPE: Do we need to return something from here? (return null is same as base virtual property)
         internal override MethodSymbol CallsiteReducedFromMethod => null;
 
         public override TypeSymbol ReceiverType => null;
 
-        // TODO(t-evhau): Same comment as CallsiteReducedFromMethod
+        // PROTOTYPE: Same comment as CallsiteReducedFromMethod
         public override TypeSymbol GetTypeInferredDuringReduction(TypeParameterSymbol reducedFromTypeParameter)
         {
             if ((object)reducedFromTypeParameter == null)
@@ -124,10 +124,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        // TODO(t-evhau): Same comment as CallsiteReducedFromMethod
+        // PROTOTYPE: Same comment as CallsiteReducedFromMethod
         public override MethodSymbol ReducedFrom => null;
 
-        // TODO(t-evhau): Maybe this should virtual, like ReducedFrom (or merged with ReducedFrom)
+        // PROTOTYPE: Maybe this should virtual, like ReducedFrom (or merged with ReducedFrom)
         public MethodSymbol ExpandedFrom => _expandedFrom;
 
         public override MethodSymbol ConstructedFrom
@@ -192,7 +192,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override bool IsAsync => _expandedFrom.IsAsync;
 
-        // TODO(t-evhau): This probably needs to change.
+        // PROTOTYPE: This probably needs to change.
         public override bool IsExtensionMethod => true;
 
         internal sealed override bool IsMetadataNewSlot(bool ignoreInterfaceImplementationChanges = false) => false;
@@ -242,7 +242,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        // TODO(t-evhau): Not here, but need to test explicit interface impls in extension class (should produce error)
+        // PROTOTYPE: Not here, but need to test explicit interface impls in extension class (should produce error)
         internal override bool IsExplicitInterfaceImplementation => false;
 
         public override ImmutableArray<MethodSymbol> ExplicitInterfaceImplementations => ImmutableArray<MethodSymbol>.Empty;
@@ -291,7 +291,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
             }
 
-            // TODO(t-evhau): Add overrides? (Otherwise we might want to construct SynthesizedParameterSymbol directly, since this class isn't adding much value)
+            // PROTOTYPE: Add overrides? (Otherwise we might want to construct SynthesizedParameterSymbol directly, since this class isn't adding much value)
         }
 
         private sealed class ExpandedExtensionClassMethodParameterSymbol : WrappedParameterSymbol

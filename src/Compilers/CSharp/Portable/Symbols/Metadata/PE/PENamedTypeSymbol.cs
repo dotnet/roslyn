@@ -1594,7 +1594,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             get
             {
-                // TODO(t-evhau): Implement this.
+                // PROTOTYPE: Implement this.
                 return false;
             }
         }

@@ -1301,7 +1301,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     MergePartialMembers(memberNames, membersDictionary, diagnostics);
                     if (this.IsExtensionClass)
                     {
-                        // TODO(t-evhau): Is this needed?
+                        // PROTOTYPE: Is this needed?
                         //ReplaceExtensionClassMembers(memberNames, membersDictionary, diagnostics);
                     }
                     memberNames.Free();

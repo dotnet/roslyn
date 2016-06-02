@@ -16,17 +16,17 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     {
         private static readonly CSharpParseOptions parseOptions = TestOptions.Regular.WithExtensionEverythingFeature();
 
-        // TODO(t-evhau): Test extending struct/interface/other odd types (types that aren't NamedTypeSymbol? - array, pointer, type parameter, dynamic). Also test no "base type" at all.
-        // TODO(t-evhau): "extension struct" etc. syntax
-        // TODO(t-evhau): extend static class (e.g. Math). Test both calling and defining (e.g. define instance method)
-        // TODO(t-evhau): Extending a COM class (LocalRewriter.MakeArguments special-cases it)
-        // TODO(t-evhau): Extension .Add collection initializer, foreach and other duck typing calls
-        // TODO(t-evhau): Extension method/indexer with params array
-        // TODO(t-evhau): Extension method converted to delegate
-        // TODO(t-evhau): `using` all the things
-        // TODO(t-evhau): DllImport/extern on things in ext class
-        // TODO(t-evhau): Call extension methods directly (so priority to ext method). Both on imported and source methods.
-        // TODO(t-evhau): Extension methods/indexers (static/instance) with argument order oddness and default params
+        // PROTOTYPE: Test extending struct/interface/other odd types (types that aren't NamedTypeSymbol? - array, pointer, type parameter, dynamic). Also test no "base type" at all.
+        // PROTOTYPE: "extension struct" etc. syntax
+        // PROTOTYPE: extend static class (e.g. Math). Test both calling and defining (e.g. define instance method)
+        // PROTOTYPE: Extending a COM class (LocalRewriter.MakeArguments special-cases it)
+        // PROTOTYPE: Extension .Add collection initializer, foreach and other duck typing calls
+        // PROTOTYPE: Extension method/indexer with params array
+        // PROTOTYPE: Extension method converted to delegate
+        // PROTOTYPE: `using` all the things
+        // PROTOTYPE: DllImport/extern on things in ext class
+        // PROTOTYPE: Call extension methods directly (so priority to ext method). Both on imported and source methods.
+        // PROTOTYPE: Extension methods/indexers (static/instance) with argument order oddness and default params
 
         [Fact]
         public void SuccessTest()

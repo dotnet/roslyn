@@ -881,7 +881,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 args = builder.ToImmutableAndFree();
 
-                // TODO(t-evhau): This probably will break things. We want to pass around and expose the original source method, though.
+                // PROTOTYPE: This probably will break things. We want to pass around and expose the original source method, though.
                 // (it's only wrapped in a ExpandedExtensionClassMethodSymbol for overload resolution)
                 var expandedMethod = (ExpandedExtensionClassMethodSymbol)method;
                 method = expandedMethod.ExpandedFrom;

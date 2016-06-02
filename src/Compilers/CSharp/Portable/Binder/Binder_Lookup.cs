@@ -402,7 +402,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var member = originalMember;
                 if (member is ExpandedExtensionClassPropertySymbol)
                 {
-                    // TODO(t-evhau): Generalize this.
+                    // PROTOTYPE: Generalize this.
                     member = ((ExpandedExtensionClassPropertySymbol)member).ExpandedFrom;
                 }
                 var resultOfThisMember = this.CheckViability(member, arity, options, null, diagnose: true, useSiteDiagnostics: ref useSiteDiagnostics);

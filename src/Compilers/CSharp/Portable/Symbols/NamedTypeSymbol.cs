@@ -351,7 +351,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        // TODO(t-evhau): BaseType is wrong here. We should directly compute/store the extended type,
+        // PROTOTYPE: BaseType is wrong here. We should directly compute/store the extended type,
         // since the semantics of what's valid there are very different than base types.
         public TypeSymbol ExtensionClassType => IsExtensionClass ? BaseType : null;
 
@@ -379,7 +379,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public ImmutableArray<Symbol> GetUnderlyingMembers()
         {
             var members = this.GetMembers();
-            // TODO(t-evhau): Remove SourceNamedTypeSymbol cast
+            // PROTOTYPE: Remove SourceNamedTypeSymbol cast
             if (!this.IsExtensionClass)
             {
                 return members;
@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (isExtensionClass)
                         {
                             Debug.Assert(method.MethodKind != MethodKind.ExpandedExtensionClass);
-                            // TODO(t-evhau): This assumes source methods. What about loaded symbols from disk?
+                            // PROTOTYPE: This assumes source methods. What about loaded symbols from disk?
                             var expanded = method.ExpandExtensionClassMethod();
                             Debug.Assert(expanded != null);
                             methods.Add(expanded);
@@ -471,12 +471,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             foreach (var member in allMembers)
             {
-                // TODO(t-evhau): `if member.Kind == memberTypeSearchingFor` ?
-                // TODO(t-evhau): This assumes source methods. What about loaded symbols from disk?
+                // PROTOTYPE: `if member.Kind == memberTypeSearchingFor` ?
+                // PROTOTYPE: This assumes source methods. What about loaded symbols from disk?
                 var underlying = this.GetUnderlyingMember(member);
                 if ((object)underlying != null)
                 {
-                    // TODO(t-evhau): return `member` instead?
+                    // PROTOTYPE: return `member` instead?
                     members.Add(underlying);
                 }
             }

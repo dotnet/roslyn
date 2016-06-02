@@ -160,7 +160,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (initializer.InvokedAsExtensionMethod)
             {
-                // TODO(t-evhau): Extension class interaction?
+                // PROTOTYPE: Extension class interaction?
                 // the add method was found as an extension method.  Replace the implicit receiver (first argument) with the rewritten receiver.
                 Debug.Assert(addMethod.IsStatic && addMethod.IsExtensionMethod);
                 Debug.Assert(rewrittenArguments[0].Kind == BoundKind.ImplicitReceiver);

@@ -5441,7 +5441,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         for (int i = methodGroup.Methods.Count - 1; i >= 0; i--)
                         {
-                            // TODO(t-evhau): I think this (the extension class) is wrong. For example, type constraints might not match on the receiver.
+                            // PROTOTYPE: I think this (the extension class) is wrong. For example, type constraints might not match on the receiver.
                             if (methodGroup.Methods[i].IsInExtensionClass) continue;
                             if ((object)methodGroup.Methods[i].ReduceExtensionMethod(left.Type) == null) methodGroup.Methods.RemoveAt(i);
                         }

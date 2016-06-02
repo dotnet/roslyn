@@ -826,7 +826,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return _dynamicFactory.MakeDynamicGetMember(dynamicMemberAccess.Receiver, dynamicMemberAccess.Name, resultIndexed: false).ToExpression();
 
                 case BoundKind.IndexerAccess:
-                    // TODO(t-evhau): Need to rewrite arguments if extension indexer?
+                    // PROTOTYPE: Need to rewrite arguments if extension indexer?
                     var indexerAccess = (BoundIndexerAccess)transformedExpression;
                     return MakePropertyGetAccess(transformedExpression.Syntax, indexerAccess.ReceiverOpt, indexerAccess.Indexer, indexerAccess.Arguments);
 

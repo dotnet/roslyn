@@ -1104,7 +1104,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 underlyingMembersMap = _underlyingMembersMap;
             }
 
-            // TODO(t-evhau): Strip generic constructions off of symbol?
+            // PROTOTYPE: Strip generic constructions off of symbol?
             Symbol cachedResult;
             if (underlyingMembersMap.TryGetValue(symbol, out cachedResult))
             {
@@ -1112,11 +1112,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             Symbol result; // make a new variable so we get unassigned variable errors if a case is forgotten.
-            // TODO(t-evhau): Fill in the rest of the extension class possible members.
+            // PROTOTYPE: Fill in the rest of the extension class possible members.
             switch (symbol.Kind)
             {
                 case SymbolKind.Property:
-                    // TODO(t-evhau): this is weird.
+                    // PROTOTYPE: this is weird.
                     result = symbol;
                     {
                         var property = (PropertySymbol)symbol;
@@ -1146,7 +1146,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                                 {
                                     result = ExpandedExtensionClassMethodSymbol.Create(method);
                                 }
-                                // TODO(t-evhau): Generics/construction of result? (probably put in Create method)
+                                // PROTOTYPE: Generics/construction of result? (probably put in Create method)
                                 break;
                             case MethodKind.ExpandedExtensionClass:
                             case MethodKind.ReducedExtension:

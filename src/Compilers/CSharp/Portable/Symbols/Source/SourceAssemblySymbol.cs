@@ -1666,7 +1666,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get
             {
-                // TODO(t-evhau): Implement this.
+                // PROTOTYPE: Implement this.
                 return true;
             }
         }

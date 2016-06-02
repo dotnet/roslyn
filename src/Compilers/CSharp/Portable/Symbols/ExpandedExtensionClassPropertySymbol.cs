@@ -42,13 +42,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<PropertySymbol> ExplicitInterfaceImplementations => ImmutableArray<PropertySymbol>.Empty;
 
-        // TODO(t-evhau): construct get method
+        // PROTOTYPE: construct get method
         public override MethodSymbol GetMethod => _expandedFrom.GetMethod?.ExpandExtensionClassMethod();
 
-        // TODO(t-evhau): construct set method
+        // PROTOTYPE: construct set method
         public override MethodSymbol SetMethod => _expandedFrom.SetMethod?.ExpandExtensionClassMethod();
 
-        // TODO(t-evhau): extra parameters causing problems? (find references of IsIndexer)
+        // PROTOTYPE: extra parameters causing problems? (find references of IsIndexer)
         public override bool IsIndexer => _expandedFrom.IsIndexer;
 
         public override bool IsAbstract => _expandedFrom.IsAbstract;
@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return parameters.AsImmutableOrNull();
         }
 
-        // TODO(t-evhau): Merge these two classes with the ones in ExpandedExtensionClassMethodSymbol?
+        // PROTOTYPE: Merge these two classes with the ones in ExpandedExtensionClassMethodSymbol?
 
         private sealed class ExpandedExtensionClassPropertyThisParameterSymbol : SynthesizedParameterSymbol
         {
@@ -117,7 +117,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
             }
 
-            // TODO(t-evhau): Add overrides? (Otherwise we might want to construct SynthesizedParameterSymbol directly, since this class isn't adding much value)
+            // PROTOTYPE: Add overrides? (Otherwise we might want to construct SynthesizedParameterSymbol directly, since this class isn't adding much value)
         }
 
         private sealed class ExpandedExtensionClassPropertyParameterSymbol : WrappedParameterSymbol

@@ -807,7 +807,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             LookupOptions options,
             Binder originalBinder)
         {
-            // TODO(t-evhau): implement this
+            // PROTOTYPE: implement this
         }
 
         // Note: we do not mark nodes when looking up arities or names.  This is because these two

@@ -397,7 +397,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var method = (MethodSymbol)methodOrIndexer;
                 if (method.IsInExtensionClass)
                 {
-                    // TODO(t-evhau): Generics conversions, things that aren't NamedTypeSymbol
+                    // PROTOTYPE: Generics conversions, things that aren't NamedTypeSymbol
                     receiverNamedType = method.ContainingType.ExtensionClassType as NamedTypeSymbol;
                 }
                 else
@@ -1180,7 +1180,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(rewrittenReceiver != null);
             Debug.Assert(extensionClassMethod.IsInExtensionClass);
-            Debug.Assert(!extensionClassMethod.IsStatic); // TODO(t-evhau): will probably eventually support this here too
+            Debug.Assert(!extensionClassMethod.IsStatic); // PROTOTYPE: will probably eventually support this here too
 
             var expanded = extensionClassMethod.ExpandExtensionClassMethod();
 

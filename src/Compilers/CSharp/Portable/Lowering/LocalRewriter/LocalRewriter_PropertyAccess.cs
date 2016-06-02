@@ -52,7 +52,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // This is a property set access. We return a BoundPropertyAccess node here.
                 // This node will be rewritten with MakePropertyAssignment when rewriting the enclosing BoundAssignmentOperator.
 
-                // TODO(t-evhau): Handle extension properties
+                // PROTOTYPE: Handle extension properties
                 return oldNodeOpt != null ?
                     oldNodeOpt.Update(rewrittenReceiverOpt, propertySymbol, resultKind, type) :
                     new BoundPropertyAccess(syntax, rewrittenReceiverOpt, propertySymbol, resultKind, type);
