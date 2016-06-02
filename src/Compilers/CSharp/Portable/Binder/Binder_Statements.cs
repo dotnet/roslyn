@@ -1762,7 +1762,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var assignments = assignmentSteps.ToImmutable();
 
                 TypeSymbol voidType = GetSpecialType(SpecialType.System_Void, diagnostics, node);
-                return new BoundDeconstructionAssignmentOperator(node, checkedVariables, boundRHS, deconstructions, assignments, voidType);
+                return new BoundDeconstructionAssignmentOperator(node, FlattenDeconstructVariables(checkedVariables), boundRHS, deconstructions, assignments, voidType);
             }
             finally
             {
@@ -1976,6 +1976,40 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundAssignmentOperator op = BindAssignment(node, leftPlaceholder, rightPlaceholder, diagnostics);
 
             return new BoundDeconstructionAssignmentOperator.AssignmentStep() { Assignment = op, OutputPlaceholder = leftPlaceholder, TargetPlaceholder = rightPlaceholder };
+        }
+
+        private ImmutableArray<BoundExpression> FlattenDeconstructVariables(ImmutableArray<BoundExpression> variables)
+        {
+            bool isFlat = true;
+            foreach (var variable in variables)
+            {
+                if (variable.Kind == BoundKind.DeconstructionVariables) { isFlat = false; break; }
+            }
+
+            if (isFlat)
+            {
+                return variables;
+            }
+
+            var builder = ArrayBuilder<BoundExpression>.GetInstance(variables.Length);
+            FlattenDeconstructVariables(variables, builder);
+
+            return builder.ToImmutableAndFree();
+        }
+
+        private void FlattenDeconstructVariables(ImmutableArray<BoundExpression> variables, ArrayBuilder<BoundExpression> builder)
+        {
+            foreach (var variable in variables)
+            {
+                if (variable.Kind == BoundKind.DeconstructionVariables)
+                {
+                    FlattenDeconstructVariables(((BoundDeconstructionVariables)variable).Variables, builder);
+                }
+                else
+                {
+                    builder.Add(variable);
+                }
+            }
         }
 
         /// <summary>

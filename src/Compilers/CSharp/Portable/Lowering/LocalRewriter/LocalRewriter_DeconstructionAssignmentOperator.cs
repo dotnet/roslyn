@@ -66,29 +66,14 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private ImmutableArray<BoundExpression> LhsSideEffects(ImmutableArray<BoundExpression> variables, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> stores)
         {
-            var lhsReceivers = ArrayBuilder<BoundExpression>.GetInstance();
+            var lhsReceivers = ArrayBuilder<BoundExpression>.GetInstance(variables.Length);
 
-            LhsSideEffects(variables, temps, stores, lhsReceivers);
-
-            return lhsReceivers.ToImmutableAndFree();
-        }
-
-        /// <summary>
-        /// Adds the side effects to stores and adds temporaries to lhsReceivers.
-        /// </summary>
-        private void LhsSideEffects(ImmutableArray<BoundExpression> variables, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> stores, ArrayBuilder<BoundExpression> lhsReceivers)
-        {
             foreach (var variable in variables)
             {
-                if (variable.Kind == BoundKind.DeconstructionVariables)
-                {
-                    LhsSideEffects(((BoundDeconstructionVariables)variable).Variables, temps, stores, lhsReceivers);
-                }
-                else
-                {
-                    lhsReceivers.Add(TransformCompoundAssignmentLHS(variable, stores, temps, isDynamicAssignment: false));
-                }
+                lhsReceivers.Add(TransformCompoundAssignmentLHS(variable, stores, temps, isDynamicAssignment: false));
             }
+
+            return lhsReceivers.ToImmutableAndFree();
         }
 
         private void AccessTupleFields(BoundDeconstructionAssignmentOperator node, BoundDeconstructionAssignmentOperator.DeconstructStep deconstruction, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> stores, ArrayBuilder<BoundValuePlaceholderBase> placeholders)
@@ -98,7 +83,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             var tupleElementTypes = tupleType.TupleElementTypes;
 
             var numElements = tupleElementTypes.Length;
-            Debug.Assert(numElements == node.LeftVariables.Length);
 
             CSharpSyntaxNode syntax = node.Syntax;
 
@@ -141,7 +125,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // prepare out parameters for Deconstruct
             var deconstructParameters = deconstruction.DeconstructMemberOpt.Parameters;
             var outParametersBuilder = ArrayBuilder<BoundExpression>.GetInstance(deconstructParameters.Length);
-            Debug.Assert(deconstructParameters.Length == node.LeftVariables.Length);
 
             for (var i = 0; i < deconstructParameters.Length; i++)
             {
