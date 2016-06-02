@@ -17,5 +17,9 @@ namespace Microsoft.CodeAnalysis.Completion
         public static readonly Option<bool> AlwaysShowBuilder = new Option<bool>(ControllerFeatureName, "AlwaysShowBuilder", defaultValue: false);
         public static readonly Option<bool> FilterOutOfScopeLocals = new Option<bool>(ControllerFeatureName, "FilterOutOfScopeLocals", defaultValue: true);
         public static readonly Option<bool> ShowXmlDocCommentCompletion = new Option<bool>(ControllerFeatureName, "ShowXmlDocCommentCompletion", defaultValue: true);
+
+        // Dev15 options
+        public static readonly PerLanguageOption<bool> ShowCompletionItemFilters = new PerLanguageOption<bool>(FeatureName, nameof(ShowCompletionItemFilters), defaultValue: false);
+        public static readonly PerLanguageOption<bool> HighlightMatchingPortionsOfCompletionListItems = new PerLanguageOption<bool>(FeatureName, nameof(HighlightMatchingPortionsOfCompletionListItems), defaultValue: false);
     }
 }

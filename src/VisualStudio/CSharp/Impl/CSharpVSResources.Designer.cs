@@ -484,6 +484,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Highlight matching portions of completion list items.
+        /// </summary>
+        internal static string Option_Highlight_matching_portions_of_completion_list_items {
+            get {
+                return ResourceManager.GetString("Option_Highlight_matching_portions_of_completion_list_items", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Highlighting.
         /// </summary>
         internal static string Option_Highlighting {
@@ -588,6 +597,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Option_SelectionInCompletionList {
             get {
                 return ResourceManager.GetString("Option_SelectionInCompletionList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show completion item filters.
+        /// </summary>
+        internal static string Option_Show_completion_item_filters {
+            get {
+                return ResourceManager.GetString("Option_Show_completion_item_filters", resourceCulture);
             }
         }
         

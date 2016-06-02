@@ -33,5 +33,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             get { return CSharpVSResources.Option_ShowSnippets; }
         }
+
+        public static string Option_Highlight_matching_portions_of_completion_list_items =>
+            CSharpVSResources.Option_Highlight_matching_portions_of_completion_list_items;
+
+        public static string Option_Show_completion_item_filters =>
+            CSharpVSResources.Option_Show_completion_item_filters;
     }
 }
