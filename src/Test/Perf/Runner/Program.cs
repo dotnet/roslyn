@@ -48,7 +48,7 @@ namespace Runner
             if (shouldUploadTrace)
             {
                 Log("Uploading traces");
-                UploadTraces(CPCDirectoryPath, traceDestination);
+                UploadTraces(GetCPCDirectoryPath(), traceDestination);
             }
         }
 
@@ -74,6 +74,10 @@ namespace Runner
                 var state = await RunFile(script).ConfigureAwait(false);
                 var tests = RuntimeSettings.resultTests;
                 RuntimeSettings.resultTests = null;
+                foreach (var test in tests)
+                {
+                    test.SetWorkingDirectory(Path.GetDirectoryName(script));
+                }
                 testInstances.AddRange(tests);
             }
 

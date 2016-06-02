@@ -368,6 +368,9 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "VisualStudioSetup.Next", "src\VisualStudio\Setup.Next\VisualStudioSetup.Next.csproj", "{143FE684-6E1C-41DF-9C60-84C7772DC49C}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Perf", "Perf", "{DD13507E-D5AF-4B61-B11A-D55D6F4A73A5}"
+	ProjectSection(SolutionItems) = preProject
+		src\Test\Perf\readme.md = src\Test\Perf\readme.md
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Perf.Utilities", "src\Test\Perf\Utilities\Perf.Utilities.csproj", "{59AD474E-2A35-4E8A-A74D-E33479977FBF}"
 EndProject

@@ -1,5 +1,4 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
-
 #r "../../../Roslyn.Test.Performance.Utilities.dll"
 
 using System.IO;
@@ -18,7 +17,7 @@ class HelloWorldTest : PerfTest
     }
     
     
-    public override void Setup() 
+    public override void Setup()
     {
         _pathToHelloWorld = Path.Combine(MyWorkingDirectory, "HelloWorld.cs");
         _pathToOutput = Path.Combine(TempDirectory, "HelloWorld.exe");
