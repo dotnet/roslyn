@@ -87,12 +87,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
                 var applicableToText = this.ApplicableTo.GetText(this.ApplicableTo.TextBuffer.CurrentSnapshot);
 
-                var filteredSuggestionModeItem = new SimplePresentationItem(
+                SimplePresentationItem filteredSuggestionModeItem = null;
+                if (selectedItem != null)
+                {
+                    filteredSuggestionModeItem = new SimplePresentationItem(
                         CompletionItem.Create(
                             displayText: applicableToText,
                             span: this.ApplicableTo.GetSpan(this.ApplicableTo.TextBuffer.CurrentSnapshot).Span.ToTextSpan()),
                         selectedItem.CompletionService,
                         isSuggestionModeItem: true);
+                }
 
                 var showBuilder = suggestionMode || presetBuilder != null;
                 var bestSuggestionModeItem = applicableToText.Length > 0 ? filteredSuggestionModeItem : presetBuilder ?? filteredSuggestionModeItem;

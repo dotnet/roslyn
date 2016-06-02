@@ -1311,6 +1311,32 @@ End Class
             Assert.Equal("ModuleAssemblyName", c.Assembly.Identity.Name)
         End Sub
 
+        <WorkItem(8506, "https://github.com/dotnet/roslyn/issues/8506")>
+        <Fact()>
+        Public Sub CrossCorlibSystemObjectReturnType_Script()
+            ' MinAsyncCorlibRef corlib Is used since it provides just enough corlib type definitions
+            ' And Task APIs necessary for script hosting are provided by MinAsyncRef. This ensures that
+            ' `System.Object, mscorlib, Version=4.0.0.0` will Not be provided (since it's unversioned).
+            '
+            ' In the original bug, Xamarin iOS, Android, And Mac Mobile profile corlibs were
+            ' realistic cross-compilation targets.
+            Dim compilation = VisualBasicCompilation.CreateScriptCompilation(
+                "submission-assembly",
+                references:={MinAsyncCorlibRef},
+                syntaxTree:=Parse("? True", options:=TestOptions.Script)
+            ).VerifyDiagnostics()
+
+            Assert.True(compilation.IsSubmission)
+
+            Dim taskOfT = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T)
+            Dim taskOfObject = taskOfT.Construct(compilation.ObjectType)
+            Dim entryPoint = compilation.GetEntryPoint(Nothing)
+
+            Assert.Same(compilation.ObjectType.ContainingAssembly, taskOfT.ContainingAssembly)
+            Assert.Same(compilation.ObjectType.ContainingAssembly, taskOfObject.ContainingAssembly)
+            Assert.Equal(taskOfObject, entryPoint.ReturnType)
+        End Sub
+
         <WorkItem(3719, "https://github.com/dotnet/roslyn/issues/3719")>
         <Fact()>
         Public Sub GetEntryPoint_Script()
