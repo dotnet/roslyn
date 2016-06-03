@@ -252,17 +252,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Also note that less derived members are not actually removed - they are simply flagged.
             ReportUseSiteDiagnostics(results, ref useSiteDiagnostics);
 
-            // SPEC: If the resulting set of candidate methods is empty, then further processing along the following steps are abandoned, 
-            // SPEC: and instead an attempt is made to process the invocation as an extension method invocation. If this fails, then no 
-            // SPEC: applicable methods exist, and a binding-time error occurs. 
+            // SPEC: If the resulting set of candidate methods is empty, then further processing along the following steps are abandoned,
+            // SPEC: and instead an attempt is made to process the invocation as an extension method invocation. If this fails, then no
+            // SPEC: applicable methods exist, and a binding-time error occurs.
             if (RemainingCandidatesCount(results) == 0)
             {
-                // UNDONE: Extension methods!
                 return;
             }
 
-            // SPEC: The best method of the set of candidate methods is identified. If a single best method cannot be identified, 
-            // SPEC: the method invocation is ambiguous, and a binding-time error occurs. 
+            // SPEC: The best method of the set of candidate methods is identified. If a single best method cannot be identified,
+            // SPEC: the method invocation is ambiguous, and a binding-time error occurs.
 
             RemoveWorseMembers(results, arguments, ref useSiteDiagnostics);
 
@@ -494,7 +493,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Second, we need to determine if the method is applicable in its normal form or its expanded form.
 
             var normalResult = (allowUnexpandedForm || !IsValidParams(leastOverriddenMember))
-                ? IsMemberApplicableInNormalForm(member, leastOverriddenMember, typeArguments, arguments, isMethodGroupConversion, allowRefOmittedArguments, inferWithDynamic, ref useSiteDiagnostics)
+                ? IsMemberApplicableInNormalForm(member, leastOverriddenMember, typeArguments, arguments, isMethodGroupConversion, allowRefOmittedArguments, inferWithDynamic, ref useSiteDiagnostics, completeResults: completeResults)
                 : default(MemberResolutionResult<TMember>);
 
             var result = normalResult;
@@ -2511,7 +2510,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool isMethodGroupConversion,
             bool allowRefOmittedArguments,
             bool inferWithDynamic,
-            ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics,
+            bool completeResults = false)
             where TMember : Symbol
         {
             // AnalyzeArguments matches arguments to parameter names and positions. 
@@ -2519,7 +2519,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var argumentAnalysis = AnalyzeArguments(member, arguments, isMethodGroupConversion, expanded: false);
             if (!argumentAnalysis.IsValid)
             {
-                return new MemberResolutionResult<TMember>(member, leastOverriddenMember, MemberAnalysisResult.ArgumentParameterMismatch(argumentAnalysis));
+                // When we are producing more complete results, and a required parameter is missing, we push on
+                // to type inference so that lambda arguments can be bound to their delegate-typed parameters,
+                // thus improving the API and intellisense experience.
+                if (!completeResults || argumentAnalysis.Kind != ArgumentAnalysisResultKind.RequiredParameterMissing)
+                {
+                    return new MemberResolutionResult<TMember>(member, leastOverriddenMember, MemberAnalysisResult.ArgumentParameterMismatch(argumentAnalysis));
+                }
             }
 
             // Check after argument analysis, but before more complicated type inference and argument type validation.
@@ -2552,12 +2558,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // The member passed to the following call is returned in the result (possibly a constructed version of it).
             // The applicability is checked based on effective parameters passed in.
-            return IsApplicable(
+            var applicableResult = IsApplicable(
                 member, leastOverriddenMember,
                 typeArguments, arguments, originalEffectiveParameters, constructedEffectiveParameters,
                 argumentAnalysis.ArgsToParamsOpt, hasAnyRefOmittedArgument,
                 ref useSiteDiagnostics,
                 inferWithDynamic);
+
+            // If we were producing complete results and had missing arguments, we pushed on in order to call IsApplicable for
+            // type inference and lambda binding. In that case we still need to return the argument mismatch failure here.
+            if (completeResults && !argumentAnalysis.IsValid)
+            {
+                return new MemberResolutionResult<TMember>(member, leastOverriddenMember, MemberAnalysisResult.ArgumentParameterMismatch(argumentAnalysis));
+            }
+
+            return applicableResult;
         }
 
         private MemberResolutionResult<TMember> IsMemberApplicableInExpandedForm<TMember>(
@@ -2802,7 +2817,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We add a "virtual parameter" for the __arglist.
             int paramCount = parameters.ParameterTypes.Length + (isVararg ? 1 : 0);
 
-            Debug.Assert(paramCount == arguments.Arguments.Count);
+            if (arguments.Arguments.Count < paramCount)
+            {
+                // For improved error recovery, we perform type inference even when the argument
+                // list is of the wrong length. The caller is expected to detect and handle that,
+                // treating the method as inapplicable.
+                paramCount = arguments.Arguments.Count;
+            }
+            else
+            {
+                Debug.Assert(paramCount == arguments.Arguments.Count);
+            }
 
             // For each argument in A, the parameter passing mode of the argument (i.e., value, ref, or out) is 
             // identical to the parameter passing mode of the corresponding parameter, and
