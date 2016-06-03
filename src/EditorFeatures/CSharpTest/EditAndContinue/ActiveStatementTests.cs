@@ -7957,6 +7957,52 @@ class C
             edits.VerifyRudeDiagnostics(active);
         }
 
+        [Fact]
+        public void MisplacedActiveStatement2()
+        {
+            string src1 = @"
+class C
+{
+    static <AS:0>void</AS:0> Main(string[] args)
+    {
+    }
+}";
+            string src2 = @"
+class C
+{
+    static void Main(string[] args)
+    <AS:0>{</AS:0>
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
+        [Fact]
+        public void MisplacedTrackingSpan1()
+        {
+            string src1 = @"
+class C
+{
+    static <AS:0>void</AS:0> Main(string[] args)
+    {
+    }
+}";
+            string src2 = @"
+class C
+{
+    static <TS:0>void</TS:0> Main(string[] args)
+    <AS:0>{</AS:0>
+    }
+}";
+            var edits = GetTopEdits(src1, src2);
+            var active = GetActiveStatements(src1, src2);
+
+            edits.VerifyRudeDiagnostics(active);
+        }
+
         #endregion
 
         #region Unmodified Documents
