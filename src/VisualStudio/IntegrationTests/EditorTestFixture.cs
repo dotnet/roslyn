@@ -22,7 +22,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
             _visualStudio = instanceFactory.GetNewOrUsedInstance();
 
             _visualStudio.Instance.SolutionExplorer.CreateSolution(solutionName);
-            _visualStudio.Instance.SolutionExplorer.AddProject("TestProj", WellKnownProjectTemplates.ClassLibrary, WellKnownLanguageNames.CSharp);
+            _visualStudio.Instance.SolutionExplorer.AddProject("TestProj", WellKnownProjectTemplates.ClassLibrary, LanguageName);
 
             _visualStudioWorkspace = _visualStudio.Instance.VisualStudioWorkspace;
             _visualStudioWorkspace.UseSuggestionMode = false;
@@ -30,14 +30,11 @@ namespace Roslyn.VisualStudio.IntegrationTests
             _editor = _visualStudio.Instance.Editor;
         }
 
+        protected abstract string LanguageName { get; }
+
         public void Dispose()
         {
             _visualStudio.Dispose();
-        }
-
-        protected void WaitForWorkspace()
-        {
-            _visualStudioWorkspace.WaitForAsyncOperations("Workspace");
         }
 
         public void WaitForAsyncOperations(string featuresToWaitFor)
@@ -56,8 +53,18 @@ namespace Roslyn.VisualStudio.IntegrationTests
             int caretPosition;
             MarkupTestFile.GetPosition(markupCode, out code, out caretPosition);
 
-            _editor.SetText(code);
-            _editor.MoveCaret(caretPosition);
+            var originalValue = _visualStudioWorkspace.IsPrettyListingOn(LanguageName);
+
+            _visualStudioWorkspace.SetPrettyListing(LanguageName, false);
+            try
+            {
+                _editor.SetText(code);
+                _editor.MoveCaret(caretPosition);
+            }
+            finally
+            {
+                _visualStudioWorkspace.SetPrettyListing(LanguageName, originalValue);
+            }
         }
 
         protected void SendKeys(params object[] keys)

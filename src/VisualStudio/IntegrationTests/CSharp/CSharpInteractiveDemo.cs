@@ -2,12 +2,11 @@
 
 using System;
 using System.Threading.Tasks;
-using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.Test.Utilities;
 using Roslyn.VisualStudio.Test.Utilities.OutOfProcess;
 using Xunit;
 
-namespace Roslyn.VisualStudio.CSharp.IntegrationTests
+namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpInteractiveDemo : IDisposable

@@ -1,16 +1,18 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis;
 using Roslyn.Test.Utilities;
-using Roslyn.VisualStudio.IntegrationTests;
 using Roslyn.VisualStudio.Test.Utilities;
 using Roslyn.VisualStudio.Test.Utilities.Input;
 using Xunit;
 
-namespace Roslyn.VisualStudio.CSharp.IntegrationTests
+namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpAutomaticBraceCompletion : EditorTestFixture
     {
+        protected override string LanguageName => LanguageNames.CSharp;
+
         public CSharpAutomaticBraceCompletion(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory, nameof(CSharpAutomaticBraceCompletion))
         {

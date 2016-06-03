@@ -24,6 +24,16 @@ namespace Roslyn.VisualStudio.Test.Utilities.OutOfProcess
             }
         }
 
+        public bool IsPrettyListingOn(string languageName)
+        {
+            return InProc.IsPrettyListingOn(languageName);
+        }
+
+        public void SetPrettyListing(string languageName, bool value)
+        {
+            InProc.SetPrettyListing(languageName, value);
+        }
+
         public void WaitForAsyncOperations(string featuresToWaitFor, bool waitForWorkspaceFirst = true)
         {
             InProc.WaitForAsyncOperations(featuresToWaitFor, waitForWorkspaceFirst);

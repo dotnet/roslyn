@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.Test.Utilities;
 using Roslyn.VisualStudio.Test.Utilities.Common;
@@ -11,6 +12,8 @@ namespace Roslyn.VisualStudio.IntegrationTests.CSharp
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpIntelliSense : EditorTestFixture
     {
+        protected override string LanguageName => LanguageNames.CSharp;
+
         public CSharpIntelliSense(VisualStudioInstanceFactory instanceFactory)
             : base(instanceFactory, nameof(CSharpIntelliSense))
         {

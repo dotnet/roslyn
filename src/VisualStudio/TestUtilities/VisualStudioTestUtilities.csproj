@@ -47,7 +47,6 @@
     </Compile>
     <Compile Include="VisualStudioInstanceContext.cs" />
     <Compile Include="VisualStudioInstanceFactory.cs" />
-    <Compile Include="WellKnownLanguageNames.cs" />
     <Compile Include="OutOfProcess\CSharpInteractiveWindow_OutOfProc.cs" />
     <Compile Include="OutOfProcess\Editor_OutOfProc.cs" />
     <Compile Include="OutOfProcess\InteractiveWindow_OutOfProc.cs" />

@@ -1,11 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Roslyn.VisualStudio.IntegrationTests;
+using Microsoft.CodeAnalysis;
 using Roslyn.VisualStudio.Test.Utilities;
 using Xunit;
 
-namespace Roslyn.VisualStudio.CSharp.IntegrationTests
+namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class CSharpBuild : IDisposable
@@ -17,7 +17,7 @@ namespace Roslyn.VisualStudio.CSharp.IntegrationTests
             _visualStudio = instanceFactory.GetNewOrUsedInstance();
 
             _visualStudio.Instance.SolutionExplorer.CreateSolution(nameof(CSharpBuild));
-            _visualStudio.Instance.SolutionExplorer.AddProject("TestProj", WellKnownProjectTemplates.ConsoleApplication, WellKnownLanguageNames.CSharp);
+            _visualStudio.Instance.SolutionExplorer.AddProject("TestProj", WellKnownProjectTemplates.ConsoleApplication, LanguageNames.CSharp);
         }
 
         public void Dispose()

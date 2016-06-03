@@ -1,7 +1,9 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.IO;
+using Microsoft.CodeAnalysis;
 
 namespace Roslyn.VisualStudio.Test.Utilities.InProcess
 {
@@ -92,10 +94,27 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
             _fileName = path;
         }
 
+        private static string ConvertLanguageName(string languageName)
+        {
+            const string CSharp = nameof(CSharp);
+            const string VisualBasic = nameof(VisualBasic);
+
+            switch (languageName)
+            {
+                case LanguageNames.CSharp:
+                    return CSharp;
+                case LanguageNames.VisualBasic:
+                    return VisualBasic;
+                default:
+                    throw new ArgumentException($"{languageName} is not supported.", nameof(languageName));
+            }
+        }
+
         public void AddProject(string projectName, string projectTemplate, string languageName)
         {
             var projectPath = Path.Combine(DirectoryName, projectName);
-            var projectTemplatePath = GetProjectTemplatePath(projectTemplate, languageName);
+
+            var projectTemplatePath = GetProjectTemplatePath(projectTemplate, ConvertLanguageName(languageName));
 
             _solution.AddFromTemplate(projectTemplatePath, projectPath, projectName, Exclusive: false);
         }

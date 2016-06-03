@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Roslyn.VisualStudio.IntegrationTests;
+using Microsoft.CodeAnalysis;
 using Roslyn.VisualStudio.Test.Utilities;
 using Xunit;
 
-namespace Roslyn.VisualStudio.Basic.IntegrationTests
+namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
     public class BasicBuild
@@ -16,7 +16,7 @@ namespace Roslyn.VisualStudio.Basic.IntegrationTests
             _visualStudio = instanceFactory.GetNewOrUsedInstance();
 
             _visualStudio.Instance.SolutionExplorer.CreateSolution(nameof(BasicBuild));
-            _visualStudio.Instance.SolutionExplorer.AddProject("TestProj", WellKnownProjectTemplates.ConsoleApplication, WellKnownLanguageNames.VisualBasic);
+            _visualStudio.Instance.SolutionExplorer.AddProject("TestProj", WellKnownProjectTemplates.ConsoleApplication, LanguageNames.VisualBasic);
         }
 
         [Fact]

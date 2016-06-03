@@ -3,7 +3,9 @@
 using System;
 using System.Linq;
 using System.Runtime.InteropServices;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Options;
+using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Microsoft.VisualStudio.LanguageServices;
 using Microsoft.VisualStudio.Shell.Interop;
@@ -40,6 +42,20 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
                     ExecuteCommand(WellKnownCommandNames.ToggleCompletionMode);
                 }
             }
+        }
+
+        public bool IsPrettyListingOn(string languageName)
+        {
+            return _visualStudioWorkspace.Options.GetOption(FeatureOnOffOptions.PrettyListing, languageName);
+        }
+
+        public void SetPrettyListing(string languageName, bool value)
+        {
+            InvokeOnUIThread(() =>
+            {
+                _visualStudioWorkspace.Options = _visualStudioWorkspace.Options.WithChangedOption(
+                    FeatureOnOffOptions.PrettyListing, languageName, value);
+            });
         }
 
         private static TestingOnly_WaitingService GetWaitingService()
