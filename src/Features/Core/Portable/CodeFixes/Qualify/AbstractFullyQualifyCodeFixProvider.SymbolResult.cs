@@ -53,20 +53,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.FullyQualify
                     return diff;
                 }
 
-                var names1 = this.NameParts;
-                var names2 = other.NameParts;
-
-                for (var i = 0; i < Math.Min(names1.Count, names2.Count); i++)
-                {
-                    var comp = names1[i].CompareTo(names2[i]);
-                    if (comp != 0)
-                    {
-                        return comp;
-                    }
-                }
-
-                return names1.Count - names2.Count;
-
+                return INamespaceOrTypeSymbolExtensions.CompareNameParts(
+                    this.NameParts, other.NameParts);
             }
         }
     }
