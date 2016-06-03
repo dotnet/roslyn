@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
 
         protected OptionSet GetUpdatedRecommendationOptions(OptionSet options, string language)
         {
-            var filterOutOfScopeLocals = options.GetOption(CompletionOptions.FilterOutOfScopeLocals);
+            var filterOutOfScopeLocals = options.GetOption(CompletionControllerOptions.FilterOutOfScopeLocals);
             var hideAdvancedMembers = options.GetOption(CompletionOptions.HideAdvancedMembers, language);
 
             return options

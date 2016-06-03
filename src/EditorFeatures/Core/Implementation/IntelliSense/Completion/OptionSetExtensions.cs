@@ -10,9 +10,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         public static OptionSet WithDebuggerCompletionOptions(this OptionSet options)
         {
             return options
-                .WithChangedOption(CompletionOptions.AlwaysShowBuilder, true)
-                .WithChangedOption(CompletionOptions.FilterOutOfScopeLocals, false)
-                .WithChangedOption(CompletionOptions.ShowXmlDocCommentCompletion, false);
+                .WithChangedOption(CompletionControllerOptions.AlwaysShowBuilder, true)
+                .WithChangedOption(CompletionControllerOptions.FilterOutOfScopeLocals, false)
+                .WithChangedOption(CompletionControllerOptions.ShowXmlDocCommentCompletion, false);
         }
     }
 }

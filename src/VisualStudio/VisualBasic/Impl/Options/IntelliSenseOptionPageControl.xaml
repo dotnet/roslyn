@@ -1,13 +1,13 @@
 ﻿<options:AbstractOptionPageControl
-    x:Class="Microsoft.VisualStudio.LanguageServices.CSharp.Options.IntelliSenseOptionPageControl"
-    x:ClassModifier="internal"
-    x:Uid="CSharpOptionsIntelliSenseOptionPageControl"
+    x:Class="Microsoft.VisualStudio.LanguageServices.VisualBasic.Options.IntelliSenseOptionPageControl"
+    x:ClassModifier="friend"
+    x:Uid="VisualBasicIntelliSenseOptionPageControl"
     xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
     xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
     xmlns:options="clr-namespace:Microsoft.VisualStudio.LanguageServices.Implementation.Options;assembly=Microsoft.VisualStudio.LanguageServices.Implementation"
-    xmlns:local="clr-namespace:Microsoft.VisualStudio.LanguageServices.CSharp.Options"
+    xmlns:local="clr-namespace:Microsoft.VisualStudio.LanguageServices.VisualBasic.Options"
     mc:Ignorable="d" d:DesignHeight="350" d:DesignWidth="460">
 
     <ScrollViewer VerticalScrollBarVisibility="Auto">
@@ -15,23 +15,7 @@
             <GroupBox x:Uid="CompletionListsGroupBox"
                       Header="{x:Static local:IntelliSenseOptionPageStrings.Option_CompletionLists}">
                 <StackPanel>
-                    <CheckBox x:Uid="BringUpOnIdentifier"
-                              x:Name="BringUpOnIdentifier"
-                              Content="{x:Static local:IntelliSenseOptionPageStrings.Option_BringUpOnIdentifier}"
-                              Checked="BringUpOnIdentifier_Checked"
-                              Unchecked="BringUpOnIdentifier_Unchecked" />
-                    <StackPanel Margin="15, 0, 0, 0">
-                        <CheckBox x:Uid="ShowKeywords"
-                                  x:Name="ShowKeywords"
-                                  Content="{x:Static local:IntelliSenseOptionPageStrings.Option_ShowKeywords}" />
-                        <CheckBox x:Uid="ShowSnippets"
-                                  x:Name="ShowSnippets"
-                                  Content="{x:Static local:IntelliSenseOptionPageStrings.Option_ShowSnippets}" />
-                    </StackPanel>
 
-                    <CheckBox x:Uid="InsertNewlineOnEnterWithWholeWord"
-                                  x:Name="InsertNewlineOnEnterWithWholeWord"
-                                  Content="{x:Static local:IntelliSenseOptionPageStrings.Option_InsertNewlineOnEnterWithWholeWord}" />
                     <CheckBox x:Uid="Highlight_matching_portions_of_completion_list_items"
                                   x:Name="Highlight_matching_portions_of_completion_list_items"
                                   Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Highlight_matching_portions_of_completion_list_items}" />

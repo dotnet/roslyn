@@ -45,6 +45,18 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(CompletionOptions.TriggerOnTypingLetters, value); }
         }
 
+        public int HighlightMatchingPortionsOfCompletionListItems
+        {
+            get { return GetBooleanOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems); }
+            set { SetBooleanOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems, value); }
+        }
+
+        public int ShowCompletionItemFilters
+        {
+            get { return GetBooleanOption(CompletionOptions.ShowCompletionItemFilters); }
+            set { SetBooleanOption(CompletionOptions.ShowCompletionItemFilters, value); }
+        }
+
         [Obsolete("This SettingStore option has now been deprecated in favor of CSharpClosedFileDiagnostics")]
         public int ClosedFileDiagnostics
         {

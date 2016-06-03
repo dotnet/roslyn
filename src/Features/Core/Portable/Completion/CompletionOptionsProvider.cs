@@ -11,17 +11,14 @@ namespace Microsoft.CodeAnalysis.Completion
     [ExportOptionProvider, Shared]
     internal class CompletionOptionsProvider : IOptionProvider
     {
-        private readonly IEnumerable<IOption> _options = new List<IOption>
-            {
-                CompletionOptions.HideAdvancedMembers,
-                CompletionOptions.IncludeKeywords,
-                CompletionOptions.TriggerOnTyping,
-                CompletionOptions.TriggerOnTypingLetters
-            }.ToImmutableArray();
+        private readonly IEnumerable<IOption> _options = ImmutableArray.Create<IOption>(
+            CompletionOptions.HideAdvancedMembers,
+            CompletionOptions.IncludeKeywords,
+            CompletionOptions.TriggerOnTyping,
+            CompletionOptions.TriggerOnTypingLetters,
+            CompletionOptions.ShowCompletionItemFilters,
+            CompletionOptions.HighlightMatchingPortionsOfCompletionListItems);
 
-        public IEnumerable<IOption> GetOptions()
-        {
-            return _options;
-        }
+        public IEnumerable<IOption> GetOptions() => _options;
     }
 }
