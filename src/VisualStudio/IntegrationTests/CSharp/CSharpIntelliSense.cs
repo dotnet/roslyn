@@ -97,7 +97,7 @@ public static class NavigateTo
             VerifyCurrentLineText("System.Console.WriteLine();$$");
             SendKeys(VirtualKey.Home, KeyPress(VirtualKey.End, ShiftState.Shift), VirtualKey.Delete);
 
-            InvokeVisualStudioCommand("Edit.ToggleCompletionMode");
+            ExecuteCommand(WellKnownCommandNames.ToggleCompletionMode);
 
             SendKeys("System.Console.writeline();");
             VerifyCurrentLineText("System.Console.writeline();$$");

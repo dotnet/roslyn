@@ -37,7 +37,7 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
             {
                 if (UseSuggestionMode != value)
                 {
-                    ExecuteVisualStudioCommand("Edit.ToggleCompletionMode");
+                    ExecuteCommand(WellKnownCommandNames.ToggleCompletionMode);
                 }
             }
         }

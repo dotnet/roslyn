@@ -59,7 +59,7 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
             return GetGlobalService<SComponentModel, IComponentModel>();
         }
 
-        protected static void ExecuteVisualStudioCommand(string commandName, string args = "")
+        protected static void ExecuteCommand(string commandName, string args = "")
         {
             GetDTE().ExecuteCommand(commandName, args);
         }
@@ -70,6 +70,11 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
         protected static void WaitForApplicationIdle()
         {
             CurrentApplicationDispatcher.Invoke(() => { }, DispatcherPriority.ApplicationIdle);
+        }
+
+        protected static void WaitForSystemIdle()
+        {
+            CurrentApplicationDispatcher.Invoke(() => { }, DispatcherPriority.SystemIdle);
         }
     }
 }

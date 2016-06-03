@@ -2,7 +2,6 @@
 
 using System;
 using Roslyn.VisualStudio.Test.Utilities.Interop;
-using Roslyn.VisualStudio.Test.Utilities.Remoting;
 
 namespace Roslyn.VisualStudio.Test.Utilities.Input
 {
@@ -30,9 +29,7 @@ namespace Roslyn.VisualStudio.Test.Utilities.Input
                 inputBlocked = IntegrationHelper.BlockInput();
                 foregroundWindow = IntegrationHelper.GetForegroundWindow();
 
-                _visualStudioInstance.ExecuteInHostProcess(
-                    type: typeof(RemotingHelper),
-                    methodName: nameof(RemotingHelper.ActivateMainWindow));
+                _visualStudioInstance.ActivateMainWindow();
 
                 if ((shiftState & ShiftState.Shift) != 0)
                 {

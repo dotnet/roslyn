@@ -80,9 +80,9 @@ namespace Roslyn.VisualStudio.IntegrationTests
             _visualStudioWorkspace.UseSuggestionMode = true;
         }
 
-        protected void InvokeVisualStudioCommand(string commandName)
+        protected void ExecuteCommand(string commandName)
         {
-            _visualStudio.Instance.ExecuteCommandAsync("Edit.ToggleCompletionMode").Wait();
+            _visualStudio.Instance.ExecuteCommand(commandName);
         }
 
         protected void VerifyCurrentLineText(string expectedText, bool trimWhitespace = true)

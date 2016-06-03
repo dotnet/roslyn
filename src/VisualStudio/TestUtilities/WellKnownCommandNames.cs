@@ -2,9 +2,11 @@
 
 namespace Roslyn.VisualStudio.Test.Utilities
 {
-    internal static class VisualStudioCommandNames
+    public static class WellKnownCommandNames
     {
         public const string VsStartServiceCommand = "Tools.StartIntegrationTestService";
         public const string VsStopServiceCommand = "Tools.StopIntegrationTestService";
+
+        public const string ToggleCompletionMode = "Edit.ToggleCompletionMode";
     }
 }

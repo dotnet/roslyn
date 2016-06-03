@@ -6,9 +6,9 @@ using System.Runtime.Remoting.Channels.Ipc;
 using System.Threading.Tasks;
 using System.Windows.Automation;
 using EnvDTE;
+using Roslyn.VisualStudio.Test.Utilities.InProcess;
 using Roslyn.VisualStudio.Test.Utilities.Input;
 using Roslyn.VisualStudio.Test.Utilities.OutOfProcess;
-using Roslyn.VisualStudio.Test.Utilities.Remoting;
 
 using Process = System.Diagnostics.Process;
 
@@ -22,10 +22,12 @@ namespace Roslyn.VisualStudio.Test.Utilities
         private readonly Process _hostProcess;
         private readonly IntegrationService _integrationService;
         private readonly IpcClientChannel _integrationServiceChannel;
+        private readonly VisualStudio_InProc _inProc;
 
         public CSharpInteractiveWindow_OutOfProc CSharpInteractiveWindow { get; }
         public Editor_OutOfProc Editor { get; }
         public SolutionExplorer_OutOfProc SolutionExplorer { get; }
+
         public VisualStudioWorkspace_OutOfProc VisualStudioWorkspace { get; }
 
         public VisualStudioInstance(Process hostProcess, DTE dte)
@@ -33,7 +35,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
             _hostProcess = hostProcess;
             this.DTE = dte;
 
-            this.DTE.ExecuteCommandAsync(VisualStudioCommandNames.VsStartServiceCommand).GetAwaiter().GetResult();
+            this.DTE.ExecuteCommandAsync(WellKnownCommandNames.VsStartServiceCommand).GetAwaiter().GetResult();
 
             _integrationServiceChannel = new IpcClientChannel($"IPC channel client for {_hostProcess.Id}", sinkProvider: null);
             ChannelServices.RegisterChannel(_integrationServiceChannel, ensureSecurity: true);
@@ -41,11 +43,14 @@ namespace Roslyn.VisualStudio.Test.Utilities
             // Connect to a 'well defined, shouldn't conflict' IPC channel
             _integrationService = IntegrationService.GetInstanceFromHostProcess(hostProcess);
 
+            // Create marshal-by-ref object that runs in host-process.
+            _inProc = ExecuteInHostProcess<VisualStudio_InProc>(
+                type: typeof(VisualStudio_InProc),
+                methodName: nameof(VisualStudio_InProc.Create));
+
             // There is a lot of VS initialization code that goes on, so we want to wait for that to 'settle' before
             // we start executing any actual code.
-            ExecuteInHostProcess(
-                type: typeof(RemotingHelper),
-                methodName: nameof(RemotingHelper.WaitForSystemIdle));
+            _inProc.WaitForSystemIdle();
 
             this.CSharpInteractiveWindow = new CSharpInteractiveWindow_OutOfProc(this);
             this.Editor = new Editor_OutOfProc(this);
@@ -80,16 +85,19 @@ namespace Roslyn.VisualStudio.Test.Utilities
             return (T)Activator.GetObject(typeof(T), $"{_integrationService.BaseUri}/{objectUri}");
         }
 
-        public void WaitForApplicationIdle()
+        public void ActivateMainWindow()
         {
-            ExecuteInHostProcess(
-                type: typeof(RemotingHelper),
-                methodName: nameof(RemotingHelper.WaitForApplicationIdle));
+            _inProc.ActivateMainWindow();
         }
 
-        public async Task ExecuteCommandAsync(string commandName)
+        public void WaitForApplicationIdle()
         {
-            await this.DTE.ExecuteCommandAsync(commandName);
+            _inProc.WaitForApplicationIdle();
+        }
+
+        public void ExecuteCommand(string commandName)
+        {
+            _inProc.ExecuteCommand(commandName);
         }
 
         public bool IsRunning => !_hostProcess.HasExited;
@@ -165,9 +173,9 @@ namespace Roslyn.VisualStudio.Test.Utilities
         {
             try
             {
-                if (IntegrationHelper.RetryRpcCall(() => this.DTE?.Commands.Item(VisualStudioCommandNames.VsStopServiceCommand).IsAvailable).GetValueOrDefault())
+                if (IntegrationHelper.RetryRpcCall(() => this.DTE?.Commands.Item(WellKnownCommandNames.VsStopServiceCommand).IsAvailable).GetValueOrDefault())
                 {
-                    this.DTE.ExecuteCommandAsync(VisualStudioCommandNames.VsStopServiceCommand).GetAwaiter().GetResult();
+                    this.DTE.ExecuteCommandAsync(WellKnownCommandNames.VsStopServiceCommand).GetAwaiter().GetResult();
                 }
             }
             finally

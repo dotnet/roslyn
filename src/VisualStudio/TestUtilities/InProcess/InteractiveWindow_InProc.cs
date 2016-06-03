@@ -102,7 +102,7 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
 
         public void Reset(bool waitForPrompt = true)
         {
-            ExecuteVisualStudioCommand(ResetCommand);
+            ExecuteCommand(ResetCommand);
 
             if (waitForPrompt)
             {
@@ -130,7 +130,7 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
 
         public void ShowWindow(bool waitForPrompt = true)
         {
-            ExecuteVisualStudioCommand(_viewCommand);
+            ExecuteCommand(_viewCommand);
 
             if (waitForPrompt)
             {
