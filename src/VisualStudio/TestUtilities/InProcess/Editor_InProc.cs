@@ -8,6 +8,7 @@ using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.TextManager.Interop;
+using Roslyn.VisualStudio.Test.Utilities.Common;
 
 namespace Roslyn.VisualStudio.Test.Utilities.InProcess
 {
@@ -188,6 +189,65 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
                 var selectedCompletionSet = sessions[0].SelectedCompletionSet;
 
                 return selectedCompletionSet.SelectionStatus.Completion.DisplayText;
+            });
+        }
+
+        public bool IsCompletionActive()
+        {
+            return ExecuteOnActiveView(view =>
+            {
+                var broker = GetComponentModelService<ICompletionBroker>();
+
+                return broker.IsCompletionActive(view);
+            });
+        }
+
+        public Signature[] GetSignatures()
+        {
+            return ExecuteOnActiveView(view =>
+            {
+                var broken = GetComponentModelService<ISignatureHelpBroker>();
+
+                var sessions = broken.GetSessions(view);
+                if (sessions.Count != 1)
+                {
+                    throw new InvalidOperationException($"Expected exactly one session in the signature help, but found {sessions.Count}");
+                }
+
+                return sessions[0].Signatures.Select(s => new Signature(s)).ToArray();
+            });
+        }
+
+        public Signature GetCurrentSignature()
+        {
+            return ExecuteOnActiveView(view =>
+            {
+                var broken = GetComponentModelService<ISignatureHelpBroker>();
+
+                var sessions = broken.GetSessions(view);
+                if (sessions.Count != 1)
+                {
+                    throw new InvalidOperationException($"Expected exactly one session in the signature help, but found {sessions.Count}");
+                }
+
+                return new Signature(sessions[0].SelectedSignature);
+            });
+        }
+
+        public bool IsCaretOnScreen()
+        {
+            return ExecuteOnActiveView(view =>
+            {
+                var editorPrimitivesFactoryService = GetComponentModelService<IEditorPrimitivesFactoryService>();
+                var viewPrimitivies = editorPrimitivesFactoryService.GetViewPrimitives(view);
+
+                var advancedView = viewPrimitivies.View.AdvancedTextView;
+                var caret = advancedView.Caret;
+
+                return caret.Left >= advancedView.ViewportLeft
+                    && caret.Right <= advancedView.ViewportRight
+                    && caret.Top >= advancedView.ViewportTop
+                    && caret.Bottom <= advancedView.ViewportBottom;
             });
         }
     }

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using Roslyn.VisualStudio.Test.Utilities.Common;
 using Roslyn.VisualStudio.Test.Utilities.InProcess;
 using Roslyn.VisualStudio.Test.Utilities.Input;
 
@@ -30,6 +31,12 @@ namespace Roslyn.VisualStudio.Test.Utilities.OutOfProcess
 
         public string[] GetCompletionItems() => InProc.GetCompletionItems();
         public string GetCurrentCompletionItem() => InProc.GetCurrentCompletionItem();
+        public bool IsCompletionActive() => InProc.IsCompletionActive();
+
+        public Signature[] GetSignatures() => InProc.GetSignatures();
+        public Signature GetCurrentSignature() => InProc.GetCurrentSignature();
+
+        public bool IsCaretOnScreen() => InProc.IsCaretOnScreen();
 
         public void SendKeys(params object[] keys)
         {

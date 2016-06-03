@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.Test.Utilities;
+using Roslyn.VisualStudio.Test.Utilities.Common;
 using Roslyn.VisualStudio.Test.Utilities.Input;
 using Roslyn.VisualStudio.Test.Utilities.OutOfProcess;
 using Xunit;
@@ -78,6 +78,12 @@ namespace Roslyn.VisualStudio.IntegrationTests
         protected void EnableSuggestionMode()
         {
             _visualStudioWorkspace.UseSuggestionMode = true;
+        }
+
+        protected void InvokeCompletionList()
+        {
+            ExecuteCommand(WellKnownCommandNames.ListMembers);
+            WaitForAsyncOperations(FeatureAttribute.CompletionSet);
         }
 
         protected void ExecuteCommand(string commandName)
@@ -194,6 +200,24 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
             var currentItem = _editor.GetCurrentCompletionItem();
             Assert.Equal(expectedItem, currentItem);
+        }
+
+        protected void VerifyCurrentSignature(Signature expectedSignature)
+        {
+            WaitForAsyncOperations(FeatureAttribute.SignatureHelp);
+
+            var currentSignature = _editor.GetCurrentSignature();
+            Assert.Equal(expectedSignature, currentSignature);
+        }
+
+        protected void VerifyCaretIsOnScreen()
+        {
+            Assert.True(_editor.IsCaretOnScreen());
+        }
+
+        protected void VerifyCompletionListIsActive(bool expected)
+        {
+            Assert.Equal(expected, _editor.IsCompletionActive());
         }
     }
 }

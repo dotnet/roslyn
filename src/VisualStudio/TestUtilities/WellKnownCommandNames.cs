@@ -8,5 +8,6 @@ namespace Roslyn.VisualStudio.Test.Utilities
         public const string VsStopServiceCommand = "Tools.StopIntegrationTestService";
 
         public const string ToggleCompletionMode = "Edit.ToggleCompletionMode";
+        public const string ListMembers = "Edit.ListMembers";
     }
 }

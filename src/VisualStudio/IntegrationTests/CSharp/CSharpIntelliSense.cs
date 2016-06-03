@@ -2,6 +2,7 @@
 
 using Roslyn.Test.Utilities;
 using Roslyn.VisualStudio.Test.Utilities;
+using Roslyn.VisualStudio.Test.Utilities.Common;
 using Roslyn.VisualStudio.Test.Utilities.Input;
 using Xunit;
 
@@ -163,14 +164,16 @@ class Class1
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void XmlTagCompletion()
         {
-            SetUpEditor(@"/// $$
+            SetUpEditor(@"
+/// $$
 class C { }
 ");
 
             SendKeys("<summary>");
             VerifyCurrentLineText("/// <summary>$$</summary>");
 
-            SetUpEditor(@"/// <summary>$$
+            SetUpEditor(@"
+/// <summary>$$
 class C { }
 ");
 
@@ -181,7 +184,8 @@ class C { }
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public void SignatureHelpShowsUp()
         {
-            SetUpEditor(@"class Class1
+            SetUpEditor(@"
+class Class1
 {
     void Main(string[] args)
     {
@@ -193,7 +197,132 @@ class C { }
 
             SendKeys("Mai(");
 
-            // TODO: Finish
+            var expectedParameter = new Parameter
+            {
+                Name = "args"
+            };
+
+            var expectedSignature = new Signature
+            {
+                Content = "void Class1.Main(string[] args)",
+                CurrentParameter = expectedParameter,
+                Parameters = new[] { expectedParameter },
+                PrettyPrintedContent = "void Class1.Main(string[] args)"
+            };
+
+            VerifyCurrentSignature(expectedSignature);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void CompletionUsesTrackingPointsInTheFaceOfAutomaticBraceCompletion()
+        {
+            SetUpEditor(@"
+class Class1
+{
+    void Main(string[] args)
+    $$
+}");
+
+            DisableSuggestionMode();
+
+            SendKeys(
+                '{',
+                VirtualKey.Enter,
+                "                 ");
+
+            InvokeCompletionList();
+
+            SendKeys('}');
+
+            VerifyTextContains(@"
+class Class1
+{
+    void Main(string[] args)
+    {
+    }$$
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void CommitOnShiftEnter()
+        {
+            SetUpEditor(@"
+class Class1
+{
+    void Main(string[] args)
+    {
+        $$
+    }
+}");
+
+            DisableSuggestionMode();
+
+            SendKeys(
+                'M',
+                KeyPress(VirtualKey.Enter, ShiftState.Shift));
+
+            VerifyTextContains(@"
+class Class1
+{
+    void Main(string[] args)
+    {
+        Main$$
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void CommitOnLeftCurly()
+        {
+            SetUpEditor(@"
+class Class1
+{
+    $$
+}");
+
+            DisableSuggestionMode();
+
+            SendKeys("int P { g{");
+
+            VerifyTextContains(@"
+class Class1
+{
+    int P { get { $$} }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void EnsureTheCaretIsVisibleAfterALongEdit()
+        {
+            SetUpEditor(@"
+public class Program
+{
+    static void Main(string[] args)
+    {
+        var aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa = 0;
+        aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa = $$
+    }
+}");
+
+            SendKeys(
+                VirtualKey.Delete,
+                "aaa",
+                VirtualKey.Tab);
+
+            VerifyTextContains("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa = aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa");
+            VerifyCaretIsOnScreen();
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public void DismissOnSelect()
+        {
+            SetUpEditor(@"$$");
+
+            SendKeys(KeyPress(VirtualKey.Space, ShiftState.Ctrl));
+            VerifyCompletionListIsActive(expected: true);
+
+            SendKeys(KeyPress(VirtualKey.A, ShiftState.Ctrl));
+            VerifyCompletionListIsActive(expected: false);
         }
     }
 }
