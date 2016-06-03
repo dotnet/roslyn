@@ -1882,7 +1882,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Takes the outputs from the previous deconstructionStep and depending on the structure of variables, will generate further deconstructions, or simply assignments.
         /// </summary>
-        public bool DeconstructOrAssignOutputs(
+        private bool DeconstructOrAssignOutputs(
                         DeconstructStep deconstructionStep,
                         ImmutableArray<BoundExpression> variables,
                         AssignmentExpressionSyntax syntax,
@@ -1893,19 +1893,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int i = 0; i < variables.Length; i++)
             {
                 var variable = variables[i];
+                var valuePlaceholder = deconstructionStep.OutputPlaceholders[i];
 
                 if (variable.Kind == BoundKind.DeconstructionVariables)
                 {
                     var nestedVariables = ((BoundDeconstructionVariables)variable).Variables;
 
-                    if (!DeconstructIntoSteps(deconstructionStep.OutputPlaceholders[i], syntax, diagnostics, nestedVariables, deconstructionSteps, assignmentSteps))
+                    if (!DeconstructIntoSteps(valuePlaceholder, syntax, diagnostics, nestedVariables, deconstructionSteps, assignmentSteps))
                     {
                         return false;
                     }
                 }
                 else
                 {
-                    var assignment = MakeAssignmentInfo(variable, deconstructionStep.OutputPlaceholders[i].Type, deconstructionStep.OutputPlaceholders[i], syntax, diagnostics);
+                    var assignment = MakeAssignmentInfo(variable, valuePlaceholder.Type, valuePlaceholder, syntax, diagnostics);
                     assignmentSteps.Add(assignment);
                 }
             }
@@ -1914,7 +1915,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// For cases where the RHS of a deconstruction-assignment has not type (TupleLiteral), we squint and look at the LHS as a tuple type to give the RHS a type.
+        /// For cases where the RHS of a deconstruction-assignment has no type (TupleLiteral), we squint and look at the LHS as a tuple type to give the RHS a type.
         /// </summary>
         static private TypeSymbol MakeTupleTypeFromDeconstructionLHS(ImmutableArray<BoundExpression> topLevelCheckedVariables, DiagnosticBag diagnostics, CSharpCompilation compilation)
         {
