@@ -3,40 +3,46 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Options;
 
 namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
 {
-    internal class ForceLowMemoryMode
+    internal sealed partial class ForceLowMemoryMode
     {
+        private readonly IOptionService _optionService;
         private MemoryHogger _hogger;
 
-        public static readonly ForceLowMemoryMode Instance = new ForceLowMemoryMode();
-
-        private ForceLowMemoryMode()
+        public ForceLowMemoryMode(IOptionService optionService)
         {
+            _optionService = optionService;
+
+            optionService.OptionChanged += Options_OptionChanged;
+
+            RefreshFromSettings();
         }
 
-        public int Size { get; set; } = 500; // default to 500 MB
-
-        public bool Enabled
+        private void Options_OptionChanged(object sender, OptionChangedEventArgs e)
         {
-            get
+            if (e.Option.Feature == ForceLowMemoryMode.OptionName)
             {
-                return _hogger != null;
+                RefreshFromSettings();
+            }
+        }
+
+        private void RefreshFromSettings()
+        {
+            var enabled = _optionService.GetOption(Enabled);
+
+            if (_hogger != null)
+            {
+                _hogger.Cancel();
+                _hogger = null;
             }
 
-            set
+            if (enabled)
             {
-                if (value && _hogger == null)
-                {
-                    _hogger = new MemoryHogger();
-                    var ignore = _hogger.PopulateAndMonitorAsync(this.Size);
-                }
-                else if (!value && _hogger != null)
-                {
-                    _hogger.Cancel();
-                    _hogger = null;
-                }
+                _hogger = new MemoryHogger();
+                var ignore = _hogger.PopulateAndMonitorAsync(_optionService.GetOption(SizeInMegabytes));
             }
         }
 
