@@ -301,6 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case ConversionKind.MethodGroup:
                                 case ConversionKind.NullLiteral:
                                     return true;
+
                                 case ConversionKind.Boxing:
                                 case ConversionKind.ImplicitDynamic:
                                 case ConversionKind.ExplicitDynamic:
@@ -321,9 +322,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case ConversionKind.IntegerToPointer:
                                     current = conv.Operand;
                                     break;
+
                                 case ConversionKind.ExplicitUserDefined:
                                 case ConversionKind.ImplicitUserDefined:
+                                // expression trees rewrite this later.
+                                // it is a kind of user defined conversions on IntPtr and in some cases can fail
+                                case ConversionKind.IntPtr:
                                     return false;
+
                                 default:
                                     // Unhandled conversion kind in reordering logic
                                     throw ExceptionUtilities.UnexpectedValue(conv.ConversionKind);
