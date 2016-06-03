@@ -1679,6 +1679,10 @@ namespace Microsoft.CodeAnalysis.Editing
         /// </summary>
         public abstract SyntaxNode ModuloExpression(SyntaxNode left, SyntaxNode right);
 
+        internal abstract SyntaxNode LeftShiftExpression(SyntaxNode left, SyntaxNode right);
+        internal abstract SyntaxNode RightShiftExpression(SyntaxNode left, SyntaxNode right);
+        internal abstract SyntaxNode ExclusiveOrExpression(SyntaxNode left, SyntaxNode right);
+
         /// <summary>
         /// Creates an expression that denotes a bitwise-and operation.
         /// </summary>

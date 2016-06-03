@@ -1602,21 +1602,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (node as MemberAccessExpressionSyntax)?.Name;
         }
 
-        public bool IsLeftSideOfAssignment(SyntaxNode node)
-        {
-            return (node as ExpressionSyntax).IsLeftSideOfAssignExpression();
-        }
-
-        public bool IsLeftSideOfAnyAssignment(SyntaxNode node)
-        {
-            return (node as ExpressionSyntax).IsLeftSideOfAnyAssignExpression();
-        }
-
-        public SyntaxNode GetRightHandSideOfAssignment(SyntaxNode node)
-        {
-            return (node as AssignmentExpressionSyntax)?.Right;
-        }
-
         public bool IsInferredAnonymousObjectMemberDeclarator(SyntaxNode node)
         {
             return node.IsKind(SyntaxKind.AnonymousObjectMemberDeclarator) &&
