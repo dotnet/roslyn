@@ -840,14 +840,6 @@ End Class]]></a>.Value.NormalizeLineEndings()
             Public Function IsInferredAnonymousObjectMemberDeclarator(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInferredAnonymousObjectMemberDeclarator
                 Throw New NotImplementedException()
             End Function
-
-            Public Function IsOperandOfIncrementExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsOperandOfIncrementExpression
-                Throw New NotImplementedException()
-            End Function
-
-            Public Function IsOperandOfIncrementOrDecrementExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsOperandOfIncrementOrDecrementExpression
-                Throw New NotImplementedException()
-            End Function
         End Class
     End Class
 End Namespace

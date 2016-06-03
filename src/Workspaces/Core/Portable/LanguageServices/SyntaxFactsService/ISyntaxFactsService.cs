@@ -52,8 +52,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode GetRightHandSideOfAssignment(SyntaxNode node);
 
         bool IsInferredAnonymousObjectMemberDeclarator(SyntaxNode node);
-        bool IsOperandOfIncrementExpression(SyntaxNode node);
-        bool IsOperandOfIncrementOrDecrementExpression(SyntaxNode node);
 
         bool IsLeftSideOfDot(SyntaxNode node);
         SyntaxNode GetRightSideOfDot(SyntaxNode node);

@@ -1622,22 +1622,5 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.IsKind(SyntaxKind.AnonymousObjectMemberDeclarator) &&
                 ((AnonymousObjectMemberDeclaratorSyntax)node).NameEquals == null;
         }
-
-        public bool IsOperandOfIncrementExpression(SyntaxNode node)
-        {
-            return node.IsParentKind(SyntaxKind.PostIncrementExpression) ||
-                node.IsParentKind(SyntaxKind.PreIncrementExpression);
-        }
-
-        public bool IsOperandOfDecrementExpression(SyntaxNode node)
-        {
-            return node.IsParentKind(SyntaxKind.PostDecrementExpression) ||
-                node.IsParentKind(SyntaxKind.PreDecrementExpression);
-        }
-
-        public bool IsOperandOfIncrementOrDecrementExpression(SyntaxNode node)
-        {
-            return IsOperandOfIncrementExpression(node) || IsOperandOfDecrementExpression(node);
-        }
     }
 }

@@ -1307,13 +1307,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function IsInferredAnonymousObjectMemberDeclarator(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInferredAnonymousObjectMemberDeclarator
             Return node.IsKind(SyntaxKind.InferredFieldInitializer)
         End Function
-
-        Public Function IsOperandOfIncrementExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsOperandOfIncrementExpression
-            Return False
-        End Function
-
-        Public Function IsOperandOfIncrementOrDecrementExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsOperandOfIncrementOrDecrementExpression
-            Return False
-        End Function
     End Class
 End Namespace

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -130,14 +131,14 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 {
                     HandleCompoundAssignExpression();
                 }
-                else if (_syntaxFacts.IsOperandOfIncrementOrDecrementExpression(_expression))
+                else if (IsOperandOfIncrementOrDecrementExpression(_expression))
                 {
                     // We're being read from and written to (i.e. Prop++), we need to replace with a
                     // Get and a Set call.
                     var readExpression = GetReadExpression(conflictMessage: null);
                     var literalOne = Generator.LiteralExpression(1);
 
-                    var writeValue = _syntaxFacts.IsOperandOfIncrementExpression(_expression)
+                    var writeValue = IsOperandOfIncrementExpression(_expression)
                         ? Generator.AddExpression(readExpression, literalOne)
                         : Generator.SubtractExpression(readExpression, literalOne);
 
@@ -161,6 +162,40 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                     // No writes.  Replace this with an appropriate read.
                     ReplaceRead(conflictMessage: null);
                 }
+            }
+
+            private bool IsOperandOfIncrementOrDecrementExpression(TExpressionSyntax expression)
+            {
+                var operation = _semanticModel.GetOperation(expression.Parent) as IIncrementExpression;
+                if (operation != null)
+                {
+                    switch (operation.GetSimpleUnaryOperationKind())
+                    {
+                        case SimpleUnaryOperationKind.PostfixDecrement:
+                        case SimpleUnaryOperationKind.PostfixIncrement:
+                        case SimpleUnaryOperationKind.PrefixDecrement:
+                        case SimpleUnaryOperationKind.PrefixIncrement:
+                            return true;
+                    }
+                }
+
+                return false;
+            }
+
+            private bool IsOperandOfIncrementExpression(TExpressionSyntax expression)
+            {
+                var operation = _semanticModel.GetOperation(expression.Parent) as IIncrementExpression;
+                if (operation != null)
+                {
+                    switch (operation.GetSimpleUnaryOperationKind())
+                    {
+                        case SimpleUnaryOperationKind.PostfixIncrement:
+                        case SimpleUnaryOperationKind.PrefixIncrement:
+                            return true;
+                    }
+                }
+
+                return false;
             }
 
             private void ReplaceRead(string conflictMessage)
