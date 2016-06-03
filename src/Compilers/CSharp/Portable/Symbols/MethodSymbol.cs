@@ -687,6 +687,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var containingType = this.ContainingType;
             Debug.Assert(containingType != null);
             var underlying = containingType.GetUnderlyingMember(this);
+            if (underlying == null)
+            {
+                return null;
+            }
             Debug.Assert(underlying != null && underlying.Kind == SymbolKind.Method);
             var underlyingMethod = (MethodSymbol)underlying;
             Debug.Assert(underlyingMethod.IsStatic || underlyingMethod.MethodKind == MethodKind.ExpandedExtensionClass);

@@ -434,6 +434,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                             Debug.Assert(method.MethodKind != MethodKind.ExpandedExtensionClass);
                             // PROTOTYPE: This assumes source methods. What about loaded symbols from disk?
                             var expanded = method.ExpandExtensionClassMethod();
+                            if (expanded == null)
+                            {
+                                // PROTOTYPE: change this?
+                                continue;
+                            }
                             Debug.Assert(expanded != null);
                             methods.Add(expanded);
                         }

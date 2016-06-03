@@ -292,9 +292,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             var containingType = this.ContainingType;
             Debug.Assert(containingType != null);
             var underlying = containingType.GetUnderlyingMember(this);
-            Debug.Assert(underlying != null);
-            var underlyingProperty = (PropertySymbol)underlying;
-            return underlyingProperty;
+            if (underlying == null)
+            {
+                return null;
+            }
+            return (PropertySymbol)underlying;
         }
 
         /// <summary>

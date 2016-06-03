@@ -17,17 +17,13 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static readonly CSharpParseOptions parseOptions = TestOptions.Regular.WithExtensionEverythingFeature();
         private static readonly MetadataReference[] additionalRefs = new[] { SystemCoreRef };
 
-        // PROTOTYPE: Overloaded (non-)ambiguous methods, properties, etc.
-        // PROTOTYPE: Expression lambdas
-        // PROTOTYPE: Entry point extension method
-        // PROTOTYPE: Generics
+        // PROTOTYPE: Overloaded (non-)ambiguous methods, properties, etc. - this is a working issue, lots of ambiguous cases to test.
+        // PROTOTYPE: Generics - working issue, there's a lot of cases here.
 
         [Fact]
         public void BasicFunctionality()
         {
             var text = @"
-#define __DEMO__
-
 class BaseClass
 {
 }
@@ -60,8 +56,6 @@ class Program
         public void VariousMemberKinds()
         {
             var text = @"
-#define __DEMO__
-
 using System;
 
 class BaseClass
@@ -136,8 +130,6 @@ class Program
         public void VariousExtendedKinds()
         {
             var text = @"
-//#define __DEMO__
-
 using System;
 
 class BaseClass
@@ -233,8 +225,6 @@ class Program
         public void DuckDiscovery()
         {
             var text = @"
-//#define __DEMO__
-
 using System;
 using System.Threading.Tasks;
 
@@ -410,8 +400,6 @@ class Program
 }");
         }
 
-        // PROTOTYPE: `using` all the things
-
         [Fact]
         public void Using()
         {
@@ -508,6 +496,33 @@ extension class ExtClass : BaseClass
     public static int StaticProperty { get { return 6; } set { Console.Write(value + 1); } }
 }
 
+interface IBase
+{
+}
+
+interface IDerived : IBase
+{
+}
+
+// these are all named separate things, because if they were named the same (and defined in separate ext classes),
+// they would be ambigious from each other - as well as ambigious between ExtIBase and ExtIDerived.
+// (but the base/derived is resolvable and what we're testing, same name is not resolveable)
+extension class ExtIBase : IBase
+{
+    public string Property => ""wrong"";
+    public static string StaticProperty => ""wrong"";
+    public string Method() => ""wrong"";
+    public static string StaticMethod() => ""wrong"";
+}
+
+extension class ExtIDerived : IDerived
+{
+    public string Property => ""9"";
+    public static string StaticProperty => ""a"";
+    public string Method() => ""b"";
+    public static string StaticMethod() => ""c"";
+}
+
 class Program
 {
     static void Main()
@@ -521,6 +536,11 @@ class Program
         Console.Write(ExtClass.StaticProperty);
         BaseClass.StaticProperty = 7;
         ExtClass.StaticProperty = 7;
+        ExtIDerived iDerived = null;
+        Console.Write(iDerived.Property);
+        Console.Write(IDerived.StaticProperty);
+        Console.Write(iDerived.Method());
+        Console.Write(IDerived.StaticMethod());
     }
 }
 ";
@@ -528,7 +548,7 @@ class Program
             CompileAndVerify(
                 source: text,
                 additionalRefs: additionalRefs,
-                expectedOutput: "12345678",
+                expectedOutput: "123456789abc",
                 parseOptions: parseOptions);
         }
 
@@ -580,6 +600,121 @@ class Program
                 source: text,
                 additionalRefs: additionalRefs,
                 expectedOutput: "1234[3412]1234(3412)1234{3412}",
+                parseOptions: parseOptions);
+        }
+
+        [Fact]
+        public void ExpressionLambda()
+        {
+            var text = @"
+using System;
+using System.Linq.Expressions;
+
+class BaseClass
+{
+}
+
+extension class ExtClass : BaseClass
+{
+    // expr trees don't allow assignment, so don't bother making setters.
+    public int Method() => 2;
+    public static int MethodStatic() => 2;
+    public int Prop => 2;
+    public static int PropStatic => 2;
+    public int this[int x] => x;
+}
+
+class Program
+{
+    static void Main()
+    {
+        Expression<Func<BaseClass, int>> expr1 = obj => obj.Method();
+        Expression<Func<BaseClass, int>> expr2 = obj => BaseClass.MethodStatic();
+        Expression<Func<BaseClass, int>> expr3 = obj => obj.Prop;
+        Expression<Func<BaseClass, int>> expr4 = obj => BaseClass.PropStatic;
+        Expression<Func<BaseClass, int>> expr5 = obj => obj[2];
+        Console.WriteLine(expr1);
+        Console.WriteLine(expr2);
+        Console.WriteLine(expr3);
+        Console.WriteLine(expr4);
+        Console.WriteLine(expr5);
+    }
+}
+";
+
+            // PROTOTYPE: This is just how it fell out of existing code. Probably want to change it.
+            CompileAndVerify(
+                source: text,
+                additionalRefs: additionalRefs,
+                expectedOutput: @"
+obj => Method(obj)
+obj => MethodStatic()
+obj => get_Prop(obj)
+obj => ExtClass.PropStatic
+obj => get_Item(obj, 2)",
+                parseOptions: parseOptions);
+        }
+
+        [Fact]
+        public void EntryPointExtension()
+        {
+            var text = @"
+using System;
+
+class BaseClass
+{
+}
+
+extension class Program : BaseClass
+{
+    static void Main()
+    {
+        Console.Write(""Hello, world!"");
+    }
+}
+";
+
+            CompileAndVerify(
+                source: text,
+                additionalRefs: additionalRefs,
+                expectedOutput: "Hello, world!",
+                parseOptions: parseOptions);
+        }
+
+        [Fact]
+        public void SimpleGeneric()
+        {
+            var text = @"
+using System;
+
+class BaseClass<T>
+{
+    public string Thing(T t) => t.ToString();
+}
+
+extension class ExtClass<T> : BaseClass<T>
+{
+    public T Id1(T t) => t;
+    public T2 Id2<T2>(T2 t) => t;
+    public string Id3(T t) => this.Thing(t);
+}
+
+static class Program
+{
+    static void Main()
+    {
+        var obj = new BaseClass<int>();
+        Console.Write(obj.Id1(1));
+        Console.Write(obj.Id2(2));
+        Console.Write(obj.Id3(3));
+    }
+}
+";
+
+            CompileAndVerify(
+                source: text,
+                additionalRefs: additionalRefs,
+                expectedOutput: "123",
                 parseOptions: parseOptions);
         }
 
@@ -760,6 +895,77 @@ extension class ExtDelegate : Del { }
                 // (6,37): error CS0527: Type 'Base*' in interface list is not an interface
                 // unsafe extension class ExtPointer : Base* { }
                 Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "Base*").WithArguments("Base*").WithLocation(6, 37)
+            );
+        }
+
+        // PROTOTYPE: Overloaded (non-)ambiguous methods, properties, etc.
+        [Fact]
+        public void Ambiguous()
+        {
+            var text = @"
+using System;
+
+class BaseClass { }
+
+extension class ExtOne : BaseClass
+{
+    public int Method() => 2;
+    public static int MethodStatic() => 2;
+    public int Prop
+    {
+        get { return 2; }
+        set { Console.Write(value); }
+    }
+    public static int PropStatic
+    {
+        get { return 2; }
+        set { Console.Write(value); }
+    }
+}
+
+extension class ExtTwo : BaseClass
+{
+    public int Method() => 2;
+    public static int MethodStatic() => 2;
+    public int Prop
+    {
+        get { return 2; }
+        set { Console.Write(value); }
+    }
+    public static int PropStatic
+    {
+        get { return 2; }
+        set { Console.Write(value); }
+    }
+}
+
+class Program
+{
+    static void Main()
+    {
+        BaseClass obj = null;
+        obj.Method();
+        BaseClass.MethodStatic();
+        Console.Write(obj.Prop);
+        Console.Write(BaseClass.PropStatic);
+    }
+}
+";
+
+            // PROTOTYPE: The display string for instance extension members is a little weird.
+            CreateCompilationWithMscorlibAndSystemCore(text, parseOptions: parseOptions).VerifyDiagnostics(
+                // (43,13): error CS0121: The call is ambiguous between the following methods or properties: 'ExtOne.Method(BaseClass)' and 'ExtTwo.Method(BaseClass)'
+                //         obj.Method();
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("ExtOne.Method(BaseClass)", "ExtTwo.Method(BaseClass)").WithLocation(43, 13),
+                // (44,19): error CS0121: The call is ambiguous between the following methods or properties: 'ExtOne.MethodStatic()' and 'ExtTwo.MethodStatic()'
+                //         BaseClass.MethodStatic();
+                Diagnostic(ErrorCode.ERR_AmbigCall, "MethodStatic").WithArguments("ExtOne.MethodStatic()", "ExtTwo.MethodStatic()").WithLocation(44, 19),
+                // (45,27): error CS0229: Ambiguity between 'ExtOne.Prop' and 'ExtTwo.Prop'
+                //         Console.Write(obj.Prop);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "Prop").WithArguments("ExtOne.Prop", "ExtTwo.Prop").WithLocation(45, 27),
+                // (46,33): error CS0229: Ambiguity between 'ExtOne.PropStatic' and 'ExtTwo.PropStatic'
+                //         Console.Write(BaseClass.PropStatic);
+                Diagnostic(ErrorCode.ERR_AmbigMember, "PropStatic").WithArguments("ExtOne.PropStatic", "ExtTwo.PropStatic").WithLocation(46, 33)
             );
         }
     }
