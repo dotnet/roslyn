@@ -10,7 +10,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.GenerateFromMembers.AddConstructorParameters
 Imports Roslyn.Test.Utilities
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.GenerateFromMembers
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.GenerateConstructorFromMembers
     Public Class AddConstructorParameterTests
         Inherits AbstractVisualBasicCodeActionTest
 

@@ -2,12 +2,12 @@
 
 Imports System.Composition
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.GenerateFromMembers.GenerateConstructor
+Imports Microsoft.CodeAnalysis.GenerateFromMembers.GenerateConstructorFromMembers
 
-Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.GenerateFromMembers.GenerateConstructor
+Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.GenerateFromMembers.GenerateConstructorFromMembers
     <ExportCodeRefactoringProvider(LanguageNames.VisualBasic, Name:=PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers), [Shared]>
     <ExtensionOrder(Before:=PredefinedCodeRefactoringProviderNames.AddConstructorParametersFromMembers)>
-    Friend Class GenerateConstructorCodeRefactoringProvider
+    Friend Class GenerateConstructorFromMembersCodeRefactoringProvider
         Inherits CodeRefactoringProvider
 
         Public Overrides Async Function ComputeRefactoringsAsync(context As CodeRefactoringContext) As Task
@@ -20,8 +20,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.GenerateFromMember
                 Return
             End If
 
-            Dim service = document.GetLanguageService(Of IGenerateConstructorService)()
-            Dim result = Await service.GenerateConstructorAsync(document, textSpan, cancellationToken).ConfigureAwait(False)
+            Dim service = document.GetLanguageService(Of IGenerateConstructorFromMembersService)()
+            Dim result = Await service.GenerateConstructorFromMembersAsync(document, textSpan, cancellationToken).ConfigureAwait(False)
 
             If Not result.ContainsChanges Then
                 Return

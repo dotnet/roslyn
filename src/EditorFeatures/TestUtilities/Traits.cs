@@ -42,6 +42,7 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsCorrectFunctionReturnType = "CodeActions.CorrectFunctionReturnType";
             public const string CodeActionsCorrectNextControlVariable = "CodeActions.CorrectNextControlVariable";
             public const string CodeActionsGenerateConstructor = "CodeActions.GenerateConstructor";
+            public const string CodeActionsGenerateConstructorFromMembers = "CodeActions.GenerateConstructorFromMembers";
             public const string CodeActionsGenerateDefaultConstructors = "CodeActions.GenerateDefaultConstructors";
             public const string CodeActionsGenerateEndConstruct = "CodeActions.GenerateEndConstruct";
             public const string CodeActionsGenerateEnumMember = "CodeActions.GenerateEnumMember";
