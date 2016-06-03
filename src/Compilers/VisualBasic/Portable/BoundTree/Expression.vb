@@ -375,16 +375,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         argument,
                         Function(argumentValue) New ByRefArgument(If(CUInt(index) < CUInt(parameters.Length), parameters(index), Nothing), DirectCast(argumentValue, BoundByRefArgumentWithCopyBack)))
                 Case Else
-                    ' Apparently the VB bound trees don't encode named arguments, which seems unnecesarily lossy.
                     Return s_argumentMappings.GetValue(
                         argument,
-                        Function(argumentValue)
-                            If index >= parameters.Length - 1 AndAlso parameters.Length > 0 AndAlso parameters(parameters.Length - 1).IsParamArray Then
-                                Return New Argument(parameters(parameters.Length - 1), argumentValue)
-                            Else
-                                Return New Argument(If(CUInt(index) < CUInt(parameters.Length), parameters(index), Nothing), argumentValue)
-                            End If
-                        End Function)
+                        Function(argumentValue) New Argument(If(CUInt(index) < CUInt(parameters.Length), parameters(index), Nothing), argumentValue))
             End Select
         End Function
 

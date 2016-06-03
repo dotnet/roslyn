@@ -302,6 +302,7 @@ Class C
     Sub M1()
         Dim f As System.Func(Of Integer, Integer, Boolean) = Nothing
         Dim b As Boolean = f(1, 2)
+        b = f(arg2:=2, arg1:=1)
     End Sub
 End Class
 ]]>
@@ -309,7 +310,7 @@ End Class
                          </compilation>
 
             Dim model As SemanticModel = Nothing
-            Dim nodes As InvocationExpressionSyntax() = GetInvocations(source, 1, model)
+            Dim nodes As InvocationExpressionSyntax() = GetInvocations(source, 2, model)
 
             '  f(1, 2)
 
@@ -321,6 +322,20 @@ End Class
             CheckConstantArgument(invocation, argument, "arg1", 1)
 
             ' 2
+
+            argument = GetArgument(invocation, 1)
+            CheckConstantArgument(invocation, argument, "arg2", 2)
+
+            '  f(arg2:=2, arg1:=1)
+
+            invocation = CheckInvocation(nodes(1), model, "f(arg2:=2, arg1:=1)", "Invoke", 2, SpecialType.System_Boolean, IsVirtual:=True)
+
+            ' arg1:=1
+
+            argument = GetArgument(invocation, 0)
+            CheckConstantArgument(invocation, argument, "arg1", 1)
+
+            ' arg2:=2
 
             argument = GetArgument(invocation, 1)
             CheckConstantArgument(invocation, argument, "arg2", 2)
@@ -336,6 +351,7 @@ Class C
     Sub M1()
         Dim x as Integer = 10
         F(x, y, y)
+        F(zz:=y, yy:=y, xx:=x)
     End Sub
 
     Property y As Integer
@@ -354,7 +370,7 @@ End Class
                          </compilation>
 
             Dim model As SemanticModel = Nothing
-            Dim nodes As InvocationExpressionSyntax() = GetInvocations(source, 1, model)
+            Dim nodes As InvocationExpressionSyntax() = GetInvocations(source, 2, model)
 
             '  F(x, y, y)
 
@@ -377,18 +393,30 @@ End Class
             argument = GetArgument(invocation, 2)
             argumentValue = CheckArgument(invocation, argument, "zz", allowConversions:=True)
             CheckPropertyReference(argumentValue, "y", "Int32")
-            Dim inConversion As IOperation = argument.InConversion
-            Assert.NotNull(inConversion)
-            Assert.Equal(inConversion.Kind, OperationKind.ConversionExpression)
-            Dim conversion As IConversionExpression = DirectCast(inConversion, IConversionExpression)
-            Assert.Equal(conversion.Type.SpecialType, SpecialType.System_Double)
-            Assert.Equal(conversion.Operand.Type.SpecialType, SpecialType.System_Int32)
-            Dim outConversion As IOperation = argument.OutConversion
-            Assert.NotNull(outConversion)
-            Assert.Equal(outConversion.Kind, OperationKind.ConversionExpression)
-            conversion = DirectCast(outConversion, IConversionExpression)
-            Assert.Equal(conversion.Type.SpecialType, SpecialType.System_Int32)
-            Assert.Equal(conversion.Operand.Type.SpecialType, SpecialType.System_Double)
+            CheckArgumentConversions(argument, SpecialType.System_Int32, SpecialType.System_Double)
+
+            '  F(zz:=y, yy:=y, xx:=x)
+
+            invocation = CheckInvocation(nodes(1), model, "F(zz:=y, yy:=y, xx:=x)", "F", 3, SpecialType.System_Void)
+
+            ' xx:=x
+
+            argument = GetArgument(invocation, 0)
+            argumentValue = CheckArgument(invocation, argument, "xx")
+            CheckLocalReference(argumentValue, "x", "Int32")
+
+            ' yy:=y
+
+            argument = GetArgument(invocation, 1)
+            argumentValue = CheckArgument(invocation, argument, "yy")
+            CheckPropertyReference(argumentValue, "y", "Int32")
+
+            ' zz:=y
+
+            argument = GetArgument(invocation, 2)
+            argumentValue = CheckArgument(invocation, argument, "zz", allowConversions:=True)
+            CheckPropertyReference(argumentValue, "y", "Int32")
+            CheckArgumentConversions(argument, SpecialType.System_Int32, SpecialType.System_Double)
         End Sub
 
         Private Shared Function GetInvocations(source As Xml.Linq.XElement, invocationsCount As Integer, ByRef model As SemanticModel) As InvocationExpressionSyntax()
@@ -444,6 +472,21 @@ End Class
             Assert.Equal(argumentValue.Type.SpecialType, SpecialType.System_Int32)
             Assert.True(argumentValue.ConstantValue.HasValue)
             Assert.Equal(argumentConstantValue, argumentValue.ConstantValue.Value)
+        End Sub
+
+        Private Shared Sub CheckArgumentConversions(argument As IArgument, argumentType As SpecialType, parameterType As SpecialType)
+            Dim inConversion As IOperation = argument.InConversion
+            Assert.NotNull(inConversion)
+            Assert.Equal(inConversion.Kind, OperationKind.ConversionExpression)
+            Dim conversion As IConversionExpression = DirectCast(inConversion, IConversionExpression)
+            Assert.Equal(conversion.Type.SpecialType, parameterType)
+            Assert.Equal(conversion.Operand.Type.SpecialType, argumentType)
+            Dim outConversion As IOperation = argument.OutConversion
+            Assert.NotNull(outConversion)
+            Assert.Equal(outConversion.Kind, OperationKind.ConversionExpression)
+            conversion = DirectCast(outConversion, IConversionExpression)
+            Assert.Equal(conversion.Type.SpecialType, argumentType)
+            Assert.Equal(conversion.Operand.Type.SpecialType, parameterType)
         End Sub
 
         Private Shared Sub CheckInstanceReference(invocationInstance As IOperation, instanceKind As InstanceReferenceKind, instanceType As String)

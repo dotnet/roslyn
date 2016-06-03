@@ -92,13 +92,14 @@ class C
         M2();
         M2(1, new int[] { 2, 3 });
         M2(c: new int[] { 2, 3 }, a: 1);
+        M2(c: 2, a: 1); 
     }
 
     static void M2(int a, params int[] c) { }
 }";
 
             SemanticModel model;
-            InvocationExpressionSyntax[] nodes = GetInvocations(source, 5, out model);
+            InvocationExpressionSyntax[] nodes = GetInvocations(source, 6, out model);
 
             // M2(1, 2, 3)
 
@@ -181,6 +182,22 @@ class C
             argument = GetArgument(invocation, 1, 0);
             argumentValue = CheckArgument(invocation, argument, "c");
             CheckArrayCreation(argumentValue, 2, 3);
+
+            // M2(c: 2, a: 1)
+
+            invocation = CheckInvocation(nodes[5], model, "M2(c: 2, a: 1)", "M2", 2, SpecialType.System_Void);
+            Assert.Null(invocation.Instance);
+
+            // 1
+
+            argument = GetArgument(invocation, 0, 1);
+            CheckConstantArgument(invocation, argument, "a", 1);
+
+            // 2
+
+            argument = GetArgument(invocation, 1, 0);
+            argumentValue = CheckArgument(invocation, argument, "c");
+            CheckArrayCreation(argumentValue, 2);
         }
 
         [Fact]
@@ -292,11 +309,12 @@ class C
     {
         System.Func<int, int, bool> f = null;
         bool b = f(1, 2);
+        b = f(arg2: 2, arg1: 1);
     }
 }";
 
             SemanticModel model;
-            InvocationExpressionSyntax[] nodes = GetInvocations(source, 1, out model);
+            InvocationExpressionSyntax[] nodes = GetInvocations(source, 2, out model);
 
             //  f(1, 2)
 
@@ -311,8 +329,21 @@ class C
 
             argument = GetArgument(invocation, 1, 1);
             CheckConstantArgument(invocation, argument, "arg2", 2);
-        }
 
+            //  f(arg2: 2, arg1: 1)
+
+            invocation = CheckInvocation(nodes[1], model, "f(arg2: 2, arg1: 1)", "Invoke", 2, SpecialType.System_Boolean, isVirtual: true);
+
+            // arg1: 1
+
+            argument = GetArgument(invocation, 0, 1);
+            CheckConstantArgument(invocation, argument, "arg1", 1);
+
+            // arg2: 2
+
+            argument = GetArgument(invocation, 1, 0);
+            CheckConstantArgument(invocation, argument, "arg2", 2);
+        }
 
         [Fact]
         public void RefAndOutInvocations()
@@ -325,13 +356,14 @@ class C
         int x = 10;
         int y;
         F(ref x, out y);
+        F(yy: out y, xx: ref x);
     }
 
     void F(ref int xx, out int yy) { yy = 12; }
 }";
 
             SemanticModel model;
-            InvocationExpressionSyntax[] nodes = GetInvocations(source, 1, out model);
+            InvocationExpressionSyntax[] nodes = GetInvocations(source, 2, out model);
 
             //  F(ref x, out y)
 
@@ -346,6 +378,22 @@ class C
             // ref y
 
             argument = GetArgument(invocation, 1, 1);
+            argumentValue = CheckArgument(invocation, argument, "yy");
+            CheckLocalReference(argumentValue, "y", "Int32");
+
+            //  F(yy: out y, xx: ref x)
+
+            invocation = CheckInvocation(nodes[1], model, "F(yy: out y, xx: ref x)", "F", 2, SpecialType.System_Void);
+
+            // xx: ref x
+
+            argument = GetArgument(invocation, 0, 1);
+            argumentValue = CheckArgument(invocation, argument, "xx");
+            CheckLocalReference(argumentValue, "x", "Int32");
+
+            // yy: ref y
+
+            argument = GetArgument(invocation, 1, 0);
             argumentValue = CheckArgument(invocation, argument, "yy");
             CheckLocalReference(argumentValue, "y", "Int32");
         }

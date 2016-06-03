@@ -464,7 +464,7 @@ namespace Microsoft.CodeAnalysis.UnitTests.Diagnostics
         }
     }
 
-    /// <summary>Analyzer used to test invocaton IOperations.</summary>
+    /// <summary>Analyzer used to test invocation IOperations.</summary>
     public class InvocationTestAnalyzer : DiagnosticAnalyzer
     {
         /// <summary>Diagnostic category "Reliability".</summary>
