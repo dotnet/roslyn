@@ -18,7 +18,6 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="Extensions\DteExtensions.cs" />
     <Compile Include="InProcess\CSharpInteractiveWindow_InProc.cs" />
     <Compile Include="InProcess\InProcComponent.cs" />
     <Compile Include="InProcess\SolutionExplorer_InProc.cs" />

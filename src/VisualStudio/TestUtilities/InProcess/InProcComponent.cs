@@ -59,6 +59,11 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
             return GetGlobalService<SComponentModel, IComponentModel>();
         }
 
+        protected static bool IsCommandAvailable(string commandName)
+        {
+            return GetDTE().Commands.Item(commandName).IsAvailable;
+        }
+
         protected static void ExecuteCommand(string commandName, string args = "")
         {
             GetDTE().ExecuteCommand(commandName, args);

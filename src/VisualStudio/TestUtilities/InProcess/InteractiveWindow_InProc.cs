@@ -123,9 +123,15 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
         public void CloseWindow()
         {
             var dte = GetDTE();
-            var window = dte.LocateWindow(_windowTitle);
 
-            window?.Close();
+            foreach (EnvDTE.Window window in dte.Windows)
+            {
+                if (window.Caption == _windowTitle)
+                {
+                    window?.Close();
+                    break;
+                }
+            }
         }
 
         public void ShowWindow(bool waitForPrompt = true)

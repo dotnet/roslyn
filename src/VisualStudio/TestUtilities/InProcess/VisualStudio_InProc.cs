@@ -22,9 +22,14 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
             InProcComponent.WaitForSystemIdle();
         }
 
+        new public bool IsCommandAvailable(string commandName)
+        {
+            return InProcComponent.IsCommandAvailable(commandName);
+        }
+
         new public void ExecuteCommand(string commandName, string args = "")
         {
-            GetDTE().ExecuteCommand(commandName, args);
+            InProcComponent.ExecuteCommand(commandName, args);
         }
 
         public void ActivateMainWindow()
@@ -44,6 +49,11 @@ namespace Roslyn.VisualStudio.Test.Utilities.InProcess
 
                 IntegrationHelper.SetForegroundWindow(activeVisualStudioWindow);
             });
+        }
+
+        public void Quit()
+        {
+            GetDTE().Quit();
         }
     }
 }

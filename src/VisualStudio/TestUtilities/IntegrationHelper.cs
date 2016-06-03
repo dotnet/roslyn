@@ -151,8 +151,12 @@ namespace Roslyn.VisualStudio.Test.Utilities
             }
         }
 
-        /// <summary>Gets the title text for the specified window.</summary>
-        /// <remarks>GetWindowText() does not work across the process boundary.</remarks>
+        /// <summary>
+        /// Gets the title text for the specified window.
+        /// </summary>
+        /// <remarks>
+        /// GetWindowText() does not work across the process boundary.
+        /// </remarks>
         public static string GetTitleForWindow(IntPtr window)
         {
             var titleLength = User32.SendMessage(window, User32.WM_GETTEXTLENGTH, IntPtr.Zero, IntPtr.Zero);
@@ -189,7 +193,9 @@ namespace Roslyn.VisualStudio.Test.Utilities
             return topLevelWindows;
         }
 
-        /// <summary>Kills the specified process if it is not <c>null</c> and has not already exited.</summary>
+        /// <summary>
+        /// Kills the specified process if it is not <c>null</c> and has not already exited.
+        /// </summary>
         public static void KillProcess(Process process)
         {
             if (process != null && !process.HasExited)
@@ -198,7 +204,9 @@ namespace Roslyn.VisualStudio.Test.Utilities
             }
         }
 
-        /// <summary>Kills all processes matching the specified name.</summary>
+        /// <summary>
+        /// Kills all processes matching the specified name.
+        /// </summary>
         public static void KillProcess(string processName)
         {
             foreach (var process in Process.GetProcessesByName(processName))
@@ -228,10 +236,12 @@ namespace Roslyn.VisualStudio.Test.Utilities
         public static T RetryRpcCall<T>(Func<T> action)
         {
             T returnValue = default(T);
+
             RetryRpcCall(() =>
             {
                 returnValue = action();
             });
+
             return returnValue;
         }
 

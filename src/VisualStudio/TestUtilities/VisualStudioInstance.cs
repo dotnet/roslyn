@@ -1,41 +1,38 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.Diagnostics;
 using System.Runtime.Remoting.Channels;
 using System.Runtime.Remoting.Channels.Ipc;
 using System.Threading.Tasks;
 using System.Windows.Automation;
-using EnvDTE;
 using Roslyn.VisualStudio.Test.Utilities.InProcess;
 using Roslyn.VisualStudio.Test.Utilities.Input;
 using Roslyn.VisualStudio.Test.Utilities.OutOfProcess;
-
-using Process = System.Diagnostics.Process;
 
 namespace Roslyn.VisualStudio.Test.Utilities
 {
     public class VisualStudioInstance
     {
-        public DTE DTE { get; }
-        public SendKeys SendKeys { get; }
-
         private readonly Process _hostProcess;
+        private readonly EnvDTE.DTE _dte;
         private readonly IntegrationService _integrationService;
         private readonly IpcClientChannel _integrationServiceChannel;
         private readonly VisualStudio_InProc _inProc;
 
+        public SendKeys SendKeys { get; }
+
         public CSharpInteractiveWindow_OutOfProc CSharpInteractiveWindow { get; }
         public Editor_OutOfProc Editor { get; }
         public SolutionExplorer_OutOfProc SolutionExplorer { get; }
-
         public VisualStudioWorkspace_OutOfProc VisualStudioWorkspace { get; }
 
-        public VisualStudioInstance(Process hostProcess, DTE dte)
+        public VisualStudioInstance(Process hostProcess, EnvDTE.DTE dte)
         {
             _hostProcess = hostProcess;
-            this.DTE = dte;
+            _dte = dte;
 
-            this.DTE.ExecuteCommandAsync(WellKnownCommandNames.VsStartServiceCommand).GetAwaiter().GetResult();
+            StartRemoteIntegrationService(dte);
 
             _integrationServiceChannel = new IpcClientChannel($"IPC channel client for {_hostProcess.Id}", sinkProvider: null);
             ChannelServices.RegisterChannel(_integrationServiceChannel, ensureSecurity: true);
@@ -164,7 +161,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
 
         private void CloseHostProcess()
         {
-            IntegrationHelper.RetryRpcCall(() => this.DTE.Quit());
+            _inProc.Quit();
 
             IntegrationHelper.KillProcess(_hostProcess);
         }
@@ -173,10 +170,7 @@ namespace Roslyn.VisualStudio.Test.Utilities
         {
             try
             {
-                if (IntegrationHelper.RetryRpcCall(() => this.DTE?.Commands.Item(WellKnownCommandNames.VsStopServiceCommand).IsAvailable).GetValueOrDefault())
-                {
-                    this.DTE.ExecuteCommandAsync(WellKnownCommandNames.VsStopServiceCommand).GetAwaiter().GetResult();
-                }
+                StopRemoteIntegrationService();
             }
             finally
             {
@@ -184,6 +178,24 @@ namespace Roslyn.VisualStudio.Test.Utilities
                 {
                     ChannelServices.UnregisterChannel(_integrationServiceChannel);
                 }
+            }
+        }
+
+        private void StartRemoteIntegrationService(EnvDTE.DTE dte)
+        {
+            // We use DTE over RPC to start the integration service. All other DTE calls should happen in the host process.
+
+            if (IntegrationHelper.RetryRpcCall(() => dte.Commands.Item(WellKnownCommandNames.VsStartServiceCommand).IsAvailable))
+            {
+                IntegrationHelper.RetryRpcCall(() => dte.ExecuteCommand(WellKnownCommandNames.VsStartServiceCommand));
+            }
+        }
+
+        private void StopRemoteIntegrationService()
+        {
+            if (_inProc.IsCommandAvailable(WellKnownCommandNames.VsStopServiceCommand))
+            {
+                _inProc.ExecuteCommand(WellKnownCommandNames.VsStopServiceCommand);
             }
         }
     }
