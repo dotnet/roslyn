@@ -224,6 +224,7 @@ namespace Roslyn.VisualStudio.IntegrationTests
 
         protected void VerifyCompletionListIsActive(bool expected)
         {
+            WaitForAsyncOperations(FeatureAttribute.CompletionSet);
             Assert.Equal(expected, _editor.IsCompletionActive());
         }
     }
