@@ -1754,7 +1754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 if (!DeconstructIntoSteps(new BoundDeconstructValuePlaceholder(node.Right, boundRHS.Type), node, diagnostics, checkedVariables, deconstructionSteps, assignmentSteps))
                 {
-                    return new BoundDeconstructionAssignmentOperator(node, checkedVariables, boundRHS, ImmutableArray<DeconstructStep>.Empty,
+                    return new BoundDeconstructionAssignmentOperator(node, FlattenDeconstructVariables(checkedVariables), boundRHS, ImmutableArray<DeconstructStep>.Empty,
                                                                     ImmutableArray<AssignmentStep>.Empty,
                                                                     ErrorTypeSymbol.UnknownResultType,
                                                                     hasErrors: true);

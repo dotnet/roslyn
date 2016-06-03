@@ -1518,14 +1518,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (BoundExpression variable in node.LeftVariables)
             {
-                if (variable.Kind == BoundKind.DeconstructionVariables)
-                {
-                    VisitDeconstructionVariables((BoundDeconstructionVariables)variable);
-                }
-                else
-                {
-                    VisitLvalue(variable);
-                }
+                VisitLvalue(variable);
             }
 
             VisitRvalue(node.Right);
@@ -1535,18 +1528,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundNode VisitDeconstructionVariables(BoundDeconstructionVariables node)
         {
-            foreach (BoundExpression variable in node.Variables)
-            {
-                if (variable.Kind == BoundKind.DeconstructionVariables)
-                {
-                    VisitDeconstructionVariables((BoundDeconstructionVariables)variable);
-                }
-                else
-                {
-                    VisitLvalue(variable);
-                }
-            }
-
+            Debug.Assert(false, "BoundDeconstructionVariables should not make it past binding stage.");
             return null;
         }
 
