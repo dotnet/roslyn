@@ -173,15 +173,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             return null;
         }
 
+        protected Document GetDocument()
+        {
+            return SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+        }
+
         protected string GetLanguage()
         {
-            var document = SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-            if (document != null)
-            {
-                return document.Project.Language;
-            }
-
-            return "";
+            return GetDocument()?.Project.Language ?? "";
         }
     }
 }
