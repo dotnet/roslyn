@@ -202,13 +202,31 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
 
         /// <summary>
         /// Produce tags for the given context.
+        /// Keep in sync with <see cref="ProduceTagsSynchronously(TaggerContext{TTag})"/>
         /// </summary>
         protected virtual async Task ProduceTagsAsync(TaggerContext<TTag> context)
         {
             foreach (var spanToTag in context.SpansToTag)
             {
                 context.CancellationToken.ThrowIfCancellationRequested();
-                await ProduceTagsAsync(context, spanToTag, GetCaretPosition(context.CaretPosition, spanToTag.SnapshotSpan)).ConfigureAwait(false);
+                await ProduceTagsAsync(
+                    context, spanToTag,
+                    GetCaretPosition(context.CaretPosition, spanToTag.SnapshotSpan)).ConfigureAwait(false);
+            }
+        }
+
+        /// <summary>
+        /// Produce tags for the given context.
+        /// Keep in sync with <see cref="ProduceTagsAsync(TaggerContext{TTag})"/>
+        /// </summary>
+        protected void ProduceTagsSynchronously(TaggerContext<TTag> context)
+        {
+            foreach (var spanToTag in context.SpansToTag)
+            {
+                context.CancellationToken.ThrowIfCancellationRequested();
+                ProduceTagsSynchronously(
+                    context, spanToTag, 
+                    GetCaretPosition(context.CaretPosition, spanToTag.SnapshotSpan));
             }
         }
 
@@ -221,6 +239,21 @@ namespace Microsoft.CodeAnalysis.Editor.Tagging
         protected virtual Task ProduceTagsAsync(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
         {
             return SpecializedTasks.EmptyTask;
+        }
+
+        protected virtual void ProduceTagsSynchronously(TaggerContext<TTag> context, DocumentSnapshotSpan spanToTag, int? caretPosition)
+        {
+            // By default we implement the sync version of this by blocking on the async version.
+            //
+            // The benefit of this is that all taggers can implicitly be used as IAccurateTaggers
+            // without any code changes.
+            // 
+            // However, the drawback is that it means the UI thread might be blocked waiting for 
+            // tasks to be scheduled and run on the threadpool. 
+            //
+            // Taggers that need to be called accurately should override this method to produce
+            // results quickly if possible.
+            ProduceTagsAsync(context, spanToTag, caretPosition).Wait(context.CancellationToken);
         }
 
         private struct DiffResult
