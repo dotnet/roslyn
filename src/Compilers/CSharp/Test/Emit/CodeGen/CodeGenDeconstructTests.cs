@@ -1673,5 +1673,55 @@ class C
             var comp = CompileAndVerify(source, expectedOutput: "1 hello", parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics();
         }
+
+        [Fact]
+        public void TupleWithWrongCardinality()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x, y, z;
+
+        (x, y, z) = MakePair();
+    }
+
+    public static (int, int) MakePair()
+    {
+        return (42, 42);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // (8,9): error CS8211: Cannot deconstruct a tuple of '2' elements into '3' variables.
+                //         (x, y, z) = MakePair();
+                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(x, y, z) = MakePair()").WithArguments("2", "3").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void NestedTupleWithWrongCardinality()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x, y, z, w;
+
+        (x, (y, z, w)) = Pair.Create(42, (43, 44));
+    }
+}
+" + commonSource;
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // (8,9): error CS8211: Cannot deconstruct a tuple of '2' elements into '3' variables.
+                //         (x, (y, z, w)) = Pair.Create(42, (43, 44));
+                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(x, (y, z, w)) = Pair.Create(42, (43, 44))").WithArguments("2", "3").WithLocation(8, 9)
+                );
+        }
     }
 }

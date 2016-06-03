@@ -4899,4 +4899,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_OptionMustBeAbsolutePath" xml:space="preserve">
     <value>Option '{0}' must be an absolute path.</value>
   </data>
+  <data name="ERR_DeconstructWrongCardinality" xml:space="preserve">
+    <value>Cannot deconstruct a tuple of '{0}' elements into '{1}' variables.</value>
+  </data>
 </root>

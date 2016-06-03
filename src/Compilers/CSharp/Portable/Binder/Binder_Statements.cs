@@ -8,8 +8,8 @@ using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Roslyn.Utilities;
-using DeconstructStep = Microsoft.CodeAnalysis.CSharp.BoundDeconstructionAssignmentOperator.DeconstructStep;
 using AssignmentStep = Microsoft.CodeAnalysis.CSharp.BoundDeconstructionAssignmentOperator.AssignmentStep;
+using DeconstructStep = Microsoft.CodeAnalysis.CSharp.BoundDeconstructionAssignmentOperator.DeconstructStep;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -1798,11 +1798,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 step = MakeNonTupleDeconstructStep(targetPlaceholder, syntax, diagnostics, variables, deconstructionSteps, assignmentSteps);
+            }
 
-                if (step == null)
-                {
-                    return false;
-                }
+            if (step == null)
+            {
+                return false;
             }
 
             deconstructionSteps.Add(step);
@@ -1826,6 +1826,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(targetPlaceholder.Type.IsTupleType);
 
             var tupleTypes = targetPlaceholder.Type.TupleElementTypes;
+            if (variables.Length != tupleTypes.Length)
+            {
+                Error(diagnostics, ErrorCode.ERR_DeconstructWrongCardinality, syntax, tupleTypes.Length, variables.Length);
+                return null;
+            }
 
             var deconstructionStep = new DeconstructStep()
             {
