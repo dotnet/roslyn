@@ -620,6 +620,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Convert to interpolated string.
+        /// </summary>
+        internal static string ConvertToInterpolatedString {
+            get {
+                return ResourceManager.GetString("ConvertToInterpolatedString", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Could not extract interface: The selection is not inside a class/interface/struct..
         /// </summary>
         internal static string CouldNotExtractInterfaceSelection {

@@ -1031,4 +1031,7 @@ This version used in: {2}</value>
   <data name="Property_cannot_safely_be_replaced_with_a_method_call" xml:space="preserve">
     <value>Property cannot safely be replaced with a method call</value>
   </data>
+  <data name="ConvertToInterpolatedString" xml:space="preserve">
+    <value>Convert to interpolated string</value>
+  </data>
 </root>
