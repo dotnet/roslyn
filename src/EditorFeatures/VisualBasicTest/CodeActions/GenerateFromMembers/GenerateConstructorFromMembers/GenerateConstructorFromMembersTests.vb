@@ -1,24 +1,18 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Option Strict Off
-
-Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.CodeGeneration
 Imports Microsoft.CodeAnalysis.CodeRefactorings
-Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
-Imports Microsoft.CodeAnalysis.Text
-Imports Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.GenerateFromMembers.GenerateConstructor
-Imports Roslyn.Test.Utilities
+Imports Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.GenerateFromMembers.GenerateConstructorFromMembers
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.GenerateFromMembers
-    Public Class GenerateConstructorTests
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.GenerateConstructorFromMembers
+    Public Class GenerateConstructorFromMembersTests
         Inherits AbstractVisualBasicCodeActionTest
 
         Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace) As CodeRefactoringProvider
-            Return New GenerateConstructorCodeRefactoringProvider()
+            Return New GenerateConstructorFromMembersCodeRefactoringProvider()
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestSingleField() As Task
             Await TestAsync(
 NewLines("Class Program \n [|Private i As Integer|] \n End Class"),
@@ -26,7 +20,7 @@ NewLines("Class Program \n Private i As Integer \n Public Sub New(i As Integer) 
 index:=0)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestMultipleFields() As Task
             Await TestAsync(
 NewLines("Class Program \n [|Private i As Integer \n Private b As String|] \n End Class"),
@@ -34,7 +28,7 @@ NewLines("Class Program \n Private i As Integer \n Private b As String \n Public
 index:=0)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestSecondField() As Task
             Await TestAsync(
 NewLines("Class Program \n Private i As Integer \n [|Private b As String|] \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n End Class"),
@@ -42,7 +36,7 @@ NewLines("Class Program \n Private i As Integer \n Private b As String \n Public
 index:=0)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestFieldAssigningConstructor() As Task
             Await TestAsync(
 NewLines("Class Program \n [|Private i As Integer \n Private b As String|] \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n End Class"),
@@ -50,13 +44,13 @@ NewLines("Class Program \n Private i As Integer \n Private b As String \n Public
 index:=0)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestMissingWithExistingConstructor() As Task
             Await TestMissingAsync(
 NewLines("Class Program \n [|Private i As Integer \n Private b As String|] \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n Public Sub New(i As Integer, b As String) \n Me.i = i \n Me.b = b \n End Sub \n End Class"))
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestStruct() As Task
             Await TestAsync(
 NewLines("Structure S \n [|Private i As Integer|] \n End Structure"),
@@ -64,7 +58,7 @@ NewLines("Structure S \n Private i As Integer \n Public Sub New(i As Integer) \n
 index:=0)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestGenericType() As Task
             Await TestAsync(
 NewLines("Class Program ( Of T ) \n [|Private i As Integer|] \n End Class"),
@@ -73,7 +67,7 @@ index:=0)
         End Function
 
         <WorkItem(541995, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541995")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestSimpleDelegatingConstructor() As Task
             Await TestAsync(
 NewLines("Class Program \n [|Private i As Integer \n Private b As String|] \n Public Sub New(i As Integer) \n Me.i = i \n End Sub \n End Class"),
@@ -82,7 +76,7 @@ index:=1)
         End Function
 
         <WorkItem(542008, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542008")>
-        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)>
         Public Async Function TestGenerateFromNormalProperties() As Task
             Await TestAsync(
 NewLines("Class Z \n [|Public Property A As Integer \n Public Property B As String|] \n End Class"),

@@ -149,7 +149,7 @@
     <Compile Include="CodeActions\ExtractMethod\ExtractMethodTests.cs" />
     <Compile Include="CodeActions\GenerateDefaultConstructors\GenerateDefaultConstructorsTests.cs" />
     <Compile Include="CodeActions\GenerateFromMembers\AddConstructorParameters\AddConstructorParametersTests.cs" />
-    <Compile Include="CodeActions\GenerateFromMembers\GenerateConstructor\GenerateConstructorTests.cs" />
+    <Compile Include="CodeActions\GenerateFromMembers\GenerateConstructorFromMembers\GenerateConstructorFromMembersTests.cs" />
     <Compile Include="CodeActions\GenerateFromMembers\GenerateEqualsAndGetHashCode\GenerateEqualsAndGetHashCodeTests.cs" />
     <Compile Include="CodeActions\InlineTemporary\InlineTemporaryTests.cs" />
     <Compile Include="CodeActions\IntroduceVariable\IntroduceVariableTests.cs" />

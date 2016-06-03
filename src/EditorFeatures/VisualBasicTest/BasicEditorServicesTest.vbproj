@@ -130,7 +130,7 @@
     <Compile Include="CodeActions\ExtractMethod\ExtractMethodTests.vb" />
     <Compile Include="CodeActions\GenerateDefaultConstructors\GenerateDefaultConstructorsTests.vb" />
     <Compile Include="CodeActions\GenerateFromMembers\AddConstructorParameters\AddConstructorParametersTests.vb" />
-    <Compile Include="CodeActions\GenerateFromMembers\GenerateConstructor\GenerateConstructorTests.vb" />
+    <Compile Include="CodeActions\GenerateFromMembers\GenerateConstructorFromMembers\GenerateConstructorFromMembersTests.vb" />
     <Compile Include="CodeActions\GenerateFromMembers\GenerateEqualsAndGetHashCode\GenerateEqualsAndGetHashCodeTests.vb" />
     <Compile Include="CodeActions\InlineTemporary\InlineTemporaryTests.vb" />
     <Compile Include="CodeActions\IntroduceVariable\IntroduceVariableTests.vb" />

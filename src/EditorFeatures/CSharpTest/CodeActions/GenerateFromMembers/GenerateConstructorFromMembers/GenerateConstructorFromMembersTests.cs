@@ -3,21 +3,21 @@
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CodeStyle;
-using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.GenerateFromMembers.GenerateConstructor;
+using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.GenerateFromMembers.GenerateConstructorFromMembers;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.GenerateFromMembers.GenerateConstructor
+namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.GenerateFromMembers.GenerateConstructorFromMembers
 {
-    public class GenerateConstructorTests : AbstractCSharpCodeActionTest
+    public class GenerateConstructorFromMembersTests : AbstractCSharpCodeActionTest
     {
         protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
         {
-            return new GenerateConstructorCodeRefactoringProvider();
+            return new GenerateConstructorFromMembersCodeRefactoringProvider();
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestSingleField()
         {
             await TestAsync(
@@ -26,7 +26,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Genera
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestMultipleFields()
         {
             await TestAsync(
@@ -35,7 +35,7 @@ index: 0);
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestSecondField()
         {
             await TestAsync(
@@ -44,7 +44,7 @@ index: 0);
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestFieldAssigningConstructor()
         {
             await TestAsync(
@@ -53,7 +53,7 @@ index: 0);
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestFieldAssigningConstructor2()
         {
             await TestAsync(
@@ -62,7 +62,7 @@ index: 0);
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestDelegatingConstructor()
         {
             await TestAsync(
@@ -71,14 +71,14 @@ index: 0);
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestMissingWithExistingConstructor()
         {
             await TestMissingAsync(
 @"using System . Collections . Generic ; class Z { [|int a ; string b ;|] public Z ( int a ) { this . a = a ; } public Z ( int a , string b ) { this . a = a ; this . b = b ; } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestMultipleProperties()
         {
             await TestAsync(
@@ -87,7 +87,7 @@ index: 1);
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestMultiplePropertiesWithQualification()
         {
             await TestAsync(
@@ -96,7 +96,7 @@ index: 0);
 index: 0, options: Option(CodeStyleOptions.QualifyPropertyAccess, true, NotificationOption.Error));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestStruct()
         {
             await TestAsync(
@@ -105,7 +105,7 @@ index: 0, options: Option(CodeStyleOptions.QualifyPropertyAccess, true, Notifica
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestStruct1()
         {
             await TestAsync(
@@ -114,7 +114,7 @@ index: 0);
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestStruct2()
         {
             await TestAsync(
@@ -123,7 +123,7 @@ index: 0);
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestStruct3()
         {
             await TestAsync(
@@ -132,7 +132,7 @@ index: 0);
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestGenericType()
         {
             await TestAsync(
@@ -141,7 +141,7 @@ index: 0);
 index: 0);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestSmartTagText1()
         {
             await TestSmartTagTextAsync(
@@ -149,7 +149,7 @@ index: 0);
 string.Format(FeaturesResources.GenerateConstructor, "Program", "bool, HashSet<string>"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestSmartTagText2()
         {
             await TestSmartTagTextAsync(
@@ -157,7 +157,7 @@ string.Format(FeaturesResources.GenerateConstructor, "Program", "bool, HashSet<s
 string.Format(FeaturesResources.GenerateFieldAssigningConstructor, "Program", "bool, HashSet<string>"));
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestSmartTagText3()
         {
             await TestSmartTagTextAsync(
@@ -166,7 +166,7 @@ string.Format(FeaturesResources.GenerateDelegatingConstructor, "Program", "bool,
 index: 1);
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestContextualKeywordName()
         {
             await TestAsync(
@@ -174,7 +174,7 @@ index: 1);
 @"class Program { int yield ; public Program ( int yield ) { this . yield = yield ; } } ");
         }
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task TestGenerateConstructorNotOfferedForDuplicate()
         {
             await TestMissingAsync(
@@ -182,7 +182,7 @@ index: 1);
         }
 
 
-        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructorFromMembers)]
         public async Task Tuple()
         {
             await TestAsync(

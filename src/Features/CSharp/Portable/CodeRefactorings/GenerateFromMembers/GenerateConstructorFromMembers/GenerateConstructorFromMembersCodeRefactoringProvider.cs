@@ -3,14 +3,14 @@
 using System.Composition;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeRefactorings;
-using Microsoft.CodeAnalysis.GenerateFromMembers.GenerateConstructor;
+using Microsoft.CodeAnalysis.GenerateFromMembers.GenerateConstructorFromMembers;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 
-namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.GenerateFromMembers.GenerateConstructor
+namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.GenerateFromMembers.GenerateConstructorFromMembers
 {
     [ExportCodeRefactoringProvider(LanguageNames.CSharp, Name = PredefinedCodeRefactoringProviderNames.GenerateConstructorFromMembers), Shared]
     [ExtensionOrder(Before = PredefinedCodeRefactoringProviderNames.AddConstructorParametersFromMembers)]
-    internal class GenerateConstructorCodeRefactoringProvider : CodeRefactoringProvider
+    internal class GenerateConstructorFromMembersCodeRefactoringProvider : CodeRefactoringProvider
     {
         public override async Task ComputeRefactoringsAsync(CodeRefactoringContext context)
         {
@@ -23,8 +23,8 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.GenerateFromMembers.Gen
                 return;
             }
 
-            var service = document.GetLanguageService<IGenerateConstructorService>();
-            var result = await service.GenerateConstructorAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
+            var service = document.GetLanguageService<IGenerateConstructorFromMembersService>();
+            var result = await service.GenerateConstructorFromMembersAsync(document, textSpan, cancellationToken).ConfigureAwait(false);
 
             if (!result.ContainsChanges)
             {
