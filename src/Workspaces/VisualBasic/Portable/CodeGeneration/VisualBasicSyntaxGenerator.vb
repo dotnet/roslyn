@@ -486,6 +486,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.ModuloExpression(Parenthesize(left), Parenthesize(right))
         End Function
 
+        Friend Overrides Function LeftShiftExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
+            Throw New NotSupportedException()
+        End Function
+
+        Friend Overrides Function RightShiftExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
+            Throw New NotSupportedException()
+        End Function
+
+        Friend Overrides Function ExclusiveOrExpression(left As SyntaxNode, right As SyntaxNode) As SyntaxNode
+            Throw New NotSupportedException()
+        End Function
+
         Public Overrides Function BitwiseNotExpression(operand As SyntaxNode) As SyntaxNode
             Return SyntaxFactory.NotExpression(Parenthesize(operand))
         End Function

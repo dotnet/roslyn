@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.CodeFixes.AddImport
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Packaging
+Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.Simplification
 Imports Microsoft.CodeAnalysis.SymbolSearch
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -374,7 +375,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeFixes.AddImport
                                                              syntaxFacts As ISyntaxFactsService,
                                                              cancellationToken As CancellationToken) As Boolean
             Dim leftExpressionType As ITypeSymbol = Nothing
-            If syntaxFacts.IsInvocationExpression(expression) Then
+            If TypeOf semanticModel.GetOperation(expression) Is IInvocationExpression Then
                 leftExpressionType = semanticModel.GetEnclosingNamedType(expression.SpanStart, cancellationToken)
             Else
                 Dim leftExpression As SyntaxNode

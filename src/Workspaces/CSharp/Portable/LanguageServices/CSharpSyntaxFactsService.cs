@@ -163,11 +163,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFacts.IsAttributeName(node);
         }
 
-        public bool IsInvocationExpression(SyntaxNode node)
-        {
-            return node is InvocationExpressionSyntax;
-        }
-
         public bool IsAnonymousFunction(SyntaxNode node)
         {
             return node is ParenthesizedLambdaExpressionSyntax ||
@@ -1607,42 +1602,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (node as MemberAccessExpressionSyntax)?.Name;
         }
 
-        public bool IsLeftSideOfAssignment(SyntaxNode node)
-        {
-            return (node as ExpressionSyntax).IsLeftSideOfAssignExpression();
-        }
-
-        public bool IsLeftSideOfAnyAssignment(SyntaxNode node)
-        {
-            return (node as ExpressionSyntax).IsLeftSideOfAnyAssignExpression();
-        }
-
-        public SyntaxNode GetRightHandSideOfAssignment(SyntaxNode node)
-        {
-            return (node as AssignmentExpressionSyntax)?.Right;
-        }
-
         public bool IsInferredAnonymousObjectMemberDeclarator(SyntaxNode node)
         {
             return node.IsKind(SyntaxKind.AnonymousObjectMemberDeclarator) &&
                 ((AnonymousObjectMemberDeclaratorSyntax)node).NameEquals == null;
-        }
-
-        public bool IsOperandOfIncrementExpression(SyntaxNode node)
-        {
-            return node.IsParentKind(SyntaxKind.PostIncrementExpression) ||
-                node.IsParentKind(SyntaxKind.PreIncrementExpression);
-        }
-
-        public bool IsOperandOfDecrementExpression(SyntaxNode node)
-        {
-            return node.IsParentKind(SyntaxKind.PostDecrementExpression) ||
-                node.IsParentKind(SyntaxKind.PreDecrementExpression);
-        }
-
-        public bool IsOperandOfIncrementOrDecrementExpression(SyntaxNode node)
-        {
-            return IsOperandOfIncrementExpression(node) || IsOperandOfDecrementExpression(node);
         }
     }
 }

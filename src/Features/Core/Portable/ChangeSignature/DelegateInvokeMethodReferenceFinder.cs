@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.FindSymbols;
 using Microsoft.CodeAnalysis.FindSymbols.Finders;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -95,8 +96,11 @@ namespace Microsoft.CodeAnalysis.ChangeSignature
                         return convertedType == methodSymbol.ContainingType;
                     });
 
-            var invocations = nodes.Where(n => syntaxFactsService.IsInvocationExpression(n))
-                .Where(e => semanticModel.GetSymbolInfo(e, cancellationToken).Symbol.OriginalDefinition == methodSymbol);
+            var invocations =
+                from n in nodes
+                let op = semanticModel.GetOperation(n) as IInvocationExpression
+                where op?.TargetMethod?.OriginalDefinition == methodSymbol
+                select n;
 
             return invocations.Concat(convertedAnonymousFunctions).Select(
                 e => new ReferenceLocation(document, null, e.GetLocation(), isImplicit: false, isWrittenTo: false, candidateReason: CandidateReason.None));

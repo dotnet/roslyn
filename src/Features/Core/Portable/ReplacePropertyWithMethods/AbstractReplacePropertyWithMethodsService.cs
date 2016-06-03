@@ -1,12 +1,11 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
+using Microsoft.CodeAnalysis.Semantics;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -21,8 +20,6 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
         public abstract SyntaxNode GetPropertyDeclaration(SyntaxToken token);
         public abstract SyntaxNode GetPropertyNodeToReplace(SyntaxNode propertyDeclaration);
         public abstract IList<SyntaxNode> GetReplacementMembers(Document document, IPropertySymbol property, SyntaxNode propertyDeclaration, IFieldSymbol propertyBackingField, string desiredGetMethodName, string desiredSetMethodName, CancellationToken cancellationToken);
-
-        protected abstract TExpressionSyntax UnwrapCompoundAssignment(SyntaxNode compoundAssignment, TExpressionSyntax readExpression);
 
         protected static SyntaxNode GetFieldReference(SyntaxGenerator generator, IFieldSymbol propertyBackingField)
         {
@@ -109,41 +106,53 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 {
                     // Code wasn't legal (you can't reference a property in an out/ref position in C#).
                     // Just replace this with a simple GetCall, but mark it so it's clear there's an error.
-                    ReplaceRead(
-                        FeaturesResources.Property_cannot_safely_be_replaced_with_a_method_call);
+                    ReplaceRead(FeaturesResources.Property_cannot_safely_be_replaced_with_a_method_call);
+                    return;
                 }
-                else if (_syntaxFacts.IsAttributeNamedArgumentIdentifier(_expression))
+
+                if (_syntaxFacts.IsAttributeNamedArgumentIdentifier(_expression))
                 {
                     // Can't replace a property used in an attribute argument.
                     var newIdentifierName = AddConflictAnnotation(_identifierName,
                         FeaturesResources.Property_cannot_safely_be_replaced_with_a_method_call);
 
                     _editor.ReplaceNode(_identifierName, newIdentifierName);
+                    return;
                 }
-                else if (_syntaxFacts.IsLeftSideOfAssignment(_expression))
-                {
-                    // We're only being written to here.  This is safe to replace with a call to the 
-                    // setter.
-                    ReplaceWrite(writeValue: (TExpressionSyntax)_syntaxFacts.GetRightHandSideOfAssignment(_expression.Parent));
-                }
-                else if (_syntaxFacts.IsLeftSideOfAnyAssignment(_expression))
-                {
-                    HandleCompoundAssignExpression();
-                }
-                else if (_syntaxFacts.IsOperandOfIncrementOrDecrementExpression(_expression))
+
+                var incrementOrDecrementExpression = _semanticModel.GetOperation(_expression.Parent) as IIncrementExpression;
+                if (incrementOrDecrementExpression != null)
                 {
                     // We're being read from and written to (i.e. Prop++), we need to replace with a
                     // Get and a Set call.
                     var readExpression = GetReadExpression(conflictMessage: null);
                     var literalOne = Generator.LiteralExpression(1);
 
-                    var writeValue = _syntaxFacts.IsOperandOfIncrementExpression(_expression)
+                    var writeValue = IsIncrementExpression(incrementOrDecrementExpression)
                         ? Generator.AddExpression(readExpression, literalOne)
                         : Generator.SubtractExpression(readExpression, literalOne);
 
                     ReplaceWrite((TExpressionSyntax)writeValue);
+                    return;
                 }
-                else if (_syntaxFacts.IsInferredAnonymousObjectMemberDeclarator(_expression.Parent)) //.IsParentKind(SyntaxKind.AnonymousObjectMemberDeclarator))
+
+                var compoundAssignment = _semanticModel.GetOperation(_expression.Parent) as ICompoundAssignmentExpression;
+                if (compoundAssignment != null)
+                {
+                    HandleCompoundAssignExpression(compoundAssignment);
+                    return;
+                }
+
+                var assigmentExpression = _semanticModel.GetOperation(_expression.Parent) as IAssignmentExpression;
+                if (assigmentExpression != null)
+                {
+                    // We're only being written to here.  This is safe to replace with a call to the 
+                    // setter.
+                    ReplaceWrite(writeValue: (TExpressionSyntax)assigmentExpression.Value.Syntax);
+                    return;
+                }
+
+                if (_syntaxFacts.IsInferredAnonymousObjectMemberDeclarator(_expression.Parent)) //.IsParentKind(SyntaxKind.AnonymousObjectMemberDeclarator))
                 {
                     // If we have:   new { this.Prop }.  We need ot convert it to:
                     //               new { Prop = this.GetProp() }
@@ -155,12 +164,43 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                         readExpression);
 
                     _editor.ReplaceNode(declarator, newDeclarator);
+                    return;
                 }
-                else
+
+                // No writes.  Replace this with an appropriate read.
+                ReplaceRead(conflictMessage: null);
+            }
+
+#if false
+            private bool IsOperandOfIncrementOrDecrementExpression(TExpressionSyntax expression)
+            {
+                var operation = _semanticModel.GetOperation(expression.Parent) as IIncrementExpression;
+                if (operation != null)
                 {
-                    // No writes.  Replace this with an appropriate read.
-                    ReplaceRead(conflictMessage: null);
+                    switch (operation.GetSimpleUnaryOperationKind())
+                    {
+                        case SimpleUnaryOperationKind.PostfixDecrement:
+                        case SimpleUnaryOperationKind.PostfixIncrement:
+                        case SimpleUnaryOperationKind.PrefixDecrement:
+                        case SimpleUnaryOperationKind.PrefixIncrement:
+                            return true;
+                    }
                 }
+
+                return false;
+            }
+#endif
+
+            private bool IsIncrementExpression(IIncrementExpression expression)
+            {
+                switch (expression.GetSimpleUnaryOperationKind())
+                {
+                    case SimpleUnaryOperationKind.PostfixIncrement:
+                    case SimpleUnaryOperationKind.PrefixIncrement:
+                        return true;
+                }
+
+                return false;
             }
 
             private void ReplaceRead(string conflictMessage)
@@ -257,7 +297,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 return _propertyBackingField != null && _property.SetMethod == null;
             }
 
-            private void HandleCompoundAssignExpression()
+            private void HandleCompoundAssignExpression(ICompoundAssignmentExpression compoundExpression)
             {
                 // We're being read from and written to from a compound assignment 
                 // (i.e. Prop *= X), we need to replace with a Get and a Set call.
@@ -265,9 +305,35 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 var readExpression = GetReadExpression(conflictMessage: null);
 
                 // Convert "Prop *= X" into "Prop * X".
-                var writeValue = _service.UnwrapCompoundAssignment(_expression.Parent, readExpression);
+                var writeValue = (TExpressionSyntax)UnwrapCompoundExpression(compoundExpression, readExpression);
 
+                // Now write "Prop * X" back into "Prop".
                 ReplaceWrite(writeValue);
+            }
+
+            private SyntaxNode UnwrapCompoundExpression(
+                ICompoundAssignmentExpression compoundExpression,
+                TExpressionSyntax readExpression)
+            {
+                var right = _syntaxFacts.Parenthesize(compoundExpression.Value.Syntax);
+
+                switch (compoundExpression.GetSimpleBinaryOperationKind())
+                {
+                    default:
+                    case SimpleBinaryOperationKind.Add: return Generator.AddExpression(readExpression, right);
+                    case SimpleBinaryOperationKind.Subtract: return Generator.SubtractExpression(readExpression, right);
+                    case SimpleBinaryOperationKind.Multiply: return Generator.MultiplyExpression(readExpression, right);
+                    case SimpleBinaryOperationKind.Divide:return Generator.DivideExpression(readExpression, right);
+                    case SimpleBinaryOperationKind.IntegerDivide:return Generator.DivideExpression(readExpression, right);
+                    case SimpleBinaryOperationKind.Remainder: return Generator.ModuloExpression(readExpression, right);
+                    case SimpleBinaryOperationKind.LeftShift: return Generator.LeftShiftExpression(readExpression, right);
+                    case SimpleBinaryOperationKind.RightShift: return Generator.RightShiftExpression(readExpression, right);
+                    case SimpleBinaryOperationKind.And: return Generator.BitwiseAndExpression(readExpression, right);
+                    case SimpleBinaryOperationKind.Or: return Generator.BitwiseOrExpression(readExpression, right);
+                    case SimpleBinaryOperationKind.ExclusiveOr: return Generator.ExclusiveOrExpression(readExpression, right);
+                    case SimpleBinaryOperationKind.ConditionalAnd: return Generator.LogicalAndExpression(readExpression, right);
+                    case SimpleBinaryOperationKind.ConditionalOr: return Generator.LogicalOrExpression(readExpression, right);
+                }
             }
 
             private static TIdentifierNameSyntax AddConflictAnnotation(TIdentifierNameSyntax name, string conflictMessage)

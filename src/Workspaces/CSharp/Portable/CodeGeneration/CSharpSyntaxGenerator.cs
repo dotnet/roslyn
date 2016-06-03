@@ -3764,6 +3764,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return CreateBinaryExpression(SyntaxKind.ModuloExpression, left, right);
         }
 
+        internal override SyntaxNode LeftShiftExpression(SyntaxNode left, SyntaxNode right)
+        {
+            return CreateBinaryExpression(SyntaxKind.LeftShiftExpression, left, right);
+        }
+
+        internal override SyntaxNode RightShiftExpression(SyntaxNode left, SyntaxNode right)
+        {
+            return CreateBinaryExpression(SyntaxKind.RightShiftExpression, left, right);
+        }
+
+        internal override SyntaxNode ExclusiveOrExpression(SyntaxNode left, SyntaxNode right)
+        {
+            return CreateBinaryExpression(SyntaxKind.ExclusiveOrExpression, left, right);
+        }
+
         public override SyntaxNode BitwiseAndExpression(SyntaxNode left, SyntaxNode right)
         {
             return CreateBinaryExpression(SyntaxKind.BitwiseAndExpression, left, right);

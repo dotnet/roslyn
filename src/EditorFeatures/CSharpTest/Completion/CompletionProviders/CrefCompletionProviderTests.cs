@@ -927,21 +927,6 @@ class C
                 throw new NotImplementedException();
             }
 
-            public bool IsLeftSideOfAssignment(SyntaxNode node)
-            {
-                throw new NotImplementedException();
-            }
-
-            public bool IsLeftSideOfAnyAssignment(SyntaxNode node)
-            {
-                throw new NotImplementedException();
-            }
-
-            public SyntaxNode GetRightHandSideOfAssignment(SyntaxNode node)
-            {
-                throw new NotImplementedException();
-            }
-
             public bool IsInferredAnonymousObjectMemberDeclarator(SyntaxNode node)
             {
                 throw new NotImplementedException();

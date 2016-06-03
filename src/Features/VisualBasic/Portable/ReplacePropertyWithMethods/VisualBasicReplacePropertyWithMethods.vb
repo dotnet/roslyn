@@ -150,9 +150,5 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.ReplaceMethodWithP
                 propertyDeclaration.Parent,
                 propertyDeclaration)
         End Function
-
-        Protected Overrides Function UnwrapCompoundAssignment(compoundAssignment As SyntaxNode, readExpression As ExpressionSyntax) As ExpressionSyntax
-            Throw New InvalidOperationException("Compound assignments don't exist in VB")
-        End Function
     End Class
 End Namespace

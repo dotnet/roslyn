@@ -136,10 +136,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return TypeOf node Is ConditionalAccessExpressionSyntax
         End Function
 
-        Public Function IsInvocationExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInvocationExpression
-            Return TypeOf node Is InvocationExpressionSyntax
-        End Function
-
         Public Function IsAnonymousFunction(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsAnonymousFunction
             Return TypeOf node Is LambdaExpressionSyntax
         End Function
@@ -1296,28 +1292,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                       TryCast(node, MemberAccessExpressionSyntax)?.Name)
         End Function
 
-        Public Function IsLeftSideOfAssignment(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLeftSideOfAssignment
-            Return TryCast(node, ExpressionSyntax).IsLeftSideOfAnyAssignStatement
-        End Function
-
-        Public Function IsLeftSideOfAnyAssignment(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLeftSideOfAnyAssignment
-            Return TryCast(node, ExpressionSyntax).IsLeftSideOfAnyAssignStatement
-        End Function
-
-        Public Function GetRightHandSideOfAssignment(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetRightHandSideOfAssignment
-            Return TryCast(node, AssignmentStatementSyntax)?.Right
-        End Function
-
         Public Function IsInferredAnonymousObjectMemberDeclarator(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInferredAnonymousObjectMemberDeclarator
             Return node.IsKind(SyntaxKind.InferredFieldInitializer)
-        End Function
-
-        Public Function IsOperandOfIncrementExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsOperandOfIncrementExpression
-            Return False
-        End Function
-
-        Public Function IsOperandOfIncrementOrDecrementExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsOperandOfIncrementOrDecrementExpression
-            Return False
         End Function
     End Class
 End Namespace

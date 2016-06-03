@@ -1006,7 +1006,38 @@ namespace Microsoft.CodeAnalysis.CSharp
 
     internal partial class BoundCompoundAssignmentOperator : ICompoundAssignmentExpression
     {
-        BinaryOperationKind ICompoundAssignmentExpression.BinaryOperationKind => Expression.DeriveBinaryOperationKind(this.Operator.Kind);
+        BinaryOperationKind ICompoundAssignmentExpression.BinaryOperationKind
+        {
+            get
+            {
+                var derivedKind = Expression.DeriveBinaryOperationKind(this.Operator.Kind);
+                if (derivedKind != BinaryOperationKind.Invalid)
+                {
+                    return derivedKind;
+                }
+
+                return (BinaryOperationKind)GetSimpleBinaryOperationKind();
+            }
+        }
+
+        private SimpleBinaryOperationKind GetSimpleBinaryOperationKind()
+        {
+            switch (this.Syntax.Kind())
+            {
+                case SyntaxKind.OrAssignmentExpression: return SimpleBinaryOperationKind.Or;
+                case SyntaxKind.AndAssignmentExpression: return SimpleBinaryOperationKind.And;
+                case SyntaxKind.ExclusiveOrAssignmentExpression: return SimpleBinaryOperationKind.ExclusiveOr;
+                case SyntaxKind.LeftShiftAssignmentExpression: return SimpleBinaryOperationKind.LeftShift;
+                case SyntaxKind.RightShiftAssignmentExpression: return SimpleBinaryOperationKind.RightShift;
+                case SyntaxKind.AddAssignmentExpression: return SimpleBinaryOperationKind.Add;
+                case SyntaxKind.SubtractAssignmentExpression: return SimpleBinaryOperationKind.Subtract;
+                case SyntaxKind.MultiplyAssignmentExpression: return SimpleBinaryOperationKind.Multiply;
+                case SyntaxKind.DivideAssignmentExpression: return SimpleBinaryOperationKind.Divide;
+                case SyntaxKind.ModuloAssignmentExpression: return SimpleBinaryOperationKind.Remainder;
+            }
+
+            return SimpleBinaryOperationKind.Invalid;
+        }
 
         IOperation IAssignmentExpression.Target => this.Left;
 
