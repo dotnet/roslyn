@@ -38,7 +38,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 if (identifierInfo.ProbablyContainsIdentifier(symbol.ContainingType.Name))
                 {
                     var declaredInfo = await SyntaxTreeInfo.GetDeclarationInfoAsync(d, c).ConfigureAwait(false);
-                    if (contextInfo.ContainsThisConstructorInitializer 
+                    if (contextInfo.ContainsThisConstructorInitializer
                         || declaredInfo.DeclaredSymbolInfos.Any(i => i.Kind == DeclaredSymbolInfoKind.Constructor))
                     {
                         return true;
@@ -79,11 +79,11 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
                 {
                     return true;
                 }
-                else if (semanticModel.Language == LanguageNames.CSharp && syntaxFactsService.IsConstructorToken(t))
+                else if (methodSymbol.Parameters.IsDefaultOrEmpty
+                    && syntaxFactsService.IsConstructorToken(t))
                 {
                     var containingType = semanticModel.GetEnclosingNamedType(t.SpanStart, cancellationToken);
-                    return ((ConstructorDeclarationSyntax)t.Parent).Initializer == null
-                        && containingType != null
+                    return containingType != null
                         && containingType.BaseType != null
                         && containingType.BaseType.Name == typeName;
                 }
@@ -120,10 +120,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols.Finders
             var standardSymbolsMatch = GetStandardSymbolsMatchFunction(symbol, findParentNode, document.Project.Solution, cancellationToken);
             Func<SyntaxToken, SemanticModel, ValueTuple<bool, CandidateReason>> ctorMatch = (t, model) =>
             {
-                // tokens are already filtered by base type and without initializer
+                // tokens are already filtered by base type 
                 if (syntaxFactsService.IsConstructorToken(t))
                 {
-                    return ValueTuple.Create(true, CandidateReason.None);
+                    if (t.Parent.DescendantTokens(descendIntoTrivia: false).All(token =>
+                        !syntaxFactsService.IsThisConstructorInitializer(token) && !syntaxFactsService.IsBaseConstructorInitializer(token)))
+                    {
+                        return ValueTuple.Create(true, CandidateReason.None);
+                    }
                 }
                 return ValueTuple.Create(false, CandidateReason.None);
             };

@@ -936,6 +936,11 @@ class C
             {
                 throw new NotImplementedException();
             }
+
+            public bool IsConstructorToken(SyntaxToken token)
+            {
+                throw new NotImplementedException();
+            }
         }
     }
 }

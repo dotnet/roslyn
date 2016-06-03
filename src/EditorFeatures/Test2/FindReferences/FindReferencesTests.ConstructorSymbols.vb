@@ -791,5 +791,275 @@ class Program
 </Workspace>
             Await TestAsync(input)
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpDefaultCtorReferences1() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+public class A
+{
+    public {|Definition:$$A|}() { }
+}
+
+public class B : A
+{
+    public [|B|]()
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAsync(input)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpDefaultCtorReferences2() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+public class A
+{
+    public {|Definition:$$A|}() { }
+}
+
+public class B : A
+{
+    public [|B|]()
+    {
+    }
+}
+
+public class C : B
+{
+    public C()
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(input)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpDefaultCtorReferences3() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+public class A
+{
+    public A() { }
+}
+
+public class B : A
+{
+    public {|Definition:$$B|}()
+    {
+    }
+}
+
+public class C : B
+{
+    public [|C|]()
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(input)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestCSharpDefaultCtorReferences4() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+public class A
+{
+    public A() { }
+    public {|Definition:$$A|}(int i) { }
+}
+
+public class B : A
+{
+    public B()
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+            Await TestAsync(input)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestVBDefaultCtorReferences1() As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Class A
+    Public Sub {|Definition:$$New|}()
+    End Sub
+End Class
+
+Class B
+    Inherits A
+
+    Public Sub [|New|]()
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(input)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestVBDefaultCtorReferences2() As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Class A
+    Public Sub {|Definition:$$New|}()
+    End Sub
+End Class
+
+Class B
+    Inherits A
+
+    Public Sub [|New|]()
+    End Sub
+End Class
+
+Class C
+    Inherits B
+
+    Public Sub New()
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(input)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestVBDefaultCtorReferences3() As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Class A
+    Public Sub New()
+    End Sub
+
+    Public Sub {|Definition:$$New|}(i as Integer)
+    End Sub
+End Class
+
+Class B
+    Inherits A
+
+    Public Sub New()
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(input)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestVBDefaultCtorReferences4() As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Class A
+    Public Sub {|Definition:$$New|}()
+    End Sub
+
+    Public Sub New(i as Integer)
+    End Sub
+End Class
+
+Class B
+    Inherits A
+
+    Public Sub [|New|]()
+    End Sub
+End Class
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(input)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestDefaultCtorDifferentFile1() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+class Program : BaseType
+{
+    public [|Program|]()
+    {
+    }
+}
+        </Document>
+        <Document>
+class BaseType
+{
+    public $${|Definition:BaseType|}()
+    {
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(input)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.FindReferences)>
+        Public Async Function TestDefaultCtorDifferentFile2() As Task
+            Dim input =
+<Workspace>
+    <Project Language="Visual Basic" CommonReferences="true">
+        <Document>
+Class A
+    Public Sub $${|Definition:New|}()
+    End Sub
+End Class
+        </Document>
+        <Document>
+Class B
+    Inherits A
+
+    Public Sub [|New|]()
+    End Sub
+End Clas
+        </Document>
+    </Project>
+</Workspace>
+
+            Await TestAsync(input)
+        End Function
     End Class
 End Namespace
