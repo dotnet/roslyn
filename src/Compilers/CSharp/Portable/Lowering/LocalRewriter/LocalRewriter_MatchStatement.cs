@@ -67,6 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             statements.Add(_factory.Label(node.BreakLabel));
+            _factory.Syntax = node.Syntax;
             return _factory.Block(node.InnerLocals.Add(switchExpressionTemp.LocalSymbol), node.InnerLocalFunctions, statements.ToImmutableAndFree());
         }
     }
