@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<PackageManifest Version="2.0.0" xmlns="http://schemas.microsoft.com/developer/vsx-schema/2011" xmlns:d="http://schemas.microsoft.com/developer/vsx-schema-design/2011">
+  <Metadata>
+    <Identity Id="CompilersPackage.Roslyn.c00e9a7d-047b-4152-8cdf-8af9c14bd087" Version="|%CurrentProject%;GetBuildVersion|" Language="en-US" Publisher="Microsoft" />
+    <DisplayName>CompilersPackage</DisplayName>
+    <Description xml:space="preserve">The Roslyn compilers and MSBuild integration.</Description>
+    <ShortcutPath>..\..\..\MSBuild\15.0\Bin\Foo\</ShortcutPath>
+  </Metadata>
+  <Installation Experimental="true">
+      <InstallationTarget Id="Microsoft.VisualStudio.Community" Version="[15.0,]" />
+  </Installation>
+  <Installer>
+    <Actions>
+      <Action Type="Ngen" Path="csc.exe" />
+      <Action Type="Ngen" Path="vbc.exe" />
+      <Action Type="Ngen" Path="Microsoft.CodeAnalysis.CSharp.dll" />
+      <Action Type="Ngen" Path="Microsoft.Build.Tasks.CodeAnalysis.dll" />
+      <Action Type="Ngen" Path="Microsoft.CodeAnalysis.VisualBasic.dll" />
+      <Action Type="Ngen" Path="Microsoft.CodeAnalysis.dll" />
+      <Action Type="Ngen" Path="System.Collections.Immutable.dll" />
+      <Action Type="Ngen" Path="System.Reflection.Metadata.dll" />
+    </Actions>
+  </Installer>
+  <Dependencies>
+    <Dependency Id="Microsoft.Framework.NDP" DisplayName="Microsoft .NET Framework" d:Source="Manual" Version="[4.5,)" />
+  </Dependencies>
+</PackageManifest>
