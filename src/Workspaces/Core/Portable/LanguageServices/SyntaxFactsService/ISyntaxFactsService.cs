@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         bool IsObjectCreationExpressionType(SyntaxNode node);
         bool IsObjectCreationExpression(SyntaxNode node);
-        bool IsInvocationExpression(SyntaxNode node);
 
         // Left side of = assignment.
         bool IsLeftSideOfAssignment(SyntaxNode node);

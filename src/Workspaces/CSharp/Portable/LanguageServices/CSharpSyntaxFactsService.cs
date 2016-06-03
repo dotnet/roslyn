@@ -163,11 +163,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return SyntaxFacts.IsAttributeName(node);
         }
 
-        public bool IsInvocationExpression(SyntaxNode node)
-        {
-            return node is InvocationExpressionSyntax;
-        }
-
         public bool IsAnonymousFunction(SyntaxNode node)
         {
             return node is ParenthesizedLambdaExpressionSyntax ||

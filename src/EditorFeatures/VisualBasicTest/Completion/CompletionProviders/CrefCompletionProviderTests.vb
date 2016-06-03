@@ -645,10 +645,6 @@ End Class]]></a>.Value.NormalizeLineEndings()
                 Throw New NotImplementedException()
             End Function
 
-            Public Function IsInvocationExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInvocationExpression
-                Throw New NotImplementedException()
-            End Function
-
             Public Function IsKeyword(token As SyntaxToken) As Boolean Implements ISyntaxFactsService.IsKeyword
                 Throw New NotImplementedException()
             End Function
