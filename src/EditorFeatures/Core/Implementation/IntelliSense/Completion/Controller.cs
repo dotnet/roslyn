@@ -131,7 +131,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 sessionOpt.PresenterSession.PresentItems(
                     triggerSpan, modelOpt.FilteredItems, selectedItem, modelOpt.SuggestionModeItem,
-                    this.SubjectBuffer.GetOption(EditorCompletionOptions.UseSuggestionMode),
+                    modelOpt.UseSuggestionMode,
                     modelOpt.IsSoftSelection, modelOpt.CompletionItemFilters, modelOpt.CompletionItemToFilterText);
             }
         }
@@ -175,7 +175,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             this.sessionOpt = new Session(this, computation, Presenter.CreateSession(TextView, SubjectBuffer, null));
 
-            sessionOpt.ComputeModel(completionService, trigger, _roles, GetOptions());
+            var options = GetOptions();
+            if (_isDebugger)
+            {
+                options = options.WithChangedOption(EditorCompletionOptions.UseSuggestionMode, true);
+            }
+
+            sessionOpt.ComputeModel(completionService, trigger, _roles, options);
 
             var filterReason = trigger.Kind == CompletionTriggerKind.Deletion
                 ? CompletionFilterReason.BackspaceOrDelete
