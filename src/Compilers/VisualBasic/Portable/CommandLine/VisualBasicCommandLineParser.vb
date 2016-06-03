@@ -778,6 +778,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                         languageVersion = LanguageVersion.VisualBasic12
                                     Case "14", "14.0"
                                         languageVersion = LanguageVersion.VisualBasic14
+                                    Case "vbnext"
+                                        languageVersion = LanguageVersion.VBnext
                                     Case Else
                                         AddDiagnostic(diagnostics, ERRID.ERR_InvalidSwitchValue, "langversion", value)
                                 End Select

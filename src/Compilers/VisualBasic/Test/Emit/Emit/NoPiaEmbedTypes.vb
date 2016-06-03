@@ -13,6 +13,7 @@ Imports Xunit
 Imports System.Reflection.Metadata
 Imports Microsoft.CodeAnalysis.Emit
 Imports System.Collections.Immutable
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FeatureExtensions
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
 
@@ -4176,9 +4177,13 @@ BC35000: Requested operation is not available because the runtime library functi
                                                     Assert.Equal(ParameterAttributes.HasDefault, p.ParamFlags)
                                                     Assert.Equal(CObj(&H0000000C), p.ExplicitDefaultConstantValue.Value)
                                                     Assert.False(p.HasExplicitDefaultValue)
-                                                    Assert.Throws(GetType(InvalidOperationException), Sub()
-                                                                                                          Dim tmp = p.ExplicitDefaultValue
-                                                                                                      End Sub)
+                                                    If InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter.IsUnavailable Then
+                                                        Assert.Throws(GetType(InvalidOperationException), Sub()
+                                                                                                              Dim tmp = p.ExplicitDefaultValue
+                                                                                                          End Sub)
+                                                    Else
+                                                        Assert.Null(p.ExplicitDefaultValue)
+                                                    End If
                                                 End Sub).VerifyDiagnostics()
         End Sub
 
@@ -4248,9 +4253,13 @@ BC35000: Requested operation is not available because the runtime library functi
                                                     Assert.Equal("System.Runtime.CompilerServices.DateTimeConstantAttribute(987654321)", p.GetAttributes().Single().ToString())
                                                     Assert.Null(p.ExplicitDefaultConstantValue)
                                                     Assert.False(p.HasExplicitDefaultValue)
-                                                    Assert.Throws(GetType(InvalidOperationException), Sub()
-                                                                                                          Dim tmp = p.ExplicitDefaultValue
-                                                                                                      End Sub)
+                                                    If InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter.IsUnavailable Then
+                                                        Assert.Throws(GetType(InvalidOperationException), Sub()
+                                                                                                              Dim tmp = p.ExplicitDefaultValue
+                                                                                                          End Sub)
+                                                    Else
+                                                        Assert.Null(p.ExplicitDefaultValue)
+                                                    End If
                                                 End Sub).VerifyDiagnostics()
         End Sub
 

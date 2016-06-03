@@ -1051,18 +1051,18 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Private Shared Function ResolveOverloading(
-            methodOrPropertyGroup As BoundMethodOrPropertyGroup,
-            candidates As ArrayBuilder(Of CandidateAnalysisResult),
-            arguments As ImmutableArray(Of BoundExpression),
-            argumentNames As ImmutableArray(Of String),
-            delegateReturnType As TypeSymbol,
-            lateBindingIsAllowed As Boolean,
-            binder As Binder,
-            <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
-            callerInfoOpt As VisualBasicSyntaxNode,
-            forceExpandedForm As Boolean,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
-        ) As OverloadResolutionResult
+                                                    methodOrPropertyGroup As BoundMethodOrPropertyGroup,
+                                                    candidates As ArrayBuilder(Of CandidateAnalysisResult),
+                                                    arguments As ImmutableArray(Of BoundExpression),
+                                                    argumentNames As ImmutableArray(Of String),
+                                                    delegateReturnType As TypeSymbol,
+                                                    lateBindingIsAllowed As Boolean,
+                                                    binder As Binder,
+                              <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
+                                                    callerInfoOpt As VisualBasicSyntaxNode,
+                                                    forceExpandedForm As Boolean,
+                                  <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+                                                  ) As OverloadResolutionResult
 
             Debug.Assert(argumentNames.IsDefault OrElse argumentNames.Length = arguments.Length)
 
@@ -2579,17 +2579,17 @@ Done:
         ''' <returns></returns>
         ''' <remarks></remarks>
         Private Shared Function EliminateNotApplicableToArguments(
-            methodOrPropertyGroup As BoundMethodOrPropertyGroup,
-            candidates As ArrayBuilder(Of CandidateAnalysisResult),
-            arguments As ImmutableArray(Of BoundExpression),
-            argumentNames As ImmutableArray(Of String),
-            binder As Binder,
-            <Out()> ByRef applicableNarrowingCandidates As Integer,
-            <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
-            callerInfoOpt As VisualBasicSyntaxNode,
-            forceExpandedForm As Boolean,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
-        ) As Integer
+                                                                   methodOrPropertyGroup As BoundMethodOrPropertyGroup,
+                                                                   candidates As ArrayBuilder(Of CandidateAnalysisResult),
+                                                                   arguments As ImmutableArray(Of BoundExpression),
+                                                                   argumentNames As ImmutableArray(Of String),
+                                                                   binder As Binder,
+                                                     <Out()> ByRef applicableNarrowingCandidates As Integer,
+                                             <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
+                                                                   callerInfoOpt As VisualBasicSyntaxNode,
+                                                                   forceExpandedForm As Boolean,
+                                                 <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+                                                                 ) As Integer
             Dim applicableCandidates As Integer = 0
             Dim illegalInAttribute As Integer = 0
             applicableNarrowingCandidates = 0

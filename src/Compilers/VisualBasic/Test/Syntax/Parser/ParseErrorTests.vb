@@ -6,7 +6,10 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FeatureExtensions
 Imports Roslyn.Test.Utilities
+Imports Roslyn.Test.Utilities.VisualBasic
 
 <CLSCompliant(False)>
 Public Class ParseErrorTests
@@ -1435,19 +1438,32 @@ End Class
                 ]]>)
     End Sub
 
-    <Fact()>
-    Public Sub BC30200ERR_InvalidNewInType()
-        ParseAndVerify(<![CDATA[
-                       Class C1
-                            Function myfunc(Optional ByVal x As New test()) 
-                            End Function
-                        End Class
-                ]]>,
-            <errors>
-                <error id="30200"/>
-                <error id="30201"/>
-                <error id="30812"/>
-            </errors>)
+    <Requires.Language.Version(LanguageVersion.VisualBasic14, Requires.Language.Version.Comparision.LE)>
+    Public Sub BC30200ERR_InvalidNewInType_A()
+        Dim code = "
+Class C1
+    Function myfunc(Optional ByVal x As New test()) 
+    End Function
+End Class
+"
+        Dim vbp = VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic14)
+        ParseAndVerify(code, vbp, <errors>
+                                          <error id="30200"/>
+                                          <error id="30201"/>
+                                          <error id="30812"/>
+                                      </errors>)
+    End Sub
+
+    <Requires.Language.Feature(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)>
+    Public Sub BC30200ERR_InvalidNewInType_B()
+        Dim code = "
+Class C1
+    Function myfunc(Optional ByVal x As New test()) 
+    End Function
+End Class
+"
+        Dim vbp = VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VBnext)
+        ParseAndVerify(code, vbp, <errors><error id="30200"/></errors>)
     End Sub
 
     <Fact()>
@@ -1462,8 +1478,8 @@ End Class
                         End structure
                 ]]>,
             <errors>
-                <error id="30200"/>
-            </errors>)
+                                   <error id="30200"/>
+                               </errors>)
     End Sub
 
     <Fact()>
@@ -1478,8 +1494,8 @@ End Class
                         End Class
                 ]]>,
             <errors>
-                <error id="30201"/>
-            </errors>)
+                                       <error id="30201"/>
+                                   </errors>)
     End Sub
 
     <Fact()>
@@ -1494,8 +1510,8 @@ End Class
                         End Class
                 ]]>,
             <errors>
-                <error id="30201"/>
-            </errors>)
+                                           <error id="30201"/>
+                                       </errors>)
     End Sub
 
     <Fact()>
@@ -1514,19 +1530,19 @@ End Class
                             End Module
                 ]]>,
             <errors>
-                <error id="30201"/>
-                <error id="30201"/>
-                <error id="30201"/>
-                <error id="30201"/>
-            </errors>)
+                                               <error id="30201"/>
+                                               <error id="30201"/>
+                                               <error id="30201"/>
+                                               <error id="30201"/>
+                                           </errors>)
     End Sub
 
     <WorkItem(542238, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542238")>
-    <Fact()>
+                                               <Fact()>
     Public Sub BC30201ERR_ExpectedExpression_3()
         Dim compilation1 = CompilationUtils.CreateCompilationWithMscorlibAndVBRuntime(
 <compilation name="ArrayInitializerForNonConstDim">
-    <file name="a.vb">
+                                                       <file name="a.vb">
                         Imports System
                         Module Program
                             Property prop As Integer
@@ -1535,7 +1551,7 @@ End Class
                             End Sub
                         End Module
         </file>
-</compilation>)
+                                                   </compilation>)
         Dim expectedErrors1 = <errors>
 BC30306: Array subscript expression missing.
                                 Dim replyCounts(,) As Short = New Short(2, ) {}
@@ -1558,16 +1574,16 @@ BC30306: Array subscript expression missing.
                 End Module
                 ]]>,
             <errors>
-                <error id="30201"/>
-                <error id="30201"/>
-                <error id="30201"/>
-                <error id="30201"/>
-                <error id="30201"/>
-                <error id="30201"/>
-                <error id="30201"/>
-                <error id="30201"/>
-                <error id="30201"/>
-            </errors>)
+                                                           <error id="30201"/>
+                                                           <error id="30201"/>
+                                                           <error id="30201"/>
+                                                           <error id="30201"/>
+                                                           <error id="30201"/>
+                                                           <error id="30201"/>
+                                                           <error id="30201"/>
+                                                           <error id="30201"/>
+                                                           <error id="30201"/>
+                                                       </errors>)
     End Sub
 
     <Fact()>
@@ -1584,20 +1600,20 @@ BC30306: Array subscript expression missing.
                 End Module
                 ]]>,
             <errors>
-                <error id="30201"/>
-                <error id="30201"/>
-                <error id="30201"/>
-                <error id="30201"/>
-                <error id="30201"/>
-                <error id="30201"/>
-                <error id="30201"/>
-                <error id="30201"/>
-                <error id="30201"/>
-                <error id="30201"/>
-                <error id="30203"/>
-                <error id="30037"/>
-                <error id="30037"/>
-            </errors>)
+                                                               <error id="30201"/>
+                                                               <error id="30201"/>
+                                                               <error id="30201"/>
+                                                               <error id="30201"/>
+                                                               <error id="30201"/>
+                                                               <error id="30201"/>
+                                                               <error id="30201"/>
+                                                               <error id="30201"/>
+                                                               <error id="30201"/>
+                                                               <error id="30201"/>
+                                                               <error id="30203"/>
+                                                               <error id="30037"/>
+                                                               <error id="30037"/>
+                                                           </errors>)
     End Sub
 
     ' The parser does not report expected optional error message.  This error is reported during the declared phase when binding the method symbol parameters.
@@ -1626,10 +1642,10 @@ BC30306: Array subscript expression missing.
             ]]>.Value
 
         ParseAndVerify(code, <errors>
-                                 <error id="30204"/>
-                                 <error id="30198"/>
-                                 <error id="30205"/>
-                             </errors>)
+                                                                       <error id="30204"/>
+                                                                       <error id="30198"/>
+                                                                       <error id="30205"/>
+                                                                   </errors>)
     End Sub
 
     <Fact()>
@@ -1641,24 +1657,24 @@ BC30306: Array subscript expression missing.
                 Option Compare Binary
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="30207"/>
-                                 <error id="30207"/>
-                             </errors>)
+                                                                           <error id="30207"/>
+                                                                           <error id="30207"/>
+                                                                       </errors>)
     End Sub
 
     <WorkItem(537442, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537442")>
-    <Fact()>
+                                                                           <Fact()>
     Public Sub BC30207ERR_InvalidOptionCompareWithXml()
         Dim code = "Option Compare <![CDATA[qqqqqq]]>" & vbCrLf
         ParseAndVerify(code, <errors>
-                                 <error id="30207" message="'Option Compare' must be followed by 'Text' or 'Binary'." start="15" end="24"/>
-                                 <error id="30037" message="Character is not valid." start="30" end="31"/>
-                                 <error id="30037" message="Character is not valid." start="31" end="32"/>
-                             </errors>)
+                                                                                   <error id="30207" message="'Option Compare' must be followed by 'Text' or 'Binary'." start="15" end="24"/>
+                                                                                   <error id="30037" message="Character is not valid." start="30" end="31"/>
+                                                                                   <error id="30037" message="Character is not valid." start="31" end="32"/>
+                                                                               </errors>)
     End Sub
 
     <WorkItem(527327, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527327")>
-    <Fact()>
+                                                                                   <Fact()>
     Public Sub BC30217ERR_ExpectedStringLiteral()
         Dim code = <![CDATA[
                 Class C1
@@ -1669,9 +1685,9 @@ BC30306: Array subscript expression missing.
             ]]>.Value
 
         ParseAndVerify(code, <errors>
-                                 <error id="30217"/>
-                                 <error id="30217"/>
-                             </errors>)
+                                                                                           <error id="30217"/>
+                                                                                           <error id="30217"/>
+                                                                                       </errors>)
     End Sub
 
     <Fact()>
@@ -1687,9 +1703,9 @@ BC30306: Array subscript expression missing.
             ]]>.Value
 
         ParseAndVerify(code, <errors>
-                                 <error id="30224"/>
-                                 <error id="30182"/>
-                             </errors>)
+                                                                                               <error id="30224"/>
+                                                                                               <error id="30182"/>
+                                                                                           </errors>)
     End Sub
 
     <Fact()>
@@ -1704,9 +1720,9 @@ BC30306: Array subscript expression missing.
             ]]>.Value
 
         ParseAndVerify(code, <errors>
-                                 <error id="30035"/>
-                                 <error id="30238"/>
-                             </errors>)
+                                                                                                   <error id="30035"/>
+                                                                                                   <error id="30238"/>
+                                                                                               </errors>)
     End Sub
 
     <Fact()>
@@ -1724,8 +1740,8 @@ BC30306: Array subscript expression missing.
             ]]>.Value
 
         ParseAndVerify(code, <errors>
-                                 <error id="30240"/>
-                             </errors>)
+                                                                                                       <error id="30240"/>
+                                                                                                   </errors>)
     End Sub
 
     <Fact()>
@@ -1737,22 +1753,22 @@ BC30306: Array subscript expression missing.
             ]]>.Value
 
         ParseAndVerify(code, <errors>
-                                 <error id="30241"/>
-                             </errors>)
+                                                                                                           <error id="30241"/>
+                                                                                                       </errors>)
     End Sub
 
     ' old name - ParseInvalidDirective_ERR_ExpectedConditionalDirective
     <WorkItem(883737, "DevDiv/Personal")>
-    <Fact()>
+                                                                                                           <Fact()>
     Public Sub BC30248ERR_ExpectedConditionalDirective()
         ParseAndVerify(<![CDATA[
                 #
                 #X
             ]]>,
         <errors>
-            <error id="30248"/>
-            <error id="30248"/>
-        </errors>)
+                                                                                                                   <error id="30248"/>
+                                                                                                                   <error id="30248"/>
+                                                                                                               </errors>)
     End Sub
 
     <Fact()>
@@ -1764,12 +1780,12 @@ BC30306: Array subscript expression missing.
             ]]>.Value
 
         ParseAndVerify(code, <errors>
-                                 <error id="30252"/>
-                             </errors>)
+                                                                                                                       <error id="30252"/>
+                                                                                                                   </errors>)
     End Sub
 
     <WorkItem(527673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527673")>
-    <Fact()>
+                                                                                                                       <Fact()>
     Public Sub BC30311ERR_InvalidArrayInitialize()
         'This is used to verify that only a parse error only is generated for this scenario - as per the bug investigation
         'another test in BindingErrorTest.vb (BC30311ERR_WithArray_ParseAndDeclarationErrors) will verify the diagnostics which will result in multiple errors
@@ -1791,8 +1807,8 @@ End Module
 
 
     <WorkItem(527673, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527673")>
-    <WorkItem(99258, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=99258")>
-    <Fact>
+                                                                                                                               <WorkItem(99258, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=99258")>
+                                                                                                                                   <Fact>
     Public Sub BC30357ERR_BadInterfaceOrderOnInherits()
         Dim code = <![CDATA[
                 	Interface I1
@@ -1805,12 +1821,12 @@ End Module
 
         If bug99258IsFixed Then
             ParseAndVerify(code, <errors>
-                                     <error id="30357"/>
-                                 </errors>)
+                                                                                                                                           <error id="30357"/>
+                                                                                                                                       </errors>)
         Else
             ParseAndVerify(code, <errors>
-                                     <error id="30603"/>
-                                 </errors>)
+                                                                                                                                           <error id="30603"/>
+                                                                                                                                       </errors>)
         End If
     End Sub
 
@@ -1827,8 +1843,8 @@ End Module
                 End Module
                 ]]>,
             <errors>
-                <error id="30380"/>
-            </errors>)
+                                                                                                                                               <error id="30380"/>
+                                                                                                                                           </errors>)
     End Sub
 
     <Fact()>
@@ -1843,8 +1859,8 @@ End Module
                 End Module
                 ]]>,
             <errors>
-                <error id="30380"/>
-            </errors>)
+                                                                                                                                                   <error id="30380"/>
+                                                                                                                                               </errors>)
         ParseAndVerify(<![CDATA[
                 Module M
                     Sub M()
@@ -1857,11 +1873,11 @@ End Module
                 End Module
                 ]]>,
             <errors>
-                <error id="30384"/>
-                <error id="36673"/>
-                <error id="30383"/>
-                <error id="30429"/>
-            </errors>)
+                                                                                                                                                   <error id="30384"/>
+                                                                                                                                                   <error id="36673"/>
+                                                                                                                                                   <error id="30383"/>
+                                                                                                                                                   <error id="30429"/>
+                                                                                                                                               </errors>)
     End Sub
 
     <Fact()>
@@ -1877,8 +1893,8 @@ End Module
                     End Sub
                 End Module
             ]]>, <errors>
-                     <error id="30382"/>
-                 </errors>)
+                                                                                                                                                       <error id="30382"/>
+                                                                                                                                                   </errors>)
     End Sub
 
     <Fact()>
@@ -1893,8 +1909,8 @@ End Module
                 End Module
                 ]]>,
             <errors>
-                <error id="30382"/>
-            </errors>)
+                                                                                                                                                           <error id="30382"/>
+                                                                                                                                                       </errors>)
         ParseAndVerify(<![CDATA[
                 Module M
                     Sub M()
@@ -1907,15 +1923,15 @@ End Module
                 End Module
                 ]]>,
             <errors>
-                <error id="30384"/>
-                <error id="36673"/>
-                <error id="30383"/>
-                <error id="30429"/>
-            </errors>)
+                                                                                                                                                           <error id="30384"/>
+                                                                                                                                                           <error id="36673"/>
+                                                                                                                                                           <error id="30383"/>
+                                                                                                                                                           <error id="30429"/>
+                                                                                                                                                       </errors>)
     End Sub
 
     <WorkItem(527315, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527315")>
-    <Fact()>
+                                                                                                                                                           <Fact()>
     Public Sub BC30383ERR_EndTryNoTry()
         Dim code = <![CDATA[
                 Namespace NS1
@@ -1932,12 +1948,12 @@ End Module
             ]]>.Value
 
         ParseAndVerify(code, <errors>
-                                 <error id="30380"/>
-                                 <error id="30383"/>
-                                 <error id="30383"/>
-                                 <error id="30383"/>
-                                 <error id="30383"/>
-                             </errors>)
+                                                                                                                                                                   <error id="30380"/>
+                                                                                                                                                                   <error id="30383"/>
+                                                                                                                                                                   <error id="30383"/>
+                                                                                                                                                                   <error id="30383"/>
+                                                                                                                                                                   <error id="30383"/>
+                                                                                                                                                               </errors>)
     End Sub
 
     <Fact()>
@@ -1948,14 +1964,14 @@ End Module
             ]]>.Value
 
         ParseAndVerify(code, <errors>
-                                 <error id="30636"/>
-                                 <error id="30460"/>
-                             </errors>)
+                                                                                                                                                                       <error id="30636"/>
+                                                                                                                                                                       <error id="30460"/>
+                                                                                                                                                                   </errors>)
     End Sub
 
     ' old name - ParseIfDirectiveElseIfDirectiveBothTrue()
     <WorkItem(904912, "DevDiv/Personal")>
-    <Fact()>
+                                                                                                                                                                       <Fact()>
     Public Sub BC30481ERR_ExpectedEndClass()
         ParseAndVerify(<![CDATA[
                 #If True Then
@@ -1965,8 +1981,8 @@ End Module
                 #End If
             ]]>,
         <errors>
-            <error id="30481"/>
-        </errors>)
+                                                                                                                                                                               <error id="30481"/>
+                                                                                                                                                                           </errors>)
     End Sub
 
     <Fact()>
@@ -1981,10 +1997,10 @@ End Module
                 End Module
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="30201"/>
-                                 <error id="30495"/>
-                                 <error id="30495"/>
-                             </errors>)
+                                                                                                                                                                                   <error id="30201"/>
+                                                                                                                                                                                   <error id="30495"/>
+                                                                                                                                                                                   <error id="30495"/>
+                                                                                                                                                                               </errors>)
     End Sub
 
     <Fact()>
@@ -1996,12 +2012,12 @@ End Module
 
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="30578"/>
-                             </errors>)
+                                                                                                                                                                                       <error id="30578"/>
+                                                                                                                                                                                   </errors>)
     End Sub
 
     <WorkItem(542117, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542117")>
-    <Fact()>
+                                                                                                                                                                                       <Fact()>
     Public Sub BC30579ERR_ExpectedEndExternalSource()
         Dim code = <![CDATA[
                 #externalsource("",2)
@@ -2032,8 +2048,8 @@ End Module
                 End Module
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="30617"/>
-                             </errors>)
+                                                                                                                                                                                                       <error id="30617"/>
+                                                                                                                                                                                                   </errors>)
     End Sub
 
     <Fact()>
@@ -2064,8 +2080,8 @@ End Module
                 End Namespace
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="30621"/>
-                             </errors>)
+                                                                                                                                                                                                               <error id="30621"/>
+                                                                                                                                                                                                           </errors>)
     End Sub
 
     <Fact()>
@@ -2076,8 +2092,8 @@ End Module
                 End Structure
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="30622"/>
-                             </errors>)
+                                                                                                                                                                                                                   <error id="30622"/>
+                                                                                                                                                                                                               </errors>)
     End Sub
 
     <Fact()>
@@ -2095,8 +2111,8 @@ End Module
             ]]>.Value
 
         ParseAndVerify(code, <errors>
-                                 <error id="30623"/>
-                             </errors>)
+                                                                                                                                                                                                                       <error id="30623"/>
+                                                                                                                                                                                                                   </errors>)
     End Sub
 
     <Fact()>
@@ -2117,18 +2133,18 @@ End Module
                 End Class
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="30481"/>
-                                 <error id="30025"/>
-                                 <error id="30633"/>
-                                 <error id="31151"/>
-                                 <error id="30636"/>
-                                 <error id="31151"/>
-                                 <error id="31169"/>
-                                 <error id="31165"/>
-                                 <error id="30636"/>
-                                 <error id="31165"/>
-                                 <error id="30636"/>
-                             </errors>)
+                                                                                                                                                                                                                           <error id="30481"/>
+                                                                                                                                                                                                                           <error id="30025"/>
+                                                                                                                                                                                                                           <error id="30633"/>
+                                                                                                                                                                                                                           <error id="31151"/>
+                                                                                                                                                                                                                           <error id="30636"/>
+                                                                                                                                                                                                                           <error id="31151"/>
+                                                                                                                                                                                                                           <error id="31169"/>
+                                                                                                                                                                                                                           <error id="31165"/>
+                                                                                                                                                                                                                           <error id="30636"/>
+                                                                                                                                                                                                                           <error id="31165"/>
+                                                                                                                                                                                                                           <error id="30636"/>
+                                                                                                                                                                                                                       </errors>)
     End Sub
 
     <Fact()>
@@ -2138,9 +2154,9 @@ End Module
                 End Class
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="30636"/>
-                                 <error id="30460"/>
-                             </errors>)
+                                                                                                                                                                                                                               <error id="30636"/>
+                                                                                                                                                                                                                               <error id="30460"/>
+                                                                                                                                                                                                                           </errors>)
     End Sub
 
     <Fact()>
@@ -2154,13 +2170,13 @@ End Module
                 <Assembly: Reflection.AssemblyCultureAttribute("de")> 
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="30637"/>
-                             </errors>)
+                                                                                                                                                                                                                                   <error id="30637"/>
+                                                                                                                                                                                                                               </errors>)
     End Sub
 
     ' old name - Bug869094
     <WorkItem(869094, "DevDiv/Personal")>
-    <Fact()>
+                                                                                                                                                                                                                                   <Fact()>
     Public Sub BC30638ERR_NoExplicitArraySizes()
         'Specifying array bounds on a parameter generates NotImplementedException : Error message needs to be attached somewhere
         ParseAndVerify(<![CDATA[
@@ -2169,8 +2185,8 @@ End Module
                 End Class
             ]]>,
         <errors>
-            <error id="30638"/>
-        </errors>)
+                                                                                                                                                                                                                                           <error id="30638"/>
+                                                                                                                                                                                                                                       </errors>)
     End Sub
 
     <Fact()>
@@ -2181,9 +2197,9 @@ End Module
                 Option Explicit Binary
             ]]>,
         <errors>
-            <error id="30640"/>
-            <error id="30640"/>
-        </errors>)
+                                                                                                                                                                                                                                               <error id="30640"/>
+                                                                                                                                                                                                                                               <error id="30640"/>
+                                                                                                                                                                                                                                           </errors>)
     End Sub
 
     <Fact()>
@@ -2195,8 +2211,8 @@ End Module
                 End Structure
             ]]>,
         <errors>
-            <error id="30641"/>
-        </errors>)
+                                                                                                                                                                                                                                                   <error id="30641"/>
+                                                                                                                                                                                                                                               </errors>)
     End Sub
 
     <Fact()>
@@ -2207,32 +2223,50 @@ End Module
                 End interface
             ]]>,
         <errors>
-            <error id="30641"/>
-        </errors>)
+                                                                                                                                                                                                                                                       <error id="30641"/>
+                                                                                                                                                                                                                                                   </errors>)
     End Sub
 
-    <Fact()>
-    Public Sub BC30642ERR_MultipleOptionalParameterSpecifiers()
-        ParseAndVerify(<![CDATA[
-                Namespace NS1
-                    Module Module1
-                        Public Function calcSum(ByVal ParamArray optional args() As Double) As Double
-                            calcSum = 0
-                            If args.Length <= 0 Then Exit Function
-                            For i As Integer = 0 To UBound(args, 1)
-                                calcSum += args(i)
-                            Next i
-                        End Function
-                    End Module
-                End Namespace
-            ]]>,
-        <errors>
-            <error id="30642"/>
-            <error id="30812"/>
-            <error id="30201"/>
-        </errors>)
+    <Requires.Language.Version(LanguageVersion.VisualBasic14, Requires.Language.Version.Comparision.LE)>
+    Public Sub BC30642ERR_MultipleOptionalParameterSpecifiers_A()
+        Dim code = "
+Namespace NS1
+    Module Module1
+        Public Function calcSum(ByVal ParamArray optional args() As Double) As Double
+            calcSum = 0
+            If args.Length <= 0 Then Exit Function
+                For i As Integer = 0 To UBound(args, 1)
+                    calcSum += args(i)
+                Next i
+        End Function
+    End Module
+End Namespace
+"
+        Dim vbp = VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic14)
+        ParseAndVerify(code, vbp, <errors><error id="30642"/><error id="30812"/><error id="30201"/></errors>)
+
     End Sub
 
+    <Requires.Language.Feature(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)>
+    Public Sub BC30642ERR_MultipleOptionalParameterSpecifiers_B()
+        Dim code = "
+Namespace NS1
+    Module Module1
+        Public Function calcSum(ByVal ParamArray optional args() As Double) As Double
+            calcSum = 0
+            If args.Length <= 0 Then Exit Function
+                For i As Integer = 0 To UBound(args, 1)
+                    calcSum += args(i)
+                Next i
+        End Function
+    End Module
+End Namespace
+"
+        Dim vbp = VisualBasicParseOptions.Default.WithLanguageVersion(ImplicitDefaultValueOnOptionalParameter.GetLanguageVersion)
+
+        ParseAndVerify(code, vbp, <errors><error id="30642"/></errors>)
+
+    End Sub
     <Fact()>
     Public Sub BC30648ERR_UnterminatedStringLiteral()
         ParseAndVerify(<![CDATA[
@@ -2243,9 +2277,9 @@ End Module
                  End Module
             ]]>,
         <errors>
-            <error id="30625"/>
-            <error id="30648"/>
-        </errors>)
+                                                                                                                                                                                                                                                               <error id="30625"/>
+                                                                                                                                                                                                                                                               <error id="30648"/>
+                                                                                                                                                                                                                                                           </errors>)
     End Sub
 
     <Fact()>
@@ -2257,9 +2291,9 @@ End Module
 #End If
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="30012" message="'#If' block must end with a matching '#End If'." start="1" end="12"/>
-                                 <error id="30648" message="String constants must end with a double quote." start="9" end="12"/>
-                                 <error id="30648" message="String constants must end with a double quote." start="13" end="38"/></errors>)
+                                                                                                                                                                                                                                                                   <error id="30012" message="'#If' block must end with a matching '#End If'." start="1" end="12"/>
+                                                                                                                                                                                                                                                                   <error id="30648" message="String constants must end with a double quote." start="9" end="12"/>
+                                                                                                                                                                                                                                                                   <error id="30648" message="String constants must end with a double quote." start="13" end="38"/></errors>)
     End Sub
 
     <Fact()>
@@ -2284,10 +2318,10 @@ End Module
 #End Region
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="30681" message="'#Region' statement must end with a matching '#End Region'." start="1" end="12"/>
-                                 <error id="30648" message="String constants must end with a double quote." start="9" end="12"/>
-                                 <error id="30648" message="String constants must end with a double quote." start="13" end="40"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                           <error id="30681" message="'#Region' statement must end with a matching '#End Region'." start="1" end="12"/>
+                                                                                                                                                                                                                                                                           <error id="30648" message="String constants must end with a double quote." start="9" end="12"/>
+                                                                                                                                                                                                                                                                           <error id="30648" message="String constants must end with a double quote." start="13" end="40"/>
+                                                                                                                                                                                                                                                                       </errors>)
     End Sub
 
     <Fact()>
@@ -2300,8 +2334,8 @@ End Module
             ]]>.Value
 
         ParseAndVerify(code, <errors>
-                                 <error id="30667"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                               <error id="30667"/>
+                                                                                                                                                                                                                                                                           </errors>)
     End Sub
 
     <Fact()>
@@ -2320,9 +2354,9 @@ End Module
             ]]>.Value
 
         ParseAndVerify(code, <errors>
-                                 <error id="30674"/>
-                                 <error id="30675"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                   <error id="30674"/>
+                                                                                                                                                                                                                                                                                   <error id="30675"/>
+                                                                                                                                                                                                                                                                               </errors>)
     End Sub
 
     ' redefined in Roslyn. returns 30201 more sensitive here
@@ -2341,8 +2375,8 @@ End Module
             ]]>.Value
 
         ParseAndVerify(code, <errors>
-                                 <error id="30201"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                       <error id="30201"/>
+                                                                                                                                                                                                                                                                                   </errors>)
     End Sub
 
     <Fact()>
@@ -2356,9 +2390,9 @@ End Module
             ]]>.Value
 
         ParseAndVerify(code, <errors>
-                                 <error id="30675"/>
-                                 <error id="30201"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                           <error id="30675"/>
+                                                                                                                                                                                                                                                                                           <error id="30201"/>
+                                                                                                                                                                                                                                                                                       </errors>)
     End Sub
 
     <Fact()>
@@ -2390,21 +2424,21 @@ End Module
 
     ' old name - ParseRegion_ERR_EndRegionNoRegion()
     <WorkItem(904877, "DevDiv/Personal")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                   <Fact()>
     Public Sub BC30680ERR_EndRegionNoRegion()
         ParseAndVerify(<![CDATA[
                 #End Region
             ]]>,
         <errors>
-            <error id="30680"/>
-        </errors>)
+                                                                                                                                                                                                                                                                                                           <error id="30680"/>
+                                                                                                                                                                                                                                                                                                       </errors>)
     End Sub
 
     ' old name - ParseRegion_ERR_ExpectedEndRegion
     <WorkItem(2908, "DevDiv_Projects/Roslyn")>
-    <WorkItem(904877, "DevDiv/Personal")>
-    <WorkItem(527211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527211")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                           <WorkItem(904877, "DevDiv/Personal")>
+                                                                                                                                                                                                                                                                                                               <WorkItem(527211, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527211")>
+                                                                                                                                                                                                                                                                                                                   <Fact()>
     Public Sub BC30681ERR_ExpectedEndRegion()
         ParseAndVerify(<![CDATA[
                 #Region "Start"
@@ -2429,8 +2463,8 @@ End Module
                 End class
             ]]>,
         <errors>
-            <error id="30689"/>
-        </errors>)
+                                                                                                                                                                                                                                                                                                                                   <error id="30689"/>
+                                                                                                                                                                                                                                                                                                                               </errors>)
     End Sub
 
     <Fact()>
@@ -2441,8 +2475,8 @@ End Module
                 End Module
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="30710"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                       <error id="30710"/>
+                                                                                                                                                                                                                                                                                                                                   </errors>)
     End Sub
 
     <Fact()>
@@ -2454,9 +2488,9 @@ End Module
                 End Class
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="30785"/>
-                                 <error id="30203"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                           <error id="30785"/>
+                                                                                                                                                                                                                                                                                                                                           <error id="30203"/>
+                                                                                                                                                                                                                                                                                                                                       </errors>)
     End Sub
 
     <Fact()>
@@ -2467,8 +2501,8 @@ End Module
                 End Structure
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="30802"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                               <error id="30802"/>
+                                                                                                                                                                                                                                                                                                                                           </errors>)
     End Sub
 
     <Fact()>
@@ -2479,8 +2513,8 @@ End Module
                 End Module
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="30802"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                   <error id="30802"/>
+                                                                                                                                                                                                                                                                                                                                               </errors>)
     End Sub
 
     <Fact()>
@@ -2493,13 +2527,13 @@ End Module
                 End Module
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="30804"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                       <error id="30804"/>
+                                                                                                                                                                                                                                                                                                                                                   </errors>)
     End Sub
 
     ' bc30198 is more sensitive here
     <WorkItem(527353, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527353")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                       <Fact()>
     Public Sub BC30805ERR_ObsoleteArrayBounds()
         Dim code = <![CDATA[
                 Module Module1
@@ -2509,8 +2543,8 @@ End Module
                 End Module
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="30198"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                               <error id="30198"/>
+                                                                                                                                                                                                                                                                                                                                                           </errors>)
     End Sub
 
     <Fact()>
@@ -2526,23 +2560,32 @@ End Module
                 End Module
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="30811"/>
-                                 <error id="30811"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                   <error id="30811"/>
+                                                                                                                                                                                                                                                                                                                                                                   <error id="30811"/>
+                                                                                                                                                                                                                                                                                                                                                               </errors>)
     End Sub
 
-    <Fact()>
-    Public Sub BC30812ERR_ObsoleteOptionalWithoutValue()
-        Dim code = <![CDATA[
-                Class C1
-                    Function f1(Optional ByVal c1 )
-                    End Function
-                End Class
-            ]]>.Value
-        ParseAndVerify(code, <errors>
-                                 <error id="30812"/>
-                                 <error id="30201"/>
-                             </errors>)
+    <Requires.Language.Version(LanguageVersion.VisualBasic14, Requires.Language.Version.Comparision.LE)>
+    Public Sub BC30812ERR_ObsoleteOptionalWithoutValue_A()
+        Dim code =
+"Class C1
+    Function f1(Optional ByVal c1 )
+    End Function
+End Class"
+        Dim vbp = VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic14)
+                ParseAndVerify(code, vbp, <errors><error id = "30812" /><error id="30201"/></errors>)
+    End Sub
+
+    <Requires.Language.Feature(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)>
+    Public Sub BC30812ERR_ObsoleteOptionalWithoutValue_B()
+        Dim code =
+"Class C1
+    Function f1(Optional ByVal c1 )
+    End Function
+End Class"
+        Dim vbp = VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic14)
+        Parse(code, vbp).GetDiagnostics.AsImmutable.AssertNoErrors
+
     End Sub
 
     <Fact()>
@@ -2558,23 +2601,20 @@ End Module
                     End Sub
                 End Module
             ]]>.Value
-        ParseAndVerify(code, <errors>
-                                 <error id="30817"/>
-                                 <error id="30817"/>
-                             </errors>)
+        ParseAndVerify(code, <errors><error id="30817"/><error id="30817"/></errors>)
     End Sub
 
     ' old name - ParsePreprocessorIfEndIfNoSpace
     <WorkItem(881437, "DevDiv/Personal")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                           <Fact()>
     Public Sub BC30826ERR_ObsoleteEndIf()
         ParseAndVerify(<![CDATA[
                 #If true
                 #Endif
             ]]>,
         <errors>
-            <error id="30826"/>
-        </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                   <error id="30826"/>
+                                                                                                                                                                                                                                                                                                                                                                               </errors>)
     End Sub
 
     <Fact()>
@@ -2588,11 +2628,11 @@ End Module
                 End Class
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="30201"/>
-                                 <error id="30827"/>
-                                 <error id="30201"/>
-                                 <error id="30827"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                       <error id="30201"/>
+                                                                                                                                                                                                                                                                                                                                                                                       <error id="30827"/>
+                                                                                                                                                                                                                                                                                                                                                                                       <error id="30201"/>
+                                                                                                                                                                                                                                                                                                                                                                                       <error id="30827"/>
+                                                                                                                                                                                                                                                                                                                                                                                   </errors>)
     End Sub
 
     <Fact()>
@@ -2605,8 +2645,8 @@ End Module
                 End Class
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="30829"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                           <error id="30829"/>
+                                                                                                                                                                                                                                                                                                                                                                                       </errors>)
     End Sub
 
     <Fact()>
@@ -2617,11 +2657,11 @@ End Module
                 End Class
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="30944"/>
-                                 <error id="30182"/>
-                                 <error id="30198"/>
-                                 <error id="30183"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                               <error id="30944"/>
+                                                                                                                                                                                                                                                                                                                                                                                               <error id="30182"/>
+                                                                                                                                                                                                                                                                                                                                                                                               <error id="30198"/>
+                                                                                                                                                                                                                                                                                                                                                                                               <error id="30183"/>
+                                                                                                                                                                                                                                                                                                                                                                                           </errors>)
     End Sub
 
     <Fact()>
@@ -2638,9 +2678,9 @@ End Module
                 End Class
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="30985"/>
-                                 <error id="30985"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                   <error id="30985"/>
+                                                                                                                                                                                                                                                                                                                                                                                                   <error id="30985"/>
+                                                                                                                                                                                                                                                                                                                                                                                               </errors>)
     End Sub
 
     <Fact()>
@@ -2658,13 +2698,13 @@ End Module
                 End Module
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="30996"/>
-                                 <error id="30996"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                       <error id="30996"/>
+                                                                                                                                                                                                                                                                                                                                                                                                       <error id="30996"/>
+                                                                                                                                                                                                                                                                                                                                                                                                   </errors>)
     End Sub
 
     <WorkItem(538001, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538001")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                       <Fact()>
     Public Sub BC30999ERR_LineContWithCommentOrNoPrecSpace()
         Dim code = <![CDATA[
                 Public Class C1
@@ -2674,9 +2714,9 @@ End Module
                 End Class
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="30999"/>
-                                 <error id="30035"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                               <error id="30999"/>
+                                                                                                                                                                                                                                                                                                                                                                                                               <error id="30035"/>
+                                                                                                                                                                                                                                                                                                                                                                                                           </errors>)
 
         code = <![CDATA[
                 Public Class C1
@@ -2686,9 +2726,9 @@ End Module
                 End Class
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="30999"/>
-                                 <error id="30035"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                               <error id="30999"/>
+                                                                                                                                                                                                                                                                                                                                                                                                               <error id="30035"/>
+                                                                                                                                                                                                                                                                                                                                                                                                           </errors>)
 
         code = <![CDATA[
                 Public Class C1
@@ -2697,17 +2737,17 @@ End Module
                 End Class
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="30999"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                               <error id="30999"/>
+                                                                                                                                                                                                                                                                                                                                                                                                           </errors>)
 
         code = <![CDATA[
                 Public Class C1
 	                Dim cn ="Select * From Titles Jion Publishers " _
                     & "ON Publishers.PubId = Titles.PubID "_]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="30999"/>
-                                 <error id="30481"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                               <error id="30999"/>
+                                                                                                                                                                                                                                                                                                                                                                                                               <error id="30481"/>
+                                                                                                                                                                                                                                                                                                                                                                                                           </errors>)
     End Sub
 
     <Fact()>
@@ -2747,7 +2787,7 @@ End Module
     ''' Underscores in XML should not be interpreted
     ''' as continuation characters.
     ''' </summary>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                               <Fact()>
     Public Sub BC30999_XML()
         ParseAndVerify(<![CDATA[
 Module M
@@ -2776,8 +2816,8 @@ Module M
 End Module
 ]]>,
             <errors>
-                <error id="30203" message="Identifier expected."/>
-            </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                           <error id="30203" message="Identifier expected."/>
+                                                                                                                                                                                                                                                                                                                                                                                                                       </errors>)
         ' As above, but with tabs instead of spaces.
         ParseAndVerify(<![CDATA[
 Module M
@@ -2786,8 +2826,8 @@ Module M
 End Module
 ]]>.Value.Replace(" ", vbTab),
             <errors>
-                <error id="30203" message="Identifier expected."/>
-            </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                           <error id="30203" message="Identifier expected."/>
+                                                                                                                                                                                                                                                                                                                                                                                                                       </errors>)
         ' As above, but with full-width underscore characters.
         ParseAndVerify(<![CDATA[
 Module M
@@ -2800,7 +2840,7 @@ End Module
     End Sub
 
     <WorkItem(630127, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/630127")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                           <Fact()>
     Public Sub BC30999_AtLineStart()
         ParseAndVerify(<![CDATA[
 Module M
@@ -2809,8 +2849,8 @@ _
 End Module
 ]]>,
             <errors>
-                <error id="30999"/>
-            </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="30999"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                               </errors>)
         ' As above, but with full-width underscore characters.
         ParseAndVerify(<![CDATA[
 Module M
@@ -2819,8 +2859,8 @@ _
 End Module
 ]]>.Value.Replace("_", SyntaxFacts.FULLWIDTH_LOW_LINE),
             <errors>
-                <error id="30203" message="Identifier expected."/>
-            </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="30203" message="Identifier expected."/>
+                                                                                                                                                                                                                                                                                                                                                                                                                               </errors>)
         ParseAndVerify(<![CDATA[
 Module M
     Dim x = From c in "" _
@@ -2829,8 +2869,8 @@ _
 End Module
 ]]>,
             <errors>
-                <error id="30999"/>
-            </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="30999"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                               </errors>)
         ' As above, but with full-width underscore characters.
         ParseAndVerify(<![CDATA[
 Module M
@@ -2840,9 +2880,9 @@ _
 End Module
 ]]>.Value.Replace("_", SyntaxFacts.FULLWIDTH_LOW_LINE),
             <errors>
-                <error id="30203" message="Identifier expected."/>
-                <error id="30203" message="Identifier expected."/>
-            </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="30203" message="Identifier expected."/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="30203" message="Identifier expected."/>
+                                                                                                                                                                                                                                                                                                                                                                                                                               </errors>)
         ParseAndVerify(<![CDATA[
 Module M
     Dim x = 
@@ -2851,9 +2891,9 @@ _
 End Module
 ]]>,
             <errors>
-                <error id="30201"/>
-                <error id="30999"/>
-            </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="30201"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="30999"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                               </errors>)
         ' As above, but with full-width underscore characters.
         ParseAndVerify(<![CDATA[
 Module M
@@ -2863,9 +2903,9 @@ _
 End Module
 ]]>.Value.Replace("_", SyntaxFacts.FULLWIDTH_LOW_LINE),
             <errors>
-                <error id="30201"/>
-                <error id="30203" message="Identifier expected."/>
-            </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="30201"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="30203" message="Identifier expected."/>
+                                                                                                                                                                                                                                                                                                                                                                                                                               </errors>)
     End Sub
 
     <Fact()>
@@ -2924,7 +2964,7 @@ End While
     End Sub
 
     <WorkItem(527330, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527330")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                   <Fact()>
     Public Sub BC31085ERR_InvalidDate()
         Dim code = <![CDATA[
                 Class C1
@@ -2947,7 +2987,7 @@ End While
 
     ' Not report 31118 for this case in Roslyn
     <WorkItem(527344, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527344")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                           <Fact()>
     Public Sub BC31118ERR_EndAddHandlerNotAtLineStart()
         Dim code = <![CDATA[
                 Class TimerState
@@ -2966,7 +3006,7 @@ End While
 
     ' Not report 31119 for this case in Roslyn
     <WorkItem(527310, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527310")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <Fact()>
     Public Sub BC31119ERR_EndRemoveHandlerNotAtLineStart()
         Dim code = <![CDATA[
                 Class C1
@@ -2991,7 +3031,7 @@ End While
 
     ' Not report 31120 for this case in Roslyn
     <WorkItem(527309, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527309")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <Fact()>
     Public Sub BC31120ERR_EndRaiseEventNotAtLineStart()
         Dim code = <![CDATA[
                 Class C1
@@ -3011,7 +3051,7 @@ End While
     End Sub
 
     <WorkItem(887848, "DevDiv/Personal")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <Fact()>
     Public Sub BC31122ERR_CustomEventRequiresAs()
         ParseAndVerify(<![CDATA[
     Class c1
@@ -3019,8 +3059,8 @@ End While
     End Class
     ]]>,
 <errors>
-    <error id="31122"/>
-</errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <error id="31122"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       </errors>)
     End Sub
 
     <Fact()>
@@ -3032,8 +3072,8 @@ End While
             ]]>.Value
 
         ParseAndVerify(code, <errors>
-                                 <error id="31123"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="31123"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           </errors>)
     End Sub
 
     <Fact()>
@@ -3050,13 +3090,13 @@ End While
                 End Class
     ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="31114"/>
-                                 <error id="31124"/>
-                                 <error id="31112"/>
-                                 <error id="30188"/>
-                                 <error id="31125"/>
-                                 <error id="31123"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="31114"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="31124"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="31112"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="30188"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="31125"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="31123"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               </errors>)
     End Sub
 
     <Fact()>
@@ -3073,9 +3113,9 @@ End While
     ]]>.Value
 
         ParseAndVerify(code, <errors>
-                                 <error id="31125"/>
-                                 <error id="31125"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <error id="31125"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <error id="31125"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   </errors>)
     End Sub
 
     <Fact()>
@@ -3092,9 +3132,9 @@ End While
     ]]>.Value
 
         ParseAndVerify(code, <errors>
-                                 <error id="31126"/>
-                                 <error id="31126"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <error id="31126"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <error id="31126"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       </errors>)
     End Sub
 
     <Fact()>
@@ -3155,7 +3195,7 @@ BC31154: XML declaration does not allow attribute 'xmlns'.
     End Sub
 
     <WorkItem(537222, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537222")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <Fact()>
     Public Sub BC31156ERR_VersionMustBeFirstInXmlDecl()
         Dim code = <![CDATA[
     Module M1
@@ -3169,9 +3209,9 @@ BC31154: XML declaration does not allow attribute 'xmlns'.
     ]]>.Value
 
         ParseAndVerify(code, <errors>
-                                 <error id="31156"/>
-                                 <error id="31156"/>
-                             </errors>).VerifySpanOfChildWithinSpanOfParent()
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="31156"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="31156"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           </errors>).VerifySpanOfChildWithinSpanOfParent()
     End Sub
 
     <Fact()>
@@ -3186,13 +3226,13 @@ BC31154: XML declaration does not allow attribute 'xmlns'.
     ]]>.Value
 
         ParseAndVerify(code, <errors>
-                                 <error id="31157"/>
-                                 <error id="31153"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="31157"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="31153"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               </errors>)
     End Sub
 
     <WorkItem(538964, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538964")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <Fact()>
     Public Sub BC31157ERR_AttributeOrder_1()
         Dim code = <![CDATA[
                 Imports System.Xml.Linq
@@ -3204,8 +3244,8 @@ BC31154: XML declaration does not allow attribute 'xmlns'.
     ]]>.Value
 
         ParseAndVerify(code, <errors>
-                                 <error id="31157"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <error id="31157"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       </errors>)
     End Sub
 
     <Fact()>
@@ -3219,10 +3259,10 @@ BC31154: XML declaration does not allow attribute 'xmlns'.
             ]]>.Value
 
         ParseAndVerify(code, <errors>
-                                 <error id="31161"/>
-                                 <error id="30026"/>
-                                 <error id="30625"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="31161"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="30026"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="30625"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           </errors>)
     End Sub
 
     <Fact()>
@@ -3237,10 +3277,10 @@ BC31154: XML declaration does not allow attribute 'xmlns'.
             ]]>.Value
 
         ParseAndVerify(code, <errors>
-                                 <error id="31162"/>
-                                 <error id="30026"/>
-                                 <error id="30625"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="31162"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="30026"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="30625"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               </errors>)
     End Sub
 
     <Fact()>
@@ -3272,7 +3312,7 @@ BC31164: Expected matching closing double quote for XML attribute value.
     End Sub
 
     <WorkItem(537218, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537218")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <Fact()>
     Public Sub BC31175ERR_DTDNotSupported()
         Dim code = <![CDATA[
     Module DTDErrmod
@@ -3286,8 +3326,8 @@ BC31164: Expected matching closing double quote for XML attribute value.
     ]]>.Value
 
         ParseAndVerify(code, <errors>
-                                 <error id="31175"/>
-                             </errors>).VerifySpanOfChildWithinSpanOfParent()
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="31175"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               </errors>).VerifySpanOfChildWithinSpanOfParent()
     End Sub
 
     <Fact()>
@@ -3300,13 +3340,13 @@ BC31164: Expected matching closing double quote for XML attribute value.
                 End Class 
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="31180"/>
-                                 <error id="31180"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <error id="31180"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <error id="31180"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   </errors>)
     End Sub
 
     <WorkItem(542975, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542975")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <Fact()>
     Public Sub BC31207ERR_XmlEndElementNoMatchingStart()
         Dim tree = Parse(<![CDATA[
 Module M
@@ -3338,22 +3378,22 @@ BC31207: XML end element must be preceded by a matching start element.
                 End Module
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="31426"/>
-                                 <error id="30198"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="31426"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="30198"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               </errors>)
     End Sub
 
     ' old name - ParsePreProcessorIfGetType_ERR_BadCCExpression()
     <WorkItem(888313, "DevDiv/Personal")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <Fact()>
     Public Sub BC31427ERR_BadCCExpression()
         ParseAndVerify(<![CDATA[
                 #If GetType(x) Then
                 #End If
             ]]>,
         <errors>
-            <error id="31427"/>
-        </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <error id="31427"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       </errors>)
     End Sub
 
     <Fact()>
@@ -3371,9 +3411,9 @@ BC31207: XML end element must be preceded by a matching start element.
                 End Namespace
 ]]>,
             <errors>
-                <error id="32009"/>
-                <error id="32009"/>
-            </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="32009"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="32009"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           </errors>)
         ParseAndVerify(<![CDATA[
 Interface I
     Function F():Function G():Sub M()
@@ -3387,8 +3427,8 @@ Module M
 End Module
 ]]>,
             <errors>
-                <error id="32009"/>
-            </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="32009"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           </errors>)
         ParseAndVerify(<![CDATA[
 Module M
     Function F()
@@ -3398,8 +3438,8 @@ Module M
 End Module
 ]]>,
             <errors>
-                <error id="32009"/>
-            </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="32009"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           </errors>)
         ParseAndVerify(<![CDATA[
 Class C
     Function F()
@@ -3408,8 +3448,8 @@ Class C
 End Class
 ]]>,
             <errors>
-                <error id="32009"/>
-            </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="32009"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           </errors>)
     End Sub
 
     <Fact()>
@@ -3428,10 +3468,10 @@ End Class
             ]]>.Value
 
         ParseAndVerify(code, <errors>
-                                 <error id="32019"/>
-                                 <error id="32019"/>
-                                 <error id="32019"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="32019"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="32019"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="32019"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               </errors>)
     End Sub
 
     <Fact()>
@@ -3453,15 +3493,15 @@ End Class
             ]]>.Value
 
         ParseAndVerify(code, <errors>
-                                 <error id="36714"/>
-                                 <error id="32024"/>
-                                 <error id="32024"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <error id="36714"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <error id="32024"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <error id="32024"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   </errors>)
     End Sub
 
     ' changed in roslyn
     <WorkItem(527338, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527338")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <Fact()>
     Public Sub BC32025ERR_RegionWithinMethod()
         ParseAndVerify(<![CDATA[
                        Public Module MyModule
@@ -3480,8 +3520,8 @@ End Class
                         End Class
                 ]]>,
             <errors>
-                <error id="30217"/>
-            </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="30217"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           </errors>)
     End Sub
 
     ' bc32026 is removed in roslyn
@@ -3496,12 +3536,12 @@ End Class
                         End Class
                 ]]>,
             <errors>
-                <error id="30193"/>
-            </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="30193"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               </errors>)
     End Sub
 
     <WorkItem(527316, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527316")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <Fact()>
     Public Sub BC32027ERR_ExpectedDotAfterMyBase()
         Dim code = <![CDATA[
                 Namespace NS1
@@ -3525,14 +3565,14 @@ End Class
             ]]>.Value
 
         ParseAndVerify(code, <errors>
-                                 <error id="32027"/>
-                                 <error id="32027"/>
-                                 <error id="32027"/>
-                                 <error id="32027"/>
-                                 <error id="32027"/>
-                                 <error id="32027"/>
-                                 <error id="32027"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <error id="32027"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <error id="32027"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <error id="32027"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <error id="32027"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <error id="32027"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <error id="32027"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <error id="32027"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       </errors>)
     End Sub
 
     <Fact()>
@@ -3556,16 +3596,16 @@ End Class
             ]]>.Value
 
         ParseAndVerify(code, <errors>
-                                 <error id="32028"/>
-                                 <error id="32028"/>
-                                 <error id="32028"/>
-                                 <error id="32028"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="32028"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="32028"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="32028"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="32028"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           </errors>)
     End Sub
 
     ' old name - ParsePreProcessorElseIf_ERR_LbElseifAfterElse()
     <WorkItem(897858, "DevDiv/Personal")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <Fact()>
     Public Sub BC32030ERR_LbElseifAfterElse()
         ParseAndVerify(<![CDATA[
                 #If False Then
@@ -3574,13 +3614,13 @@ End Class
                 #End If
             ]]>,
         <errors>
-            <error id="32030"/>
-        </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <error id="32030"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   </errors>)
     End Sub
 
     ' not repro 32031 in this case for Roslyn
     <WorkItem(527312, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527312")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <Fact()>
     Public Sub BC32031ERR_EndSubNotAtLineStart()
         Dim code = <![CDATA[
                 Namespace NS1
@@ -3599,7 +3639,7 @@ End Class
 
     ' not report 32032 in this case for Roslyn
     <WorkItem(527341, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527341")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <Fact()>
     Public Sub BC32032ERR_EndFunctionNotAtLineStart()
         Dim code = <![CDATA[
                 Module M1
@@ -3616,7 +3656,7 @@ End Class
 
     ' not report 32033 in this case for Roslyn
     <WorkItem(527342, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527342")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <Fact()>
     Public Sub BC32033ERR_EndGetNotAtLineStart()
         Dim code = <![CDATA[
                 Class C1
@@ -3642,7 +3682,7 @@ End Class
 
     ' not report 32034 in this case for Roslyn
     <WorkItem(527311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527311")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <Fact()>
     Public Sub BC32034ERR_EndSetNotAtLineStart()
         Dim code = <![CDATA[
                 Class C1
@@ -3680,12 +3720,12 @@ End Class
                 End Module
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="32035"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <error id="32035"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       </errors>)
     End Sub
 
     <WorkItem(527311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527311")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <Fact()>
     Public Sub BC32037ERR_ExtraNextVariable()
         Dim code = <![CDATA[
                 Class A
@@ -3697,12 +3737,12 @@ End Class
                 End Class
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="32037"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="32037"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               </errors>)
     End Sub
 
     <WorkItem(537219, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537219")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <Fact()>
     Public Sub BC32059ERR_OnlyNullLowerBound()
         Dim code = <![CDATA[
     Module M1
@@ -3717,7 +3757,7 @@ End Class
     End Sub
 
     <WorkItem(537223, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537223")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <Fact()>
     Public Sub BC32065ERR_GenericParamsOnInvalidMember()
         Dim code = <![CDATA[
      Module M1
@@ -3730,12 +3770,12 @@ End Class
     ]]>.Value
 
         ParseAndVerify(code, <errors>
-                                 <error id="32065"/>
-                             </errors>).VerifySpanOfChildWithinSpanOfParent()
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="32065"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               </errors>).VerifySpanOfChildWithinSpanOfParent()
     End Sub
 
     <WorkItem(537988, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537988")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <Fact()>
     Public Sub BC32066ERR_GenericArgsOnAttributeSpecifier()
         Dim code = <![CDATA[
                 Module M1
@@ -3746,8 +3786,8 @@ End Class
     ]]>.Value
 
         ParseAndVerify(code, <errors>
-                                 <error id="32066"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <error id="32066"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       </errors>)
     End Sub
 
     <Fact()>
@@ -3760,12 +3800,12 @@ End Class
             ]]>.Value
 
         ParseAndVerify(code, <errors>
-                                 <error id="32073"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="32073"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           </errors>)
     End Sub
 
     <WorkItem(527337, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527337")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <Fact()>
     Public Sub BC32092ERR_BadConstraintSyntax()
         Dim code = <![CDATA[
                 Public Class itemManager(Of t As )
@@ -3823,7 +3863,7 @@ End Class
     End Sub
 
     <WorkItem(3372, "DevDiv_Projects/Roslyn")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <Fact()>
     Public Sub BC33001ERR_DuplicateConversionCategoryUsed()
         Dim code = <![CDATA[
                 Public Structure digit
@@ -3852,9 +3892,9 @@ End Class
                 End Structure
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="33003"/>
-                                 <error id="33003"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <error id="33003"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <error id="33003"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       </errors>)
     End Sub
 
     <Fact()>
@@ -3869,12 +3909,12 @@ End Class
                 End Interface
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="33004"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="33004"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           </errors>)
     End Sub
 
     <WorkItem(527308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527308")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <Fact()>
     Public Sub BC33006ERR_EndOperatorNotAtLineStart()
         Dim code = <![CDATA[
                 Public Structure abc
@@ -3912,9 +3952,9 @@ End Class
                 End Module
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="33007"/>
-                                 <error id="33007"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <error id="33007"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <error id="33007"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       </errors>)
     End Sub
 
     <Fact()>
@@ -3947,11 +3987,11 @@ End Class
                 End Class
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="33008"/>
-                                 <error id="33008"/>
-                                 <error id="33008"/>
-                                 <error id="33008"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="33008"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="33008"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="33008"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="33008"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           </errors>)
     End Sub
 
     <Fact()>
@@ -3964,8 +4004,8 @@ End Class
                 #End If
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="33111"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="33111"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               </errors>)
     End Sub
 
     <Fact()>
@@ -4015,8 +4055,8 @@ End Class
                 End Class 
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="36000"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="36000"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           </errors>)
     End Sub
 
     <Fact()>
@@ -4025,8 +4065,8 @@ End Class
                 Imports global = Microsoft.CSharp
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="36001"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="36001"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               </errors>)
     End Sub
 
     <Fact()>
@@ -4039,9 +4079,9 @@ End Class
                 End Class
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="36002"/>
-                                 <error id="30287"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <error id="36002"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <error id="30287"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   </errors>)
     End Sub
 
     <Fact()>
@@ -4075,9 +4115,9 @@ End Class
                 End Module
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="36556"/>
-                                 <error id="36556"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="36556"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="36556"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           </errors>)
     End Sub
 
     <Fact()>
@@ -4090,12 +4130,12 @@ End Class
                 End Module
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="36575"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="36575"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               </errors>)
     End Sub
 
     <WorkItem(537985, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537985")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <Fact()>
     Public Sub BC36605ERR_ExpectedBy()
         Dim code = <![CDATA[
                 Option Explicit On
@@ -4111,14 +4151,14 @@ Namespace NS1
 End Namespace
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="36605"/>
-                                 <error id="36615"/>
-                                 <error id="36615"/>
-                                 <error id="36605"/>
-                                 <error id="36615"/>
-                                 <error id="36605"/>
-                                 <error id="36615"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <error id="36605"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <error id="36615"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <error id="36615"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <error id="36605"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <error id="36615"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <error id="36605"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <error id="36615"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       </errors>)
     End Sub
 
     <Fact()>
@@ -4132,8 +4172,8 @@ End Namespace
                 End Module
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="36613"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="36613"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           </errors>)
     End Sub
 
     <Fact()>
@@ -4148,12 +4188,12 @@ End Namespace
                 End Namespace
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="36618"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="36618"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               </errors>)
     End Sub
 
     <WorkItem(538492, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538492")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <Fact()>
     Public Sub BC36618ERR_ExpectedOn_1()
         Dim code = <![CDATA[
                  Module M
@@ -4173,7 +4213,7 @@ End Namespace
     End Sub
 
     <WorkItem(527317, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527317")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <Fact()>
     Public Sub BC36619ERR_ExpectedEquals()
         Dim code = <![CDATA[
                 Option Explicit On
@@ -4189,15 +4229,15 @@ End Namespace
                 End Namespace
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="36619"/>
-                                 <error id="36619"/>
-                                 <error id="36619"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="36619"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="36619"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="36619"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               </errors>)
     End Sub
 
     ' old name - RoundtripForInvalidQueryWithOn()
     <WorkItem(921279, "DevDiv/Personal")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <Fact()>
     Public Sub BC36620ERR_ExpectedAnd()
         ParseAndVerify(<![CDATA[
             Namespace JoinOnInvalid
@@ -4210,8 +4250,8 @@ End Namespace
             End Namespace
                 ]]>,
             <errors>
-                <error id="36620"/>
-            </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <error id="36620"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       </errors>)
     End Sub
 
     <Fact()>
@@ -4228,8 +4268,8 @@ End Namespace
                 End Namespace
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="36629"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="36629"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           </errors>)
     End Sub
 
     <Fact()>
@@ -4243,8 +4283,8 @@ End Namespace
                 End Class
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="36637"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="36637"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               </errors>)
     End Sub
 
     <Fact()>
@@ -4261,9 +4301,9 @@ End Namespace
                 End Namespace
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="36707"/>
-                                 <error id="36707"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <error id="36707"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <error id="36707"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   </errors>)
     End Sub
 
     <Fact()>
@@ -4277,13 +4317,13 @@ End Namespace
                 End Class
             ]]>.Value
         ParseAndVerify(code, <errors>
-                                 <error id="36708"/>
-                             </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <error id="36708"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       </errors>)
     End Sub
 
     ' old name - ParseProperty_ERR_InitializedExpandedProperty
     <WorkItem(880151, "DevDiv/Personal")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <Fact()>
     Public Sub BC36714ERR_InitializedExpandedProperty()
         ParseAndVerify(<![CDATA[
                 class c
@@ -4295,8 +4335,8 @@ End Namespace
                 end class
             ]]>,
         <errors>
-            <error id="36714"/>
-        </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="36714"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               </errors>)
     End Sub
 
     ' old name - ParseProperty_ERR_AutoPropertyCantHaveParams
@@ -4308,8 +4348,8 @@ End Namespace
                 end class
             ]]>,
         <errors>
-            <error id="36759"/>
-        </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <error id="36759"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   </errors>)
     End Sub
 
     <Fact()>
@@ -4322,8 +4362,8 @@ End Namespace
                 End Class
             ]]>,
         <errors>
-            <error id="36920"/>
-        </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <error id="36920"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       </errors>)
     End Sub
 
     <Fact()>
@@ -4336,8 +4376,8 @@ End Namespace
                 End Class
             ]]>,
         <errors>
-            <error id="36921"/>
-        </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="36921"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           </errors>)
     End Sub
 
     <Fact()>
@@ -4350,8 +4390,8 @@ End Namespace
                 End Class
             ]]>,
         <errors>
-            <error id="36922"/>
-        </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="36922"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               </errors>)
     End Sub
 
 #End Region
@@ -4360,7 +4400,7 @@ End Namespace
 
     ' old name - ParseXmlDoc_WRNID_XMLDocNotFirstOnLine()
     <WorkItem(527096, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527096")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <Fact()>
     Public Sub BC42302WRN_XMLDocNotFirstOnLine()
         ParseAndVerify(<![CDATA[
                 Module Module1
@@ -4378,8 +4418,8 @@ End Namespace
             ]]>,
         VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
         <errors>
-            <error id="42302" warning="True"/>
-        </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <error id="42302" warning="True"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       </errors>)
     End Sub
 
     <Fact()>
@@ -4395,7 +4435,7 @@ End Namespace
     End Sub
 
     <WorkItem(530052, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530052")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <Fact()>
     Public Sub BC42303WRN_XMLDocInsideMethod_NoError()
         ' NOTE: this error is not reported by parser
         ParseAndVerify(<![CDATA[
@@ -4416,8 +4456,8 @@ End Namespace
 
     ' old name -ParseNestedCDATA_ERR_ExpectedLT
     <WorkItem(904414, "DevDiv/Personal")>
-    <WorkItem(914949, "DevDiv/Personal")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <WorkItem(914949, "DevDiv/Personal")>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <Fact()>
     Public Sub BC42304WRN_XMLDocParseError1()
         Dim code = <!--
     Module M1
@@ -4434,8 +4474,8 @@ End Namespace
         ParseAndVerify(code,
                        VisualBasicParseOptions.Default.WithDocumentationMode(DocumentationMode.Diagnose),
                        <errors>
-                           <error id="42304" warning="True"/>
-                       </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="42304" warning="True"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               </errors>)
     End Sub
 
     <Fact()>
@@ -4458,7 +4498,7 @@ End Namespace
 
     'Dev10 reports both errors but hides the second.  We report all errors so this is be design.
     <WorkItem(887998, "DevDiv/Personal")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <Fact()>
     Public Sub ParseMoreErrorExpectedIdentifier()
         ParseAndVerify(<![CDATA[
                          Class c1
@@ -4467,14 +4507,14 @@ End Namespace
 
                 ]]>,
             <errors>
-                <error id="36720"/>
-                <error id="30203"/>
-            </errors>)
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="36720"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="30203"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           </errors>)
     End Sub
 
     'Assert in new parse tree
     <WorkItem(921273, "DevDiv/Personal")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <Fact()>
     Public Sub BC31053ERR_ImplementsStmtWrongOrder_NoAssertForInvalidOptionImport()
         ParseAndVerify(<![CDATA[
                          Class c1
@@ -4505,7 +4545,7 @@ End Namespace
     End Sub
 
     <WorkItem(930036, "DevDiv/Personal")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <Fact()>
     Public Sub TestErrorsOnChildAlsoPresentOnParent()
         Dim code = <![CDATA[
     class c1
@@ -4517,13 +4557,13 @@ End Namespace
     ]]>.Value
 
         ParseAndVerify(code, <errors>
-                                 <error id="31172"/>
-                                 <error id="31154"/>
-                                 <error id="31146"/>
-                                 <error id="31172"/>
-                                 <error id="31146"/>
-                                 <error id="31172"/>
-                             </errors>).VerifyErrorsOnChildrenAlsoPresentOnParent()
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="31172"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="31154"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="31146"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="31172"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="31146"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="31172"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           </errors>).VerifyErrorsOnChildrenAlsoPresentOnParent()
     End Sub
 
     <Fact, WorkItem(537131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537131"), WorkItem(527922, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527922"), WorkItem(527553, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/527553")>
@@ -4540,19 +4580,19 @@ End Namespace
     ]]>.Value
 
         ParseAndVerify(code, <errors>
-                                 <error id="30625"/>
-                                 <error id="30026"/>
-                                 <error id="31151"/>
-                                 <error id="30035"/>
-                                 <error id="30648"/>
-                                 <error id="31159"/>
-                                 <error id="31165"/>
-                                 <error id="30636"/>
-                             </errors>).VerifyNoAdjacentTriviaHaveSameKind()
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="30625"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="30026"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="31151"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="30035"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="30648"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="31159"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="31165"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <error id="30636"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               </errors>).VerifyNoAdjacentTriviaHaveSameKind()
     End Sub
 
     <WorkItem(537131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/537131")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <Fact()>
     Public Sub TestNoAdjacentTriviaWithSameKind2()
         Dim code = <![CDATA[class c1
 end c#@1]]>.Value
@@ -4563,8 +4603,8 @@ end c#@1]]>.Value
     End Sub
 
     <WorkItem(538861, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/538861")>
-    <WorkItem(539509, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539509")>
-    <Fact>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <WorkItem(539509, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539509")>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <Fact>
     Public Sub TestIllegalTypeParams()
         Dim code = <![CDATA[Module Program(Of T)
     Sub Main(args As String())
@@ -4585,19 +4625,19 @@ Structure S
 End Structure]]>
 
         ParseAndVerify(code, <errors>
-                                 <error id="32073"/>
-                                 <error id="32065"/>
-                                 <error id="32065"/>
-                                 <error id="32065"/>
-                                 <error id="32065"/>
-                                 <error id="32065"/>
-                             </errors>).VerifyOccurrenceCount(SyntaxKind.TypeParameterList, 0).
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <error id="32073"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <error id="32065"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <error id="32065"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <error id="32065"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <error id="32065"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <error id="32065"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   </errors>).VerifyOccurrenceCount(SyntaxKind.TypeParameterList, 0).
                                         VerifyOccurrenceCount(SyntaxKind.TypeParameter, 0).
                                         VerifyNoAdjacentTriviaHaveSameKind()
     End Sub
 
     <WorkItem(929948, "DevDiv/Personal")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       <Fact()>
     Public Sub TestChildSpanWithinParentSpan()
         Dim code = <![CDATA[
     class c1
@@ -4609,13 +4649,13 @@ End Structure]]>
     ]]>.Value
 
         ParseAndVerify(code, <errors>
-                                 <error id="31172"/>
-                                 <error id="31154"/>
-                                 <error id="31146"/>
-                                 <error id="31172"/>
-                                 <error id="31146"/>
-                                 <error id="31172"/>
-                             </errors>).VerifySpanOfChildWithinSpanOfParent()
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="31172"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="31154"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="31146"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="31172"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="31146"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               <error id="31172"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           </errors>).VerifySpanOfChildWithinSpanOfParent()
     End Sub
 
     <Fact()>
@@ -4638,7 +4678,7 @@ BC31042: 'Sub New' cannot implement interface members.
     End Sub
 
     <WorkItem(1905, "DevDiv_Projects/Roslyn")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <Fact()>
     Public Sub BC31042ERR_ImplementsOnNew_TestRoundTripHandlesAfterNew()
         Dim code = <![CDATA[
     Module EventError004mod
@@ -4664,13 +4704,13 @@ BC31042: 'Sub New' cannot implement interface members.
     ]]>.Value
 
         ParseAndVerify(code, <errors>
-                                 <error id="30497"/>
-                                 <error id="31042"/>
-                             </errors>).VerifySpanOfChildWithinSpanOfParent()
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <error id="30497"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <error id="31042"/>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       </errors>).VerifySpanOfChildWithinSpanOfParent()
     End Sub
 
     <WorkItem(541266, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541266")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <Fact()>
     Public Sub BC30182_ERR_UnrecognizedType()
 
         Dim Keypair = New KeyValuePair(Of String, Object)("CompErrorTest", -1)
@@ -4683,7 +4723,7 @@ BC31042: 'Sub New' cannot implement interface members.
     End Sub
 
     <WorkItem(541284, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541284")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <Fact()>
     Public Sub ParseWithChrw0()
 
         Dim code = <![CDATA[
@@ -4696,7 +4736,7 @@ I<
     End Sub
 
     <WorkItem(541286, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541286")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <Fact()>
     Public Sub BC33002ERR_OperatorNotOverloadable_ParseNotOverloadableOperators1()
 
         Dim code = <![CDATA[
@@ -4710,7 +4750,7 @@ End Class
     End Sub
 
     <WorkItem(541291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541291")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <Fact()>
     Public Sub RoundTrip()
         Dim code = <![CDATA[Dim=<><%=">
 <
@@ -4720,7 +4760,7 @@ End Class
     End Sub
 
     <WorkItem(541293, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541293")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <Fact()>
     Public Sub RoundTrip_1()
         Dim code = <![CDATA[Property)As new t(Of Integer) FROM {1, 2, 3}]]>.Value
         Dim tree = VisualBasicSyntaxTree.ParseText(code)
@@ -4728,7 +4768,7 @@ End Class
     End Sub
 
     <WorkItem(541291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541291")>
-    <Fact()>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   <Fact()>
     Public Sub RoundTrip_2()
         Dim code = <![CDATA[Dim=<><%={%>
 <
@@ -4738,7 +4778,7 @@ End Class
     End Sub
 
     <WorkItem(716245, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/716245")>
-    <Fact>
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           <Fact>
     Public Sub ManySkippedTokens()
         Const numTokens As Integer = 500000 ' Prohibitively slow without fix.
         Dim source As New String("`"c, numTokens)

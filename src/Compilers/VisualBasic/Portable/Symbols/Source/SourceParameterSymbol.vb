@@ -244,7 +244,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         ' It is not strictly necessary to decode default value attributes early in VB,
         ' but it is necessary in C#, so this keeps the implementations consistent.
-        Private Function EarlyDecodeAttributeForDefaultParameterValue(description As AttributeDescription, ByRef arguments As EarlyDecodeWellKnownAttributeArguments(Of EarlyWellKnownAttributeBinder, NamedTypeSymbol, AttributeSyntax, AttributeLocation)) As VisualBasicAttributeData
+        Private Function EarlyDecodeAttributeForDefaultParameterValue(
+                                                                       description As AttributeDescription,
+                                                                 ByRef arguments As EarlyDecodeWellKnownAttributeArguments(Of EarlyWellKnownAttributeBinder,
+                                                                                                                              NamedTypeSymbol,
+                                                                                                                              AttributeSyntax,
+                                                                                                                              AttributeLocation
+                                                                                                                           )
+                                                                     ) As VisualBasicAttributeData
+
             Debug.Assert(description.Equals(AttributeDescription.DefaultParameterValueAttribute) OrElse
                          description.Equals(AttributeDescription.DecimalConstantAttribute) OrElse
                          description.Equals(AttributeDescription.DateTimeConstantAttribute))
@@ -293,16 +301,21 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             If attrData.IsTargetAttribute(Me, AttributeDescription.DefaultParameterValueAttribute) Then
                 ' Attribute decoded and constant value stored during EarlyDecodeWellKnownAttribute.
                 DecodeDefaultParameterValueAttribute(AttributeDescription.DefaultParameterValueAttribute, arguments)
+
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.DecimalConstantAttribute) Then
                 ' Attribute decoded and constant value stored during EarlyDecodeWellKnownAttribute.
                 DecodeDefaultParameterValueAttribute(AttributeDescription.DecimalConstantAttribute, arguments)
+
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.DateTimeConstantAttribute) Then
                 ' Attribute decoded and constant value stored during EarlyDecodeWellKnownAttribute.
                 DecodeDefaultParameterValueAttribute(AttributeDescription.DateTimeConstantAttribute, arguments)
+
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.InAttribute) Then
                 arguments.GetOrCreateData(Of CommonParameterWellKnownAttributeData)().HasInAttribute = True
+
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.OutAttribute) Then
                 arguments.GetOrCreateData(Of CommonParameterWellKnownAttributeData)().HasOutAttribute = True
+
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.MarshalAsAttribute) Then
                 MarshalAsAttributeDecoder(Of CommonParameterWellKnownAttributeData, AttributeSyntax, VisualBasicAttributeData, AttributeLocation).Decode(arguments, AttributeTargets.Parameter, MessageProvider.Instance)
             End If
@@ -344,11 +357,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             If description.Equals(AttributeDescription.DefaultParameterValueAttribute) Then
                 Return DecodeDefaultParameterValueAttribute(attribute)
+
             ElseIf description.Equals(AttributeDescription.DecimalConstantAttribute) Then
                 Return attribute.DecodeDecimalConstantValue()
+
             Else
                 Debug.Assert(description.Equals(AttributeDescription.DateTimeConstantAttribute))
                 Return attribute.DecodeDateTimeConstantValue()
+
             End If
         End Function
 

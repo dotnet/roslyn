@@ -524,11 +524,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ''' BindValue evaluates the node and returns a BoundExpression.  BindValue snaps expressions to values.  For now that means that method groups
         ''' become invocations.
         ''' </summary>
-        Friend Function BindValue(
-             node As ExpressionSyntax,
-             diagnostics As DiagnosticBag,
-             Optional isOperandOfConditionalBranch As Boolean = False
-         ) As BoundExpression
+        Friend Function BindValue(node As ExpressionSyntax,
+                                   diagnostics As DiagnosticBag,
+                          Optional isOperandOfConditionalBranch As Boolean = False
+                                 ) As BoundExpression
             Dim expr = BindExpression(node, diagnostics:=diagnostics, isOperandOfConditionalBranch:=isOperandOfConditionalBranch, isInvocationOrAddressOf:=False, eventContext:=False)
 
             Return MakeValue(expr, diagnostics)
@@ -786,11 +785,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Note, native compiler doesn't escape DefaultInstanceAlias if it is a reserved keyword.
 
             Dim codeToParse As String =
-                "Class DefaultInstanceAlias" & vbCrLf &
-                    "Function DefaultInstanceAlias()" & vbCrLf &
-                        "Return " & prop.DefaultInstanceAlias & "." & prop.Name & vbCrLf &
-                    "End Function" & vbCrLf &
-                "End Class" & vbCrLf
+                $"Class DefaultInstanceAlias
+                      Function DefaultInstanceAlias()
+                          Return {prop.DefaultInstanceAlias}.{prop.Name}
+                      End Function
+                  End Class
+                          "
 
             ' It looks like Dev11 ignores project level conditional compilation here, which makes sense since expression cannot contain #If directives.
             Dim tree = VisualBasicSyntaxTree.ParseText(codeToParse)
@@ -800,7 +800,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             For Each diag As Diagnostic In tree.GetDiagnostics(root)
                 Dim cdiag = TryCast(diag, DiagnosticWithInfo)
                 Debug.Assert(cdiag Is Nothing OrElse Not cdiag.HasLazyInfo,
-                             "If we decide to allow lazy syntax diagnostics, we'll have to check all call sites of SyntaxTree.GetDiagnostics")
+                             "If we decide To allow lazy syntax diagnostics, we'll have to check all call sites of SyntaxTree.GetDiagnostics")
                 If diag.Severity = DiagnosticSeverity.Error Then
                     Return Nothing
                 End If

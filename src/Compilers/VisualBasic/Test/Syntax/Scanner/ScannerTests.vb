@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FeatureExtensions
 Imports Roslyn.Test.Utilities
 
 <CLSCompliant(False)>
@@ -220,7 +221,7 @@ Public Class ScannerTests
     Public Sub Scanner_LineContInsideStatement()
 
         ' this would be a case of      )_
-        ' valid _ would have been consumed by   ) 
+        ' valid _ would have been consumed by   )
         Dim tk = ScanOnce("_" & vbLf, False)
         Assert.Equal(SyntaxKind.BadToken, tk.Kind)
         Assert.Equal("_" + vbLf, tk.ToFullString)
@@ -694,13 +695,16 @@ End If]]>.Value,
         Assert.Equal(42, tk.Value)
         Assert.Equal(" 42 ", tk.ToFullString())
 
+        Dim defaultLangVersion = VisualBasicParseOptions.Default.LanguageVersion
         Str = " 4_2 "
         tk = ScanOnce(Str)
         Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
         Assert.Equal(LiteralBase.Decimal, tk.GetBase())
         Assert.Equal(42, tk.Value)
         Assert.Equal(" 4_2 ", tk.ToFullString())
-        Assert.Equal("error BC36716: Visual Basic 14.0 does not support digit separators.", tk.Errors().Single().ToString())
+        If InternalSyntax.Feature.DigitSeparators.IsUnavailable Then
+            Assert.Equal($"error BC36716: Visual Basic {defaultLangVersion} does not support digit separators.", tk.Errors().Single().ToString())
+        End If
 
         Str = " &H42L "
         tk = ScanOnce(Str)
@@ -729,8 +733,9 @@ End If]]>.Value,
         Assert.Equal(LiteralBase.Binary, tk.GetBase())
         Assert.Equal(&HAL, tk.Value)
         Assert.Equal(" &B1010L ", tk.ToFullString())
-        Assert.Equal("error BC36716: Visual Basic 14.0 does not support binary literals.", tk.Errors().Single().ToString())
-
+        If InternalSyntax.Feature.BinaryLiterals.IsUnavailable Then
+            Assert.Equal($"error BC36716: Visual Basic {defaultLangVersion} does not support binary literals.", tk.Errors().Single().ToString())
+        End If
         Str = " &B1_0_1_0L "
         tk = ScanOnce(Str)
         Assert.Equal(SyntaxKind.IntegerLiteralToken, tk.Kind)
@@ -738,8 +743,13 @@ End If]]>.Value,
         Assert.Equal(&HAL, tk.Value)
         Assert.Equal(" &B1_0_1_0L ", tk.ToFullString())
         Assert.Equal(2, tk.Errors().Count)
-        Assert.Equal("error BC36716: Visual Basic 14.0 does not support digit separators.", tk.Errors()(0).ToString())
-        Assert.Equal("error BC36716: Visual Basic 14.0 does not support binary literals.", tk.Errors()(1).ToString())
+        If InternalSyntax.Feature.DigitSeparators.IsUnavailable Then
+            Assert.Equal($"error BC36716: Visual Basic {defaultLangVersion} does not support digit separators.", tk.Errors()(0).ToString())
+        End If
+        If InternalSyntax.Feature.BinaryLiterals.IsUnavailable Then
+            Assert.Equal($"error BC36716: Visual Basic {defaultLangVersion} does not support binary literals.", tk.Errors()(1).ToString())
+        End If
+
     End Sub
 
     <Fact>
@@ -1234,7 +1244,7 @@ End If
     <Fact>
     Public Sub OghamSpacemark()
         ParseAndVerify(<![CDATA[
-Module M 
+Module M
 End Module
 
         ]]>)
@@ -1309,9 +1319,9 @@ a<
     Public Sub ParseHugeNumber()
         ParseAndVerify(<![CDATA[
 Module M
-    Sub Main     
+    Sub Main
  Dim x = CompareDouble(-7.92281625142643E337593543950335D)
-    End Sub 
+    End Sub
 EndModule
 
 
@@ -1329,10 +1339,10 @@ EndModule
     Public Sub ParseHugeNumberLabel()
         ParseAndVerify(<![CDATA[
 Module M
-    Sub Main     
- 
+    Sub Main
+
 678901234567890123456789012345678901234567456789012345678901234567890123456789012345
-    End Sub 
+    End Sub
 EndModule
 
         ]]>,
@@ -1356,9 +1366,9 @@ Public Class Assembly001bDll
         Asb = System.Reflection.Assembly.GetExecutingAssembly()
 
 
-        
-        
-        
+
+
+
 
         apcompare(Left(CurDir(), 1) & ":\School\assembly001bdll.dll", Asb.Location, "location")
 

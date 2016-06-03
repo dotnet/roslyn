@@ -9,6 +9,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Binder
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FeatureExtensions
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
@@ -154,10 +155,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim defaultSyntax = parameterSyntax.[Default]
             If defaultSyntax Is Nothing Then
-                Return Nothing
+                If InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter.IsUnavailable Then
+                    Return Nothing
+                End If
+
             End If
 
-            Dim binder As Binder = BinderBuilder.CreateBinderForParameterDefaultValue(DirectCast(ContainingModule, SourceModuleSymbol),
+                Dim binder As Binder = BinderBuilder.CreateBinderForParameterDefaultValue(DirectCast(ContainingModule, SourceModuleSymbol),
                                                                                       _syntaxRef.SyntaxTree,
                                                                                       Me,
                                                                                       parameterSyntax)
@@ -260,15 +264,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Property
 
         Private Sub New(
-            container As Symbol,
-            name As String,
-            ordinal As Integer,
-            type As TypeSymbol,
-            location As Location,
-            syntaxRef As SyntaxReference,
-            flags As SourceParameterFlags,
-            defaultValueOpt As ConstantValue
-        )
+                         container As Symbol,
+                         name As String,
+                         ordinal As Integer,
+                         type As TypeSymbol,
+                         location As Location,
+                         syntaxRef As SyntaxReference,
+                         flags As SourceParameterFlags,
+                         defaultValueOpt As ConstantValue
+                       )
+
             MyBase.New(container, name, ordinal, type, location)
             _flags = flags
             _lazyDefaultValue = defaultValueOpt
@@ -276,22 +281,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         End Sub
 
         ' Create a simple or complex parameter, as necessary.
-        Friend Shared Function Create(container As Symbol,
-                                 name As String,
-                                 ordinal As Integer,
-                                 type As TypeSymbol,
-                                 location As Location,
-                                 syntaxRef As SyntaxReference,
-                                 flags As SourceParameterFlags,
-                                 defaultValueOpt As ConstantValue) As ParameterSymbol
+        Friend Shared Function Create(
+                                       container As Symbol,
+                                       name As String,
+                                       ordinal As Integer,
+                                       type As TypeSymbol,
+                                       location As Location,
+                                       syntaxRef As SyntaxReference,
+                                       flags As SourceParameterFlags,
+                                       defaultValueOpt As ConstantValue
+                                     ) As ParameterSymbol
 
             ' Note that parameters of partial method declarations should always be complex
             Dim method = TryCast(container, SourceMethodSymbol)
 
-            If flags <> 0 OrElse
-                defaultValueOpt IsNot Nothing OrElse
-                syntaxRef IsNot Nothing OrElse
-                (method IsNot Nothing AndAlso method.IsPartial) Then
+            If (flags <> 0) OrElse
+               (defaultValueOpt IsNot Nothing) OrElse
+               (syntaxRef IsNot Nothing) OrElse
+               ((method IsNot Nothing) AndAlso (method.IsPartial)) Then
 
                 Return New SourceComplexParameterSymbol(container, name, ordinal, type, location, syntaxRef, flags, defaultValueOpt)
             Else

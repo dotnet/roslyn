@@ -1,7 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 '-----------------------------------------------------------------------------
-' Contains the definition of the Scanner, which produces tokens from text 
+' Contains the definition of the Scanner, which produces tokens from text
 '-----------------------------------------------------------------------------
 
 Imports System.Runtime.InteropServices
@@ -228,7 +228,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ''' <summary>
-        ''' gets the last token that has nonzero FullWidth. 
+        ''' gets the last token that has nonzero FullWidth.
         ''' NOTE: this helper will not descend into structured trivia.
         ''' </summary>
         Private Shared Function GetLastNZWToken(node As Microsoft.CodeAnalysis.SyntaxNode) As Microsoft.CodeAnalysis.SyntaxToken
@@ -250,7 +250,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         End Function
 
         ''' <summary>
-        ''' gets the last token regardless if it has zero FullWidth or not 
+        ''' gets the last token regardless if it has zero FullWidth or not
         ''' NOTE: this helper will not descend into structured trivia.
         ''' </summary>
         Private Shared Function GetLastToken(node As Microsoft.CodeAnalysis.SyntaxNode) As Microsoft.CodeAnalysis.SyntaxToken
@@ -289,8 +289,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         Private Shared Function AdjustTriviaForMissingTokensCore(Of T As VisualBasicSyntaxNode)(node As T) As T
             Dim redNode = node.CreateRed(Nothing, 0)
 
-            ' here we have last token with some actual content. 
-            ' Since we are dealing with statements here, it is extremely 
+            ' here we have last token with some actual content.
+            ' Since we are dealing with statements here, it is extremely
             ' likely that the token contains a statement terminator in its trailing trivia
             ' NOTE: all tokens after this one do not have any content
             Dim lastNonZeroWidthToken = GetLastNZWToken(redNode)
@@ -838,8 +838,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case SyntaxKind.GlobalKeyword
                     ' The following token is a keyword that starts declaration, so the current token (global)
-                    ' shouldn't be parsed as a statement. This might happen when a member declaration 
-                    ' immediately follows "Namespace Global" without a new line or if the user incorrectly 
+                    ' shouldn't be parsed as a statement. This might happen when a member declaration
+                    ' immediately follows "Namespace Global" without a new line or if the user incorrectly
                     ' uses Global as a modifier.
                     Dim statement = ParsePossibleDeclarationStatement()
                     If statement IsNot Nothing Then
@@ -1054,7 +1054,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         ' cover the case that this is an invalid variable declaration, e.g.
                         ' Dim Namespace as Integer
                         ' this is esp. important for the keywords that would be handled in the select below.
-                        ' do not treat this as variable declarations if the modifiers are used for 
+                        ' do not treat this as variable declarations if the modifiers are used for
                         ' sub, function, operator or property declarations. See Parser.cpp, Line 4256
                         Select Case CurrentToken.Kind
                             Case SyntaxKind.SubKeyword,
@@ -1112,7 +1112,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                         If contextualKind = SyntaxKind.MidKeyword Then
                             ' it can only possibly start a mid statement assignment if Mid/Mid$ is followed by a "(".
                             ' However this will now always recognize any method call with this identifier as a mid statement,
-                            ' as well as array accesses named mid. 
+                            ' as well as array accesses named mid.
                             If PeekToken(1).Kind = SyntaxKind.OpenParenToken Then
                                 Return ParseMid()
                             End If
@@ -1406,8 +1406,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                             ' be an IncompleteMemberSyntax
 
                             If attributes.Any AndAlso Not modifiers.Any Then
-                                ' attributes without a modifier should report 
-                                ' "Attribute specifier is not a complete statement. Use a line continuation to apply the 
+                                ' attributes without a modifier should report
+                                ' "Attribute specifier is not a complete statement. Use a line continuation to apply the
                                 ' attribute to the following statement."
                                 ' this error usually get's reported within "ParseVarDeclStatement", which will not be called
                                 ' in this path
@@ -1426,7 +1426,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                         Case Else
 
-                            ' if it cannot be a member (inside a method body) this statement should be a variable 
+                            ' if it cannot be a member (inside a method body) this statement should be a variable
                             ' declaration (with a missing identifier)
                             statement = ParseVarDeclStatement(attributes, modifiers)
                     End Select
@@ -1786,7 +1786,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case SyntaxKind.EndKeyword
                     Return GetEndStatementKindFromKeyword(PeekToken(i + 1).Kind)
 
-                ' wend and endif are anachronistic and should not be used, however they can still appear in 
+                ' wend and endif are anachronistic and should not be used, however they can still appear in
                 ' the lookahead
                 Case SyntaxKind.EndIfKeyword
                     Return SyntaxKind.EndIfStatement
@@ -2242,9 +2242,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     End If
 
                     If CurrentToken.Kind = SyntaxKind.WithKeyword Then
-                        ' Roslyn supports 'As New With {...}' 
+                        ' Roslyn supports 'As New With {...}'
                         optionalAsClause = Nothing
-                        ' the rest will be parsed and an instance of optionalAsClause will be 
+                        ' the rest will be parsed and an instance of optionalAsClause will be
                         ' created in the code section marked as 'parse the initializer', see below
 
                     Else
@@ -2322,9 +2322,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 ' TODO - Consider improving the handling of implicit line continuations.
                 ' Properties allow a newline before FROM, but not before WITH. A newline should also be allowed.
-                ' Fields should be the same as properties. Local variables do not allow the newline because of 
-                ' the ambiguity with a WITH statement and ambiguity with FROM used as an identifier. The latter 
-                ' two ambiguities could be solved by looking ahead for the '{' token. 
+                ' Fields should be the same as properties. Local variables do not allow the newline because of
+                ' the ambiguity with a WITH statement and ambiguity with FROM used as an identifier. The latter
+                ' two ambiguities could be solved by looking ahead for the '{' token.
                 If CurrentToken.Kind = SyntaxKind.WithKeyword Then
 
                     'Handle the "With" clause in the following syntax:
@@ -2389,7 +2389,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
 
         ''' <summary>
-        '''  Parses a CollectionInitializer 
+        '''  Parses a CollectionInitializer
         '''         CollectionInitializer -> "{" CollectionInitializerList "}"
         '''         CollectionInitializerList ->  CollectionElement {"," CollectionElement}*
         '''         CollectionElement -> Expression | CollectionInitializer
@@ -2462,7 +2462,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' "With "{" FieldInitializerList "}"
         ''' FieldInitializerList -> FieldInitializer {"," FieldInitializer}*
         ''' FieldInitializer -> {Key? "." IdentifierOrKeyword "="}? Expression
-        ''' 
+        '''
         '''  e.g.
         '''  Dim x as new Customer With {.Id = 1, .Name = "A"}
         ''' </summary>
@@ -2476,7 +2476,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             Dim withKeyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
 
-            ' the parsed type name already had this diagnostic attached, but in case of anonymous types the type name 
+            ' the parsed type name already had this diagnostic attached, but in case of anonymous types the type name
             ' will be dropped. Therefore we attach the error to the first token of the object initializer.
             If anonymousTypeInitializer AndAlso Not anonymousTypesAllowedHere Then
                 withKeyword = ReportSyntaxError(withKeyword, ERRID.ERR_UnrecognizedTypeKeyword)
@@ -2489,7 +2489,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
             ' Parse the initializer list after the "With" keyword
 
-            ' Dev10 was call to ParseInitializerList with 
+            ' Dev10 was call to ParseInitializerList with
             '   disallow expression initializers
             '   allow assignment initializers
             '   not an anonymous type initializer
@@ -2545,26 +2545,26 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ''' <summary>
         '''   Parses an ObjectCollectionInitializer
         '''         ObjectCollectionInitializer -> "from" CollectionInitializer
-        ''' 
+        '''
         ''' </summary>
         ''' <returns>ObjectCollectionInitializer</returns>
-        ''' <remarks>In Dev10 this was called ParseInitializerList.  It also took several boolean parameters.  
-        '''  These were always set as 
+        ''' <remarks>In Dev10 this was called ParseInitializerList.  It also took several boolean parameters.
+        '''  These were always set as
         '''       AllowExpressionInitializers = true
         '''       AllowAssignmentInitializers = false
         '''       AnonymousTypeInitializer = false
         '''       RequireAtleastOneInitializer = false
-        ''' 
+        '''
         '''  While the grammar uses the nonterminal CollectionInitializer is modeled as an
         '''  AnonymousArrayCreationExpression which has the identical syntax "{" Expression {"," Expression }* "}"
         ''' </remarks>
-        ''' 
+        '''
         Private Function ParseObjectCollectionInitializer(fromKeyword As KeywordSyntax) As ObjectCollectionInitializerSyntax
             Debug.Assert(fromKeyword IsNot Nothing)
 
             fromKeyword = CheckFeatureAvailability(Feature.CollectionInitializers, fromKeyword)
 
-            ' Allow implicit line continuation after FROM (dev10_508839) but only if followed by "{". 
+            ' Allow implicit line continuation after FROM (dev10_508839) but only if followed by "{".
             ' This is to avoid reporting an error at the beginning of then next line and then skipping the next statement.
             If CurrentToken.Kind = SyntaxKind.StatementTerminatorToken AndAlso PeekToken(1).Kind = SyntaxKind.OpenBraceToken Then
                 TryEatNewLine()
@@ -2578,7 +2578,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
         ''' <summary>
         ''' Parses a FieldInitializer
-        ''' 
+        '''
         ''' FieldInitializer -> ("key"? "." IdentifierOrKeyword "=")? Expression
         ''' </summary>
         ''' <param name="anonymousTypeInitializer">If true then allow the keyword "key" to prefix the field initializer</param>
@@ -2723,7 +2723,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     ' continue to work. See Bug VSWhidbey 379914.
                     '
                     ' Even though CUSTOM is not a reserved keyword, the Dev10 scanner always converts a CUSTOM followed
-                    ' by EVENT to a keyword. As a result CUSTOM EVENT never comes here because the tokens are tkCustom, tkEvent. 
+                    ' by EVENT to a keyword. As a result CUSTOM EVENT never comes here because the tokens are tkCustom, tkEvent.
                     ' With the new scanner CUSTOM is returned as an identifier so the following must check for EVENT and not
                     ' signal an error.
                     Dim nextToken As SyntaxToken = PeekToken(1)
@@ -2974,7 +2974,7 @@ checkNullable:
 
             If _evaluatingConditionCompilationExpression AndAlso Not SyntaxFacts.IsPredefinedTypeOrVariant(start.Kind) Then
 
-                'TODO - 
+                'TODO -
                 ' 1. Dev10 code does NOT consume any tokens here.
                 ' 2. Should this error check be done in the parser or when the expression is evaluated?
                 Dim ident = InternalSyntaxFactory.MissingIdentifier()
@@ -3154,7 +3154,7 @@ checkNullable:
             Return result
         End Function
 
-        ' davidsch - Just as ParseIdentifier was split into two ParseIdentifiers (nullable and non-nullable cases), ParseArrayDeclarator was split 
+        ' davidsch - Just as ParseIdentifier was split into two ParseIdentifiers (nullable and non-nullable cases), ParseArrayDeclarator was split
         ' to handle ArrayTypeName and ModifiedIdentifier cases
 
         Private Function ParseArrayModifiedIdentifier(
@@ -3217,7 +3217,7 @@ checkNullable:
                     arrayModifiers.Add(SyntaxFactory.ArrayRankSpecifier(openParen, commas, closeParen))
                 End If
 
-                ' Explicit sizes are only allowed once in the first ().  
+                ' Explicit sizes are only allowed once in the first ().
                 innerArrayType = True
             Loop While CurrentToken.Kind = SyntaxKind.OpenParenToken
 
@@ -3850,7 +3850,7 @@ checkNullable:
                 modifiers As SyntaxList(Of KeywordSyntax)
             ) As OperatorStatementSyntax
 
-            'TODO - davidsch 
+            'TODO - davidsch
             ' Can ParseFunctionDeclaration and ParseSubDeclaration share more code? They are nearly the same.
             Dim operatorKeyword As KeywordSyntax = DirectCast(CurrentToken, KeywordSyntax)
             Debug.Assert(operatorKeyword.Kind = SyntaxKind.OperatorKeyword, "Operator parsing lost.")
@@ -3867,7 +3867,7 @@ checkNullable:
             ' Example:  Public Shared Operator Widening CType( ...
             '
             ' This is still a syntax error, but the pretty lister can move the specifier to before the Operator keyword.
-            ' This used to be recorded as a dangling specifier.  Now the overloadable operator will be Widening with unexpected 
+            ' This used to be recorded as a dangling specifier.  Now the overloadable operator will be Widening with unexpected
             ' syntax CType following it.
 
             Dim keyword As KeywordSyntax = Nothing
@@ -3994,12 +3994,12 @@ checkNullable:
 
         ' /*****************************************************************************************
         ' ;ParsePropertyDefinition
-        ' 
-        ' Parses a property definition.  This will deal with both regular properties and 
+        '
+        ' Parses a property definition.  This will deal with both regular properties and
         ' auto-properties.  There are interesting challenges here to be aware of.  The biggest
         ' problem is that the syntax for auto-properties requires potentially massive lookahead
         ' to figure out if the property is auto or regular.  There are some clues up front as to
-        ' whether you are looking at a regular property (they have readonly/writeonly specifiers, 
+        ' whether you are looking at a regular property (they have readonly/writeonly specifiers,
         ' for instance) but often you have to go find the get/set/end property to know.  That requires
         ' look ahead parsing that has side effects as you can encounter #if, 'comments, and <attributes>
         ' along the way.  Parsing those things throws statements onto the context block but since
@@ -4007,7 +4007,7 @@ checkNullable:
         ' yet.  So we have to do some evil stuff and move the statements to the property context when
         ' we finally create one if it turns out that we are looking at a regular property instead of
         ' an auto property.
-        ' 
+        '
         ' I've tried to keep lookahead to a minimum as implicit line continuation is another thorn here.
         ' We really need to use the parser to look ahead because it understand line continuation in all
         ' the many places we may encounter it before getting to the get/set/end property statements.
@@ -4022,7 +4022,7 @@ checkNullable:
         ' [in] specifiers on the property definition
         ' [in] token starting definition (should be tkPROPERTY)
         ' [out] whether we encounter errors trying to parse the property
-        ' [in] whether the property is defined within the context of an interface 
+        ' [in] whether the property is defined within the context of an interface
         ' Used to reorder StatementList in LinkStatement if necessary.
         ' Used to reorder StatementList in LinkStatement if necessary.
 
@@ -4506,7 +4506,7 @@ checkNullable:
 
             specifiers = 0
 
-            'TODO - Move these checks to Binder_Utils.DecodeParameterModifiers  
+            'TODO - Move these checks to Binder_Utils.DecodeParameterModifiers
 
             Do
                 Dim specifier As ParameterSpecifiers
@@ -4604,8 +4604,8 @@ checkNullable:
             Dim equals As PunctuationSyntax = Nothing
             Dim value As ExpressionSyntax = Nothing
 
-            ' TODO - Move these errors (ERRID.ERR_DefaultValueForNonOptionalParamout, ERRID.ERR_ObsoleteOptionalWithoutValue) of the parser. 
-            ' These are semantic errors. The grammar allows the syntax. 
+            ' TODO - Move these errors (ERRID.ERR_DefaultValueForNonOptionalParamout, ERRID.ERR_ObsoleteOptionalWithoutValue) of the parser.
+            ' These are semantic errors. The grammar allows the syntax.
             If TryGetTokenAndEatNewLine(SyntaxKind.EqualsToken, equals) Then
 
                 If Not (modifiers.Any AndAlso modifiers.Any(SyntaxKind.OptionalKeyword)) Then
@@ -4615,21 +4615,26 @@ checkNullable:
                 value = ParseExpressionCore()
 
             ElseIf modifiers.Any AndAlso modifiers.Any(SyntaxKind.OptionalKeyword) Then
-
-                equals = ReportSyntaxError(InternalSyntaxFactory.MissingPunctuation(SyntaxKind.EqualsToken), ERRID.ERR_ObsoleteOptionalWithoutValue)
-                value = ParseExpressionCore()
-
+                If Feature.ImplicitDefaultValueOnOptionalParameter.IsUnavailable Then
+                    equals = ReportSyntaxError(InternalSyntaxFactory.MissingPunctuation(SyntaxKind.EqualsToken), ERRID.ERR_ObsoleteOptionalWithoutValue)
+                    value = ParseExpressionCore()
+                End If
             End If
 
             Dim initializer As EqualsValueSyntax = Nothing
 
-            If value IsNot Nothing Then
+            If equals IsNot Nothing Then
 
-                If value.ContainsDiagnostics Then
-                    value = ResyncAt(value, SyntaxKind.CommaToken, SyntaxKind.CloseParenToken)
+
+                If value IsNot Nothing Then
+
+                    If value.ContainsDiagnostics Then
+                        value = ResyncAt(value, SyntaxKind.CommaToken, SyntaxKind.CloseParenToken)
+                    End If
+
+                    initializer = SyntaxFactory.EqualsValue(equals, value)
                 End If
 
-                initializer = SyntaxFactory.EqualsValue(equals, value)
             End If
 
             Return SyntaxFactory.Parameter(attributes, modifiers, paramName, optionalAsClause, initializer)
@@ -5037,7 +5042,7 @@ checkNullable:
             ParseDeclareLibClause(libKeyword, libraryName, optionalAliasKeyword, optionalAliasName)
 
             If unexpected.Node IsNot Nothing Then
-                ' When lib is missing the error is on the missing lib keyword so don't add it again.  
+                ' When lib is missing the error is on the missing lib keyword so don't add it again.
                 ' was skipped and lib was found.
                 If missingLib Then
                     libKeyword = libKeyword.AddLeadingSyntax(unexpected)
@@ -5176,7 +5181,7 @@ checkNullable:
             ' continue to work. See Bug VSWhidbey 379914.
             '
             ' Even though CUSTOM is not a reserved keyword, the Dev10 scanner always converts a CUSTOM followed
-            ' by EVENT to a keyword. As a result CUSTOM EVENT never comes here because the tokens are tkCustom, tkEvent. 
+            ' by EVENT to a keyword. As a result CUSTOM EVENT never comes here because the tokens are tkCustom, tkEvent.
             ' With the new scanner CUSTOM is returned as an identifier so the following must check for EVENT and not
             ' signal an error.
 
@@ -5414,7 +5419,7 @@ checkNullable:
                         Dim assemblyOrModuleKeyword = GetTokenAsAssemblyOrModuleKeyword(CurrentToken)
                         Dim colonToken As PunctuationSyntax
 
-                        ' The attributes are parsed in a loop. If an attribute starts with an Attribute Target, then it's 
+                        ' The attributes are parsed in a loop. If an attribute starts with an Attribute Target, then it's
                         ' assumed that all the others also start with one.
                         ' Error example (missing attribute target for second attribute:
                         ' <Assembly: Reflection.AssemblyVersionAttribute("4.3.2.1"), Reflection.AssemblyCultureAttribute("de")>
@@ -5496,7 +5501,7 @@ checkNullable:
                 Dim endsWithGreaterThan As Boolean = TryEatNewLineAndGetToken(SyntaxKind.GreaterThanToken, greaterThan, createIfMissing:=True)
 
                 If endsWithGreaterThan AndAlso Not allowFileLevelAttributes AndAlso IsContinuableEOL() Then
-                    ' We want to introduce an implicit line continuation after the ending ">" in an attribute declaration when we are parsing 
+                    ' We want to introduce an implicit line continuation after the ending ">" in an attribute declaration when we are parsing
                     ' non file level attributes. Per TWhitney - implicit line continuations after file level attributes cause big problems. But
                     ' why would anyone want an implicit line continuation after a file level attribute?  It is a statement and should end shouldn't it?
 
@@ -5965,7 +5970,7 @@ checkNullable:
         End Sub
 
         ''' <summary>
-        ''' Consumes current node and gets next one. 
+        ''' Consumes current node and gets next one.
         ''' </summary>
         Friend Sub GetNextSyntaxNode()
             _scanner.MoveToNextSyntaxNode()
@@ -6060,7 +6065,7 @@ checkNullable:
             End If
 
             If feature = Feature.InterpolatedStrings Then
-                ' Bug: It is too late in the release cycle to update localized strings.  As a short term measure we will output 
+                ' Bug: It is too late in the release cycle to update localized strings.  As a short term measure we will output
                 ' an unlocalized string and fix this to be localized in the next release.
                 Return ReportSyntaxError(node, ERRID.ERR_LanguageVersion, languageVersion.GetErrorName(), "interpolated strings")
             Else

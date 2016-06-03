@@ -49,7 +49,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_LibNotFound = 2017
         'ERR_MaximumErrors = 2020       unused in Roslyn.
         ERR_IconFileAndWin32ResFile = 2023
-        'WRN_ReservedReference = 2024       ' unused by native compiler due to bug. 
+        'WRN_ReservedReference = 2024       ' unused by native compiler due to bug.
         WRN_NoConfigInResponseFile = 2025
         ' WRN_InvalidWarningId = 2026       ' unused in Roslyn.
         'ERR_WatsonSendNotOptedIn = 2027
@@ -596,7 +596,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_BadAttributeNonPublicConstructor = 30758
         'ERR_ArrayElementIsNothing1 = 30759
         'ERR_ObjectReferenceIsNothing = 30760
-        ' ERR_StarliteDisallowsLateBinding = 30762   
+        ' ERR_StarliteDisallowsLateBinding = 30762
         ' ERR_StarliteBadDeclareFlags = 30763
         ' ERR_NoStarliteOverloadResolution = 30764
         'ERR_NoSupportFileIOKeywords1 = 30766
@@ -936,7 +936,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_DuplicateLocalStatic1 = 31401
         ERR_ImportAliasConflictsWithType2 = 31403
         ERR_CantShadowAMustOverride1 = 31404
-        'ERR_OptionalsCantBeStructs = 31405 
+        'ERR_OptionalsCantBeStructs = 31405
         ERR_MultipleEventImplMismatch3 = 31407
         ERR_BadSpecifierCombo2 = 31408
         ERR_MustBeOverloads2 = 31409
@@ -1507,7 +1507,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_VarianceOutByRefDisallowed1 = 36749
         ERR_VarianceInByRefDisallowed1 = 36750
         ERR_LambdaNoType = 36751
-        ' //ERR_NoReturnStatementsForMultilineLambda  = 36752 
+        ' //ERR_NoReturnStatementsForMultilineLambda  = 36752
         ' // replaced by LambdaNoType and LambdaNoTypeObjectDisallowed
         'ERR_CollectionInitializerArity2 = 36753
         ERR_VarianceConversionFailedOut6 = 36754
@@ -1628,7 +1628,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         ERR_NetModuleNameMismatch = 37205
         ERR_BadCompilationOption = 37206
         ERR_CmdOptionConflictsSource = 37207
-        ' unused 37208   
+        ' unused 37208
         ERR_InvalidSignaturePublicKey = 37209
         ERR_CollisionWithPublicTypeInModule = 37210
         ERR_ExportedTypeConflictsWithDeclaration = 37211
@@ -1915,7 +1915,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         HDN_UnusedImportStatement = 50001
         INF_UnableToLoadSomeTypesInAnalyzer = 50002
 
-        ' // AVAILABLE                             50003 - 54999   
+        ' // AVAILABLE                             50003 - 54999
 
         ' Adding diagnostic arguments from resx file
         IDS_ProjectSettingsLocationName = 56000
@@ -1957,5 +1957,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         FEATURE_ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
         FEATURE_DigitSeparators
         FEATURE_BinaryLiterals
+        FEATURE_ImplicitDefaultValueOnOptionalParameter
     End Enum
 End Namespace

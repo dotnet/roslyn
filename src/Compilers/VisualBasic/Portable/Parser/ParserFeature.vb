@@ -4,7 +4,7 @@ Imports System.Runtime.CompilerServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
-    Friend Enum Feature
+    Public Enum Feature
         AutoProperties
         LineContinuation
         StatementLambdas
@@ -31,9 +31,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
         DigitSeparators
         BinaryLiterals
+        ImplicitDefaultValueOnOptionalParameter
     End Enum
 
     Friend Module FeatureExtensions
+
+        <Extension>
+        Friend Function IsAvailable(feature As Feature, Optional TheLangVersion As LanguageVersion = 0) As Boolean
+            If TheLangVersion = 0 Then TheLangVersion = VisualBasicParseOptions.Default.LanguageVersion
+            If [Enum].IsDefined(GetType(LanguageVersion), TheLangVersion) = False Then Throw New NotSupportedException($"LanguageVersion {TheLangVersion} is not supported.")
+            Return feature.GetLanguageVersion <= TheLangVersion
+        End Function
+
+        <Extension>
+        Friend Function IsUnavailable(feature As Feature, Optional TheLangVersion As LanguageVersion = 0) As Boolean
+            If TheLangVersion = 0 Then TheLangVersion = VisualBasicParseOptions.Default.LanguageVersion
+            If [Enum].IsDefined(GetType(LanguageVersion), TheLangVersion) = False Then Throw New NotSupportedException($"LanguageVersion {TheLangVersion} is not supported.")
+            Return feature.GetLanguageVersion > TheLangVersion
+        End Function
+
         <Extension>
         Friend Function GetFeatureFlag(feature As Feature) As String
             Select Case feature
@@ -42,7 +58,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case Feature.BinaryLiterals
                     Return "binaryLiterals"
-
+                Case Feature.ImplicitDefaultValueOnOptionalParameter
+                    Return "implicitdefaultvalueonoptionalparameter"
                 Case Else
                     Return Nothing
             End Select
@@ -81,6 +98,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                      Feature.PartialInterfaces,
                      Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
                     Return LanguageVersion.VisualBasic14
+
+                Case Feature.DigitSeparators,
+                     Feature.BinaryLiterals,
+                     Feature.ImplicitDefaultValueOnOptionalParameter
+                    Return LanguageVersion.VBnext
 
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
@@ -141,9 +163,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ERRID.FEATURE_DigitSeparators
                 Case Feature.BinaryLiterals
                     Return ERRID.FEATURE_BinaryLiterals
+                Case Feature.ImplicitDefaultValueOnOptionalParameter
+                    Return ERRID.FEATURE_ImplicitDefaultValueOnOptionalParameter
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select
         End Function
     End Module
+
 End Namespace
