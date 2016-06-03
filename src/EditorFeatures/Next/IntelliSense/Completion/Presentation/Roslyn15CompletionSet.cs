@@ -24,6 +24,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
         private CompletionHelper _completionHelper;
         public IReadOnlyList<IntellisenseFilter2> Filters;
 
+        private readonly bool _highlightMatchingPortions;
+        private readonly bool _showFilters;
+
         public Roslyn15CompletionSet(
             IVisualStudioCompletionSet vsCompletionSet,
             CompletionPresenterSession completionPresenterSession,
@@ -31,12 +34,20 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             ITextBuffer subjectBuffer)
             : base(vsCompletionSet, completionPresenterSession, textView, subjectBuffer)
         {
+            var document = GetDocument();
+
+            if (document != null)
+            {
+                var options = document.Options;
+                _highlightMatchingPortions = options.GetOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems);
+                _showFilters = options.GetOption(CompletionOptions.ShowCompletionItemFilters);
+            }
         }
 
         protected override void SetupFilters(ImmutableArray<CompletionItemFilter> completionItemFilters)
         {
             // If more than one filter was provided, then present it to the user.
-            if (Filters == null && completionItemFilters.Length > 1)
+            if (_showFilters && Filters == null && completionItemFilters.Length > 1)
             {
                 Filters = completionItemFilters.Select(f => new IntellisenseFilter2(this, f, GetLanguage()))
                                                 .ToArray();
@@ -48,7 +59,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             this.AssertIsForeground();
             if (_completionHelper == null)
             {
-                var document = SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
+                var document = GetDocument();
                 if (document != null)
                 {
                     _completionHelper = CompletionHelper.GetHelper(document,
@@ -61,7 +72,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
 
         public IReadOnlyList<Span> GetHighlightedSpansInDisplayText(string displayText)
         {
-            if (CompletionItemToFilterText != null)
+            if (_highlightMatchingPortions && CompletionItemToFilterText != null)
             {
                 var completionHelper = this.GetCompletionHelper();
                 if (completionHelper != null)
