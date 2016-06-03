@@ -50,7 +50,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
             if (_showFilters && Filters == null && completionItemFilters.Length > 1)
             {
                 Filters = completionItemFilters.Select(f => new IntellisenseFilter2(this, f, GetLanguage()))
-                                                .ToArray();
+                                               .ToArray();
             }
         }
 
