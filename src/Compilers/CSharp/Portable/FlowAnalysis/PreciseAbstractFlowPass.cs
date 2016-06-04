@@ -1526,12 +1526,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        public override BoundNode VisitDeconstructionVariables(BoundDeconstructionVariables node)
-        {
-            Debug.Assert(false, "BoundDeconstructionVariables should not make it past binding stage.");
-            return null;
-        }
-
         public override BoundNode VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
         {
             // TODO: should events be handled specially too?
