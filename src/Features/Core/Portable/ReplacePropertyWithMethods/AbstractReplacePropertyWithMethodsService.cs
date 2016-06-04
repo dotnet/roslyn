@@ -69,6 +69,8 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             private readonly TExpressionSyntax _expression;
             private readonly CancellationToken _cancellationToken;
 
+            private readonly Func<ReferenceReplacer, SyntaxNode, TExpressionSyntax> getRightHandSideOfParent;
+
             public ReferenceReplacer(
                 AbstractReplacePropertyWithMethodsService<TIdentifierNameSyntax, TExpressionSyntax, TStatementSyntax> service,
                 SemanticModel semanticModel,
@@ -98,6 +100,8 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 {
                     _expression = _expression.Parent as TExpressionSyntax;
                 }
+
+                getRightHandSideOfParent = (replacer, parent) => (TExpressionSyntax)replacer._syntaxFacts.GetRightHandSideOfAssignment(parent);
             }
 
             private SyntaxGenerator Generator => _editor.Generator;
@@ -125,8 +129,9 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 {
                     // We're only being written to here.  This is safe to replace with a call to the 
                     // setter.
+                    var replacer = this;
                     ReplaceWrite(
-                        writeValue: (TExpressionSyntax)_syntaxFacts.GetRightHandSideOfAssignment(_expression.Parent),
+                        getWriteValue: getRightHandSideOfParent,
                         keepTrivia: true,
                         conflictMessage: null);
                 }
@@ -178,13 +183,30 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 bool keepTrivia,
                 string conflictMessage)
             {
-                var writeExpression = GetWriteExpression(writeValue, keepTrivia, conflictMessage);
-                if (_expression.Parent is TStatementSyntax)
-                {
-                    writeExpression = Generator.ExpressionStatement(writeExpression);
-                }
+                ReplaceWrite((_1, _2) => writeValue, keepTrivia, conflictMessage);
+            }
 
-                _editor.ReplaceNode(_expression.Parent, writeExpression);
+            private void ReplaceWrite(
+                Func<ReferenceReplacer, SyntaxNode, TExpressionSyntax> getWriteValue,
+                bool keepTrivia,
+                string conflictMessage)
+            {
+                var replacer = this;
+
+                // Call this overload so we can see this node after already replacing any 
+                // references in the writing side of it.
+                _editor.ReplaceNode(_expression.Parent, 
+                    (parent, generator) =>
+                    {
+                        var writeValue = getWriteValue(replacer, parent);
+                        var writeExpression = replacer.GetWriteExpression(writeValue, keepTrivia, conflictMessage);
+                        if (replacer._expression.Parent is TStatementSyntax)
+                        {
+                            writeExpression = replacer.Generator.ExpressionStatement(writeExpression);
+                        }
+
+                        return writeExpression;
+                    });
             }
 
             private TExpressionSyntax GetReadExpression(

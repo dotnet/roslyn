@@ -561,5 +561,39 @@ class D
     }
 }", compareTokens: false);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task ReplaceReadInsideWrite1()
+        {
+            await TestAsync(
+@"class C
+{
+    int [||]Prop { get; set; }
+
+    void M()
+    {
+        Prop = Prop + 1;
+    }
+}",
+@"class C
+{
+    private int prop;
+
+    private int GetProp()
+    {
+        return this.prop;
+    }
+
+    private void SetProp(int value)
+    {
+        this.prop = value;
+    }
+
+    void M()
+    {
+        SetProp(GetProp() + 1);
+    }
+}");
+        }
     }
 }
