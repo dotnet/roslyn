@@ -113,7 +113,8 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 {
                     // We're being read from and written to (i.e. Prop++), we need to replace with a
                     // Get and a Set call.
-                    var readExpression = replacer.GetReadExpression(keepTrivia: false, conflictMessage: null);
+                    var readExpression = replacer.GetReadExpression(
+                        keepTrivia: false, conflictMessage: null);
                     var literalOne = replacer.Generator.LiteralExpression(1);
 
                     var writeValue = replacer._syntaxFacts.IsOperandOfIncrementExpression(replacer._expression)
@@ -126,10 +127,15 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             private static GetWriteValue getWriteValueForCompoundAssignment = 
                 (replacer, parent) =>
                 {
-                    var readExpression = replacer.GetReadExpression(keepTrivia: false, conflictMessage: null);
+                    // We're being read from and written to from a compound assignment 
+                    // (i.e. Prop *= X), we need to replace with a Get and a Set call.
+
+                    var readExpression = replacer.GetReadExpression(
+                        keepTrivia: false, conflictMessage: null);
 
                     // Convert "Prop *= X" into "Prop * X".
-                    return replacer._service.UnwrapCompoundAssignment(parent, readExpression);
+                    return replacer._service.UnwrapCompoundAssignment(
+                        parent, readExpression);
                 };
 
             private SyntaxGenerator Generator => _editor.Generator;
@@ -164,7 +170,10 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 }
                 else if (_syntaxFacts.IsLeftSideOfAnyAssignment(_expression))
                 {
-                    HandleCompoundAssignExpression();
+                    ReplaceWrite(
+                        getWriteValueForCompoundAssignment,
+                        keepTrivia: true,
+                        conflictMessage: null);
                 }
                 else if (_syntaxFacts.IsOperandOfIncrementOrDecrementExpression(_expression))
                 {
@@ -195,8 +204,9 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
 
             private void ReplaceRead(bool keepTrivia, string conflictMessage)
             {
-                var readExpression = GetReadExpression(keepTrivia, conflictMessage);
-                _editor.ReplaceNode(_expression, readExpression);
+                _editor.ReplaceNode(
+                    _expression,
+                    GetReadExpression(keepTrivia, conflictMessage));
             }
 
             private void ReplaceWrite(
@@ -319,16 +329,6 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             private bool ShouldWriteToBackingField()
             {
                 return _propertyBackingField != null && _property.SetMethod == null;
-            }
-
-            private void HandleCompoundAssignExpression()
-            {
-                // We're being read from and written to from a compound assignment 
-                // (i.e. Prop *= X), we need to replace with a Get and a Set call.
-                ReplaceWrite(
-                    getWriteValueForCompoundAssignment,
-                    keepTrivia: true,
-                    conflictMessage: null);
             }
 
             private static TIdentifierNameSyntax AddConflictAnnotation(TIdentifierNameSyntax name, string conflictMessage)
