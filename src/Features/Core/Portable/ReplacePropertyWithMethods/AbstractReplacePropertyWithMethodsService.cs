@@ -106,6 +106,25 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             // statically cache the lambdas here and invoke them on demand with the 
             // data they need when we hit a reference.
 
+            // Note: the reason for these lambdas is so that as we rewrite the tree
+            // we see the results of the rewrite as we go higher up.  For example,
+            // if we have:
+            //
+            //      this.Prop = this.Prop + 1;
+            //
+            // then when we hit "this.Prop" on the left of the equals, we'll want
+            // to see the results of the tree *after* we've replaced "this.Prop + 1"
+            // with "this.GetProp() + 1".  If we don't do this, and instead examine
+            // the "this.Prop" in the original tree, then we won't see that other
+            // rewrite.
+            //
+            // The SyntaxEditor API works by passing in these callbacks when we 
+            // replace a node N.  It will call us back with what N looks like after
+            // all teh rewrites that occurred underneath it.
+            // 
+            // In order to avoid allocating each time we hit a reference, we just
+            // create these statically and pass them in.
+
             private static readonly GetWriteValue getWriteValueForLeftSideOfAssignment =
                 (replacer, parent) =>
                 {
