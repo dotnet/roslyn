@@ -52,6 +52,8 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             referenceReplacer.Do();
         }
 
+        private delegate TExpressionSyntax GetWriteValue(ReferenceReplacer replacer, SyntaxNode parent);
+
         private struct ReferenceReplacer
         {
             private readonly AbstractReplacePropertyWithMethodsService<TIdentifierNameSyntax, TExpressionSyntax, TStatementSyntax> _service;
@@ -68,8 +70,6 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             private readonly TIdentifierNameSyntax _identifierName;
             private readonly TExpressionSyntax _expression;
             private readonly CancellationToken _cancellationToken;
-
-            private readonly Func<ReferenceReplacer, SyntaxNode, TExpressionSyntax> getRightHandSideOfParent;
 
             public ReferenceReplacer(
                 AbstractReplacePropertyWithMethodsService<TIdentifierNameSyntax, TExpressionSyntax, TStatementSyntax> service,
@@ -100,9 +100,37 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 {
                     _expression = _expression.Parent as TExpressionSyntax;
                 }
-
-                getRightHandSideOfParent = (replacer, parent) => (TExpressionSyntax)replacer._syntaxFacts.GetRightHandSideOfAssignment(parent);
             }
+
+            private static readonly GetWriteValue getWriteValueForLeftSideOfAssignment =
+                (replacer, parent) =>
+                {
+                    return (TExpressionSyntax)replacer._syntaxFacts.GetRightHandSideOfAssignment(parent);
+                };
+
+            private static readonly GetWriteValue getWriteValueForIncrementOrDecrement = 
+                (replacer, parent) =>
+                {
+                    // We're being read from and written to (i.e. Prop++), we need to replace with a
+                    // Get and a Set call.
+                    var readExpression = replacer.GetReadExpression(keepTrivia: false, conflictMessage: null);
+                    var literalOne = replacer.Generator.LiteralExpression(1);
+
+                    var writeValue = replacer._syntaxFacts.IsOperandOfIncrementExpression(replacer._expression)
+                        ? replacer.Generator.AddExpression(readExpression, literalOne)
+                        : replacer.Generator.SubtractExpression(readExpression, literalOne);
+
+                    return (TExpressionSyntax)writeValue;
+                };
+
+            private static GetWriteValue getWriteValueForCompoundAssignment = 
+                (replacer, parent) =>
+                {
+                    var readExpression = replacer.GetReadExpression(keepTrivia: false, conflictMessage: null);
+
+                    // Convert "Prop *= X" into "Prop * X".
+                    return replacer._service.UnwrapCompoundAssignment(parent, readExpression);
+                };
 
             private SyntaxGenerator Generator => _editor.Generator;
 
@@ -129,9 +157,8 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 {
                     // We're only being written to here.  This is safe to replace with a call to the 
                     // setter.
-                    var replacer = this;
                     ReplaceWrite(
-                        getWriteValue: getRightHandSideOfParent,
+                        getWriteValueForLeftSideOfAssignment,
                         keepTrivia: true,
                         conflictMessage: null);
                 }
@@ -141,16 +168,10 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 }
                 else if (_syntaxFacts.IsOperandOfIncrementOrDecrementExpression(_expression))
                 {
-                    // We're being read from and written to (i.e. Prop++), we need to replace with a
-                    // Get and a Set call.
-                    var readExpression = GetReadExpression(keepTrivia: false, conflictMessage: null);
-                    var literalOne = Generator.LiteralExpression(1);
-
-                    var writeValue = _syntaxFacts.IsOperandOfIncrementExpression(_expression)
-                        ? Generator.AddExpression(readExpression, literalOne)
-                        : Generator.SubtractExpression(readExpression, literalOne);
-
-                    ReplaceWrite((TExpressionSyntax)writeValue, keepTrivia: true, conflictMessage: null);
+                    ReplaceWrite(
+                        getWriteValueForIncrementOrDecrement,
+                        keepTrivia: true,
+                        conflictMessage: null);
                 }
                 else if (_syntaxFacts.IsInferredAnonymousObjectMemberDeclarator(_expression.Parent)) //.IsParentKind(SyntaxKind.AnonymousObjectMemberDeclarator))
                 {
@@ -179,15 +200,7 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             }
 
             private void ReplaceWrite(
-                TExpressionSyntax writeValue,
-                bool keepTrivia,
-                string conflictMessage)
-            {
-                ReplaceWrite((_1, _2) => writeValue, keepTrivia, conflictMessage);
-            }
-
-            private void ReplaceWrite(
-                Func<ReferenceReplacer, SyntaxNode, TExpressionSyntax> getWriteValue,
+                GetWriteValue getWriteValue,
                 bool keepTrivia,
                 string conflictMessage)
             {
@@ -312,16 +325,10 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
             {
                 // We're being read from and written to from a compound assignment 
                 // (i.e. Prop *= X), we need to replace with a Get and a Set call.
-
                 ReplaceWrite(
-                    getWriteValue: (replacer, parent) =>
-                    {
-                        var readExpression = replacer.GetReadExpression(keepTrivia: false, conflictMessage: null);
-
-                        // Convert "Prop *= X" into "Prop * X".
-                        return replacer._service.UnwrapCompoundAssignment(parent, readExpression);
-                    },
-                    keepTrivia: true, conflictMessage: null);
+                    getWriteValueForCompoundAssignment,
+                    keepTrivia: true,
+                    conflictMessage: null);
             }
 
             private static TIdentifierNameSyntax AddConflictAnnotation(TIdentifierNameSyntax name, string conflictMessage)
