@@ -59,7 +59,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                 Case Feature.BinaryLiterals
                     Return "binaryLiterals"
                 Case Feature.ImplicitDefaultValueOnOptionalParameter
-                    Return "implicitdefaultvalueonoptionalparameter"
+                    Return "implicitDefaultValueOnOptionalParameter"
                 Case Else
                     Return Nothing
             End Select
