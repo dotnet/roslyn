@@ -57,17 +57,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             End Get
         End Property
 
+        Private _latestRules As CompletionRules = CompletionRules.Create(
+                                                      dismissIfEmpty:=True,
+                                                      dismissIfLastCharacterDeleted:=True,
+                                                      defaultCommitCharacters:=CompletionRules.Default.DefaultCommitCharacters,
+                                                      defaultEnterKeyRule:=EnterKeyRule.Always)
+
         Public Overrides Function GetRules() As CompletionRules
             Dim options = _workspace.Options
 
             Dim rule = DirectCast(options.GetOption(VisualBasicCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord), EnterKeyRule)
 
-            Return CompletionRules.Create(
-                          dismissIfEmpty:=True,
-                          dismissIfLastCharacterDeleted:=True,
-                          defaultCommitCharacters:=CompletionRules.Default.DefaultCommitCharacters,
-                          defaultEnterKeyRule:=rule)
+            Dim newRules = _latestRules.WithDefaultEnterKeyRule(rule)
+
+            Interlocked.Exchange(_latestRules, newRules)
+
+            Return newRules
         End Function
+
 
         Protected Overrides Function GetBuiltInProviders() As ImmutableArray(Of CompletionProvider)
             Return _completionProviders

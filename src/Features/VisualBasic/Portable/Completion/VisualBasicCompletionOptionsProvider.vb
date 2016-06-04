@@ -10,7 +10,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
     Friend Class VisualBasicCompletionOptionsProvider
         Implements IOptionProvider
 
-        Dim _options As IEnumerable(Of IOption) = ImmutableArray.Create(DirectCast(VisualBasicCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord, IOption))
+        Dim _options As IEnumerable(Of IOption) = ImmutableArray.Create(Of IOption)(VisualBasicCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord)
 
         Public Function GetOptions() As IEnumerable(Of IOption) Implements IOptionProvider.GetOptions
             Return _options

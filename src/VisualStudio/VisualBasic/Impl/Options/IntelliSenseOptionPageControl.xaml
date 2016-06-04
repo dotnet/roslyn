@@ -21,14 +21,18 @@
                     <CheckBox x:Uid="Show_completion_item_filters"
                                   x:Name="Show_completion_item_filters"
                                   Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Show_completion_item_filters}" />
-                </StackPanel>
-            </GroupBox>
-            <GroupBox x:Uid="SelectionInCompletionListGroupBox"
-                     Header="{x:Static local:IntelliSenseOptionPageStrings.Option_SelectionInCompletionList}">
-                <StackPanel>
-                    <RadioButton  GroupName="InsertNewlineOnEnterRadio" x:Name="Never_insert_new_line" Content="{x:Static local:IntelliSenseOptionPageStrings.Option_NeverInsertNewlineOnEnter}"/>
-                    <RadioButton  GroupName="InsertNewlineOnEnterRadio" x:Name="Only_insert_new_line_with_whole_word" Content="{x:Static local:IntelliSenseOptionPageStrings.Option_InsertNewlineOnEnterWithWholeWord}"/>
-                    <RadioButton  GroupName="InsertNewlineOnEnterRadio" x:Name="Always_insert_new_line" Content="{x:Static local:IntelliSenseOptionPageStrings.Option_AlwaysInsertNewlineOnEnter}"/>
+                    <Label Content="{x:Static local:IntelliSenseOptionPageStrings.Enter_key_behavior_Title}"/>
+                    <StackPanel Margin="15, 0, 0, 0">
+                        <RadioButton  GroupName="InsertNewlineOnEnterRadio"
+                                          x:Name="Never_add_new_line_on_enter"
+                                          Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Never_add_new_line_on_enter}"/>
+                        <RadioButton  GroupName="InsertNewlineOnEnterRadio"
+                                          x:Name="Only_add_new_line_on_enter_with_whole_word"
+                                          Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Only_add_new_line_on_enter_with_whole_word}"/>
+                        <RadioButton  GroupName="InsertNewlineOnEnterRadio"
+                                          x:Name="Always_add_new_line_on_enter"
+                                          Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Always_add_new_line_on_enter}"/>
+                    </StackPanel>
                 </StackPanel>
             </GroupBox>
         </StackPanel>
