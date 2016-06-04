@@ -102,6 +102,7 @@
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests2" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests3" />
   </ItemGroup>
   <ItemGroup>
     <Compile Include="AutomaticCompletion\AutomaticBraceCompletionTests.vb" />
@@ -128,22 +129,6 @@
     <Compile Include="Classification\AbstractVisualBasicClassifierTests.vb" />
     <Compile Include="Classification\SemanticClassifierTests.vb" />
     <Compile Include="Classification\SyntacticClassifierTests.vb" />
-    <Compile Include="CodeActions\AbstractVisualBasicCodeActionTest.vb" />
-    <Compile Include="CodeActions\EncapsulateField\EncapsulateFieldTests.vb" />
-    <Compile Include="CodeActions\ExtractMethod\ExtractMethodTests.vb" />
-    <Compile Include="CodeActions\GenerateDefaultConstructors\GenerateDefaultConstructorsTests.vb" />
-    <Compile Include="CodeActions\GenerateFromMembers\AddConstructorParameters\AddConstructorParametersTests.vb" />
-    <Compile Include="CodeActions\GenerateFromMembers\GenerateConstructor\GenerateConstructorTests.vb" />
-    <Compile Include="CodeActions\GenerateFromMembers\GenerateEqualsAndGetHashCode\GenerateEqualsAndGetHashCodeTests.vb" />
-    <Compile Include="CodeActions\InlineTemporary\InlineTemporaryTests.vb" />
-    <Compile Include="CodeActions\IntroduceVariable\IntroduceVariableTests.vb" />
-    <Compile Include="CodeActions\InvertIf\InvertIfTests.vb" />
-    <Compile Include="CodeActions\Preview\PreviewTests.vb" />
-    <Compile Include="CodeActions\ReplacePropertyWithMethods\ReplacePropertyWithMethodsTests.vb" />
-    <Compile Include="Diagnostics\AddImport\AddImportTests_NuGet.vb" />
-    <Compile Include="Diagnostics\ImplementAbstractClass\ImplementAbstractClassTests_FixAllTests.vb" />
-    <Compile Include="Diagnostics\ImplementInterface\ImplementInterfaceTests_FixAllTests.vb" />
-    <Compile Include="Diagnostics\Iterator\IteratorTests.vb" />
     <Compile Include="CommentSelection\VisualBasicCommentSelectionTests.vb" />
     <Compile Include="Completion\CompletionProviders\AbstractContextTests.vb" />
     <Compile Include="Completion\CompletionProviders\AbstractVisualBasicCompletionProviderTests.vb" />
@@ -163,44 +148,7 @@
     <Compile Include="Completion\CompletionProviders\SymbolCompletionProviderTests.vb" />
     <Compile Include="Completion\CompletionProviders\TypeContextTests.vb" />
     <Compile Include="Completion\CompletionProviders\XmlDocCommentCompletionProviderTests.vb" />
-    <Compile Include="Diagnostics\AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest.vb" />
-    <Compile Include="Diagnostics\AddImport\AddImportTests.vb" />
-    <Compile Include="Diagnostics\Async\AddAwaitTests.vb" />
-    <Compile Include="Diagnostics\Async\AddAsyncTests.vb" />
-    <Compile Include="Diagnostics\Async\ChangeToAsyncTests.vb" />
-    <Compile Include="Diagnostics\CorrectNextControlVariable\CorrectNextControlVariableTests.vb" />
-    <Compile Include="Diagnostics\DiagnosticAnalyzerDriver\DiagnosticAnalyzerDriverTests.vb" />
-    <Compile Include="Diagnostics\ExitContinue\ExitContinueCodeActionTests.vb" />
-    <Compile Include="Diagnostics\FixIncorrectFunctionReturnType\FixIncorrectFunctionReturnTypeTests.vb" />
-    <Compile Include="Diagnostics\FullyQualify\FullyQualifyTests.vb" />
-    <Compile Include="Diagnostics\GenerateConstructor\GenerateConstructorTests.vb" />
-    <Compile Include="Diagnostics\GenerateEndConstruct\GenerateEndConstructTests.vb" />
-    <Compile Include="Diagnostics\GenerateEnumMember\GenerateEnumMemberTests.vb" />
-    <Compile Include="Diagnostics\GenerateEvent\GenerateEventTests.vb" />
-    <Compile Include="Diagnostics\GenerateMethod\GenerateMethodTests.vb" />
-    <Compile Include="Diagnostics\GenerateType\GenerateTypeTests.vb" />
-    <Compile Include="Diagnostics\GenerateType\GenerateTypeTests_Dialog.vb" />
-    <Compile Include="Diagnostics\GenerateVariable\GenerateVariableTests.vb" />
-    <Compile Include="Diagnostics\ImplementAbstractClass\ImplementAbstractClassCommandHandlerTests.vb" />
-    <Compile Include="Diagnostics\ImplementAbstractClass\ImplementAbstractClassTests.vb" />
-    <Compile Include="Diagnostics\ImplementInterface\ImplementInterfaceCommandHandlerTests.vb" />
-    <Compile Include="Diagnostics\ImplementInterface\ImplementInterfaceTests.vb" />
-    <Compile Include="Diagnostics\InsertMissingCast\InsertMissingCastTests.vb" />
-    <Compile Include="Diagnostics\MakeMethodSynchronous\MakeMethodSynchronousTests.vb" />
-    <Compile Include="Diagnostics\MoveToTopOfFile\MoveToTopOfFileTests.vb" />
-    <Compile Include="Diagnostics\OverloadBase\OverloadBaseTests.vb" />
-    <Compile Include="Diagnostics\QualifyMemberAccess\QualifyMemberAccessTests.vb" />
-    <Compile Include="Diagnostics\QualifyMemberAccess\QualifyMemberAccessTests_FixAllTests.vb" />
-    <Compile Include="Diagnostics\RemoveUnnecessaryCast\RemoveUnnecessaryCastTests.vb" />
-    <Compile Include="Diagnostics\RemoveUnnecessaryCast\RemoveUnnecessaryCastTests_FixAllTests.vb" />
-    <Compile Include="Diagnostics\RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests.vb" />
-    <Compile Include="Diagnostics\RemoveUnnecessaryImports\RemoveUnnecessaryImportsTests_FixAllTests.vb" />
-    <Compile Include="Diagnostics\SimplifyTypeNames\SimplifyTypeNamesTests_FixAllTests.vb" />
-    <Compile Include="Diagnostics\SimplifyTypeNames\SimplifyTypeNamesTests.vb" />
-    <Compile Include="Diagnostics\Spellcheck\SpellCheckTests.vb" />
-    <Compile Include="Diagnostics\Suppression\SuppressionAllCodeTests.vb" />
-    <Compile Include="Diagnostics\Suppression\SuppressionTests.vb" />
-    <Compile Include="Diagnostics\UseAutoProperty\UseAutoPropertyTests.vb" />
+    <Compile Include="DiagnosticAnalyzerDriver\DiagnosticAnalyzerDriverTests.vb" />
     <Compile Include="DocumentationComments\DocumentationCommentTests.vb" />
     <Compile Include="DocumentationComments\XmlTagCompletionTests.vb" />
     <Compile Include="EditAndContinue\ActiveStatementTests.vb" />
@@ -332,8 +280,6 @@
     <Compile Include="Outlining\RegionDirectiveOutlinerTests.vb" />
     <Compile Include="Outlining\TypeDeclarationOutlinerTests.vb" />
     <Compile Include="Outlining\XmlExpressionOutlinerTests.vb" />
-    <Compile Include="PopulateSwitch\PopulateSwitchTests.vb" />
-    <Compile Include="PopulateSwitch\PopulateSwitchTests_FixAllTests.vb" />
     <Compile Include="QuickInfo\SemanticQuickInfoSourceTests.vb" />
     <Compile Include="Semantics\SpeculationAnalyzerTests.vb" />
     <Compile Include="SignatureHelp\AbstractVisualBasicSignatureHelpProviderTests.vb" />
@@ -464,7 +410,6 @@
     <None Include="PerfTests\BasicPerfLightBulb.xml">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
-    <Compile Include="CodeActions\ReplaceMethodWithProperty\ReplaceMethodWithPropertyTests.vb" />
     <None Include="PerfTests\BasicPerfFullSolutionDiagnosticsThirdPartyAnalyzers.xml">
       <SubType>Designer</SubType>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
