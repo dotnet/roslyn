@@ -339,7 +339,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' </summary>
         Public NotOverridable Overrides ReadOnly Property HasExplicitDefaultValue As Boolean
             Get
-                Return (_defaultValue IsNot Nothing) ' OrElse InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter.IsAvailable
+                Return (_defaultValue IsNot Nothing)
             End Get
         End Property
 

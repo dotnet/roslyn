@@ -161,7 +161,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             End If
 
-                Dim binder As Binder = BinderBuilder.CreateBinderForParameterDefaultValue(DirectCast(ContainingModule, SourceModuleSymbol),
+            Dim binder As Binder = BinderBuilder.CreateBinderForParameterDefaultValue(DirectCast(ContainingModule, SourceModuleSymbol),
                                                                                       _syntaxRef.SyntaxTree,
                                                                                       Me,
                                                                                       parameterSyntax)
