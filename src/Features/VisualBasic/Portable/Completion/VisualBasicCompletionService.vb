@@ -57,15 +57,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             End Get
         End Property
 
-        Private Shared s_defaultCompletionRules As CompletionRules =
-            CompletionRules.Create(
-                dismissIfEmpty:=True,
-                dismissIfLastCharacterDeleted:=True,
-                defaultCommitCharacters:=CompletionRules.Default.DefaultCommitCharacters,
-                defaultEnterKeyRule:=EnterKeyRule.Always)
-
         Public Overrides Function GetRules() As CompletionRules
-            Return s_defaultCompletionRules
+            Dim options = _workspace.Options
+
+            Dim rule = DirectCast(options.GetOption(VisualBasicCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord), EnterKeyRule)
+
+            Return CompletionRules.Create(
+                          dismissIfEmpty:=True,
+                          dismissIfLastCharacterDeleted:=True,
+                          defaultCommitCharacters:=CompletionRules.Default.DefaultCommitCharacters,
+                          defaultEnterKeyRule:=rule)
         End Function
 
         Protected Overrides Function GetBuiltInProviders() As ImmutableArray(Of CompletionProvider)

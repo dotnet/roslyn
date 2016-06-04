@@ -10,5 +10,17 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Option_Show_completion_item_filters As String =
             BasicVSResources.Option_Show_completion_item_filters
+
+        Public ReadOnly Property Option_InsertNewlineOnEnterWithWholeWord As String =
+            BasicVSResources.Option_InsertNewlineOnEnterWithWholeWord
+
+        Public ReadOnly Property Option_AlwaysInsertNewlineOnEnter As String =
+            BasicVSResources.Option_AlwaysInsertNewlineOnEnter
+
+        Public ReadOnly Property Option_NeverInsertNewlineOnEnter As String =
+            BasicVSResources.Option_NeverInsertNewlineOnEnter
+
+        Public ReadOnly Property Option_SelectionInCompletionList As String =
+            BasicVSResources.Option_SelectionInCompletionList
     End Module
 End Namespace

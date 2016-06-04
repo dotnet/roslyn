@@ -110,6 +110,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to _Always add new line on enter.
+        '''</summary>
+        Friend Shared ReadOnly Property Option_AlwaysInsertNewlineOnEnter() As String
+            Get
+                Return ResourceManager.GetString("Option_AlwaysInsertNewlineOnEnter", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Automatic _insertion of Interface and MustOverride members.
         '''</summary>
         Friend Shared ReadOnly Property Option_AutomaticInsertionOfInterfaceAndMustOverrideMembers() As String
@@ -263,11 +272,29 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to _Only add new line on enter after end of fully typed word.
+        '''</summary>
+        Friend Shared ReadOnly Property Option_InsertNewlineOnEnterWithWholeWord() As String
+            Get
+                Return ResourceManager.GetString("Option_InsertNewlineOnEnterWithWholeWord", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to _Navigate to Object Browser for symbols defined in metadata.
         '''</summary>
         Friend Shared ReadOnly Property Option_NavigateToObjectBrowser() As String
             Get
                 Return ResourceManager.GetString("Option_NavigateToObjectBrowser", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to _Never add new line on enter.
+        '''</summary>
+        Friend Shared ReadOnly Property Option_NeverInsertNewlineOnEnter() As String
+            Get
+                Return ResourceManager.GetString("Option_NeverInsertNewlineOnEnter", resourceCulture)
             End Get
         End Property
         
@@ -340,6 +367,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Friend Shared ReadOnly Property Option_RenameTrackingPreview() As String
             Get
                 Return ResourceManager.GetString("Option_RenameTrackingPreview", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Enter key behavior.
+        '''</summary>
+        Friend Shared ReadOnly Property Option_SelectionInCompletionList() As String
+            Get
+                Return ResourceManager.GetString("Option_SelectionInCompletionList", resourceCulture)
             End Get
         End Property
         

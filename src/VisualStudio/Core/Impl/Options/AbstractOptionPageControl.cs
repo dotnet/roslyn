@@ -98,6 +98,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
+        protected void BindToOption(RadioButton radiobutton, Option<int> optionKey, int optionValue)
+        {
+            var binding = new Binding()
+            {
+                Source = new OptionBinding<int>(OptionService, optionKey),
+                Path = new PropertyPath("Value"),
+                UpdateSourceTrigger = UpdateSourceTrigger.Explicit,
+                Converter = new RadioButtonCheckedConverter(),
+                ConverterParameter = optionValue
+            };
+
+            var bindingExpression = radiobutton.SetBinding(RadioButton.IsCheckedProperty, binding);
+            _bindingExpressions.Add(bindingExpression);
+        }
+
         protected void BindToFullSolutionAnalysisOption(CheckBox checkbox, string languageName)
         {
             // Full solution analysis option has been moved to error list from Dev14 Update3.
@@ -144,6 +159,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         internal virtual void Close()
         {
+        }
+    }
+
+    public class RadioButtonCheckedConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter,
+            System.Globalization.CultureInfo culture)
+        {
+            return value.Equals(parameter);
+        }
+
+        public object ConvertBack(object value, Type targetType, object parameter,
+            System.Globalization.CultureInfo culture)
+        {
+            return value.Equals(true) ? parameter : Binding.DoNothing;
         }
     }
 }

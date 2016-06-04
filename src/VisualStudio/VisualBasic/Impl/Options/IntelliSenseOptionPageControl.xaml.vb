@@ -16,6 +16,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             BindToOption(Show_completion_item_filters, CompletionOptions.ShowCompletionItemFilters, LanguageNames.VisualBasic)
             BindToOption(Highlight_matching_portions_of_completion_list_items, CompletionOptions.HighlightMatchingPortionsOfCompletionListItems, LanguageNames.VisualBasic)
+
+            BindToOption(Never_insert_new_line, VisualBasicCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord, EnterKeyRule.Never)
+            BindToOption(Only_insert_new_line_with_whole_word, VisualBasicCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord, EnterKeyRule.AfterFullyTypedWord)
+            BindToOption(Always_insert_new_line, VisualBasicCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord, EnterKeyRule.Always)
         End Sub
     End Class
 End Namespace

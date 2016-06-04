@@ -246,4 +246,16 @@
   <data name="Option_CompletionLists" xml:space="preserve">
     <value>Completion Lists</value>
   </data>
+  <data name="Option_SelectionInCompletionList" xml:space="preserve">
+    <value>Enter key behavior</value>
+  </data>
+  <data name="Option_InsertNewlineOnEnterWithWholeWord" xml:space="preserve">
+    <value>_Only add new line on enter after end of fully typed word</value>
+  </data>
+  <data name="Option_AlwaysInsertNewlineOnEnter" xml:space="preserve">
+    <value>_Always add new line on enter</value>
+  </data>
+  <data name="Option_NeverInsertNewlineOnEnter" xml:space="preserve">
+    <value>_Never add new line on enter</value>
+  </data>
 </root>

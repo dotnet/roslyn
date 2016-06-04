@@ -13,6 +13,7 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Options
 Imports Microsoft.CodeAnalysis.Simplification
+Imports Microsoft.CodeAnalysis.VisualBasic.Completion
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
 Imports Microsoft.VisualStudio.Shell
@@ -28,6 +29,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         FormattingOptions.InternalTabFeatureName,
         ServiceFeatureOnOffOptions.OptionName,
         SimplificationOptions.PerLanguageFeatureName,
+        VisualBasicCompletionOptions.FeatureName,
         VisualStudioNavigationOptions.FeatureName), [Shared]>
     Friend NotInheritable Class VisualBasicSettingsManagerOptionSerializer
         Inherits AbstractSettingsManagerOptionSerializer
@@ -85,7 +87,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         End Property
 
         Protected Overrides Function SupportsOption([option] As IOption, languageName As String) As Boolean
-            If languageName = LanguageNames.VisualBasic Then
+            If [option].Name = VisualBasicCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord.Name Then
+                Return True
+
+            ElseIf languageName = LanguageNames.VisualBasic Then
                 If [option].Feature = FeatureOnOffOptions.OptionName Then
                     Return [option].Name = FeatureOnOffOptions.PrettyListing.Name OrElse
                            [option].Name = FeatureOnOffOptions.LineSeparator.Name OrElse
