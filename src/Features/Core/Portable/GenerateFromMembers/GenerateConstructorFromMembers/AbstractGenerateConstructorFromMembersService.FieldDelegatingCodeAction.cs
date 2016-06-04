@@ -11,9 +11,9 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.GenerateFromMembers.GenerateConstructor
+namespace Microsoft.CodeAnalysis.GenerateFromMembers.GenerateConstructorFromMembers
 {
-    internal abstract partial class AbstractGenerateConstructorService<TService, TMemberDeclarationSyntax>
+    internal abstract partial class AbstractGenerateConstructorFromMembersService<TService, TMemberDeclarationSyntax>
     {
         private class FieldDelegatingCodeAction : CodeAction
         {

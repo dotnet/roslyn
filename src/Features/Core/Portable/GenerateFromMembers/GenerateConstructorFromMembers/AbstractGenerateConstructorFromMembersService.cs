@@ -7,18 +7,18 @@ using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.GenerateFromMembers.GenerateConstructor
+namespace Microsoft.CodeAnalysis.GenerateFromMembers.GenerateConstructorFromMembers
 {
-    internal abstract partial class AbstractGenerateConstructorService<TService, TMemberDeclarationSyntax> :
-            AbstractGenerateFromMembersService<TMemberDeclarationSyntax>, IGenerateConstructorService
-        where TService : AbstractGenerateConstructorService<TService, TMemberDeclarationSyntax>
+    internal abstract partial class AbstractGenerateConstructorFromMembersService<TService, TMemberDeclarationSyntax> :
+            AbstractGenerateFromMembersService<TMemberDeclarationSyntax>, IGenerateConstructorFromMembersService
+        where TService : AbstractGenerateConstructorFromMembersService<TService, TMemberDeclarationSyntax>
         where TMemberDeclarationSyntax : SyntaxNode
     {
-        protected AbstractGenerateConstructorService()
+        protected AbstractGenerateConstructorFromMembersService()
         {
         }
 
-        public async Task<IGenerateConstructorResult> GenerateConstructorAsync(
+        public async Task<IGenerateConstructorFromMembersResult> GenerateConstructorFromMembersAsync(
             Document document, TextSpan textSpan, CancellationToken cancellationToken)
         {
             using (Logger.LogBlock(FunctionId.Refactoring_GenerateFromMembers_GenerateConstructor, cancellationToken))
@@ -29,12 +29,12 @@ namespace Microsoft.CodeAnalysis.GenerateFromMembers.GenerateConstructor
                     var state = State.Generate((TService)this, document, textSpan, info.ContainingType, info.SelectedMembers, cancellationToken);
                     if (state != null)
                     {
-                        return new GenerateConstructorResult(
+                        return new GenerateConstructorFromMembersResult(
                             CreateCodeRefactoring(info.SelectedDeclarations, GetCodeActions(document, state)));
                     }
                 }
 
-                return GenerateConstructorResult.Failure;
+                return GenerateConstructorFromMembersResult.Failure;
             }
         }
 

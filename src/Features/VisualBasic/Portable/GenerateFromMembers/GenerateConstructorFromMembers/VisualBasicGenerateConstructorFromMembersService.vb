@@ -2,16 +2,15 @@
 
 Imports System.Composition
 Imports System.Threading
-Imports Microsoft.CodeAnalysis.GenerateFromMembers.GenerateConstructor
-Imports Microsoft.CodeAnalysis.Host
+Imports Microsoft.CodeAnalysis.GenerateFromMembers.GenerateConstructorFromMembers
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 
-Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.GenerateFromMembers.GenerateConstructor
-    <ExportLanguageService(GetType(IGenerateConstructorService), LanguageNames.VisualBasic), [Shared]>
-    Friend Class VisualBasicGenerateConstructorService
-        Inherits AbstractGenerateConstructorService(Of VisualBasicGenerateConstructorService, StatementSyntax)
+Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.GenerateFromMembers.GenerateConstructorFromMembers
+    <ExportLanguageService(GetType(IGenerateConstructorFromMembersService), LanguageNames.VisualBasic), [Shared]>
+    Friend Class VisualBasicGenerateConstructorFromMembersService
+        Inherits AbstractGenerateConstructorFromMembersService(Of VisualBasicGenerateConstructorFromMembersService, StatementSyntax)
 
         Protected Overloads Overrides Async Function GetSelectedMembersAsync(
                 document As Document, textSpan As TextSpan, cancellationToken As CancellationToken) As Task(Of IList(Of StatementSyntax))

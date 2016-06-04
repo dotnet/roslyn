@@ -30,8 +30,8 @@
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
   </ImportGroup>
-  <!-- Override the defaults and make this dnxcore50 -->
+  <!-- Override the defaults and make this .NETCoreApp -->
   <PropertyGroup>
-    <NuGetTargetMoniker>DNXCore,Version=v5.0</NuGetTargetMoniker>
+    <NuGetTargetMoniker>.NETCoreApp,Version=v1.0</NuGetTargetMoniker>
   </PropertyGroup>
 </Project>

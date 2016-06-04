@@ -59,6 +59,7 @@
           AdditionalFiles="@(AdditionalFiles)"
           Analyzers="@(Analyzer)"
           BaseAddress="$(BaseAddress)"
+          ChecksumAlgorithm="$(ChecksumAlgorithm)"
           CodeAnalysisRuleSet="$(ResolvedCodeAnalysisRuleSet)"
           CodePage="$(CodePage)"
           DebugType="$(DebugType)"

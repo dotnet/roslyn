@@ -136,7 +136,7 @@
     <Compile Include="ExtractMethod\ExtractMethodTests.cs" />
     <Compile Include="GenerateDefaultConstructors\GenerateDefaultConstructorsTests.cs" />
     <Compile Include="GenerateFromMembers\AddConstructorParameters\AddConstructorParametersTests.cs" />
-    <Compile Include="GenerateFromMembers\GenerateConstructor\GenerateConstructorTests.cs" />
+    <Compile Include="GenerateFromMembers\GenerateConstructorFromMembers\GenerateConstructorFromMembersTests.cs" />
     <Compile Include="GenerateFromMembers\GenerateEqualsAndGetHashCode\GenerateEqualsAndGetHashCodeTests.cs" />
     <Compile Include="InlineTemporary\InlineTemporaryTests.cs" />
     <Compile Include="Interactive\CodeActions\InteractiveIntroduceVariableTests.cs" />

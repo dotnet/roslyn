@@ -3,9 +3,9 @@
 using System.Threading;
 using Microsoft.CodeAnalysis.CodeRefactorings;
 
-namespace Microsoft.CodeAnalysis.GenerateFromMembers.GenerateConstructor
+namespace Microsoft.CodeAnalysis.GenerateFromMembers.GenerateConstructorFromMembers
 {
-    internal interface IGenerateConstructorResult
+    internal interface IGenerateConstructorFromMembersResult
     {
         bool ContainsChanges { get; }
         CodeRefactoring GetCodeRefactoring(CancellationToken cancellationToken);

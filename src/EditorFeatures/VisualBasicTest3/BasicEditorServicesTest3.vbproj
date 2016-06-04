@@ -134,7 +134,7 @@
     <Compile Include="ExtractMethod\ExtractMethodTests.vb" />
     <Compile Include="GenerateDefaultConstructors\GenerateDefaultConstructorsTests.vb" />
     <Compile Include="GenerateFromMembers\AddConstructorParameters\AddConstructorParametersTests.vb" />
-    <Compile Include="GenerateFromMembers\GenerateConstructor\GenerateConstructorTests.vb" />
+    <Compile Include="GenerateFromMembers\GenerateConstructorFromMembers\GenerateConstructorFromMembersTests.vb" />
     <Compile Include="GenerateFromMembers\GenerateEqualsAndGetHashCode\GenerateEqualsAndGetHashCodeTests.vb" />
     <Compile Include="InlineTemporary\InlineTemporaryTests.vb" />
     <Compile Include="IntroduceVariable\IntroduceVariableTests.vb" />
