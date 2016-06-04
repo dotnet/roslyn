@@ -10,13 +10,7 @@ namespace Roslyn.Diagnostics.Analyzers.CSharp
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CSharpDiagnosticDescriptorAccessAnalyzer : DiagnosticDescriptorAccessAnalyzer<SyntaxKind, MemberAccessExpressionSyntax>
     {
-        protected override SyntaxKind SimpleMemberAccessExpressionKind
-        {
-            get
-            {
-                return SyntaxKind.SimpleMemberAccessExpression;
-            }
-        }
+        protected override SyntaxKind SimpleMemberAccessExpressionKind => SyntaxKind.SimpleMemberAccessExpression;
 
         protected override SyntaxNode GetLeftOfMemberAccess(MemberAccessExpressionSyntax memberAccess)
         {

@@ -12,10 +12,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.CodeFixes
 {
     public abstract class ApplyDiagnosticAnalyzerAttributeFix : CodeFixProvider
     {
-        public sealed override ImmutableArray<string> FixableDiagnosticIds
-        {
-            get { return ImmutableArray.Create(DiagnosticIds.MissingDiagnosticAnalyzerAttributeRuleId); }
-        }
+        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticIds.MissingDiagnosticAnalyzerAttributeRuleId);
 
         public sealed override async Task RegisterCodeFixesAsync(CodeFixContext context)
         {

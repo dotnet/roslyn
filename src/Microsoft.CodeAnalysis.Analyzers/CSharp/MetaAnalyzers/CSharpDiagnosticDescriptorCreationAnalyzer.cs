@@ -10,13 +10,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CSharpDiagnosticDescriptorCreationAnalyzer : DiagnosticDescriptorCreationAnalyzer<ClassDeclarationSyntax, ObjectCreationExpressionSyntax, SyntaxKind>
     {
-        protected override ImmutableArray<SyntaxKind> SyntaxKindsOfInterest
-        {
-            get
-            {
-                return ImmutableArray.Create(SyntaxKind.ObjectCreationExpression);
-            }
-        }
+        protected override ImmutableArray<SyntaxKind> SyntaxKindsOfInterest => ImmutableArray.Create(SyntaxKind.ObjectCreationExpression);
 
         protected override CompilationAnalyzer GetAnalyzer(Compilation compilation, INamedTypeSymbol diagnosticDescriptorType)
         {

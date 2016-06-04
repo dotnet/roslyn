@@ -18,10 +18,7 @@ namespace Roslyn.Diagnostics.Analyzers
     [ExportCodeFixProvider(LanguageNames.CSharp, LanguageNames.VisualBasic, Name = "DeclarePublicAPIFix"), Shared]
     public sealed class DeclarePublicAPIFix : CodeFixProvider
     {
-        public sealed override ImmutableArray<string> FixableDiagnosticIds
-        {
-            get { return ImmutableArray.Create(RoslynDiagnosticIds.DeclarePublicApiRuleId); }
-        }
+        public sealed override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(RoslynDiagnosticIds.DeclarePublicApiRuleId);
 
         public sealed override FixAllProvider GetFixAllProvider()
         {
