@@ -1728,7 +1728,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (BoundExpression variable in node.LeftVariables)
             {
-                Assign(variable, null, refKind: RefKind.None);
+                // PROTOTYPE(tuples) value should not be set to null
+                Assign(variable, value: null, refKind: RefKind.None);
             }
 
             return null;
