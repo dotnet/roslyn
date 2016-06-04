@@ -8,39 +8,41 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
     public partial class ArgumentSyntax
     {
         /// <summary>
-        /// Get expression representing the value of the argument.
+        /// Get expression representing the value of the argument, or null if arguments declares 
+        /// an out variable.
         /// </summary>
         public ExpressionSyntax Expression
         {
             get
             {
-                if (RefOrOutKeyword.Kind() != SyntaxKind.OutKeyword)
-                {
-                    return (ExpressionSyntax)ExpressionOrDeclaration;
-                }
-
                 return ExpressionOrDeclaration as ExpressionSyntax;
             }
         }
 
         public ArgumentSyntax WithExpression(ExpressionSyntax expression)
         {
-            return this.Update(this.NameColon, this.RefOrOutKeyword, expression);
+            return this.WithExpressionOrDeclaration(expression);
+        }
+
+        public ArgumentSyntax WithDeclaration(VariableDeclarationSyntax declaration)
+        {
+            if (this.RefOrOutKeyword.Kind() != SyntaxKind.OutKeyword)
+            {
+                throw new InvalidOperationException();
+            }
+
+            return this.WithExpressionOrDeclaration(declaration);
         }
 
         /// <summary>
-        /// Get declaration of an Out Variable for the argument.
+        /// Get declaration of an Out Variable for the argument, or null
+        /// if it doesn't declare any.
         /// </summary>
-        public VariableDeclarationSyntax VariableDeclaration
+        public VariableDeclarationSyntax Declaration
         {
             get
             {
-                if (RefOrOutKeyword.Kind() != SyntaxKind.OutKeyword || ExpressionOrDeclaration.Kind() != SyntaxKind.VariableDeclaration)
-                {
-                    return null;
-                }
-
-                return (VariableDeclarationSyntax)ExpressionOrDeclaration;
+                return ExpressionOrDeclaration as VariableDeclarationSyntax;
             }
         }
 
@@ -51,7 +53,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             get
             {
-                VariableDeclarationSyntax declaration = VariableDeclaration;
+                VariableDeclarationSyntax declaration = Declaration;
                 if (declaration != null)
                 {
                     return declaration.Variables.First().Identifier;
@@ -68,7 +70,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
         {
             get
             {
-                VariableDeclarationSyntax declaration = VariableDeclaration;
+                VariableDeclarationSyntax declaration = Declaration;
                 if (declaration != null)
                 {
                     return declaration.Type;
@@ -85,16 +87,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
         public ArgumentSyntax Update(NameColonSyntax nameColon, SyntaxToken outKeyword, VariableDeclarationSyntax declaration)
         {
-            if (outKeyword.Kind() != SyntaxKind.OutKeyword)
-            {
-                throw new ArgumentException(nameof(outKeyword));
-            }
-
-            if (declaration != null && !IsValidOutVariableDeclaration(declaration))
-            {
-                throw new ArgumentException(nameof(declaration));
-            }
-
             return this.Update(nameColon, outKeyword, (CSharpSyntaxNode)declaration);
         }
 
@@ -125,6 +117,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax
 
             declaringArgument = null;
             return false;
+        }
+
+        partial void ValidateWithRefOrOutKeywordInput(SyntaxToken refOrOutKeyword)
+        {
+            if (ExpressionOrDeclaration.Kind() == SyntaxKind.VariableDeclaration && refOrOutKeyword.Kind() != SyntaxKind.OutKeyword)
+            {
+                throw new ArgumentException(nameof(refOrOutKeyword));
+            }
         }
     }
 }

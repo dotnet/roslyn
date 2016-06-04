@@ -1101,7 +1101,7 @@
         <summary>SyntaxToken representing the optional ref or out keyword.</summary>
       </PropertyComment>
     </Field>
-    <Field Name="ExpressionOrDeclaration" Type="CSharpSyntaxNode" >
+    <Field Name="ExpressionOrDeclaration" Type="CSharpSyntaxNode" Internal="true">
       <PropertyComment>
         <summary>
           ExpressionSyntax node representing the argument value, 

@@ -526,7 +526,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                      (parent = parent.Parent)?.Kind() == SyntaxKind.Argument && 
                      ((ArgumentSyntax)parent).Type == expression)
             {
-                TypeSymbol outVarType = (GetDeclaredSymbol(((ArgumentSyntax)parent).VariableDeclaration.Variables.First(), cancellationToken) as LocalSymbol)?.Type;
+                TypeSymbol outVarType = (GetDeclaredSymbol(((ArgumentSyntax)parent).Declaration.Variables.First(), cancellationToken) as LocalSymbol)?.Type;
 
                 if (outVarType?.IsErrorType() == false)
                 {
