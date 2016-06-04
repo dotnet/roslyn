@@ -397,15 +397,25 @@
 
     <Field Name="Right" Type="BoundExpression"/>
 
-    <Field Name="DeconstructSteps" Type="ImmutableArray&lt;BoundDeconstructionAssignmentOperator.DeconstructStep&gt;" Null="NotApplicable" SkipInVisitor="true" />
+    <Field Name="DeconstructSteps" Type="ImmutableArray&lt;BoundDeconstructionDeconstructStep&gt;" Null="NotApplicable" SkipInVisitor="true" />
 
-    <!-- The assignments have placeholders for the left and right part of the assignment -->
-    <Field Name="AssignmentSteps" Type="ImmutableArray&lt;BoundDeconstructionAssignmentOperator.AssignmentStep&gt;" Null="NotApplicable" SkipInVisitor="true"/>
+    <Field Name="AssignmentSteps" Type="ImmutableArray&lt;BoundDeconstructionAssignmentStep&gt;" Null="NotApplicable" SkipInVisitor="true"/>
+  </Node>
+
+  <Node Name="BoundDeconstructionDeconstructStep" Base="BoundNode">
+    <Field Name="DeconstructMemberOpt" Type="MethodSymbol" Null="allow"/>
+    <Field Name="TargetPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
+    <Field Name="OutputPlaceholders" Type="ImmutableArray&lt;BoundDeconstructValuePlaceholder&gt;"/>
+  </Node>
+
+  <Node Name="BoundDeconstructionAssignmentStep" Base="BoundNode">
+    <Field Name="Assignment" Type="BoundAssignmentOperator" Null="disallow"/>
+    <Field Name="TargetPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
+    <Field Name="OutputPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
   </Node>
 
   <Node Name="BoundDeconstructionVariables" Base="BoundExpression">
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="always"/>
-
     <Field Name="Variables" Type="ImmutableArray&lt;BoundExpression&gt;"/>
   </Node>
 

@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var placeholders = ArrayBuilder<BoundValuePlaceholderBase>.GetInstance();
 
             // evaluate left-hand-side side-effects
-            var lhsTemps = LhsSideEffects(node.LeftVariables, temps, stores);
+            var lhsTemps = LeftHandSideSideEffects(node.LeftVariables, temps, stores);
 
             // get or make right-hand-side values
             BoundExpression loweredRight = VisitExpression(node.Right);
@@ -67,7 +67,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Adds the side effects to stores and returns temporaries (as a flat list) to access them.
         /// </summary>
-        private ImmutableArray<BoundExpression> LhsSideEffects(ImmutableArray<BoundExpression> variables, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> stores)
+        private ImmutableArray<BoundExpression> LeftHandSideSideEffects(ImmutableArray<BoundExpression> variables, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> stores)
         {
             var lhsReceivers = ArrayBuilder<BoundExpression>.GetInstance(variables.Length);
 
@@ -79,7 +79,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return lhsReceivers.ToImmutableAndFree();
         }
 
-        private void AccessTupleFields(BoundDeconstructionAssignmentOperator node, BoundDeconstructionAssignmentOperator.DeconstructStep deconstruction, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> stores, ArrayBuilder<BoundValuePlaceholderBase> placeholders)
+        private void AccessTupleFields(BoundDeconstructionAssignmentOperator node, BoundDeconstructionDeconstructStep deconstruction, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> stores, ArrayBuilder<BoundValuePlaceholderBase> placeholders)
         {
             var target = PlaceholderReplacement(deconstruction.TargetPlaceholder);
             var tupleType = target.Type.IsTupleType ? target.Type : TupleTypeSymbol.Create((NamedTypeSymbol)target.Type);
@@ -119,7 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Adds a invocation of Deconstruct with those as out parameters onto the 'stores' sequence
         /// Returns the expressions for those out parameters
         /// </summary>
-        private void CallDeconstruct(BoundDeconstructionAssignmentOperator node, BoundDeconstructionAssignmentOperator.DeconstructStep deconstruction, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> stores, ArrayBuilder<BoundValuePlaceholderBase> placeholders)
+        private void CallDeconstruct(BoundDeconstructionAssignmentOperator node, BoundDeconstructionDeconstructStep deconstruction, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> stores, ArrayBuilder<BoundValuePlaceholderBase> placeholders)
         {
             Debug.Assert((object)deconstruction.DeconstructMemberOpt != null);
 

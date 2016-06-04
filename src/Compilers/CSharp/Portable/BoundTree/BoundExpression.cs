@@ -278,23 +278,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         public ImmutableArray<MethodSymbol> OriginalUserDefinedOperatorsOpt { get; }
     }
 
-    internal sealed partial class BoundDeconstructionAssignmentOperator : BoundExpression
-    {
-        internal class AssignmentStep
-        {
-            public BoundAssignmentOperator Assignment;
-            public BoundDeconstructValuePlaceholder OutputPlaceholder;
-            public BoundDeconstructValuePlaceholder TargetPlaceholder;
-        }
-
-        internal class DeconstructStep
-        {
-            public MethodSymbol DeconstructMemberOpt; // the deconstruct member, or null if tuple deconstruction
-            public BoundDeconstructValuePlaceholder TargetPlaceholder;
-            public ImmutableArray<BoundDeconstructValuePlaceholder> OutputPlaceholders; // placeholders for the outputs produced by this deconstruction
-        }
-    }
-
     internal partial class BoundCompoundAssignmentOperator
     {
         public override Symbol ExpressionSymbol
