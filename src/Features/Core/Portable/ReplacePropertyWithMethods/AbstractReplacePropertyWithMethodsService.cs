@@ -102,6 +102,10 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 }
             }
 
+            // To avoid allocating lambdas each time we hit a reference, we instead
+            // statically cache the lambdas here and invoke them on demand with the 
+            // data they need when we hit a reference.
+
             private static readonly GetWriteValue getWriteValueForLeftSideOfAssignment =
                 (replacer, parent) =>
                 {
@@ -136,6 +140,22 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                     // Convert "Prop *= X" into "Prop * X".
                     return replacer._service.UnwrapCompoundAssignment(
                         parent, readExpression);
+                };
+
+            private static Func<SyntaxNode, SyntaxGenerator, ReplaceParentArgs, SyntaxNode> replaceParentCallback =
+                (parent, generator, args) =>
+                {
+                    var replacer = args.Replacer;
+
+                    var writeValue = args.GetWriteValue(replacer, parent);
+                    var writeExpression = replacer.GetWriteExpression(
+                        writeValue, args.KeepTrivia, args.ConflictMessage);
+                    if (replacer._expression.Parent is TStatementSyntax)
+                    {
+                        writeExpression = replacer.Generator.ExpressionStatement(writeExpression);
+                    }
+
+                    return writeExpression;
                 };
 
             private SyntaxGenerator Generator => _editor.Generator;
@@ -214,22 +234,12 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 bool keepTrivia,
                 string conflictMessage)
             {
-                var replacer = this;
-
                 // Call this overload so we can see this node after already replacing any 
                 // references in the writing side of it.
-                _editor.ReplaceNode(_expression.Parent, 
-                    (parent, generator) =>
-                    {
-                        var writeValue = getWriteValue(replacer, parent);
-                        var writeExpression = replacer.GetWriteExpression(writeValue, keepTrivia, conflictMessage);
-                        if (replacer._expression.Parent is TStatementSyntax)
-                        {
-                            writeExpression = replacer.Generator.ExpressionStatement(writeExpression);
-                        }
-
-                        return writeExpression;
-                    });
+                _editor.ReplaceNode(
+                    _expression.Parent, 
+                    replaceParentCallback,
+                    new ReplaceParentArgs(this, getWriteValue, keepTrivia, conflictMessage));
             }
 
             private TExpressionSyntax GetReadExpression(
@@ -346,6 +356,22 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 }
 
                 return token;
+            }
+
+            private struct ReplaceParentArgs
+            {
+                public readonly ReferenceReplacer Replacer;
+                public readonly GetWriteValue GetWriteValue;
+                public readonly bool KeepTrivia;
+                public readonly string ConflictMessage;
+
+                public ReplaceParentArgs(ReferenceReplacer replacer, GetWriteValue getWriteValue, bool keepTrivia, string conflictMessage)
+                {
+                    Replacer = replacer;
+                    GetWriteValue = getWriteValue;
+                    KeepTrivia = keepTrivia;
+                    ConflictMessage = conflictMessage;
+                }
             }
         }
     }
