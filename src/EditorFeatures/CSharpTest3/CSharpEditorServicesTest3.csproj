@@ -125,9 +125,79 @@
     <Reference Include="WindowsBase" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="app.config" />
     <None Include="project.json" />
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Compile Include="AbstractCSharpCodeActionTest.cs" />
+    <Compile Include="AddBraces\AddBracesFixAllTests.cs" />
+    <Compile Include="AddBraces\AddBracesTests.cs" />
+    <Compile Include="EncapsulateField\EncapsulateFieldTests.cs" />
+    <Compile Include="ExtractMethod\ExtractMethodTests.cs" />
+    <Compile Include="GenerateDefaultConstructors\GenerateDefaultConstructorsTests.cs" />
+    <Compile Include="GenerateFromMembers\AddConstructorParameters\AddConstructorParametersTests.cs" />
+    <Compile Include="GenerateFromMembers\GenerateConstructor\GenerateConstructorTests.cs" />
+    <Compile Include="GenerateFromMembers\GenerateEqualsAndGetHashCode\GenerateEqualsAndGetHashCodeTests.cs" />
+    <Compile Include="InlineTemporary\InlineTemporaryTests.cs" />
+    <Compile Include="Interactive\CodeActions\InteractiveIntroduceVariableTests.cs" />
+    <Compile Include="IntroduceVariable\IntroduceVariableTests.cs" />
+    <Compile Include="InvertIf\InvertIfTests.cs" />
+    <Compile Include="LambdaSimplifier\LambdaSimplifierTests.cs" />
+    <Compile Include="MoveDeclarationNearReference\MoveDeclarationNearReferenceTests.cs" />
+    <Compile Include="PopulateSwitch\PopulateSwitchTests.cs" />
+    <Compile Include="PopulateSwitch\PopulateSwitchTests_FixAllTests.cs" />
+    <Compile Include="Preview\ErrorCases\ExceptionInCodeAction.cs" />
+    <Compile Include="Preview\PreviewExceptionTests.cs" />
+    <Compile Include="Preview\PreviewTests.cs" />
+    <Compile Include="ReplaceMethodWithProperty\ReplaceMethodWithPropertyTests.cs" />
+    <Compile Include="ReplacePropertyWithMethods\ReplacePropertyWithMethodsTests.cs" />
+    <Compile Include="AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest.cs" />
+    <Compile Include="AddUsing\AddUsingTests.cs" />
+    <Compile Include="AddUsing\AddUsingTests_ExtensionMethods.cs" />
+    <Compile Include="AddUsing\AddUsingTests_NuGet.cs" />
+    <Compile Include="AddUsing\AddUsingTests_Queries.cs" />
+    <Compile Include="Async\AddAsyncTests.cs" />
+    <Compile Include="Async\AddAwaitTests.cs" />
+    <Compile Include="Async\ChangeToAsyncTests.cs" />
+    <Compile Include="FixAllProvider\BatchFixerTests.cs" />
+    <Compile Include="FullyQualify\FullyQualifyTests.cs" />
+    <Compile Include="GenerateConstructor\GenerateConstructorTests.cs" />
+    <Compile Include="GenerateEnumMember\GenerateEnumMemberTests.cs" />
+    <Compile Include="GenerateMethod\GenerateConversionTests.cs" />
+    <Compile Include="GenerateMethod\GenerateMethodTests.cs" />
+    <Compile Include="GenerateType\GenerateTypeTests.cs" />
+    <Compile Include="GenerateType\GenerateTypeTests_Dialog.cs" />
+    <Compile Include="GenerateVariable\GenerateVariableTests.cs" />
+    <Compile Include="HideBase\HideBaseTests.cs" />
+    <Compile Include="ImplementAbstractClass\ImplementAbstractClassTests.cs" />
+    <Compile Include="ImplementAbstractClass\ImplementAbstractClassTests_FixAllTests.cs" />
+    <Compile Include="ImplementInterface\ImplementInterfaceTests.cs" />
+    <Compile Include="ImplementInterface\ImplementInterfaceTests_FixAllTests.cs" />
+    <Compile Include="InvokeDelegateWithConditionalAccess\InvokeDelegateWithConditionalAccessTests.cs" />
+    <Compile Include="Iterator\AddYieldTests.cs" />
+    <Compile Include="Iterator\ChangeToIEnumerableTests.cs" />
+    <Compile Include="MakeMethodSynchronous\MakeMethodSynchronousTests.cs" />
+    <Compile Include="MockDiagnosticAnalyzerTests.cs" />
+    <Compile Include="QualifyMemberAccess\QualifyMemberAccessTests.cs" />
+    <Compile Include="QualifyMemberAccess\QualifyMemberAccessTests_FixAllTests.cs" />
+    <Compile Include="RemoveUnnecessaryCast\RemoveUnnecessaryCastTests.cs" />
+    <Compile Include="RemoveUnnecessaryCast\RemoveUnnecessaryCastTests_FixAllTests.cs" />
+    <Compile Include="RemoveUnnecessaryUsings\RemoveUnnecessaryUsingsTests.cs" />
+    <Compile Include="RemoveUnnecessaryUsings\RemoveUnnecessaryUsingsTests_FixAllTests.cs" />
+    <Compile Include="SimplifyTypeNames\SimplifyTypeNamesTests.cs" />
+    <Compile Include="SimplifyTypeNames\SimplifyTypeNamesTests_FixAllTests.cs" />
+    <Compile Include="SpellCheck\SpellCheckTests.cs" />
+    <Compile Include="Suppression\RemoveSuppressionTests.cs" />
+    <Compile Include="Suppression\SuppressionAllCodeTests.cs" />
+    <Compile Include="Suppression\SuppressionTests.cs" />
+    <Compile Include="Suppression\SuppressionTest_FixAllTests.cs" />
+    <Compile Include="Suppression\SuppressionTest_FixMultipleTests.cs" />
+    <Compile Include="UseAutoProperty\UseAutoPropertyTests.cs" />
+    <Compile Include="UseImplicitOrExplicitType\UseExplicitTypeTests.cs" />
+    <Compile Include="UseImplicitOrExplicitType\UseExplicitTypeTests_FixAllTests.cs" />
+    <Compile Include="UseImplicitOrExplicitType\UseImplicitTypeTests.cs" />
+    <Compile Include="UseImplicitOrExplicitType\UseImplicitTypeTests_FixAllTests.cs" />
+  </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
