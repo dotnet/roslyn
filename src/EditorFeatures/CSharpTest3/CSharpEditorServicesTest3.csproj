@@ -105,7 +105,7 @@
     <ProjectGuid>{3FD10FE0-C05C-424F-B1A8-10AD775E3891}</ProjectGuid>
     <OutputType>Library</OutputType>
     <RootNamespace>Microsoft.CodeAnalysis.Editor.CSharp.UnitTests</RootNamespace>
-    <AssemblyName>Roslyn.Services.Editor.CSharp.UnitTests2</AssemblyName>
+    <AssemblyName>Roslyn.Services.Editor.CSharp.UnitTests3</AssemblyName>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
   </PropertyGroup>

@@ -94,6 +94,10 @@
     <DefineTrace>true</DefineTrace>
     <Optimize>true</Optimize>
   </PropertyGroup>
+  <PropertyGroup>
+    <RootNamespace>
+    </RootNamespace>
+  </PropertyGroup>
   <ItemGroup>
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
