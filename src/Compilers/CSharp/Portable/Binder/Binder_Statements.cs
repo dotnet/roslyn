@@ -1750,19 +1750,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             var assignmentSteps = ArrayBuilder<BoundDeconstructionAssignmentStep>.GetInstance(1);
             try
             {
-                if (!DeconstructIntoSteps(new BoundDeconstructValuePlaceholder(node.Right, boundRHS.Type), node, diagnostics, checkedVariables, deconstructionSteps, assignmentSteps))
-                {
-                    return new BoundDeconstructionAssignmentOperator(node, FlattenDeconstructVariables(checkedVariables), boundRHS, ImmutableArray<BoundDeconstructionDeconstructStep>.Empty,
-                                                                    ImmutableArray<BoundDeconstructionAssignmentStep>.Empty,
-                                                                    ErrorTypeSymbol.UnknownResultType,
-                                                                    hasErrors: true);
-                }
+                bool hasErrors = !DeconstructIntoSteps(new BoundDeconstructValuePlaceholder(node.Right, boundRHS.Type), node, diagnostics, checkedVariables, deconstructionSteps, assignmentSteps);
 
                 var deconstructions = deconstructionSteps.ToImmutable();
                 var assignments = assignmentSteps.ToImmutable();
 
                 TypeSymbol voidType = GetSpecialType(SpecialType.System_Void, diagnostics, node);
-                return new BoundDeconstructionAssignmentOperator(node, FlattenDeconstructVariables(checkedVariables), boundRHS, deconstructions, assignments, voidType);
+                return new BoundDeconstructionAssignmentOperator(node, FlattenDeconstructVariables(checkedVariables), boundRHS, deconstructions, assignments, voidType, hasErrors: hasErrors);
             }
             finally
             {
@@ -1814,12 +1808,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// The produced deconstruction step has no Deconstruct method since the tuple already has distinct elements.
         /// </summary>
         static private BoundDeconstructionDeconstructStep MakeTupleDeconstructStep(
-                        BoundDeconstructValuePlaceholder targetPlaceholder,
-                        AssignmentExpressionSyntax syntax,
-                        DiagnosticBag diagnostics,
-                        ImmutableArray<DeconstructionVariable> variables,
-                        ArrayBuilder<BoundDeconstructionDeconstructStep> deconstructionSteps,
-                        ArrayBuilder<BoundDeconstructionAssignmentStep> assignmentSteps)
+                                                        BoundDeconstructValuePlaceholder targetPlaceholder,
+                                                        AssignmentExpressionSyntax syntax,
+                                                        DiagnosticBag diagnostics,
+                                                        ImmutableArray<DeconstructionVariable> variables,
+                                                        ArrayBuilder<BoundDeconstructionDeconstructStep> deconstructionSteps,
+                                                        ArrayBuilder<BoundDeconstructionAssignmentStep> assignmentSteps)
         {
             Debug.Assert(targetPlaceholder.Type.IsTupleType);
 
@@ -1838,12 +1832,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returns null if there was an error (if a suitable Deconstruct method was not found).
         /// </summary>
         static private BoundDeconstructionDeconstructStep MakeNonTupleDeconstructStep(
-                        BoundDeconstructValuePlaceholder targetPlaceholder,
-                        AssignmentExpressionSyntax syntax,
-                        DiagnosticBag diagnostics,
-                        ImmutableArray<DeconstructionVariable> variables,
-                        ArrayBuilder<BoundDeconstructionDeconstructStep> deconstructionSteps,
-                        ArrayBuilder<BoundDeconstructionAssignmentStep> assignmentSteps)
+                                                            BoundDeconstructValuePlaceholder targetPlaceholder,
+                                                            AssignmentExpressionSyntax syntax,
+                                                            DiagnosticBag diagnostics,
+                                                            ImmutableArray<DeconstructionVariable> variables,
+                                                            ArrayBuilder<BoundDeconstructionDeconstructStep> deconstructionSteps,
+                                                            ArrayBuilder<BoundDeconstructionAssignmentStep> assignmentSteps)
         {
             // symbol and parameters for Deconstruct
             MethodSymbol deconstructMethod = FindDeconstruct(variables.Length, targetPlaceholder, syntax, diagnostics);
@@ -1876,6 +1870,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <summary>
         /// Takes the outputs from the previous deconstructionStep and depending on the structure of variables, will generate further deconstructions, or simply assignments.
+        /// Returns true for success, but false if has errors.
         /// </summary>
         private bool DeconstructOrAssignOutputs(
                         BoundDeconstructionDeconstructStep deconstructionStep,
@@ -1885,6 +1880,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         ArrayBuilder<BoundDeconstructionDeconstructStep> deconstructionSteps,
                         ArrayBuilder<BoundDeconstructionAssignmentStep> assignmentSteps)
         {
+            bool hasErrors = false;
+
             for (int i = 0; i < variables.Length; i++)
             {
                 var variable = variables[i];
@@ -1896,7 +1893,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     if (!DeconstructIntoSteps(valuePlaceholder, syntax, diagnostics, nestedVariables, deconstructionSteps, assignmentSteps))
                     {
-                        return false;
+                        hasErrors = true;
                     }
                 }
                 else
@@ -1906,7 +1903,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            return true;
+            return !hasErrors;
         }
 
         /// <summary>
