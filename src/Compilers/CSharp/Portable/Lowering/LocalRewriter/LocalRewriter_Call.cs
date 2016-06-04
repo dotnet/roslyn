@@ -331,8 +331,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     return false;
 
                                 default:
-                                    // Unhandled conversion kind in reordering logic
-                                    throw ExceptionUtilities.UnexpectedValue(conv.ConversionKind);
+                                    // when this assert is hit, examine whether such conversion kind is 
+                                    // 1) actually expected to get this far
+                                    // 2) figure if it is possibly not producing or consuming any sideeffects (rare case)
+                                    // 3) add a case for it
+                                    Debug.Assert(false, "Unexpected conversion kind" + conv.ConversionKind);
+
+                                    // it is safe to assume that conversion is not reorderable
+                                    return false;
                             }
                             break;
                         }
