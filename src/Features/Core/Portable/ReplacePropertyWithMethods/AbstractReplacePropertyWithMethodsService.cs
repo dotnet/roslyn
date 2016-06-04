@@ -313,12 +313,15 @@ namespace Microsoft.CodeAnalysis.ReplacePropertyWithMethods
                 // We're being read from and written to from a compound assignment 
                 // (i.e. Prop *= X), we need to replace with a Get and a Set call.
 
-                var readExpression = GetReadExpression(keepTrivia: false, conflictMessage: null);
+                ReplaceWrite(
+                    getWriteValue: (replacer, parent) =>
+                    {
+                        var readExpression = replacer.GetReadExpression(keepTrivia: false, conflictMessage: null);
 
-                // Convert "Prop *= X" into "Prop * X".
-                var writeValue = _service.UnwrapCompoundAssignment(_expression.Parent, readExpression);
-
-                ReplaceWrite(writeValue, keepTrivia: true, conflictMessage: null);
+                        // Convert "Prop *= X" into "Prop * X".
+                        return replacer._service.UnwrapCompoundAssignment(parent, readExpression);
+                    },
+                    keepTrivia: true, conflictMessage: null);
             }
 
             private static TIdentifierNameSyntax AddConflictAnnotation(TIdentifierNameSyntax name, string conflictMessage)
