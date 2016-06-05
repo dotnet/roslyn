@@ -151,6 +151,7 @@ namespace Roslyn.Test.Utilities
             public const string XmlTagCompletion = nameof(XmlTagCompletion);
             public const string CodeActionsAddOverload = "CodeActions.AddOverloads";
             public const string CodeActionsAddNew = "CodeActions.AddNew";
+            public const string CodeDefinitionWindow = nameof(CodeDefinitionWindow);
         }
     }
 }
