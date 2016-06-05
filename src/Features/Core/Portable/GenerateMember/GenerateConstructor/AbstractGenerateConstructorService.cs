@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.Extensions;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
@@ -28,8 +29,8 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateConstructor
         protected abstract bool TryInitializeClassDeclarationGenerationState(SemanticDocument document, SyntaxNode classDeclaration, CancellationToken cancellationToken, out SyntaxToken token, out IMethodSymbol constructor, out INamedTypeSymbol typeToGenerateIn);
         protected abstract bool TryInitializeConstructorInitializerGeneration(SemanticDocument document, SyntaxNode constructorInitializer, CancellationToken cancellationToken, out SyntaxToken token, out IList<TArgumentSyntax> arguments, out INamedTypeSymbol typeToGenerateIn);
         protected abstract bool TryInitializeSimpleAttributeNameGenerationState(SemanticDocument document, SyntaxNode simpleName, CancellationToken cancellationToken, out SyntaxToken token, out IList<TArgumentSyntax> arguments, out IList<TAttributeArgumentSyntax> attributeArguments, out INamedTypeSymbol typeToGenerateIn);
-        protected abstract IList<string> GenerateParameterNames(SemanticModel semanticModel, IEnumerable<TArgumentSyntax> arguments, IList<string> reservedNames = null);
-        protected virtual IList<string> GenerateParameterNames(SemanticModel semanticModel, IEnumerable<TAttributeArgumentSyntax> arguments, IList<string> reservedNames = null) { return null; }
+        protected abstract IList<ParameterName> GenerateParameterNames(SemanticModel semanticModel, IEnumerable<TArgumentSyntax> arguments, IList<string> reservedNames = null);
+        protected virtual IList<ParameterName> GenerateParameterNames(SemanticModel semanticModel, IEnumerable<TAttributeArgumentSyntax> arguments, IList<string> reservedNames = null) { return null; }
         protected abstract string GenerateNameForArgument(SemanticModel semanticModel, TArgumentSyntax argument);
         protected virtual string GenerateNameForArgument(SemanticModel semanticModel, TAttributeArgumentSyntax argument) { return null; }
         protected abstract RefKind GetRefKind(TArgumentSyntax argument);

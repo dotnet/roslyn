@@ -6,10 +6,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
@@ -17,7 +15,7 @@ using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public class SymbolIdTests : TestBase
+    public class SymbolKeyTests : TestBase
     {
         [Fact]
         public void TestMemberDeclarations()
@@ -470,7 +468,7 @@ class C
             var xSymbol = testModel.LookupSymbols(position).First(s => s.Name == "x");
 
             // This should not throw an exception.
-            Assert.NotNull(SymbolId.CreateId(xSymbol));
+            Assert.NotNull(SymbolKey.Create(xSymbol));
         }
 
         private void TestRoundTrip(IEnumerable<ISymbol> symbols, Compilation compilation, Func<ISymbol, object> fnId = null)
@@ -483,9 +481,9 @@ class C
 
         private void TestRoundTrip(ISymbol symbol, Compilation compilation, Func<ISymbol, object> fnId = null)
         {
-            var id = SymbolId.CreateId(symbol);
+            var id = SymbolKey.ToString(symbol);
             Assert.NotNull(id);
-            var found = SymbolId.GetFirstSymbolForId(id, compilation);
+            var found = SymbolKey.Resolve(id, compilation).GetAnySymbol();
             Assert.NotNull(found);
 
             if (fnId != null)

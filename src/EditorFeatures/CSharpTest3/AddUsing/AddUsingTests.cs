@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.AddImport;
@@ -44,6 +45,30 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.AddUsing
             await TestAsync(
 @"class Class { [|IDictionary|] Method() { Foo(); } }",
 @"using System.Collections; class Class { IDictionary Method() { Foo(); } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]
+        [WorkItem(11241, "https://github.com/dotnet/roslyn/issues/11241")]
+        public async Task TestAddImportWithCaseChange()
+        {
+            await TestAsync(
+@"namespace N1
+{
+    public class TextBox { }
+}
+
+class Class1 : [|Textbox|] { }
+",
+@"
+using N1;
+
+namespace N1
+{
+    public class TextBox { }
+}
+
+class Class1 : TextBox { }
+", priority: CodeActionPriority.Low);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddUsing)]

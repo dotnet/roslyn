@@ -11,6 +11,7 @@ using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
             protected abstract IList<RefKind> DetermineParameterModifiers(CancellationToken cancellationToken);
             protected abstract IList<ITypeSymbol> DetermineParameterTypes(CancellationToken cancellationToken);
             protected abstract IList<bool> DetermineParameterOptionality(CancellationToken cancellationToken);
-            protected abstract IList<string> DetermineParameterNames(CancellationToken cancellationToken);
+            protected abstract IList<ParameterName> DetermineParameterNames(CancellationToken cancellationToken);
 
             internal IPropertySymbol GenerateProperty(
                 SyntaxGenerator factory,
@@ -105,7 +106,9 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                 var syntaxFacts = languageServiceProvider.GetService<ISyntaxFactsService>();
 
                 var equalityComparer = syntaxFacts.IsCaseSensitive ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase;
-                var reservedParameterNames = this.DetermineParameterNames(cancellationToken).ToSet(equalityComparer);
+                var reservedParameterNames = this.DetermineParameterNames(cancellationToken)
+                                                 .Select(p => p.BestNameForParameter)
+                                                 .ToSet(equalityComparer);
                 var newTypeParameterNames = NameGenerator.EnsureUniqueness(
                     method.TypeParameters.Select(t => t.Name).ToList(), n => !reservedParameterNames.Contains(n));
 
@@ -186,7 +189,7 @@ namespace Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
                         isParams: false,
                         isOptional: optionality[i],
                         type: types[i],
-                        name: names[i]));
+                        name: names[i].BestNameForParameter));
                 }
 
                 return result;

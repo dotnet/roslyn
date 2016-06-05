@@ -3531,7 +3531,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return SyntaxFactory.ExpressionStatement((ExpressionSyntax)expression);
         }
 
-        public override SyntaxNode MemberAccessExpression(SyntaxNode expression, SyntaxNode simpleName)
+        internal override SyntaxNode MemberAccessExpressionWorker(SyntaxNode expression, SyntaxNode simpleName)
         {
             return SyntaxFactory.MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,

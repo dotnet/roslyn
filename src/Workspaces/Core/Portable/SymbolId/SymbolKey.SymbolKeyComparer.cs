@@ -1,11 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
+using System.Diagnostics;
+using System.Text;
 using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal abstract partial class SymbolKey
+    internal partial struct SymbolKey
     {
         private class SymbolKeyComparer : IEqualityComparer<SymbolKey>
         {
@@ -18,35 +21,44 @@ namespace Microsoft.CodeAnalysis
 
             public bool Equals(SymbolKey x, SymbolKey y)
             {
-                if (ReferenceEquals(x, y))
-                {
-                    return true;
-                }
+                var comparer = _options.IgnoreCase
+                    ? StringComparer.OrdinalIgnoreCase
+                    : StringComparer.Ordinal;
 
-                if (x == null || y == null)
+                if (!_options.IgnoreAssemblyKey)
                 {
-                    return false;
+                    // Easiest case.  We can directly compare the raw contents of the keys.
+                    return comparer.Equals(x._symbolKeyData, y._symbolKeyData);
                 }
+                else
+                {
+                    // This is harder.  To compare these we need to remove the entries related to 
+                    // assemblies.
+                    var data1 = RemoveAssemblyKeys(x._symbolKeyData);
+                    var data2 = RemoveAssemblyKeys(y._symbolKeyData);
 
-                return x.Equals(y, _options);
+                    return comparer.Equals(data1, data2);
+                }
+            }
+
+            private string RemoveAssemblyKeys(string data)
+            {
+                var reader = new RemoveAssemblySymbolKeysReader();
+                reader.Initialize(data);
+                return reader.RemoveAssemblySymbolKeys();
             }
 
             public int GetHashCode(SymbolKey obj)
             {
-                if (obj == null)
-                {
-                    return 0;
-                }
-
-                return obj.GetHashCode(_options);
+                return obj.GetHashCode();
             }
 
-            public static IEqualityComparer<SymbolKey> GetComparer(bool ignoreCase, bool ignoreAssemblyKey, bool compareMethodTypeParametersByName)
+            public static IEqualityComparer<SymbolKey> GetComparer(bool ignoreCase, bool ignoreAssemblyKey)
             {
-                return GetComparer(new ComparisonOptions(ignoreCase, ignoreAssemblyKey, compareMethodTypeParametersByName));
+                return GetComparer(new ComparisonOptions(ignoreCase, ignoreAssemblyKey));
             }
 
-            private static readonly SymbolKeyComparer[] s_cachedComparers = new SymbolKeyComparer[8];
+            private static readonly SymbolKeyComparer[] s_cachedComparers = new SymbolKeyComparer[4];
 
             private static SymbolKeyComparer EnsureInitialized(ref SymbolKeyComparer location, ComparisonOptions options)
             {

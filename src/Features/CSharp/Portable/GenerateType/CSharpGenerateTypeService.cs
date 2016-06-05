@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.GenerateType
 {
@@ -522,7 +523,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             return false;
         }
 
-        protected override IList<string> GenerateParameterNames(
+        protected override IList<ParameterName> GenerateParameterNames(
             SemanticModel semanticModel, IList<ArgumentSyntax> arguments)
         {
             return semanticModel.GenerateParameterNames(arguments);

@@ -199,7 +199,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.OrElseExpression(Parenthesize(left), Parenthesize(right))
         End Function
 
-        Public Overrides Function MemberAccessExpression(expression As SyntaxNode, simpleName As SyntaxNode) As SyntaxNode
+        Friend Overrides Function MemberAccessExpressionWorker(expression As SyntaxNode, simpleName As SyntaxNode) As SyntaxNode
             Return SyntaxFactory.SimpleMemberAccessExpression(
                 ParenthesizeLeft(expression),
                 SyntaxFactory.Token(SyntaxKind.DotToken),

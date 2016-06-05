@@ -7,6 +7,7 @@ using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
+using Microsoft.CodeAnalysis.Utilities;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions
@@ -246,21 +247,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             return type.CreateParameterName(capitalize);
         }
 
-        public static IList<string> GenerateParameterNames(
+        public static IList<ParameterName> GenerateParameterNames(
             this SemanticModel semanticModel,
             ArgumentListSyntax argumentList)
         {
             return semanticModel.GenerateParameterNames(argumentList.Arguments);
         }
 
-        public static IList<string> GenerateParameterNames(
+        public static IList<ParameterName> GenerateParameterNames(
             this SemanticModel semanticModel,
             AttributeArgumentListSyntax argumentList)
         {
             return semanticModel.GenerateParameterNames(argumentList.Arguments);
         }
 
-        public static IList<string> GenerateParameterNames(
+        public static IList<ParameterName> GenerateParameterNames(
             this SemanticModel semanticModel,
             IEnumerable<ArgumentSyntax> arguments,
             IList<string> reservedNames = null)
@@ -274,10 +275,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var parameterNames = reservedNames.Concat(
                 arguments.Select(a => semanticModel.GenerateNameForArgument(a))).ToList();
 
-            return NameGenerator.EnsureUniqueness(parameterNames, isFixed).Skip(reservedNames.Count).ToList();
+            return GenerateNames(reservedNames, isFixed, parameterNames);
         }
 
-        public static IList<string> GenerateParameterNames(
+        private static IList<ParameterName> GenerateNames(IList<string> reservedNames, List<bool> isFixed, List<string> parameterNames)
+        {
+            return NameGenerator.EnsureUniqueness(parameterNames, isFixed)
+                                .Select((name, index) => new ParameterName(name, isFixed[index]))
+                                .Skip(reservedNames.Count).ToList();
+        }
+
+        public static IList<ParameterName> GenerateParameterNames(
             this SemanticModel semanticModel,
             IEnumerable<AttributeArgumentSyntax> arguments,
             IList<string> reservedNames = null)
@@ -291,7 +299,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             var parameterNames = reservedNames.Concat(
                 arguments.Select(a => semanticModel.GenerateNameForArgument(a))).ToList();
 
-            return NameGenerator.EnsureUniqueness(parameterNames, isFixed).Skip(reservedNames.Count).ToList();
+            return GenerateNames(reservedNames, isFixed, parameterNames);
         }
 
         public static ISet<INamespaceSymbol> GetUsingNamespacesInScope(this SemanticModel semanticModel, SyntaxNode location)
