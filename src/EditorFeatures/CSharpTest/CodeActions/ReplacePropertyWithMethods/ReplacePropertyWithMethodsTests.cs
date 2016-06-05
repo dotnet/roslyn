@@ -453,5 +453,181 @@ class D
     public abstract void SetProp(dynamic i);
 }");
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestTrivia1()
+        {
+            await TestAsync(
+@"class C
+{
+    int [||]Prop { get; set; }
+
+    void M()
+    {
+
+        Prop++;
+    }
+}",
+@"class C
+{
+    private int prop;
+
+    private int GetProp()
+    {
+        return this.prop;
+    }
+
+    private void SetProp(int value)
+    {
+        this.prop = value;
+    }
+
+    void M()
+    {
+
+        SetProp(GetProp() + 1);
+    }
+}", compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestTrivia2()
+        {
+            await TestAsync(
+@"class C
+{
+    int [||]Prop { get; set; }
+
+    void M()
+    {
+        /* Leading */
+        Prop++; /* Trailing */
+    }
+}",
+@"class C
+{
+    private int prop;
+
+    private int GetProp()
+    {
+        return this.prop;
+    }
+
+    private void SetProp(int value)
+    {
+        this.prop = value;
+    }
+
+    void M()
+    {
+        /* Leading */
+        SetProp(GetProp() + 1); /* Trailing */
+    }
+}", compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestTrivia3()
+        {
+            await TestAsync(
+@"class C
+{
+    int [||]Prop { get; set; }
+
+    void M()
+    {
+        /* Leading */
+        Prop += 1 /* Trailing */ ;
+    }
+}",
+@"class C
+{
+    private int prop;
+
+    private int GetProp()
+    {
+        return this.prop;
+    }
+
+    private void SetProp(int value)
+    {
+        this.prop = value;
+    }
+
+    void M()
+    {
+        /* Leading */
+        SetProp(GetProp() + 1 /* Trailing */ );
+    }
+}", compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task ReplaceReadInsideWrite1()
+        {
+            await TestAsync(
+@"class C
+{
+    int [||]Prop { get; set; }
+
+    void M()
+    {
+        Prop = Prop + 1;
+    }
+}",
+@"class C
+{
+    private int prop;
+
+    private int GetProp()
+    {
+        return this.prop;
+    }
+
+    private void SetProp(int value)
+    {
+        this.prop = value;
+    }
+
+    void M()
+    {
+        SetProp(GetProp() + 1);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task ReplaceReadInsideWrite2()
+        {
+            await TestAsync(
+@"class C
+{
+    int [||]Prop { get; set; }
+
+    void M()
+    {
+        Prop *= Prop + 1;
+    }
+}",
+@"class C
+{
+    private int prop;
+
+    private int GetProp()
+    {
+        return this.prop;
+    }
+
+    private void SetProp(int value)
+    {
+        this.prop = value;
+    }
+
+    void M()
+    {
+        SetProp(GetProp() * (GetProp() + 1));
+    }
+}");
+        }
     }
 }
