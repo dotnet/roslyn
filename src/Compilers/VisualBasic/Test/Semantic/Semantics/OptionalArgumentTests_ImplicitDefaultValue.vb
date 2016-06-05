@@ -18,7 +18,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class OptionalArgumentTests_ImplicitDefaultValue
         Inherits BasicTestBase
 
-        Private ReadOnly Property MyParseOptions As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VBnext)
+        Private Shared ReadOnly s_features As New SmallDictionary(Of String, String) From {{"implicitDefaultValueOnOptionalParameter", "true"}}
+
+        Private ReadOnly Property MyParseOptions As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithFeatures(s_features)
+        ' .WithLanguageVersion(LanguageVersion.VBnext)
+
 
         <WorkItem(543066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543066")>
         <Requires.Language.Feature(ImplicitDefaultValueOnOptionalParameter)>
@@ -628,8 +632,8 @@ x = nothing
 ").VerifyDiagnostics()
         End Sub
 
-        <WorkItem(543187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543187")>
         <Requires.Language.Feature(ImplicitDefaultValueOnOptionalParameter)>
+        <WorkItem(543187, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543187")>
         Public Sub OptionalWithIUnknownConstantAndIDispatchConstant()
 
             Dim libSource =
@@ -1948,6 +1952,7 @@ y: 15
 
         <Requires.Language.Feature(ImplicitDefaultValueOnOptionalParameter)>
         Public Sub TestCallerFilePath1()
+            If InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter.IsUnavailable(MyParseOptions) Then Throw New NotSupportedException("Feature is unavailable.")
             Dim source1 = "
         Imports System.Runtime.CompilerServices
         Imports System
@@ -1989,6 +1994,7 @@ y: 15
             End Sub
         End Module
         "
+            Dim comp = TestOptions.ReleaseExe.WithSourceReferenceResolver(SourceFileResolver.Default).WithParseOptions(MyParseOptions)
             Dim compilation = CreateCompilationWithReferences(
                 {
                     SyntaxFactory.ParseSyntaxTree(source1, path:="C:\filename", encoding:=Encoding.UTF8),
@@ -1997,7 +2003,7 @@ y: 15
                     SyntaxFactory.ParseSyntaxTree(source4, path:="       ", encoding:=Encoding.UTF8)
                 },
                 {MscorlibRef_v4_0_30316_17626, MsvbRef},
-                TestOptions.ReleaseExe.WithSourceReferenceResolver(SourceFileResolver.Default).WithParseOptions(MyParseOptions))
+                comp)
 
             CompileAndVerify(compilation, expectedOutput:=
 " 1: 'C:\filename'

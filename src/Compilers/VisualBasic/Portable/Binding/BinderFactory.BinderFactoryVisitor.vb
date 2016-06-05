@@ -195,8 +195,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Function
 
             Public Overrides Function VisitParameter(node As ParameterSyntax) As Binder
-                If (node.Default IsNot Nothing) OrElse InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter.IsAvailable Then
-                    '
+                If (node.Default IsNot Nothing) OrElse InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter.IsAvailable(CType(Me._factory._tree.Options, VisualBasicParseOptions)) Then
                     Return GetBinderForNodeAndUsage(node, NodeUsage.ParameterDefaultValue, node.Parent, _position)
                 End If
                 Return Nothing

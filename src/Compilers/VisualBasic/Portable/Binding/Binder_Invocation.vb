@@ -3036,8 +3036,8 @@ ProduceBoundNode:
             Dim defaultConstantValue As ConstantValue = Nothing
             If param.IsOptional Then
                 defaultConstantValue = param.ExplicitDefaultConstantValue(DefaultParametersInProgress)
-                If (defaultConstantValue Is Nothing) AndAlso InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter.IsAvailable Then
-                    defaultConstantValue = ConstantValue.Nothing
+                If (defaultConstantValue Is Nothing) AndAlso InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter.IsAvailable(CType(Me._syntaxTree.Options, VisualBasicParseOptions)) Then
+                    defaultConstantValue = ConstantValue.Null
                 End If
             End If
             If (defaultConstantValue IsNot Nothing) Then
@@ -3120,7 +3120,7 @@ ProduceBoundNode:
 
                 ' For compatibility with the native compiler bad metadata constants should be treated as default(T).  This 
                 ' is a possible outcome of running an obfuscator over a valid DLL 
-                If defaultConstantValue Is Nothing OrElse defaultConstantValue.IsBad Then
+                If defaultConstantValue.IsBad Then
                     defaultConstantValue = ConstantValue.Null
                 End If
 
