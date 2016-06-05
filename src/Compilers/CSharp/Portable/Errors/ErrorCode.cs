@@ -1287,7 +1287,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         ERR_FeatureIsExperimental = 8058,
         ERR_FeatureNotAvailableInVersion6 = 8059,
         ERR_FeatureIsUnimplemented = 8060,
-        // available 8061-8069
+        ERR_FeatureNotAvailableInVersion7 = 8061,
+        // available 8062-8069
         ERR_SwitchFallOut = 8070,
         // ERR_UnexpectedBoundGenericName = 8071, // for nameof - used in an early prototype
         ERR_NullPropagatingOpInExpressionTree = 8072,

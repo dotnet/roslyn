@@ -192,8 +192,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                     continue;
                 }
 
-                var expectedSymbol = symbolKey.Resolve(compilation, ignoreAssemblyKey: true, cancellationToken: cancellationToken).Symbol;
-
+                var expectedSymbol = symbolKey.Value.Resolve(compilation, ignoreAssemblyKey: true, cancellationToken: cancellationToken).Symbol;
                 if (expectedSymbol == null)
                 {
                     finalItems.Add(item);
@@ -231,7 +230,7 @@ namespace Microsoft.CodeAnalysis.SignatureHelp
                 if (!related.Item1.GetLanguageService<ISyntaxFactsService>().IsInInactiveRegion(syntaxTree, position, cancellationToken))
                 {
                     var relatedSemanticModel = await related.Item1.GetSemanticModelForSpanAsync(new TextSpan(position, 0), cancellationToken).ConfigureAwait(false);
-                    var symbolSet = related.Item2.Select(s => ((SymbolKeySignatureHelpItem)s).SymbolKey.Resolve(relatedSemanticModel.Compilation, cancellationToken: cancellationToken).Symbol)
+                    var symbolSet = related.Item2.Select(s => ((SymbolKeySignatureHelpItem)s).SymbolKey?.Resolve(relatedSemanticModel.Compilation, cancellationToken: cancellationToken).Symbol)
                                                  .WhereNotNull()
                                                  .ToSet(SymbolEquivalenceComparer.IgnoreAssembliesInstance);
                     resultSets.Add(Tuple.Create(related.Item1.Project.Id, symbolSet));

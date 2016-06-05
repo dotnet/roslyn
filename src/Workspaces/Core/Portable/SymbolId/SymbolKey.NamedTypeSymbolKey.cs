@@ -1,76 +1,73 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
-using System.Threading;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal abstract partial class SymbolKey
+    internal partial struct SymbolKey
     {
-        private class NamedTypeSymbolKey : AbstractSymbolKey<NamedTypeSymbolKey>
+        private static class NamedTypeSymbolKey
         {
-            private readonly SymbolKey _containerKey;
-            private readonly string _metadataName;
-            private readonly int _arity;
-            private readonly SymbolKey[] _typeArgumentKeysOpt;
-            private readonly TypeKind _typeKind;
-            private readonly bool _isUnboundGenericType;
-
-            internal NamedTypeSymbolKey(INamedTypeSymbol symbol, Visitor visitor)
+            public static void Create(INamedTypeSymbol symbol, SymbolKeyWriter visitor)
             {
-                _containerKey = GetOrCreate(symbol.ContainingSymbol, visitor);
-                _metadataName = symbol.MetadataName;
-                _arity = symbol.Arity;
-                _typeKind = symbol.TypeKind;
-                _isUnboundGenericType = symbol.IsUnboundGenericType;
+                visitor.WriteString(symbol.MetadataName);
+                visitor.WriteSymbolKey(symbol.ContainingSymbol);
+                visitor.WriteInteger(symbol.Arity);
+                visitor.WriteInteger((int)symbol.TypeKind);
+                visitor.WriteBoolean(symbol.IsUnboundGenericType);
 
-                if (!symbol.Equals(symbol.ConstructedFrom) && !_isUnboundGenericType)
+                if (!symbol.Equals(symbol.ConstructedFrom) && !symbol.IsUnboundGenericType)
                 {
-                    _typeArgumentKeysOpt = symbol.TypeArguments.Select(a => GetOrCreate(a, visitor)).ToArray();
+                    visitor.WriteSymbolKeyArray(symbol.TypeArguments);
+                }
+                else
+                {
+                    visitor.WriteSymbolKeyArray(default(ImmutableArray<ITypeSymbol>));
                 }
             }
 
-            public override SymbolKeyResolution Resolve(Compilation compilation, bool ignoreAssemblyKey, CancellationToken cancellationToken)
+            public static int GetHashCode(GetHashCodeReader reader)
             {
-                var containerInfo = _containerKey.Resolve(compilation, ignoreAssemblyKey, cancellationToken);
-                var types = GetAllSymbols<INamespaceOrTypeSymbol>(containerInfo).SelectMany(s => Resolve(compilation, s, ignoreAssemblyKey));
+                return Hash.Combine(reader.ReadString(),
+                       Hash.Combine(reader.ReadSymbolKey(),
+                       Hash.Combine(reader.ReadInteger(),
+                       Hash.Combine(reader.ReadInteger(),
+                       Hash.Combine(reader.ReadBoolean(),
+                                    reader.ReadSymbolKeyArrayHashCode())))));
+            }
+
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
+            {
+                var metadataName = reader.ReadString();
+                var containingSymbolResolution = reader.ReadSymbolKey();
+                var arity = reader.ReadInteger();
+                var typeKind = (TypeKind)reader.ReadInteger();
+                var isUnboundGenericType = reader.ReadBoolean();
+                var typeArgumentsOpt = reader.ReadSymbolKeyArray();
+
+                var types = GetAllSymbols<INamespaceOrTypeSymbol>(containingSymbolResolution).SelectMany(
+                    s => Resolve(reader, s, metadataName, arity, typeKind, isUnboundGenericType, typeArgumentsOpt));
                 return CreateSymbolInfo(types);
             }
-
-            private IEnumerable<INamedTypeSymbol> Resolve(
-                Compilation compilation,
+            private static IEnumerable<INamedTypeSymbol> Resolve(
+                SymbolKeyReader reader,
                 INamespaceOrTypeSymbol container,
-                bool ignoreAssemblyKey)
+                string metadataName,
+                int arity,
+                TypeKind typeKind,
+                bool isUnboundGenericType,
+                ImmutableArray<SymbolKeyResolution> typeArguments)
             {
-                var types = container.GetTypeMembers(GetName(_metadataName), _arity);
-                var result = InstantiateTypes(compilation, ignoreAssemblyKey, types, _arity, _typeArgumentKeysOpt);
+                var types = container.GetTypeMembers(GetName(metadataName), arity);
+                var result = InstantiateTypes(
+                    reader.Compilation, reader.IgnoreAssemblyKey, types, arity, typeArguments);
 
-                return _isUnboundGenericType
+                return isUnboundGenericType
                     ? result.Select(t => t.ConstructUnboundGenericType())
                     : result;
-            }
-
-            internal override bool Equals(NamedTypeSymbolKey other, ComparisonOptions options)
-            {
-                var comparer = SymbolKeyComparer.GetComparer(options);
-                return
-                    other._arity == _arity &&
-                    Equals(options.IgnoreCase, other._metadataName, _metadataName) &&
-                    comparer.Equals(other._containerKey, _containerKey) &&
-                    SequenceEquals(other._typeArgumentKeysOpt, _typeArgumentKeysOpt, comparer);
-            }
-
-            internal override int GetHashCode(ComparisonOptions options)
-            {
-                // TODO(cyrusn): Consider hashing the type arguments as well.
-                return
-                    Hash.Combine(_arity,
-                    Hash.Combine(GetHashCode(options.IgnoreCase, _metadataName),
-                                 _containerKey.GetHashCode(options)));
             }
         }
     }

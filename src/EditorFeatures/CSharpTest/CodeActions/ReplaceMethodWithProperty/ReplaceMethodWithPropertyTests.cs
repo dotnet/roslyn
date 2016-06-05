@@ -438,8 +438,8 @@ withScriptOption: true);
         public async Task Tuple_GetAndSet()
         {
             await TestAsync(
-@"using System; class C { (int, string) [||]getFoo() { } void setFoo((int, string) i) { } }",
-@"using System; class C { (int, string) Foo { get { } set { } } }",
+@"using System; class C { (int, string) [||]getFoo() { } void setFoo((int, string) i) { } } " + TestResources.NetFX.ValueTuple.tuplelib_cs,
+@"using System; class C { (int, string) Foo { get { } set { } } } " + TestResources.NetFX.ValueTuple.tuplelib_cs,
 index: 1,
 parseOptions: TestOptions.Regular.WithTuplesFeature(),
 withScriptOption: true);
@@ -449,8 +449,8 @@ withScriptOption: true);
         public async Task TupleWithNames_GetAndSet()
         {
             await TestAsync(
-@"using System; class C { (int a, string b) [||]getFoo() { } void setFoo((int a, string b) i) { } }",
-@"using System; class C { (int a, string b) Foo { get { } set { } } }",
+@"using System; class C { (int a, string b) [||]getFoo() { } void setFoo((int a, string b) i) { } } " + TestResources.NetFX.ValueTuple.tuplelib_cs,
+@"using System; class C { (int a, string b) Foo { get { } set { } } } " + TestResources.NetFX.ValueTuple.tuplelib_cs,
 index: 1,
 parseOptions: TestOptions.Regular.WithTuplesFeature(),
 withScriptOption: true);

@@ -22,6 +22,33 @@ NewLines("Imports System \n Class C \n Sub M() \n Foo() \n End Sub \n Private Su
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WorkItem(11518, "https://github.com/dotnet/roslyn/issues/11518")>
+        Public Async Function TestNameMatchesNamespaceName() As Task
+            Await TestAsync(
+"Namespace N
+    Module Module1
+        Sub Main()
+            [|N|]()
+        End Sub
+    End Module
+End Namespace",
+"
+Imports System
+
+Namespace N
+    Module Module1
+        Sub Main()
+            N()
+        End Sub
+
+        Private Sub N()
+            Throw New NotImplementedException()
+        End Sub
+    End Module
+End Namespace")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestSimpleInvocationOffOfMe() As Task
             Await TestAsync(
 NewLines("Class C \n Sub M() \n Me.[|Foo|]() \n End Sub \n End Class"),

@@ -15,7 +15,6 @@
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <GenerateMSBuildBindingRedirects>true</GenerateMSBuildBindingRedirects>
   </PropertyGroup>
-
   <PropertyGroup Condition="'$(MSBuildAssemblyNameFragment)' == 'v12.0'">
     <DefineConstants>$(DefineConstants);MSBUILD12</DefineConstants>
   </PropertyGroup>
@@ -75,7 +74,7 @@
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingTests.Features.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingTests.cs" />
     <Compile Include="UtilityTest\StringEscapingTests.cs" />
-    <Compile Include="SymbolIdTests.cs" />
+    <Compile Include="SymbolKeyTests.cs" />
     <Compile Include="ServicesTestBase.cs" />
     <Compile Include="SolutionTests\SourceGeneratorTests.cs" />
     <Compile Include="UtilityTest\AsyncLazyTests.cs" />

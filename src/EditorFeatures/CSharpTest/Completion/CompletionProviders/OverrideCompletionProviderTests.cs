@@ -840,7 +840,7 @@ class Derived<X> : CFoo
 {
     public override X Something<X>(X arg)
     {
-        return base.Something<X>(arg);$$
+        return base.Something(arg);$$
     }
 }";
             await VerifyCustomCommitProviderAsync(markupBeforeCommit, "Something<X>(X arg)", expectedCodeAfterCommit);

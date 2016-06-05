@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeActions;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Roslyn.Utilities;
 
@@ -48,9 +49,27 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 // we need to add a project reference, or we need to rename) is low
                 // priority.
 
-                return document.Project.Id == _project.Id && !SearchResult.ShouldRenameNode()
-                    ? CodeActionPriority.Medium
-                    : CodeActionPriority.Low;
+                if (document.Project.Id == _project.Id)
+                {
+                    if (!SearchResult.DesiredNameDiffersFromSourceName())
+                    {
+                        // The name doesn't change.  This is a normal priority action.
+                        return CodeActionPriority.Medium;
+                    }
+
+                    // We need to update the source name. If all we're doing is changing the 
+                    // casing, and this is a case insensitive language, then this is just a 
+                    // normal priority action.  Otherwise, this wil be low priority.
+                    var syntaxFacts = document.GetLanguageService<ISyntaxFactsService>();
+                    if (!syntaxFacts.IsCaseSensitive && 
+                        SearchResult.DesiredNameDiffersFromSourceNameOnlyByCase())
+                    {
+                        return CodeActionPriority.Medium;
+                    }
+                }
+
+                // This is a weaker match.  This should be lower than all other fixes.
+                return CodeActionPriority.Low;
             }
 
             protected override Solution UpdateSolution(Document newDocument)
