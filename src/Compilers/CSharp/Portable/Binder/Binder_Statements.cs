@@ -1853,12 +1853,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private class DeconstructionVariable
         {
             public BoundExpression Single;
-            public ImmutableArray<DeconstructionVariable>? Nested;
+            public ImmutableArray<DeconstructionVariable> Nested;
 
             public DeconstructionVariable(BoundExpression variable)
             {
                 Single = variable;
-                Nested = null;
+                Nested = default(ImmutableArray<DeconstructionVariable>);
             }
 
             public DeconstructionVariable(ImmutableArray<DeconstructionVariable> variables)
@@ -1866,6 +1866,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Single = null;
                 Nested = variables;
             }
+
+            public bool IsNested => Nested != default(ImmutableArray<DeconstructionVariable>);
         }
 
         /// <summary>
@@ -1887,11 +1889,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var variable = variables[i];
                 var valuePlaceholder = deconstructionStep.OutputPlaceholders[i];
 
-                if (variable.Nested.HasValue)
+                if (variable.IsNested)
                 {
-                    var nestedVariables = variable.Nested.Value;
-
-                    if (!DeconstructIntoSteps(valuePlaceholder, syntax, diagnostics, nestedVariables, deconstructionSteps, assignmentSteps))
+                    if (!DeconstructIntoSteps(valuePlaceholder, syntax, diagnostics, variable.Nested, deconstructionSteps, assignmentSteps))
                     {
                         hasErrors = true;
                     }
@@ -1914,9 +1914,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(topLevelCheckedVariables.Length);
             foreach (var variable in topLevelCheckedVariables)
             {
-                if (variable.Nested.HasValue)
+                if (variable.IsNested)
                 {
-                    typesBuilder.Add(MakeTupleTypeFromDeconstructionLHS(variable.Nested.Value, diagnostics, compilation));
+                    typesBuilder.Add(MakeTupleTypeFromDeconstructionLHS(variable.Nested, diagnostics, compilation));
                 }
                 else
                 {
@@ -1984,9 +1984,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (var variable in variables)
             {
-                if (variable.Nested.HasValue)
+                if (variable.IsNested)
                 {
-                    FlattenDeconstructVariables(variable.Nested.Value, builder);
+                    FlattenDeconstructVariables(variable.Nested, builder);
                 }
                 else
                 {

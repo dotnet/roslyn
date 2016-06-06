@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Remove all the listed placeholders.
         /// </summary>
-        private void RemovePlaceholderReplacements(IEnumerable<BoundValuePlaceholderBase> placeholders)
+        private void RemovePlaceholderReplacements(ArrayBuilder<BoundValuePlaceholderBase> placeholders)
         {
             foreach (var placeholder in placeholders)
             {
