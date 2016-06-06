@@ -104,6 +104,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal static ImmutableArray<IArgument> DeriveArgumentsInEvaluationOrder(ImmutableArray<BoundExpression> boundArguments, ImmutableArray<string> argumentNames, ImmutableArray<int> argumentsToParameters, ImmutableArray<RefKind> argumentRefKinds, ImmutableArray<Symbols.ParameterSymbol> parameters, CSharpSyntaxNode invocationSyntax, Symbols.MethodSymbol targetMethod)
         {
+            DiagnosticBag diagnostics = new DiagnosticBag();
+            SyntheticBoundNodeFactory factory = new SyntheticBoundNodeFactory(invocationSyntax, diagnostics);
+            LocalRewriter rewriter = new LocalRewriter(null, null, 0, null, factory, null, false, diagnostics, inIOperationContext: true);
+            ImmutableArray<Symbols.LocalSymbol> temporaries;
+            var args = rewriter.MakeArguments(invocationSyntax, boundArguments, targetMethod, targetMethod, paramsArrayExpanded, argumentsToParameters, ref argumentRefKinds, out temporaries);
+
+
+
+
             HashSet<int> matchedParameters = new HashSet<int>();
             ArrayBuilder<IArgument> evaluationOrderArguments = ArrayBuilder<IArgument>.GetInstance(parameters.Length);
             for (int argumentIndex = 0; argumentIndex < boundArguments.Length; argumentIndex++)

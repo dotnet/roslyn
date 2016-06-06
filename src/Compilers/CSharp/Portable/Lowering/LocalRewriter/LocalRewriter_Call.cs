@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// itself. <paramref name="optionalParametersMethod"/> is needed for indexers since getter and setter
         /// may have distinct optional parameter values.
         /// </summary>
-        private ImmutableArray<BoundExpression> MakeArguments(
+        internal ImmutableArray<BoundExpression> MakeArguments(
             CSharpSyntaxNode syntax,
             ImmutableArray<BoundExpression> rewrittenArguments,
             Symbol methodOrIndexer,
@@ -621,7 +621,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // if it's available.  However, we also disable the optimization if we're in an expression lambda, the 
             // point of which is just to represent the semantics of an operation, and we don't know that all consumers
             // of expression lambdas will appropriately understand Array.Empty<T>().
-            if (arrayArgs.Length == 0 && !_inExpressionLambda)
+            if (arrayArgs.Length == 0 && !_inExpressionLambda && !_inIOperationContext)
             {
                 ArrayTypeSymbol ats = paramArrayType as ArrayTypeSymbol;
                 if (ats != null) // could be null if there's a semantic error, e.g. the params parameter type isn't an array
@@ -797,8 +797,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (arguments[p] == null)
                 {
                     ParameterSymbol parameter = parameters[p];
-                    Debug.Assert(parameter.IsOptional);
-                    arguments[p] = GetDefaultParameterValue(syntax, parameter, enableCallerInfo);
+                    Debug.Assert(parameter.IsOptional || _inIOperationContext);
+                    arguments[p] = parameter.IsOptional ? GetDefaultParameterValue(syntax, parameter, enableCallerInfo) : new BoundBadExpression(syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, ImmutableArray<BoundNode>.Empty, parameter.Type);
                     Debug.Assert(arguments[p].Type == parameter.Type);
                 }
             }

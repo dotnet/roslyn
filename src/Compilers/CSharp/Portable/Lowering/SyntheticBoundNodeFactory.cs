@@ -165,6 +165,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Diagnostics = diagnostics;
         }
 
+        /// <summary>
+        /// Constructor used in circumstances where type/method context is not available, producing a factory of limited capability.
+        /// </summary>
+        /// <param name="node">The syntax node to which generated code should be attributed</param>
+        /// <param name="diagnostics">A bag where any diagnostics should be output</param>
+        internal SyntheticBoundNodeFactory(CSharpSyntaxNode node, DiagnosticBag diagnostics)
+        {
+            this.Syntax = node;
+            this.Diagnostics = diagnostics;
+        }
+
         [Conditional("DEBUG")]
         private void CheckCurrentType()
         {
