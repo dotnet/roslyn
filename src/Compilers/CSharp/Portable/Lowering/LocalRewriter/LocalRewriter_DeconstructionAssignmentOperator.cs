@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var placeholders = ArrayBuilder<BoundValuePlaceholderBase>.GetInstance();
 
             // evaluate left-hand-side side-effects
-            var lhsTemps = LeftHandSideSideEffects(node.LeftVariables, temps, stores);
+            var lhsTargets = LeftHandSideSideEffects(node.LeftVariables, temps, stores);
 
             // get or make right-hand-side values
             BoundExpression loweredRight = VisitExpression(node.Right);
@@ -44,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // lower the assignment and replace the placeholders for its outputs in the process
                 var assignmentInfo = node.AssignmentSteps[i];
-                AddPlaceholderReplacement(assignmentInfo.OutputPlaceholder, lhsTemps[i]);
+                AddPlaceholderReplacement(assignmentInfo.OutputPlaceholder, lhsTargets[i]);
 
                 var assignment = VisitExpression(assignmentInfo.Assignment);
 

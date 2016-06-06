@@ -1852,8 +1852,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private class DeconstructionVariable
         {
-            public BoundExpression Single;
-            public ImmutableArray<DeconstructionVariable> Nested;
+            public readonly BoundExpression Single;
+            public readonly ImmutableArray<DeconstructionVariable> Nested;
 
             public DeconstructionVariable(BoundExpression variable)
             {
@@ -1867,7 +1867,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Nested = variables;
             }
 
-            public bool IsNested => Nested != default(ImmutableArray<DeconstructionVariable>);
+            public bool IsNested => !Nested.IsDefault;
         }
 
         /// <summary>
