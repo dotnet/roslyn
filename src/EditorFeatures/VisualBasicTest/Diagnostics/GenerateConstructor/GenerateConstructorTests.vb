@@ -238,7 +238,7 @@ NewLines("Class Program \n Sub Test() \n Dim x = New A(P:=5) \n End Sub \n End C
         Public Async Function TestExistingMethod() As Task
             Await TestAsync(
 NewLines("Class A \n Sub Test() \n Dim t As New C([|u|]:=5) \n End Sub \n End Class \n Class C \n Public Sub u() \n End Sub \n End Class"),
-NewLines("Class A \n Sub Test() \n Dim t As New C(u:=5) \n End Sub \n End Class \n Class C \n Private u1 As Integer \n Public Sub New(u As Integer) \n Me.u1 = u \n End Sub \n Public Sub u() \n End Sub \n End Class"))
+NewLines("Class A \n Sub Test() \n Dim t As New C(u:=5) \n End Sub \n End Class \n Class C \n Private u1 As Integer \n Public Sub New(u As Integer) \n u1 = u \n End Sub \n Public Sub u() \n End Sub \n End Class"))
         End Function
 
         <WorkItem(542055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542055")>
@@ -246,7 +246,7 @@ NewLines("Class A \n Sub Test() \n Dim t As New C(u:=5) \n End Sub \n End Class 
         Public Async Function TestDetectAssignmentToSharedFieldFromInstanceConstructor() As Task
             Await TestAsync(
 NewLines("Class Program \n Sub Test() \n Dim x = New A([|P|]:=5) \n End Sub \n End Class \n Class A \n Shared Property P As Integer \n End Class"),
-NewLines("Class Program \n Sub Test() \n Dim x = New A(P:=5) \n End Sub \n End Class \n Class A \n Private P1 As Integer \n Public Sub New(P As Integer) \n Me.P1 = P \n End Sub \n Shared Property P As Integer \n End Class"))
+NewLines("Class Program \n Sub Test() \n Dim x = New A(P:=5) \n End Sub \n End Class \n Class A \n Private P1 As Integer \n Public Sub New(P As Integer) \n P1 = P \n End Sub \n Shared Property P As Integer \n End Class"))
         End Function
 
         <WorkItem(542055, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542055")>
@@ -254,7 +254,7 @@ NewLines("Class Program \n Sub Test() \n Dim x = New A(P:=5) \n End Sub \n End C
         Public Async Function TestExistingFieldWithSameNameButIncompatibleType() As Task
             Await TestAsync(
 NewLines("Class A \n Sub Test() \n Dim t As New B([|x|]:=5) \n End Sub \n End Class \n Class B \n Private x As String \n End Class"),
-NewLines("Class A \n Sub Test() \n Dim t As New B(x:=5) \n End Sub \n End Class \n Class B \n Private x As String \n Private x1 As Integer \n Public Sub New(x As Integer) \n Me.x1 = x \n End Sub \n End Class"))
+NewLines("Class A \n Sub Test() \n Dim t As New B(x:=5) \n End Sub \n End Class \n Class B \n Private x As String \n Private x1 As Integer \n Public Sub New(x As Integer) \n x1 = x \n End Sub \n End Class"))
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateConstructor)>
@@ -314,7 +314,7 @@ NewLines("Class C \n Inherits B \n Sub New \n MyBase.New([|1|]) \n End Sub \n En
         Public Async Function TestConflictingFieldNameInSubclass() As Task
             Await TestAsync(
 NewLines("Class A \n Sub Test() \n Dim t As New C([|u|]:=5) \n End Sub \n End Class \n Class C \n Inherits B \n Private x As String \n End Class \n Class B \n Protected u As String \n End Class"),
-NewLines("Class A \n Sub Test() \n Dim t As New C(u:=5) \n End Sub \n End Class \n Class C \n Inherits B \n Private u1 As Integer \n Private x As String \n Public Sub New(u As Integer) \n Me.u1 = u \n End Sub \n End Class \n Class B \n Protected u As String \n End Class"))
+NewLines("Class A \n Sub Test() \n Dim t As New C(u:=5) \n End Sub \n End Class \n Class C \n Inherits B \n Private u1 As Integer \n Private x As String \n Public Sub New(u As Integer) \n u1 = u \n End Sub \n End Class \n Class B \n Protected u As String \n End Class"))
         End Function
 
         <WorkItem(542442, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542442")>

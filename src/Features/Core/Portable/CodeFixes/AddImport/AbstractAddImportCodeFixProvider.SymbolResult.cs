@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -38,11 +39,18 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 NameParts = nameParts;
             }
 
-            public bool ShouldRenameNode()
+            public bool DesiredNameDiffersFromSourceName()
             {
                 return !string.IsNullOrEmpty(this.DesiredName) &&
                     this.NameNode != null &&
                     this.NameNode.GetFirstToken().ValueText != this.DesiredName;
+            }
+
+            public bool DesiredNameDiffersFromSourceNameOnlyByCase()
+            {
+                Debug.Assert(DesiredNameDiffersFromSourceName());
+                return StringComparer.OrdinalIgnoreCase.Equals(
+                    this.NameNode.GetFirstToken().ValueText, this.DesiredName);
             }
         }
 

@@ -6,6 +6,7 @@ Imports System.Reflection
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeStyle
+Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.Formatting
@@ -21,11 +22,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         LanguageNames.VisualBasic,
         AddImportOptions.FeatureName,
         CodeStyleOptions.PerLanguageCodeStyleOption,
-        SimplificationOptions.PerLanguageFeatureName,
+        CompletionOptions.FeatureName,
         ExtractMethodOptions.FeatureName,
         FeatureOnOffOptions.OptionName,
-        ServiceFeatureOnOffOptions.OptionName,
         FormattingOptions.InternalTabFeatureName,
+        ServiceFeatureOnOffOptions.OptionName,
+        SimplificationOptions.PerLanguageFeatureName,
         VisualStudioNavigationOptions.FeatureName), [Shared]>
     Friend NotInheritable Class VisualBasicSettingsManagerOptionSerializer
         Inherits AbstractSettingsManagerOptionSerializer
@@ -56,6 +58,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             Dim Types As Type() = {
                 GetType(AddImportOptions),
+                GetType(CompletionOptions),
                 GetType(FormattingOptions),
                 GetType(ExtractMethodOptions),
                 GetType(SimplificationOptions),
@@ -97,11 +100,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
                 Return [option].Feature = FormattingOptions.InternalTabFeatureName OrElse
                        [option].Feature = AddImportOptions.FeatureName OrElse
+                       [option].Feature = CodeStyleOptions.PerLanguageCodeStyleOption OrElse
+                       [option].Feature = CompletionOptions.FeatureName OrElse
                        [option].Feature = ExtractMethodOptions.FeatureName OrElse
                        [option].Feature = SimplificationOptions.PerLanguageFeatureName OrElse
                        [option].Feature = ServiceFeatureOnOffOptions.OptionName OrElse
-                       [option].Feature = VisualStudioNavigationOptions.FeatureName OrElse
-                       [option].Feature = CodeStyleOptions.PerLanguageCodeStyleOption
+                       [option].Feature = VisualStudioNavigationOptions.FeatureName
             End If
 
             Return False

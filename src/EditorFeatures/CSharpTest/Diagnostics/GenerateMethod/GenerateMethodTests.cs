@@ -27,6 +27,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(11518, "https://github.com/dotnet/roslyn/issues/11518")]
+        public async Task NameMatchesNamespaceName()
+        {
+            await TestAsync(
+@"namespace N {
+    class Class {
+        void Method() {
+            [|N|]();
+        }
+    }
+}",
+@"
+using System;
+
+namespace N {
+    class Class {
+        void Method() {
+            N();
+        }
+
+        private void N() {
+            throw new NotImplementedException();
+        }
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
         public async Task TestSimpleInvocationOffOfThis()
         {
             await TestAsync(

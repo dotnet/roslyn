@@ -66,7 +66,7 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
             protected void ReplaceNameNode(
                 ref SyntaxNode contextNode, ref Document document, CancellationToken cancellationToken)
             {
-                if (!this.SearchResult.ShouldRenameNode())
+                if (!this.SearchResult.DesiredNameDiffersFromSourceName())
                 {
                     return;
                 }

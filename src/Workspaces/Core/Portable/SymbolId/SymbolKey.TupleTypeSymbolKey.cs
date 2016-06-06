@@ -1,73 +1,46 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal abstract partial class SymbolKey
+    internal partial struct SymbolKey
     {
-        private class TupleTypeSymbolKey : AbstractSymbolKey<TupleTypeSymbolKey>
+        private static class TupleTypeSymbolKey
         {
-            private readonly SymbolKey _underlyingType;
-            private readonly string[] _names;
-
-            internal TupleTypeSymbolKey(INamedTypeSymbol symbol, Visitor visitor)
+            public static void Create(INamedTypeSymbol symbol, SymbolKeyWriter visitor)
             {
                 Debug.Assert(symbol.IsTupleType);
-
-                _underlyingType = GetOrCreate(symbol.TupleUnderlyingType, visitor);
-                _names = symbol.TupleElementNames.IsDefault ? null : symbol.TupleElementNames.ToArray();
+                visitor.WriteSymbolKey(symbol.TupleUnderlyingType);
+                visitor.WriteStringArray(symbol.TupleElementNames);
             }
 
-            public override SymbolKeyResolution Resolve(Compilation compilation, bool ignoreAssemblyKey, CancellationToken cancellationToken)
+            public static int GetHashCode(GetHashCodeReader reader)
             {
-                return CreateSymbolInfo(Resolve(compilation, ignoreAssemblyKey));
+                // The hash of the underlying type is good enough, we don't need to include names.
+                var symbolKeyHashCode = reader.ReadSymbolKey();
+                var elementNames = reader.ReadStringArray();
+
+                return symbolKeyHashCode;
             }
 
-            private IEnumerable<INamedTypeSymbol> Resolve(
-                Compilation compilation,
-                bool ignoreAssemblyKey)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
-                INamedTypeSymbol underlyingType = _underlyingType.Resolve(compilation, ignoreAssemblyKey).Symbol as INamedTypeSymbol;
-                if ((object)underlyingType == null)
-                {
-                    return SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>();
-                }
+                var underlyingTypeResolution = reader.ReadSymbolKey();
+                var tupleElementNames = reader.ReadStringArray();
 
                 try
                 {
-                    if (_names == null)
-                    {
-                        return SpecializedCollections.SingletonEnumerable(compilation.CreateTupleTypeSymbol(underlyingType));
-                    }
-                    else
-                    {
-                        return SpecializedCollections.SingletonEnumerable(compilation.CreateTupleTypeSymbol(underlyingType, _names.ToImmutableArray()));
-                    }
+                    var result = GetAllSymbols<INamedTypeSymbol>(underlyingTypeResolution).Select(
+                        t => reader.Compilation.CreateTupleTypeSymbol(t, tupleElementNames));
+                    return CreateSymbolInfo(result);
                 }
                 catch (ArgumentException)
                 {
-                    // underlyingType is not tuple-compatible
-                    return SpecializedCollections.SingletonEnumerable(compilation.GetSpecialType(SpecialType.System_Object));
+                    return new SymbolKeyResolution(reader.Compilation.ObjectType);
                 }
-            }
-
-            internal override bool Equals(TupleTypeSymbolKey other, ComparisonOptions options)
-            {
-                return _underlyingType.Equals(other._underlyingType, options)
-                       && SequenceEquals(other._names, _names, StringComparer.Ordinal);
-            }
-
-            internal override int GetHashCode(ComparisonOptions options)
-            {
-                // The hash of the underlying type is good enough, we don't need to include names.
-                return _underlyingType.GetHashCode(options);
             }
         }
     }

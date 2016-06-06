@@ -329,7 +329,7 @@ class D
 }",
 @"class C {
     private readonly int prop;
-    public int GetProp() { return this.prop; }
+    public int GetProp() { return prop; }
 }");
         }
 
@@ -345,7 +345,7 @@ class D
 }",
 @"class C {
     private readonly int prop;
-    public int GetProp() { return this.prop; }
+    public int GetProp() { return prop; }
     public C() {
         this.prop = this.GetProp() + 1;
     }
@@ -364,7 +364,7 @@ class D
 }",
 @"class C {
     private readonly int prop;
-    public int GetProp() { return this.prop; }
+    public int GetProp() { return prop; }
     public C() {
         this.prop = this.GetProp() * (x + y);
     }
@@ -380,7 +380,7 @@ class D
 }",
 @"class C {
     private readonly int prop = 1;
-    public int GetProp() { return this.prop; }
+    public int GetProp() { return prop; }
 }");
         }
 
@@ -395,7 +395,7 @@ class D
 @"class C {
     private int prop;
     private readonly int prop1 = 1;
-    public int GetProp() { return this.prop1; }
+    public int GetProp() { return prop1; }
 }");
         }
 
@@ -408,7 +408,7 @@ class D
 }",
 @"class C {
     private readonly int pascalCase;
-    public int GetPascalCase() { return this.pascalCase; }
+    public int GetPascalCase() { return pascalCase; }
 }");
         }
 
@@ -451,6 +451,182 @@ class D
 @"class C {
     public void SetProp1(object value) { }
     public abstract void SetProp(dynamic i);
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestTrivia1()
+        {
+            await TestAsync(
+@"class C
+{
+    int [||]Prop { get; set; }
+
+    void M()
+    {
+
+        Prop++;
+    }
+}",
+@"class C
+{
+    private int prop;
+
+    private int GetProp()
+    {
+        return this.prop;
+    }
+
+    private void SetProp(int value)
+    {
+        this.prop = value;
+    }
+
+    void M()
+    {
+
+        SetProp(GetProp() + 1);
+    }
+}", compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestTrivia2()
+        {
+            await TestAsync(
+@"class C
+{
+    int [||]Prop { get; set; }
+
+    void M()
+    {
+        /* Leading */
+        Prop++; /* Trailing */
+    }
+}",
+@"class C
+{
+    private int prop;
+
+    private int GetProp()
+    {
+        return this.prop;
+    }
+
+    private void SetProp(int value)
+    {
+        this.prop = value;
+    }
+
+    void M()
+    {
+        /* Leading */
+        SetProp(GetProp() + 1); /* Trailing */
+    }
+}", compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task TestTrivia3()
+        {
+            await TestAsync(
+@"class C
+{
+    int [||]Prop { get; set; }
+
+    void M()
+    {
+        /* Leading */
+        Prop += 1 /* Trailing */ ;
+    }
+}",
+@"class C
+{
+    private int prop;
+
+    private int GetProp()
+    {
+        return this.prop;
+    }
+
+    private void SetProp(int value)
+    {
+        this.prop = value;
+    }
+
+    void M()
+    {
+        /* Leading */
+        SetProp(GetProp() + 1 /* Trailing */ );
+    }
+}", compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task ReplaceReadInsideWrite1()
+        {
+            await TestAsync(
+@"class C
+{
+    int [||]Prop { get; set; }
+
+    void M()
+    {
+        Prop = Prop + 1;
+    }
+}",
+@"class C
+{
+    private int prop;
+
+    private int GetProp()
+    {
+        return this.prop;
+    }
+
+    private void SetProp(int value)
+    {
+        this.prop = value;
+    }
+
+    void M()
+    {
+        SetProp(GetProp() + 1);
+    }
+}");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
+        public async Task ReplaceReadInsideWrite2()
+        {
+            await TestAsync(
+@"class C
+{
+    int [||]Prop { get; set; }
+
+    void M()
+    {
+        Prop *= Prop + 1;
+    }
+}",
+@"class C
+{
+    private int prop;
+
+    private int GetProp()
+    {
+        return this.prop;
+    }
+
+    private void SetProp(int value)
+    {
+        this.prop = value;
+    }
+
+    void M()
+    {
+        SetProp(GetProp() * (GetProp() + 1));
+    }
 }");
         }
     }

@@ -351,7 +351,7 @@ end class",
 "class C
     Private _Prop As Integer
     Public Function GetProp() As Integer
-        Return Me._Prop
+        Return _Prop
     End Function
 end class")
         End Function
@@ -368,7 +368,7 @@ end class",
 "class C
     Private _Prop As Integer
     Public Function GetProp() As Integer
-        Return Me._Prop
+        Return _Prop
     End Function
     public sub new()
         me._Prop = 1
@@ -385,7 +385,7 @@ end class",
 "class C
     Private _Prop As Integer = 1
     Public Function GetProp() As Integer
-        Return Me._Prop
+        Return _Prop
     End Function
 end class")
         End Function

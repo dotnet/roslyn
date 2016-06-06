@@ -73,6 +73,7 @@
           ApplicationConfiguration="$(AppConfigForCompiler)"
           BaseAddress="$(BaseAddress)"
           CheckForOverflowUnderflow="$(CheckForOverflowUnderflow)"
+          ChecksumAlgorithm="$(ChecksumAlgorithm)"
           CodeAnalysisRuleSet="$(ResolvedCodeAnalysisRuleSet)"
           CodePage="$(CodePage)"
           DebugType="$(DebugType)"
