@@ -39,6 +39,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             textBoxStyle.Setters.Add(new Setter(TextBox.MarginProperty, new Thickness() { Left = 7, Right = 7 }));
             textBoxStyle.Setters.Add(new Setter(TextBox.ForegroundProperty, new DynamicResourceExtension(SystemColors.WindowTextBrushKey)));
             Resources.Add(typeof(TextBox), textBoxStyle);
+
+            var radioButtonStyle = new System.Windows.Style(typeof(RadioButton));
+            radioButtonStyle.Setters.Add(new Setter(RadioButton.MarginProperty, new Thickness() { Bottom = 7 }));
+            radioButtonStyle.Setters.Add(new Setter(RadioButton.ForegroundProperty, new DynamicResourceExtension(SystemColors.WindowTextBrushKey)));
+            Resources.Add(typeof(RadioButton), radioButtonStyle);
         }
 
         protected void AddBinding(BindingExpressionBase bindingExpression)
@@ -98,11 +103,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
-        protected void BindToOption(RadioButton radiobutton, Option<int> optionKey, int optionValue)
+        protected void BindToOption(RadioButton radiobutton, PerLanguageOption<int> optionKey, int optionValue, string languageName)
         {
             var binding = new Binding()
             {
-                Source = new OptionBinding<int>(OptionService, optionKey),
+                Source = new PerLanguageOptionBinding<int>(OptionService, optionKey, languageName),
                 Path = new PropertyPath("Value"),
                 UpdateSourceTrigger = UpdateSourceTrigger.Explicit,
                 Converter = new RadioButtonCheckedConverter(),

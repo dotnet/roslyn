@@ -8,8 +8,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
     {
         public const string FeatureName = "C# Completion";
 
-        public static readonly Option<bool> AddNewLineOnEnterAfterFullyTypedWord = new Option<bool>(FeatureName, "Add New Line On Enter After Fully Typed Word", defaultValue: false);
-
         public static readonly Option<bool> IncludeSnippets = new Option<bool>(FeatureName, "Include Code Snippets", defaultValue: true);
     }
 }

@@ -132,7 +132,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             if (option == OrganizerOptions.PlaceSystemNamespaceFirst ||
                 option == AddImportOptions.SuggestForTypesInReferenceAssemblies ||
                 option == AddImportOptions.SuggestForTypesInNuGetPackages ||
-                option == CSharpCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord ||
                 option == CSharpCompletionOptions.IncludeSnippets ||
                 option.Feature == CodeStyleOptions.PerLanguageCodeStyleOption ||
                 option.Feature == CSharpCodeStyleOptions.FeatureName ||
@@ -149,6 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                     option == CompletionOptions.TriggerOnTypingLetters ||
                     option == CompletionOptions.ShowCompletionItemFilters ||
                     option == CompletionOptions.HighlightMatchingPortionsOfCompletionListItems ||
+                    option == CompletionOptions.AddNewLineOnEnterAfterFullyTypedWord ||
                     option.Feature == SimplificationOptions.PerLanguageFeatureName ||
                     option.Feature == ExtractMethodOptions.FeatureName ||
                     option.Feature == ServiceFeatureOnOffOptions.OptionName ||
@@ -267,6 +267,13 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                 return FetchStyleBool(Style_UseImplicitTypeWherePossible, out value);
             }
 
+            if (optionKey.Option == CompletionOptions.AddNewLineOnEnterAfterFullyTypedWord)
+            {
+                bool found = base.TryFetch(optionKey, out value);
+                value = ConvertToEnterKeyRule(value);
+                return found;
+            }
+
             return base.TryFetch(optionKey, out value);
         }
 
@@ -274,6 +281,25 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             var typeStyleValue = Manager.GetValueOrDefault<string>(settingName);
             return FetchStyleOption<bool>(typeStyleValue, out value);
+        }
+
+        /// <summary>
+        /// The AddNewLineOnEnterAfterFullyTypedWord option used to only exist in C# and as a boolean.
+        /// We need to maintain the meaning of the serialized legacy setting.
+        /// </summary>
+        private EnterKeyRule ConvertToEnterKeyRule(object value)
+        {
+            int intValue = (int)value;
+            switch (intValue)
+            {
+                case 1:
+                    return EnterKeyRule.AfterFullyTypedWord;
+                case 2:
+                    return EnterKeyRule.Always;
+                case 0:
+                default:
+                    return EnterKeyRule.Never;
+            }
         }
 
         public override bool TryPersist(OptionKey optionKey, object value)
@@ -373,7 +399,31 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                 return PersistStyleOption<bool>(Style_UseImplicitTypeWherePossible, value);
             }
 
+            if (optionKey.Option == CompletionOptions.AddNewLineOnEnterAfterFullyTypedWord)
+            {
+                value = ConvertFromEnterKeyRule(value);
+            }
+
             return base.TryPersist(optionKey, value);
+        }
+
+        /// <summary>
+        /// The AddNewLineOnEnterAfterFullyTypedWord option used to only exist in C# and as a boolean.
+        /// We need to maintain the meaning of the serialized legacy setting.
+        /// </summary>
+        private int ConvertFromEnterKeyRule(object value)
+        {
+            EnterKeyRule rule = (EnterKeyRule)value;
+            switch (rule)
+            {
+                case EnterKeyRule.AfterFullyTypedWord:
+                    return 1;
+                case EnterKeyRule.Always:
+                    return 2;
+                case EnterKeyRule.Never:
+                default:
+                    return 0;
+            }
         }
 
         private bool PersistStyleOption<T>(string option, object value)

@@ -1,9 +1,7 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.VisualBasic.Completion
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
@@ -17,9 +15,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             BindToOption(Show_completion_item_filters, CompletionOptions.ShowCompletionItemFilters, LanguageNames.VisualBasic)
             BindToOption(Highlight_matching_portions_of_completion_list_items, CompletionOptions.HighlightMatchingPortionsOfCompletionListItems, LanguageNames.VisualBasic)
 
-            BindToOption(Never_add_new_line_on_enter, VisualBasicCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord, EnterKeyRule.Never)
-            BindToOption(Only_add_new_line_on_enter_with_whole_word, VisualBasicCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord, EnterKeyRule.AfterFullyTypedWord)
-            BindToOption(Always_add_new_line_on_enter, VisualBasicCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord, EnterKeyRule.Always)
+            BindToOption(Never_add_new_line_on_enter, CompletionOptions.AddNewLineOnEnterAfterFullyTypedWord, EnterKeyRule.Never, LanguageNames.VisualBasic)
+            BindToOption(Only_add_new_line_on_enter_with_whole_word, CompletionOptions.AddNewLineOnEnterAfterFullyTypedWord, EnterKeyRule.AfterFullyTypedWord, LanguageNames.VisualBasic)
+            BindToOption(Always_add_new_line_on_enter, CompletionOptions.AddNewLineOnEnterAfterFullyTypedWord, EnterKeyRule.Always, LanguageNames.VisualBasic)
         End Sub
     End Class
 End Namespace

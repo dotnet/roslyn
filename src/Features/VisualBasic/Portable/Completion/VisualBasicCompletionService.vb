@@ -66,7 +66,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
         Public Overrides Function GetRules() As CompletionRules
             Dim options = _workspace.Options
 
-            Dim rule = DirectCast(options.GetOption(VisualBasicCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord), EnterKeyRule)
+            Dim rule = DirectCast(options.GetOption(CompletionOptions.AddNewLineOnEnterAfterFullyTypedWord, LanguageNames.VisualBasic), EnterKeyRule)
+
+            If rule = EnterKeyRule.Default Then
+                rule = EnterKeyRule.Always
+            End If
 
             Dim newRules = _latestRules.WithDefaultEnterKeyRule(rule)
 

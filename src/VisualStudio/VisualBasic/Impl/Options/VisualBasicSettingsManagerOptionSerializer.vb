@@ -29,7 +29,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         FormattingOptions.InternalTabFeatureName,
         ServiceFeatureOnOffOptions.OptionName,
         SimplificationOptions.PerLanguageFeatureName,
-        VisualBasicCompletionOptions.FeatureName,
         VisualStudioNavigationOptions.FeatureName), [Shared]>
     Friend NotInheritable Class VisualBasicSettingsManagerOptionSerializer
         Inherits AbstractSettingsManagerOptionSerializer
@@ -87,7 +86,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         End Property
 
         Protected Overrides Function SupportsOption([option] As IOption, languageName As String) As Boolean
-            If [option].Name = VisualBasicCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord.Name Then
+            If [option].Name = CompletionOptions.AddNewLineOnEnterAfterFullyTypedWord.Name Then
                 Return True
 
             ElseIf languageName = LanguageNames.VisualBasic Then

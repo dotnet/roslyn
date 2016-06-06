@@ -78,9 +78,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
         {
             var options = _workspace.Options;
 
-            var rule = options.GetOption(CSharpCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord) 
-                ? EnterKeyRule.AfterFullyTypedWord 
-                : EnterKeyRule.Never;
+            var rule = (EnterKeyRule)options.GetOption(CompletionOptions.AddNewLineOnEnterAfterFullyTypedWord, LanguageNames.CSharp);
+
+            if (rule == EnterKeyRule.Default)
+            {
+                rule = EnterKeyRule.Never;
+            }
 
             // use interlocked + stored rules to reduce # of times this gets created when option is different than default
             var newRules = _latestRules.WithDefaultEnterKeyRule(rule);

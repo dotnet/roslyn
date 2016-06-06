@@ -185,8 +185,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int InsertNewlineOnEnterWithWholeWord
         {
-            get { return GetBooleanOption(CSharpCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord); }
-            set { SetBooleanOption(CSharpCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord, value); }
+            get { return GetIntegerOption(CompletionOptions.AddNewLineOnEnterAfterFullyTypedWord); }
+            set { SetIntegerOption(CompletionOptions.AddNewLineOnEnterAfterFullyTypedWord, value); }
         }
 
         public int NewLines_AnonymousTypeInitializer_EachMember
@@ -588,6 +588,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             return _workspace.Options.GetOption(key, LanguageNames.CSharp) ? 1 : 0;
         }
 
+        private int GetIntegerOption(PerLanguageOption<int> key)
+        {
+            return _workspace.Options.GetOption(key, LanguageNames.CSharp);
+        }
+
         private void SetBooleanOption(Option<bool> key, int value)
         {
             _workspace.Options = _workspace.Options.WithChangedOption(key, value != 0);
@@ -596,6 +601,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         private void SetBooleanOption(PerLanguageOption<bool> key, int value)
         {
             _workspace.Options = _workspace.Options.WithChangedOption(key, LanguageNames.CSharp, value != 0);
+        }
+
+        private void SetIntegerOption(PerLanguageOption<int> key, int value)
+        {
+            _workspace.Options = _workspace.Options.WithChangedOption(key, LanguageNames.CSharp, value);
         }
 
         private int GetBooleanOption(PerLanguageOption<bool?> key)
