@@ -65,6 +65,8 @@
     <InternalsVisibleToTest Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleToTest Include="Roslyn.InteractiveHost.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests2" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests3" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
   </ItemGroup>
@@ -224,9 +226,7 @@
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Completion\" />
-  </ItemGroup>
+  <ItemGroup />
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\VSL.Imports.targets" />
   </ImportGroup>

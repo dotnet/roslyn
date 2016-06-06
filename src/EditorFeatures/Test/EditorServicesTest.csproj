@@ -132,8 +132,12 @@
   </PropertyGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests2" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests3" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests2" />
+    <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests3" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
   </ItemGroup>
