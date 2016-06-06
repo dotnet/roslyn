@@ -134,11 +134,11 @@ namespace Microsoft.CodeAnalysis.Editor
             else
             {
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
-                var symbol = SymbolFinder.FindSymbolAtPosition(
+                var symbol = await SymbolFinder.FindSymbolAtPositionAsync(
                     semanticModel,
                     pointInRoslynSnapshot.Position,
                     workspace,
-                    cancellationToken: cancellationToken);
+                    cancellationToken: cancellationToken).ConfigureAwait(false);
 
                 if (symbol == null)
                 {
