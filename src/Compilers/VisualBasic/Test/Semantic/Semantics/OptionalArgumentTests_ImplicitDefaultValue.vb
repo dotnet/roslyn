@@ -18,10 +18,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class OptionalArgumentTests_ImplicitDefaultValue
         Inherits BasicTestBase
 
-        Private Shared ReadOnly s_features As New SmallDictionary(Of String, String) From {{"implicitDefaultValueOnOptionalParameter", "true"}}
-
-        Private ReadOnly Property MyParseOptions As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithFeatures(s_features)
-        ' .WithLanguageVersion(LanguageVersion.VBnext)
+        Private ReadOnly Property MyParseOptions As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithMyFeature
 
 
         <WorkItem(543066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543066")>
@@ -1952,7 +1949,7 @@ y: 15
 
         <Requires.Language.Feature(ImplicitDefaultValueOnOptionalParameter)>
         Public Sub TestCallerFilePath1()
-            If InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter.IsUnavailable(MyParseOptions) Then Throw New NotSupportedException("Feature is unavailable.")
+            Assert.True(ImplicitDefaultValueOnOptionalParameter.IsAvailable(MyParseOptions), "Feature is unavailable.")
             Dim source1 = "
         Imports System.Runtime.CompilerServices
         Imports System
@@ -2015,6 +2012,7 @@ y: 15
 
         <Requires.Language.Feature(ImplicitDefaultValueOnOptionalParameter)>
         Public Sub TestCallerFilePath2()
+            Assert.True(ImplicitDefaultValueOnOptionalParameter.IsAvailable(MyParseOptions), "Language Feature Unavailable.")
             Dim source1 = "
         Imports System.Runtime.CompilerServices
         Imports System

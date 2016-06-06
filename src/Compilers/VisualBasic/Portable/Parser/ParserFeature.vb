@@ -36,44 +36,23 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
     Friend Module FeatureExtensions
 
-        '<Extension>
-        'Friend Function IsAvailable(feature As Feature, Optional TheLangVersion As LanguageVersion = 0) As Boolean
-        '    If TheLangVersion = 0 Then TheLangVersion = VisualBasicParseOptions.Default.LanguageVersion
-        '    If [Enum].IsDefined(GetType(LanguageVersion), TheLangVersion) = False Then Throw New NotSupportedException($"LanguageVersion {TheLangVersion} is not supported.")
-        '    Return feature.GetLanguageVersion <= TheLangVersion
-        'End Function
         <Extension>
-        Friend Function IsAvailable(feature As Feature, opts As VisualBasicParseOptions) As Boolean
+        Friend Function IsAvailable(feature As Feature, Optional opts As VisualBasicParseOptions = Nothing) As Boolean
             If opts Is Nothing Then opts = VisualBasicParseOptions.Default
             If [Enum].IsDefined(GetType(Feature), feature) = False Then Throw New NotSupportedException($"Language Feature {feature.ToString} is not supported.")
-            Dim featureFlag = feature.GetFeatureFlag()
-            If featureFlag IsNot Nothing Then
-                If opts.Features.ContainsKey(featureFlag) Then Return True
-            End If
-
+            ' Is feature natively supported in this language version?
             Dim required = feature.GetLanguageVersion()
             Dim actual = opts.LanguageVersion
-            Return CInt(required) <= CInt(actual)
+            If CInt(required) <= CInt(actual) Then Return True
+            ' Otherwise check to see it a feature flag enables it.
+            Dim featureFlag = feature.GetFeatureFlag()
+            If (featureFlag IsNot Nothing) AndAlso opts.Features.ContainsKey(featureFlag) Then Return True
+            Return False
         End Function
 
-        '<Extension>
-        'Friend Function IsUnavailable(feature As Feature, Optional TheLangVersion As LanguageVersion = 0) As Boolean
-        '    If TheLangVersion = 0 Then TheLangVersion = VisualBasicParseOptions.Default.LanguageVersion
-        '    If [Enum].IsDefined(GetType(LanguageVersion), TheLangVersion) = False Then Throw New NotSupportedException($"LanguageVersion {TheLangVersion} is not supported.")
-        '    Return feature.GetLanguageVersion > TheLangVersion
-        'End Function
         <Extension>
-        Friend Function IsUnavailable(feature As Feature, opts As VisualBasicParseOptions) As Boolean
-            If opts Is Nothing Then opts = VisualBasicParseOptions.Default
-            If [Enum].IsDefined(GetType(Feature), feature) = False Then Throw New NotSupportedException($"Language Feature {feature.ToString} is not supported.")
-            Dim featureFlag = feature.GetFeatureFlag()
-            If featureFlag IsNot Nothing Then
-                If opts.Features.ContainsKey(featureFlag) Then Return True
-            End If
-
-            Dim required = feature.GetLanguageVersion()
-            Dim actual = opts.LanguageVersion
-            Return CInt(required) > CInt(actual)
+        Friend Function IsUnavailable(feature As Feature, Optional opts As VisualBasicParseOptions = Nothing) As Boolean
+            Return Not (feature.IsAvailable(opts))
         End Function
 
 

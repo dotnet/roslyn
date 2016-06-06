@@ -40,6 +40,11 @@ Friend Module TestOptionExtensions
     Public Function WithStrictFeature(options As VisualBasicParseOptions) As VisualBasicParseOptions
         Return options.WithFeature("Strict", "true")
     End Function
+    <Extension()>
+    Public Function WithMyFeature(options As VisualBasicParseOptions) As VisualBasicParseOptions
+        Return options.WithFeature("ImplicitDefaultValueOnOptionalParameter", "true")
+    End Function
+
 
     <Extension()>
     Public Function WithDeterministicFeature(options As VisualBasicParseOptions) As VisualBasicParseOptions

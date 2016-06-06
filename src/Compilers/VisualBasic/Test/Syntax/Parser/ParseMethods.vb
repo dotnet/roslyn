@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Test.Utilities.VisualBasic
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FeatureExtensions
 
 <CLSCompliant(False)>
 Public Class ParseMethods
@@ -356,15 +357,17 @@ Public Class ParseMethods
 
     End Sub
 
+    Private ReadOnly Property MyParseOptions As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithMyFeature
+
     <Requires.Language.Feature(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)>
     Public Sub Bug862505_b()
+        Assert.True(ImplicitDefaultValueOnOptionalParameter.IsAvailable(MyParseOptions), "Language Feature Unavailable")
         Dim source = "
             Class C1
                 Function f1(Optional ByVal c1 As New Object())
                 End Function
             End Class"
-        Dim vbp = VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VBnext)
-        ParseAndVerify(source, vbp, <errors><error id="30180"/></errors>)
+        ParseAndVerify(source, MyParseOptions, <errors><error id="30180"/></errors>)
     End Sub
 
     <Fact>

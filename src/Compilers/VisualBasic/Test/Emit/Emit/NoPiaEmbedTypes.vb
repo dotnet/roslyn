@@ -4187,10 +4187,7 @@ BC35000: Requested operation is not available because the runtime library functi
         <Requires.Language.Feature(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)>
         <Fact>
         Public Sub DefaultValueWithoutOptional_01b()
-            If InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter.IsUnavailable(MyParseOptions) Then
-                AssertEx.Fail("Language Feature Unavailable.")
-                Exit Sub
-            End If
+            Assert.True(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter.IsAvailable(MyParseOptions), "Language Feature Unavailable.")
             Dim sources1 = <![CDATA[
 .assembly extern mscorlib
 {
@@ -4329,18 +4326,14 @@ BC35000: Requested operation is not available because the runtime library functi
                                                 End Sub).VerifyDiagnostics()
         End Sub
 
-        Private Shared ReadOnly s_features As New SmallDictionary(Of String, String) From {{"implicitDefaultValueOnOptionalParameter", "true"}}
 
-        Private ReadOnly Property MyParseOptions As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithFeatures(s_features)
+        Private ReadOnly Property MyParseOptions As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithMyFeature
 
 
         <Requires.Language.Feature(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)>
         <Fact>
         Public Sub DefaultValueWithoutOptional_02b()
-            If InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter.IsUnavailable(MyParseOptions) Then
-                AssertEx.Fail("Language Feature Unavailable.")
-                Exit Sub
-            End If
+            Assert.True(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter.IsAvailable(MyParseOptions), "Language Feature Unavailable.")
 
             Dim sources1 = <![CDATA[
 .assembly extern mscorlib

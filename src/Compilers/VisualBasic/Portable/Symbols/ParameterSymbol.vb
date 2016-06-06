@@ -146,10 +146,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 If HasExplicitDefaultValue Then
                     Return ExplicitDefaultConstantValue.Value
-                ElseIf InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter.IsUnavailable(DeclaringCompilation.Options.ParseOptions) Then
-                    Throw New InvalidOperationException
                 Else
-                    Return ConstantValue.Nothing.Value
+                    If InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter.IsUnavailable(Me.OriginalSymbolDefinition.DeclaringCompilation.Options.ParseOptions) Then
+                        Throw New InvalidOperationException
+                    Else
+                        Return ConstantValue.Nothing.Value
+                    End If
                 End If
             End Get
         End Property
