@@ -155,9 +155,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim defaultSyntax = parameterSyntax.[Default]
             If defaultSyntax Is Nothing Then
-                If InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter.IsUnavailable(CType(parameterSyntax._syntaxTree.Options, VisualBasicParseOptions)) Then
-                    Return Nothing
-                End If
+                'If InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter.IsUnavailable(CType(parameterSyntax._syntaxTree.Options, VisualBasicParseOptions)) Then
+                Return Nothing
+                'End If
 
             End If
 

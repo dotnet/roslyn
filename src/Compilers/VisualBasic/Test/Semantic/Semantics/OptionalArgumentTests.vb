@@ -17,6 +17,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics
     Public Class OptionalArgumentTests
         Inherits BasicTestBase
 
+
         <Fact> <WorkItem(543066, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543066")>
         Public Sub TestOptionalOnGenericMethod()
             Dim source =

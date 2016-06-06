@@ -3036,7 +3036,8 @@ ProduceBoundNode:
             Dim defaultConstantValue As ConstantValue = Nothing
             If param.IsOptional Then
                 defaultConstantValue = param.ExplicitDefaultConstantValue(DefaultParametersInProgress)
-                If (defaultConstantValue Is Nothing) AndAlso InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter.IsAvailable(CType(Me._syntaxTree.Options, VisualBasicParseOptions)) Then
+                If (defaultConstantValue Is Nothing) AndAlso
+                    InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter.IsAvailable(CType(Me._syntaxTree.Options, VisualBasicParseOptions)) Then
                     defaultConstantValue = ConstantValue.Nothing
                 End If
             End If
