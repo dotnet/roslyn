@@ -23,7 +23,7 @@ namespace Microsoft.CodeAnalysis.Editor
     [Export(typeof(IWpfTextViewConnectionListener))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TextViewRole(PredefinedTextViewRoles.Interactive)]
-    internal class DefinitionContextConnectionListener : IWpfTextViewConnectionListener
+    internal class DefinitionContextTracker : IWpfTextViewConnectionListener
     {
         private readonly HashSet<ITextView> _subscribedViews = new HashSet<ITextView>();
         private readonly IMetadataAsSourceFileService _metadataAsSourceFileService;
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor
         private CancellationTokenSource _currentUpdateCancellationToken;
 
         [ImportingConstructor]
-        public DefinitionContextConnectionListener(
+        public DefinitionContextTracker(
             IMetadataAsSourceFileService metadataAsSourceFileService,
             ICodeDefinitionWindowService codeDefinitionWindowService)
         {
@@ -100,17 +100,27 @@ namespace Microsoft.CodeAnalysis.Editor
         {
             // TODO: Does this allocate too many tasks - should we switch to a queue like the classifier uses?
             await Task.Delay(TimeSpan.FromMilliseconds(250), cancellationToken).ConfigureAwait(false);
+
             var document = pointInRoslynSnapshot.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document == null)
             {
                 return ImmutableArray<CodeDefinitionWindowLocation>.Empty;
             }
 
+            return await GetContextFromPointAsync(document, pointInRoslynSnapshot.Position, foregroundTaskScheduler, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Internal for testing purposes.
+        /// </summary>
+        internal async Task<ImmutableArray<CodeDefinitionWindowLocation>> GetContextFromPointAsync(
+            Document document, int position, TaskScheduler foregroundTaskScheduler, CancellationToken cancellationToken)
+        {
             var workspace = document.Project.Solution.Workspace;
             if (!document.SupportsSemanticModel)
             {
                 var goToDefinitionService = document.GetLanguageService<IGoToDefinitionService>();
-                var navigableItems = await goToDefinitionService.FindDefinitionsAsync(document, pointInRoslynSnapshot.Position, cancellationToken).ConfigureAwait(false);
+                var navigableItems = await goToDefinitionService.FindDefinitionsAsync(document, position, cancellationToken).ConfigureAwait(false);
                 if (navigableItems != null)
                 {
                     var navigationService = workspace.Services.GetService<IDocumentNavigationService>();
@@ -136,7 +146,7 @@ namespace Microsoft.CodeAnalysis.Editor
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
                 var symbol = await SymbolFinder.FindSymbolAtPositionAsync(
                     semanticModel,
-                    pointInRoslynSnapshot.Position,
+                    position,
                     workspace,
                     cancellationToken: cancellationToken).ConfigureAwait(false);
 
@@ -151,8 +161,8 @@ namespace Microsoft.CodeAnalysis.Editor
                 var symbolMappingService = document.Project.Solution.Workspace.Services.GetService<ISymbolMappingService>();
                 var mappingResult = await symbolMappingService.MapSymbolAsync(document, symbol, cancellationToken).ConfigureAwait(false);
 
-                return mappingResult == null 
-                    ?  ImmutableArray<CodeDefinitionWindowLocation>.Empty
+                return mappingResult == null
+                    ? ImmutableArray<CodeDefinitionWindowLocation>.Empty
                     : await GetLocationsOfSymbolAsync(
                         mappingResult.Symbol, mappingResult.Project, foregroundTaskScheduler, cancellationToken).ConfigureAwait(false);
             }
