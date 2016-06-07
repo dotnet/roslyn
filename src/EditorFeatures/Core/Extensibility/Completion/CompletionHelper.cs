@@ -328,46 +328,6 @@ namespace Microsoft.CodeAnalysis.Editor
             return item.Tags.Contains(CompletionTags.ArgumentName);
         }
 
-        /// <summary>
-        /// Returns true if the character is one that can commit the specified completion item. A
-        /// character will be checked to see if it should filter an item.  If not, it will be checked
-        /// to see if it should commit that item.  If it does neither, then completion will be
-        /// dismissed.
-        /// </summary>
-        public virtual bool IsCommitCharacter(CompletionItem item, char ch, string textTypedSoFar)
-        {
-            // general rule: if the filtering text exactly matches the start of the item then it must be a filter character
-            if (TextTypedSoFarMatchesItem(item, ch, textTypedSoFar))
-            {
-                return false;
-            }
-
-            foreach (var rule in item.Rules.CommitCharacterRules)
-            {
-                switch (rule.Kind)
-                {
-                    case CharacterSetModificationKind.Add:
-                        if (rule.Characters.Contains(ch))
-                        {
-                            return true;
-                        }
-                        continue;
-
-                    case CharacterSetModificationKind.Remove:
-                        if (rule.Characters.Contains(ch))
-                        {
-                            return false;
-                        }
-                        continue;
-
-                    case CharacterSetModificationKind.Replace:
-                        return rule.Characters.Contains(ch);
-                }
-            }
-
-            return _rules.DefaultCommitCharacters.IndexOf(ch) >= 0;
-        }
-
         private static bool TextTypedSoFarMatchesItem(CompletionItem item, char ch, string textTypedSoFar)
         {
             var textTypedWithChar = textTypedSoFar + ch;
