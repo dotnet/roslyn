@@ -603,6 +603,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             return syntaxTree.IsTypeContext(position, cancellationToken, semanticModelOpt);
         }
 
+        public static bool IsNamespaceDeclarationNameContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
+        {
+            var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
+            var namespaceDeclaration = token.GetAncestor<NamespaceDeclarationSyntax>();
+            if (namespaceDeclaration == null)
+            {
+                return false;
+            }
+
+            return namespaceDeclaration.Name.Span.IntersectsWith(position) || token == namespaceDeclaration.NamespaceKeyword;
+        }
+
         public static bool IsDefinitelyNotTypeContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             return

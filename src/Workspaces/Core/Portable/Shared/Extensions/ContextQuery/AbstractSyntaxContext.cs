@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using Microsoft.CodeAnalysis.Host;
@@ -20,6 +19,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             SyntaxToken targetToken,
             bool isTypeContext,
             bool isNamespaceContext,
+            bool isNamespaceDeclarationNameContext,
             bool isPreProcessorDirectiveContext,
             bool isRightOfNameSeparator,
             bool isStatementContext,
@@ -38,6 +38,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
             this.TargetToken = targetToken;
             this.IsTypeContext = isTypeContext;
             this.IsNamespaceContext = isNamespaceContext;
+            this.IsNamespaceDeclarationNameContext = isNamespaceDeclarationNameContext;
             this.IsPreProcessorDirectiveContext = isPreProcessorDirectiveContext;
             this.IsRightOfNameSeparator = isRightOfNameSeparator;
             this.IsStatementContext = isStatementContext;
@@ -59,6 +60,8 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 
         public bool IsTypeContext { get; }
         public bool IsNamespaceContext { get; }
+
+        public bool IsNamespaceDeclarationNameContext { get; }
 
         public bool IsPreProcessorDirectiveContext { get; }
 
@@ -105,16 +108,6 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
         public TService GetWorkspaceService<TService>() where TService : class, IWorkspaceService
         {
             return this.Workspace.Services.GetService<TService>();
-        }
-
-        public bool IntersectsWith(Location location)
-        {
-            if (location == null)
-            {
-                throw new ArgumentNullException(nameof(location));
-            }
-
-            return location.SourceTree == SyntaxTree && location.SourceSpan.IntersectsWith(Position);
         }
     }
 }

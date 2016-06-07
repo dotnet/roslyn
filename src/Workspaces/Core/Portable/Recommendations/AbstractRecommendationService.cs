@@ -29,6 +29,26 @@ namespace Microsoft.CodeAnalysis.Recommendations
             return symbols;
         }
 
+        protected static IEnumerable<ISymbol> GetRecommendedNamespaceNameSymbols(
+            SemanticModel semanticModel, SyntaxNode declarationSyntax, CancellationToken cancellationToken)
+        {
+            var containingNamespaceSymbol = semanticModel.Compilation.GetCompilationNamespace(
+                semanticModel.GetEnclosingNamespace(declarationSyntax.SpanStart, cancellationToken));
+
+            var symbols = semanticModel.LookupNamespacesAndTypes(declarationSyntax.SpanStart, containingNamespaceSymbol)
+                                       .Where(recommendationSymbol => IsNonIntersectingNamespace(recommendationSymbol, declarationSyntax));
+
+            return symbols;
+        }
+
+        protected static bool IsNonIntersectingNamespace(ISymbol recommendationSymbol, SyntaxNode declarationSyntax)
+        {
+            return recommendationSymbol.IsNamespace() &&
+                   recommendationSymbol.Locations.Any(
+                       candidateLocation => !(declarationSyntax.SyntaxTree == candidateLocation.SourceTree &&
+                                              declarationSyntax.Span.IntersectsWith(candidateLocation.SourceSpan)));
+        }
+
         private sealed class ShouldIncludeSymbolContext
         {
             private readonly AbstractSyntaxContext _context;

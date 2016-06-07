@@ -432,35 +432,90 @@ namespace A
             await VerifyItemIsAbsentAsync(source, "NS");
         }
 
-//        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
-//        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-//        public async Task NamespaceName_Unqualified_IncompleteDeclaration()
-//        {
-//            var source = @"
-//namespace A.B.C0 { }
-//
-//namespace A
-//{
-//    namespace B
-//    {
-//        namespace C$$
-//
-//        namespace C1.X { }
-//    }
-//
-//    namespace B.C2.Y { }
-//}
-//
-//namespace A.B.C3.Z { }";
-//
-//            await VerifyItemIsAbsentAsync(source, "C0");
-//            await VerifyItemExistsAsync(source, "C1");
-//            await VerifyItemExistsAsync(source, "C2");
-//            await VerifyItemExistsAsync(source, "C3");
-//            await VerifyItemIsAbsentAsync(source, "X");
-//            await VerifyItemIsAbsentAsync(source, "Y");
-//            await VerifyItemIsAbsentAsync(source, "Z");
-//        }
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NamespaceName_Unqualified_WithNested()
+        {
+            var source = @"
+namespace A
+{
+    namespace $$
+    {
+        namespace B { }
+    }
+}";
+
+            await VerifyItemIsAbsentAsync(source, "A");
+            await VerifyItemIsAbsentAsync(source, "B");
+        }
+
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NamespaceName_Unqualified_WithNestedAndMatchingPeer()
+        {
+            var source = @"
+namespace A.B { }
+
+namespace A
+{
+    namespace $$
+    {
+        namespace B { }
+    }
+}";
+
+            await VerifyItemIsAbsentAsync(source, "A");
+            await VerifyItemExistsAsync(source, "B");
+        }
+
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NamespaceName_Unqualified_InnerCompletionPosition()
+        {
+            var source = @"namespace Sys$$tem { }";
+
+            await VerifyItemExistsAsync(source, "System");
+            await VerifyItemIsAbsentAsync(source, "Runtime");
+        }
+
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NamespaceName_Unqualified_IncompleteDeclaration()
+        {
+            var source = @"
+namespace A
+{
+    namespace B
+    {
+        namespace $$
+
+        namespace C1 { }
+    }
+
+    namespace B.C2 { }
+}
+
+namespace A.B.C3 { }";
+
+
+            // Ideally, all the C* namespaces would be recommended but, because of how the parser
+            // recovers from the missing braces, they end up with the following qualified names...
+            //
+            //     C1 => A.B.?.C1
+            //     C2 => A.B.B.C2
+            //     C3 => A.A.B.C3
+            //
+            // ...none of which are found by the current algorithm.
+            await VerifyItemIsAbsentAsync(source, "C1");
+            await VerifyItemIsAbsentAsync(source, "C2");
+            await VerifyItemIsAbsentAsync(source, "C3");
+
+            await VerifyItemIsAbsentAsync(source, "A");
+
+            // Because of the above, B does end up in the completion list
+            // since A.B.B appears to be a peer of the new declaration
+            await VerifyItemExistsAsync(source, "B");
+        }
 
         [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -500,35 +555,83 @@ namespace A
             await VerifyItemExistsAsync(source, "C");
         }
 
-//        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
-//        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
-//        public async Task NamespaceName_Qualified_IncompleteDeclaration()
-//        {
-//            var source = @"
-//namespace A.B.C.D0 { }
-//
-//namespace A
-//{
-//    namespace B
-//    {
-//        namespace C.D$$
-//
-//        namespace C.D1.X { }
-//    }
-//
-//    namespace B.C.D2.Y { }
-//}
-//
-//namespace A.B.C.D3.Z { }";
-//
-//            await VerifyItemIsAbsentAsync(source, "D0");
-//            await VerifyItemExistsAsync(source, "D1");
-//            await VerifyItemExistsAsync(source, "D2");
-//            await VerifyItemExistsAsync(source, "D3");
-//            await VerifyItemIsAbsentAsync(source, "X");
-//            await VerifyItemIsAbsentAsync(source, "Y");
-//            await VerifyItemIsAbsentAsync(source, "Z");
-//        }
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NamespaceName_Qualified_WithNested()
+        {
+            var source = @"
+namespace A.$$
+{
+    namespace B { }
+}
+";
+
+            await VerifyItemIsAbsentAsync(source, "A");
+            await VerifyItemIsAbsentAsync(source, "B");
+        }
+
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NamespaceName_Qualified_WithNestedAndMatchingPeer()
+        {
+            var source = @"
+namespace A.B { }
+
+namespace A.$$
+{
+    namespace B { }
+}
+";
+
+            await VerifyItemIsAbsentAsync(source, "A");
+            await VerifyItemExistsAsync(source, "B");
+        }
+
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NamespaceName_Qualified_InnerCompletionPosition()
+        {
+            var source = @"namespace Sys$$tem.Runtime { }";
+
+            await VerifyItemExistsAsync(source, "System");
+            await VerifyItemIsAbsentAsync(source, "Runtime");
+        }
+
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NamespaceName_Qualified_IncompleteDeclaration()
+        {
+            var source = @"
+namespace A
+{
+    namespace B
+    {
+        namespace C.$$
+
+        namespace C.D1 { }
+    }
+
+    namespace B.C.D2 { }
+}
+
+namespace A.B.C.D3 { }";
+
+            await VerifyItemIsAbsentAsync(source, "A");
+            await VerifyItemIsAbsentAsync(source, "B");
+            await VerifyItemIsAbsentAsync(source, "C");
+
+            // Ideally, all the D* namespaces would be recommended but, because of how the parser
+            // recovers from the missing braces, they end up with the following qualified names...
+            //
+            //     D1 => A.B.C.C.?.D1
+            //     D2 => A.B.B.C.D2
+            //     D3 => A.A.B.C.D3
+            //
+            // ...none of which are found by the current algorithm.
+            await VerifyItemIsAbsentAsync(source, "D1");
+            await VerifyItemIsAbsentAsync(source, "D2");
+            await VerifyItemIsAbsentAsync(source, "D3");
+        }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task UnderNamespace()

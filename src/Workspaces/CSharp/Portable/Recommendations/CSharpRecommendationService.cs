@@ -80,7 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             }
             else if (context.IsTypeContext || context.IsNamespaceContext)
             {
-                return GetSymbolsForTypeOrNamespaceContext(context, cancellationToken);
+                return GetSymbolsForTypeOrNamespaceContext(context);
             }
             else if (context.IsLabelContext)
             {
@@ -217,9 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
                 .AsImmutableOrEmpty();
         }
 
-        private static IEnumerable<ISymbol> GetSymbolsForTypeOrNamespaceContext(
-            CSharpSyntaxContext context,
-            CancellationToken cancellationToken)
+        private static IEnumerable<ISymbol> GetSymbolsForTypeOrNamespaceContext(CSharpSyntaxContext context)
         {
             var symbols = context.SemanticModel.LookupNamespacesAndTypes(context.LeftToken.SpanStart);
 
@@ -236,20 +234,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             return symbols;
         }
 
-        private static IEnumerable<ISymbol> GetSymbolsForNamespaceDeclarationNameContext(
-            CSharpSyntaxContext context,
-            CancellationToken cancellationToken)
+        private static IEnumerable<ISymbol> GetSymbolsForNamespaceDeclarationNameContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
-            var namespaceDeclaration = context.TargetToken.GetAncestor<NamespaceDeclarationSyntax>();
-
-            var declaredNamespaceSymbol = context.SemanticModel.GetDeclaredSymbol(namespaceDeclaration);
-            var containingNamespaceSymbol = context.SemanticModel.Compilation.GetCompilationNamespace(declaredNamespaceSymbol.ContainingNamespace);
-
-            var symbols = context.SemanticModel
-                .LookupNamespacesAndTypes(context.LeftToken.SpanStart, containingNamespaceSymbol)
-                .Where(symbol => IsNonIntersectingNamespace(symbol, context));
-
-            return symbols;
+            var declarationSyntax = context.TargetToken.GetAncestor<NamespaceDeclarationSyntax>();
+            return GetRecommendedNamespaceNameSymbols(context.SemanticModel, declarationSyntax, cancellationToken);
         }
 
         private static IEnumerable<ISymbol> GetSymbolsForExpressionOrStatementContext(
@@ -337,7 +325,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 
                 if (context.IsNamespaceDeclarationNameContext)
                 {
-                    return symbols.Where(s => IsNonIntersectingNamespace(s, context));
+                    NamespaceDeclarationSyntax declarationSyntax = name.GetAncestorOrThis<NamespaceDeclarationSyntax>();
+                    return symbols.Where(s => IsNonIntersectingNamespace(s, declarationSyntax));
                 }
 
                 // Filter the types when in a using directive, but not an alias.
@@ -367,11 +356,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
             }
 
             return SpecializedCollections.EmptyEnumerable<ISymbol>();
-        }
-
-        private static bool IsNonIntersectingNamespace(ISymbol symbol, CSharpSyntaxContext context)
-        {
-            return symbol.IsNamespace() && symbol.Locations.Any(location => !context.IntersectsWith(location));
         }
 
         private static IEnumerable<ISymbol> GetSymbolsOffOfExpression(

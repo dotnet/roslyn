@@ -61,7 +61,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
                 }
                 else if (tree.IsNamespaceDeclarationNameContext(position, cancellationToken))
                 {
-                    return CreateEmptySuggestionModeItem(itemSpan);
+                    return CreateSuggestionModeItem(CSharpFeaturesResources.NamespaceName, itemSpan, CSharpFeaturesResources.AutoselectDisabledDueToNamespaceDeclaration);
                 }
             }
 

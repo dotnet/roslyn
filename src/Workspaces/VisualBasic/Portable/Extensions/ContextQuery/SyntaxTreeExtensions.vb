@@ -61,6 +61,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
         End Function
 
         <Extension()>
+        Public Function IsNamespaceDeclarationNameContext(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
+            Dim statement = syntaxTree.GetTargetToken(position, cancellationToken).GetAncestor(Of NamespaceStatementSyntax)
+            Return statement IsNot Nothing AndAlso statement.Name.Span.IntersectsWith(position)
+        End Function
+
+        <Extension()>
         Public Function GetContainingTypeBlock(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As TypeBlockSyntax
             Dim token = syntaxTree.GetRoot(cancellationToken).FindToken(position)
             Return TryCast(token.GetInnermostDeclarationContext(), TypeBlockSyntax)
