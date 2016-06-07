@@ -24,12 +24,12 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
         internal class Indenter : AbstractIndenter
         {
             public Indenter(
-                SyntacticDocument document,
+                SyntaxTree syntaxTree,
                 IEnumerable<IFormattingRule> rules,
                 OptionSet optionSet,
                 TextLine line,
                 CancellationToken cancellationToken) :
-                base(document, rules, optionSet, line, cancellationToken)
+                base(syntaxTree, rules, optionSet, line, cancellationToken)
             {
             }
 

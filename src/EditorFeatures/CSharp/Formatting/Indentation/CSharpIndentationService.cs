@@ -30,11 +30,10 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
             return s_instance;
         }
 
-        protected override async Task<AbstractIndenter> GetIndenterAsync(
-            Document document, TextLine lineToBeIndented, IEnumerable<IFormattingRule> formattingRules, OptionSet optionSet, CancellationToken cancellationToken)
+        protected override AbstractIndenter GetIndenter(
+            SyntaxTree syntaxTree, TextLine lineToBeIndented, IEnumerable<IFormattingRule> formattingRules, OptionSet optionSet, CancellationToken cancellationToken)
         {
-            var syntacticDocument = await SyntacticDocument.CreateAsync(document, cancellationToken).ConfigureAwait(false);
-            return new Indenter(syntacticDocument, formattingRules, optionSet, lineToBeIndented, cancellationToken);
+            return new Indenter(syntaxTree, formattingRules, optionSet, lineToBeIndented, cancellationToken);
         }
 
         protected override bool ShouldUseSmartTokenFormatterInsteadOfIndenter(

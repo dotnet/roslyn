@@ -2709,7 +2709,7 @@ class C
                     var indentationLine = projectedDocument.TextBuffer.CurrentSnapshot.GetLineFromPosition(projectedDocument.CursorPosition.Value);
                     var point = projectedDocument.GetTextView().BufferGraph.MapDownToBuffer(indentationLine.Start, PointTrackingMode.Negative, subjectDocument.TextBuffer, PositionAffinity.Predecessor);
 
-                    await TestIndentationAsync(point.Value, expectedIndentation, projectedDocument.GetTextView(), subjectDocument);
+                    TestIndentation(point.Value, expectedIndentation, projectedDocument.GetTextView(), subjectDocument);
                 }
             }
         }
@@ -2728,7 +2728,7 @@ class C
             {
                 using (var workspace = await TestWorkspace.CreateCSharpAsync(code, parseOptions: option))
                 {
-                    await TestIndentationAsync(indentationLine, expectedIndentation, workspace);
+                    TestIndentation(indentationLine, expectedIndentation, workspace);
                 }
             }
         }
@@ -2748,7 +2748,7 @@ class C
                 {
                     var wpfTextView = workspace.Documents.First().GetTextView();
                     var line = wpfTextView.TextBuffer.CurrentSnapshot.GetLineFromPosition(wpfTextView.Caret.Position.BufferPosition).LineNumber;
-                    await TestIndentationAsync(line, expectedIndentation, workspace);
+                    TestIndentation(line, expectedIndentation, workspace);
                 }
             }
         }

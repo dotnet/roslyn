@@ -57,8 +57,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
 
                 if (enabled)
                 {
-                    var cursorPosition = SplitStringLiteralAsync(
-                        subjectBuffer, document, caret.Value.Position, CancellationToken.None).GetAwaiter().GetResult();
+                    var cursorPosition = SplitStringLiteral(
+                        subjectBuffer, document, caret.Value.Position, CancellationToken.None);
 
                     if (cursorPosition != null)
                     {
@@ -95,23 +95,22 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.SplitStringLiteral
             return false;
         }
 
-        private async Task<int?> SplitStringLiteralAsync(
+        private int? SplitStringLiteral(
             ITextBuffer subjectBuffer, Document document, int position, CancellationToken cancellationToken)
         {
             var useTabs = subjectBuffer.GetOption(FormattingOptions.UseTabs);
             var tabSize = subjectBuffer.GetOption(FormattingOptions.TabSize);
 
-            var syntaxTree = await document.GetSyntaxTreeAsync(cancellationToken).ConfigureAwait(false);
-            var root = await syntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
-            var sourceText = await syntaxTree.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var root = document.GetSyntaxRootSynchronously(cancellationToken);
+            var sourceText = root.SyntaxTree.GetText(cancellationToken);
 
-            var splitter = StringSplitter.Create(document, position, syntaxTree, root, sourceText, useTabs, tabSize, cancellationToken);
+            var splitter = StringSplitter.Create(document, position, root, sourceText, useTabs, tabSize, cancellationToken);
             if (splitter == null)
             {
                 return null;
             }
 
-            return await splitter.TrySplitAsync().ConfigureAwait(false);
+            return splitter.TrySplit();
         }
     }
 }

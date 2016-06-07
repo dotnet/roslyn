@@ -1395,7 +1395,7 @@ class C
                         Formatter.GetDefaultFormattingRules(workspace, root.Language),
                         root, line.AsTextLine(), document.Options, CancellationToken.None));
 
-                await TestIndentationAsync(indentationLine, expectedIndentation, workspace);
+                TestIndentation(indentationLine, expectedIndentation, workspace);
             }
         }
     }

@@ -34,20 +34,19 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                                                   (tk.LeadingTrivia.Any(tr => tr.IsDirective) || tk.TrailingTrivia.Any(tr => tr.IsDirective));
 
             public AbstractIndenter(
-                SyntacticDocument document,
+                SyntaxTree syntaxTree,
                 IEnumerable<IFormattingRule> rules,
                 OptionSet optionSet,
                 TextLine lineToBeIndented,
                 CancellationToken cancellationToken)
             {
                 this.OptionSet = optionSet;
-                this.Document = document;
+                this.Tree = syntaxTree;
                 this.LineToBeIndented = lineToBeIndented;
                 this.TabSize = this.OptionSet.GetOption(FormattingOptions.TabSize, this.Document.Root.Language);
                 this.CancellationToken = cancellationToken;
 
                 this.Rules = rules;
-                this.Tree = this.Document.SyntaxTree;
                 this.Finder = new BottomUpBaseIndentationFinder(
                          new ChainedFormattingRules(this.Rules, OptionSet),
                          this.TabSize,
