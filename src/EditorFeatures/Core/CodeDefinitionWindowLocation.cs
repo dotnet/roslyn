@@ -28,5 +28,10 @@ namespace Microsoft.CodeAnalysis.Editor
             : this (displayName, position.Path, position.Span)
         {
         }
+
+        public override string ToString()
+        {
+            return base.ToString() + $" - (DisplayName: '{DisplayName}', FilePath: '{FilePath}', Line: '{Line}', '{Character}')";
+        }
     }
 }
