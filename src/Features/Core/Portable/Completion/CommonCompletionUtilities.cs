@@ -19,7 +19,7 @@ namespace Microsoft.CodeAnalysis.Completion
     {
         private const string NonBreakingSpaceString = "\x00A0";
 
-        public static TextSpan GetTextChangeSpan(SourceText text, int position,
+        public static TextSpan GetWordSpan(SourceText text, int position,
             Func<char, bool> isWordStartCharacter, Func<char, bool> isWordCharacter)
         {
             int start = position;
@@ -71,7 +71,7 @@ namespace Microsoft.CodeAnalysis.Completion
             return true;
         }
 
-        public static Func<CancellationToken, Task<ImmutableArray<SymbolDisplayPart>>> CreateDescriptionFactory(
+        public static Func<CancellationToken, Task<CompletionDescription>> CreateDescriptionFactory(
             Workspace workspace,
             SemanticModel semanticModel,
             int position,
@@ -80,31 +80,31 @@ namespace Microsoft.CodeAnalysis.Completion
             return CreateDescriptionFactory(workspace, semanticModel, position, new[] { symbol });
         }
 
-        public static Func<CancellationToken, Task<ImmutableArray<SymbolDisplayPart>>> CreateDescriptionFactory(
-            Workspace workspace, SemanticModel semanticModel, int position, IList<ISymbol> symbols)
+        public static Func<CancellationToken, Task<CompletionDescription>> CreateDescriptionFactory(
+            Workspace workspace, SemanticModel semanticModel, int position, IReadOnlyList<ISymbol> symbols)
         {
             return c => CreateDescriptionAsync(workspace, semanticModel, position, symbols, supportedPlatforms: null, cancellationToken: c);
         }
 
-        public static Func<CancellationToken, Task<ImmutableArray<SymbolDisplayPart>>> CreateDescriptionFactory(
-            Workspace workspace, SemanticModel semanticModel, int position, IList<ISymbol> symbols, SupportedPlatformData supportedPlatforms)
+        public static Func<CancellationToken, Task<CompletionDescription>> CreateDescriptionFactory(
+            Workspace workspace, SemanticModel semanticModel, int position, IReadOnlyList<ISymbol> symbols, SupportedPlatformData supportedPlatforms)
         {
             return c => CreateDescriptionAsync(workspace, semanticModel, position, symbols, supportedPlatforms: supportedPlatforms, cancellationToken: c);
         }
 
-        private static async Task<ImmutableArray<SymbolDisplayPart>> CreateDescriptionAsync(
-            Workspace workspace, SemanticModel semanticModel, int position, IList<ISymbol> symbols, SupportedPlatformData supportedPlatforms, CancellationToken cancellationToken)
+        public static async Task<CompletionDescription> CreateDescriptionAsync(
+            Workspace workspace, SemanticModel semanticModel, int position, IReadOnlyList<ISymbol> symbols, SupportedPlatformData supportedPlatforms, CancellationToken cancellationToken)
         {
             var symbolDisplayService = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISymbolDisplayService>();
             var formatter = workspace.Services.GetLanguageServices(semanticModel.Language).GetService<IDocumentationCommentFormattingService>();
 
             // TODO(cyrusn): Figure out a way to cancel this.
-            var symbol = symbols.First();
+            var symbol = symbols[0];
             var sections = await symbolDisplayService.ToDescriptionGroupsAsync(workspace, semanticModel, position, ImmutableArray.Create(symbol), cancellationToken).ConfigureAwait(false);
 
             if (!sections.ContainsKey(SymbolDescriptionGroups.MainDescription))
             {
-                return ImmutableArray.Create<SymbolDisplayPart>();
+                return CompletionDescription.Empty;
             }
 
             var textContentBuilder = new List<SymbolDisplayPart>();
@@ -156,7 +156,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 textContentBuilder.AddRange(supportedPlatforms.ToDisplayParts());
             }
 
-            return textContentBuilder.AsImmutableOrEmpty();
+            return CompletionDescription.Create(textContentBuilder.Select(p => new TaggedText(SymbolDisplayPartKindTags.GetTag(p.Kind), p.ToString())).ToImmutableArray());
         }
 
         private static void AddOverloadPart(List<SymbolDisplayPart> textContentBuilder, int overloadCount, bool isGeneric)

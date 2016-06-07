@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
+using System;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -1829,6 +1830,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
+            if (node.Kind == BoundKind.TupleLiteral)
+            {
+                // Recurse into tuple constituent arguments.
+                // Even if the tuple literal has a natural type and conversion 
+                // from that type is not identity, we still have to do this 
+                // because we might be converting to a tuple type backed by
+                // different definition of ValueTuple type.
+                return ExpressionMatchExactly((BoundTupleLiteral)node, t, ref useSiteDiagnostics);
+            }
+
             // - E is an anonymous function, T is either a delegate type D or an expression tree 
             //   type Expression<D>, D has a return type Y, and one of the following holds:
             NamedTypeSymbol d;
@@ -1922,6 +1933,50 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return false;
+        }
+
+        // check every argument of a tuple vs corresponding type in destination tuple type
+        private bool ExpressionMatchExactly(BoundTupleLiteral tupleSource, TypeSymbol targetType, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            if (targetType.Kind != SymbolKind.NamedType)
+            {
+                // tuples can only cast to tuples or tuple underlying types.
+                return false;
+            }
+
+            var destination = (NamedTypeSymbol)targetType;
+            var sourceArguments = tupleSource.Arguments;
+
+            // check if the type is actually compatible type for a tuple of given cardinality
+            if (!destination.IsTupleOrCompatibleWithTupleOfCardinality(sourceArguments.Length))
+            {
+                return false;
+            }
+
+            var destTypes = ArrayBuilder<TypeSymbol>.GetInstance(sourceArguments.Length);
+            TupleTypeSymbol.AddElementTypes(destination, destTypes);
+
+            try
+            {
+                if (sourceArguments.Length != destTypes.Count)
+                {
+                    return false;
+                }
+
+                for (int i = 0; i < sourceArguments.Length; i++)
+                {
+                    if (!ExpressionMatchExactly(sourceArguments[i], destTypes[i], ref useSiteDiagnostics))
+                    {
+                        return false;
+                    }
+                }
+
+                return true;
+            }
+            finally
+            {
+                destTypes.Free();
+            }
         }
 
         private class ReturnStatements : BoundTreeWalker
@@ -2690,12 +2745,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             out MemberAnalysisResult error,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            var argumentTypes = ArrayBuilder<TypeSymbol>.GetInstance();
-            for (int arg = 0; arg < arguments.Arguments.Count; arg++)
-            {
-                argumentTypes.Add(arguments.Argument(arg).Type);
-            }
-
             var args = arguments.Arguments.ToImmutable();
 
             // The reason why we pass the type parameters and formal parameter types
@@ -2709,7 +2758,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 method.ContainingType,
                 originalEffectiveParameters.ParameterTypes,
                 originalEffectiveParameters.ParameterRefKinds,
-                argumentTypes.ToImmutableAndFree(),
                 args,
                 ref useSiteDiagnostics);
 

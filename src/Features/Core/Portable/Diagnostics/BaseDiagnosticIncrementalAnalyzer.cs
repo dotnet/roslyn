@@ -35,9 +35,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="document">The document to analyze.</param>
         /// <param name="bodyOpt">If present, indicates a portion (e.g. a method body) of the document to analyze.</param>
+        /// <param name="reasons">The reason(s) this analysis was triggered.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public abstract Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken);
+        public abstract Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken);
         /// <summary>
         /// Analyze a single project such that diagnostics for the entire project become available.
         /// Calls <see cref="DiagnosticAnalyzerService.RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs)"/> for each
@@ -45,18 +46,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// </summary>
         /// <param name="project">The project to analyze.</param>
         /// <param name="semanticsChanged">Indicates a change to the declarative semantics of the project.</param>
+        /// <param name="reasons">The reason(s) this analysis was triggered.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public abstract Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken);
+        public abstract Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken);
         /// <summary>
         /// Apply syntax tree actions (that have not already been applied) to a document.
         /// Calls <see cref="DiagnosticAnalyzerService.RaiseDiagnosticsUpdated(DiagnosticsUpdatedArgs)"/> for each
         /// unique group of diagnostics, where a group is identified by analysis classification (syntax), document, and analyzer.
         /// </summary>
         /// <param name="document">The document to analyze.</param>
+        /// <param name="reasons">The reason(s) this analysis was triggered.</param>
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
-        public abstract Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken);
+        public abstract Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken);
         /// <summary>
         /// Respond to a document being opened for editing in the host.
         /// </summary>
@@ -227,6 +230,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal Action<Exception, DiagnosticAnalyzer, Diagnostic> GetOnAnalyzerException(ProjectId projectId)
         {
             return Owner.GetOnAnalyzerException(projectId, DiagnosticLogAggregator);
+        }
+
+        protected static ReportDiagnostic GetEffectiveSeverity(DiagnosticDescriptor descriptor, CompilationOptions options)
+        {
+            return options == null
+                ? MapSeverityToReport(descriptor.DefaultSeverity)
+                : descriptor.GetEffectiveSeverity(options);
+        }
+
+        protected static ReportDiagnostic MapSeverityToReport(DiagnosticSeverity severity)
+        {
+            switch (severity)
+            {
+                case DiagnosticSeverity.Hidden:
+                    return ReportDiagnostic.Hidden;
+                case DiagnosticSeverity.Info:
+                    return ReportDiagnostic.Info;
+                case DiagnosticSeverity.Warning:
+                    return ReportDiagnostic.Warn;
+                case DiagnosticSeverity.Error:
+                    return ReportDiagnostic.Error;
+                default:
+                    throw ExceptionUtilities.Unreachable;
+            }
         }
     }
 }

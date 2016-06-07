@@ -217,8 +217,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
 
             var formattingRules = additionalFormattingRule.Concat(Formatter.GetDefaultFormattingRules(targetDocument));
 
-            var workspace = targetDocument.Project.Solution.Workspace;
-            newRoot = Formatter.FormatAsync(newRoot, Formatter.Annotation, workspace, workspace.Options, formattingRules, cancellationToken).WaitAndGetResult_Venus(cancellationToken);
+            newRoot = Formatter.FormatAsync(
+                newRoot,
+                Formatter.Annotation,
+                targetDocument.Project.Solution.Workspace,
+                targetDocument.Options,
+                formattingRules,
+                cancellationToken).WaitAndGetResult_Venus(cancellationToken);
 
             var newMember = newRoot.GetAnnotatedNodesAndTokens(annotation).Single();
             var newMemberText = newMember.ToFullString();
@@ -389,7 +394,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Venus
                     return member.Kind == SymbolKind.Method;
 
                 default:
-                    throw new ArgumentException("InvalidValue", "memberType");
+                    throw new ArgumentException("InvalidValue", nameof(memberType));
             }
         }
 

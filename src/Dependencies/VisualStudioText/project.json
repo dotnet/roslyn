@@ -1,12 +1,13 @@
 {
   "supports": { },
   "dependencies": {
-    "Microsoft.VisualStudio.Text.Data": "14.1.24720",
-    "Microsoft.VisualStudio.Text.Logic": "14.1.24720",
-    "Microsoft.VisualStudio.Text.UI": "14.1.24720",
-    "Microsoft.VisualStudio.Text.UI.Wpf": "14.1.24720"
+    "Microsoft.VisualStudio.Text.Data": "14.2.25123",
+    "Microsoft.VisualStudio.Text.Logic": "14.2.25123",
+    "Microsoft.VisualStudio.Text.UI": "14.2.25123",
+    "Microsoft.VisualStudio.Text.UI.Wpf": "14.2.25123",
+    "RoslynDependencies.Microsoft.VisualStudio.Text.Internal": "14.2.25123"
   },
   "frameworks": {
-    ".NETFramework,Version=v4.5": { }
+    ".NETFramework,Version=v4.6": { }
   }
 }

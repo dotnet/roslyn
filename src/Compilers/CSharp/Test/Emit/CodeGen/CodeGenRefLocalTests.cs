@@ -1,17 +1,13 @@
 // Copyright (c) Microsoft Open Technologies, Inc.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
-using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
+    [CompilerTrait(CompilerFeature.RefLocalsReturns)]
     public class RefLocalTests : CompilingTestBase
     {
         [Fact]
@@ -1127,7 +1123,7 @@ class Program
 }
 ";
 
-            var comp =  CompileAndVerifyExperimental(text, options: TestOptions.DebugDll, verify: false);
+            var comp = CompileAndVerifyExperimental(text, options: TestOptions.DebugDll, verify: false);
             comp.VerifyIL("Program.M(ref int, ref int, object)", @"
 {
   // Code size       17 (0x11)
@@ -1579,5 +1575,27 @@ class Program
 ");
         }
 
+        [Fact]
+        public void RefLocal_CSharp6()
+        {
+            var text = @"
+class Program
+{
+    static void M()
+    {
+        ref int rl = ref (new int[1])[0];
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+            comp.VerifyDiagnostics(
+                // (6,9): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+                //         ref int rl = ref (new int[1])[0];
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(6, 9),
+                // (6,22): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+                //         ref int rl = ref (new int[1])[0];
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(6, 22)
+                );
+        }
     }
 }

@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Formatting;
+using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -1365,7 +1366,7 @@ class C
                 Assert.True(
                     CSharpIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
                         Formatter.GetDefaultFormattingRules(workspace, root.Language),
-                        root, line, workspace.Options, CancellationToken.None));
+                        root, line.AsTextLine(), document.Options, CancellationToken.None));
 
                 var actualIndentation = await GetSmartTokenFormatterIndentationWorkerAsync(workspace, buffer, indentationLine, ch);
                 Assert.Equal(expectedIndentation.Value, actualIndentation);
@@ -1392,7 +1393,7 @@ class C
                 Assert.False(
                     CSharpIndentationService.ShouldUseSmartTokenFormatterInsteadOfIndenter(
                         Formatter.GetDefaultFormattingRules(workspace, root.Language),
-                        root, line, workspace.Options, CancellationToken.None));
+                        root, line.AsTextLine(), document.Options, CancellationToken.None));
 
                 await TestIndentationAsync(indentationLine, expectedIndentation, workspace);
             }

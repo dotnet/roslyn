@@ -43,9 +43,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         private readonly ImmutableArray<MetadataReference> _metadataReferences;
         private uint _runningDocumentTableEventsCookie;
 
-        // document worker coordinator
-        private ISolutionCrawlerRegistrationService _registrationService;
-
         [ImportingConstructor]
         public MiscellaneousFilesWorkspace(
             IVsEditorAdaptersFactoryService editorAdaptersFactoryService,
@@ -53,7 +50,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             SaveEventsService saveEventsService,
             VisualStudioWorkspace visualStudioWorkspace,
             SVsServiceProvider serviceProvider) :
-            base(visualStudioWorkspace.Services.HostServices, "MiscellaneousFiles")
+            base(visualStudioWorkspace.Services.HostServices, WorkspaceKind.MiscellaneousFiles)
         {
             _editorAdaptersFactoryService = editorAdaptersFactoryService;
             _fileTrackingMetadataAsSourceService = fileTrackingMetadataAsSourceService;
@@ -74,32 +71,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
         internal void StartSolutionCrawler()
         {
-            if (_registrationService == null)
-            {
-                lock (this)
-                {
-                    if (_registrationService == null)
-                    {
-                        _registrationService = this.Services.GetService<ISolutionCrawlerRegistrationService>();
-                        _registrationService.Register(this);
-                    }
-                }
-            }
+            DiagnosticProvider.Enable(this, DiagnosticProvider.Options.Syntax);
         }
 
         internal void StopSolutionCrawler()
         {
-            if (_registrationService != null)
-            {
-                lock (this)
-                {
-                    if (_registrationService != null)
-                    {
-                        _registrationService.Unregister(this, blockingShutdown: true);
-                        _registrationService = null;
-                    }
-                }
-            }
+            DiagnosticProvider.Disable(this);
         }
 
         private LanguageInformation TryGetLanguageInformation(string filename)
@@ -334,7 +311,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var hostProject = new HostProject(this, CurrentSolution.Id, languageInformation.LanguageName, parseOptions, _metadataReferences);
 
             // Now try to find the document. We accept any text buffer, since we've already verified it's an appropriate file in ShouldIncludeFile.
-            var document = _documentProvider.TryGetDocumentForFile(hostProject, (uint)VSConstants.VSITEMID.Nil, moniker, parseOptions.Kind, t => true);
+            var document = _documentProvider.TryGetDocumentForFile(
+                hostProject,
+                (uint)VSConstants.VSITEMID.Nil,
+                moniker,
+                parseOptions.Kind,
+                isGenerated: false,
+                canUseTextBuffer: _ => true);
 
             // If the buffer has not yet been initialized, we won't get a document.
             if (document == null)

@@ -249,8 +249,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             switch (pattern.Kind)
             {
-                case BoundKind.WildcardPattern:
-                    return true;
                 case BoundKind.DeclarationPattern:
                     {
                         var declPattern = (BoundDeclarationPattern)pattern;
@@ -262,75 +260,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                         // there are probably other cases to check. Note that reference types can, in general, fail because of null
                     }
                     break;
-                case BoundKind.PropertyPattern:
-                    {
-                        var propPattern = (BoundPropertyPattern)pattern;
-                        if (expression.Type?.IsValueType == true &&
-                            (expression.Type == propPattern.Type || propPattern.Type?.Interfaces.Contains(expression.Type) == true))
-                        {
-                            // so far so good: the expression is known to match the *type* of the property pattern.
-                            // Now check if each subpattern is irrefutable.
-                            int n = propPattern.Subpatterns.Length;
-                            for (int i = 0; i < n; i++)
-                            {
-                                var prop = propPattern.Subpatterns[i].Property;
-                                var pat = propPattern.Subpatterns[i].Pattern;
-                                BoundExpression subExpr;
-                                switch (prop.Kind)
-                                {
-                                    case SymbolKind.Property:
-                                        var propSymbol = (PropertySymbol)prop;
-                                        subExpr = new BoundPropertyAccess(pat.Syntax, null, propSymbol, LookupResultKind.Viable, propSymbol.Type);
-                                        break;
-                                    case SymbolKind.Field:
-                                        var fieldSymbol = (FieldSymbol)prop;
-                                        subExpr = new BoundFieldAccess(pat.Syntax, null, fieldSymbol, null);
-                                        break;
-                                    default:
-                                        return false;
-                                }
-                                var subMatch = CheckRefutations(subExpr, pat);
-                                if (subMatch != true) return subMatch;
-                            }
-
-                            return true;
-                        }
-                    }
-                    break;
             }
 
             return null;
-        }
-
-        public override BoundNode VisitThrowExpression(BoundThrowExpression node)
-        {
-            VisitRvalue(node.Expression);
-            SetUnreachable();
-            return node;
-        }
-
-        public override BoundNode VisitMatchExpression(BoundMatchExpression node)
-        {
-            VisitRvalue(node.Left);
-            var initialState = this.State;
-            var endState = UnreachableState();
-            foreach (var c in node.Cases)
-            {
-                SetState(initialState.Clone());
-                VisitPattern(node.Left, c.Pattern);
-                SetState(StateWhenTrue);
-                if (c.Guard != null)
-                {
-                    VisitCondition(c.Guard);
-                    SetState(StateWhenTrue);
-                }
-
-                VisitRvalue(c.Expression);
-                IntersectWith(ref endState, ref this.State);
-            }
-
-            SetState(endState);
-            return node;
         }
     }
 }

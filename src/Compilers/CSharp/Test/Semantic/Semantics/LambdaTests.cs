@@ -1737,6 +1737,49 @@ class C { C() { Unbound2.Select(x => Unbound1); } }";
     Diagnostic(ErrorCode.ERR_NameNotInContext, "Unbound1").WithArguments("Unbound1").WithLocation(2, 38)
                 );
         }
+
+        [Fact]
+        [WorkItem(4480, "https://github.com/dotnet/roslyn/issues/4480")]
+        public void TestLambdaWithError06()
+        {
+            var source =
+@"class Program
+{
+    static void Main(string[] args)
+    {
+        // completion should work even in a syntactically invalid lambda
+        var handler = new MyDelegateType((s, e) => { e. });
+    }
+}
+
+public delegate void MyDelegateType(
+    object sender,
+    MyArgumentType e
+);
+
+public class MyArgumentType
+{
+    public int SomePublicMember;
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source)
+                .VerifyDiagnostics(
+                //         var handler = new MyDelegateType((s, e) => { e. });
+                Diagnostic(ErrorCode.ERR_IdentifierExpected, "}").WithLocation(6, 57),
+                // (6,57): error CS1002: ; expected
+                //         var handler = new MyDelegateType((s, e) => { e. });
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "}").WithLocation(6, 57)
+                )
+                ;
+            var tree = compilation.SyntaxTrees[0];
+            var sm = compilation.GetSemanticModel(tree);
+            var lambda = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var eReference = lambda.Body.DescendantNodes().OfType<IdentifierNameSyntax>().First();
+            Assert.Equal("e", eReference.ToString());
+            var typeInfo = sm.GetTypeInfo(eReference);
+            Assert.Equal("MyArgumentType", typeInfo.Type.Name);
+            Assert.Equal(TypeKind.Class, typeInfo.Type.TypeKind);
+            Assert.NotEmpty(typeInfo.Type.GetMembers("SomePublicMember"));
+        }
     }
 }
 

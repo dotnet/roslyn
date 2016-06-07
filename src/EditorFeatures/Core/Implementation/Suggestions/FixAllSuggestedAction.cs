@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editor.Host;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
+using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
@@ -66,12 +67,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Suggestions
             return SpecializedTasks.Default<object>();
         }
 
-        protected override async Task InvokeAsync(CancellationToken cancellationToken)
+        protected override async Task InvokeAsync(
+            IProgressTracker progressTracker, CancellationToken cancellationToken)
         {
             this.AssertIsForeground();
             using (Logger.LogBlock(FunctionId.CodeFixes_FixAllOccurrencesSession, cancellationToken))
             {
-                await base.InvokeAsync(cancellationToken).ConfigureAwait(false);
+                await base.InvokeAsync(progressTracker, cancellationToken).ConfigureAwait(false);
             }
         }
     }

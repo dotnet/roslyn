@@ -356,14 +356,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             public override BoundNode VisitCatchBlock(BoundCatchBlock node)
             {
-                var local = node.LocalOpt;
+                var locals = node.Locals;
 
-                if ((object)local == null)
+                if (locals.IsEmpty)
                 {
                     return base.VisitCatchBlock(node);
                 }
 
-                var previousBlock = PushBlock(node, ImmutableArray.Create(local));
+                var previousBlock = PushBlock(node, locals);
                 var result = base.VisitCatchBlock(node);
                 PopBlock(previousBlock);
                 return node;

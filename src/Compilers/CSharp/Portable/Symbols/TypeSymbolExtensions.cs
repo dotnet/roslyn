@@ -82,6 +82,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return type.IsNullableType() ? type.GetNullableUnderlyingType() : type;
         }
 
+        public static TypeSymbol TupleUnderlyingTypeOrSelf(this TypeSymbol type)
+        {
+            return type.TupleUnderlyingType ?? type;
+        }
+
         public static TypeSymbol EnumUnderlyingType(this TypeSymbol type)
         {
             return type.IsEnumType() ? type.GetEnumUnderlyingType() : type;
@@ -329,7 +334,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return false;
         }
 
-        private static readonly string[] s_expressionsNamespaceName = { "Expressions", "Linq", "System", "" };
+        private static readonly string[] s_expressionsNamespaceName = { "Expressions", "Linq", MetadataHelpers.SystemString, "" };
 
         private static bool CheckFullName(Symbol symbol, string[] names)
         {
@@ -464,6 +469,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             {
                 bool isNestedNamedType = false;
 
+                // for tuple types, visit underlying type
+                if (current.IsTupleType)
+                {
+                    current = current.TupleUnderlyingType;
+                }
+
                 // Visit containing types from outer-most to inner-most.
                 switch (current.TypeKind)
                 {
@@ -502,12 +513,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     case TypeKind.Dynamic:
                     case TypeKind.TypeParameter:
                     case TypeKind.Submission:
+                    case TypeKind.Enum:
                         return null;
 
                     case TypeKind.Class:
                     case TypeKind.Struct:
                     case TypeKind.Interface:
-                    case TypeKind.Enum:
                     case TypeKind.Delegate:
                         foreach (var typeArg in ((NamedTypeSymbol)current).TypeArgumentsNoUseSiteDiagnostics)
                         {

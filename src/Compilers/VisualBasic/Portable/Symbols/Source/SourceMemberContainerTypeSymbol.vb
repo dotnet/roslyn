@@ -2230,8 +2230,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 Return True
             End If
 
+            ' We can not get the relative order of a declaration without a source location
+            If typeToTest.Locations.IsEmpty Then
+                Return True
+            End If
+
             ' We use simple comparison based on source location 
-            Debug.Assert(typeToTest.Locations.Length > 0)
             Dim typeToTestLocation = typeToTest.Locations(0)
 
             Debug.Assert(Me.Locations.Length > 0)

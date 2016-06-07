@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeFixes.RemoveUnnecessaryCast
         {
             internal static new readonly RemoveUnnecessaryCastFixAllProvider Instance = new RemoveUnnecessaryCastFixAllProvider();
 
-            protected override SyntaxNode GetNodeToSimplify(SyntaxNode root, SemanticModel model, Diagnostic diagnostic, Workspace workspace, out string codeActionId, CancellationToken cancellationToken)
+            protected override SyntaxNode GetNodeToSimplify(SyntaxNode root, SemanticModel model, Diagnostic diagnostic, Document document, out string codeActionId, CancellationToken cancellationToken)
             {
                 codeActionId = null;
                 return GetCastNode(root, model, diagnostic.Location.SourceSpan, cancellationToken);

@@ -1,5 +1,6 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -19,14 +20,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
 {
     internal class CSharpSuggestionModeCompletionProvider : SuggestionModeCompletionProvider
     {
-        protected override TextSpan GetFilterSpan(SourceText text, int position)
+        protected override async Task<CompletionItem> GetSuggestionModeItemAsync(Document document, int position, TextSpan itemSpan, CompletionTrigger trigger, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return CompletionUtilities.GetTextChangeSpan(text, position);
-        }
-
-        protected override async Task<CompletionItem> GetBuilderAsync(Document document, int position, CompletionTriggerInfo triggerInfo, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            if (triggerInfo.TriggerReason == CompletionTriggerReason.TypeCharCommand)
+            if (trigger.Kind == CompletionTriggerKind.Insertion)
             {
                 var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
 
@@ -45,23 +41,23 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
 
                 if (IsLambdaExpression(semanticModel, position, token, typeInferrer, cancellationToken))
                 {
-                    return CreateBuilder(text, position, CSharpFeaturesResources.LambdaExpression, CSharpFeaturesResources.AutoselectDisabledDueToPotentialLambdaDeclaration);
+                    return CreateSuggestionModeItem(CSharpFeaturesResources.LambdaExpression, itemSpan, CSharpFeaturesResources.AutoselectDisabledDueToPotentialLambdaDeclaration);
                 }
-                else if (IsAnonymousObjectCreation(token))
+                else if (IsAnonymousObjectCreation(token) || IsPossibleTupleExpression(token))
                 {
-                    return CreateBuilder(text, position, CSharpFeaturesResources.MemberName, CSharpFeaturesResources.AutoselectDisabledDueToPossibleExplicitlyNamesAnonTypeMemCreation);
+                    return CreateSuggestionModeItem(CSharpFeaturesResources.MemberName, itemSpan, CSharpFeaturesResources.AutoselectDisabledDueToPossibleExplicitlyNamesAnonTypeMemCreation);
                 }
                 else if (token.IsPreProcessorExpressionContext())
                 {
-                    return CreateEmptyBuilder(text, position);
+                    return CreateEmptySuggestionModeItem(itemSpan);
                 }
                 else if (IsImplicitArrayCreation(semanticModel, token, position, typeInferrer, cancellationToken))
                 {
-                    return CreateBuilder(text, position, CSharpFeaturesResources.ImplicitArrayCreation, CSharpFeaturesResources.AutoselectDisabledDueToPotentialImplicitArray);
+                    return CreateSuggestionModeItem(CSharpFeaturesResources.ImplicitArrayCreation, itemSpan, CSharpFeaturesResources.AutoselectDisabledDueToPotentialImplicitArray);
                 }
                 else if (token.IsKindOrHasMatchingText(SyntaxKind.FromKeyword) || token.IsKindOrHasMatchingText(SyntaxKind.JoinKeyword))
                 {
-                    return CreateBuilder(text, position, CSharpFeaturesResources.RangeVariable, CSharpFeaturesResources.AutoselectDisabledDueToPotentialRangeVariableDecl);
+                    return CreateSuggestionModeItem(CSharpFeaturesResources.RangeVariable, itemSpan, CSharpFeaturesResources.AutoselectDisabledDueToPotentialRangeVariableDecl);
                 }
             }
 
@@ -86,6 +82,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.SuggestionMode
                 // We'll show the builder after an open brace or comma, because that's where the
                 // user can start declaring new named parts. 
                 return token.Kind() == SyntaxKind.OpenBraceToken || token.Kind() == SyntaxKind.CommaToken;
+            }
+
+            return false;
+        }
+
+        private bool IsPossibleTupleExpression(SyntaxToken token)
+        {
+            // first element in an autocompleted tuple will look like a parenthesized expression (foo )
+            // so we need to conservatively treat parenthesized expression as apotential tuple
+            if (token.Parent.IsKind(SyntaxKind.TupleExpression, SyntaxKind.ParenthesizedExpression))
+            {
+                // We'll show the builder after an open paren or comma, because that's where the
+                // user can start declaring new named parts. 
+                return token.Kind() == SyntaxKind.OpenParenToken || token.Kind() == SyntaxKind.CommaToken;
             }
 
             return false;

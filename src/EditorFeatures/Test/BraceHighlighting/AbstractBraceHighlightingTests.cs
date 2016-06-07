@@ -2,6 +2,7 @@
 
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Editor.Implementation.BraceMatching;
 using Microsoft.CodeAnalysis.Editor.Tagging;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
@@ -16,9 +17,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
 {
     public abstract class AbstractBraceHighlightingTests
     {
-        protected async Task TestBraceHighlightingAsync(string markup)
+        protected async Task TestBraceHighlightingAsync(string markup, ParseOptions options = null)
         {
-            using (var workspace = await CreateWorkspaceAsync(markup))
+            using (var workspace = await CreateWorkspaceAsync(markup, options))
             {
                 WpfTestCase.RequireWpfFact($"{nameof(AbstractBraceHighlightingTests)}.{nameof(TestBraceHighlightingAsync)} creates asynchronous taggers");
 
@@ -42,6 +43,6 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.BraceHighlighting
             }
         }
 
-        protected abstract Task<TestWorkspace> CreateWorkspaceAsync(string markup);
+        protected abstract Task<TestWorkspace> CreateWorkspaceAsync(string markup, ParseOptions options);
     }
 }

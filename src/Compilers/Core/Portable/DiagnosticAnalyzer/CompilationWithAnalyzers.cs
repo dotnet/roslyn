@@ -69,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <summary>
         /// Pool of event queues to serve each diagnostics request.
         /// </summary>
-        private static readonly ObjectPool<AsyncQueue<CompilationEvent>> s_eventQueuePool = new ObjectPool<AsyncQueue<CompilationEvent>>(() => new AsyncQueue<CompilationEvent>());
+        private readonly ObjectPool<AsyncQueue<CompilationEvent>> _eventQueuePool = new ObjectPool<AsyncQueue<CompilationEvent>>(() => new AsyncQueue<CompilationEvent>());
         private static readonly AsyncQueue<CompilationEvent> s_EmptyEventQueue = new AsyncQueue<CompilationEvent>();
 
         /// <summary>
@@ -388,7 +388,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return;
             }
 
-            AsyncQueue<CompilationEvent> eventQueue = s_eventQueuePool.Allocate();
+            AsyncQueue<CompilationEvent> eventQueue = _eventQueuePool.Allocate();
             AnalyzerDriver driver = null;
 
             try
@@ -422,13 +422,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             finally
             {
                 driver?.Dispose();
-                FreeEventQueue(eventQueue);
+                FreeEventQueue(eventQueue, _eventQueuePool);
             }
         }
 
         private async Task<ImmutableArray<Diagnostic>> GetAllDiagnosticsWithoutStateTrackingAsync(ImmutableArray<DiagnosticAnalyzer> analyzers, CancellationToken cancellationToken)
         {
-            AsyncQueue<CompilationEvent> eventQueue = s_eventQueuePool.Allocate();
+            AsyncQueue<CompilationEvent> eventQueue = _eventQueuePool.Allocate();
             AnalyzerDriver driver = null;
 
             try
@@ -452,7 +452,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             finally
             {
                 driver?.Dispose();
-                FreeEventQueue(eventQueue);
+                FreeEventQueue(eventQueue, _eventQueuePool);
             }
         }
 
@@ -660,7 +660,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                                                 }
                                                 finally
                                                 {
-                                                    FreeEventQueue(eventQueue);
+                                                    FreeEventQueue(eventQueue, _eventQueuePool);
                                                 }
                                             }
                                             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
@@ -951,7 +951,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
         private AsyncQueue<CompilationEvent> GetPendingEvents(ImmutableArray<DiagnosticAnalyzer> analyzers, SyntaxTree tree)
         {
-            var eventQueue = s_eventQueuePool.Allocate();
+            var eventQueue = _eventQueuePool.Allocate();
             Debug.Assert(!eventQueue.IsCompleted);
             Debug.Assert(eventQueue.Count == 0);
 
@@ -967,7 +967,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         {
             Debug.Assert(includeSourceEvents || includeNonSourceEvents);
 
-            var eventQueue = s_eventQueuePool.Allocate();
+            var eventQueue = _eventQueuePool.Allocate();
             Debug.Assert(!eventQueue.IsCompleted);
             Debug.Assert(eventQueue.Count == 0);
 
@@ -979,7 +979,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             return eventQueue;
         }
 
-        private static void FreeEventQueue(AsyncQueue<CompilationEvent> eventQueue)
+        private static void FreeEventQueue(AsyncQueue<CompilationEvent> eventQueue, ObjectPool<AsyncQueue<CompilationEvent>> eventQueuePool)
         {
             if (eventQueue == null || ReferenceEquals(eventQueue, s_EmptyEventQueue))
             {
@@ -994,11 +994,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             if (!eventQueue.IsCompleted)
             {
-                s_eventQueuePool.Free(eventQueue);
+                eventQueuePool.Free(eventQueue);
             }
             else
             {
-                s_eventQueuePool.ForgetTrackedObject(eventQueue);
+                eventQueuePool.ForgetTrackedObject(eventQueue);
             }
         }
 
@@ -1010,8 +1010,18 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// 4) Pragma directives for the given <paramref name="compilation"/>.
         /// </summary>
         public static IEnumerable<Diagnostic> GetEffectiveDiagnostics(IEnumerable<Diagnostic> diagnostics, Compilation compilation)
+            => GetEffectiveDiagnostics(diagnostics.AsImmutableOrNull(), compilation);
+
+        /// <summary>
+        /// Given a set of compiler or <see cref="DiagnosticAnalyzer"/> generated <paramref name="diagnostics"/>, returns the effective diagnostics after applying the below filters:
+        /// 1) <see cref="CompilationOptions.SpecificDiagnosticOptions"/> specified for the given <paramref name="compilation"/>.
+        /// 2) <see cref="CompilationOptions.GeneralDiagnosticOption"/> specified for the given <paramref name="compilation"/>.
+        /// 3) Diagnostic suppression through applied <see cref="System.Diagnostics.CodeAnalysis.SuppressMessageAttribute"/>.
+        /// 4) Pragma directives for the given <paramref name="compilation"/>.
+        /// </summary>
+        public static IEnumerable<Diagnostic> GetEffectiveDiagnostics(ImmutableArray<Diagnostic> diagnostics, Compilation compilation)
         {
-            if (diagnostics == null)
+            if (diagnostics.IsDefault)
             {
                 throw new ArgumentNullException(nameof(diagnostics));
             }
@@ -1021,16 +1031,20 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 throw new ArgumentNullException(nameof(compilation));
             }
 
+            return GetEffectiveDiagnosticsImpl(diagnostics, compilation);
+        }
+
+        private static IEnumerable<Diagnostic> GetEffectiveDiagnosticsImpl(ImmutableArray<Diagnostic> diagnostics, Compilation compilation)
+        {
             var suppressMessageState = new SuppressMessageAttributeState(compilation);
-            foreach (var diagnostic in diagnostics.ToImmutableArray())
+            foreach (var diagnostic in diagnostics)
             {
                 if (diagnostic != null)
                 {
                     var effectiveDiagnostic = compilation.Options.FilterDiagnostic(diagnostic);
                     if (effectiveDiagnostic != null)
                     {
-                        effectiveDiagnostic = suppressMessageState.ApplySourceSuppressions(effectiveDiagnostic);
-                        yield return effectiveDiagnostic;
+                        yield return suppressMessageState.ApplySourceSuppressions(effectiveDiagnostic);
                     }
                 }
             }

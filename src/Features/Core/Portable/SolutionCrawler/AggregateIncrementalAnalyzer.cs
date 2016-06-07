@@ -64,30 +64,30 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             return false;
         }
 
-        public async Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
+        public async Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
         {
             IIncrementalAnalyzer analyzer;
             if (TryGetAnalyzer(document.Project, out analyzer))
             {
-                await analyzer.AnalyzeSyntaxAsync(document, cancellationToken).ConfigureAwait(false);
+                await analyzer.AnalyzeSyntaxAsync(document, reasons, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        public async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken)
+        public async Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
         {
             IIncrementalAnalyzer analyzer;
             if (TryGetAnalyzer(document.Project, out analyzer))
             {
-                await analyzer.AnalyzeDocumentAsync(document, bodyOpt, cancellationToken).ConfigureAwait(false);
+                await analyzer.AnalyzeDocumentAsync(document, bodyOpt, reasons, cancellationToken).ConfigureAwait(false);
             }
         }
 
-        public async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
+        public async Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
         {
             IIncrementalAnalyzer analyzer;
             if (TryGetAnalyzer(project, out analyzer))
             {
-                await analyzer.AnalyzeProjectAsync(project, semanticsChanged, cancellationToken).ConfigureAwait(false);
+                await analyzer.AnalyzeProjectAsync(project, semanticsChanged, reasons, cancellationToken).ConfigureAwait(false);
             }
         }
 

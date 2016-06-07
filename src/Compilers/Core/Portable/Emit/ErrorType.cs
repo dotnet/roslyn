@@ -191,6 +191,7 @@ namespace Microsoft.CodeAnalysis.Emit
                 contentType: AssemblyContentType.Default);
 
             AssemblyIdentity Cci.IAssemblyReference.Identity => s_identity;
+            Version Cci.IAssemblyReference.AssemblyVersionPattern => null;
 
             Cci.IAssemblyReference Cci.IModuleReference.GetContainingAssembly(EmitContext context)
             {

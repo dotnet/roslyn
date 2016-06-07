@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly AliasSymbol _aliasOpt;
 
         private AttributeSemanticModel(CSharpCompilation compilation, AttributeSyntax syntax, NamedTypeSymbol attributeType, AliasSymbol aliasOpt, Binder rootBinder, SyntaxTreeSemanticModel parentSemanticModelOpt = null, int speculatedPosition = 0)
-            : base(compilation, syntax, attributeType, rootBinder, parentSemanticModelOpt, speculatedPosition)
+            : base(compilation, syntax, attributeType, new ExecutableCodeBinder(syntax, rootBinder.ContainingMember(), rootBinder), parentSemanticModelOpt, speculatedPosition)
         {
             Debug.Assert(syntax != null);
             _aliasOpt = aliasOpt;
@@ -27,8 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public static AttributeSemanticModel Create(CSharpCompilation compilation, AttributeSyntax syntax, NamedTypeSymbol attributeType, AliasSymbol aliasOpt, Binder rootBinder)
         {
-            var executableBinder = new ExecutableCodeBinder(syntax, attributeType, rootBinder);
-            return new AttributeSemanticModel(compilation, syntax, attributeType, aliasOpt, new PatternVariableBinder(syntax, executableBinder));
+            return new AttributeSemanticModel(compilation, syntax, attributeType, aliasOpt, rootBinder);
         }
 
         /// <summary>

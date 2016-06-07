@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.TypeStyle;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
 using Microsoft.CodeAnalysis.CSharp.Diagnostics.TypeStyle;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Options;
 using Roslyn.Test.Utilities;
@@ -21,14 +22,14 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
             new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
                 new CSharpUseExplicitTypeDiagnosticAnalyzer(), new UseExplicitTypeCodeFixProvider());
 
-        private readonly SimpleCodeStyleOption onWithNone = new SimpleCodeStyleOption(true, NotificationOption.None);
-        private readonly SimpleCodeStyleOption offWithNone = new SimpleCodeStyleOption(false, NotificationOption.None);
-        private readonly SimpleCodeStyleOption onWithInfo = new SimpleCodeStyleOption(true, NotificationOption.Info);
-        private readonly SimpleCodeStyleOption offWithInfo = new SimpleCodeStyleOption(false, NotificationOption.Info);
-        private readonly SimpleCodeStyleOption onWithWarning = new SimpleCodeStyleOption(true, NotificationOption.Warning);
-        private readonly SimpleCodeStyleOption offWithWarning = new SimpleCodeStyleOption(false, NotificationOption.Warning);
-        private readonly SimpleCodeStyleOption onWithError = new SimpleCodeStyleOption(true, NotificationOption.Error);
-        private readonly SimpleCodeStyleOption offWithError = new SimpleCodeStyleOption(false, NotificationOption.Error);
+        private readonly CodeStyleOption<bool> onWithNone = new CodeStyleOption<bool>(true, NotificationOption.None);
+        private readonly CodeStyleOption<bool> offWithNone = new CodeStyleOption<bool>(false, NotificationOption.None);
+        private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Info);
+        private readonly CodeStyleOption<bool> offWithInfo = new CodeStyleOption<bool>(false, NotificationOption.Info);
+        private readonly CodeStyleOption<bool> onWithWarning = new CodeStyleOption<bool>(true, NotificationOption.Warning);
+        private readonly CodeStyleOption<bool> offWithWarning = new CodeStyleOption<bool>(false, NotificationOption.Warning);
+        private readonly CodeStyleOption<bool> onWithError = new CodeStyleOption<bool>(true, NotificationOption.Error);
+        private readonly CodeStyleOption<bool> offWithError = new CodeStyleOption<bool>(false, NotificationOption.Error);
 
         // specify all options explicitly to override defaults.
         private IDictionary<OptionKey, object> ExplicitTypeEverywhere() =>
@@ -1009,6 +1010,39 @@ class C
                 diagnosticCount: 1,
                 diagnosticId: IDEDiagnosticIds.UseExplicitTypeDiagnosticId,
                 diagnosticSeverity: DiagnosticSeverity.Error);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        public async Task SuggestExplicitTypeOnLocalWithIntrinsicTypeTuple()
+        {
+            await TestAsync(
+@"class C { static void M() { [|var|] s = (1, ""hello""); } }",
+@"class C { static void M() { (int, string) s = (1, ""hello""); }}",
+options: ExplicitTypeEverywhere(),
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        public async Task SuggestExplicitTypeOnLocalWithIntrinsicTypeTupleWithNames()
+        {
+            await TestAsync(
+@"class C { static void M() { [|var|] s = (a: 1, b: ""hello""); } }",
+@"class C { static void M() { (int a, string b) s = (a: 1, b: ""hello""); }}",
+options: ExplicitTypeEverywhere(),
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
+        }
+
+        [WpfFact, Trait(Traits.Feature, Traits.Features.CodeActionsUseExplicitType)]
+        public async Task SuggestExplicitTypeOnLocalWithIntrinsicTypeTupleWithOneName()
+        {
+            await TestAsync(
+@"class C { static void M() { [|var|] s = (a: 1, ""hello""); } }",
+@"class C { static void M() { (int a, string Item2) s = (a: 1, ""hello""); }}",
+options: ExplicitTypeEverywhere(),
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
         }
     }
 }

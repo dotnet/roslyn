@@ -139,9 +139,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <InternalsVisibleTo Include="Microsoft.VisualStudio.LanguageServices.Telemetry" />
-  </ItemGroup>
-  <ItemGroup>
     <NuGetPackageToIncludeInVsix Include="ManagedEsent" />
     <NuGetPackageToIncludeInVsix Include="Microsoft.CodeAnalysis.Elfie" />
     <NuGetPackageToIncludeInVsix Include="Microsoft.DiaSymReader" />
@@ -153,9 +150,11 @@
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <CodeAnalysisRuleSet />
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <PlatformTarget>AnyCPU</PlatformTarget>
+    <CodeAnalysisRuleSet />
   </PropertyGroup>
   <PropertyGroup>
     <StartAction>Program</StartAction>

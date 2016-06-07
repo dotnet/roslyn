@@ -2865,6 +2865,137 @@ class Program
             );
         }
 
+        [WorkItem(11387, "https://github.com/dotnet/roslyn/issues/11387")]
+        [Fact]
+        public void StringNotIEnumerable()
+        {
+            var source1 =
+@"namespace System
+{
+    public class Object { }
+    public struct Void { }
+    public class ValueType { }
+    public struct Boolean { }
+    public struct Int32 { }
+    public struct Char { }
+
+    public class String 
+    {
+        public int Length => 2;
+
+        [System.Runtime.CompilerServices.IndexerName(""Chars"")]
+        public char this[int i] => 'a';
+    }
+    
+    public interface IDisposable
+    {
+        void Dispose();
+    }
+
+    public abstract class Attribute
+    {
+        protected Attribute() { }
+    }
+}
+
+namespace System.Runtime.CompilerServices
+{
+    using System;
+ 
+    public sealed class IndexerNameAttribute: Attribute
+    {
+        public IndexerNameAttribute(String indexerName)
+        {}
+    }
+}
+
+namespace System.Reflection {
+    
+    using System;
+ 
+    public sealed class DefaultMemberAttribute : Attribute
+    {
+        public DefaultMemberAttribute(String memberName) 
+        {}
+    }
+}
+
+namespace System.Collections
+{
+    public interface IEnumerable
+    {
+        IEnumerator GetEnumerator();
+    }
+
+    public interface IEnumerator
+    {
+        object Current { get; }
+        bool MoveNext();
+    }
+}";
+            var compilation1 = CreateCompilation(source1, assemblyName: GetUniqueName());
+            var reference1 = MetadataReference.CreateFromStream(compilation1.EmitToStream());
+            var text =
+@"class C
+{
+    static void M(string s)
+    {
+        foreach (var c in s)
+        {
+            // comment
+        }
+    }
+}";
+
+            var comp = CreateCompilation(text, new[] { reference1 });
+            CompileAndVerify(comp, verify: false).
+            VerifyIL("C.M", @"
+{
+  // Code size       28 (0x1c)
+  .maxstack  2
+  .locals init (string V_0,
+                int V_1)
+  IL_0000:  ldarg.0
+  IL_0001:  stloc.0
+  IL_0002:  ldc.i4.0
+  IL_0003:  stloc.1
+  IL_0004:  br.s       IL_0012
+  IL_0006:  ldloc.0
+  IL_0007:  ldloc.1
+  IL_0008:  callvirt   ""char string.this[int].get""
+  IL_000d:  pop
+  IL_000e:  ldloc.1
+  IL_000f:  ldc.i4.1
+  IL_0010:  add
+  IL_0011:  stloc.1
+  IL_0012:  ldloc.1
+  IL_0013:  ldloc.0
+  IL_0014:  callvirt   ""int string.Length.get""
+  IL_0019:  blt.s      IL_0006
+  IL_001b:  ret
+}
+");
+
+            var boundNode = GetBoundForEachStatement(text);
+
+            ForEachEnumeratorInfo info = boundNode.EnumeratorInfoOpt;
+            Assert.NotNull(info);
+            Assert.Equal(SpecialType.System_String, info.CollectionType.SpecialType);
+            Assert.Equal(SpecialType.System_Char, info.ElementType.SpecialType);
+            Assert.Equal("System.CharEnumerator System.String.GetEnumerator()", info.GetEnumeratorMethod.ToTestDisplayString());
+            Assert.Equal("System.Char System.CharEnumerator.Current.get", info.CurrentPropertyGetter.ToTestDisplayString());
+            Assert.Equal("System.Boolean System.CharEnumerator.MoveNext()", info.MoveNextMethod.ToTestDisplayString());
+            Assert.True(info.NeedsDisposeMethod);
+            Assert.Equal(ConversionKind.Identity, info.CollectionConversion.Kind);
+            Assert.Equal(ConversionKind.Identity, info.CurrentConversion.Kind);
+            Assert.Equal(ConversionKind.ImplicitReference, info.EnumeratorConversion.Kind);
+
+            Assert.Equal(ConversionKind.Identity, boundNode.ElementConversion.Kind);
+            Assert.Equal(SpecialType.System_Char, boundNode.IterationVariable.Type.SpecialType);
+        }
+
+
+
         private static BoundForEachStatement GetBoundForEachStatement(string text, params DiagnosticDescription[] diagnostics)
         {
             var tree = Parse(text);

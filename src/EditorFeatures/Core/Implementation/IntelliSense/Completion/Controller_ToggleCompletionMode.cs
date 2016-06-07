@@ -25,11 +25,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             if (Workspace.TryGetWorkspace(args.SubjectBuffer.AsTextContainer(), out workspace))
             {
-                var optionService = workspace.Services.GetService<IOptionService>();
-                var optionSet = optionService.GetOptions();
-
-                var wasEnabled = optionService.GetOption(EditorCompletionOptions.UseSuggestionMode);
-                optionService.SetOptions(optionSet.WithChangedOption(EditorCompletionOptions.UseSuggestionMode, !wasEnabled));
+                var newState = !workspace.Options.GetOption(EditorCompletionOptions.UseSuggestionMode);
+                workspace.Options = workspace.Options.WithChangedOption(EditorCompletionOptions.UseSuggestionMode, newState);
 
                 // If we don't have a computation in progress, then we don't have to do anything here.
                 if (this.sessionOpt == null)
@@ -37,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     return;
                 }
 
-                this.sessionOpt.SetModelBuilderState(!wasEnabled);
+                this.sessionOpt.SetModelBuilderState(newState);
             }
         }
     }

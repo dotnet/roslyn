@@ -21,7 +21,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             MyBase.New(workspaceFixture)
         End Sub
 
-        Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
+        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
             Return New CrefCompletionProvider()
         End Function
 
@@ -429,10 +429,10 @@ End Class]]></a>.Value.NormalizeLineEndings()
                 ' This verifies that the provider is asking for a speculative SemanticModel
                 ' by walking to the node the documentation is attached to. 
 
-                Dim provider = New CrefCompletionProvider()
                 Dim hostDocument = workspace.DocumentWithCursor
                 Dim document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
-                Dim completionList = Await GetCompletionListAsync(provider, document, hostDocument.CursorPosition.Value, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo())
+                Dim service = GetCompletionService(workspace)
+                Dim completionList = Await GetCompletionListAsync(service, document, hostDocument.CursorPosition.Value, CompletionTrigger.Default)
             End Using
         End Function
 
@@ -818,6 +818,38 @@ End Class]]></a>.Value.NormalizeLineEndings()
             End Function
 
             Public Function GetNameForArgument(argument As SyntaxNode) As String Implements ISyntaxFactsService.GetNameForArgument
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function IsLeftSideOfDot(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLeftSideOfDot
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function GetRightSideOfDot(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetRightSideOfDot
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function IsLeftSideOfAssignment(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLeftSideOfAssignment
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function IsLeftSideOfAnyAssignment(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsLeftSideOfAnyAssignment
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function GetRightHandSideOfAssignment(node As SyntaxNode) As SyntaxNode Implements ISyntaxFactsService.GetRightHandSideOfAssignment
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function IsInferredAnonymousObjectMemberDeclarator(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsInferredAnonymousObjectMemberDeclarator
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function IsOperandOfIncrementExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsOperandOfIncrementExpression
+                Throw New NotImplementedException()
+            End Function
+
+            Public Function IsOperandOfIncrementOrDecrementExpression(node As SyntaxNode) As Boolean Implements ISyntaxFactsService.IsOperandOfIncrementOrDecrementExpression
                 Throw New NotImplementedException()
             End Function
         End Class

@@ -323,7 +323,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     break;
                                 case ConversionKind.ExplicitUserDefined:
                                 case ConversionKind.ImplicitUserDefined:
-                                case ConversionKind.ImplicitThrow:
                                     return false;
                                 default:
                                     // Unhandled conversion kind in reordering logic

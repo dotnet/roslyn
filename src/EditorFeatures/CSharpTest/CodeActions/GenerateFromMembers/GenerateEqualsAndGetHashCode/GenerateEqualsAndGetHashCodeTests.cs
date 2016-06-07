@@ -1,7 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.GenerateFromMembers.GenerateEqualsAndGetHashCode;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -9,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Genera
 {
     public class GenerateEqualsAndGetHashCodeTests : AbstractCSharpCodeActionTest
     {
-        protected override object CreateCodeRefactoringProvider(Workspace workspace)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
         {
             return new GenerateEqualsAndGetHashCodeCodeRefactoringProvider();
         }
@@ -174,6 +176,56 @@ index: 1);
 @"using System . Collections . Generic ; class Program { [|bool b ; HashSet < string > s ;|] public Program ( bool b ) { this . b = b ; } } ",
 FeaturesResources.GenerateBoth,
 index: 2);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task Tuple_Disabled()
+        {
+            await TestAsync(@"using System . Collections . Generic ; class C { [|(int, string) a ;|] } ",
+@"using System . Collections . Generic ; class C { (int, string) a ; public override bool Equals ( object obj ) { var c = obj as C ; return c != null && EqualityComparer < (int, string) > . Default . Equals ( a , c . a ) ; } } ",
+index: 0,
+                parseOptions: TestOptions.Regular.WithLanguageVersion(CodeAnalysis.CSharp.LanguageVersion.CSharp6));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task Tuples_Equals()
+        {
+            await TestAsync(
+@"using System . Collections . Generic ; class C { [|(int, string) a ;|] } ",
+@"using System . Collections . Generic ; class C { (int, string) a ; public override bool Equals ( object obj ) { var c = obj as C ; return c != null && EqualityComparer < (int, string) > . Default . Equals ( a , c . a ) ; } } ",
+index: 0,
+parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TupleWithNames_Equals()
+        {
+            await TestAsync(
+@"using System . Collections . Generic ; class C { [|(int x, string y) a ;|] } ",
+@"using System . Collections . Generic ; class C { (int x, string y) a ; public override bool Equals ( object obj ) { var c = obj as C ; return c != null && EqualityComparer < (int x, string y) > . Default . Equals ( a , c . a ) ; } } ",
+index: 0,
+parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task Tuple_HashCode()
+        {
+            await TestAsync(
+@"using System . Collections . Generic ; class Program { [|(int, string) i ;|] } ",
+@"using System . Collections . Generic ; class Program { (int, string) i ; public override int GetHashCode ( ) { return EqualityComparer < (int, string) > . Default . GetHashCode ( i ) ; } } ",
+index: 1,
+parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateEqualsAndGetHashCode)]
+        public async Task TupleWithNames_HashCode()
+        {
+            await TestAsync(
+@"using System . Collections . Generic ; class Program { [|(int x, string y) i ;|] } ",
+@"using System . Collections . Generic ; class Program { (int x, string y) i ; public override int GetHashCode ( ) { return EqualityComparer < (int x, string y) > . Default . GetHashCode ( i ) ; } } ",
+index: 1,
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
         }
     }
 }

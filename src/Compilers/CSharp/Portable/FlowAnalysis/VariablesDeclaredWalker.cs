@@ -114,11 +114,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (IsInside)
             {
-                var local = catchBlock.LocalOpt;
+                var local = catchBlock.Locals.FirstOrDefault();
 
-                if ((object)local != null)
+                if (local?.DeclarationKind == LocalDeclarationKind.CatchVariable)
                 {
-                    Debug.Assert(local.DeclarationKind == LocalDeclarationKind.CatchVariable);
                     _variablesDeclared.Add(local);
                 }
             }

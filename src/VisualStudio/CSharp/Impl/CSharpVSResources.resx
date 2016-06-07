@@ -366,8 +366,8 @@
   <data name="Option_OptimizeForSolutionSize_Small" xml:space="preserve">
     <value>Small</value>
   </data>
-  <data name="Option_OrganizeUsings" xml:space="preserve">
-    <value>Organize Usings</value>
+  <data name="Option_Using_Directives" xml:space="preserve">
+    <value>Using Directives</value>
   </data>
   <data name="Option_Outlining" xml:space="preserve">
     <value>Outlining</value>
@@ -377,9 +377,6 @@
   </data>
   <data name="Option_PlaceSystemNamespaceFirst" xml:space="preserve">
     <value>_Place 'System' directives first when sorting usings</value>
-  </data>
-  <data name="Option_WarnOnBuildErrors" xml:space="preserve">
-    <value>Warn if _build errors exist when organizing usings</value>
   </data>
   <data name="Option_BringUpOnIdentifier" xml:space="preserve">
     <value>_Show completion list after a character is typed</value>
@@ -400,13 +397,19 @@
     <value>Selection In Completion List</value>
   </data>
   <data name="Option_RenameTrackingPreview" xml:space="preserve">
-    <value>Show preview for _rename tracking</value>
+    <value>Show preview for rename _tracking</value>
   </data>
   <data name="NewLinesForBracesAccessors" xml:space="preserve">
     <value>Place open brace on new line for property, indexer, and event accessors</value>
   </data>
   <data name="NewLinesForBracesProperty" xml:space="preserve">
     <value>Place open brace on new line for properties, indexers, and events</value>
+  </data>
+  <data name="Option_Suggest_usings_for_types_in_reference_assemblies" xml:space="preserve">
+    <value>Suggest usings for types in _reference assemblies</value>
+  </data>
+  <data name="Option_Suggest_usings_for_types_in_NuGet_packages" xml:space="preserve">
+    <value>Suggest usings for types in _NuGet packages</value>
   </data>
   <data name="SetTypeInferencePreferences" xml:space="preserve">
     <value>Type Inference preferences:</value>
@@ -435,12 +438,6 @@
   <data name="PreferExplicitType" xml:space="preserve">
     <value>Prefer explicit type</value>
   </data>
-  <data name="PreferFrameworkType" xml:space="preserve">
-    <value>Prefer framework type</value>
-  </data>
-  <data name="PreferPredefinedType" xml:space="preserve">
-    <value>Prefer predefined type</value>
-  </data>
   <data name="PreferThis" xml:space="preserve">
     <value>Prefer 'this.'</value>
   </data>
@@ -458,5 +455,8 @@
   </data>
   <data name="PredefinedTypesGroupTitle" xml:space="preserve">
     <value>predefined type preferences:</value>
+  </data>
+  <data name="Option_Split_string_literals_on_enter" xml:space="preserve">
+    <value>Split string literals on _enter</value>
   </data>
 </root>

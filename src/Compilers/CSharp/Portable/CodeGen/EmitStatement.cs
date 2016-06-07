@@ -926,11 +926,11 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
                 _builder.MarkLabel(typeCheckPassedLabel);
             }
 
-            if ((object)catchBlock.LocalOpt != null)
+            foreach (var local in catchBlock.Locals)
             {
-                var declaringReferences = catchBlock.LocalOpt.DeclaringSyntaxReferences;
+                var declaringReferences = local.DeclaringSyntaxReferences;
                 var localSyntax = !declaringReferences.IsEmpty ? (CSharpSyntaxNode)declaringReferences[0].GetSyntax() : catchBlock.Syntax;
-                DefineLocal(catchBlock.LocalOpt, localSyntax);
+                DefineLocal(local, localSyntax);
             }
 
             var exceptionSourceOpt = catchBlock.ExceptionSourceOpt;

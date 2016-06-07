@@ -364,6 +364,7 @@
     <Compile Include="FlowAnalysis\UnassignedAddressTakenVariablesWalker.cs" />
     <Compile Include="FlowAnalysis\UnassignedVariablesWalker.cs" />
     <Compile Include="FlowAnalysis\VariablesDeclaredWalker.cs" />
+    <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="LanguageVersion.cs" />
     <Compile Include="Lowering\AsyncRewriter\AsyncConstructor.cs" />
     <Compile Include="Lowering\AsyncRewriter\AsyncExceptionHandlerRewriter.cs" />
@@ -420,6 +421,7 @@
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_IndexerAccess.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_IsOperator.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_LabeledStatement.cs" />
+    <Compile Include="Lowering\LocalRewriter\LocalRewriter_TupleCreationExpression.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_Literal.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_LocalDeclaration.cs" />
     <Compile Include="Lowering\LocalRewriter\LocalRewriter_LockStatement.cs" />
@@ -510,6 +512,13 @@
     <Compile Include="Symbols\AnonymousTypes\SynthesizedSymbols\AnonymousType.TemplateSymbol.cs" />
     <Compile Include="Symbols\AnonymousTypes\SynthesizedSymbols\AnonymousType.ToStringMethodSymbol.cs" />
     <Compile Include="Symbols\AnonymousTypes\SynthesizedSymbols\AnonymousType.TypeParameterSymbol.cs" />
+    <Compile Include="Symbols\Tuples\TupleEventSymbol.cs" />
+    <Compile Include="Symbols\Tuples\TupleFieldSymbol.cs" />
+    <Compile Include="Symbols\Tuples\TupleMethodSymbol.cs" />
+    <Compile Include="Symbols\Tuples\TupleParameterSymbol.cs" />
+    <Compile Include="Symbols\Tuples\TupleErrorFieldSymbol.cs" />
+    <Compile Include="Symbols\Tuples\TuplePropertySymbol.cs" />
+    <Compile Include="Symbols\Tuples\TupleTypeSymbol.cs" />
     <Compile Include="Symbols\ArrayTypeSymbol.cs" />
     <Compile Include="Symbols\AssemblySymbol.cs" />
     <Compile Include="Symbols\Attributes\AttributeData.cs" />
@@ -723,7 +732,13 @@
     <Compile Include="Symbols\UnboundGenericType.cs" />
     <Compile Include="Symbols\UnsupportedMetadataTypeSymbol.cs" />
     <Compile Include="Symbols\VarianceSafety.cs" />
-    <Compile Include="Symbols\WrappedParameterSymbol.cs" />
+    <Compile Include="Symbols\Wrapped\WrappedParameterSymbol.cs" />
+    <Compile Include="Symbols\Wrapped\WrappedNamedTypeSymbol.cs" />
+    <Compile Include="Symbols\Wrapped\WrappedEventSymbol.cs" />
+    <Compile Include="Symbols\Wrapped\WrappedFieldSymbol.cs" />
+    <Compile Include="Symbols\Wrapped\WrappedMethodSymbol.cs" />
+    <Compile Include="Symbols\Wrapped\WrappedPropertySymbol.cs" />
+    <Compile Include="Symbols\Wrapped\WrappedTypeParameterSymbol.cs" />
     <Compile Include="Syntax\AliasedQualifiedNameSyntax.cs" />
     <Compile Include="Syntax\ArrayRankSpecifierSyntax.cs" />
     <Compile Include="Syntax\AttributeSyntax.cs" />

@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Editing
     {
         public async Task<Document> AddImportsAsync(Document document, IEnumerable<TextSpan> spans, OptionSet options, CancellationToken cancellationToken)
         {
-            options = options ?? document.Project.Solution.Workspace.Options;
+            options = options ?? document.Options;
 
             var model = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
             var root = await model.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
@@ -53,7 +53,7 @@ namespace Microsoft.CodeAnalysis.Editing
             var existingNamespaces = new HashSet<INamespaceSymbol>();
             await this.GetExistingImportedNamespacesAsync(document, model, existingNamespaces, cancellationToken).ConfigureAwait(false);
 
-            var namespacesToAdd = new HashSet<INamespaceSymbol>(namespaces);
+            var namespacesToAdd = new HashSet<INamespaceSymbol>(namespaces, NamespaceEqualityComparer.Singleton);
             namespacesToAdd.RemoveAll(existingNamespaces);
 
             var root = await model.SyntaxTree.GetRootAsync(cancellationToken).ConfigureAwait(false);
@@ -95,5 +95,39 @@ namespace Microsoft.CodeAnalysis.Editing
         protected abstract INamespaceSymbol GetImportedNamespaceSymbol(SyntaxNode import, SemanticModel model);
         protected abstract INamespaceSymbol GetExplicitNamespaceSymbol(SyntaxNode node, SemanticModel model);
         protected abstract SyntaxNode InsertNamespaceImport(SyntaxNode root, SyntaxGenerator gen, SyntaxNode import, OptionSet options);
+
+        private sealed class NamespaceEqualityComparer : IEqualityComparer<INamespaceSymbol>
+        {
+            public static readonly NamespaceEqualityComparer Singleton = new NamespaceEqualityComparer();
+
+            private NamespaceEqualityComparer()
+            {
+            }
+
+            public bool Equals(INamespaceSymbol x, INamespaceSymbol y)
+            {
+                if (object.ReferenceEquals(x, y))
+                {
+                    return true;
+                }
+                if (object.ReferenceEquals(x, null) || object.ReferenceEquals(y, null))
+                {
+                    return false;
+                }
+
+                return x.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat) ==
+                       y.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat);
+            }
+
+            public int GetHashCode(INamespaceSymbol obj)
+            {
+                if (object.ReferenceEquals(obj, null))
+                {
+                    return 0;
+                }
+
+                return obj.ToDisplayString(SymbolDisplayFormat.FullyQualifiedFormat).GetHashCode();
+            }
+        }
     }
 }

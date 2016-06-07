@@ -5,7 +5,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
@@ -15,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     /// </summary>
     internal static class CompilerDiagnosticExecutor
     {
-        public static async Task<ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult>> AnalyzeAsync(this CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
+        public static async Task<CompilerAnalysisResult> AnalyzeAsync(this CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
         {
             var version = await DiagnosticIncrementalAnalyzer.GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
 
@@ -62,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 builder.Add(analyzer, result.ToResult());
             }
 
-            return builder.ToImmutable();
+            return new CompilerAnalysisResult(builder.ToImmutable(), analysisResult.AnalyzerTelemetryInfo);
         }
 
         /// <summary>
@@ -102,7 +101,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var nonLocals = Convert(_lazyNonLocals);
                 var others = _lazyOthers == null ? ImmutableArray<DiagnosticData>.Empty : _lazyOthers.ToImmutableArray();
 
-                return new AnalysisResult(_project.Id, _version, syntaxLocals, semanticLocals, nonLocals, others, documentIds);
+                return new AnalysisResult(_project.Id, _version, syntaxLocals, semanticLocals, nonLocals, others, documentIds, fromBuild: false);
             }
 
             private ImmutableDictionary<DocumentId, ImmutableArray<DiagnosticData>> Convert(Dictionary<DocumentId, List<DiagnosticData>> map)

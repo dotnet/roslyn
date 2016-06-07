@@ -116,7 +116,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
 
             if (optionID != CompilerOptions.OPTID_IMPORTS && optionID != CompilerOptions.OPTID_IMPORTSUSINGNOPIA)
             {
-                throw new ArgumentException("optionID was an unexpected value.", "optionID");
+                throw new ArgumentException("optionID was an unexpected value.", nameof(optionID));
             }
 
             bool embedInteropTypes = optionID == CompilerOptions.OPTID_IMPORTSUSINGNOPIA;

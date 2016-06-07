@@ -4750,5 +4750,333 @@ BC32000: Local variable 'STR' cannot be referred to before it is declared.
 </expected>)
         End Sub
 
+        <WorkItem(9887, "https://github.com/dotnet/roslyn/issues/9887")>
+        <Fact()>
+        Public Sub ConvertReferenceTypeToIntrinsicValueType()
+            Dim compilation = CreateCompilationWithMscorlibAndVBRuntime(
+    <compilation>
+        <file name="a.vb"><![CDATA[
+Imports System
+
+Module Module1
+    Sub Main()
+        Dim value As System.IComparable = 1.0R
+        TestBoolean(value)
+        TestByte(value)
+        TestSByte(value)
+        TestShort(value)
+        TestUShort(value)
+        TestInt(value)
+        TestUInt(value)
+        TestLng(value)
+        TestULng(value)
+        TestDec(value)
+
+        Dim value2 As System.IComparable = 1
+        TestSng(value2)
+        TestDbl(value)
+
+        Dim value3 As System.IComparable = "2016-5-23"
+        TestDate(value3)
+        TestChar(value3)
+    End Sub
+
+    Private Sub TestArray(value2 As System.Collections.IEnumerable)
+        System.Console.WriteLine(CType(value2, Integer()))
+    End Sub
+
+    Private Sub TestString(value2 As IComparable)
+        System.Console.WriteLine(CStr(value2))
+    End Sub
+
+    Private Sub TestChar(value3 As IComparable)
+        System.Console.WriteLine(CChar(value3))
+    End Sub
+
+    Private Sub TestDate(value3 As IComparable)
+        System.Console.WriteLine(CDate(value3).Day)
+    End Sub
+
+    Private Sub TestDbl(value As IComparable)
+        System.Console.WriteLine(CDbl(value))
+    End Sub
+
+    Private Sub TestSng(value2 As IComparable)
+        System.Console.WriteLine(CSng(value2))
+    End Sub
+
+    Private Sub TestDec(value As IComparable)
+        System.Console.WriteLine(CDec(value))
+    End Sub
+
+    Private Sub TestULng(value As IComparable)
+        System.Console.WriteLine(CULng(value))
+    End Sub
+
+    Private Sub TestLng(value As IComparable)
+        System.Console.WriteLine(CLng(value))
+    End Sub
+
+    Private Sub TestUInt(value As IComparable)
+        System.Console.WriteLine(CUInt(value))
+    End Sub
+
+    Private Sub TestInt(value As IComparable)
+        System.Console.WriteLine(CInt(value))
+    End Sub
+
+    Private Sub TestUShort(value As IComparable)
+        System.Console.WriteLine(CUShort(value))
+    End Sub
+
+    Private Sub TestShort(value As IComparable)
+        System.Console.WriteLine(CShort(value))
+    End Sub
+
+    Private Sub TestSByte(value As IComparable)
+        System.Console.WriteLine(CSByte(value))
+    End Sub
+
+    Private Sub TestByte(value As IComparable)
+        System.Console.WriteLine(CByte(value))
+    End Sub
+
+    Private Sub TestBoolean(value As IComparable)
+        System.Console.WriteLine(CBool(value))
+    End Sub
+
+    Sub TestTypeParameter(Of T)(value As IComparable)
+        System.Console.WriteLine(CType(value, T))
+    End Sub
+End Module
+    ]]></file>
+    </compilation>, options:=TestOptions.ReleaseExe)
+
+            Dim verifier = CompileAndVerify(compilation, expectedOutput:=
+"True
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+1
+23
+2")
+
+            verifier.VerifyIL("Module1.TestArray",
+            <![CDATA[
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  castclass  "Integer()"
+  IL_0006:  call       "Sub System.Console.WriteLine(Object)"
+  IL_000b:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.TestString",
+            <![CDATA[
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  castclass  "String"
+  IL_0006:  call       "Sub System.Console.WriteLine(String)"
+  IL_000b:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.TestChar",
+            <![CDATA[
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToChar(Object) As Char"
+  IL_0006:  call       "Sub System.Console.WriteLine(Char)"
+  IL_000b:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.TestDate",
+            <![CDATA[
+{
+  // Code size       20 (0x14)
+  .maxstack  1
+  .locals init (Date V_0)
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToDate(Object) As Date"
+  IL_0006:  stloc.0
+  IL_0007:  ldloca.s   V_0
+  IL_0009:  call       "Function Date.get_Day() As Integer"
+  IL_000e:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_0013:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.TestDbl",
+            <![CDATA[
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToDouble(Object) As Double"
+  IL_0006:  call       "Sub System.Console.WriteLine(Double)"
+  IL_000b:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.TestSng",
+            <![CDATA[
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToSingle(Object) As Single"
+  IL_0006:  call       "Sub System.Console.WriteLine(Single)"
+  IL_000b:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.TestDec",
+            <![CDATA[
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToDecimal(Object) As Decimal"
+  IL_0006:  call       "Sub System.Console.WriteLine(Decimal)"
+  IL_000b:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.TestULng",
+            <![CDATA[
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToULong(Object) As ULong"
+  IL_0006:  call       "Sub System.Console.WriteLine(ULong)"
+  IL_000b:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.TestLng",
+            <![CDATA[
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToLong(Object) As Long"
+  IL_0006:  call       "Sub System.Console.WriteLine(Long)"
+  IL_000b:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.TestUInt",
+            <![CDATA[
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToUInteger(Object) As UInteger"
+  IL_0006:  call       "Sub System.Console.WriteLine(UInteger)"
+  IL_000b:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.TestInt",
+            <![CDATA[
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToInteger(Object) As Integer"
+  IL_0006:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_000b:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.TestUShort",
+            <![CDATA[
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToUShort(Object) As UShort"
+  IL_0006:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_000b:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.TestShort",
+            <![CDATA[
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToShort(Object) As Short"
+  IL_0006:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_000b:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.TestSByte",
+            <![CDATA[
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToSByte(Object) As SByte"
+  IL_0006:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_000b:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.TestByte",
+            <![CDATA[
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToByte(Object) As Byte"
+  IL_0006:  call       "Sub System.Console.WriteLine(Integer)"
+  IL_000b:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.TestBoolean",
+            <![CDATA[
+{
+  // Code size       12 (0xc)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  call       "Function Microsoft.VisualBasic.CompilerServices.Conversions.ToBoolean(Object) As Boolean"
+  IL_0006:  call       "Sub System.Console.WriteLine(Boolean)"
+  IL_000b:  ret
+}
+]]>)
+
+            verifier.VerifyIL("Module1.TestTypeParameter",
+            <![CDATA[
+{
+  // Code size       17 (0x11)
+  .maxstack  1
+  IL_0000:  ldarg.0
+  IL_0001:  unbox.any  "T"
+  IL_0006:  box        "T"
+  IL_000b:  call       "Sub System.Console.WriteLine(Object)"
+  IL_0010:  ret
+}
+]]>)
+        End Sub
+
     End Class
 End Namespace

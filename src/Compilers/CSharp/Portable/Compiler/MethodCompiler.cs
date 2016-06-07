@@ -378,6 +378,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool hasStaticConstructor = false;
 
             var members = containingType.GetMembers();
+            // 'extendedOrdinal' is used for replaced methods, to ensure all methods
+            // defined in source in the containing type have unique ordinals.
+            int extendedOrdinal = members.Length;
             for (int memberOrdinal = 0; memberOrdinal < members.Length; memberOrdinal++)
             {
                 var member = members[memberOrdinal];
@@ -437,6 +440,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 hasStaticConstructor = true;
                             }
 
+                            // Replaced methods are not included in GetMembers().
+                            foreach (MethodSymbol replaced in method.GetReplacedMembers())
+                            {
+                                if (replaced.IsImplicitlyDeclared &&
+                                    (replaced.MethodKind == MethodKind.EventAdd || replaced.MethodKind == MethodKind.EventRemove))
+                                {
+                                    continue;
+                                }
+                                CompileMethod(replaced, extendedOrdinal, ref processedInitializers, synthesizedSubmissionFields, compilationState);
+                                extendedOrdinal++;
+                            }
                             break;
                         }
 
@@ -593,16 +607,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                     var importChain = methodWithBody.ImportChainOpt;
                     compilationState.CurrentImportChain = importChain;
 
-                    var method = methodWithBody.Method;
-                var lambda = method as SynthesizedLambdaMethod;
-                var variableSlotAllocatorOpt = ((object)lambda != null) ?
-                    _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(lambda, lambda.TopLevelMethod) :
-                    _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(method, method);
-
                 // We make sure that an asynchronous mutation to the diagnostic bag does not 
                 // confuse the method body generator by making a fresh bag and then loading
                 // any diagnostics emitted into it back into the main diagnostic bag.
                 var diagnosticsThisMethod = DiagnosticBag.GetInstance();
+
+                    var method = methodWithBody.Method;
+                var lambda = method as SynthesizedLambdaMethod;
+                var variableSlotAllocatorOpt = ((object)lambda != null) ?
+                    _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(lambda, lambda.TopLevelMethod, diagnosticsThisMethod) :
+                    _moduleBeingBuiltOpt.TryCreateVariableSlotAllocator(method, method, diagnosticsThisMethod);
 
                 // Synthesized methods have no ordinal stored in custom debug information (only user-defined methods have ordinals).
                 // In case of async lambdas, which synthesize a state machine type during the following rewrite, the containing method has already been uniquely named, 
@@ -1220,7 +1234,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (lazyVariableSlotAllocator == null)
                 {
-                    lazyVariableSlotAllocator = compilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method, method);
+                    lazyVariableSlotAllocator = compilationState.ModuleBuilderOpt.TryCreateVariableSlotAllocator(method, method, diagnostics);
                 }
 
                 BoundStatement bodyWithoutLambdas = loweredBody;
@@ -1550,7 +1564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     binder = new ExecutableCodeBinder(arrowExpression, sourceMethod, binder);
                     importChain = binder.ImportChain;
                     // Add locals
-                    return binder.WithPatternVariablesIfAny(arrowExpression.Expression).BindExpressionBodyAsBlock(arrowExpression, diagnostics);
+                    return binder.BindExpressionBodyAsBlock(arrowExpression, diagnostics);
                 }
                 else
                 {
@@ -1727,8 +1741,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // wrap in ConstructorInitializerBinder for appropriate errors
             // Handle scoping for possible pattern variables declared in the initializer
-            Binder initializerBinder = outerBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.ConstructorInitializer, constructor).
-                                       WithPatternVariablesIfAny(initializerArgumentListOpt);
+            Binder initializerBinder = outerBinder.WithAdditionalFlagsAndContainingMemberOrLambda(BinderFlags.ConstructorInitializer, constructor);
+
+            if (initializerArgumentListOpt != null)
+            {
+                initializerBinder = new ExecutableCodeBinder(initializerArgumentListOpt, constructor, initializerBinder);
+            }
 
             return initializerBinder.BindConstructorInitializer(initializerArgumentListOpt, constructor, diagnostics);
         }

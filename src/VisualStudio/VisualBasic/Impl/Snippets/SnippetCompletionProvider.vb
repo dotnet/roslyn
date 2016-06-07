@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.ComponentModel.Composition
 Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
@@ -16,9 +17,10 @@ Imports Microsoft.VisualStudio.Text
 Imports Microsoft.VisualStudio.Text.Editor
 
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
-    <ExportCompletionProvider("SnippetCompletionProvider", LanguageNames.VisualBasic)>
+    <ExportCompletionProviderMef1("SnippetCompletionProvider", LanguageNames.VisualBasic)>
     Partial Friend Class SnippetCompletionProvider
-        Inherits Extensibility.Completion.SnippetCompletionProvider
+        Inherits CommonCompletionProvider
+        Implements ICustomCommitCompletionProvider
 
         Private ReadOnly _editorAdaptersFactoryService As IVsEditorAdaptersFactoryService
 
@@ -27,7 +29,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
             Me._editorAdaptersFactoryService = editorAdaptersFactoryService
         End Sub
 
-        Public Overrides Function ProduceCompletionListAsync(context As CompletionListContext) As Task
+        Friend Overrides ReadOnly Property IsSnippetProvider As Boolean
+            Get
+                Return True
+            End Get
+        End Property
+
+        Public Overrides Function ProvideCompletionsAsync(context As CompletionContext) As Task
             Dim document = context.Document
             Dim position = context.Position
             Dim cancellationToken = context.CancellationToken
@@ -40,39 +48,43 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Snippets
 
             Dim snippets = snippetInfoService.GetSnippetsIfAvailable()
 
-            Dim filterSpan = CommonCompletionUtilities.GetTextChangeSpan(
+            Dim itemSpan = CommonCompletionUtilities.GetWordSpan(
                 document.GetTextAsync(cancellationToken).WaitAndGetResult(cancellationToken),
                 position,
                 AddressOf Char.IsLetterOrDigit,
                 AddressOf Char.IsLetterOrDigit)
 
-            context.MakeExclusive(True)
-            context.AddItems(CreateCompletionItems(snippets, filterSpan))
+            context.IsExclusive = True
+            context.AddItems(CreateCompletionItems(snippets, itemSpan))
 
             Return SpecializedTasks.EmptyTask
         End Function
 
+        Private Shared ReadOnly s_commitChars As Char() = {" "c, ";"c, "("c, ")"c, "["c, "]"c, "{"c, "}"c, "."c, ","c, ":"c, "+"c, "-"c, "*"c, "/"c, "\"c, "^"c, "<"c, ">"c, "'"c, "="c}
+        Private Shared ReadOnly s_rules As CompletionItemRules = CompletionItemRules.Create(
+            commitCharacterRules:=ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, s_commitChars)))
+
         Private Function CreateCompletionItems(snippets As IEnumerable(Of SnippetInfo), span As TextSpan) As IEnumerable(Of CompletionItem)
 
-            Return snippets.Select(Function(s) New CompletionItem(Me,
+            Return snippets.Select(Function(s) CommonCompletionItem.Create(
                                                                   s.Shortcut,
                                                                   span,
                                                                   description:=s.Description.ToSymbolDisplayParts(),
                                                                   glyph:=Glyph.Snippet,
-                                                                  rules:=ItemRules.Instance))
+                                                                  rules:=s_rules))
         End Function
 
-        Public Overrides Function IsTriggerCharacter(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
+        Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return Char.IsLetterOrDigit(text(characterPosition)) AndAlso
                 options.GetOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.VisualBasic)
         End Function
 
-        Public Overrides Sub Commit(completionItem As CompletionItem, textView As ITextView, subjectBuffer As ITextBuffer, triggerSnapshot As ITextSnapshot, commitChar As Char?)
+        Public Sub Commit(completionItem As CompletionItem, textView As ITextView, subjectBuffer As ITextBuffer, triggerSnapshot As ITextSnapshot, commitChar As Char?) Implements ICustomCommitCompletionProvider.Commit
             Dim snippetClient = SnippetExpansionClient.GetSnippetExpansionClient(textView, subjectBuffer, _editorAdaptersFactoryService)
 
             Dim caretPoint = textView.GetCaretPoint(subjectBuffer)
 
-            Dim trackingSpan = triggerSnapshot.CreateTrackingSpan(completionItem.FilterSpan.ToSpan(), SpanTrackingMode.EdgeInclusive)
+            Dim trackingSpan = triggerSnapshot.CreateTrackingSpan(completionItem.Span.ToSpan(), SpanTrackingMode.EdgeInclusive)
             Dim currentSpan = trackingSpan.GetSpan(subjectBuffer.CurrentSnapshot)
 
             subjectBuffer.Replace(currentSpan, completionItem.DisplayText)

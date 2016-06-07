@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public LexicalTests()
         {
             _options = new CSharpParseOptions(languageVersion: LanguageVersion.CSharp3);
-            var binaryLiterals = new[] { new KeyValuePair<string, string>("binaryLiterals", "true") };
-            var digitSeparators = new[] { new KeyValuePair<string, string>("digitSeparators", "true") };
+            var binaryLiterals = new[] { new KeyValuePair<string, string>(MessageID.IDS_FeatureBinaryLiteral.RequiredFeature(), "true") };
+            var digitSeparators = new[] { new KeyValuePair<string, string>(MessageID.IDS_FeatureDigitSeparator.RequiredFeature(), "true") };
             _binaryOptions = _options.WithFeatures(binaryLiterals);
             _underscoreOptions = _options.WithFeatures(digitSeparators);
             _binaryUnderscoreOptions = _options.WithFeatures(binaryLiterals.Concat(digitSeparators));

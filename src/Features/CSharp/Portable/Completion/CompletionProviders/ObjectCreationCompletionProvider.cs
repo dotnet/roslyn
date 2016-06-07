@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,18 +15,24 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
     internal partial class ObjectCreationCompletionProvider : AbstractObjectCreationCompletionProvider
     {
-        protected override TextSpan GetTextChangeSpan(SourceText text, int position)
+        protected override string GetInsertionText(ISymbol symbol, AbstractSyntaxContext context, char ch)
         {
-            // We can just defer to the standard text span algorithm.
-            return CompletionUtilities.GetTextChangeSpan(text, position);
+            if (symbol is IAliasSymbol)
+            {
+                return ((IAliasSymbol)symbol).Name;
+            }
+
+            var displayService = context.GetLanguageService<ISymbolDisplayService>();
+            return displayService.ToMinimalDisplayString(context.SemanticModel, context.Position, symbol);
         }
 
-        public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
+        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             return CompletionUtilities.IsTriggerAfterSpaceOrStartOfWordCharacter(text, characterPosition, options);
         }
@@ -87,9 +94,25 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return base.GetDisplayAndInsertionText(symbol, context);
         }
 
-        protected override CompletionItemRules GetCompletionItemRules()
+        private static readonly CompletionItemRules s_objectRules = 
+            CompletionItemRules.Create(commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[')));
+
+        private static readonly CompletionItemRules s_defaultRules = 
+            CompletionItemRules.Create(commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[', '{')));
+
+        protected override CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols, AbstractSyntaxContext context)
         {
-            return ItemRules.Instance;
+            // SPECIAL: If the preselected symbol is System.Object, don't commit on '{'.
+            // Otherwise, it is cumbersome to type an anonymous object when the target type is object.
+            // The user would get 'new object {' rather than 'new {'. Since object doesn't have any
+            // properties, the user never really wants to commit 'new object {' anyway.
+            var namedTypeSymbol = symbols.Count > 0 ? symbols[0] as INamedTypeSymbol : null;
+            if (namedTypeSymbol?.SpecialType == SpecialType.System_Object)
+            {
+                return s_objectRules;
+            }
+
+            return s_defaultRules;
         }
     }
 }

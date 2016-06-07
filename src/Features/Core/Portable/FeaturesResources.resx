@@ -574,6 +574,9 @@
   <data name="AddingANewFile" xml:space="preserve">
     <value>Adding a new file will prevent the debug session from continuing.</value>
   </data>
+  <data name="UpdatingStateMachineMethodMissingAttribute" xml:space="preserve">
+    <value>Attribute '{0}' is missing. Updating an async method or an iterator will prevent the debug session from continuing.</value>
+  </data>
   <data name="UnexpectedInterfaceMemberKind" xml:space="preserve">
     <value>Unexpected interface member kind: {0}</value>
   </data>
@@ -1001,7 +1004,31 @@ This version used in: {2}</value>
   <data name="Parameters" xml:space="preserve">
     <value>Parameters:</value>
   </data>
-  <data name="AddMissingSwitchCases" xml:space="preserve">
+  <data name="Add_missing_switch_cases" xml:space="preserve">
     <value>Add missing switch cases</value>
+  </data>
+  <data name="Add_both" xml:space="preserve">
+    <value>Add both</value>
+  </data>
+  <data name="Add_default_switch_case" xml:space="preserve">
+    <value>Add default switch case</value>
+  </data>
+  <data name="VariadicSignaturehelpitemMustHaveOneParam" xml:space="preserve">
+    <value>Variadic SignatureHelpItem must have at least one parameter.</value>
+  </data>
+  <data name="AddBraces" xml:space="preserve">
+    <value>Add braces</value>
+  </data>
+  <data name="Replace_0_with_method" xml:space="preserve">
+    <value>Replace '{0}' with method</value>
+  </data>
+  <data name="Replace_0_with_methods" xml:space="preserve">
+    <value>Replace '{0}' with methods</value>
+  </data>
+  <data name="Property_referenced_implicitly" xml:space="preserve">
+    <value>Property referenced implicitly</value>
+  </data>
+  <data name="Property_cannot_safely_be_replaced_with_a_method_call" xml:space="preserve">
+    <value>Property cannot safely be replaced with a method call</value>
   </data>
 </root>

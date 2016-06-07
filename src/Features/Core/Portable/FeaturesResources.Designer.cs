@@ -80,6 +80,42 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add both.
+        /// </summary>
+        internal static string Add_both {
+            get {
+                return ResourceManager.GetString("Add_both", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add default switch case.
+        /// </summary>
+        internal static string Add_default_switch_case {
+            get {
+                return ResourceManager.GetString("Add_default_switch_case", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add missing switch cases.
+        /// </summary>
+        internal static string Add_missing_switch_cases {
+            get {
+                return ResourceManager.GetString("Add_missing_switch_cases", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add braces.
+        /// </summary>
+        internal static string AddBraces {
+            get {
+                return ResourceManager.GetString("AddBraces", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Adding &apos;{0}&apos; around an active statement will prevent the debug session from continuing..
         /// </summary>
         internal static string AddingAAroundAnActiveStatement {
@@ -193,15 +229,6 @@ namespace Microsoft.CodeAnalysis {
         internal static string AddingUserDefinedOperator {
             get {
                 return ResourceManager.GetString("AddingUserDefinedOperator", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Add missing switch cases.
-        /// </summary>
-        internal static string AddMissingSwitchCases {
-            get {
-                return ResourceManager.GetString("AddMissingSwitchCases", resourceCulture);
             }
         }
         
@@ -1997,6 +2024,24 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Property cannot safely be replaced with a method call.
+        /// </summary>
+        internal static string Property_cannot_safely_be_replaced_with_a_method_call {
+            get {
+                return ResourceManager.GetString("Property_cannot_safely_be_replaced_with_a_method_call", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Property referenced implicitly.
+        /// </summary>
+        internal static string Property_referenced_implicitly {
+            get {
+                return ResourceManager.GetString("Property_referenced_implicitly", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to range variable.
         /// </summary>
         internal static string RangeVariable {
@@ -2074,6 +2119,24 @@ namespace Microsoft.CodeAnalysis {
         internal static string RenamingCapturedVariable {
             get {
                 return ResourceManager.GetString("RenamingCapturedVariable", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Replace &apos;{0}&apos; with method.
+        /// </summary>
+        internal static string Replace_0_with_method {
+            get {
+                return ResourceManager.GetString("Replace_0_with_method", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Replace &apos;{0}&apos; with methods.
+        /// </summary>
+        internal static string Replace_0_with_methods {
+            get {
+                return ResourceManager.GetString("Replace_0_with_methods", resourceCulture);
             }
         }
         
@@ -2449,6 +2512,15 @@ namespace Microsoft.CodeAnalysis {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Attribute &apos;{0}&apos; is missing. Updating an async method or an iterator will prevent the debug session from continuing..
+        /// </summary>
+        internal static string UpdatingStateMachineMethodMissingAttribute {
+            get {
+                return ResourceManager.GetString("UpdatingStateMachineMethodMissingAttribute", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Updating the alias of Declare Statement will prevent the debug session from continuing..
         /// </summary>
         internal static string UpdatingTheAliasOfDeclareStatement {
@@ -2645,6 +2717,15 @@ namespace Microsoft.CodeAnalysis {
         internal static string UseTheNavigationBarToSwitchContext {
             get {
                 return ResourceManager.GetString("UseTheNavigationBarToSwitchContext", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Variadic SignatureHelpItem must have at least one parameter..
+        /// </summary>
+        internal static string VariadicSignaturehelpitemMustHaveOneParam {
+            get {
+                return ResourceManager.GetString("VariadicSignaturehelpitemMustHaveOneParam", resourceCulture);
             }
         }
         

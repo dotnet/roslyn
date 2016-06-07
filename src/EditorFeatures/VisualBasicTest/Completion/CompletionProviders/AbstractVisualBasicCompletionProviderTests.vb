@@ -1,10 +1,12 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text
+Imports Microsoft.CodeAnalysis.VisualBasic.Completion
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.CompletionProviders
     Public MustInherit Class AbstractVisualBasicCompletionProviderTests
@@ -13,6 +15,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         Public Sub New(workspaceFixture As VisualBasicTestWorkspaceFixture)
             MyBase.New(workspaceFixture)
         End Sub
+
+        Friend Overrides Function CreateCompletionService(workspace As Workspace, exclusiveProviders As ImmutableArray(Of CompletionProvider)) As CompletionServiceWithProviders
+            Return New VisualBasicCompletionService(workspace, exclusiveProviders)
+        End Function
 
         Protected Overrides Async Function VerifyWorkerAsync(code As String, position As Integer, expectedItemOrNull As String, expectedDescriptionOrNull As String, sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean, checkForAbsence As Boolean, experimental As Boolean, glyph As Integer?) As Threading.Tasks.Task
             ' Script/interactive support removed for now.
@@ -73,7 +79,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Await MyBase.VerifyWorkerAsync(code, position, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, experimental:=experimental, glyph:=glyph)
         End Function
 
-        Private Function VerifyAtEndOfFileAsync(code As String, position As Integer, expectedItemOrNull As String, expectedDescriptionOrNull As String, sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean, checkForAbsence As Boolean, glyph As Integer?, experimental As Boolean) As Threading.Tasks.Task
+        Protected Function VerifyAtEndOfFileAsync(code As String, position As Integer, expectedItemOrNull As String, expectedDescriptionOrNull As String, sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean, checkForAbsence As Boolean, glyph As Integer?, experimental As Boolean) As Threading.Tasks.Task
             Return VerifyAtEndOfFileAsync(code, position, String.Empty, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph, experimental)
         End Function
 
@@ -111,13 +117,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 Dim document = workspace.CurrentSolution.GetDocument(documentId)
                 Dim position = hostDocument.CursorPosition.Value
 
-                Dim completionList = Await GetCompletionListAsync(document, position, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo())
+                Dim service = GetCompletionService(workspace)
+                Dim completionList = Await GetCompletionListAsync(service, document, position, CompletionTrigger.Default)
                 Dim item = completionList.Items.First(Function(i) i.DisplayText.StartsWith(textTypedSoFar))
 
-                Dim completionService = document.Project.LanguageServices.GetService(Of ICompletionService)()
-                Dim completionRules = completionService.GetCompletionRules()
-
-                Assert.Equal(expected, completionRules.SendEnterThroughToEditor(item, textTypedSoFar, workspace.Options))
+                Dim helper = CompletionHelper.GetHelper(document, service)
+                Assert.Equal(expected, helper.SendEnterThroughToEditor(item, textTypedSoFar, document.Options))
             End Using
         End Function
 
@@ -133,18 +138,18 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 Dim document = workspace.CurrentSolution.GetDocument(documentId)
                 Dim position = hostDocument.CursorPosition.Value
 
-                Dim completionList = Await GetCompletionListAsync(document, position, CompletionTriggerInfo.CreateInvokeCompletionTriggerInfo())
+                Dim service = GetCompletionService(workspace)
+                Dim completionList = Await GetCompletionListAsync(service, document, position, CompletionTrigger.Default)
                 Dim item = completionList.Items.First()
 
-                Dim completionService = document.Project.LanguageServices.GetService(Of ICompletionService)()
-                Dim completionRules = completionService.GetCompletionRules()
+                Dim helper = CompletionHelper.GetHelper(document, service)
 
                 For Each ch In chars
-                    Assert.True(completionRules.IsCommitCharacter(item, ch, textTypedSoFar), $"Expected '{ch}' to be a commit character")
+                    Assert.True(helper.IsCommitCharacter(item, ch, textTypedSoFar), $"Expected '{ch}' to be a commit character")
                 Next
 
                 Dim chr = "x"c
-                Assert.False(completionRules.IsCommitCharacter(item, chr, textTypedSoFar), $"Expected '{chr}' NOT to be a commit character")
+                Assert.False(helper.IsCommitCharacter(item, chr, textTypedSoFar), $"Expected '{chr}' NOT to be a commit character")
             End Using
 
         End Function
@@ -199,8 +204,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 Dim document = workspace.Documents.First()
                 Dim text = document.TextBuffer.CurrentSnapshot.AsText()
                 Dim options = workspace.Options.WithChangedOption(CompletionOptions.TriggerOnTypingLetters, LanguageNames.VisualBasic, triggerOnLetter)
+                Dim trigger = CompletionTrigger.CreateInsertionTrigger(text(position))
 
-                Dim isTextualTriggerCharacterResult = CompletionProvider.IsTriggerCharacter(text, position, options)
+                Dim completionService = GetCompletionService(workspace)
+                Dim isTextualTriggerCharacterResult = completionService.ShouldTriggerCompletion(
+                    text, position + 1, trigger, options:=options)
 
                 If expectedTriggerCharacter Then
                     Dim assertText = "'" & text.ToString(New TextSpan(position, 1)) & "' expected to be textual trigger character"

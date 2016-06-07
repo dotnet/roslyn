@@ -14,6 +14,7 @@ using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Packaging;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Options;
+using Microsoft.CodeAnalysis.SymbolSearch;
 using Roslyn.Utilities;
 using static Roslyn.Utilities.PortableShim;
 
@@ -25,15 +26,15 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         private const int MaxResults = 3;
 
         private readonly IPackageInstallerService _packageInstallerService;
-        private readonly IPackageSearchService _packageSearchService;
+        private readonly ISymbolSearchService _symbolSearchService;
 
         /// <summary>Values for these parameters can be provided (during testing) for mocking purposes.</summary> 
         protected AbstractAddImportCodeFixProvider(
             IPackageInstallerService packageInstallerService = null,
-            IPackageSearchService packageSearchService = null)
+            ISymbolSearchService symbolSearchService = null)
         {
             _packageInstallerService = packageInstallerService;
-            _packageSearchService = packageSearchService;
+            _symbolSearchService = symbolSearchService;
         }
 
         protected abstract bool CanAddImport(SyntaxNode node, CancellationToken cancellationToken);
@@ -49,8 +50,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
         protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, INamespaceOrTypeSymbol symbol, Document document, bool specialCaseSystem, CancellationToken cancellationToken);
         protected abstract Task<Document> AddImportAsync(SyntaxNode contextNode, IReadOnlyList<string> nameSpaceParts, Document document, bool specialCaseSystem, CancellationToken cancellationToken);
 
-        internal abstract bool IsViableField(IFieldSymbol field, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken);
-        internal abstract bool IsViableProperty(IPropertySymbol property, SyntaxNode expression, SemanticModel semanticModel, ISyntaxFactsService syntaxFacts, CancellationToken cancellationToken);
         internal abstract bool IsAddMethodContext(SyntaxNode node, SemanticModel semanticModel);
 
         protected abstract string GetDescription(IReadOnlyList<string> nameParts);
@@ -78,8 +77,8 @@ namespace Microsoft.CodeAnalysis.CodeFixes.AddImport
                 return;
             }
 
-            var placeSystemNamespaceFirst = document.Project.Solution.Workspace.Options.GetOption(
-                OrganizerOptions.PlaceSystemNamespaceFirst, document.Project.Language);
+            var placeSystemNamespaceFirst = document.Options.GetOption(
+                OrganizerOptions.PlaceSystemNamespaceFirst);
 
             using (Logger.LogBlock(FunctionId.Refactoring_AddImport, cancellationToken))
             {

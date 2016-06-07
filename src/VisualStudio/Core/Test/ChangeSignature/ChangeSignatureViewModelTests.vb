@@ -90,9 +90,12 @@ class MyClass
             Dim monitor = New PropertyChangedTestMonitor(viewModel)
             monitor.AddExpectation(Function() viewModel.IsOkButtonEnabled)
             monitor.AddExpectation(Function() viewModel.SignatureDisplay)
+            monitor.AddExpectation(Function() viewModel.SignaturePreviewAutomationText)
             monitor.AddExpectation(Function() viewModel.AllParameters)
             monitor.AddExpectation(Function() viewModel.CanMoveUp)
+            monitor.AddExpectation(Function() viewModel.MoveUpAutomationText)
             monitor.AddExpectation(Function() viewModel.CanMoveDown)
+            monitor.AddExpectation(Function() viewModel.MoveDownAutomationText)
 
             viewModel.MoveDown()
 
@@ -104,6 +107,44 @@ class MyClass
                 canMoveDown:=False,
                 permutation:={1, 0},
                 signatureDisplay:="public void M(string y, int x)")
+
+            monitor.Detach()
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.ChangeSignature)>
+        Public Async Function ReorderParameters_MethodWithTwoNormalParameters_RemoveFirstParameter() As Tasks.Task
+            Dim markup = <Text><![CDATA[
+class MyClass
+{
+    public void $$M(int x, string y)
+    {
+    }
+}"]]></Text>
+
+            Dim viewModelTestState = Await GetViewModelTestStateAsync(markup, LanguageNames.CSharp)
+            Dim viewModel = viewModelTestState.ViewModel
+            VerifyOpeningState(viewModel, "public void M(int x, string y)")
+
+            Dim monitor = New PropertyChangedTestMonitor(viewModel)
+            monitor.AddExpectation(Function() viewModel.IsOkButtonEnabled)
+            monitor.AddExpectation(Function() viewModel.SignatureDisplay)
+            monitor.AddExpectation(Function() viewModel.SignaturePreviewAutomationText)
+            monitor.AddExpectation(Function() viewModel.AllParameters)
+            monitor.AddExpectation(Function() viewModel.CanRemove)
+            monitor.AddExpectation(Function() viewModel.RemoveAutomationText)
+            monitor.AddExpectation(Function() viewModel.CanRestore)
+            monitor.AddExpectation(Function() viewModel.RestoreAutomationText)
+
+            viewModel.Remove()
+
+            VerifyAlteredState(
+                viewModelTestState,
+                monitor,
+                isOkButtonEnabled:=True,
+                canMoveUp:=False,
+                canMoveDown:=True,
+                permutation:={1},
+                signatureDisplay:="public void M(string y)")
 
             monitor.Detach()
         End Function
@@ -132,9 +173,12 @@ class MyClass
             Dim monitor = New PropertyChangedTestMonitor(viewModel)
             monitor.AddExpectation(Function() viewModel.IsOkButtonEnabled)
             monitor.AddExpectation(Function() viewModel.SignatureDisplay)
+            monitor.AddExpectation(Function() viewModel.SignaturePreviewAutomationText)
             monitor.AddExpectation(Function() viewModel.AllParameters)
             monitor.AddExpectation(Function() viewModel.CanMoveUp)
+            monitor.AddExpectation(Function() viewModel.MoveUpAutomationText)
             monitor.AddExpectation(Function() viewModel.CanMoveDown)
+            monitor.AddExpectation(Function() viewModel.MoveDownAutomationText)
 
             viewModel.MoveUp()
 
@@ -198,7 +242,7 @@ class MyClass
             End If
 
             If permutation IsNot Nothing Then
-                AssertPermuted({1, 0}, viewModel.AllParameters, viewModelTestState.OriginalParameterList)
+                AssertPermuted(permutation, viewModel.AllParameters, viewModelTestState.OriginalParameterList)
             End If
 
             If signatureDisplay IsNot Nothing Then
@@ -208,9 +252,10 @@ class MyClass
         End Sub
 
         Private Sub AssertPermuted(permutation As Integer(), actualParameterList As List(Of ChangeSignatureDialogViewModel.ParameterViewModel), originalParameterList As ImmutableArray(Of IParameterSymbol))
+            Dim finalParameterList = actualParameterList.Where(Function(p) Not p.IsRemoved)
             For index = 0 To permutation.Length - 1
                 Dim expected = originalParameterList(permutation(index))
-                Assert.Equal(expected, actualParameterList(index).ParameterSymbol)
+                Assert.Equal(expected, finalParameterList(index).ParameterSymbol)
             Next
         End Sub
 

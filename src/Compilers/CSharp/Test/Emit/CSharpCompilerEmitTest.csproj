@@ -13,7 +13,7 @@
     <RootNamespace>Microsoft.CodeAnalysis.CSharp.UnitTests</RootNamespace>
     <AssemblyName>Roslyn.Compilers.CSharp.Emit.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Dependencies\DiaSymReader\DiaSymReader.csproj">
@@ -59,21 +59,17 @@
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <CodeAnalysisRuleSet>..\..\..\..\..\build\TestProjectRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-    <CodeAnalysisRuleSet>..\..\..\..\..\build\TestProjectRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|ARM' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PlatformTarget>ARM</PlatformTarget>
-    <CodeAnalysisRuleSet>..\..\..\..\..\build\TestProjectRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|ARM' ">
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <PlatformTarget>ARM</PlatformTarget>
-    <CodeAnalysisRuleSet>..\..\..\..\..\build\TestProjectRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="Attributes\AttributeTests.cs" />
@@ -122,6 +118,7 @@
     <Compile Include="CodeGen\CodeGenTests.cs" />
     <Compile Include="CodeGen\CodeGenThrowTests.cs" />
     <Compile Include="CodeGen\CodeGenTryFinally.cs" />
+    <Compile Include="CodeGen\CodeGenTupleTest.cs" />
     <Compile Include="CodeGen\CodeGenTypeofTests.cs" />
     <Compile Include="CodeGen\CodeGenUsingStatementTests.cs" />
     <Compile Include="CodeGen\CompoundAssignmentForDelegate.cs" />

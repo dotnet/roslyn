@@ -131,6 +131,7 @@
     <Compile Include="ObjectBrowser\VisualBasicSyncClassViewCommandHandler.vb" />
     <Compile Include="Options\AdvancedOptionPageStrings.vb" />
     <Compile Include="Options\AutomationObject.vb" />
+    <Compile Include="Options\Formatting\CodeStylePage.vb" />
     <Compile Include="Options\NamingStylesOptionPage.vb" />
     <Compile Include="Options\VisualBasicLanguageSettingsSerializer.vb" />
     <Compile Include="Options\VisualBasicSettingsManagerOptionSerializer.vb" />
@@ -166,7 +167,6 @@
     <Compile Include="ProjectSystemShim\VisualBasicProjectShimWithServices.CodeModel.vb" />
     <Compile Include="ProjectSystemShim\VisualBasicProjectShimWithServices.vb" />
     <Compile Include="Snippets\SnippetCommandHandler.vb" />
-    <Compile Include="Snippets\SnippetCompletionProvider.ItemRules.vb" />
     <Compile Include="Snippets\SnippetCompletionProvider.vb" />
     <Compile Include="Snippets\SnippetExpansionClient.vb" />
     <Compile Include="Snippets\SnippetFunctions\SnippetFunctionClassName.vb" />
@@ -190,7 +190,6 @@
     <Reference Include="Microsoft.VisualStudio.ComponentModelHost, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>false</Private>
     </Reference>
-    <Reference Include="Microsoft.VisualStudio.GraphModel, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />

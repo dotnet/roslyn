@@ -740,7 +740,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsLeftSideOfAnyAssignExpression(this SyntaxNode node)
         {
-            return node.Parent.IsAnyAssignExpression() &&
+            return node != null &&
+                node.Parent.IsAnyAssignExpression() &&
                 ((AssignmentExpressionSyntax)node.Parent).Left == node;
         }
 
@@ -864,12 +865,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (initializeExpressionNode != null)
             {
                 return ValueTuple.Create(initializeExpressionNode.OpenBraceToken, initializeExpressionNode.CloseBraceToken);
-            }
-
-            var propertyList = node as SubPropertyPatternListSyntax;
-            if (propertyList != null)
-            {
-                return ValueTuple.Create(propertyList.OpenBraceToken, propertyList.CloseBraceToken);
             }
 
             return new ValueTuple<SyntaxToken, SyntaxToken>();

@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Composition;
+using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
@@ -64,8 +65,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             var memberDeclNode = node as MemberDeclarationSyntax;
             if (memberDeclNode != null)
             {
+                // Attempt to keep the part of a member that follows hte attributes on a single
+                // line if that's how it's currently written.
                 var tokens = memberDeclNode.GetFirstAndLastMemberDeclarationTokensAfterAttributes();
                 AddSuppressWrappingIfOnSingleLineOperation(list, tokens.Item1, tokens.Item2);
+                
+                var attributes = memberDeclNode.GetAttributes();
+                if (attributes.Count > 0)
+                {
+                    // Also, If the member is on single line with its attributes on it, then keep 
+                    // it on a single line.  This is for code like the following:
+                    //
+                    //      [Import] public int Field1;
+                    //      [Import] public int Field2;
+                    AddSuppressWrappingIfOnSingleLineOperation(list,
+                        node.GetFirstToken(includeZeroWidth: true),
+                        node.GetLastToken(includeZeroWidth: true));
+                }
+
                 var propertyDeclNode = node as PropertyDeclarationSyntax;
                 if (propertyDeclNode?.Initializer != null && propertyDeclNode?.AccessorList != null)
                 {
@@ -155,24 +172,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 if (!finallyClause.FinallyKeyword.IsMissing && finallyClause.Block != null && !finallyClause.Block.CloseBraceToken.IsMissing)
                 {
                     AddSuppressWrappingIfOnSingleLineOperation(list, finallyClause.FinallyKeyword, finallyClause.Block.CloseBraceToken);
-                }
-            }
-
-            var propertyPattern = node as PropertyPatternSyntax;
-            if (propertyPattern?.PatternList != null)
-            {
-                AddSuppressWrappingIfOnSingleLineOperation(list, propertyPattern.Type.GetFirstToken(), propertyPattern.PatternList.CloseBraceToken);
-            }
-
-            var casePatternLabel = node as CasePatternSwitchLabelSyntax;
-            if (casePatternLabel != null)
-            {
-                // Need to suppress the addition of a newline between }: in the pattern property case.
-                // case Point { X is 42 }:
-                propertyPattern = casePatternLabel.Pattern as PropertyPatternSyntax;
-                if (propertyPattern != null)
-                {
-                    AddSuppressOperation(list, propertyPattern.PatternList.CloseBraceToken, casePatternLabel.ColonToken, SuppressOption.NoWrapping);
                 }
             }
         }

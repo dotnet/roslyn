@@ -2,6 +2,8 @@
 
 using System;
 using System.Composition;
+using System.Linq;
+using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Editor.Shared.Options;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Extensions;
@@ -10,6 +12,7 @@ using Microsoft.CodeAnalysis.Internal.Log;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.VisualStudio.LanguageServices.Implementation;
+using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Shell;
 using Microsoft.VisualStudio.Shell.Interop;
 
@@ -25,6 +28,9 @@ namespace Microsoft.VisualStudio.LanguageServices
         // memory threshold to turn off full solution analysis - 200MB
         private const long MemoryThreshold = 200 * 1024 * 1024;
 
+        // low vm more info page link
+        private const string LowVMMoreInfoLink = "http://go.microsoft.com/fwlink/?LinkID=799402&clcid=0x409";
+
         private readonly VisualStudioWorkspace _workspace;
         private readonly WorkspaceCacheService _workspaceCacheService;
 
@@ -36,13 +42,9 @@ namespace Microsoft.VisualStudio.LanguageServices
             VisualStudioWorkspace workspace) : base(assertIsForeground: true)
         {
             _workspace = workspace;
+            _workspace.WorkspaceChanged += OnWorkspaceChanged;
 
             _workspaceCacheService = workspace.Services.GetService<IWorkspaceCacheService>() as WorkspaceCacheService;
-            if (_workspaceCacheService == null)
-            {
-                // No need to hook up the event.
-                return;
-            }
 
             var shell = (IVsShell)serviceProvider.GetService(typeof(SVsShell));
 
@@ -78,18 +80,28 @@ namespace Microsoft.VisualStudio.LanguageServices
                             _alreadyLogged = true;
                         }
 
-                        _workspaceCacheService.FlushCaches();
+                        _workspaceCacheService?.FlushCaches();
 
-                        // turn off full solution analysis
-                        if ((long)wParam < MemoryThreshold &&
-                            _workspace.Options.GetOption(InternalFeatureOnOffOptions.FullSolutionAnalysisMemoryMonitor) &&
-                            _workspace.Options.GetOption(RuntimeOptions.FullSolutionAnalysis))
+                        // turn off full solution analysis only if user option is on.
+                        if (ShouldTurnOffFullSolutionAnalysis((long)wParam))
                         {
-                            _workspace.Services.GetService<IOptionService>().SetOptions(_workspace.Options.WithChangedOption(RuntimeOptions.FullSolutionAnalysis, false));
+                            // turn our full solution analysis option off.
+                            // if user full solution analysis option is on, then we will show info bar to users to restore it.
+                            // if user full solution analysis option is off, then setting this doesn't matter. full solution analysis is already off.
+                            _workspace.Options = _workspace.Options.WithChangedOption(RuntimeOptions.FullSolutionAnalysis, false);
 
-                            // let user know full analysis is turned off due to memory concern
-                            // no close info bar action
-                            _workspace.Services.GetService<IErrorReportingService>().ShowErrorInfo(ServicesVSResources.FullSolutionAnalysisOff, () => { });
+                            if (IsUserOptionOn())
+                            {
+                                // let user know full analysis is turned off due to memory concern.
+                                // make sure we show info bar only once for the same solution.
+                                _workspace.Options = _workspace.Options.WithChangedOption(RuntimeOptions.FullSolutionAnalysisInfoBarShown, true);
+
+                                _workspace.Services.GetService<IErrorReportingService>().ShowErrorInfo(ServicesVSResources.FullSolutionAnalysisOff,
+                                    new ErrorReportingUI(ServicesVSResources.Reenable, ErrorReportingUI.UIKind.Button, () =>
+                                        _workspace.Options = _workspace.Options.WithChangedOption(RuntimeOptions.FullSolutionAnalysis, true)),
+                                    new ErrorReportingUI(ServicesVSResources.LearnMore, ErrorReportingUI.UIKind.HyperLink, () =>
+                                        BrowserHelper.StartBrowser(new Uri(LowVMMoreInfoLink)), closeAfterAction: false));
+                            }
                         }
 
                         // turn off low latency GC mode.
@@ -103,6 +115,47 @@ namespace Microsoft.VisualStudio.LanguageServices
             }
 
             return VSConstants.S_OK;
+        }
+
+        private bool ShouldTurnOffFullSolutionAnalysis(long availableMemory)
+        {
+            // conditions
+            // 1. if available memory is less than the threshold and 
+            // 2. if full solution analysis memory monitor is on (user can set it off using registery, when he does, we will never show info bar) and
+            // 3. if our full solution analysis option is on (not user full solution analysis option, but our internal one) and
+            // 4. if infobar is never shown to users for this solution
+            return availableMemory < MemoryThreshold &&
+                  _workspace.Options.GetOption(InternalFeatureOnOffOptions.FullSolutionAnalysisMemoryMonitor) &&
+                  _workspace.Options.GetOption(RuntimeOptions.FullSolutionAnalysis) &&
+                  !_workspace.Options.GetOption(RuntimeOptions.FullSolutionAnalysisInfoBarShown);
+        }
+
+        private bool IsUserOptionOn()
+        {
+            // check languages currently on solution. since we only show info bar once, we don't need to track solution changes.
+            var languages = _workspace.CurrentSolution.Projects.Select(p => p.Language).Distinct();
+            foreach (var language in languages)
+            {
+                if (ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(_workspace.Options, language))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        private void OnWorkspaceChanged(object sender, WorkspaceChangeEventArgs e)
+        {
+            if (e.Kind != WorkspaceChangeKind.SolutionAdded)
+            {
+                return;
+            }
+
+            // first make sure full solution analysis is on. (not user options but our internal options. even if our option is on, if user option is off
+            // full solution analysis won't run. also, reset infobar state.
+            _workspace.Options = _workspace.Options.WithChangedOption(RuntimeOptions.FullSolutionAnalysisInfoBarShown, false)
+                                                   .WithChangedOption(RuntimeOptions.FullSolutionAnalysis, true);
         }
     }
 }

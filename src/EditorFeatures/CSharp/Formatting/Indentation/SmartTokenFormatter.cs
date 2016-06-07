@@ -99,7 +99,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
 
             var smartTokenformattingRules = (new SmartTokenFormattingRule()).Concat(_formattingRules);
             var adjustedStartPosition = previousToken.SpanStart;
-            var indentStyle = workspace.Options.GetOption(FormattingOptions.SmartIndent, LanguageNames.CSharp);
+            var indentStyle = _optionSet.GetOption(FormattingOptions.SmartIndent, LanguageNames.CSharp);
             if (token.IsKind(SyntaxKind.OpenBraceToken) && token.IsFirstTokenOnLine(token.SyntaxTree.GetText()) && indentStyle != FormattingOptions.IndentStyle.Smart)
             {
                 adjustedStartPosition = token.SpanStart;

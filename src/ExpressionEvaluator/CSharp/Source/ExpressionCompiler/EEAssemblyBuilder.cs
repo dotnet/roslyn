@@ -10,6 +10,7 @@ using Microsoft.CodeAnalysis.ExpressionEvaluator;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Reflection.Metadata;
 
 namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 {
@@ -70,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
 
         public override int CurrentGenerationOrdinal => 0;
 
-        internal override VariableSlotAllocator TryCreateVariableSlotAllocator(MethodSymbol symbol, MethodSymbol topLevelMethod)
+        internal override VariableSlotAllocator TryCreateVariableSlotAllocator(MethodSymbol symbol, MethodSymbol topLevelMethod, DiagnosticBag diagnostics)
         {
             var method = symbol as EEMethodSymbol;
             if (((object)method != null) && Methods.Contains(method))
@@ -120,9 +121,9 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 local.Name,
                 (Cci.ITypeReference)type,
                 slot: index,
-                synthesizedKind: (SynthesizedLocalKind)local.SynthesizedKind,
+                synthesizedKind: local.SynthesizedKind,
                 id: LocalDebugId.None,
-                pdbAttributes: Cci.PdbWriter.DefaultLocalAttributesValue,
+                pdbAttributes: LocalVariableAttributes.None,
                 constraints: constraints,
                 isDynamic: false,
                 dynamicTransformFlags: ImmutableArray<TypedConstant>.Empty);
@@ -148,7 +149,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 string nameOpt,
                 SynthesizedLocalKind synthesizedKind,
                 LocalDebugId id,
-                uint pdbAttributes,
+                LocalVariableAttributes pdbAttributes,
                 LocalSlotConstraints constraints,
                 bool isDynamic,
                 ImmutableArray<TypedConstant> dynamicTransformFlags)
