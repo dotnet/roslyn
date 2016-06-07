@@ -334,12 +334,10 @@ namespace Microsoft.CodeAnalysis.Editor
         /// to see if it should commit that item.  If it does neither, then completion will be
         /// dismissed.
         /// </summary>
-        public virtual bool IsCommitCharacter(CompletionItem item, char ch, string textTypedSoFar, string textTypedWithChar = null)
+        public virtual bool IsCommitCharacter(CompletionItem item, char ch, string textTypedSoFar)
         {
             // general rule: if the filtering text exactly matches the start of the item then it must be a filter character
-            textTypedWithChar = textTypedWithChar ?? textTypedSoFar + ch;
-            if (item.DisplayText.StartsWith(textTypedWithChar, StringComparison.CurrentCultureIgnoreCase)
-                || item.FilterText.StartsWith(textTypedWithChar, StringComparison.CurrentCultureIgnoreCase))
+            if (TextTypedSoFarMatchesItem(item, ch, textTypedSoFar))
             {
                 return false;
             }
@@ -349,21 +347,32 @@ namespace Microsoft.CodeAnalysis.Editor
                 switch (rule.Kind)
                 {
                     case CharacterSetModificationKind.Add:
-                        if (rule.Characters.IndexOf(ch) >= 0)
+                        if (rule.Characters.Contains(ch))
+                        {
                             return true;
-                        break;
+                        }
+                        continue;
 
                     case CharacterSetModificationKind.Remove:
-                        if (rule.Characters.IndexOf(ch) >= 0)
+                        if (rule.Characters.Contains(ch))
+                        {
                             return false;
-                        break;
+                        }
+                        continue;
 
                     case CharacterSetModificationKind.Replace:
-                        return rule.Characters.IndexOf(ch) >= 0;
+                        return rule.Characters.Contains(ch);
                 }
             }
 
             return _rules.DefaultCommitCharacters.IndexOf(ch) >= 0;
+        }
+
+        private static bool TextTypedSoFarMatchesItem(CompletionItem item, char ch, string textTypedSoFar)
+        {
+            var textTypedWithChar = textTypedSoFar + ch;
+            return item.DisplayText.StartsWith(textTypedWithChar, StringComparison.CurrentCultureIgnoreCase) ||
+                item.FilterText.StartsWith(textTypedWithChar, StringComparison.CurrentCultureIgnoreCase);
         }
 
         /// <summary>
@@ -375,9 +384,7 @@ namespace Microsoft.CodeAnalysis.Editor
         public virtual bool IsFilterCharacter(CompletionItem item, char ch, string textTypedSoFar)
         {
             // general rule: if the filtering text exactly matches the start of the item then it must be a filter character
-            var textTypedWithChar = textTypedSoFar + ch;
-            if (item.DisplayText.StartsWith(textTypedWithChar, StringComparison.CurrentCultureIgnoreCase) ||
-                item.FilterText.StartsWith(textTypedWithChar, StringComparison.CurrentCultureIgnoreCase))
+            if (TextTypedSoFarMatchesItem(item, ch, textTypedSoFar))
             {
                 return false;
             }
@@ -387,21 +394,21 @@ namespace Microsoft.CodeAnalysis.Editor
                 switch (rule.Kind)
                 {
                     case CharacterSetModificationKind.Add:
-                        if (rule.Characters.IndexOf(ch) >= 0)
+                        if (rule.Characters.Contains(ch))
                         {
                             return true;
                         }
                         continue;
 
                     case CharacterSetModificationKind.Remove:
-                        if (rule.Characters.IndexOf(ch) >= 0)
+                        if (rule.Characters.Contains(ch))
                         {
                             return false;
                         }
                         continue;
 
                     case CharacterSetModificationKind.Replace:
-                        return rule.Characters.IndexOf(ch) >= 0;
+                        return rule.Characters.Contains(ch);
                 }
             }
 
