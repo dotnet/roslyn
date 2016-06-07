@@ -144,10 +144,10 @@ namespace Microsoft.CodeAnalysis.Editor
         private readonly Dictionary<string, PatternMatcher> _fallbackPatternMatcherMap = new Dictionary<string, PatternMatcher>();
         internal static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
 
-        private static PatternMatcher GetPatternMatcher(
-            object gate, string value, CultureInfo culture, Dictionary<string, PatternMatcher> map)
+        private PatternMatcher GetPatternMatcher(
+            string value, CultureInfo culture, Dictionary<string, PatternMatcher> map)
         {
-            lock (gate)
+            lock (_gate)
             {
                 PatternMatcher patternMatcher;
                 if (!map.TryGetValue(value, out patternMatcher))
@@ -164,12 +164,12 @@ namespace Microsoft.CodeAnalysis.Editor
 
         protected PatternMatcher GetPatternMatcher(string value, CultureInfo culture)
         {
-            return GetPatternMatcher(_gate, value, culture, _patternMatcherMap);
+            return GetPatternMatcher(value, culture, _patternMatcherMap);
         }
 
         private PatternMatcher GetEnUSPatternMatcher(string value)
         {
-            return GetPatternMatcher(_gate, value, EnUSCultureInfo, _fallbackPatternMatcherMap);
+            return GetPatternMatcher(value, EnUSCultureInfo, _fallbackPatternMatcherMap);
         }
 
         /// <summary>
