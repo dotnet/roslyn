@@ -2407,7 +2407,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 int parm = argToParamMap.IsDefault ? arg : argToParamMap[arg];
                 // If this is the __arglist parameter, just skip it.
-                if (parm == parameters.Length)
+                if (parm >= parameters.Length)
                 {
                     continue;
                 }
@@ -2519,12 +2519,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             var argumentAnalysis = AnalyzeArguments(member, arguments, isMethodGroupConversion, expanded: false);
             if (!argumentAnalysis.IsValid)
             {
-                // When we are producing more complete results, and a required parameter is missing, we push on
-                // to type inference so that lambda arguments can be bound to their delegate-typed parameters,
-                // thus improving the API and intellisense experience.
-                if (!completeResults || argumentAnalysis.Kind != ArgumentAnalysisResultKind.RequiredParameterMissing)
+                switch (argumentAnalysis.Kind)
                 {
-                    return new MemberResolutionResult<TMember>(member, leastOverriddenMember, MemberAnalysisResult.ArgumentParameterMismatch(argumentAnalysis));
+                    case ArgumentAnalysisResultKind.RequiredParameterMissing:
+                    case ArgumentAnalysisResultKind.NoCorrespondingParameter:
+                        if (!completeResults) goto default;
+                        // When we are producing more complete results, and we have the wrong number of arguments, we push on
+                        // through type inference so that lambda arguments can be bound to their delegate-typed parameters,
+                        // thus improving the API and intellisense experience.
+                        break;
+                    default:
+                        return new MemberResolutionResult<TMember>(member, leastOverriddenMember, MemberAnalysisResult.ArgumentParameterMismatch(argumentAnalysis));
                 }
             }
 
@@ -2823,10 +2828,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // list is of the wrong length. The caller is expected to detect and handle that,
                 // treating the method as inapplicable.
                 paramCount = arguments.Arguments.Count;
-            }
-            else
-            {
-                Debug.Assert(paramCount == arguments.Arguments.Count);
             }
 
             // For each argument in A, the parameter passing mode of the argument (i.e., value, ref, or out) is 

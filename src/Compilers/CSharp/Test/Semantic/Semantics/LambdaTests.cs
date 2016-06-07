@@ -1963,5 +1963,62 @@ public class MyList<TSource>
             Assert.Equal("String", typeInfo.Type.Name);
             Assert.NotEmpty(typeInfo.Type.GetMembers("Replace"));
         }
+
+        [Fact]
+        [WorkItem(557, "https://github.com/dotnet/roslyn/issues/557")]
+        public void TestLambdaWithError11()
+        {
+            var source =
+@"using System.Linq;
+
+public static class Program
+{
+    public static void Main()
+    {
+        var x = new {
+            X = """".Select(c => c.
+            Y = 0,
+        };
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var tree = compilation.SyntaxTrees[0];
+            var sm = compilation.GetSemanticModel(tree);
+            var lambda = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var eReference = lambda.Body.DescendantNodes().OfType<IdentifierNameSyntax>().First();
+            Assert.Equal("c", eReference.ToString());
+            var typeInfo = sm.GetTypeInfo(eReference);
+            Assert.Equal(TypeKind.Struct, typeInfo.Type.TypeKind);
+            Assert.Equal("Char", typeInfo.Type.Name);
+            Assert.NotEmpty(typeInfo.Type.GetMembers("IsHighSurrogate")); // check it is the char we know and love
+        }
+
+        [Fact]
+        [WorkItem(5498, "https://github.com/dotnet/roslyn/issues/5498")]
+        public void TestLambdaWithError12()
+        {
+            var source =
+@"using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var z = args.Select(a => a.
+        var foo = 
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var tree = compilation.SyntaxTrees[0];
+            var sm = compilation.GetSemanticModel(tree);
+            var lambda = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var eReference = lambda.Body.DescendantNodes().OfType<IdentifierNameSyntax>().First();
+            Assert.Equal("a", eReference.ToString());
+            var typeInfo = sm.GetTypeInfo(eReference);
+            Assert.Equal(TypeKind.Class, typeInfo.Type.TypeKind);
+            Assert.Equal("String", typeInfo.Type.Name);
+            Assert.NotEmpty(typeInfo.Type.GetMembers("Replace"));
+        }
     }
 }
