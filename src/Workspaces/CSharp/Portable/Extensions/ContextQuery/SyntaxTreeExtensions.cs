@@ -1201,7 +1201,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
             if (token.IsKind(SyntaxKind.OutKeyword) &&
                 token.Parent.IsKind(SyntaxKind.Argument) &&
-                ((ArgumentSyntax)token.Parent).VariableDeclaration != null)
+                ((ArgumentSyntax)token.Parent).Declaration != null)
             {
                 return true;
             }
