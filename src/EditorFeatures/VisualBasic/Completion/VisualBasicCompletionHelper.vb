@@ -52,6 +52,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion
             Return MyBase.MatchesFilterText(item, filterText, trigger, filterReason, recentItems)
         End Function
 
+#If False Then
         Protected Overrides Function GetCultureSpecificQuirks(candidate As String) As String
             ' TODO: define way to identify this case w/o language specific check
             If CultureInfo.CurrentCulture.Name = "tr-TR" Then
@@ -60,6 +61,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion
 
             Return candidate
         End Function
+#End If
 
         Public Overrides Function IsBetterFilterMatch(item1 As CompletionItem, item2 As CompletionItem, filterText As String, trigger As CompletionTrigger, filterReason As CompletionFilterReason, Optional recentItems As ImmutableArray(Of String) = Nothing) As Boolean
 

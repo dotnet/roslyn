@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor
             // Start with the culture-specific comparison, and fall back to en-US.
             if (!CultureInfo.CurrentCulture.Equals(EnUSCultureInfo))
             {
-                patternMatcher = this.GetFallbackPatternMatcher(GetCultureSpecificQuirks(filterText));
+                patternMatcher = this.GetEnUSPatternMatcher(GetCultureSpecificQuirks(filterText));
                 match = patternMatcher.GetFirstMatch(GetCultureSpecificQuirks(item.FilterText));
                 if (match != null)
                 {
@@ -153,38 +153,32 @@ namespace Microsoft.CodeAnalysis.Editor
         private readonly Dictionary<string, PatternMatcher> _fallbackPatternMatcherMap = new Dictionary<string, PatternMatcher>();
         internal static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
 
-        protected PatternMatcher GetPatternMatcher(string value, CultureInfo culture)
+        private static PatternMatcher GetPatternMatcher(
+            object gate, string value, CultureInfo culture, Dictionary<string, PatternMatcher> map)
         {
-            lock (_gate)
+            lock (gate)
             {
                 PatternMatcher patternMatcher;
-                if (!_patternMatcherMap.TryGetValue(value, out patternMatcher))
+                if (!map.TryGetValue(value, out patternMatcher))
                 {
-                    patternMatcher = new PatternMatcher(value, culture, 
-                        verbatimIdentifierPrefixIsWordCharacter: true, 
+                    patternMatcher = new PatternMatcher(value, culture,
+                        verbatimIdentifierPrefixIsWordCharacter: true,
                         allowFuzzyMatching: false);
-                    _patternMatcherMap.Add(value, patternMatcher);
+                    map.Add(value, patternMatcher);
                 }
 
                 return patternMatcher;
             }
         }
 
-        private PatternMatcher GetFallbackPatternMatcher(string value)
+        protected PatternMatcher GetPatternMatcher(string value, CultureInfo culture)
         {
-            lock (_gate)
-            {
-                PatternMatcher patternMatcher;
-                if (!_fallbackPatternMatcherMap.TryGetValue(value, out patternMatcher))
-                {
-                    patternMatcher = new PatternMatcher(
-                        value, EnUSCultureInfo, verbatimIdentifierPrefixIsWordCharacter: true,
-                        allowFuzzyMatching: false);
-                    _fallbackPatternMatcherMap.Add(value, patternMatcher);
-                }
+            return GetPatternMatcher(_gate, value, culture, _patternMatcherMap);
+        }
 
-                return patternMatcher;
-            }
+        private PatternMatcher GetEnUSPatternMatcher(string value)
+        {
+            return GetPatternMatcher(_gate, value, EnUSCultureInfo, _fallbackPatternMatcherMap);
         }
 
         /// <summary>
