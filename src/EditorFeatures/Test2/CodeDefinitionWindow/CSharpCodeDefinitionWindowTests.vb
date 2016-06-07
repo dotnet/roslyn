@@ -15,7 +15,20 @@ class $$[|C|]
 {
 }"
 
-            Await VerifyContextLocationInSameFile(code)
+            Await VerifyContextLocationInSameFile(code, "C")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeDefinitionWindow)>
+        Public Async Function MethodFromDefinition() As Task
+            Const code As String = "
+class C
+{
+    void $$[|M|]()
+    {
+    }
+}"
+
+            Await VerifyContextLocationInSameFile(code, "C.M()")
         End Function
 
         Protected Overrides Function CreateWorkspaceAsync(code As String) As Task(Of TestWorkspace)

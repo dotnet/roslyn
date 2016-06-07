@@ -9,11 +9,10 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
     Public MustInherit Class AbstractCodeDefinitionWindowTests
         Protected MustOverride Function CreateWorkspaceAsync(code As String) As Task(Of TestWorkspace)
 
-        Protected Async Function VerifyContextLocationInSameFile(code As String) As Task
+        Protected Async Function VerifyContextLocationInSameFile(code As String, displayName As String) As Task
             Using workspace = Await CreateWorkspaceAsync(code)
                 Dim hostDocument = workspace.Documents.Single()
                 Dim document As Document = workspace.CurrentSolution.GetDocument(hostDocument.Id)
-                Dim text = Await document.GetTextAsync(CancellationToken.None)
                 Dim tree = Await document.GetSyntaxTreeAsync()
 
                 Dim definitionContextTracker As New DefinitionContextTracker(Nothing, Nothing)
@@ -24,7 +23,7 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
                     CancellationToken.None)
 
                 Dim expectedLocation = New CodeDefinitionWindowLocation(
-                    text.ToString(hostDocument.SelectedSpans.Single()),
+                    displayName,
                     tree.GetLocation(hostDocument.SelectedSpans.Single()).GetLineSpan())
 
                 Assert.Equal(expectedLocation, locations.Single())

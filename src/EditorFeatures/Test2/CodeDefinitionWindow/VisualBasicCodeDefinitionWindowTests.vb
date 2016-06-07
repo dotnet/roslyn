@@ -14,7 +14,7 @@ Namespace Microsoft.CodeAnalysis.Editor.CodeDefinitionWindow.UnitTests
 Class $$[|C|]
 End Class"
 
-            Await VerifyContextLocationInSameFile(code)
+            Await VerifyContextLocationInSameFile(code, "C")
         End Function
 
         Protected Overrides Function CreateWorkspaceAsync(code As String) As Task(Of TestWorkspace)
