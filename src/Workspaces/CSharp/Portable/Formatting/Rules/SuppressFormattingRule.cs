@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Options;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.CSharp.Formatting
 {
@@ -173,6 +174,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
                 {
                     AddSuppressWrappingIfOnSingleLineOperation(list, finallyClause.FinallyKeyword, finallyClause.Block.CloseBraceToken);
                 }
+            }
+
+            var interpolatedStringExpression = node as InterpolatedStringExpressionSyntax;
+            if (interpolatedStringExpression != null)
+            {
+                AddSuppressWrappingIfOnSingleLineOperation(list, interpolatedStringExpression.StringStartToken, interpolatedStringExpression.StringEndToken);
             }
         }
 
