@@ -42,10 +42,7 @@ namespace Roslyn.Diagnostics.Analyzers
             isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-        {
-            get { return ImmutableArray.Create(UseEmptyEnumerableRule, UseSingletonEnumerableRule); }
-        }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(UseEmptyEnumerableRule, UseSingletonEnumerableRule);
 
         public override void Initialize(AnalysisContext analysisContext)
         {
@@ -128,10 +125,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 _genericEmptyEnumerableSymbol = genericEmptyEnumerableSymbol;
             }
 
-            public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-            {
-                get { return ImmutableArray.Create(UseEmptyEnumerableRule, UseSingletonEnumerableRule); }
-            }
+            public ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(UseEmptyEnumerableRule, UseSingletonEnumerableRule);
 
             protected bool ShouldAnalyzeArrayCreationExpression(SyntaxNode expression, SemanticModel semanticModel)
             {

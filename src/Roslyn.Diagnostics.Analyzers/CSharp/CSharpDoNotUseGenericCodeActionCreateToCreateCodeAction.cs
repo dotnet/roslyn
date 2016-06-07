@@ -36,10 +36,7 @@ namespace Roslyn.Diagnostics.Analyzers
             {
             }
 
-            public ImmutableArray<SyntaxKind> SyntaxKindsOfInterest
-            {
-                get { return ImmutableArray.Create(SyntaxKind.InvocationExpression); }
-            }
+            public ImmutableArray<SyntaxKind> SyntaxKindsOfInterest => ImmutableArray.Create(SyntaxKind.InvocationExpression);
 
             public void AnalyzeNode(SyntaxNodeAnalysisContext context)
             {

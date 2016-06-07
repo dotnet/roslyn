@@ -26,10 +26,7 @@ namespace Roslyn.Diagnostics.Analyzers
             isEnabledByDefault: true,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-        {
-            get { return ImmutableArray.Create(DoNotUseCodeActionCreateRule); }
-        }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(DoNotUseCodeActionCreateRule);
 
         public override void Initialize(AnalysisContext context)
         {

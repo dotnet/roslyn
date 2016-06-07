@@ -25,10 +25,7 @@ namespace Roslyn.Diagnostics.Analyzers
             return new CSharpCompilationAnalyzer(symbolType, compilationType);
         }
 
-        protected override SyntaxKind InvocationExpressionSyntaxKind
-        {
-            get { return SyntaxKind.InvocationExpression; }
-        }
+        protected override SyntaxKind InvocationExpressionSyntaxKind => SyntaxKind.InvocationExpression;
 
         private sealed class CSharpCompilationAnalyzer : CompilationAnalyzer
         {
@@ -36,13 +33,7 @@ namespace Roslyn.Diagnostics.Analyzers
                 : base(symbolType, compilationType)
             { }
 
-            protected override HashSet<string> SymbolTypesWithExpectedSymbolDeclaredEvent
-            {
-                get
-                {
-                    return s_symbolTypesWithExpectedSymbolDeclaredEvent;
-                }
-            }
+            protected override HashSet<string> SymbolTypesWithExpectedSymbolDeclaredEvent => s_symbolTypesWithExpectedSymbolDeclaredEvent;
 
             protected override SyntaxNode GetFirstArgumentOfInvocation(SyntaxNode node)
             {
