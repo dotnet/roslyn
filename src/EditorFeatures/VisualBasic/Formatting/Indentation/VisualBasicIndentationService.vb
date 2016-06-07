@@ -6,6 +6,7 @@ Imports Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 Imports Microsoft.CodeAnalysis.Formatting.Rules
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
+Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.Text.Shared.Extensions
@@ -23,8 +24,13 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
             Return s_instance
         End Function
 
-        Protected Overrides Function GetIndenter(syntaxTree As SyntaxTree, lineToBeIndented As TextLine, formattingRules As IEnumerable(Of IFormattingRule), optionSet As OptionSet, cancellationToken As CancellationToken) As AbstractIndenter
-            Return New Indenter(syntaxTree, formattingRules, optionSet, lineToBeIndented, cancellationToken)
+        Protected Overrides Function GetIndenter(syntaxFacts As ISyntaxFactsService,
+                                                 syntaxTree As SyntaxTree,
+                                                 lineToBeIndented As TextLine,
+                                                 formattingRules As IEnumerable(Of IFormattingRule),
+                                                 optionSet As OptionSet,
+                                                 cancellationToken As CancellationToken) As AbstractIndenter
+            Return New Indenter(syntaxFacts, syntaxTree, formattingRules, optionSet, lineToBeIndented, cancellationToken)
         End Function
 
         Protected Overrides Function ShouldUseSmartTokenFormatterInsteadOfIndenter(formattingRules As IEnumerable(Of IFormattingRule),

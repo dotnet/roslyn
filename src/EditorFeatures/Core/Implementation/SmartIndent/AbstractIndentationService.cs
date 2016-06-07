@@ -3,12 +3,12 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
-using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
@@ -42,12 +42,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
                 return null;
             }
 
-            var indenter = GetIndenter(root.SyntaxTree, lineToBeIndented, formattingRules, document.Options, cancellationToken);
+            var indenter = GetIndenter(
+                document.GetLanguageService<ISyntaxFactsService>(),
+                root.SyntaxTree, lineToBeIndented, formattingRules,
+                document.Options, cancellationToken);
+
             return indenter.GetDesiredIndentation();
         }
 
         protected abstract AbstractIndenter GetIndenter(
-            SyntaxTree syntaxTree, TextLine lineToBeIndented, IEnumerable<IFormattingRule> formattingRules, OptionSet optionSet, CancellationToken cancellationToken);
+            ISyntaxFactsService syntaxFacts, SyntaxTree syntaxTree, TextLine lineToBeIndented, IEnumerable<IFormattingRule> formattingRules, OptionSet optionSet, CancellationToken cancellationToken);
 
         protected abstract bool ShouldUseSmartTokenFormatterInsteadOfIndenter(
             IEnumerable<IFormattingRule> formattingRules, SyntaxNode root, TextLine line, OptionSet optionSet, CancellationToken cancellationToken);

@@ -12,6 +12,7 @@ using Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Host.Mef;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
@@ -31,9 +32,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Formatting.Indentation
         }
 
         protected override AbstractIndenter GetIndenter(
-            SyntaxTree syntaxTree, TextLine lineToBeIndented, IEnumerable<IFormattingRule> formattingRules, OptionSet optionSet, CancellationToken cancellationToken)
+            ISyntaxFactsService syntaxFacts, SyntaxTree syntaxTree, TextLine lineToBeIndented, IEnumerable<IFormattingRule> formattingRules, OptionSet optionSet, CancellationToken cancellationToken)
         {
-            return new Indenter(syntaxTree, formattingRules, optionSet, lineToBeIndented, cancellationToken);
+            return new Indenter(
+                syntaxFacts, syntaxTree, formattingRules,
+                optionSet, lineToBeIndented, cancellationToken);
         }
 
         protected override bool ShouldUseSmartTokenFormatterInsteadOfIndenter(
