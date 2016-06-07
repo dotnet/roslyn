@@ -332,7 +332,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         conversionKind: conversionKind,
                         @checked: @checked,
                         explicitCastInCode: explicitCastInCode,
-                        rewrittenType: (TupleTypeSymbol)rewrittenType);
+                        rewrittenType: (NamedTypeSymbol)rewrittenType);
 
                 default:
                     break;
@@ -634,14 +634,29 @@ namespace Microsoft.CodeAnalysis.CSharp
             ConversionKind conversionKind,
             bool @checked,
             bool explicitCastInCode,
-            TupleTypeSymbol rewrittenType)
+            NamedTypeSymbol rewrittenType)
         {
-            var destElementTypes = rewrittenType.TupleElementTypes;
+            var destElementTypes = rewrittenType.GetElementTypesIfTupleOrCompatible();
             var numElements = destElementTypes.Length;
 
-            var srcType = (TupleTypeSymbol)rewrittenOperand.Type;
-            var srcEleemntTypes = srcType.TupleElementTypes;
-            var srcElementFields = srcType.TupleElementFields;
+            ImmutableArray<FieldSymbol> srcElementFields;
+            TypeSymbol srcType = rewrittenOperand.Type;
+
+            if (srcType.IsTupleType)
+            {
+                srcElementFields = ((TupleTypeSymbol)srcType).TupleElementFields;
+            }
+            else
+            {
+                // The following codepath should be very uncommon (if reachable at all)
+                // we should generally not see tuple compatible types in bound trees and 
+                // see actual tuple types instead.
+                Debug.Assert(srcType.IsTupleCompatible());
+
+                // PERF: if allocations here become nuisance, consider caching the TupleTypeSymbol
+                //       in the type symbols that can actually be tuple compatible
+                srcElementFields = TupleTypeSymbol.Create((NamedTypeSymbol)srcType).TupleElementFields;
+            }
 
             var fieldAccessorsBuilder = ArrayBuilder<BoundExpression>.GetInstance(numElements);
 
@@ -657,7 +672,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Symbol.ReportUseSiteDiagnostic(useSiteInfo, _diagnostics, syntax.Location);
                 }
-                var fieldAccess = MakeTupleFieldAccess(syntax, field, savedTuple, null, LookupResultKind.Empty, srcEleemntTypes[i]);
+                var fieldAccess = MakeTupleFieldAccess(syntax, field, savedTuple, null, LookupResultKind.Empty);
                 var convertedFieldAccess = MakeConversion(fieldAccess, destElementTypes[i], @checked);
                 fieldAccessorsBuilder.Add(convertedFieldAccess);
             }

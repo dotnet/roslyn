@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Generic;
 using Roslyn.Utilities;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -923,15 +924,12 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private bool HasImplicitTupleConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
-            if (!source.IsTupleType || !destination.IsTupleType)
-            {
-                return false;
-            }
+            ImmutableArray<TypeSymbol> sourceTypes;
+            ImmutableArray<TypeSymbol> destTypes;
 
-            var sourceTypes = source.TupleElementTypes;
-            var destTypes = destination.TupleElementTypes;
-
-            if (sourceTypes.Length != destTypes.Length)
+            if (!source.TryGetElementTypesIfTupleOrCompatible(out sourceTypes) ||
+                !destination.TryGetElementTypesIfTupleOrCompatible(out destTypes) ||
+                sourceTypes.Length != destTypes.Length)
             {
                 return false;
             }

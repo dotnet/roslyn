@@ -291,9 +291,10 @@ class C
 
             var comp = CreateCompilationWithMscorlib45AndCSruntime(source, TestOptions.ReleaseExe, parseOptions: TestOptions.Regular.WithTuplesFeature());
 
-            CompileAndVerify(comp, expectedOutput: @"
-{1, 2}
-").VerifyIL("C.Main", @"
+            var verifier = CompileAndVerify(comp, expectedOutput: @"
+{1, 2}");
+            
+            verifier.VerifyIL("C.Main", @"
 {
   // Code size      129 (0x81)
   .maxstack  7
@@ -3032,9 +3033,12 @@ class C3
             var comp2 = CreateCompilationWithMscorlib(source2, parseOptions: TestOptions.Regular.WithTuplesFeature());
             var comp = CreateCompilationWithMscorlib(source, references: new[] { new CSharpCompilationReference(comp1), new CSharpCompilationReference(comp2) }, parseOptions: TestOptions.Regular.WithTuplesFeature(), options: TestOptions.ReleaseExe);
 
-            CompileAndVerify(comp, expectedOutput:
-@"C1.M
-C2.M").VerifyIL("C3.Main()",
+            var v = CompileAndVerify(comp, expectedOutput:@"
+C1.M
+C2.M
+");
+
+v.VerifyIL("C3.Main()",
 @"
 {
   // Code size       31 (0x1f)
@@ -4414,8 +4418,9 @@ class C
 " + trivial2uple;
 
             var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"
-{1, hello}
-").VerifyIL("C.Main()",
+{1, hello}");
+            
+            comp.VerifyIL("C.Main()",
 @"
 {
   // Code size       40 (0x28)
@@ -4435,6 +4440,26 @@ class C
   IL_0027:  ret
 }
 "); ;
+        }
+
+        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/11875")]
+        [WorkItem(11875, "https://github.com/dotnet/roslyn/issues/11875")]
+        public void TupleTargetTypeFail01()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        (int, int) x = (null, null);
+        (int, int) x = null;
+    }
+}
+" + trivial2uple;
+
+            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature()).VerifyDiagnostics(
+                // appropriate errors here
+            );
         }
 
         [Fact]
@@ -11698,8 +11723,9 @@ class C
 
             var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"
 {2, 2}
-{2, 2}
-").VerifyIL("C.Main", @"
+{2, 2}");
+            
+            comp.VerifyIL("C.Main", @"
 {
   // Code size      125 (0x7d)
   .maxstack  2
@@ -11945,6 +11971,45 @@ class C
 
         }
 
+        public void ImplicitConversions06Err()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        var x = (1, 1);
+        (long, long) y = x;   
+ 
+        System.Console.WriteLine(y);
+    }
+
+}
+
+namespace System
+{
+    // struct with two values (missing a field)
+    public struct ValueTuple<T1, T2>
+    {
+        public T1 Item1;
+
+        public ValueTuple(T1 item1, T2 item2)
+        {
+            this.Item1 = item1;
+        }
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), assemblyName: "ImplicitConversions06Err");
+            comp.VerifyEmitDiagnostics(
+                // (7,26): error CS8205: Member 'Item2' was not found on type 'ValueTuple<T1, T2>' from assembly 'ImplicitConversions06Err, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         (long, long) y = x;   
+                Diagnostic(ErrorCode.ERR_PredefinedTypeMemberNotFoundInAssembly, "x").WithArguments("Item2", "System.ValueTuple<T1, T2>", "ImplicitConversions06Err, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 26)
+            );
+
+        }
+
         [Fact]
         public void ConversionsOverload02()
         {
@@ -12101,6 +12166,366 @@ class Program
                 //         Test<(IEnumerable<int>, IEnumerable <int>)> (z, z1);
                 Diagnostic(ErrorCode.ERR_BadArgType, "z1").WithArguments("2", "(System.Action<System.Collections.Generic.IEnumerable<int>> x, System.Action<System.Collections.Generic.IEnumerable<int>> y)", "System.Action<(System.Collections.Generic.IEnumerable<int>, System.Collections.Generic.IEnumerable<int>)>").WithLocation(25, 57)
                 );
+        }
+
+        [Fact]
+        public void ClassifyConversionIdentity01()
+        {
+            var tupleComp = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivalRemainingTuples);
+            var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp.ToMetadataReference() });
+
+            ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
+            ITypeSymbol stringType = comp.GetSpecialType(SpecialType.System_String);
+
+            var int_string1 = comp.CreateTupleTypeSymbol(ImmutableArray.Create(intType, stringType));
+            var int_string2 = comp.CreateTupleTypeSymbol(ImmutableArray.Create(intType, stringType));
+            var int_stringNamed = comp.CreateTupleTypeSymbol(ImmutableArray.Create(intType, stringType), ImmutableArray.Create("a", "b"));
+
+            Assert.Equal(ConversionKind.Identity, comp.ClassifyConversion(int_string1, int_string1).Kind);
+            Assert.Equal(ConversionKind.Identity, comp.ClassifyConversion(int_string1, int_string2).Kind);
+            Assert.Equal(ConversionKind.Identity, comp.ClassifyConversion(int_string1, int_stringNamed).Kind);
+        }
+
+        [Fact]
+        public void ClassifyConversionIdentity02()
+        {
+            var tupleComp = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivalRemainingTuples);
+            var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp.ToMetadataReference() });
+
+            ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
+            ITypeSymbol stringType = comp.GetSpecialType(SpecialType.System_String);
+
+            var int_string1 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct((TypeSymbol)intType, (TypeSymbol)stringType);
+            var int_string2 = comp.CreateTupleTypeSymbol(ImmutableArray.Create(intType, stringType));
+            var int_stringNamed = comp.CreateTupleTypeSymbol(ImmutableArray.Create(intType, stringType), ImmutableArray.Create("a", "b"));
+
+            Assert.Equal(ConversionKind.Identity, comp.ClassifyConversion(int_string1, int_string1).Kind);
+            Assert.Equal(ConversionKind.Identity, comp.ClassifyConversion(int_string1, int_string2).Kind);
+            Assert.Equal(ConversionKind.Identity, comp.ClassifyConversion(int_string1, int_stringNamed).Kind);
+            Assert.Equal(ConversionKind.Identity, comp.ClassifyConversion(int_string2, int_string1).Kind);
+            Assert.Equal(ConversionKind.Identity, comp.ClassifyConversion(int_stringNamed, int_string1).Kind);
+        }
+
+        [Fact]
+        public void ClassifyConversionNone01()
+        {
+            var tupleComp = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivalRemainingTuples);
+            var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp.ToMetadataReference() });
+
+            ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
+            ITypeSymbol stringType = comp.GetSpecialType(SpecialType.System_String);
+
+            var int_int = comp.CreateTupleTypeSymbol(ImmutableArray.Create(intType, intType));
+            var int_int_int = comp.CreateTupleTypeSymbol(ImmutableArray.Create(intType, intType, intType));
+            var string_string = comp.CreateTupleTypeSymbol(ImmutableArray.Create(stringType, stringType));
+
+            var int_int1 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct((TypeSymbol)intType, (TypeSymbol)intType);
+
+            Assert.Equal(ConversionKind.NoConversion, comp.ClassifyConversion(int_int, int_int_int).Kind);
+            Assert.Equal(ConversionKind.NoConversion, comp.ClassifyConversion(int_int, string_string).Kind);
+            Assert.Equal(ConversionKind.NoConversion, comp.ClassifyConversion(int_int1, string_string).Kind);
+            Assert.Equal(ConversionKind.NoConversion, comp.ClassifyConversion(int_int1, int_int_int).Kind);
+            Assert.Equal(ConversionKind.NoConversion, comp.ClassifyConversion(string_string, int_int1).Kind);
+            Assert.Equal(ConversionKind.NoConversion, comp.ClassifyConversion(int_int_int, int_int1).Kind);
+        }
+
+        [Fact]
+        public void ClassifyConversionImplicit01()
+        {
+            var tupleComp = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivalRemainingTuples);
+            var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp.ToMetadataReference() });
+
+            ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
+            ITypeSymbol stringType = comp.GetSpecialType(SpecialType.System_String);
+            ITypeSymbol objectType = comp.GetSpecialType(SpecialType.System_Object);
+
+            var int_string = comp.CreateTupleTypeSymbol(ImmutableArray.Create(intType, stringType));
+            var int_object = comp.CreateTupleTypeSymbol(ImmutableArray.Create(intType, objectType));
+
+            Assert.Equal(ConversionKind.ImplicitTuple, comp.ClassifyConversion(int_string, int_object).Kind);
+            Assert.Equal(ConversionKind.NoConversion, comp.ClassifyConversion(int_object, int_string).Kind);
+        }
+
+        [Fact]
+        public void ClassifyConversionImplicit02()
+        {
+            var tupleComp = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivalRemainingTuples);
+            var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp.ToMetadataReference() });
+
+            ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
+            ITypeSymbol stringType = comp.GetSpecialType(SpecialType.System_String);
+            ITypeSymbol objectType = comp.GetSpecialType(SpecialType.System_Object);
+
+            var int_string1 = comp.CreateTupleTypeSymbol(ImmutableArray.Create(intType, stringType));
+            var int_object1 = comp.CreateTupleTypeSymbol(ImmutableArray.Create(intType, objectType));
+
+            var int_string2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct((TypeSymbol)intType, (TypeSymbol)stringType);
+            var int_object2 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct((TypeSymbol)intType, (TypeSymbol)objectType);
+
+
+            Assert.Equal(ConversionKind.ImplicitTuple, comp.ClassifyConversion(int_string1, int_object2).Kind);
+            Assert.Equal(ConversionKind.ImplicitTuple, comp.ClassifyConversion(int_string2, int_object1).Kind);
+            Assert.Equal(ConversionKind.ImplicitTuple, comp.ClassifyConversion(int_string2, int_object2).Kind);
+
+            Assert.Equal(ConversionKind.NoConversion, comp.ClassifyConversion(int_object2, int_string1).Kind);
+            Assert.Equal(ConversionKind.NoConversion, comp.ClassifyConversion(int_object1, int_string2).Kind);
+            Assert.Equal(ConversionKind.NoConversion, comp.ClassifyConversion(int_object2, int_string2).Kind);
+        }
+
+        [Fact]
+        public void ClassifyConversionImplicit03()
+        {
+            var tupleComp1 = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivalRemainingTuples);
+            var tupleComp2 = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivalRemainingTuples);
+            var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp1.ToMetadataReference(), tupleComp2.ToMetadataReference() });
+
+            ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
+            ITypeSymbol stringType = comp.GetSpecialType(SpecialType.System_String);
+            ITypeSymbol objectType = comp.GetSpecialType(SpecialType.System_Object);
+
+            var int_string1 = tupleComp1.CreateTupleTypeSymbol(ImmutableArray.Create(intType, stringType));
+            var int_string2 = tupleComp2.CreateTupleTypeSymbol(ImmutableArray.Create(intType, stringType));
+
+            var int_object = tupleComp1.CreateTupleTypeSymbol(ImmutableArray.Create(intType, objectType));
+
+            Assert.Equal(ConversionKind.ImplicitTuple, comp.ClassifyConversion(int_string1, int_string2).Kind);
+            Assert.Equal(ConversionKind.ImplicitTuple, comp.ClassifyConversion(int_string2, int_string1).Kind);
+            Assert.Equal(ConversionKind.ImplicitTuple, comp.ClassifyConversion(int_string1, int_object).Kind);
+            Assert.Equal(ConversionKind.ImplicitTuple, comp.ClassifyConversion(int_string2, int_object).Kind);
+
+            Assert.Equal(ConversionKind.NoConversion, comp.ClassifyConversion(int_object, int_string1).Kind);
+            Assert.Equal(ConversionKind.NoConversion, comp.ClassifyConversion(int_object, int_string2).Kind);
+        }
+
+        [Fact]
+        public void ClassifyConversionImplicit03u()
+        {
+            var tupleComp1 = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivalRemainingTuples);
+            var tupleComp2 = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivalRemainingTuples);
+            var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp1.ToMetadataReference(), tupleComp2.ToMetadataReference() });
+
+            ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
+            ITypeSymbol stringType = comp.GetSpecialType(SpecialType.System_String);
+            ITypeSymbol objectType = comp.GetSpecialType(SpecialType.System_Object);
+
+            var int_string1 = tupleComp1.CreateTupleTypeSymbol(ImmutableArray.Create(intType, stringType)).TupleUnderlyingType;
+            var int_string2 = tupleComp2.CreateTupleTypeSymbol(ImmutableArray.Create(intType, stringType));
+
+            var int_object = tupleComp1.CreateTupleTypeSymbol(ImmutableArray.Create(intType, objectType));
+
+            Assert.Equal(ConversionKind.ImplicitTuple, comp.ClassifyConversion(int_string1, int_string2).Kind);
+            Assert.Equal(ConversionKind.ImplicitTuple, comp.ClassifyConversion(int_string2, int_string1).Kind);
+            Assert.Equal(ConversionKind.ImplicitTuple, comp.ClassifyConversion(int_string1, int_object).Kind);
+            Assert.Equal(ConversionKind.ImplicitTuple, comp.ClassifyConversion(int_string2, int_object).Kind);
+
+            Assert.Equal(ConversionKind.NoConversion, comp.ClassifyConversion(int_object, int_string1).Kind);
+            Assert.Equal(ConversionKind.NoConversion, comp.ClassifyConversion(int_object, int_string2).Kind);
+        }
+
+        [Fact]
+        public void ClassifyConversionImplicit03uu()
+        {
+            var tupleComp1 = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivalRemainingTuples);
+            var tupleComp2 = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivalRemainingTuples);
+            var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp1.ToMetadataReference(), tupleComp2.ToMetadataReference() });
+
+            ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
+            ITypeSymbol stringType = comp.GetSpecialType(SpecialType.System_String);
+            ITypeSymbol objectType = comp.GetSpecialType(SpecialType.System_Object);
+
+            var int_string1 = tupleComp1.CreateTupleTypeSymbol(ImmutableArray.Create(intType, stringType)).TupleUnderlyingType;
+            var int_string2 = tupleComp2.CreateTupleTypeSymbol(ImmutableArray.Create(intType, stringType)).TupleUnderlyingType;
+
+            var int_object = tupleComp1.CreateTupleTypeSymbol(ImmutableArray.Create(intType, objectType));
+
+            Assert.Equal(ConversionKind.ImplicitTuple, comp.ClassifyConversion(int_string1, int_string2).Kind);
+            Assert.Equal(ConversionKind.ImplicitTuple, comp.ClassifyConversion(int_string2, int_string1).Kind);
+            Assert.Equal(ConversionKind.ImplicitTuple, comp.ClassifyConversion(int_string1, int_object).Kind);
+            Assert.Equal(ConversionKind.ImplicitTuple, comp.ClassifyConversion(int_string2, int_object).Kind);
+
+            Assert.Equal(ConversionKind.NoConversion, comp.ClassifyConversion(int_object, int_string1).Kind);
+            Assert.Equal(ConversionKind.NoConversion, comp.ClassifyConversion(int_object, int_string2).Kind);
+        }
+
+        [Fact]
+        public void ClassifyConversionImplicit03uuu()
+        {
+            var tupleComp1 = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivalRemainingTuples);
+            var tupleComp2 = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivalRemainingTuples);
+            var comp = CSharpCompilation.Create("test", references: new[] { MscorlibRef, tupleComp1.ToMetadataReference(), tupleComp2.ToMetadataReference() });
+
+            ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
+            ITypeSymbol stringType = comp.GetSpecialType(SpecialType.System_String);
+            ITypeSymbol objectType = comp.GetSpecialType(SpecialType.System_Object);
+
+            var int_string1 = tupleComp1.CreateTupleTypeSymbol(ImmutableArray.Create(intType, stringType)).TupleUnderlyingType;
+            var int_string2 = tupleComp2.CreateTupleTypeSymbol(ImmutableArray.Create(intType, stringType)).TupleUnderlyingType;
+
+            var int_object = tupleComp1.CreateTupleTypeSymbol(ImmutableArray.Create(intType, objectType)).TupleUnderlyingType;
+
+            Assert.Equal(ConversionKind.ImplicitTuple, comp.ClassifyConversion(int_string1, int_string2).Kind);
+            Assert.Equal(ConversionKind.ImplicitTuple, comp.ClassifyConversion(int_string2, int_string1).Kind);
+            Assert.Equal(ConversionKind.ImplicitTuple, comp.ClassifyConversion(int_string1, int_object).Kind);
+            Assert.Equal(ConversionKind.ImplicitTuple, comp.ClassifyConversion(int_string2, int_object).Kind);
+
+            Assert.Equal(ConversionKind.NoConversion, comp.ClassifyConversion(int_object, int_string1).Kind);
+            Assert.Equal(ConversionKind.NoConversion, comp.ClassifyConversion(int_object, int_string2).Kind);
+        }
+
+        [Fact]
+        public void ClassifyConversionImplicit04()
+        {
+            var text = @"
+class C {
+    public static implicit operator int(C c) { return 0; }
+
+    public C() 
+    {
+        var x = (1, ""qq"");
+        var i = /*<bind0>*/x/*</bind0>*/;
+    }
+}";
+            var tupleComp1 = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivalRemainingTuples);
+
+            var tree = Parse(text);
+            var comp = CSharpCompilation.Create("test", syntaxTrees: new[] { tree }, references: new[] { MscorlibRef, tupleComp1.ToMetadataReference()});
+
+            var model = comp.GetSemanticModel(tree);
+            var exprs = GetBindingNodes<ExpressionSyntax>(comp);
+            var expr1 = exprs.First();
+
+            ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
+            ITypeSymbol stringType = comp.GetSpecialType(SpecialType.System_String);
+            ITypeSymbol objectType = comp.GetSpecialType(SpecialType.System_Object);
+
+            var int_string1 = tupleComp1.CreateTupleTypeSymbol(ImmutableArray.Create(intType, stringType));
+            var int_object = tupleComp1.CreateTupleTypeSymbol(ImmutableArray.Create(intType, objectType));
+            var int_object_object = tupleComp1.CreateTupleTypeSymbol(ImmutableArray.Create(intType, objectType, objectType));
+
+            Assert.Equal(ConversionKind.Identity, model.ClassifyConversion(expr1, int_string1).Kind);
+            Assert.Equal(ConversionKind.ImplicitTuple, model.ClassifyConversion(expr1, int_object).Kind);
+            Assert.Equal(ConversionKind.Identity, model.ClassifyConversion(expr1, int_string1, isExplicitInSource: true).Kind);
+            Assert.Equal(ConversionKind.ImplicitTuple, model.ClassifyConversion(expr1, int_object, isExplicitInSource: true).Kind);
+
+            Assert.Equal(ConversionKind.NoConversion, model.ClassifyConversion(expr1, int_object_object).Kind);
+            Assert.Equal(ConversionKind.NoConversion, model.ClassifyConversion(expr1, int_object_object, isExplicitInSource: true).Kind);
+        }
+
+        [Fact]
+        public void ClassifyConversionImplicit05()
+        {
+            var text = @"
+class C {
+    public static implicit operator int(C c) { return 0; }
+
+    public C() 
+    {
+        var x = (1, (object)""qq"");
+        var i = /*<bind0>*/x/*</bind0>*/;
+    }
+}";
+            var tupleComp1 = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivalRemainingTuples);
+
+            var tree = Parse(text);
+            var comp = CSharpCompilation.Create("test", syntaxTrees: new[] { tree }, references: new[] { MscorlibRef, tupleComp1.ToMetadataReference() });
+
+            var model = comp.GetSemanticModel(tree);
+            var exprs = GetBindingNodes<ExpressionSyntax>(comp);
+            var expr1 = exprs.First();
+
+            ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
+            ITypeSymbol stringType = comp.GetSpecialType(SpecialType.System_String);
+            ITypeSymbol objectType = comp.GetSpecialType(SpecialType.System_Object);
+
+            var int_string1 = tupleComp1.CreateTupleTypeSymbol(ImmutableArray.Create(intType, stringType));
+            var int_object = tupleComp1.CreateTupleTypeSymbol(ImmutableArray.Create(intType, objectType));
+            var int_object_object = tupleComp1.CreateTupleTypeSymbol(ImmutableArray.Create(intType, objectType, objectType));
+
+            Assert.Equal(ConversionKind.NoConversion, model.ClassifyConversion(expr1, int_string1).Kind);
+            Assert.Equal(ConversionKind.Identity, model.ClassifyConversion(expr1, int_object).Kind);
+            Assert.Equal(ConversionKind.NoConversion, model.ClassifyConversion(expr1, int_string1, isExplicitInSource: true).Kind);
+            Assert.Equal(ConversionKind.Identity, model.ClassifyConversion(expr1, int_object, isExplicitInSource: true).Kind);
+
+            Assert.Equal(ConversionKind.NoConversion, model.ClassifyConversion(expr1, int_object_object).Kind);
+            Assert.Equal(ConversionKind.NoConversion, model.ClassifyConversion(expr1, int_object_object, isExplicitInSource: true).Kind);
+        }
+
+        [Fact]
+        public void ClassifyConversionImplicit06()
+        {
+            var text = @"
+class C {
+    public static implicit operator int(C c) { return 0; }
+
+    public C() 
+    {
+        var x = (1, ""qq"");
+        var i = /*<bind0>*/x/*</bind0>*/;
+    }
+}";
+            var tupleComp1 = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivalRemainingTuples);
+
+            var tree = Parse(text);
+            var comp = CSharpCompilation.Create("test", syntaxTrees: new[] { tree }, references: new[] { MscorlibRef, tupleComp1.ToMetadataReference() });
+
+            var model = comp.GetSemanticModel(tree);
+            var exprs = GetBindingNodes<ExpressionSyntax>(comp);
+            var expr1 = exprs.First();
+
+            ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
+            ITypeSymbol stringType = comp.GetSpecialType(SpecialType.System_String);
+            ITypeSymbol objectType = comp.GetSpecialType(SpecialType.System_Object);
+
+            var int_string1 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct((TypeSymbol)intType, (TypeSymbol)stringType);
+            var int_object = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct((TypeSymbol)intType, (TypeSymbol)objectType);
+            var int_object_object = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T3).Construct((TypeSymbol)intType, (TypeSymbol)objectType, (TypeSymbol)objectType);
+
+            Assert.Equal(ConversionKind.Identity, model.ClassifyConversion(expr1, int_string1).Kind);
+            Assert.Equal(ConversionKind.ImplicitTuple, model.ClassifyConversion(expr1, int_object).Kind);
+            Assert.Equal(ConversionKind.Identity, model.ClassifyConversion(expr1, int_string1, isExplicitInSource: true).Kind);
+            Assert.Equal(ConversionKind.ImplicitTuple, model.ClassifyConversion(expr1, int_object, isExplicitInSource: true).Kind);
+
+            Assert.Equal(ConversionKind.NoConversion, model.ClassifyConversion(expr1, int_object_object).Kind);
+            Assert.Equal(ConversionKind.NoConversion, model.ClassifyConversion(expr1, int_object_object, isExplicitInSource: true).Kind);
+        }
+
+        [Fact]
+        public void ClassifyConversionImplicit07()
+        {
+            var text = @"
+class C {
+    public static implicit operator int(C c) { return 0; }
+
+    public C() 
+    {
+        var x = (1, (object)""qq"");
+        var i = /*<bind0>*/x/*</bind0>*/;
+    }
+}";
+            var tupleComp1 = CreateCompilationWithMscorlib(trivial2uple + trivial3uple + trivalRemainingTuples);
+
+            var tree = Parse(text);
+            var comp = CSharpCompilation.Create("test", syntaxTrees: new[] { tree }, references: new[] { MscorlibRef, tupleComp1.ToMetadataReference() });
+
+            var model = comp.GetSemanticModel(tree);
+            var exprs = GetBindingNodes<ExpressionSyntax>(comp);
+            var expr1 = exprs.First();
+
+            ITypeSymbol intType = comp.GetSpecialType(SpecialType.System_Int32);
+            ITypeSymbol stringType = comp.GetSpecialType(SpecialType.System_String);
+            ITypeSymbol objectType = comp.GetSpecialType(SpecialType.System_Object);
+
+            var int_string1 = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct((TypeSymbol)intType, (TypeSymbol)stringType);
+            var int_object = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T2).Construct((TypeSymbol)intType, (TypeSymbol)objectType);
+            var int_object_object = comp.GetWellKnownType(WellKnownType.System_ValueTuple_T3).Construct((TypeSymbol)intType, (TypeSymbol)objectType, (TypeSymbol)objectType);
+
+            Assert.Equal(ConversionKind.NoConversion, model.ClassifyConversion(expr1, int_string1).Kind);
+            Assert.Equal(ConversionKind.Identity, model.ClassifyConversion(expr1, int_object).Kind);
+            Assert.Equal(ConversionKind.NoConversion, model.ClassifyConversion(expr1, int_string1, isExplicitInSource: true).Kind);
+            Assert.Equal(ConversionKind.Identity, model.ClassifyConversion(expr1, int_object, isExplicitInSource: true).Kind);
+
+            Assert.Equal(ConversionKind.NoConversion, model.ClassifyConversion(expr1, int_object_object).Kind);
+            Assert.Equal(ConversionKind.NoConversion, model.ClassifyConversion(expr1, int_object_object, isExplicitInSource: true).Kind);
         }
 
     }

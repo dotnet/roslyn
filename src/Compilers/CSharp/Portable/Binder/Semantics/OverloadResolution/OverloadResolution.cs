@@ -1952,30 +1952,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var destTypes = ArrayBuilder<TypeSymbol>.GetInstance(sourceArguments.Length);
-            TupleTypeSymbol.AddElementTypes(destination, destTypes);
+            var destTypes = destination.GetElementTypesIfTupleOrCompatible();
+            Debug.Assert(sourceArguments.Length == destTypes.Length);
 
-            try
+            for (int i = 0; i < sourceArguments.Length; i++)
             {
-                if (sourceArguments.Length != destTypes.Count)
+                if (!ExpressionMatchExactly(sourceArguments[i], destTypes[i], ref useSiteDiagnostics))
                 {
                     return false;
                 }
-
-                for (int i = 0; i < sourceArguments.Length; i++)
-                {
-                    if (!ExpressionMatchExactly(sourceArguments[i], destTypes[i], ref useSiteDiagnostics))
-                    {
-                        return false;
-                    }
-                }
-
-                return true;
             }
-            finally
-            {
-                destTypes.Free();
-            }
+
+            return true;
         }
 
         private class ReturnStatements : BoundTreeWalker

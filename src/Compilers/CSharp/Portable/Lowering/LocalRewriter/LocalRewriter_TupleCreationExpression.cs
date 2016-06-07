@@ -2,6 +2,7 @@
 
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -31,12 +32,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression RewriteTupleCreationExpression(BoundTupleExpression node, ImmutableArray<BoundExpression> rewrittenArguments)
         {
-            return MakeTupleCreationExpression(node.Syntax, (TupleTypeSymbol)node.Type, rewrittenArguments) ?? node;
+            return MakeTupleCreationExpression(node.Syntax, (NamedTypeSymbol)node.Type, rewrittenArguments);
         }
 
-        private BoundExpression MakeTupleCreationExpression(CSharpSyntaxNode syntax, TupleTypeSymbol type, ImmutableArray<BoundExpression> rewrittenArguments)
+        private BoundExpression MakeTupleCreationExpression(CSharpSyntaxNode syntax, NamedTypeSymbol type, ImmutableArray<BoundExpression> rewrittenArguments)
         {
-            NamedTypeSymbol underlyingTupleType = type.TupleUnderlyingType;
+            NamedTypeSymbol underlyingTupleType = type.TupleUnderlyingType ?? type;
+            Debug.Assert(underlyingTupleType.IsTupleCompatible());
 
             ArrayBuilder<NamedTypeSymbol> underlyingTupleTypeChain = ArrayBuilder<NamedTypeSymbol>.GetInstance();
             TupleTypeSymbol.GetUnderlyingTypeChain(underlyingTupleType, underlyingTupleTypeChain);
@@ -54,7 +56,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                                             syntax);
                 if ((object)smallestCtor == null)
                 {
-                    return null;
+                    return _factory.BadExpression(type);
                 }
 
                 MethodSymbol smallestConstructor = smallestCtor.AsMember(smallestType);
@@ -69,7 +71,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                                                             syntax);
                     if ((object)tuple8Ctor == null)
                     {
-                        return null;
+                        return _factory.BadExpression(type);
                     }
 
                     // make successively larger creation expressions containing the previous one

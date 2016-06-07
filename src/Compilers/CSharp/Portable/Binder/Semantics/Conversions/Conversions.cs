@@ -715,29 +715,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var targetElementTypes = ArrayBuilder<TypeSymbol>.GetInstance(arguments.Length);
-            TupleTypeSymbol.AddElementTypes((NamedTypeSymbol)destination, targetElementTypes);
-            Debug.Assert(arguments.Length == targetElementTypes.Count);
+            ImmutableArray<TypeSymbol> targetElementTypes = destination.GetElementTypesIfTupleOrCompatible();
+            Debug.Assert(arguments.Length == targetElementTypes.Length);
 
-            try
+            // check arguments against flattened list of target element types 
+            for (int i = 0; i < arguments.Length; i++)
             {
-                // check arguments against flattened list of target element types 
-                for (int i = 0; i < arguments.Length; i++)
+                var argument = arguments[i];
+                var result = ClassifyImplicitConversionFromExpression(argument, targetElementTypes[i], ref useSiteDiagnostics);
+                if (!result.Exists)
                 {
-                    var argument = arguments[i];
-                    var result = ClassifyImplicitConversionFromExpression(argument, targetElementTypes[i], ref useSiteDiagnostics);
-                    if (!result.Exists)
-                    {
-                        return false;
-                    }
+                    return false;
                 }
+            }
 
-                return true;
-            }
-            finally
-            {
-                targetElementTypes.Free();
-            }
+            return true;
         }
 
         protected override Conversion GetInterpolatedStringConversion(BoundInterpolatedString source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)

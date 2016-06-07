@@ -47,7 +47,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private readonly UserDefinedConversionResult _conversionResult; //no effect on Equals/GetHashCode
 
-        internal readonly ConversionKind _kind;
+        private readonly ConversionKind _kind;
         private readonly byte _flags;
 
         private const byte IsExtensionMethodMask = 1 << 0;

@@ -714,12 +714,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     continue;
                 }
 
-                var field = (TupleFieldSymbol)member;
-                int index = field.TupleFieldId;
+                int index = (member as TupleFieldSymbol)?.TupleFieldId ??
+                            ((TupleErrorFieldSymbol)member).TupleFieldId;
+
                 if (index >= 0)
                 {
                     Debug.Assert((object)builder[index] == null);
-                    builder[index] = field;
+                    builder[index] = (FieldSymbol)member;
                 }
             }
 
