@@ -341,31 +341,6 @@ namespace Microsoft.CodeAnalysis.Editor
         }
 
         /// <summary>
-        /// Returns true if the enter key that was typed should also be sent through to the editor
-        /// after committing the provided completion item.
-        /// </summary>
-        public virtual bool SendEnterThroughToEditor(CompletionItem item, string textTypedSoFar, OptionSet options)
-        {
-            var rule = item.Rules.EnterKeyRule;
-            if (rule == EnterKeyRule.Default)
-            {
-                rule = _rules.DefaultEnterKeyRule;
-            }
-
-            switch (rule)
-            {
-                default:
-                case EnterKeyRule.Default:
-                case EnterKeyRule.Never:
-                    return false;
-                case EnterKeyRule.Always:
-                    return true;
-                case EnterKeyRule.AfterFullyTypedWord:
-                    return item.DisplayText == textTypedSoFar;
-            }
-        }
-
-        /// <summary>
         /// Returns true if the completion item should be "soft" selected, or false if it should be "hard"
         /// selected.
         /// </summary>

@@ -122,8 +122,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 Dim completionList = Await GetCompletionListAsync(service, document, position, CompletionTrigger.Default)
                 Dim item = completionList.Items.First(Function(i) i.DisplayText.StartsWith(textTypedSoFar))
 
-                Dim helper = CompletionHelper.GetHelper(document, service)
-                Assert.Equal(expected, helper.SendEnterThroughToEditor(item, textTypedSoFar, document.Options))
+                Assert.Equal(expected, Controller.SendEnterThroughToEditor(service.GetRules(), item, textTypedSoFar))
             End Using
         End Function
 

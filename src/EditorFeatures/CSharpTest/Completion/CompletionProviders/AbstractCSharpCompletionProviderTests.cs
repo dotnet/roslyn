@@ -152,8 +152,7 @@ text;
                 var completionList = await GetCompletionListAsync(service, document, position, CompletionTrigger.Default);
                 var item = completionList.Items.First(i => i.DisplayText.StartsWith(textTypedSoFar));
 
-                var completionRules = CompletionHelper.GetHelper(document, service);
-                Assert.Equal(expected, completionRules.SendEnterThroughToEditor(item, textTypedSoFar, workspace.Options));
+                Assert.Equal(expected, Controller.SendEnterThroughToEditor(service.GetRules(), item, textTypedSoFar));
             }
         }
 
