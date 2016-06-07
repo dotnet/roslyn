@@ -375,46 +375,6 @@ namespace Microsoft.CodeAnalysis.Editor
                 item.FilterText.StartsWith(textTypedWithChar, StringComparison.CurrentCultureIgnoreCase);
         }
 
-        /// <summary>
-        /// Returns true if the character typed should be used to filter the specified completion
-        /// item.  A character will be checked to see if it should filter an item.  If not, it will be
-        /// checked to see if it should commit that item.  If it does neither, then completion will
-        /// be dismissed.
-        /// </summary>
-        public virtual bool IsFilterCharacter(CompletionItem item, char ch, string textTypedSoFar)
-        {
-            // general rule: if the filtering text exactly matches the start of the item then it must be a filter character
-            if (TextTypedSoFarMatchesItem(item, ch, textTypedSoFar))
-            {
-                return false;
-            }
-
-            foreach (var rule in item.Rules.FilterCharacterRules)
-            {
-                switch (rule.Kind)
-                {
-                    case CharacterSetModificationKind.Add:
-                        if (rule.Characters.Contains(ch))
-                        {
-                            return true;
-                        }
-                        continue;
-
-                    case CharacterSetModificationKind.Remove:
-                        if (rule.Characters.Contains(ch))
-                        {
-                            return false;
-                        }
-                        continue;
-
-                    case CharacterSetModificationKind.Replace:
-                        return rule.Characters.Contains(ch);
-                }
-            }
-
-            return false;
-        }
-
         private static StringComparison GetComparision(bool isCaseSensitive)
         {
             return isCaseSensitive? StringComparison.CurrentCulture: StringComparison.CurrentCultureIgnoreCase;
