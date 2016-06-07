@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -62,6 +63,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeCompilationState compilationState,
             SynthesizedSubmissionFields previousSubmissionFields,
             bool allowOmissionOfConditionalCalls,
+            bool instrumentForDynamicAnalysis,
+            DebugDocumentProvider debugDocumentProvider,
             DiagnosticBag diagnostics,
             out bool sawLambdas,
             out bool sawLocalFunctions,
@@ -73,16 +76,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 var factory = new SyntheticBoundNodeFactory(method, statement.Syntax, compilationState, diagnostics);
+                ImmutableArray<SourceSpan> dynamicAnalysisSpans = ImmutableArray<SourceSpan>.Empty;
+                DynamicAnalysisInjector dynamicInstrumenter = instrumentForDynamicAnalysis ? new DynamicAnalysisInjector(method, statement, factory, compilationState, diagnostics, debugDocumentProvider, Instrumenter.NoOp) : null;
 
                 // We don’t want IL to differ based upon whether we write the PDB to a file/stream or not.
                 // Presence of sequence points in the tree affects final IL, therefore, we always generate them.
                 var localRewriter = new LocalRewriter(compilation, method, methodOrdinal, containingType, factory, previousSubmissionFields, allowOmissionOfConditionalCalls, diagnostics,
-                                                      DebugInfoInjector.Singleton);
+                                                      instrumentForDynamicAnalysis ? new DebugInfoInjector(dynamicInstrumenter) : DebugInfoInjector.Singleton);
 
                 var loweredStatement = (BoundStatement)localRewriter.Visit(statement);
                 sawLambdas = localRewriter._sawLambdas;
                 sawLocalFunctions = localRewriter._sawLocalFunctions;
                 sawAwaitInExceptionHandler = localRewriter._sawAwaitInExceptionHandler;
+
+                if (instrumentForDynamicAnalysis)
+                {
+                    BoundBlock loweredBlock = loweredStatement as BoundBlock;
+                    if (loweredBlock != null)
+                    {
+                        loweredStatement = dynamicInstrumenter.AddInstrumentationPrologue(loweredBlock);
+                    }
+                }
+
                 return loweredStatement;
             }
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)

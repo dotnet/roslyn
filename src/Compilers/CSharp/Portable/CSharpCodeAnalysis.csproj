@@ -382,6 +382,7 @@
     <Compile Include="Lowering\Instrumentation\CompoundInstrumenter.cs" />
     <Compile Include="Lowering\Instrumentation\DebugInfoInjector.cs" />
     <Compile Include="Lowering\Instrumentation\DebugInfoInjector_SequencePoints.cs" />
+    <Compile Include="Lowering\Instrumentation\DynamicAnalysisInjector.cs" />
     <Compile Include="Lowering\Instrumentation\Instrumenter.cs" />
     <Compile Include="Lowering\IteratorRewriter\IteratorConstructor.cs" />
     <Compile Include="Lowering\IteratorRewriter\IteratorFinallyMethodSymbol.cs" />

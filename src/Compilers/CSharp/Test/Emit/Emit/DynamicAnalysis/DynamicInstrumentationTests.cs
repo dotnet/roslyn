@@ -615,16 +615,16 @@ public class Program
 
     public int Prop2 { get; } = 25;
 
-    public int Prop3 { get; set; }
+    public int Prop3 { get; set; }                                              // Methods 3 and 4
 
-    public Program()
+    public Program()                                                            // Method 5
     {
         Prop = 12;
         Prop3 = 12;
         Prop2 = Prop3;
     }
 
-    public static void Main(string[] args)
+    public static void Main(string[] args)                                      // Method 6
     {
         new Program();
         Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
