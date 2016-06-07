@@ -417,7 +417,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        private bool HasNonDefaultTupleElementNames(INamedTypeSymbol tupleSymbol)
+        private static bool HasNonDefaultTupleElementNames(INamedTypeSymbol tupleSymbol)
         {
             var elementNames = tupleSymbol.TupleElementNames;
             if (!elementNames.IsDefault)
