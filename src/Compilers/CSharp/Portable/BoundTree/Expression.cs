@@ -33,22 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument);
     }
 
-    internal sealed partial class BoundLValuePlaceholder : BoundValuePlaceholderBase, IPlaceholderExpression
-    {
-        protected override OperationKind ExpressionKind => OperationKind.PlaceholderExpression;
-
-        public override void Accept(OperationVisitor visitor)
-        {
-            visitor.VisitPlaceholderExpression(this);
-        }
-
-        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
-        {
-            return visitor.VisitPlaceholderExpression(this, argument);
-        }
-    }
-
-    internal sealed partial class BoundRValuePlaceholder : BoundValuePlaceholderBase, IPlaceholderExpression
+    internal sealed partial class BoundDeconstructValuePlaceholder : BoundValuePlaceholderBase, IPlaceholderExpression
     {
         protected override OperationKind ExpressionKind => OperationKind.PlaceholderExpression;
 

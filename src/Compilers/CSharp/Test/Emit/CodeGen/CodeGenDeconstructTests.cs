@@ -10,6 +10,48 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
     [CompilerTrait(CompilerFeature.Tuples)]
     public class CodeGenDeconstructTests : CSharpTestBase
     {
+        const string commonSource =
+@"public class Pair<T1, T2>
+{
+    T1 item1;
+    T2 item2;
+
+    public Pair(T1 item1, T2 item2)
+    {
+        this.item1 = item1;
+        this.item2 = item2;
+    }
+
+    public void Deconstruct(out T1 item1, out T2 item2)
+    {
+        System.Console.WriteLine($""Deconstructing {ToString()}"");
+        item1 = this.item1;
+        item2 = this.item2;
+    }
+
+    public override string ToString() { return $""({item1.ToString()}, {item2.ToString()})""; }
+}
+
+public static class Pair
+{
+    public static Pair<T1, T2> Create<T1, T2>(T1 item1, T2 item2) { return new Pair<T1, T2>(item1, item2); }
+}
+
+public class Integer
+{
+    public int state;
+    public override string ToString() { return state.ToString(); }
+    public Integer(int i) { state = i; }
+    public static implicit operator LongInteger(Integer i) { System.Console.WriteLine($""Converting {i}""); return new LongInteger(i.state); }
+}
+
+public class LongInteger
+{
+    long state;
+    public LongInteger(long l) { state = l; }
+    public override string ToString() { return state.ToString(); }
+}";
+
         [Fact]
         public void SimpleAssign()
         {
@@ -161,7 +203,10 @@ class C
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "f").WithArguments("long", "f").WithLocation(8, 12),
                 // (8,17): error CS1061: 'string' does not contain a definition for 'g' and no extension method 'g' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                 //         (x.f, y.g) = new C();
-                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "g").WithArguments("string", "g").WithLocation(8, 17)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "g").WithArguments("string", "g").WithLocation(8, 17),
+                // (8,22): error CS8209: The Deconstruct method for type 'C.Deconstruct()' doesn't have the number of parameters (2) needed for this deconstruction.
+                //         (x.f, y.g) = new C();
+                Diagnostic(ErrorCode.ERR_DeconstructWrongParams, "new C()").WithArguments("C.Deconstruct()", "2").WithLocation(8, 22)
                 );
         }
 
@@ -280,10 +325,9 @@ class C
     static void Main()
     {
         C c = new C();
-        int z; // PROTOTYPE(tuples) this should be removed once the return-type issue is fixed
-        (c.getHolderForX().x, c.getHolderForY().y, z) = c.getDeconstructReceiver();
+        (c.getHolderForX().x, c.getHolderForY().y) = c.getDeconstructReceiver();
     }
-    public void Deconstruct(out D1 x, out D2 y, out int z) { x = new D1(); y = new D2(); z = 3; Console.WriteLine(""Deconstruct""); }
+    public void Deconstruct(out D1 x, out D2 y) { x = new D1(); y = new D2(); Console.WriteLine(""Deconstruct""); }
 }
 class D1
 {
@@ -454,45 +498,13 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics(
-                // (8,18): error CS0266: Cannot implicitly convert type 'int' to 'byte'. An explicit conversion exists (are you missing a cast?)
+                // (8,9): error CS0266: Cannot implicitly convert type 'int' to 'byte'. An explicit conversion exists (are you missing a cast?)
                 //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "new C()").WithArguments("int", "byte").WithLocation(8, 18),
-                // (8,18): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(x, y) = new C()").WithArguments("int", "byte").WithLocation(8, 9),
+                // (8,9): error CS0029: Cannot implicitly convert type 'int' to 'string'
                 //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "new C()").WithArguments("int", "string").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(x, y) = new C()").WithArguments("int", "string").WithLocation(8, 9)
                 );
-        }
-
-        [Fact(Skip = "PROTOTYPE(tuples)")]
-        public void Nesting()
-        {
-            string source = @"
-class C
-{
-    static void Main()
-    {
-        int x, y, z;
-        (x, (y, z)) = new C();
-    }
-
-    public void Deconstruct(out int a, out D d)
-    {
-        a = 1;
-        d = new D();
-    }
-}
-class D
-{
-    public void Deconstruct(out string b, out string c)
-    {
-        b = ""hello"";
-        c = ""world"";
-    }
-}
-";
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
-            comp.VerifyDiagnostics();
-            // expect a console output
         }
 
         [Fact]
@@ -959,57 +971,57 @@ class C
   .locals init (long V_0, //x
                 int V_1) //y
   IL_0000:  ldc.i4.1
-  IL_0001:  conv.i8
+  IL_0001:  ldc.i4.1
   IL_0002:  ldc.i4.1
-  IL_0003:  conv.i8
+  IL_0003:  ldc.i4.1
   IL_0004:  ldc.i4.1
-  IL_0005:  conv.i8
+  IL_0005:  ldc.i4.1
   IL_0006:  ldc.i4.1
-  IL_0007:  conv.i8
-  IL_0008:  ldc.i4.1
-  IL_0009:  conv.i8
-  IL_000a:  ldc.i4.1
-  IL_000b:  conv.i8
-  IL_000c:  ldc.i4.1
-  IL_000d:  conv.i8
-  IL_000e:  ldc.i4.1
-  IL_000f:  conv.i8
-  IL_0010:  ldc.i4.4
-  IL_0011:  conv.i8
-  IL_0012:  ldc.i4.2
-  IL_0013:  newobj     ""System.ValueTuple<long, long, int>..ctor(long, long, int)""
-  IL_0018:  newobj     ""System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>..ctor(long, long, long, long, long, long, long, (long, long, int))""
-  IL_001d:  dup
-  IL_001e:  ldfld      ""long System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Item1""
+  IL_0007:  ldc.i4.1
+  IL_0008:  ldc.i4.4
+  IL_0009:  ldc.i4.2
+  IL_000a:  newobj     ""System.ValueTuple<int, int, int>..ctor(int, int, int)""
+  IL_000f:  newobj     ""System.ValueTuple<int, int, int, int, int, int, int, (int, int, int)>..ctor(int, int, int, int, int, int, int, (int, int, int))""
+  IL_0014:  dup
+  IL_0015:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, (int, int, int)>.Item1""
+  IL_001a:  conv.i8
+  IL_001b:  stloc.0
+  IL_001c:  dup
+  IL_001d:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, (int, int, int)>.Item2""
+  IL_0022:  conv.i8
   IL_0023:  stloc.0
   IL_0024:  dup
-  IL_0025:  ldfld      ""long System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Item2""
-  IL_002a:  stloc.0
-  IL_002b:  dup
-  IL_002c:  ldfld      ""long System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Item3""
-  IL_0031:  stloc.0
-  IL_0032:  dup
-  IL_0033:  ldfld      ""long System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Item4""
-  IL_0038:  stloc.0
-  IL_0039:  dup
-  IL_003a:  ldfld      ""long System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Item5""
-  IL_003f:  stloc.0
-  IL_0040:  dup
-  IL_0041:  ldfld      ""long System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Item6""
-  IL_0046:  stloc.0
-  IL_0047:  dup
-  IL_0048:  ldfld      ""long System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Item7""
-  IL_004d:  stloc.0
-  IL_004e:  dup
-  IL_004f:  ldfld      ""(long, long, int) System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Rest""
-  IL_0054:  ldfld      ""long System.ValueTuple<long, long, int>.Item1""
-  IL_0059:  stloc.0
-  IL_005a:  dup
-  IL_005b:  ldfld      ""(long, long, int) System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Rest""
-  IL_0060:  ldfld      ""long System.ValueTuple<long, long, int>.Item2""
+  IL_0025:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, (int, int, int)>.Item3""
+  IL_002a:  conv.i8
+  IL_002b:  stloc.0
+  IL_002c:  dup
+  IL_002d:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, (int, int, int)>.Item4""
+  IL_0032:  conv.i8
+  IL_0033:  stloc.0
+  IL_0034:  dup
+  IL_0035:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, (int, int, int)>.Item5""
+  IL_003a:  conv.i8
+  IL_003b:  stloc.0
+  IL_003c:  dup
+  IL_003d:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, (int, int, int)>.Item6""
+  IL_0042:  conv.i8
+  IL_0043:  stloc.0
+  IL_0044:  dup
+  IL_0045:  ldfld      ""int System.ValueTuple<int, int, int, int, int, int, int, (int, int, int)>.Item7""
+  IL_004a:  conv.i8
+  IL_004b:  stloc.0
+  IL_004c:  dup
+  IL_004d:  ldfld      ""(int, int, int) System.ValueTuple<int, int, int, int, int, int, int, (int, int, int)>.Rest""
+  IL_0052:  ldfld      ""int System.ValueTuple<int, int, int>.Item1""
+  IL_0057:  conv.i8
+  IL_0058:  stloc.0
+  IL_0059:  dup
+  IL_005a:  ldfld      ""(int, int, int) System.ValueTuple<int, int, int, int, int, int, int, (int, int, int)>.Rest""
+  IL_005f:  ldfld      ""int System.ValueTuple<int, int, int>.Item2""
+  IL_0064:  conv.i8
   IL_0065:  stloc.0
-  IL_0066:  ldfld      ""(long, long, int) System.ValueTuple<long, long, long, long, long, long, long, (long, long, int)>.Rest""
-  IL_006b:  ldfld      ""int System.ValueTuple<long, long, int>.Item3""
+  IL_0066:  ldfld      ""(int, int, int) System.ValueTuple<int, int, int, int, int, int, int, (int, int, int)>.Rest""
+  IL_006b:  ldfld      ""int System.ValueTuple<int, int, int>.Item3""
   IL_0070:  stloc.1
   IL_0071:  ldloc.0
   IL_0072:  box        ""long""
@@ -1125,12 +1137,14 @@ class C
     }
 }
 ";
-            // PROTOTYPE(tuples) This error message is misleading
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics(
-                // (9,18): error CS0029: Cannot implicitly convert type '(int, int)' to '(byte, string)'
+                // (9,9): error CS0266: Cannot implicitly convert type 'int' to 'byte'. An explicit conversion exists (are you missing a cast?)
                 //         (x, y) = (1, 2);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(1, 2)").WithArguments("(int, int)", "(byte, string)").WithLocation(9, 18)
+                Diagnostic(ErrorCode.ERR_NoImplicitConvCast, "(x, y) = (1, 2)").WithArguments("int", "byte").WithLocation(9, 9),
+                // (9,9): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         (x, y) = (1, 2);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(x, y) = (1, 2)").WithArguments("int", "string").WithLocation(9, 9)
                 );
         }
 
@@ -1341,6 +1355,375 @@ class C
                 // (10,13): error CS0815: Cannot assign void to an implicitly-typed variable
                 //         var z = ((x, y) = new C());
                 Diagnostic(ErrorCode.ERR_ImplicitlyTypedVariableAssignedBadValue, "z = ((x, y) = new C())").WithArguments("void").WithLocation(10, 13)
+                );
+        }
+
+        [Fact]
+        public void NestedTupleAssignment()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x;
+        string y, z;
+
+        (x, (y, z)) = (1, (""a"", ""b""));
+        System.Console.WriteLine(x + "" "" + y + "" "" + z);
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "1 a b", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NestedTypelessTupleAssignment()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        string x, y, z;
+
+        (x, (y, z)) = (null, (null, null));
+        System.Console.WriteLine(""nothing"" + x + y + z);
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "nothing", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact(Skip = "PROTOTYPE(tuples)")]
+        public void NestedTypelessTupleAssignment2()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x, y, z; // int cannot be null
+
+        (x, (y, z)) = (null, (null, null));
+        System.Console.WriteLine(""nothing"" + x + y + z);
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "nothing", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NestedDeconstructAssignment()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x;
+        string y, z;
+
+        (x, (y, z)) = new D1();
+        System.Console.WriteLine(x + "" "" + y + "" "" + z);
+    }
+}
+class D1
+{
+    public void Deconstruct(out int item1, out D2 item2)
+    {
+        item1 = 1;
+        item2 = new D2();
+    }
+}
+class D2
+{
+    public void Deconstruct(out string item1, out string item2)
+    {
+        item1 = ""a"";
+        item2 = ""b"";
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "1 a b", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NestedMixedAssignment1()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x, y, z;
+
+        (x, (y, z)) = (1, new D1());
+        System.Console.WriteLine(x + "" "" + y + "" "" + z);
+    }
+}
+class D1
+{
+    public void Deconstruct(out int item1, out int item2)
+    {
+        item1 = 2;
+        item2 = 3;
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "1 2 3", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NestedMixedAssignment2()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x;
+        string y, z;
+
+        (x, (y, z)) = new D1();
+        System.Console.WriteLine(x + "" "" + y + "" "" + z);
+    }
+}
+class D1
+{
+    public void Deconstruct(out int item1, out (string, string) item2)
+    {
+        item1 = 1;
+        item2 = (""a"", ""b"");
+    }
+}
+";
+            var comp = CompileAndVerify(source, expectedOutput: "1 a b", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void VerifyNestedExecutionOrder()
+        {
+            string source = @"
+using System;
+class C
+{
+    int x { set { Console.WriteLine($""setX""); } }
+    int y { set { Console.WriteLine($""setY""); } }
+    int z { set { Console.WriteLine($""setZ""); } }
+
+    C getHolderForX() { Console.WriteLine(""getHolderforX""); return this; }
+    C getHolderForY() { Console.WriteLine(""getHolderforY""); return this; }
+    C getHolderForZ() { Console.WriteLine(""getHolderforZ""); return this; }
+    C getDeconstructReceiver() { Console.WriteLine(""getDeconstructReceiver""); return this; }
+
+    static void Main()
+    {
+        C c = new C();
+        (c.getHolderForX().x, (c.getHolderForY().y, c.getHolderForZ().z)) = c.getDeconstructReceiver();
+    }
+    public void Deconstruct(out D1 x, out C1 t) { x = new D1(); t = new C1(); Console.WriteLine(""Deconstruct1""); }
+}
+class C1
+{
+    public void Deconstruct(out D2 y, out D3 z) { y = new D2(); z = new D3(); Console.WriteLine(""Deconstruct2""); }
+}
+class D1
+{
+    public static implicit operator int(D1 d) { Console.WriteLine(""Conversion1""); return 1; }
+}
+class D2
+{
+    public static implicit operator int(D2 d) { Console.WriteLine(""Conversion2""); return 2; }
+}
+class D3
+{
+    public static implicit operator int(D3 d) { Console.WriteLine(""Conversion3""); return 3; }
+}
+";
+
+            string expected =
+@"getHolderforX
+getHolderforY
+getHolderforZ
+getDeconstructReceiver
+Deconstruct1
+Deconstruct2
+Conversion1
+setX
+Conversion2
+setY
+Conversion3
+setZ
+";
+            var comp = CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void VerifyNestedExecutionOrder2()
+        {
+            string source = @"
+using System;
+class C
+{
+    static LongInteger x1 { set { Console.WriteLine($""setX1 {value}""); } }
+    static LongInteger x2 { set { Console.WriteLine($""setX2 {value}""); } }
+    static LongInteger x3 { set { Console.WriteLine($""setX3 {value}""); } }
+    static LongInteger x4 { set { Console.WriteLine($""setX4 {value}""); } }
+    static LongInteger x5 { set { Console.WriteLine($""setX5 {value}""); } }
+    static LongInteger x6 { set { Console.WriteLine($""setX6 {value}""); } }
+    static LongInteger x7 { set { Console.WriteLine($""setX7 {value}""); } }
+
+    static void Main()
+    {
+        ((x1, (x2, x3)), ((x4, x5), (x6, x7))) = Pair.Create(Pair.Create(new Integer(1), Pair.Create(new Integer(2), new Integer(3))),
+                                                      Pair.Create(Pair.Create(new Integer(4), new Integer(5)), Pair.Create(new Integer(6), new Integer(7))));
+    }
+}
+" + commonSource;
+
+            string expected =
+@"Deconstructing ((1, (2, 3)), ((4, 5), (6, 7)))
+Deconstructing (1, (2, 3))
+Deconstructing (2, 3)
+Deconstructing ((4, 5), (6, 7))
+Deconstructing (4, 5)
+Deconstructing (6, 7)
+Converting 1
+setX1 1
+Converting 2
+setX2 2
+Converting 3
+setX3 3
+Converting 4
+setX4 4
+Converting 5
+setX5 5
+Converting 6
+setX6 6
+Converting 7
+setX7 7";
+            var comp = CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void MixOfAssignments()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        long x;
+        string y;
+
+        C a, b, c;
+        c = new C();
+        (x, y) = a = b = c;
+        System.Console.WriteLine(x + "" "" + y);
+    }
+
+    public void Deconstruct(out int a, out string b)
+    {
+        a = 1;
+        b = ""hello"";
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact(Skip = "PROTOTYPE(tuples)")]
+        public void AssignWithPostfixOperator()
+        {
+            string source = @"
+class C
+{
+    int state = 1;
+
+    static void Main()
+    {
+        long x;
+        string y;
+        C c = new C();
+        (x, y) = c++;
+        System.Console.WriteLine(x + "" "" + y);
+    }
+
+    public void Deconstruct(out int a, out string b)
+    {
+        a = state;
+        b = ""hello"";
+    }
+
+    public static C operator ++(C c1)
+    {
+        return new C() { state = 2 };
+    }
+}
+";
+            // PROTOTYPE(tuples) we expect "2 hello" instead
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void TupleWithWrongCardinality()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x, y, z;
+
+        (x, y, z) = MakePair();
+    }
+
+    public static (int, int) MakePair()
+    {
+        return (42, 42);
+    }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // (8,9): error CS8211: Cannot deconstruct a tuple of '2' elements into '3' variables.
+                //         (x, y, z) = MakePair();
+                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(x, y, z) = MakePair()").WithArguments("2", "3").WithLocation(8, 9)
+                );
+        }
+
+        [Fact]
+        public void NestedTupleWithWrongCardinality()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x, y, z, w;
+
+        (x, (y, z, w)) = Pair.Create(42, (43, 44));
+    }
+}
+" + commonSource;
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // (8,9): error CS8211: Cannot deconstruct a tuple of '2' elements into '3' variables.
+                //         (x, (y, z, w)) = Pair.Create(42, (43, 44));
+                Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(x, (y, z, w)) = Pair.Create(42, (43, 44))").WithArguments("2", "3").WithLocation(8, 9)
                 );
         }
     }

@@ -84,9 +84,7 @@
   This node is used to represent an expression returning value of a certain type.
   It is used to perform intermediate binding, and will not survive the local rewriting.
   -->
-  <Node Name="BoundLValuePlaceholder" Base="BoundValuePlaceholderBase" HasValidate="true">
-  </Node>
-  <Node Name="BoundRValuePlaceholder" Base="BoundValuePlaceholderBase" HasValidate="true">
+  <Node Name="BoundDeconstructValuePlaceholder" Base="BoundValuePlaceholderBase" HasValidate="true">
   </Node>
 
   <!-- only used by codegen -->
@@ -394,13 +392,26 @@
     <!-- Non-null type is required for this node kind -->
     <Field Name="Type" Type="TypeSymbol" Override="true" Null="disallow"/>
 
+    <!-- Various assignable expressions, including some BoundDeconstructionVariables for nested variables -->
     <Field Name="LeftVariables" Type="ImmutableArray&lt;BoundExpression&gt;"/>
 
     <Field Name="Right" Type="BoundExpression"/>
-    <Field Name="DeconstructMemberOpt" Type="MethodSymbol" Null="allow"/>
 
-    <!-- The assignments have placeholders for the left and right part of the assignment -->
-    <Field Name="Assignments" Type="ImmutableArray&lt;BoundDeconstructionAssignmentOperator.AssignmentInfo&gt;" Null="NotApplicable" SkipInVisitor="true"/>
+    <Field Name="DeconstructSteps" Type="ImmutableArray&lt;BoundDeconstructionDeconstructStep&gt;" Null="NotApplicable" SkipInVisitor="true" />
+
+    <Field Name="AssignmentSteps" Type="ImmutableArray&lt;BoundDeconstructionAssignmentStep&gt;" Null="NotApplicable" SkipInVisitor="true"/>
+  </Node>
+
+  <Node Name="BoundDeconstructionDeconstructStep" Base="BoundNode">
+    <Field Name="DeconstructMemberOpt" Type="MethodSymbol" Null="allow"/>
+    <Field Name="TargetPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
+    <Field Name="OutputPlaceholders" Type="ImmutableArray&lt;BoundDeconstructValuePlaceholder&gt;"/>
+  </Node>
+
+  <Node Name="BoundDeconstructionAssignmentStep" Base="BoundNode">
+    <Field Name="Assignment" Type="BoundAssignmentOperator" Null="disallow"/>
+    <Field Name="TargetPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
+    <Field Name="OutputPlaceholder" Type="BoundDeconstructValuePlaceholder" Null="disallow"/>
   </Node>
 
   <Node Name="BoundVoid" Base="BoundExpression">

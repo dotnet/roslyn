@@ -1485,7 +1485,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             foreach (LocalSymbol local in node.Locals)
             {
-                switch(local.DeclarationKind)
+                switch (local.DeclarationKind)
                 {
                     case LocalDeclarationKind.RegularVariable:
                     case LocalDeclarationKind.PatternVariable:
@@ -1721,14 +1721,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             Assign(node.Left, node.Right, refKind: node.RefKind);
             return null;
         }
-        
+
         public override BoundNode VisitDeconstructionAssignmentOperator(BoundDeconstructionAssignmentOperator node)
         {
             base.VisitDeconstructionAssignmentOperator(node);
 
-            foreach(BoundExpression variable in node.LeftVariables)
+            foreach (BoundExpression variable in node.LeftVariables)
             {
-                Assign(variable, null, refKind: RefKind.None);
+                // PROTOTYPE(tuples) value should not be set to null
+                Assign(variable, value: null, refKind: RefKind.None);
             }
 
             return null;

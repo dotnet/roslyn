@@ -1724,96 +1724,275 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private BoundExpression BindDeconstructionAssignment(AssignmentExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            SeparatedSyntaxList<ArgumentSyntax> arguments = ((TupleExpressionSyntax)node.Left).Arguments;
-
-            // receiver for Deconstruct
+            // receiver for first Deconstruct step
             var boundRHS = BindValue(node.Right, diagnostics, BindValueKind.RValue);
 
+            SeparatedSyntaxList<ArgumentSyntax> arguments = ((TupleExpressionSyntax)node.Left).Arguments;
+            ImmutableArray<DeconstructionVariable> checkedVariables = BindDeconstructionVariables(arguments, diagnostics);
+
+            if ((object)boundRHS.Type == null)
+            {
+                if (boundRHS.Kind == BoundKind.TupleLiteral)
+                {
+                    // tuple literal without type such as `(null, null)`, let's fix it up by peeking at the LHS
+                    TypeSymbol lhsAsTuple = MakeTupleTypeFromDeconstructionLHS(checkedVariables, diagnostics, Compilation);
+                    boundRHS = GenerateConversionForAssignment(lhsAsTuple, boundRHS, diagnostics);
+                }
+                else
+                {
+                    // expression without type such as `null`
+                    Error(diagnostics, ErrorCode.ERR_DeconstructRequiresExpression, node);
+                    return BadExpression(node, FlattenDeconstructVariables(checkedVariables).Concat(boundRHS).ToArray());
+                }
+            }
+
+            var deconstructionSteps = ArrayBuilder<BoundDeconstructionDeconstructStep>.GetInstance(1);
+            var assignmentSteps = ArrayBuilder<BoundDeconstructionAssignmentStep>.GetInstance(1);
+            try
+            {
+                bool hasErrors = !DeconstructIntoSteps(new BoundDeconstructValuePlaceholder(node.Right, boundRHS.Type), node, diagnostics, checkedVariables, deconstructionSteps, assignmentSteps);
+
+                var deconstructions = deconstructionSteps.ToImmutable();
+                var assignments = assignmentSteps.ToImmutable();
+
+                TypeSymbol voidType = GetSpecialType(SpecialType.System_Void, diagnostics, node);
+                return new BoundDeconstructionAssignmentOperator(node, FlattenDeconstructVariables(checkedVariables), boundRHS, deconstructions, assignments, voidType, hasErrors: hasErrors);
+            }
+            finally
+            {
+                deconstructionSteps.Free();
+                assignmentSteps.Free();
+            }
+        }
+
+        /// <summary>
+        /// Whether the target is a tuple or a type that requires Deconstruction, this will generate and stack appropriate deconstruction and assignment steps.
+        /// Note that the variables may either be plain or nested variables.
+        /// Returns false if there was an error.
+        /// </summary>
+        private bool DeconstructIntoSteps(
+                        BoundDeconstructValuePlaceholder targetPlaceholder,
+                        AssignmentExpressionSyntax syntax,
+                        DiagnosticBag diagnostics,
+                        ImmutableArray<DeconstructionVariable> variables,
+                        ArrayBuilder<BoundDeconstructionDeconstructStep> deconstructionSteps,
+                        ArrayBuilder<BoundDeconstructionAssignmentStep> assignmentSteps)
+        {
+            Debug.Assert(targetPlaceholder.Type != null);
+
+            BoundDeconstructionDeconstructStep step;
+
+            if (targetPlaceholder.Type.IsTupleType)
+            {
+                // tuple literal such as `(1, 2)`, `(null, null)`, `(x.P, y.M())`
+                step = MakeTupleDeconstructStep(targetPlaceholder, syntax, diagnostics, variables, deconstructionSteps, assignmentSteps);
+            }
+            else
+            {
+                step = MakeNonTupleDeconstructStep(targetPlaceholder, syntax, diagnostics, variables, deconstructionSteps, assignmentSteps);
+            }
+
+            if (step == null)
+            {
+                return false;
+            }
+
+            deconstructionSteps.Add(step);
+
+            // outputs will either need a conversion step and assignment step, or if they are nested variables, they will need further deconstruction
+            return DeconstructOrAssignOutputs(step, variables, syntax, diagnostics, deconstructionSteps, assignmentSteps);
+        }
+
+        /// <summary>
+        /// This will generate and stack appropriate deconstruction and assignment steps for a tuple type.
+        /// The produced deconstruction step has no Deconstruct method since the tuple already has distinct elements.
+        /// </summary>
+        static private BoundDeconstructionDeconstructStep MakeTupleDeconstructStep(
+                                                        BoundDeconstructValuePlaceholder targetPlaceholder,
+                                                        AssignmentExpressionSyntax syntax,
+                                                        DiagnosticBag diagnostics,
+                                                        ImmutableArray<DeconstructionVariable> variables,
+                                                        ArrayBuilder<BoundDeconstructionDeconstructStep> deconstructionSteps,
+                                                        ArrayBuilder<BoundDeconstructionAssignmentStep> assignmentSteps)
+        {
+            Debug.Assert(targetPlaceholder.Type.IsTupleType);
+
+            var tupleTypes = targetPlaceholder.Type.TupleElementTypes;
+            if (variables.Length != tupleTypes.Length)
+            {
+                Error(diagnostics, ErrorCode.ERR_DeconstructWrongCardinality, syntax, tupleTypes.Length, variables.Length);
+                return null;
+            }
+
+            return new BoundDeconstructionDeconstructStep(syntax, null, targetPlaceholder, tupleTypes.SelectAsArray((t, s) => new BoundDeconstructValuePlaceholder(s, t), syntax));
+        }
+
+        /// <summary>
+        /// This will generate and stack appropriate deconstruction and assignment steps for a non-tuple type.
+        /// Returns null if there was an error (if a suitable Deconstruct method was not found).
+        /// </summary>
+        static private BoundDeconstructionDeconstructStep MakeNonTupleDeconstructStep(
+                                                            BoundDeconstructValuePlaceholder targetPlaceholder,
+                                                            AssignmentExpressionSyntax syntax,
+                                                            DiagnosticBag diagnostics,
+                                                            ImmutableArray<DeconstructionVariable> variables,
+                                                            ArrayBuilder<BoundDeconstructionDeconstructStep> deconstructionSteps,
+                                                            ArrayBuilder<BoundDeconstructionAssignmentStep> assignmentSteps)
+        {
+            // symbol and parameters for Deconstruct
+            MethodSymbol deconstructMethod = FindDeconstruct(variables.Length, targetPlaceholder, syntax, diagnostics);
+
+            if ((object)deconstructMethod == null)
+            {
+                return null;
+            }
+
+            return new BoundDeconstructionDeconstructStep(syntax, deconstructMethod, targetPlaceholder, deconstructMethod.Parameters.SelectAsArray((p, s) => new BoundDeconstructValuePlaceholder(s, p.Type), syntax));
+        }
+
+        private class DeconstructionVariable
+        {
+            public readonly BoundExpression Single;
+            public readonly ImmutableArray<DeconstructionVariable> Nested;
+
+            public DeconstructionVariable(BoundExpression variable)
+            {
+                Single = variable;
+                Nested = default(ImmutableArray<DeconstructionVariable>);
+            }
+
+            public DeconstructionVariable(ImmutableArray<DeconstructionVariable> variables)
+            {
+                Single = null;
+                Nested = variables;
+            }
+
+            public bool IsNested => !Nested.IsDefault;
+        }
+
+        /// <summary>
+        /// Takes the outputs from the previous deconstructionStep and depending on the structure of variables, will generate further deconstructions, or simply assignments.
+        /// Returns true for success, but false if has errors.
+        /// </summary>
+        private bool DeconstructOrAssignOutputs(
+                        BoundDeconstructionDeconstructStep deconstructionStep,
+                        ImmutableArray<DeconstructionVariable> variables,
+                        AssignmentExpressionSyntax syntax,
+                        DiagnosticBag diagnostics,
+                        ArrayBuilder<BoundDeconstructionDeconstructStep> deconstructionSteps,
+                        ArrayBuilder<BoundDeconstructionAssignmentStep> assignmentSteps)
+        {
+            bool hasErrors = false;
+
+            for (int i = 0; i < variables.Length; i++)
+            {
+                var variable = variables[i];
+                var valuePlaceholder = deconstructionStep.OutputPlaceholders[i];
+
+                if (variable.IsNested)
+                {
+                    if (!DeconstructIntoSteps(valuePlaceholder, syntax, diagnostics, variable.Nested, deconstructionSteps, assignmentSteps))
+                    {
+                        hasErrors = true;
+                    }
+                }
+                else
+                {
+                    var assignment = MakeAssignmentInfo(variable.Single, valuePlaceholder.Type, valuePlaceholder, syntax, diagnostics);
+                    assignmentSteps.Add(assignment);
+                }
+            }
+
+            return !hasErrors;
+        }
+
+        /// <summary>
+        /// For cases where the RHS of a deconstruction-assignment has no type (TupleLiteral), we squint and look at the LHS as a tuple type to give the RHS a type.
+        /// </summary>
+        static private TypeSymbol MakeTupleTypeFromDeconstructionLHS(ImmutableArray<DeconstructionVariable> topLevelCheckedVariables, DiagnosticBag diagnostics, CSharpCompilation compilation)
+        {
+            var typesBuilder = ArrayBuilder<TypeSymbol>.GetInstance(topLevelCheckedVariables.Length);
+            foreach (var variable in topLevelCheckedVariables)
+            {
+                if (variable.IsNested)
+                {
+                    typesBuilder.Add(MakeTupleTypeFromDeconstructionLHS(variable.Nested, diagnostics, compilation));
+                }
+                else
+                {
+                    typesBuilder.Add(variable.Single.Type);
+                }
+            }
+
+            return TupleTypeSymbol.Create(locationOpt: null, elementTypes: typesBuilder.ToImmutableAndFree(), elementLocations: default(ImmutableArray<Location>), elementNames: default(ImmutableArray<string>), compilation: compilation, diagnostics: diagnostics);
+        }
+
+        /// <summary>
+        /// Returns an array of variables, where some may be nested variables (BoundDeconstructionVariables).
+        /// Checks that all the variables are assignable to.
+        /// </summary>
+        private ImmutableArray<DeconstructionVariable> BindDeconstructionVariables(SeparatedSyntaxList<ArgumentSyntax> arguments, DiagnosticBag diagnostics)
+        {
             int numElements = arguments.Count;
             Debug.Assert(numElements >= 2); // this should not have parsed as a tuple.
 
             // bind the variables and check they can be assigned to
-            var checkedVariablesBuilder = ArrayBuilder<BoundExpression>.GetInstance(numElements);
+            var checkedVariablesBuilder = ArrayBuilder<DeconstructionVariable>.GetInstance(numElements);
+
             foreach (var argument in arguments)
             {
-                var boundVariable = BindExpression(argument.Expression, diagnostics, invoked: false, indexed: false);
-                var checkedVariable = CheckValue(boundVariable, BindValueKind.Assignment, diagnostics);
+                if (argument.Expression.Kind() == SyntaxKind.TupleExpression) // nested tuple case
+                {
+                    var nestedArguments = ((TupleExpressionSyntax)argument.Expression).Arguments;
+                    checkedVariablesBuilder.Add(new DeconstructionVariable(BindDeconstructionVariables(nestedArguments, diagnostics)));
+                }
+                else
+                {
+                    var boundVariable = BindExpression(argument.Expression, diagnostics, invoked: false, indexed: false);
+                    var checkedVariable = CheckValue(boundVariable, BindValueKind.Assignment, diagnostics);
 
-                checkedVariablesBuilder.Add(checkedVariable);
+                    checkedVariablesBuilder.Add(new DeconstructionVariable(checkedVariable));
+                }
             }
 
             var checkedVariables = checkedVariablesBuilder.ToImmutableAndFree();
-
-            // tuple literal such as `(1, 2)`, `(null, null)`, `(x.P, y.M())`
-            if (boundRHS.Kind == BoundKind.TupleLiteral || ((object)boundRHS.Type != null && boundRHS.Type.IsTupleType))
-            {
-                return BindDeconstructWithTuple(node, diagnostics, boundRHS, checkedVariables);
-            }
-
-            // expression without type such as `null`
-            if (boundRHS.Type == null)
-            {
-                Error(diagnostics, ErrorCode.ERR_DeconstructRequiresExpression, node);
-                return BadExpression(node, checkedVariables.Concat(boundRHS).ToArray());
-            }
-
-            return BindDeconstructWithDeconstruct(node, diagnostics, boundRHS, checkedVariables);
-        }
-
-        private BoundExpression BindDeconstructWithTuple(AssignmentExpressionSyntax node, DiagnosticBag diagnostics, BoundExpression boundRHS, ImmutableArray<BoundExpression> checkedVariables)
-        {
-            // make a conversion for the tuple based on the LHS information (this also takes care of tuple literals without a natural type)
-            var lhsTypes = checkedVariables.SelectAsArray(v => v.Type);
-            TypeSymbol lhsAsTuple = TupleTypeSymbol.Create(locationOpt: null, elementTypes: lhsTypes, elementLocations: default(ImmutableArray<Location>), elementNames: default(ImmutableArray<string>), compilation: Compilation, diagnostics: diagnostics);
-            var typedRHS = GenerateConversionForAssignment(lhsAsTuple, boundRHS, diagnostics);
-
-            ImmutableArray<TypeSymbol> tupleTypes = typedRHS.Type.TupleElementTypes;
-
-            // figure out the pairwise conversions
-            var assignments = checkedVariables.SelectAsArray((variable, index, types) => MakeAssignmentInfo(variable, types[index], node, diagnostics), tupleTypes);
-
-            TypeSymbol voidType = GetSpecialType(SpecialType.System_Void, diagnostics, node);
-            return new BoundDeconstructionAssignmentOperator(node, checkedVariables, typedRHS, deconstructMemberOpt: null, assignments: assignments, type: voidType);
-        }
-
-        private BoundExpression BindDeconstructWithDeconstruct(AssignmentExpressionSyntax node, DiagnosticBag diagnostics, BoundExpression boundRHS, ImmutableArray<BoundExpression> checkedVariables)
-        {
-            // symbol and parameters for Deconstruct
-            DiagnosticBag bag = new DiagnosticBag();
-            MethodSymbol deconstructMethod = FindDeconstruct(checkedVariables, boundRHS, node, bag);
-            if (!diagnostics.HasAnyErrors())
-            {
-                diagnostics.AddRange(bag);
-            }
-
-            if ((object)deconstructMethod == null)
-            {
-                return new BoundDeconstructionAssignmentOperator(node, checkedVariables, boundRHS, ErrorMethodSymbol.UnknownMethod,
-                                                                ImmutableArray<BoundDeconstructionAssignmentOperator.AssignmentInfo>.Empty,
-                                                                ErrorTypeSymbol.UnknownResultType,
-                                                                hasErrors: true);
-            }
-
-            // figure out the pairwise conversions
-            var deconstructParameters = deconstructMethod.Parameters;
-            var assignments = checkedVariables.SelectAsArray((variable, index, parameters) => MakeAssignmentInfo(variable, parameters[index].Type, node, diagnostics), deconstructParameters);
-
-            TypeSymbol voidType = GetSpecialType(SpecialType.System_Void, diagnostics, node);
-            return new BoundDeconstructionAssignmentOperator(node, checkedVariables, boundRHS, deconstructMethod, assignments, voidType);
+            return checkedVariables;
         }
 
         /// <summary>
         /// Figures out how to assign from sourceType into receivingVariable and bundles the information (leaving holes for the actual source and receiver) into an AssignmentInfo.
         /// </summary>
-        private BoundDeconstructionAssignmentOperator.AssignmentInfo MakeAssignmentInfo(BoundExpression receivingVariable, TypeSymbol sourceType, AssignmentExpressionSyntax node, DiagnosticBag diagnostics)
+        private BoundDeconstructionAssignmentStep MakeAssignmentInfo(BoundExpression receivingVariable, TypeSymbol sourceType, BoundDeconstructValuePlaceholder inputPlaceholder, AssignmentExpressionSyntax node, DiagnosticBag diagnostics)
         {
-            var leftPlaceholder = new BoundLValuePlaceholder(receivingVariable.Syntax, receivingVariable.Type) { WasCompilerGenerated = true };
-            var rightPlaceholder = new BoundRValuePlaceholder(node.Right, sourceType) { WasCompilerGenerated = true };
+            var outputPlaceholder = new BoundDeconstructValuePlaceholder(receivingVariable.Syntax, receivingVariable.Type) { WasCompilerGenerated = true };
 
             // each assignment has a placeholder for a receiver and another for the source
-            BoundAssignmentOperator op = BindAssignment(node, leftPlaceholder, rightPlaceholder, diagnostics);
+            BoundAssignmentOperator op = BindAssignment(node, outputPlaceholder, inputPlaceholder, diagnostics);
 
-            return new BoundDeconstructionAssignmentOperator.AssignmentInfo() { Assignment = op, LValuePlaceholder = leftPlaceholder, RValuePlaceholder = rightPlaceholder };
+            return new BoundDeconstructionAssignmentStep(node, op, inputPlaceholder, outputPlaceholder);
+        }
+
+        static private ImmutableArray<BoundExpression> FlattenDeconstructVariables(ImmutableArray<DeconstructionVariable> variables)
+        {
+            var builder = ArrayBuilder<BoundExpression>.GetInstance(variables.Length);
+            FlattenDeconstructVariables(variables, builder);
+
+            return builder.ToImmutableAndFree();
+        }
+
+        static private void FlattenDeconstructVariables(ImmutableArray<DeconstructionVariable> variables, ArrayBuilder<BoundExpression> builder)
+        {
+            foreach (var variable in variables)
+            {
+                if (variable.IsNested)
+                {
+                    FlattenDeconstructVariables(variable.Nested, builder);
+                }
+                else
+                {
+                    builder.Add(variable.Single);
+                }
+            }
         }
 
         /// <summary>
@@ -1821,7 +2000,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Returns true if the Deconstruct method is found.
         ///     If so, it outputs the method.
         /// </summary>
-        private static MethodSymbol FindDeconstruct(ImmutableArray<BoundExpression> checkedVariables, BoundExpression boundRHS, SyntaxNode node, DiagnosticBag diagnostics)
+        private static MethodSymbol FindDeconstruct(int numCheckedVariables, BoundExpression boundRHS, SyntaxNode node, DiagnosticBag diagnostics)
         {
             // find symbol for Deconstruct member
             ImmutableArray<Symbol> candidates = boundRHS.Type.GetMembers("Deconstruct");
@@ -1853,9 +2032,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return null;
             }
 
-            if (deconstructMethod.ParameterCount != checkedVariables.Length)
+            if (deconstructMethod.ParameterCount != numCheckedVariables)
             {
-                Error(diagnostics, ErrorCode.ERR_DeconstructWrongParams, boundRHS.Syntax, deconstructMethod, checkedVariables.Length);
+                Error(diagnostics, ErrorCode.ERR_DeconstructWrongParams, boundRHS.Syntax, deconstructMethod, numCheckedVariables);
                 return null;
             }
 

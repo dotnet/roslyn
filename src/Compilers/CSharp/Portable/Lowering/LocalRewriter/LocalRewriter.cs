@@ -230,12 +230,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public override BoundNode VisitLValuePlaceholder(BoundLValuePlaceholder node)
-        {
-            return PlaceholderReplacement(node);
-        }
-
-        public override BoundNode VisitRValuePlaceholder(BoundRValuePlaceholder node)
+        public override BoundNode VisitDeconstructValuePlaceholder(BoundDeconstructValuePlaceholder node)
         {
             return PlaceholderReplacement(node);
         }
@@ -285,6 +280,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool removed = _placeholderReplacementMapDoNotUseDirectly.Remove(placeholder);
 
             Debug.Assert(removed);
+        }
+
+        /// <summary>
+        /// Remove all the listed placeholders.
+        /// </summary>
+        private void RemovePlaceholderReplacements(ArrayBuilder<BoundValuePlaceholderBase> placeholders)
+        {
+            foreach (var placeholder in placeholders)
+            {
+                RemovePlaceholderReplacement(placeholder);
+            }
         }
 
         public override BoundNode VisitBadExpression(BoundBadExpression node)
