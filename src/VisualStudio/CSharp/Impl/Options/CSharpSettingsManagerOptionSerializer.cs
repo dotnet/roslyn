@@ -33,6 +33,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         CompletionOptions.FeatureName,
         CSharpCompletionOptions.FeatureName,
         CSharpCodeStyleOptions.FeatureName,
+        CodeStyleOptions.PerLanguageCodeStyleOption,
         SimplificationOptions.PerLanguageFeatureName,
         ExtractMethodOptions.FeatureName,
         CSharpFormattingOptions.IndentFeatureName,
@@ -54,6 +55,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         private const string SpaceAroundBinaryOperator = nameof(AutomationObject.Space_AroundBinaryOperator);
         private const string UnindentLabels = nameof(AutomationObject.Indent_UnindentLabels);
         private const string FlushLabelsLeft = nameof(AutomationObject.Indent_FlushLabelsLeft);
+        private const string Style_QualifyFieldAccess = nameof(AutomationObject.Style_QualifyFieldAccess);
+        private const string Style_QualifyPropertyAccess = nameof(AutomationObject.Style_QualifyPropertyAccess);
+        private const string Style_QualifyMethodAccess = nameof(AutomationObject.Style_QualifyMethodAccess);
+        private const string Style_QualifyEventAccess = nameof(AutomationObject.Style_QualifyEventAccess);
         private const string Style_UseImplicitTypeForIntrinsicTypes = nameof(AutomationObject.Style_UseImplicitTypeForIntrinsicTypes);
         private const string Style_UseImplicitTypeWhereApparent = nameof(AutomationObject.Style_UseImplicitTypeWhereApparent);
         private const string Style_UseImplicitTypeWherePossible = nameof(AutomationObject.Style_UseImplicitTypeWherePossible);
@@ -77,6 +82,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                 {
                     new KeyValuePair<string, IOption>(GetStorageKeyForOption(CompletionOptions.IncludeKeywords), CompletionOptions.IncludeKeywords),
                     new KeyValuePair<string, IOption>(GetStorageKeyForOption(CompletionOptions.TriggerOnTypingLetters), CompletionOptions.TriggerOnTypingLetters),
+                    new KeyValuePair<string, IOption>(GetStorageKeyForOption(CompletionOptions.ShowCompletionItemFilters), CompletionOptions.ShowCompletionItemFilters),
+                    new KeyValuePair<string, IOption>(GetStorageKeyForOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems), CompletionOptions.HighlightMatchingPortionsOfCompletionListItems),
                 });
 
             Type[] types = new[]
@@ -89,7 +96,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                     typeof(CSharpCodeStyleOptions),
                     typeof(ExtractMethodOptions),
                     typeof(ServiceFeatureOnOffOptions),
-                    typeof(CSharpFormattingOptions)
+                    typeof(CSharpFormattingOptions),
+                    typeof(CodeStyleOptions)
                 };
 
             var bindingFlags = BindingFlags.Public | BindingFlags.Static;
@@ -126,6 +134,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                 option == AddImportOptions.SuggestForTypesInNuGetPackages ||
                 option == CSharpCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord ||
                 option == CSharpCompletionOptions.IncludeSnippets ||
+                option.Feature == CodeStyleOptions.PerLanguageCodeStyleOption ||
                 option.Feature == CSharpCodeStyleOptions.FeatureName ||
                 option.Feature == CSharpFormattingOptions.WrappingFeatureName ||
                 option.Feature == CSharpFormattingOptions.IndentFeatureName ||
@@ -138,6 +147,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             {
                 if (option == CompletionOptions.IncludeKeywords ||
                     option == CompletionOptions.TriggerOnTypingLetters ||
+                    option == CompletionOptions.ShowCompletionItemFilters ||
+                    option == CompletionOptions.HighlightMatchingPortionsOfCompletionListItems ||
                     option.Feature == SimplificationOptions.PerLanguageFeatureName ||
                     option.Feature == ExtractMethodOptions.FeatureName ||
                     option.Feature == ServiceFeatureOnOffOptions.OptionName ||
@@ -224,26 +235,46 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                 return true;
             }
 
+            // code style: use this.
+            if (optionKey.Option == CodeStyleOptions.QualifyFieldAccess)
+            {
+                return FetchStyleBool(Style_QualifyFieldAccess, out value);
+            }
+            else if (optionKey.Option == CodeStyleOptions.QualifyPropertyAccess)
+            {
+                return FetchStyleBool(Style_QualifyPropertyAccess, out value);
+            }
+            else if (optionKey.Option == CodeStyleOptions.QualifyMethodAccess)
+            {
+                return FetchStyleBool(Style_QualifyMethodAccess, out value);
+            }
+            else if (optionKey.Option == CodeStyleOptions.QualifyEventAccess)
+            {
+                return FetchStyleBool(Style_QualifyEventAccess, out value);
+            }
+
             // code style: use var options.
             if (optionKey.Option == CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes)
             {
-                var typeStyleValue = this.Manager.GetValueOrDefault<string>(Style_UseImplicitTypeForIntrinsicTypes);
-                return FetchTypeStyleOption(typeStyleValue, out value);
+                return FetchStyleBool(Style_UseImplicitTypeForIntrinsicTypes, out value);
             }
             else if (optionKey.Option == CSharpCodeStyleOptions.UseImplicitTypeWhereApparent)
             {
-                var typeStyleValue = this.Manager.GetValueOrDefault<string>(Style_UseImplicitTypeWhereApparent);
-                return FetchTypeStyleOption(typeStyleValue, out value);
+                return FetchStyleBool(Style_UseImplicitTypeWhereApparent, out value);
             }
             else if (optionKey.Option == CSharpCodeStyleOptions.UseImplicitTypeWherePossible)
             {
-                var typeStyleValue = this.Manager.GetValueOrDefault<string>(Style_UseImplicitTypeWherePossible);
-                return FetchTypeStyleOption(typeStyleValue, out value);
+                return FetchStyleBool(Style_UseImplicitTypeWherePossible, out value);
             }
 
             return base.TryFetch(optionKey, out value);
         }
 
+        private bool FetchStyleBool(string settingName, out object value)
+        {
+            var typeStyleValue = Manager.GetValueOrDefault<string>(settingName);
+            return FetchStyleOption<bool>(typeStyleValue, out value);
+        }
 
         public override bool TryPersist(OptionKey optionKey, object value)
         {
@@ -310,39 +341,57 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                 }
             }
 
+            // code style: use this.
+            if (optionKey.Option == CodeStyleOptions.QualifyFieldAccess)
+            {
+                return PersistStyleOption<bool>(Style_QualifyFieldAccess, value);
+            }
+            else if (optionKey.Option == CodeStyleOptions.QualifyPropertyAccess)
+            {
+                return PersistStyleOption<bool>(Style_QualifyPropertyAccess, value);
+            }
+            else if (optionKey.Option == CodeStyleOptions.QualifyMethodAccess)
+            {
+                return PersistStyleOption<bool>(Style_QualifyMethodAccess, value);
+            }
+            else if (optionKey.Option == CodeStyleOptions.QualifyEventAccess)
+            {
+                return PersistStyleOption<bool>(Style_QualifyEventAccess, value);
+            }
+
             // code style: use var options.
             if (optionKey.Option == CSharpCodeStyleOptions.UseImplicitTypeForIntrinsicTypes)
             {
-                return PersistTypeStyleOption(Style_UseImplicitTypeForIntrinsicTypes, value);
+                return PersistStyleOption<bool>(Style_UseImplicitTypeForIntrinsicTypes, value);
             }
             else if (optionKey.Option == CSharpCodeStyleOptions.UseImplicitTypeWhereApparent)
             {
-                return PersistTypeStyleOption(Style_UseImplicitTypeWhereApparent, value);
+                return PersistStyleOption<bool>(Style_UseImplicitTypeWhereApparent, value);
             }
             else if (optionKey.Option == CSharpCodeStyleOptions.UseImplicitTypeWherePossible)
             {
-                return PersistTypeStyleOption(Style_UseImplicitTypeWherePossible, value);
+                return PersistStyleOption<bool>(Style_UseImplicitTypeWherePossible, value);
             }
 
             return base.TryPersist(optionKey, value);
         }
 
-        private bool PersistTypeStyleOption(string option, object value)
+        private bool PersistStyleOption<T>(string option, object value)
         {
-            var serializedValue = ((SimpleCodeStyleOption)value).ToXElement().ToString();
+            var serializedValue = ((CodeStyleOption<T>)value).ToXElement().ToString();
             this.Manager.SetValueAsync(option, value: serializedValue, isMachineLocal: false);
             return true;
         }
 
-        private static bool FetchTypeStyleOption(string typeStyleOptionValue, out object value)
+        private static bool FetchStyleOption<T>(string typeStyleOptionValue, out object value)
         {
             if (string.IsNullOrEmpty(typeStyleOptionValue))
             {
-                value = SimpleCodeStyleOption.Default;
+                value = CodeStyleOption<T>.Default;
             }
             else
             {
-                value = SimpleCodeStyleOption.FromXElement(XElement.Parse(typeStyleOptionValue));
+                value = CodeStyleOption<T>.FromXElement(XElement.Parse(typeStyleOptionValue));
             }
 
             return true;

@@ -1,15 +1,14 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
-Imports Microsoft.CodeAnalysis.Options
-Imports Microsoft.CodeAnalysis.Simplification
+Imports Microsoft.CodeAnalysis.CodeRefactorings
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeRefactorings.EncapsulateField
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeRefactorings.EncapsulateField
     Public Class EncapsulateFieldTests
         Inherits AbstractVisualBasicCodeActionTest
 
-        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace) As Object
+        Protected Overrides Function CreateCodeRefactoringProvider(workspace As Workspace) As CodeRefactoringProvider
             Return New EncapsulateFieldRefactoringProvider()
         End Function
 
@@ -337,7 +336,7 @@ Class C
     End Property
 End Class</File>.ConvertTestSourceTag()
 
-            Await TestAsync(text, expected, compareTokens:=False, index:=0, options:=[Option](SimplificationOptions.QualifyFieldAccess, True))
+            Await TestAsync(text, expected, compareTokens:=False, index:=0, options:=[Option](CodeStyleOptions.QualifyFieldAccess, True, NotificationOption.Error))
 
         End Function
 
@@ -631,7 +630,7 @@ Class C
     End Property
 End Class
 ",
-options:=[Option](SimplificationOptions.QualifyFieldAccess, True))
+options:=[Option](CodeStyleOptions.QualifyFieldAccess, True, NotificationOption.Error))
         End Function
     End Class
 End Namespace

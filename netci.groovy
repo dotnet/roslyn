@@ -1,7 +1,7 @@
 // Groovy Script: http://www.groovy-lang.org/syntax.html
 // Jenkins DSL: https://github.com/jenkinsci/job-dsl-plugin/wiki
 
-import jobs.generation.Utilities;
+import jobs.generation.*;
 
 // The input project name (e.g. dotnet/corefx)
 def projectName = GithubProject
@@ -42,9 +42,21 @@ static String generateTriggerPhrase(String jobName, String opsysName, String tri
 }
 
 static void addRoslynJob(def myJob, String jobName, String branchName, Boolean isPr, String triggerPhraseExtra, Boolean triggerPhraseOnly = false) {
-  def includePattern = "Binaries/**/*.pdb,Binaries/**/*.xml,Binaries/**/*.log,Binaries/**/*.dmp,Binaries/**/*.zip,Binaries/**/*.png,Binaries/**/*.xml"
-  def excludePattern = "Binaries/Obj/**,Binaries/Bootstrap/**,Binaries/**/nuget*.zip"
-  Utilities.addArchival(myJob, includePattern, excludePattern)
+  def archiveSettings = new ArchivalSettings()
+  archiveSettings.addFiles('Binaries/**/*.pdb')
+  archiveSettings.addFiles('Binaries/**/*.xml')
+  archiveSettings.addFiles('Binaries/**/*.log')
+  archiveSettings.addFiles('Binaries/**/*.dmp')
+  archiveSettings.addFiles('Binaries/**/*.zip')
+  archiveSettings.addFiles('Binaries/**/*.png')
+  archiveSettings.addFiles('Binaries/**/*.xml')
+  archiveSettings.excludeFiles('Binaries/Obj/**')
+  archiveSettings.excludeFiles('Binaries/Bootstrap/**')
+  archiveSettings.excludeFiles('Binaries/**/nuget*.zip')
+  // Only archive if failed/aborted
+  archiveSettings.setArchiveOnFailure()
+  archiveSettings.setFailIfNothingArchived()
+  Utilities.addArchival(myJob, archiveSettings)
 
   // Create the standard job.  This will setup parameter, SCM, timeout, etc ...
   def projectName = 'dotnet/roslyn'
@@ -109,7 +121,7 @@ commitPullList.each { isPr ->
   }
 
   def triggerPhraseOnly = false
-  def triggerPhraseExtra = ""
+  def triggerPhraseExtra = "linux"
   Utilities.setMachineAffinity(myJob, 'Ubuntu14.04', 'latest-or-auto')
   Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
@@ -127,7 +139,7 @@ commitPullList.each { isPr ->
   }
 
   def triggerPhraseOnly = true
-  def triggerPhraseExtra = ""
+  def triggerPhraseExtra = "mac"
   Utilities.addXUnitDotNETResults(myJob, '**/xUnitResults/*.xml')
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }
@@ -148,6 +160,23 @@ set TMP=%TEMP%
  
   def triggerPhraseOnly = true
   def triggerPhraseExtra = "determinism"
+  Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto')
+  addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
+}
+
+// Perf Correctness
+commitPullList.each { isPr ->
+  def jobName = Utilities.getFullJobName(projectName, "perf_correctness", isPr)
+  def myJob = job(jobName) {
+    description('perf test correctness')
+    label('windows-roslyn')
+    steps {
+      batchFile(""".\\cibuild.cmd /testPerfCorrectness""")
+    }
+  }
+
+  def triggerPhraseOnly = true
+  def triggerPhraseExtra = "perf-correctness"
   Utilities.setMachineAffinity(myJob, 'Windows_NT', 'latest-or-auto')
   addRoslynJob(myJob, jobName, branchName, isPr, triggerPhraseExtra, triggerPhraseOnly)
 }

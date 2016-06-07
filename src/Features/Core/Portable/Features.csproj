@@ -53,6 +53,7 @@
     <InternalsVisibleTo Include="Microsoft.CodeAnalysis.VisualBasic.InteractiveEditorFeatures" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
     <InternalsVisibleTo Include="VBCSCompiler" />
+    <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
     <InternalsVisibleToTest Include="Roslyn.DebuggerVisualizers" />
     <InternalsVisibleToTest Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleToTest Include="Roslyn.InteractiveHost.UnitTests" />
@@ -64,7 +65,6 @@
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.VisualBasic.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.VisualStudio.DiagnosticsWindow" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
@@ -153,8 +153,6 @@
     <Compile Include="CodeRefactorings\PredefinedCodeRefactoringProviderNames.cs" />
     <Compile Include="CodeRefactorings\ServicesLayerCodeActionHelpersService.cs" />
     <Compile Include="CodeRefactorings\WorkspaceServices\IAddMetadataReferenceCodeActionOperationFactoryWorkspaceService.cs" />
-    <Compile Include="CodeStyle\SimpleCodeStyleOption.cs" />
-    <Compile Include="CodeStyle\NotificationOption.cs" />
     <Compile Include="Common\Glyph.cs" />
     <Compile Include="Common\TaggedText.cs" />
     <Compile Include="Common\TextTags.cs" />
@@ -203,6 +201,9 @@
     <Compile Include="Diagnostics\AbstractHostDiagnosticUpdateSource.cs" />
     <Compile Include="Diagnostics\Analyzers\QualifyMemberAccessDiagnosticAnalyzerBase.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyles\Capitalization.cs" />
+    <Compile Include="ReplacePropertyWithMethods\AbstractReplacePropertyWithMethodsService.cs" />
+    <Compile Include="ReplacePropertyWithMethods\IReplacePropertyWithMethodsService.cs" />
+    <Compile Include="ReplacePropertyWithMethods\ReplacePropertyWithMethodsCodeRefactoringProvider.cs" />
     <Compile Include="SymbolCategorization\ISymbolCategorizer.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyles\NamingRule.cs" />
     <Compile Include="Diagnostics\Analyzers\NamingStyles\NamingStylePreferencesInfo.cs" />
@@ -228,6 +229,7 @@
     <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer_GetDiagnostics.cs" />
     <Compile Include="Diagnostics\EngineV1\DiagnosticIncrementalAnalyzer_GetLatestDiagnosticsForSpan.cs" />
     <Compile Include="Diagnostics\EngineV1\MemberRangeMap.cs" />
+    <Compile Include="Diagnostics\EngineV2\CompilerAnalysisResult.cs" />
     <Compile Include="Diagnostics\EngineV2\DiagnosticDataSerializer.cs" />
     <Compile Include="Diagnostics\EngineV2\DiagnosticIncrementalAnalyzer.AnalysisData.cs" />
     <Compile Include="Diagnostics\EngineV2\DiagnosticIncrementalAnalyzer.AnalysisKind.cs" />
@@ -419,13 +421,13 @@
     <Compile Include="GenerateFromMembers\AddConstructorParameters\AddConstructorParametersResult.cs" />
     <Compile Include="GenerateFromMembers\AddConstructorParameters\IAddConstructorParametersResult.cs" />
     <Compile Include="GenerateFromMembers\AddConstructorParameters\IAddConstructorParametersService.cs" />
-    <Compile Include="GenerateFromMembers\GenerateConstructor\AbstractGenerateConstructorService.ConstructorDelegatingCodeAction.cs" />
-    <Compile Include="GenerateFromMembers\GenerateConstructor\AbstractGenerateConstructorService.cs" />
-    <Compile Include="GenerateFromMembers\GenerateConstructor\AbstractGenerateConstructorService.FieldDelegatingCodeAction.cs" />
-    <Compile Include="GenerateFromMembers\GenerateConstructor\AbstractGenerateConstructorService.State.cs" />
-    <Compile Include="GenerateFromMembers\GenerateConstructor\GenerateConstructorResult.cs" />
-    <Compile Include="GenerateFromMembers\GenerateConstructor\IGenerateConstructorResult.cs" />
-    <Compile Include="GenerateFromMembers\GenerateConstructor\IGenerateConstructorService.cs" />
+    <Compile Include="GenerateFromMembers\GenerateConstructorFromMembers\AbstractGenerateConstructorFromMembersService.ConstructorDelegatingCodeAction.cs" />
+    <Compile Include="GenerateFromMembers\GenerateConstructorFromMembers\AbstractGenerateConstructorFromMembersService.cs" />
+    <Compile Include="GenerateFromMembers\GenerateConstructorFromMembers\AbstractGenerateConstructorFromMembersService.FieldDelegatingCodeAction.cs" />
+    <Compile Include="GenerateFromMembers\GenerateConstructorFromMembers\AbstractGenerateConstructorFromMembersService.State.cs" />
+    <Compile Include="GenerateFromMembers\GenerateConstructorFromMembers\GenerateConstructorFromMembersResult.cs" />
+    <Compile Include="GenerateFromMembers\GenerateConstructorFromMembers\IGenerateConstructorFromMembersResult.cs" />
+    <Compile Include="GenerateFromMembers\GenerateConstructorFromMembers\IGenerateConstructorFromMembersService.cs" />
     <Compile Include="GenerateFromMembers\GenerateEqualsAndGetHashCode\AbstractGenerateEqualsAndGetHashCodeService.cs" />
     <Compile Include="GenerateFromMembers\GenerateEqualsAndGetHashCode\GenerateEqualsAndGetHashCodeCodeRefactoringProvider.CodeAction.cs" />
     <Compile Include="GenerateFromMembers\GenerateEqualsAndGetHashCode\GenerateEqualsAndGetHashCodeResult.cs" />

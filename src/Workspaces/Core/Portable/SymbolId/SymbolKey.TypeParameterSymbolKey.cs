@@ -1,51 +1,47 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal abstract partial class SymbolKey
+    internal partial struct SymbolKey
     {
-        private class TypeParameterSymbolKey : AbstractSymbolKey<TypeParameterSymbolKey>
+        private static class TypeParameterSymbolKey
         {
-            private readonly SymbolKey _containerKey;
-            private readonly string _metadataName;
-
-            public TypeParameterSymbolKey(ITypeParameterSymbol symbol, Visitor visitor)
+            public static void Create(ITypeParameterSymbol symbol, SymbolKeyWriter visitor)
             {
-                _containerKey = GetOrCreate(symbol.ContainingSymbol, visitor);
-                _metadataName = symbol.MetadataName;
+                visitor.WriteString(symbol.MetadataName);
+                visitor.WriteSymbolKey(symbol.ContainingSymbol);
             }
 
-            public override SymbolKeyResolution Resolve(Compilation compilation, bool ignoreAssemblyKey, CancellationToken cancellationToken)
+            public static int GetHashCode(GetHashCodeReader reader)
             {
-                var container = _containerKey.Resolve(compilation, ignoreAssemblyKey, cancellationToken);
-                var typeParameters = GetAllSymbols<INamedTypeSymbol>(container).SelectMany(s => Resolve(compilation, s));
-                return CreateSymbolInfo(typeParameters);
+                return Hash.Combine(reader.ReadString(), reader.ReadSymbolKey());
             }
 
-            private IEnumerable<ITypeParameterSymbol> Resolve(Compilation compilation, INamedTypeSymbol container)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
-                return container.TypeParameters.Where(t => Equals(compilation, t.MetadataName, _metadataName));
-            }
+                var metadataName = reader.ReadString();
+                var containingSymbolResolution = reader.ReadSymbolKey();
 
-            internal override bool Equals(TypeParameterSymbolKey other, ComparisonOptions options)
-            {
-                return
-                    Equals(options.IgnoreCase, other._metadataName, _metadataName) &&
-                    other._containerKey.Equals(_containerKey, options);
-            }
-
-            internal override int GetHashCode(ComparisonOptions options)
-            {
-                return Hash.Combine(
-                    GetHashCode(options.IgnoreCase, _metadataName),
-                    _containerKey.GetHashCode(options));
+                var result = containingSymbolResolution.GetAllSymbols()
+                    .SelectMany(s =>
+                    {
+                        if (s is INamedTypeSymbol)
+                        {
+                            return ((INamedTypeSymbol)s).TypeParameters.Where(p => p.MetadataName == metadataName);
+                        }
+                        else if (s is IMethodSymbol)
+                        {
+                            return ((IMethodSymbol)s).TypeParameters.Where(p => p.MetadataName == metadataName);
+                        }
+                        else
+                        {
+                            return SpecializedCollections.EmptyEnumerable<ITypeParameterSymbol>();
+                        }
+                    });
+                return CreateSymbolInfo(result);
             }
         }
     }

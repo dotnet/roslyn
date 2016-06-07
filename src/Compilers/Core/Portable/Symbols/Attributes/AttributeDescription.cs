@@ -189,6 +189,7 @@ namespace Microsoft.CodeAnalysis
         private static readonly byte[] s_signature_HasThis_Void_String_DeprecationType_UInt32 = new byte[] { (byte)SignatureAttributes.Instance, 3, Void, String, TypeHandle, (byte)TypeHandleTarget.DeprecationType, UInt32 };
         private static readonly byte[] s_signature_HasThis_Void_String_DeprecationType_UInt32_Platform = new byte[] { (byte)SignatureAttributes.Instance, 4, Void, String, TypeHandle, (byte)TypeHandleTarget.DeprecationType, UInt32, TypeHandle, (byte)TypeHandleTarget.Platform };
         private static readonly byte[] s_signature_HasThis_Void_String_DeprecationType_UInt32_Type = new byte[] { (byte)SignatureAttributes.Instance, 4, Void, String, TypeHandle, (byte)TypeHandleTarget.DeprecationType, UInt32, TypeHandle, (byte)TypeHandleTarget.SystemType };
+        private static readonly byte[] s_signature_HasThis_Void_String_DeprecationType_UInt32_String = new byte[] { (byte)SignatureAttributes.Instance, 4, Void, String, TypeHandle, (byte)TypeHandleTarget.DeprecationType, UInt32, String };
 
         // TODO: We should reuse the byte arrays for well-known attributes with same signatures.
 
@@ -386,7 +387,8 @@ namespace Microsoft.CodeAnalysis
         {
             s_signature_HasThis_Void_String_DeprecationType_UInt32,
             s_signature_HasThis_Void_String_DeprecationType_UInt32_Platform,
-            s_signature_HasThis_Void_String_DeprecationType_UInt32_Type
+            s_signature_HasThis_Void_String_DeprecationType_UInt32_Type,
+            s_signature_HasThis_Void_String_DeprecationType_UInt32_String,
         };
 
         // early decoded attributes:

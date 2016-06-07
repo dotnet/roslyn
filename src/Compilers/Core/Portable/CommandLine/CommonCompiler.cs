@@ -508,10 +508,10 @@ namespace Microsoft.CodeAnalysis
                                     {
                                         compilation.ReportUnusedImports(null, diagnosticBag, cancellationToken);
                                     }
-
-                                    compilation.CompleteTrees(null);
                                 }
                             }
+
+                            compilation.CompleteTrees(null);
 
                             if (analyzerDriver != null)
                             {

@@ -225,4 +225,25 @@
   <data name="QualifyPropertyAccessWithMe" xml:space="preserve">
     <value>Qualify property access with 'Me'</value>
   </data>
+  <data name="DoNotPreferMe" xml:space="preserve">
+    <value>Do not prefer 'Me.'</value>
+  </data>
+  <data name="PreferMe" xml:space="preserve">
+    <value>Prefer 'Me.'</value>
+  </data>
+  <data name="QualifyGroupTitle" xml:space="preserve">
+    <value>'Me.' preferences</value>
+  </data>
+  <data name="PredefinedTypesGroupTitle" xml:space="preserve">
+    <value>predefined type preferences:</value>
+  </data>
+  <data name="Option_Highlight_matching_portions_of_completion_list_items" xml:space="preserve">
+    <value>_Highlight matching portions of completion list items</value>
+  </data>
+  <data name="Option_Show_completion_item_filters" xml:space="preserve">
+    <value>Show completion item _filters</value>
+  </data>
+  <data name="Option_CompletionLists" xml:space="preserve">
+    <value>Completion Lists</value>
+  </data>
 </root>

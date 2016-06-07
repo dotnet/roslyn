@@ -80,9 +80,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
         {
             var oldActiveStatements = description.OldSpans;
 
-            if (description.TrackingSpans != null)
+            if (description.OldTrackingSpans != null)
             {
-                Assert.Equal(oldActiveStatements.Length, description.TrackingSpans.Length);
+                Assert.Equal(oldActiveStatements.Length, description.OldTrackingSpans.Length);
             }
 
             string newSource = editScript.Match.NewRoot.SyntaxTree.ToString();
@@ -100,9 +100,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
             DocumentId documentId = DocumentId.CreateNewId(ProjectId.CreateNewId("TestEnCProject"), "TestEnCDocument");
 
             TestActiveStatementTrackingService trackingService;
-            if (description.TrackingSpans != null)
+            if (description.OldTrackingSpans != null)
             {
-                trackingService = new TestActiveStatementTrackingService(documentId, description.TrackingSpans);
+                trackingService = new TestActiveStatementTrackingService(documentId, description.OldTrackingSpans);
             }
             else
             {
@@ -156,8 +156,9 @@ namespace Microsoft.CodeAnalysis.EditAndContinue.UnitTests
                 }
             }
 
-            if (description.TrackingSpans != null)
+            if (description.OldTrackingSpans != null)
             {
+                // Verify that the new tracking spans are equal to the new active statements.
                 AssertEx.Equal(trackingService.TrackingSpans, description.NewSpans.Select(s => (TextSpan?)s));
             }
         }

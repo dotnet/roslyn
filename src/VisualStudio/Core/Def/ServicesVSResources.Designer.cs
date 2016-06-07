@@ -1189,6 +1189,24 @@ namespace Microsoft.VisualStudio.LanguageServices {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Prefer framework type.
+        /// </summary>
+        internal static string PreferFrameworkType {
+            get {
+                return ResourceManager.GetString("PreferFrameworkType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer predefined type.
+        /// </summary>
+        internal static string PreferPredefinedType {
+            get {
+                return ResourceManager.GetString("PreferPredefinedType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to [+] .
         /// </summary>
         internal static string PreviewChangesAddedPrefix {

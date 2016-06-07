@@ -342,34 +342,32 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' If not, report ERR_FieldHasMultipleDistinctConstantValues.
         ''' </summary>
         Private Sub VerifyConstantValueMatches(attrValue As ConstantValue, ByRef arguments As DecodeWellKnownAttributeArguments(Of AttributeSyntax, VisualBasicAttributeData, AttributeLocation))
-            If Not attrValue.IsBad Then
-                Dim data = arguments.GetOrCreateData(Of CommonFieldWellKnownAttributeData)()
-                Dim constValue As ConstantValue
+            Dim data = arguments.GetOrCreateData(Of CommonFieldWellKnownAttributeData)()
+            Dim constValue As ConstantValue
 
-                If Me.IsConst Then
-                    If Me.Type.IsDecimalType() OrElse Me.Type.IsDateTimeType() Then
-                        constValue = Me.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty)
+            If Me.IsConst Then
+                If Me.Type.IsDecimalType() OrElse Me.Type.IsDateTimeType() Then
+                    constValue = Me.GetConstantValue(SymbolsInProgress(Of FieldSymbol).Empty)
 
-                        If constValue IsNot Nothing AndAlso Not constValue.IsBad AndAlso constValue <> attrValue Then
-                            arguments.Diagnostics.Add(ERRID.ERR_FieldHasMultipleDistinctConstantValues, arguments.AttributeSyntaxOpt.GetLocation())
-                        End If
-                    Else
+                    If constValue IsNot Nothing AndAlso Not constValue.IsBad AndAlso constValue <> attrValue Then
                         arguments.Diagnostics.Add(ERRID.ERR_FieldHasMultipleDistinctConstantValues, arguments.AttributeSyntaxOpt.GetLocation())
                     End If
+                Else
+                    arguments.Diagnostics.Add(ERRID.ERR_FieldHasMultipleDistinctConstantValues, arguments.AttributeSyntaxOpt.GetLocation())
+                End If
 
-                    If data.ConstValue = CodeAnalysis.ConstantValue.Unset Then
-                        data.ConstValue = attrValue
+                If data.ConstValue = CodeAnalysis.ConstantValue.Unset Then
+                    data.ConstValue = attrValue
+                End If
+            Else
+                constValue = data.ConstValue
+
+                If constValue <> CodeAnalysis.ConstantValue.Unset Then
+                    If constValue <> attrValue Then
+                        arguments.Diagnostics.Add(ERRID.ERR_FieldHasMultipleDistinctConstantValues, arguments.AttributeSyntaxOpt.GetLocation())
                     End If
                 Else
-                    constValue = data.ConstValue
-
-                    If constValue <> CodeAnalysis.ConstantValue.Unset Then
-                        If constValue <> attrValue Then
-                            arguments.Diagnostics.Add(ERRID.ERR_FieldHasMultipleDistinctConstantValues, arguments.AttributeSyntaxOpt.GetLocation())
-                        End If
-                    Else
-                        data.ConstValue = attrValue
-                    End If
+                    data.ConstValue = attrValue
                 End If
             End If
         End Sub

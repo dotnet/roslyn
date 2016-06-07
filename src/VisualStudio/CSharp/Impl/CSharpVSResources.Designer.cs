@@ -484,6 +484,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to _Highlight matching portions of completion list items.
+        /// </summary>
+        internal static string Option_Highlight_matching_portions_of_completion_list_items {
+            get {
+                return ResourceManager.GetString("Option_Highlight_matching_portions_of_completion_list_items", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Highlighting.
         /// </summary>
         internal static string Option_Highlighting {
@@ -592,6 +601,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Show completion item _filters.
+        /// </summary>
+        internal static string Option_Show_completion_item_filters {
+            get {
+                return ResourceManager.GetString("Option_Show_completion_item_filters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Place _keywords in completion lists.
         /// </summary>
         internal static string Option_ShowKeywords {
@@ -664,15 +682,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Prefer framework type.
-        /// </summary>
-        internal static string PreferFrameworkType {
-            get {
-                return ResourceManager.GetString("PreferFrameworkType", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to For locals, parameters and members.
         /// </summary>
         internal static string PreferIntrinsicPredefinedTypeKeywordInDeclaration {
@@ -687,15 +696,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string PreferIntrinsicPredefinedTypeKeywordInMemberAccess {
             get {
                 return ResourceManager.GetString("PreferIntrinsicPredefinedTypeKeywordInMemberAccess", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to Prefer predefined type.
-        /// </summary>
-        internal static string PreferPredefinedType {
-            get {
-                return ResourceManager.GetString("PreferPredefinedType", resourceCulture);
             }
         }
         
