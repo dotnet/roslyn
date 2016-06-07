@@ -5,7 +5,7 @@ Imports Microsoft.CodeAnalysis.Semantics
 
 Namespace Microsoft.CodeAnalysis.VisualBasic
 
-    Friend Partial Class BoundExpression
+    Partial Friend Class BoundExpression
         Implements IOperation
 
         Private ReadOnly Property IOperation_ConstantValue As [Optional](Of Object) Implements IOperation.ConstantValue
@@ -655,15 +655,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Get
                 Select Case OperatorKind And UnaryOperatorKind.OpMask
                     Case UnaryOperatorKind.Plus
-                        Return UnaryOperationKind.OperatorMethodPlus
+                        Return UnaryOperationKind.Plus
                     Case UnaryOperatorKind.Minus
-                        Return UnaryOperationKind.OperatorMethodMinus
+                        Return UnaryOperationKind.Minus
                     Case UnaryOperatorKind.Not
-                        Return UnaryOperationKind.OperatorMethodBitwiseNegation
+                        Return UnaryOperationKind.BitwiseOrLogicalNot
                     Case UnaryOperatorKind.IsTrue
-                        Return UnaryOperationKind.OperatorMethodTrue
+                        Return UnaryOperationKind.True
                     Case UnaryOperatorKind.IsFalse
-                        Return UnaryOperationKind.OperatorMethodFalse
+                        Return UnaryOperationKind.False
                     Case Else
                         Return UnaryOperationKind.Invalid
                 End Select
@@ -694,7 +694,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IBinaryOperatorExpression_BinaryOperationKind As BinaryOperationKind Implements IBinaryOperatorExpression.BinaryOperationKind
             Get
-                Return DeriveBinaryOperationKind(Me.OperatorKind, Me.Left)
+                Return DeriveBinaryOperationKind(Me.OperatorKind)
             End Get
         End Property
 
@@ -744,50 +744,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IBinaryOperatorExpression_BinaryOperationKind As BinaryOperationKind Implements IBinaryOperatorExpression.BinaryOperationKind
             Get
-                Select Case OperatorKind And BinaryOperatorKind.OpMask
-                    Case BinaryOperatorKind.Add
-                        Return BinaryOperationKind.OperatorMethodAdd
-                    Case BinaryOperatorKind.Subtract
-                        Return BinaryOperationKind.OperatorMethodSubtract
-                    Case BinaryOperatorKind.Multiply
-                        Return BinaryOperationKind.OperatorMethodMultiply
-                    Case BinaryOperatorKind.Divide
-                        Return BinaryOperationKind.OperatorMethodDivide
-                    Case BinaryOperatorKind.IntegerDivide
-                        Return BinaryOperationKind.OperatorMethodIntegerDivide
-                    Case BinaryOperatorKind.Modulo
-                        Return BinaryOperationKind.OperatorMethodRemainder
-                    Case BinaryOperatorKind.And
-                        Return BinaryOperationKind.OperatorMethodAnd
-                    Case BinaryOperatorKind.Or
-                        Return BinaryOperationKind.OperatorMethodOr
-                    Case BinaryOperatorKind.Xor
-                        Return BinaryOperationKind.OperatorMethodExclusiveOr
-                    Case BinaryOperatorKind.AndAlso
-                        Return BinaryOperationKind.OperatorMethodConditionalAnd
-                    Case BinaryOperatorKind.OrElse
-                        Return BinaryOperationKind.OperatorMethodConditionalOr
-                    Case BinaryOperatorKind.LeftShift
-                        Return BinaryOperationKind.OperatorMethodLeftShift
-                    Case BinaryOperatorKind.RightShift
-                        Return BinaryOperationKind.OperatorMethodRightShift
-                    Case BinaryOperatorKind.LessThan
-                        Return BinaryOperationKind.OperatorMethodLessThan
-                    Case BinaryOperatorKind.LessThanOrEqual
-                        Return BinaryOperationKind.OperatorMethodLessThanOrEqual
-                    Case BinaryOperatorKind.Equals
-                        Return BinaryOperationKind.OperatorMethodEquals
-                    Case BinaryOperatorKind.NotEquals
-                        Return BinaryOperationKind.OperatorMethodNotEquals
-                    Case BinaryOperatorKind.GreaterThanOrEqual
-                        Return BinaryOperationKind.OperatorMethodGreaterThanOrEqual
-                    Case BinaryOperatorKind.GreaterThan
-                        Return BinaryOperationKind.OperatorMethodGreaterThan
-                    Case BinaryOperatorKind.Power
-                        Return BinaryOperationKind.OperatorMethodPower
-                    Case Else
-                        Return BinaryOperationKind.Invalid
-                End Select
+                Return Expression.DeriveBinaryOperationKind(Me.OperatorKind)
             End Get
         End Property
 
@@ -866,7 +823,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Private ReadOnly Property IBinaryOperatorExpression_BinaryOperationKind As BinaryOperationKind Implements IBinaryOperatorExpression.BinaryOperationKind
             Get
-                Return If((Me.BitwiseOperator.OperatorKind And BinaryOperatorKind.And) <> 0, BinaryOperationKind.OperatorMethodConditionalAnd, BinaryOperationKind.OperatorMethodConditionalOr)
+                Return If((Me.BitwiseOperator.OperatorKind And BinaryOperatorKind.And) <> 0, BinaryOperationKind.ConditionalAnd, BinaryOperationKind.ConditionalOr)
             End Get
         End Property
 
@@ -917,7 +874,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundTryCast
+    Partial Friend Class BoundTryCast
         Implements IConversionExpression
 
         Private ReadOnly Property IConversionExpression_ConversionKind As Semantics.ConversionKind Implements IConversionExpression.ConversionKind
@@ -963,7 +920,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundDirectCast
+    Partial Friend Class BoundDirectCast
         Implements IConversionExpression
 
         Private ReadOnly Property IConversionExpression_ConversionKind As Semantics.ConversionKind Implements IConversionExpression.ConversionKind
@@ -1009,7 +966,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundConversion
+    Partial Friend Class BoundConversion
         Implements IConversionExpression
 
         Private ReadOnly Property IConversionExpression_ConversionKind As Semantics.ConversionKind Implements IConversionExpression.ConversionKind
@@ -1055,7 +1012,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundUserDefinedConversion
+    Partial Friend Class BoundUserDefinedConversion
         Implements IConversionExpression
 
         Private ReadOnly Property IConversionExpression_ConversionKind As Semantics.ConversionKind Implements IConversionExpression.ConversionKind
@@ -1101,7 +1058,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundTernaryConditionalExpression
+    Partial Friend Class BoundTernaryConditionalExpression
         Implements IConditionalChoiceExpression
 
         Private ReadOnly Property IConditionalChoiceExpression_Condition As IOperation Implements IConditionalChoiceExpression.Condition
@@ -1135,7 +1092,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundTypeOf
+    Partial Friend Class BoundTypeOf
         Implements IIsTypeExpression
 
         Private ReadOnly Property IIsTypeExpression_IsType As ITypeSymbol Implements IIsTypeExpression.IsType
@@ -1163,7 +1120,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundObjectCreationExpression
+    Partial Friend Class BoundObjectCreationExpression
         Implements IObjectCreationExpression
 
         Private Shared ReadOnly s_memberInitializersMappings As New System.Runtime.CompilerServices.ConditionalWeakTable(Of BoundObjectCreationExpression, Object)
@@ -1371,7 +1328,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundArrayCreation
+    Partial Friend Class BoundArrayCreation
         Implements IArrayCreationExpression
 
         Private ReadOnly Property IArrayCreationExpression_DimensionSizes As ImmutableArray(Of IOperation) Implements IArrayCreationExpression.DimensionSizes
@@ -1411,7 +1368,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundArrayInitialization
+    Partial Friend Class BoundArrayInitialization
         Implements IArrayInitializer
 
         Private ReadOnly Property IArrayInitializer_ElementValues As ImmutableArray(Of IOperation) Implements IArrayInitializer.ElementValues
@@ -1432,7 +1389,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundPropertyAccess
+    Partial Friend Class BoundPropertyAccess
         Implements IIndexedPropertyReferenceExpression
 
         Private ReadOnly Property IMemberReferenceExpression_Instance As IOperation Implements IMemberReferenceExpression.Instance
@@ -1480,7 +1437,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundEventAccess
+    Partial Friend Class BoundEventAccess
         Implements IEventReferenceExpression
 
         Private ReadOnly Property IMemberReferenceExpression_Instance As IOperation Implements IMemberReferenceExpression.Instance
@@ -1518,7 +1475,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundDelegateCreationExpression
+    Partial Friend Class BoundDelegateCreationExpression
         Implements IMethodBindingExpression
 
         Private ReadOnly Property IMemberReferenceExpression_Instance As IOperation Implements IMemberReferenceExpression.Instance
@@ -1562,7 +1519,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundFieldAccess
+    Partial Friend Class BoundFieldAccess
         Implements IFieldReferenceExpression
 
         Private ReadOnly Property IFieldReferenceExpression_Field As IFieldSymbol Implements IFieldReferenceExpression.Field
@@ -1600,7 +1557,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundConditionalAccess
+    Partial Friend Class BoundConditionalAccess
         Implements IConditionalAccessExpression
 
         Private ReadOnly Property IConditionalAccessExpression_ConditionalValue As IOperation Implements IConditionalAccessExpression.ConditionalValue
@@ -1644,7 +1601,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundParameter
+    Partial Friend Class BoundParameter
         Implements IParameterReferenceExpression
 
         Private ReadOnly Property IParameterReferenceExpression_Parameter As IParameterSymbol Implements IParameterReferenceExpression.Parameter
@@ -1666,7 +1623,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundLocal
+    Partial Friend Class BoundLocal
         Implements ILocalReferenceExpression
 
         Private ReadOnly Property ILocalReferenceExpression_Local As ILocalSymbol Implements ILocalReferenceExpression.Local
@@ -1688,7 +1645,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundLateMemberAccess
+    Partial Friend Class BoundLateMemberAccess
         Implements ILateBoundMemberReferenceExpression
 
         Private ReadOnly Property ILateBoundMemberReferenceExpression_Instance As IOperation Implements ILateBoundMemberReferenceExpression.Instance
@@ -1716,7 +1673,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundFieldInitializer
+    Partial Friend Class BoundFieldInitializer
         Implements IFieldInitializer
 
         Private ReadOnly Property IFieldInitializer_InitializedFields As ImmutableArray(Of IFieldSymbol) Implements IFieldInitializer.InitializedFields
@@ -1744,7 +1701,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundPropertyInitializer
+    Partial Friend Class BoundPropertyInitializer
         Implements IPropertyInitializer
 
         Private ReadOnly Property IPropertyInitializer_InitializedProperty As IPropertySymbol Implements IPropertyInitializer.InitializedProperty
@@ -1772,7 +1729,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundParameterEqualsValue
+    Partial Friend Class BoundParameterEqualsValue
         Implements IParameterInitializer
 
         Private ReadOnly Property IOperation_IsInvalid As Boolean Implements IOperation.IsInvalid
@@ -1826,7 +1783,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundTypeArguments
+    Partial Friend Class BoundTypeArguments
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1840,7 +1797,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundLValueToRValueWrapper
+    Partial Friend Class BoundLValueToRValueWrapper
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1854,7 +1811,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundWithLValueExpressionPlaceholder
+    Partial Friend Class BoundWithLValueExpressionPlaceholder
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1868,7 +1825,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundWithRValueExpressionPlaceholder
+    Partial Friend Class BoundWithRValueExpressionPlaceholder
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1898,7 +1855,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundLValuePlaceholder
+    Partial Friend Class BoundLValuePlaceholder
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1912,7 +1869,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundDup
+    Partial Friend Class BoundDup
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1926,7 +1883,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundBadVariable
+    Partial Friend Class BoundBadVariable
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1940,7 +1897,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundArrayLength
+    Partial Friend Class BoundArrayLength
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1954,7 +1911,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundGetType
+    Partial Friend Class BoundGetType
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1968,7 +1925,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundFieldInfo
+    Partial Friend Class BoundFieldInfo
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1982,7 +1939,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundMethodInfo
+    Partial Friend Class BoundMethodInfo
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -1996,7 +1953,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundTypeExpression
+    Partial Friend Class BoundTypeExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2010,7 +1967,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundTypeOrValueExpression
+    Partial Friend Class BoundTypeOrValueExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2024,7 +1981,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundNamespaceExpression
+    Partial Friend Class BoundNamespaceExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2038,7 +1995,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundNullableIsTrueOperator
+    Partial Friend Class BoundNullableIsTrueOperator
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2052,7 +2009,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundCompoundAssignmentTargetPlaceholder
+    Partial Friend Class BoundCompoundAssignmentTargetPlaceholder
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2066,7 +2023,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundReferenceAssignment
+    Partial Friend Class BoundReferenceAssignment
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2080,7 +2037,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundAddressOfOperator
+    Partial Friend Class BoundAddressOfOperator
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2094,7 +2051,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundSequencePointExpression
+    Partial Friend Class BoundSequencePointExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2108,7 +2065,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundMethodGroup
+    Partial Friend Class BoundMethodGroup
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2122,7 +2079,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundPropertyGroup
+    Partial Friend Class BoundPropertyGroup
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2136,7 +2093,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundAttribute
+    Partial Friend Class BoundAttribute
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2150,7 +2107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundLateInvocation
+    Partial Friend Class BoundLateInvocation
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2164,7 +2121,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundLateAddressOfOperator
+    Partial Friend Class BoundLateAddressOfOperator
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2178,7 +2135,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundNoPiaObjectCreationExpression
+    Partial Friend Class BoundNoPiaObjectCreationExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2192,7 +2149,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundAnonymousTypeCreationExpression
+    Partial Friend Class BoundAnonymousTypeCreationExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2206,7 +2163,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundAnonymousTypePropertyAccess
+    Partial Friend Class BoundAnonymousTypePropertyAccess
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2220,7 +2177,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundAnonymousTypeFieldInitializer
+    Partial Friend Class BoundAnonymousTypeFieldInitializer
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2234,7 +2191,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundObjectInitializerExpression
+    Partial Friend Class BoundObjectInitializerExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2248,7 +2205,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundCollectionInitializerExpression
+    Partial Friend Class BoundCollectionInitializerExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2262,7 +2219,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundArrayLiteral
+    Partial Friend Class BoundArrayLiteral
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2276,7 +2233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundSequence
+    Partial Friend Class BoundSequence
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2290,7 +2247,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundValueTypeMeReference
+    Partial Friend Class BoundValueTypeMeReference
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2304,7 +2261,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundPreviousSubmissionReference
+    Partial Friend Class BoundPreviousSubmissionReference
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2318,7 +2275,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundHostObjectMemberReference
+    Partial Friend Class BoundHostObjectMemberReference
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2332,7 +2289,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundPseudoVariable
+    Partial Friend Class BoundPseudoVariable
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2346,7 +2303,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundByRefArgumentPlaceholder
+    Partial Friend Class BoundByRefArgumentPlaceholder
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2360,7 +2317,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundByRefArgumentWithCopyBack
+    Partial Friend Class BoundByRefArgumentWithCopyBack
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2374,7 +2331,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundLateBoundArgumentSupportingAssignmentWithCapture
+    Partial Friend Class BoundLateBoundArgumentSupportingAssignmentWithCapture
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2388,7 +2345,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundLabel
+    Partial Friend Class BoundLabel
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2402,7 +2359,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class UnboundLambda
+    Partial Friend Class UnboundLambda
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2416,7 +2373,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundQueryExpression
+    Partial Friend Class BoundQueryExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2430,7 +2387,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundQuerySource
+    Partial Friend Class BoundQuerySource
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2444,7 +2401,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundToQueryableCollectionConversion
+    Partial Friend Class BoundToQueryableCollectionConversion
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2458,7 +2415,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundQueryableSource
+    Partial Friend Class BoundQueryableSource
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2472,7 +2429,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundQueryClause
+    Partial Friend Class BoundQueryClause
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2486,7 +2443,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundOrdering
+    Partial Friend Class BoundOrdering
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2500,7 +2457,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundQueryLambda
+    Partial Friend Class BoundQueryLambda
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2514,7 +2471,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundRangeVariableAssignment
+    Partial Friend Class BoundRangeVariableAssignment
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2528,7 +2485,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class GroupTypeInferenceLambda
+    Partial Friend Class GroupTypeInferenceLambda
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2542,7 +2499,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundAggregateClause
+    Partial Friend Class BoundAggregateClause
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2556,7 +2513,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundGroupAggregation
+    Partial Friend Class BoundGroupAggregation
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2570,7 +2527,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundRangeVariable
+    Partial Friend Class BoundRangeVariable
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2584,7 +2541,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundXmlName
+    Partial Friend Class BoundXmlName
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2598,7 +2555,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundXmlNamespace
+    Partial Friend Class BoundXmlNamespace
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2612,7 +2569,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundXmlDocument
+    Partial Friend Class BoundXmlDocument
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2626,7 +2583,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundXmlDeclaration
+    Partial Friend Class BoundXmlDeclaration
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2640,7 +2597,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundXmlProcessingInstruction
+    Partial Friend Class BoundXmlProcessingInstruction
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2654,7 +2611,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundXmlComment
+    Partial Friend Class BoundXmlComment
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2668,7 +2625,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundXmlAttribute
+    Partial Friend Class BoundXmlAttribute
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2682,7 +2639,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundXmlElement
+    Partial Friend Class BoundXmlElement
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2696,7 +2653,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundXmlMemberAccess
+    Partial Friend Class BoundXmlMemberAccess
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2710,7 +2667,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundXmlEmbeddedExpression
+    Partial Friend Class BoundXmlEmbeddedExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2724,7 +2681,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundXmlCData
+    Partial Friend Class BoundXmlCData
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2738,7 +2695,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundUnstructuredExceptionHandlingCatchFilter
+    Partial Friend Class BoundUnstructuredExceptionHandlingCatchFilter
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2752,7 +2709,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundSpillSequence
+    Partial Friend Class BoundSpillSequence
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2766,7 +2723,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundMidResult
+    Partial Friend Class BoundMidResult
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2780,7 +2737,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundLoweredConditionalAccess
+    Partial Friend Class BoundLoweredConditionalAccess
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2794,7 +2751,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundComplexConditionalAccessReceiver
+    Partial Friend Class BoundComplexConditionalAccessReceiver
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2808,7 +2765,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundNameOfOperator
+    Partial Friend Class BoundNameOfOperator
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2822,7 +2779,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundTypeAsValueExpression
+    Partial Friend Class BoundTypeAsValueExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2836,7 +2793,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
     End Class
 
-    Friend Partial Class BoundInterpolatedStringExpression
+    Partial Friend Class BoundInterpolatedStringExpression
         Protected Overrides Function ExpressionKind() As OperationKind
             Return OperationKind.None
         End Function
@@ -2852,279 +2809,76 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
     Friend Module Expression
         Friend Function DeriveUnaryOperationKind(operatorKind As UnaryOperatorKind, operand As BoundExpression) As UnaryOperationKind
-            Select Case operand.Type.SpecialType
-                Case SpecialType.System_Byte, SpecialType.System_Int16, SpecialType.System_Int32, SpecialType.System_Int64, SpecialType.System_SByte, SpecialType.System_UInt16, SpecialType.System_UInt32, SpecialType.System_UInt64
-                    Select Case operatorKind And UnaryOperatorKind.OpMask
-                        Case UnaryOperatorKind.Plus
-                            Return UnaryOperationKind.IntegerPlus
-                        Case UnaryOperatorKind.Minus
-                            Return UnaryOperationKind.IntegerMinus
-                        Case UnaryOperatorKind.Not
-                            Return UnaryOperationKind.IntegerBitwiseNegation
-                    End Select
-                Case SpecialType.System_Single, SpecialType.System_Double
-                    Select Case operatorKind And UnaryOperatorKind.OpMask
-                        Case UnaryOperatorKind.Plus
-                            Return UnaryOperationKind.FloatingPlus
-                        Case UnaryOperatorKind.Minus
-                            Return UnaryOperationKind.FloatingMinus
-                    End Select
-                Case SpecialType.System_Decimal
-                    Select Case operatorKind And UnaryOperatorKind.OpMask
-                        Case UnaryOperatorKind.Plus
-                            Return UnaryOperationKind.DecimalPlus
-                        Case UnaryOperatorKind.Minus
-                            Return UnaryOperationKind.DecimalMinus
-                    End Select
-                Case SpecialType.System_Boolean
-                    Select Case operatorKind And UnaryOperatorKind.OpMask
-                        Case UnaryOperatorKind.Not
-                            Return UnaryOperationKind.BooleanBitwiseNegation
-                    End Select
-                Case SpecialType.System_Object
-                    Select Case operatorKind And UnaryOperatorKind.OpMask
-                        Case UnaryOperatorKind.Plus
-                            Return UnaryOperationKind.ObjectPlus
-                        Case UnaryOperatorKind.Minus
-                            Return UnaryOperationKind.ObjectMinus
-                        Case UnaryOperatorKind.Not
-                            Return UnaryOperationKind.ObjectNot
+            Select Case operatorKind And UnaryOperatorKind.OpMask
+                Case UnaryOperatorKind.Plus
+                    Return UnaryOperationKind.Plus
+                Case UnaryOperatorKind.Minus
+                    Return UnaryOperationKind.Minus
+                Case UnaryOperatorKind.Not
+                    Select Case operand.Type.SpecialType
+                        Case SpecialType.System_Byte, SpecialType.System_Int16, SpecialType.System_Int32, SpecialType.System_Int64, SpecialType.System_SByte, SpecialType.System_UInt16, SpecialType.System_UInt32, SpecialType.System_UInt64
+                            Return UnaryOperationKind.BitwiseNegation
+                        Case SpecialType.System_Boolean
+                            Return UnaryOperationKind.LogicalNot
+                        Case SpecialType.System_Object
+                            Return UnaryOperationKind.BitwiseOrLogicalNot
                     End Select
             End Select
 
             Return UnaryOperationKind.Invalid
         End Function
 
-        Friend Function DeriveBinaryOperationKind(operatorKind As BinaryOperatorKind, left As BoundExpression) As BinaryOperationKind
-            Select Case left.Type.SpecialType
-
-                Case SpecialType.System_SByte, SpecialType.System_Int16, SpecialType.System_Int32, SpecialType.System_Int64
-                    Select Case operatorKind And BinaryOperatorKind.OpMask
-                        Case BinaryOperatorKind.Add
-                            Return BinaryOperationKind.IntegerAdd
-                        Case BinaryOperatorKind.Subtract
-                            Return BinaryOperationKind.IntegerSubtract
-                        Case BinaryOperatorKind.Multiply
-                            Return BinaryOperationKind.IntegerMultiply
-                        Case BinaryOperatorKind.IntegerDivide
-                            Return BinaryOperationKind.IntegerDivide
-                        Case BinaryOperatorKind.Modulo
-                            Return BinaryOperationKind.IntegerRemainder
-                        Case BinaryOperatorKind.And
-                            Return BinaryOperationKind.IntegerAnd
-                        Case BinaryOperatorKind.Or
-                            Return BinaryOperationKind.IntegerOr
-                        Case BinaryOperatorKind.Xor
-                            Return BinaryOperationKind.IntegerExclusiveOr
-                        Case BinaryOperatorKind.LeftShift
-                            Return BinaryOperationKind.IntegerLeftShift
-                        Case BinaryOperatorKind.RightShift
-                            Return BinaryOperationKind.IntegerRightShift
-                        Case BinaryOperatorKind.LessThan
-                            Return BinaryOperationKind.IntegerLessThan
-                        Case BinaryOperatorKind.LessThanOrEqual
-                            Return BinaryOperationKind.IntegerLessThanOrEqual
-                        Case BinaryOperatorKind.Equals
-                            Return BinaryOperationKind.IntegerEquals
-                        Case BinaryOperatorKind.NotEquals
-                            Return BinaryOperationKind.IntegerNotEquals
-                        Case BinaryOperatorKind.GreaterThanOrEqual
-                            Return BinaryOperationKind.IntegerGreaterThanOrEqual
-                        Case BinaryOperatorKind.GreaterThan
-                            Return BinaryOperationKind.IntegerGreaterThan
-                    End Select
-                Case SpecialType.System_Byte, SpecialType.System_UInt16, SpecialType.System_UInt32, SpecialType.System_UInt64, SpecialType.System_Char
-                    Select Case operatorKind And BinaryOperatorKind.OpMask
-                        Case BinaryOperatorKind.Add
-                            Return BinaryOperationKind.UnsignedAdd
-                        Case BinaryOperatorKind.Subtract
-                            Return BinaryOperationKind.UnsignedSubtract
-                        Case BinaryOperatorKind.Multiply
-                            Return BinaryOperationKind.UnsignedMultiply
-                        Case BinaryOperatorKind.IntegerDivide
-                            Return BinaryOperationKind.UnsignedDivide
-                        Case BinaryOperatorKind.Modulo
-                            Return BinaryOperationKind.UnsignedRemainder
-                        Case BinaryOperatorKind.And
-                            Return BinaryOperationKind.UnsignedAnd
-                        Case BinaryOperatorKind.Or
-                            Return BinaryOperationKind.UnsignedOr
-                        Case BinaryOperatorKind.Xor
-                            Return BinaryOperationKind.UnsignedExclusiveOr
-                        Case BinaryOperatorKind.LeftShift
-                            Return BinaryOperationKind.UnsignedLeftShift
-                        Case BinaryOperatorKind.RightShift
-                            Return BinaryOperationKind.UnsignedRightShift
-                        Case BinaryOperatorKind.LessThan
-                            Return BinaryOperationKind.UnsignedLessThan
-                        Case BinaryOperatorKind.LessThanOrEqual
-                            Return BinaryOperationKind.UnsignedLessThanOrEqual
-                        Case BinaryOperatorKind.Equals
-                            Return BinaryOperationKind.IntegerEquals
-                        Case BinaryOperatorKind.NotEquals
-                            Return BinaryOperationKind.IntegerNotEquals
-                        Case BinaryOperatorKind.GreaterThanOrEqual
-                            Return BinaryOperationKind.UnsignedGreaterThanOrEqual
-                        Case BinaryOperatorKind.GreaterThan
-                            Return BinaryOperationKind.UnsignedGreaterThan
-                    End Select
-                Case SpecialType.System_Single, SpecialType.System_Double
-                    Select Case operatorKind And BinaryOperatorKind.OpMask
-                        Case BinaryOperatorKind.Add
-                            Return BinaryOperationKind.FloatingAdd
-                        Case BinaryOperatorKind.Subtract
-                            Return BinaryOperationKind.FloatingSubtract
-                        Case BinaryOperatorKind.Multiply
-                            Return BinaryOperationKind.FloatingMultiply
-                        Case BinaryOperatorKind.Divide
-                            Return BinaryOperationKind.FloatingDivide
-                        Case BinaryOperatorKind.Modulo
-                            Return BinaryOperationKind.FloatingRemainder
-                        Case BinaryOperatorKind.Power
-                            Return BinaryOperationKind.FloatingPower
-                        Case BinaryOperatorKind.LessThan
-                            Return BinaryOperationKind.FloatingLessThan
-                        Case BinaryOperatorKind.LessThanOrEqual
-                            Return BinaryOperationKind.FloatingLessThanOrEqual
-                        Case BinaryOperatorKind.Equals
-                            Return BinaryOperationKind.FloatingEquals
-                        Case BinaryOperatorKind.NotEquals
-                            Return BinaryOperationKind.FloatingNotEquals
-                        Case BinaryOperatorKind.GreaterThanOrEqual
-                            Return BinaryOperationKind.FloatingGreaterThanOrEqual
-                        Case BinaryOperatorKind.GreaterThan
-                            Return BinaryOperationKind.FloatingGreaterThan
-                    End Select
-                Case SpecialType.System_Decimal
-                    Select Case operatorKind And BinaryOperatorKind.OpMask
-                        Case BinaryOperatorKind.Add
-                            Return BinaryOperationKind.DecimalAdd
-                        Case BinaryOperatorKind.Subtract
-                            Return BinaryOperationKind.DecimalSubtract
-                        Case BinaryOperatorKind.Multiply
-                            Return BinaryOperationKind.DecimalMultiply
-                        Case BinaryOperatorKind.Divide
-                            Return BinaryOperationKind.DecimalDivide
-                        Case BinaryOperatorKind.LessThan
-                            Return BinaryOperationKind.DecimalLessThan
-                        Case BinaryOperatorKind.LessThanOrEqual
-                            Return BinaryOperationKind.DecimalLessThanOrEqual
-                        Case BinaryOperatorKind.Equals
-                            Return BinaryOperationKind.DecimalEquals
-                        Case BinaryOperatorKind.NotEquals
-                            Return BinaryOperationKind.DecimalNotEquals
-                        Case BinaryOperatorKind.GreaterThanOrEqual
-                            Return BinaryOperationKind.DecimalGreaterThanOrEqual
-                        Case BinaryOperatorKind.GreaterThan
-                            Return BinaryOperationKind.DecimalGreaterThan
-                    End Select
-                Case SpecialType.System_Boolean
-                    Select Case operatorKind And BinaryOperatorKind.OpMask
-                        Case BinaryOperatorKind.And
-                            Return BinaryOperationKind.BooleanAnd
-                        Case BinaryOperatorKind.Or
-                            Return BinaryOperationKind.BooleanOr
-                        Case BinaryOperatorKind.Xor
-                            Return BinaryOperationKind.BooleanExclusiveOr
-                        Case BinaryOperatorKind.AndAlso
-                            Return BinaryOperationKind.BooleanConditionalAnd
-                        Case BinaryOperatorKind.OrElse
-                            Return BinaryOperationKind.BooleanConditionalOr
-                        Case BinaryOperatorKind.Equals
-                            Return BinaryOperationKind.BooleanEquals
-                        Case BinaryOperatorKind.NotEquals
-                            Return BinaryOperationKind.BooleanNotEquals
-                    End Select
-                Case SpecialType.System_String
-                    Select Case operatorKind And BinaryOperatorKind.OpMask
-                        Case BinaryOperatorKind.Concatenate
-                            Return BinaryOperationKind.StringConcatenate
-                        Case BinaryOperatorKind.Equals
-                            Return BinaryOperationKind.StringEquals
-                        Case BinaryOperatorKind.NotEquals
-                            Return BinaryOperationKind.StringNotEquals
-                        Case BinaryOperatorKind.Like
-                            Return BinaryOperationKind.StringLike
-                    End Select
-                Case SpecialType.System_Object
-                    Select Case operatorKind And BinaryOperatorKind.OpMask
-                        Case BinaryOperatorKind.Add
-                            Return BinaryOperationKind.ObjectAdd
-                        Case BinaryOperatorKind.Subtract
-                            Return BinaryOperationKind.ObjectSubtract
-                        Case BinaryOperatorKind.Multiply
-                            Return BinaryOperationKind.ObjectMultiply
-                        Case BinaryOperatorKind.Power
-                            Return BinaryOperationKind.ObjectPower
-                        Case BinaryOperatorKind.IntegerDivide
-                            Return BinaryOperationKind.ObjectIntegerDivide
-                        Case BinaryOperatorKind.Divide
-                            Return BinaryOperationKind.ObjectDivide
-                        Case BinaryOperatorKind.Modulo
-                            Return BinaryOperationKind.ObjectRemainder
-                        Case BinaryOperatorKind.Concatenate
-                            Return BinaryOperationKind.ObjectConcatenate
-                        Case BinaryOperatorKind.And
-                            Return BinaryOperationKind.ObjectAnd
-                        Case BinaryOperatorKind.Or
-                            Return BinaryOperationKind.ObjectOr
-                        Case BinaryOperatorKind.Xor
-                            Return BinaryOperationKind.ObjectExclusiveOr
-                        Case BinaryOperatorKind.AndAlso
-                            Return BinaryOperationKind.ObjectConditionalAnd
-                        Case BinaryOperatorKind.OrElse
-                            Return BinaryOperationKind.ObjectConditionalOr
-                        Case BinaryOperatorKind.LeftShift
-                            Return BinaryOperationKind.ObjectLeftShift
-                        Case BinaryOperatorKind.RightShift
-                            Return BinaryOperationKind.ObjectRightShift
-                        Case BinaryOperatorKind.LessThan
-                            Return BinaryOperationKind.ObjectLessThan
-                        Case BinaryOperatorKind.LessThanOrEqual
-                            Return BinaryOperationKind.ObjectLessThanOrEqual
-                        Case BinaryOperatorKind.Equals
-                            Return BinaryOperationKind.ObjectVBEquals
-                        Case BinaryOperatorKind.Is
-                            Return BinaryOperationKind.ObjectEquals
-                        Case BinaryOperatorKind.IsNot
-                            Return BinaryOperationKind.ObjectNotEquals
-                        Case BinaryOperatorKind.NotEquals
-                            Return BinaryOperationKind.ObjectVBNotEquals
-                        Case BinaryOperatorKind.Like
-                            Return BinaryOperationKind.ObjectLike
-                        Case BinaryOperatorKind.GreaterThanOrEqual
-                            Return BinaryOperationKind.ObjectGreaterThanOrEqual
-                        Case BinaryOperatorKind.GreaterThan
-                            Return BinaryOperationKind.ObjectGreaterThan
-                    End Select
+        Friend Function DeriveBinaryOperationKind(operatorKind As BinaryOperatorKind) As BinaryOperationKind
+            Select Case operatorKind And BinaryOperatorKind.OpMask
+                Case BinaryOperatorKind.Add
+                    Return BinaryOperationKind.Add
+                Case BinaryOperatorKind.Concatenate
+                    Return BinaryOperationKind.Concatenate
+                Case BinaryOperatorKind.Like
+                    Return BinaryOperationKind.Like
+                Case BinaryOperatorKind.Equals
+                    Return BinaryOperationKind.ObjectValueEquals
+                Case BinaryOperatorKind.NotEquals
+                    Return BinaryOperationKind.ObjectValueNotEquals
+                Case BinaryOperatorKind.LessThanOrEqual
+                    Return BinaryOperationKind.LessThanOrEqual
+                Case BinaryOperatorKind.GreaterThanOrEqual
+                    Return BinaryOperationKind.GreaterThanOrEqual
+                Case BinaryOperatorKind.LessThan
+                    Return BinaryOperationKind.LessThan
+                Case BinaryOperatorKind.GreaterThan
+                    Return BinaryOperationKind.GreaterThan
+                Case BinaryOperatorKind.Subtract
+                    Return BinaryOperationKind.Subtract
+                Case BinaryOperatorKind.Multiply
+                    Return BinaryOperationKind.Multiply
+                Case BinaryOperatorKind.Power
+                    Return BinaryOperationKind.Power
+                Case BinaryOperatorKind.Divide
+                    Return BinaryOperationKind.Divide
+                Case BinaryOperatorKind.Modulo
+                    Return BinaryOperationKind.Remainder
+                Case BinaryOperatorKind.IntegerDivide
+                    Return BinaryOperationKind.IntegerDivide
+                Case BinaryOperatorKind.LeftShift
+                    Return BinaryOperationKind.LeftShift
+                Case BinaryOperatorKind.RightShift
+                    Return BinaryOperationKind.RightShift
+                Case BinaryOperatorKind.Xor
+                    Return BinaryOperationKind.ExclusiveOr
+                Case BinaryOperatorKind.Or
+                    Return BinaryOperationKind.Or
+                Case BinaryOperatorKind.OrElse
+                    Return BinaryOperationKind.ConditionalOr
+                Case BinaryOperatorKind.And
+                    Return BinaryOperationKind.And
+                Case BinaryOperatorKind.AndAlso
+                    Return BinaryOperationKind.ConditionalAnd
+                Case BinaryOperatorKind.Is
+                    Return BinaryOperationKind.Equals
+                Case BinaryOperatorKind.IsNot
+                    Return BinaryOperationKind.NotEquals
             End Select
-
-            If left.Type.TypeKind = TypeKind.Enum Then
-                Select Case operatorKind And BinaryOperatorKind.OpMask
-                    Case BinaryOperatorKind.Add
-                        Return BinaryOperationKind.EnumAdd
-                    Case BinaryOperatorKind.Subtract
-                        Return BinaryOperationKind.EnumSubtract
-                    Case BinaryOperatorKind.And
-                        Return BinaryOperationKind.EnumAnd
-                    Case BinaryOperatorKind.Or
-                        Return BinaryOperationKind.EnumOr
-                    Case BinaryOperatorKind.Xor
-                        Return BinaryOperationKind.EnumExclusiveOr
-                    Case BinaryOperatorKind.LessThan
-                        Return BinaryOperationKind.EnumLessThan
-                    Case BinaryOperatorKind.LessThanOrEqual
-                        Return BinaryOperationKind.EnumLessThanOrEqual
-                    Case BinaryOperatorKind.Equals
-                        Return BinaryOperationKind.EnumEquals
-                    Case BinaryOperatorKind.NotEquals
-                        Return BinaryOperationKind.EnumNotEquals
-                    Case BinaryOperatorKind.GreaterThanOrEqual
-                        Return BinaryOperationKind.EnumGreaterThanOrEqual
-                    Case BinaryOperatorKind.GreaterThan
-                        Return BinaryOperationKind.EnumGreaterThan
-                End Select
-            End If
 
             Return BinaryOperationKind.Invalid
         End Function
