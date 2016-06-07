@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Completion;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Completion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Text;
@@ -216,16 +217,14 @@ text;
                 var completionList = await GetCompletionListAsync(service, document, position, CompletionTrigger.Default);
                 var item = completionList.Items.First(i => i.DisplayText.StartsWith(textTypedSoFar));
 
-                var completionRules = CompletionHelper.GetHelper(document, service);
-
                 foreach (var ch in validChars)
                 {
-                    Assert.True(completionRules.IsCommitCharacter(item, ch, textTypedSoFar), $"Expected '{ch}' to be a commit character");
+                    Assert.True(Controller.IsCommitCharacter(service.GetRules(), item, ch, textTypedSoFar), $"Expected '{ch}' to be a commit character");
                 }
 
                 foreach (var ch in invalidChars)
                 {
-                    Assert.False(completionRules.IsCommitCharacter(item, ch, textTypedSoFar), $"Expected '{ch}' NOT to be a commit character");
+                    Assert.False(Controller.IsCommitCharacter(service.GetRules(), item, ch, textTypedSoFar), $"Expected '{ch}' NOT to be a commit character");
                 }
             }
         }

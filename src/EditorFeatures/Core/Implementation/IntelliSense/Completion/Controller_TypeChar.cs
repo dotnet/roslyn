@@ -317,7 +317,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 completionService.GetRules(), model.SelectedItem.Item, ch, filterText);
         }
 
-        private bool IsCommitCharacter(
+        /// <summary>
+        /// Internal for testing purposes only.
+        /// </summary>
+        internal static bool IsCommitCharacter(
             CompletionRules completionRules, CompletionItem item, char ch, string filterText)
         {
             // general rule: if the filtering text exactly matches the start of the item then it must be a filter character
@@ -380,7 +383,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 item.FilterText.StartsWith(textTypedWithChar, StringComparison.CurrentCultureIgnoreCase);
         }
 
-        private bool IsFilterCharacter(CompletionItem item, char ch, string filterText)
+        /// <summary>
+        /// Internal for testing purposes only.
+        /// </summary>
+        internal static bool IsFilterCharacter(CompletionItem item, char ch, string filterText)
         {
             // general rule: if the filtering text exactly matches the start of the item then it must be a filter character
             if (TextTypedSoFarMatchesItem(item, ch, textTypedSoFar: filterText))

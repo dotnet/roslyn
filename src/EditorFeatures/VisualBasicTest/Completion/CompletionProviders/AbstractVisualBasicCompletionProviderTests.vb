@@ -3,6 +3,7 @@
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Completion
+Imports Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.Text
@@ -145,11 +146,11 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 Dim helper = CompletionHelper.GetHelper(document, service)
 
                 For Each ch In chars
-                    Assert.True(helper.IsCommitCharacter(item, ch, textTypedSoFar), $"Expected '{ch}' to be a commit character")
+                    Assert.True(Controller.IsCommitCharacter(service.GetRules(), item, ch, textTypedSoFar), $"Expected '{ch}' to be a commit character")
                 Next
 
                 Dim chr = "x"c
-                Assert.False(helper.IsCommitCharacter(item, chr, textTypedSoFar), $"Expected '{chr}' NOT to be a commit character")
+                Assert.False(Controller.IsCommitCharacter(service.GetRules(), item, chr, textTypedSoFar), $"Expected '{chr}' NOT to be a commit character")
             End Using
 
         End Function
