@@ -381,7 +381,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var binder = scope.Binder;
             binder.GetCandidateExtensionMethods(scope.SearchUsingsNotNamespace, methods, name, arity, options, this);
 
-            // TODO(t-evhau, do not merge): This might have some behavior that needs to be changed for extension classes.
+            // PROTOTYPE: This might have some behavior that needs to be changed for extension classes.
             foreach (var method in methods)
             {
                 SingleLookupResult resultOfThisMember = this.CheckViability(method, arity, options, null, diagnose: true, useSiteDiagnostics: ref useSiteDiagnostics);
@@ -397,14 +397,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             var binder = scope.Binder;
             binder.GetCandidateExtensionMembers(scope.SearchUsingsNotNamespace, members, name, arity, options, this);
 
-            foreach (var originalMember in members)
+            foreach (var member in members)
             {
-                var member = originalMember;
-                if (member is ExpandedExtensionClassPropertySymbol)
-                {
-                    // PROTOTYPE: Generalize this.
-                    member = ((ExpandedExtensionClassPropertySymbol)member).ExpandedFrom;
-                }
+                // PROTOTYPE: Put more thought into if members returned from this should be expanded or not
+                Debug.Assert(!member.IsExpandedExtensionClassMember);
                 var resultOfThisMember = this.CheckViability(member, arity, options, null, diagnose: true, useSiteDiagnostics: ref useSiteDiagnostics);
                 result.MergeEqual(resultOfThisMember);
             }
@@ -770,9 +766,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (!result.IsMultiViable)
+            if (!result.IsMultiViable && (options & LookupOptions.IncludeExtensionMethods) != 0)
             {
-                originalBinder.LookupExtensionMembers(result, name, arity, options, ref useSiteDiagnostics);
+                var tempResult = LookupResult.GetInstance();
+                originalBinder.LookupExtensionMembers(tempResult, name, arity, options, ref useSiteDiagnostics);
+                // PROTOTYPE: Provide better errors on lookup failure?
+                // PROTOTYPE: Extension methods found through member lookup go through this trimming twice (one here, one in overload resolution). Fix?
+                if (tempResult.IsMultiViable)
+                {
+                    foreach (var extension in tempResult.Symbols)
+                    {
+                        var conversion = Conversions.ClassifyImplicitConversion(type, extension.ContainingType.ExtensionClassType, ref useSiteDiagnostics);
+                        if (ConversionsBase.IsValidExtensionMethodThisArgConversion(conversion))
+                        {
+                            result.MergeEqual(new SingleLookupResult(LookupResultKind.Viable, extension, null));
+                        }
+                    }
+                }
+                tempResult.Free();
             }
 
             visited?.Free();

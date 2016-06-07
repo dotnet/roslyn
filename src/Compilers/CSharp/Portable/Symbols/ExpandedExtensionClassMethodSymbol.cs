@@ -127,8 +127,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // PROTOTYPE: Same comment as CallsiteReducedFromMethod
         public override MethodSymbol ReducedFrom => null;
 
-        // PROTOTYPE: Maybe this should virtual, like ReducedFrom (or merged with ReducedFrom)
-        public MethodSymbol ExpandedFrom => _expandedFrom;
+        public override MethodSymbol ExpandedFrom => _expandedFrom;
 
         public override MethodSymbol ConstructedFrom
         {

@@ -379,7 +379,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public ImmutableArray<Symbol> GetUnderlyingMembers()
         {
             var members = this.GetMembers();
-            // PROTOTYPE: Remove SourceNamedTypeSymbol cast
             if (!this.IsExtensionClass)
             {
                 return members;
@@ -427,20 +426,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         if (method.IsExtensionMethod)
                         {
                             Debug.Assert(method.MethodKind != MethodKind.ReducedExtension);
-                            methods.Add(method);
+                            methods.Add(method.ReduceExtensionMethod());
                         }
                         if (isExtensionClass)
                         {
                             Debug.Assert(method.MethodKind != MethodKind.ExpandedExtensionClass);
                             // PROTOTYPE: This assumes source methods. What about loaded symbols from disk?
                             var expanded = method.ExpandExtensionClassMethod();
-                            if (expanded == null)
+                            // PROTOTYPE: ExpandExtensionClassMethod should probably always return non-null,
+                            // but some method kinds aren't supported (yet?), e.g. constructors
+                            if ((object)expanded != null)
                             {
-                                // PROTOTYPE: change this?
-                                continue;
+                                // PROTOTYPE: Same comments from DoGetExtensionMembers apply
+                                methods.Add(method);
                             }
-                            Debug.Assert(expanded != null);
-                            methods.Add(expanded);
                         }
                     }
                 }
@@ -481,8 +480,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var underlying = this.GetUnderlyingMember(member);
                 if ((object)underlying != null)
                 {
-                    // PROTOTYPE: return `member` instead?
-                    members.Add(underlying);
+                    // PROTOTYPE: return `underlying` instead?
+                    // PROTOTYPE: If `underlying` is never returned, we're constructing things never used (in topic of perf)
+                    members.Add(member);
                 }
             }
         }

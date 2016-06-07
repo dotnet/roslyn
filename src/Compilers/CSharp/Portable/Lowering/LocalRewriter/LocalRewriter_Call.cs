@@ -167,7 +167,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (invokedAsExtensionMethod)
             {
-                method = method.ExpandExtensionClassMethod() ?? method;
+                Debug.Assert(method.IsInExtensionClass || method.MethodKind == MethodKind.ReducedExtension);
+                var extensionClass = method.ExpandExtensionClassMethod();
+                var extensionMethod = method.ReducedFrom;
+                Debug.Assert(((object)extensionClass != null) ^ ((object)extensionMethod != null)); // xor, exactly one is non-null
+                method = extensionClass ?? extensionMethod;
             }
 
             // We have already lowered each argument, but we may need some additional rewriting for the arguments,
@@ -367,6 +371,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             // property), or the methodOrIndexer is used for optional parameters directly.
             Debug.Assert(((methodOrIndexer.Kind == SymbolKind.Property) && optionalParametersMethod.IsAccessor()) ||
                 ReferenceEquals(methodOrIndexer, optionalParametersMethod));
+
+            Debug.Assert(!methodOrIndexer.IsInExtensionClass || (methodOrIndexer.IsExpandedExtensionClassMember || methodOrIndexer.IsStatic));
 
             // We need to do a fancy rewrite under the following circumstances:
             // (1) a params array is being used; we need to generate the array.
@@ -1176,27 +1182,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 temporariesBuilder.Add(boundTemp.LocalSymbol);
             }
-        }
-
-        private MethodSymbol RewriteExtensionClassCall(
-            CSharpSyntaxNode syntax,
-            MethodSymbol extensionClassMethod,
-            ref BoundExpression rewrittenReceiver,
-            ref ImmutableArray<BoundExpression> rewrittenArguments)
-        {
-            Debug.Assert(rewrittenReceiver != null);
-            Debug.Assert(extensionClassMethod.IsInExtensionClass);
-            Debug.Assert(!extensionClassMethod.IsStatic); // PROTOTYPE: will probably eventually support this here too
-
-            var expanded = extensionClassMethod.ExpandExtensionClassMethod();
-
-            var builder = ArrayBuilder<BoundExpression>.GetInstance(rewrittenArguments.Length + 1);
-            builder.Add(rewrittenReceiver);
-            builder.AddRange(rewrittenArguments);
-            rewrittenReceiver = null;
-            rewrittenArguments = builder.ToImmutableAndFree();
-
-            return expanded;
         }
 
         public override BoundNode VisitDynamicMemberAccess(BoundDynamicMemberAccess node)

@@ -41,6 +41,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </remarks>
     internal abstract class CSharpSemanticModel : SemanticModel
     {
+        // PROTOTYPE: Remove automatic conversion to reduced extension methods? (since they are now used in the internal API)
+
         /// <summary>
         /// The compilation this object was obtained from.
         /// </summary>

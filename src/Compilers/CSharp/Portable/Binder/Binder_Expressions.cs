@@ -345,7 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (isMemberInitializer)
             {
                 initializer = initializerBinder.WrapWithVariablesIfAny(initializerOpt, initializer);
-        }
+            }
 
             return initializer;
         }
@@ -1385,8 +1385,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var parameter = (ParameterSymbol)symbol;
                         if (IsBadLocalOrParameterCapture(parameter, parameter.RefKind))
                         {
-                                    Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUse, node, parameter.Name);
-                                }
+                            Error(diagnostics, ErrorCode.ERR_AnonDelegateCantUse, node, parameter.Name);
+                        }
                         return new BoundParameter(node, parameter, hasErrors: isError);
                     }
 
@@ -1825,7 +1825,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         var replacedProperty = (PropertySymbol)replaced;
                         Debug.Assert((object)replacedProperty != null);
-                        if (replacedProperty.IsIndexer || replacedProperty.IsIndexedProperty) 
+                        if (replacedProperty.IsIndexer || replacedProperty.IsIndexedProperty)
                         {
                             return new BoundPropertyGroup(
                                 syntax,
@@ -4828,7 +4828,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var lookupResult = LookupResult.GetInstance();
             try
             {
-                LookupOptions options = LookupOptions.AllMethodsOnArityZero;
+                // IncludeExtensionMethods applies to extension members as well (from extension classes)
+                LookupOptions options = LookupOptions.AllMethodsOnArityZero | LookupOptions.IncludeExtensionMethods;
                 if (invoked)
                 {
                     options |= LookupOptions.MustBeInvocableIfMember;
@@ -5082,6 +5083,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return BindMemberOfType(node, right, rightName, rightArity, boundLeft, typeArgumentsSyntax, typeArguments, lookupResult, flags, diagnostics);
                 }
 
+                if (!invoked)
+                {
+                    options |= LookupOptions.IncludeExtensionMethods;
+                    flags |= BoundMethodGroupFlags.ExtensionMethodsAlreadyIncluded;
+
+                    useSiteDiagnostics = null;
+                    this.LookupMembersWithFallback(lookupResult, leftType, rightName, rightArity, ref useSiteDiagnostics, basesBeingResolved: null, options: options);
+                    diagnostics.Add(right, useSiteDiagnostics);
+
+                    if (lookupResult.IsMultiViable)
+                    {
+                        return BindMemberOfType(node, right, rightName, rightArity, boundLeft, typeArgumentsSyntax, typeArguments, lookupResult, flags, diagnostics);
+                    }
+                }
+
                 if (searchExtensionMethodsIfNecessary)
                 {
                     return new BoundMethodGroup(
@@ -5269,28 +5285,16 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// invocation into a single argument list to allow overload resolution
         /// to treat the invocation as a static method invocation with no receiver.
         /// </summary>
-        private static void CombineExtensionMethodArguments(BoundExpression receiver, AnalyzedArguments originalArguments, AnalyzedArguments extensionMethodArguments)
+        private static void CopyExtensionMethodArguments(AnalyzedArguments originalArguments, AnalyzedArguments extensionMethodArguments)
         {
-            Debug.Assert(receiver != null);
             Debug.Assert(extensionMethodArguments.Arguments.Count == 0);
             Debug.Assert(extensionMethodArguments.Names.Count == 0);
             Debug.Assert(extensionMethodArguments.RefKinds.Count == 0);
 
             extensionMethodArguments.IsExtensionMethodInvocation = true;
-            extensionMethodArguments.Arguments.Add(receiver);
             extensionMethodArguments.Arguments.AddRange(originalArguments.Arguments);
-
-            if (originalArguments.Names.Count > 0)
-            {
-                extensionMethodArguments.Names.Add(null);
-                extensionMethodArguments.Names.AddRange(originalArguments.Names);
-            }
-
-            if (originalArguments.RefKinds.Count > 0)
-            {
-                extensionMethodArguments.RefKinds.Add(RefKind.None);
-                extensionMethodArguments.RefKinds.AddRange(originalArguments.RefKinds);
-            }
+            extensionMethodArguments.Names.AddRange(originalArguments.Names);
+            extensionMethodArguments.RefKinds.AddRange(originalArguments.RefKinds);
         }
 
         /// <summary>
@@ -5312,6 +5316,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(left != null);
             Debug.Assert(lookupResult.IsMultiViable);
             Debug.Assert(lookupResult.Symbols.Any());
+
+            // PROTOTYPE: Include the below code?
+            //HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+            //OverloadResolution.BestExtensionOverloadResolution(lookupResult.Symbols, ref useSiteDiagnostics);
+            //diagnostics.Add(node, useSiteDiagnostics);
 
             var members = ArrayBuilder<Symbol>.GetInstance();
             BoundExpression result;
@@ -5412,8 +5421,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        // Note: Can return methods of kind ExpandedExtensionClass.
-        // Overload resolution still has to choose between old-style extension methods and extension class methods, and we can't mix instance and static styles.
+        // Note: Returns the form of the extension method in instance form, not static (with extra first parameter) form.
         private MethodGroupResolution BindExtensionMethod(
             CSharpSyntaxNode expression,
             string methodName,
@@ -5462,10 +5470,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (actualArguments == null)
                 {
-                    // Create a set of arguments for overload resolution of the
-                    // extension methods that includes the "this" parameter.
                     actualArguments = AnalyzedArguments.GetInstance();
-                    CombineExtensionMethodArguments(left, analyzedArguments, actualArguments);
+                    CopyExtensionMethodArguments(analyzedArguments, actualArguments);
                 }
 
                 var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
@@ -5503,7 +5509,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            Debug.Assert((actualArguments == null) || !firstResult.IsEmpty);
+            Debug.Assert((actualArguments == null) || (!firstResult.IsEmpty));
             return firstResult;
         }
 
@@ -5542,7 +5548,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Symbol symbol = GetSymbolOrMethodOrPropertyGroup(lookupResult, node, rightName, arity, members, diagnostics, out wasError);
                 Debug.Assert((object)symbol == null);
                 Debug.Assert(members.Count > 0);
-                methodGroup.PopulateWithExtensionMethods(left, members, typeArguments, lookupResult.Kind);
+                methodGroup.PopulateWithExtensionMethods(left, members.SelectAsArray(s_toMethodSymbolFunc), typeArguments, lookupResult.Kind);
                 members.Free();
             }
 
@@ -6492,7 +6498,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If the method group's receiver is dynamic then there is no point in looking for extension methods; 
             // it's going to be a dynamic invocation.
-            if (!methodGroup.SearchExtensionMethods || methodResolution.HasAnyApplicableMethod || methodGroup.MethodGroupReceiverIsDynamic())
+            if (!methodGroup.SearchExtensionMethods || methodGroup.ExtensionMethodsAlreadyIncluded || methodResolution.HasAnyApplicableMethod || methodGroup.MethodGroupReceiverIsDynamic())
             {
                 return methodResolution;
             }
@@ -6593,7 +6599,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var methodGroup = MethodGroup.GetInstance();
             // NOTE: node.ReceiverOpt could be a BoundTypeOrValueExpression - users need to check.
-            methodGroup.PopulateWithNonExtensionMethods(node.ReceiverOpt, methods, node.TypeArgumentsOpt, node.ResultKind, node.LookupError);
+            if (node.ExtensionMethodsAlreadyIncluded)
+            {
+                methodGroup.PopulateWithExtensionMethods(node.ReceiverOpt, methods, node.TypeArgumentsOpt, node.ResultKind, node.LookupError);
+            }
+            else
+            {
+                methodGroup.PopulateWithNonExtensionMethods(node.ReceiverOpt, methods, node.TypeArgumentsOpt, node.ResultKind, node.LookupError);
+            }
 
             if (node.LookupError != null)
             {

@@ -261,6 +261,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            // Not spec'ed yet: Extension Everything overload resolution based on receiver type
+            // PROTOTYPE: We might remove the only applicable member, only to be left with no applicable methods left.
+            //BestExtensionReceiverResolution(results, ref useSiteDiagnostics);
+
             // SPEC: The best method of the set of candidate methods is identified. If a single best method cannot be identified, 
             // SPEC: the method invocation is ambiguous, and a binding-time error occurs. 
 
@@ -924,6 +928,59 @@ namespace Microsoft.CodeAnalysis.CSharp
                     results[f] = new MemberResolutionResult<TMember>(member, result.LeastOverriddenMember, MemberAnalysisResult.LessDerived());
                 }
             }
+        }
+
+        // Will always leave at least one symbol left.
+        private static void BestExtensionReceiverResolution<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+            where TMember : Symbol
+        {
+            // Items whose index is less than `checking` are in the candidate, "already accepted" set.
+            // The item at index `checking` is compared among the ones in the accepted set,
+            //   and actions taken depending on which is more specific.
+            //   (removal of the accepted item, removal of current item, or keeping both)
+            // The items above index `checking` are ignored until they are reached by the outer loop.
+            for (int checking = 0; checking < results.Count; checking++)
+            {
+                var checkingItem = results[checking];
+                if (!checkingItem.IsValid)
+                {
+                    continue;
+                }
+                for (int alreadyAccepted = 0; alreadyAccepted < checking; alreadyAccepted++)
+                {
+                    var alreadyAcceptedItem = results[alreadyAccepted];
+                    if (!alreadyAcceptedItem.IsValid)
+                    {
+                        continue;
+                    }
+                    // PROTOTYPE: Might want to use .ReceiverType if that ever gets created
+                    var result = MoreSpecificType(ReceiverType(alreadyAcceptedItem.Member), ReceiverType(checkingItem.Member), ref useSiteDiagnostics);
+                    if (result == BetterResult.Left)
+                    {
+                        // The existing accepted item was more specific than the current one. Remove the current.
+                        results[checking] = new MemberResolutionResult<TMember>(checkingItem.Member, checkingItem.LeastOverriddenMember, MemberAnalysisResult.Worse());
+                        break;
+                    }
+                    else if (result == BetterResult.Right || result == BetterResult.Equal)
+                    {
+                        // The currently-being-checked item was more specific than an accepted item. Remove the accepted one.
+                        results[alreadyAccepted] = new MemberResolutionResult<TMember>(alreadyAcceptedItem.Member, alreadyAcceptedItem.LeastOverriddenMember, MemberAnalysisResult.Worse());
+                    }
+                    // Else, neither was more applicable. Leave them both in the now-accepted set.
+                }
+            }
+        }
+
+        //private BetterResult BetterExtensionReceiver(TypeSymbol left, TypeSymbol right, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        //{
+        //    var conversion = Conversions.ClassifyImplicitConversion(left, right, ref useSiteDiagnostics);
+        //    Conversions.IsValidExtensionMethodThisArgConversion(conversion);
+        //}
+
+        private static TypeSymbol ReceiverType(Symbol symbol)
+        {
+            var containing = symbol.ContainingType;
+            return containing.ExtensionClassType ?? containing;
         }
 
         // Perform instance constructor overload resolution, storing the results into "results". If

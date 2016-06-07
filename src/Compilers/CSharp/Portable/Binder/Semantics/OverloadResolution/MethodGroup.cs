@@ -35,21 +35,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal void PopulateWithExtensionMethods(
             BoundExpression receiverOpt,
-            ArrayBuilder<Symbol> members,
+            ImmutableArray<MethodSymbol> methods,
             ImmutableArray<TypeSymbol> typeArguments,
             LookupResultKind resultKind = LookupResultKind.Viable,
             DiagnosticInfo error = null)
         {
-            this.PopulateHelper(receiverOpt, resultKind, error);
+            PopulateWithNonExtensionMethods(receiverOpt, methods, typeArguments, resultKind, error);
             this.IsExtensionMethodGroup = true;
-            foreach (var member in members)
-            {
-                this.Methods.Add((MethodSymbol)member);
-            }
-            if (!typeArguments.IsDefault)
-            {
-                this.TypeArguments.AddRange(typeArguments);
-            }
         }
 
         internal void PopulateWithNonExtensionMethods(

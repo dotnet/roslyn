@@ -825,8 +825,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                         queryClause: queryClause);
                 }
 
-                return CreateBadCall(node, methodGroup.Name, invokedAsExtensionMethod && analyzedArguments.Arguments.Count > 0 && (object)methodGroup.Receiver == (object)analyzedArguments.Arguments[0] ? null : methodGroup.Receiver,
-                    GetOriginalMethods(result), methodGroup.ResultKind, methodGroup.TypeArguments.ToImmutable(), analyzedArguments, invokedAsExtensionMethod: invokedAsExtensionMethod, isDelegate: ((object)delegateTypeOpt != null),
+                Debug.Assert(!(invokedAsExtensionMethod && analyzedArguments.Arguments.Count > 0 && (object)methodGroup.Receiver == (object)analyzedArguments.Arguments[0]));
+                return CreateBadCall(node, methodGroup.Name, methodGroup.Receiver, GetOriginalMethods(result),
+                    methodGroup.ResultKind, methodGroup.TypeArguments.ToImmutable(), analyzedArguments,
+                    invokedAsExtensionMethod: invokedAsExtensionMethod, isDelegate: ((object)delegateTypeOpt != null),
                     extensionMethodsOfSameViabilityAreAvailable: extensionMethodsOfSameViabilityAreAvailable);
             }
 
@@ -856,72 +858,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             // (i.e. the first argument, if invokedAsExtensionMethod).
             var gotError = MemberGroupFinalValidation(receiver, method, expression, diagnostics, invokedAsExtensionMethod);
 
+            // Method resolution should never return method kind of ExpandedExtensionClass
+            Debug.Assert(method.MethodKind != MethodKind.ExpandedExtensionClass);
             // Skip building up a new array if the first argument doesn't have to be modified.
-            ImmutableArray<BoundExpression> args;
-            if (invokedAsExtensionMethod && method.IsInExtensionClass)
-            {
-                Debug.Assert(method.MethodKind == MethodKind.ExpandedExtensionClass);
-
-                ArrayBuilder<BoundExpression> builder = ArrayBuilder<BoundExpression>.GetInstance();
-
-                receiver = CreateConversion(receiver, methodResult.Result.ConversionForArg(0), method.Parameters[0].Type, diagnostics);
-
-                bool first = true;
-                foreach (BoundExpression arg in analyzedArguments.Arguments)
-                {
-                    if (first)
-                    {
-                        // Skip the first argument (the receiver artifically inserted for overload resolution).
-                        first = false;
-                    }
-                    else
-                    {
-                        builder.Add(arg);
-                    }
-                }
-                args = builder.ToImmutableAndFree();
-
-                // PROTOTYPE: This probably will break things. We want to pass around and expose the original source method, though.
-                // (it's only wrapped in a ExpandedExtensionClassMethodSymbol for overload resolution)
-                var expandedMethod = (ExpandedExtensionClassMethodSymbol)method;
-                method = expandedMethod.ExpandedFrom;
-            }
-            else if (invokedAsExtensionMethod && !ReferenceEquals(receiver, methodGroup.Receiver))
-            {
-                ArrayBuilder<BoundExpression> builder = ArrayBuilder<BoundExpression>.GetInstance();
-
-                // Because the receiver didn't pass through CoerceArguments, we need to apply an appropriate
-                // conversion here.
-                Debug.Assert(method.ParameterCount > 0);
-                Debug.Assert(argsToParams.IsDefault || argsToParams[0] == 0);
-                BoundExpression convertedReceiver = CreateConversion(receiver, methodResult.Result.ConversionForArg(0), method.Parameters[0].Type, diagnostics);
-                builder.Add(convertedReceiver);
-
-                bool first = true;
-                foreach (BoundExpression arg in analyzedArguments.Arguments)
-                {
-                    if (first)
-                    {
-                        // Skip the first argument (the receiver), since we added our own.
-                        first = false;
-                    }
-                    else
-                    {
-                        builder.Add(arg);
-                    }
-                }
-                args = builder.ToImmutableAndFree();
-            }
-            else
-            {
-                args = analyzedArguments.Arguments.ToImmutable();
-            }
+            // PROTOTYPE: Deal with the comment and commented-out code.
+            // Because the receiver didn't pass through CoerceArguments, we need to apply an appropriate
+            // conversion here.
+            //Debug.Assert(method.ParameterCount > 0);
+            //Debug.Assert(argsToParams.IsDefault || argsToParams[0] == 0);
+            //BoundExpression convertedReceiver = CreateConversion(receiver, methodResult.Result.ConversionForArg(0), method.Parameters[0].Type, diagnostics);
+            var args = analyzedArguments.Arguments.ToImmutable();
 
             // This will be the receiver of the BoundCall node that we create.
-            // For extension methods, there is no receiver because the receiver in source was actually the first argument.
             // For instance methods, we may have synthesized an implicit this node.  We'll keep it for the emitter.
             // For static methods, we may have synthesized a type expression.  It serves no purpose, so we'll drop it.
-            if ((invokedAsExtensionMethod && !method.IsInExtensionClass) || (method.IsStatic && receiver != null && receiver.WasCompilerGenerated))
+            if (method.IsStatic && receiver != null && receiver.WasCompilerGenerated)
             {
                 receiver = null;
             }

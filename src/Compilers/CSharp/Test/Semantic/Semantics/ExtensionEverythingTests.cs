@@ -17,6 +17,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         private static readonly CSharpParseOptions parseOptions = TestOptions.Regular.WithExtensionEverythingFeature();
         private static readonly MetadataReference[] additionalRefs = new[] { SystemCoreRef };
 
+        // PROTOTYPE: Test method group containing both old-style ext method and new-style.
+        // PROTOTYPE: Extension method query invocation
+        // PROTOTYPE: Call with receiver going through boxing as well as implicit reference conversion (and also reject invalid conversions)
         // PROTOTYPE: Overloaded (non-)ambiguous methods, properties, etc. - this is a working issue, lots of ambiguous cases to test.
         // PROTOTYPE: Generics - working issue, there's a lot of cases here.
 
@@ -126,6 +129,102 @@ class Program
 }");
         }
 
+        // PROTOTYPE: Once the VariousExtendedKinds() test is unskipped and implementation fixed, this test is redundant
+        [Fact]
+        public void VariousExtendedKindsRestricted()
+        {
+            var text = @"
+using System;
+
+class BaseClass
+{
+}
+
+static class BaseStaticClass
+{
+}
+
+class BaseStruct
+{
+}
+
+class IBaseInterface
+{
+}
+
+enum BaseEnum
+{
+}
+
+extension class ExtClass : BaseClass
+{
+    public void MemberClass() { Console.Write(1); }
+    public static void StaticMemberClass() { Console.Write(5); }
+    public static void DirectCallClass() { Console.Write('a'); }
+}
+
+extension class ExtStaticClass : BaseStaticClass
+{
+    public static void StaticMemberStaticClass() { Console.Write(6); }
+    public static void DirectCallStaticClass() { Console.Write('b'); }
+}
+
+extension class ExtStruct : BaseStruct
+{
+    public void MemberStruct() { Console.Write(2); }
+    public static void StaticMemberStruct() { Console.Write(7); }
+    public static void DirectCallStruct() { Console.Write('c'); }
+}
+
+extension class ExtInterface : IBaseInterface
+{
+    public void MemberInterface() { Console.Write(3); }
+    public static void StaticMemberInterface() { Console.Write(8); }
+    public static void DirectCallInterface() { Console.Write('d'); }
+}
+
+extension class ExtEnum : BaseEnum
+{
+    public void MemberEnum() { Console.Write(4); }
+    public static void StaticMemberEnum() { Console.Write(9); }
+    public static void DirectCallEnum() { Console.Write('e'); }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        BaseClass obj1 = default(BaseClass);
+        BaseStruct obj2 = default(BaseStruct);
+        IBaseInterface obj3 = default(IBaseInterface);
+        BaseEnum obj4 = default(BaseEnum);
+        obj1.MemberClass();
+        obj2.MemberStruct();
+        obj3.MemberInterface();
+        obj4.MemberEnum();
+        BaseClass.StaticMemberClass();
+        BaseStaticClass.StaticMemberStaticClass();
+        BaseStruct.StaticMemberStruct();
+        IBaseInterface.StaticMemberInterface();
+        BaseEnum.StaticMemberEnum();
+        ExtClass.DirectCallClass();
+        ExtStaticClass.DirectCallStaticClass();
+        ExtStruct.DirectCallStruct();
+        ExtInterface.DirectCallInterface();
+        ExtEnum.DirectCallEnum();
+    }
+}
+";
+
+            CompileAndVerify(
+                source: text,
+                additionalRefs: additionalRefs,
+                expectedOutput: "123456789abcde",
+                parseOptions: parseOptions)
+                .VerifyIL("Program.Main", @"{
+}");
+        }
+
         [Fact]
         public void VariousExtendedKinds()
         {
@@ -219,6 +318,99 @@ class Program
                 parseOptions: parseOptions)
                 .VerifyIL("Program.Main", @"{
 }");
+        }
+
+        [Fact]
+        public void UseOfThisBasic()
+        {
+            var text = @"
+using System;
+
+class BaseClass
+{
+    int x;
+    public BaseClass()
+    {
+        x = 1;
+    }
+    public int MethodInstance() => x;
+}
+
+extension class ExtClass : BaseClass
+{
+    public int MethodInstanceExt() => MethodInstance() + 1;
+}
+
+class Program
+{
+    static void Main()
+    {
+        BaseClass obj = new BaseClass();
+        Console.Write(obj.MethodInstance());
+        Console.Write(obj.MethodInstanceExt());
+    }
+}
+";
+
+            CompileAndVerify(
+                source: text,
+                additionalRefs: additionalRefs,
+                expectedOutput: "12",
+                parseOptions: parseOptions);
+        }
+
+        [Fact]
+        public void UseOfThis()
+        {
+            var text = @"
+using System;
+
+interface IInterface
+{
+    int MethodInterface();
+}
+
+class BaseClass : IInterface
+{
+    int x;
+    public BaseClass()
+    {
+        x = 1;
+    }
+    public int MethodInstance() => x;
+    int IInterface.MethodInterface() => x + 1;
+}
+
+extension class ExtInterface : IInterface
+{
+    public int MethodOtherExtInferace() => MethodInterface() + 3;
+}
+
+extension class ExtClass : BaseClass
+{
+    public int MethodInstanceExt() => MethodInstance() + 2;
+    public int MethodInterfaceExt() => MethodInterface() + 2;
+}
+
+class Program
+{
+    static void Main()
+    {
+        BaseClass obj = new BaseClass();
+        Console.Write(obj.MethodInstance());
+        Console.Write(obj.MethodInterface());
+        Console.Write(obj.MethodInstanceExt());
+        Console.Write(obj.MethodInterfaceExt());
+        Console.Write(obj.MethodOtherExtInferace());
+    }
+}
+";
+
+            CompileAndVerify(
+                source: text,
+                additionalRefs: additionalRefs,
+                expectedOutput: "12345",
+                parseOptions: parseOptions);
         }
 
         [Fact]

@@ -649,6 +649,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public MethodSymbol ReduceExtensionMethod(TypeSymbol receiverType)
         {
+            // PROTOTYPE: Handle callers of this?
             if ((object)receiverType == null)
             {
                 throw new ArgumentNullException(nameof(receiverType));
@@ -671,6 +672,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public MethodSymbol ReduceExtensionMethod()
         {
+            // PROTOTYPE: Handle callers of this?
             return (this.IsExtensionMethod && this.MethodKind != MethodKind.ReducedExtension) ? ReducedExtensionMethodSymbol.Create(this) : null;
         }
 
@@ -733,6 +735,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         {
             get { return null; }
         }
+
+        /// <summary>
+        /// If this method is an expanded extension method from an extension class, gets the original instance method definition that
+        /// this method was expanded from. Otherwise, returns null.
+        /// </summary>
+        public virtual MethodSymbol ExpandedFrom => null;
 
         /// <summary>
         /// If this method can be applied to an object, returns the type of object it is applied to.

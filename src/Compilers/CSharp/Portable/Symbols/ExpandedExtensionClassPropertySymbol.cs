@@ -32,6 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             _expandedFrom = expandedFrom;
         }
 
+        // PROTOTYPE: Make virtual?
         public PropertySymbol ExpandedFrom => _expandedFrom;
 
         public override Symbol ContainingSymbol => _expandedFrom.ContainingSymbol;
@@ -42,10 +43,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<PropertySymbol> ExplicitInterfaceImplementations => ImmutableArray<PropertySymbol>.Empty;
 
-        // PROTOTYPE: construct get method
         public override MethodSymbol GetMethod => _expandedFrom.GetMethod?.ExpandExtensionClassMethod();
 
-        // PROTOTYPE: construct set method
         public override MethodSymbol SetMethod => _expandedFrom.SetMethod?.ExpandExtensionClassMethod();
 
         // PROTOTYPE: extra parameters causing problems? (find references of IsIndexer)
