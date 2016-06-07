@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Linq;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Test.Utilities;
@@ -117,9 +118,9 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics(
-                // (8,18): error CS8206: No Deconstruct instance or extension method was found for type 'C'.
+                // (8,18): error CS1061: 'C' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'C' could be found (are you missing a using directive or an assembly reference?)
                 //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "new C()").WithArguments("C", "Deconstruct").WithLocation(8, 18)
                 );
         }
 
@@ -149,11 +150,7 @@ class C
 }";
 
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
-            comp.VerifyDiagnostics(
-                // (8,18): error CS8207: More than one Deconstruct instance or extension method was found for type 'C'.
-                //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_AmbiguousDeconstruct, "new C()").WithArguments("C").WithLocation(8, 18)
-                );
+            comp.VerifyDiagnostics();
         }
 
         [Fact]
@@ -168,16 +165,40 @@ class C
         string y;
         (x, y) = new C();
     }
-    public void Deconstruct(out int a)
+    public void Deconstruct(out int a) // too few arguments
     {
         a = 1;
     }
 }";
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics(
-                // (8,18): error CS8209: The Deconstruct method for type 'C.Deconstruct(out int)' doesn't have the number of parameters (2) needed for this deconstruction.
+                // (8,18): error CS1501: No overload for method 'Deconstruct' takes 2 arguments
                 //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_DeconstructWrongParams, "new C()").WithArguments("C.Deconstruct(out int)", "2").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_BadArgCount, "new C()").WithArguments("Deconstruct", "2").WithLocation(8, 18)
+                );
+        }
+
+        [Fact]
+        public void DeconstructWrongParams2()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        long x, y;
+        (x, y) = new C();
+    }
+    public void Deconstruct(out int a, out int b, out int c) // too many arguments
+    {
+        a = b = c = 1;
+    }
+}";
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // (7,18): error CS7036: There is no argument given that corresponds to the required formal parameter 'c' of 'C.Deconstruct(out int, out int, out int)'
+                //         (x, y) = new C();
+                Diagnostic(ErrorCode.ERR_NoCorrespondingArgument, "new C()").WithArguments("c", "C.Deconstruct(out int, out int, out int)").WithLocation(7, 18)
                 );
         }
 
@@ -204,9 +225,9 @@ class C
                 // (8,17): error CS1061: 'string' does not contain a definition for 'g' and no extension method 'g' accepting a first argument of type 'string' could be found (are you missing a using directive or an assembly reference?)
                 //         (x.f, y.g) = new C();
                 Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "g").WithArguments("string", "g").WithLocation(8, 17),
-                // (8,22): error CS8209: The Deconstruct method for type 'C.Deconstruct()' doesn't have the number of parameters (2) needed for this deconstruction.
+                // (8,22): error CS1501: No overload for method 'Deconstruct' takes 2 arguments
                 //         (x.f, y.g) = new C();
-                Diagnostic(ErrorCode.ERR_DeconstructWrongParams, "new C()").WithArguments("C.Deconstruct()", "2").WithLocation(8, 22)
+                Diagnostic(ErrorCode.ERR_BadArgCount, "new C()").WithArguments("Deconstruct", "2").WithLocation(8, 22)
                 );
         }
 
@@ -227,9 +248,9 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics(
-                // (8,18): error CS8208: The Deconstruct method for type 'C.Deconstruct(out int, int)' must have only out parameters.
+                // (8,9): error CS1615: Argument 2 may not be passed with the 'out' keyword
                 //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_DeconstructRequiresOutParams, "new C()").WithArguments("C.Deconstruct(out int, int)").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_BadArgExtraRef, "(x, y) = new C()").WithArguments("2", "out").WithLocation(8, 9)
                 );
         }
 
@@ -250,9 +271,9 @@ class C
 ";
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics(
-                // (8,18): error CS8208: The Deconstruct method for type 'C.Deconstruct(ref int, out int)' must have only out parameters.
+                // (8,9): error CS1620: Argument 1 must be passed with the 'ref' keyword
                 //         (x, y) = new C();
-                Diagnostic(ErrorCode.ERR_DeconstructRequiresOutParams, "new C()").WithArguments("C.Deconstruct(ref int, out int)").WithLocation(8, 18)
+                Diagnostic(ErrorCode.ERR_BadArgRef, "(x, y) = new C()").WithArguments("1", "ref").WithLocation(8, 9)
                 );
         }
 
@@ -679,8 +700,7 @@ Final i is 43
 ";
 
             var comp = CompileAndVerify(source, expectedOutput: expected, parseOptions: TestOptions.Regular.WithTuplesFeature().WithRefsFeature());
-            comp.VerifyDiagnostics(
-                );
+            comp.VerifyDiagnostics();
         }
 
         [Fact(Skip = "PROTOTYPE(tuples)")]
@@ -784,9 +804,9 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics(
-                // (7,18): error CS8206: No Deconstruct instance or extension method was found for type 'int'.
+                // (7,18): error CS1061: 'int' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'int' could be found (are you missing a using directive or an assembly reference?)
                 //         (x, x) = x;
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "x").WithArguments("int").WithLocation(7, 18),
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "x").WithArguments("int", "Deconstruct").WithLocation(7, 18),
                 // (7,18): error CS0165: Use of unassigned local variable 'x'
                 //         (x, x) = x;
                 Diagnostic(ErrorCode.ERR_UseDefViolation, "x").WithArguments("x").WithLocation(7, 18)
@@ -892,9 +912,9 @@ class C
 
             var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature().WithRefsFeature());
             comp.VerifyDiagnostics(
-                // (7,18): error CS8206: No Deconstruct instance or extension method was found for type 'void'.
+                // (7,18): error CS1061: 'void' does not contain a definition for 'Deconstruct' and no extension method 'Deconstruct' accepting a first argument of type 'void' could be found (are you missing a using directive or an assembly reference?)
                 //         (x, x) = M();
-                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "M()").WithArguments("void").WithLocation(7, 18)
+                Diagnostic(ErrorCode.ERR_NoSuchMemberOrExtension, "M()").WithArguments("void", "Deconstruct").WithLocation(7, 18)
                 );
         }
 
@@ -919,8 +939,8 @@ class C
             comp.VerifyDiagnostics();
         }
 
-        [Fact(Skip = "PROTOTYPE(tuples)")]
-        public void AssigningTuple2()
+        [Fact]
+        public void AssigningTupleWithConversion()
         {
             string source = @"
 class C
@@ -940,7 +960,6 @@ class C
     }
 }
 ";
-            // Should not give this error: (9,18): error CS0029: Cannot implicitly convert type '(int, string)' to '(long, string)'
             var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics();
         }
@@ -1326,6 +1345,237 @@ class C
         }
 
         [Fact]
+        public void DeconstructUsingBaseDeconstructMethod()
+        {
+            string source = @"
+class Base
+{
+    public void Deconstruct(out int a, out int b) { a = 1; b = 2; }
+}
+class C : Base
+{
+    static void Main()
+    {
+        int x, y;
+        (x, y) = new C();
+
+        System.Console.WriteLine(x + "" "" + y);
+    }
+
+    public void Deconstruct(out int c) { c = 42; }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 2", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature().WithRefsFeature());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void AssignUsingAmbiguousDeconstruction()
+        {
+            string source = @"
+class Base
+{
+    public void Deconstruct(out int a, out int b) { a = 1; b = 2; }
+    public void Deconstruct(out long a, out long b) { a = 1; b = 2; }
+}
+class C : Base
+{
+    static void Main()
+    {
+        int x, y;
+        (x, y) = new C();
+
+        System.Console.WriteLine(x + "" "" + y);
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // (12,18): error CS0121: The call is ambiguous between the following methods or properties: 'Base.Deconstruct(out int, out int)' and 'Base.Deconstruct(out long, out long)'
+                //         (x, y) = new C();
+                Diagnostic(ErrorCode.ERR_AmbigCall, "new C()").WithArguments("Base.Deconstruct(out int, out int)", "Base.Deconstruct(out long, out long)").WithLocation(12, 18)
+                );
+        }
+
+        [Fact]
+        public void DeconstructUsingExtensionMethod()
+        {
+            string source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        int x;
+        string y, z;
+        (x, (y, z)) = Tuple.Create(1, Tuple.Create(""hello"", ""world""));
+
+        System.Console.WriteLine(x + "" "" + y + "" "" + z);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello world", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature().WithRefsFeature());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void NestedDeconstructUsingExtensionMethod()
+        {
+            string source = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        int x;
+        string y, z;
+        (x, (y, z)) = Tuple.Create(1, Tuple.Create(""hello"", ""world""));
+
+        System.Console.WriteLine(x + "" "" + y + "" "" + z);
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello world", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature().WithRefsFeature());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void OverrideDeconstruct()
+        {
+            string source = @"
+class Base
+{
+    public virtual void Deconstruct(out int a, out string b) { a = 1; b = ""hello""; }
+}
+class C : Base
+{
+    static void Main()
+    {
+        int x;
+        string y;
+        (x, y) = new C();
+    }
+    public override void Deconstruct(out int a, out string b) { a = 1; b = ""hello""; System.Console.WriteLine(""override""); }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "override", additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature().WithRefsFeature());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DeconstructRefTuple()
+        {
+            string template = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        int VARIABLES; // int x1, x2, ...
+        (VARIABLES) = (TUPLE).ToTuple(); // (x1, x2, ...) = (1, 2, ...).ToTuple();
+
+        System.Console.WriteLine(OUTPUT);
+    }
+}
+";
+            for (int i = 2; i <= 21; i++)
+            {
+                var tuple = String.Join(", ", Enumerable.Range(1, i).Select(n => n.ToString()));
+                var variables = String.Join(", ", Enumerable.Range(1, i).Select(n => $"x{n}"));
+                var output = String.Join(@" + "" "" + ", Enumerable.Range(1, i).Select(n => $"x{n}"));
+                var expected = String.Join(" ", Enumerable.Range(1, i).Select(n => n));
+
+                var source = template.Replace("VARIABLES", variables).Replace("TUPLE", tuple).Replace("OUTPUT", output);
+                var comp = CompileAndVerify(source, expectedOutput: expected, additionalRefs: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature().WithRefsFeature());
+                comp.VerifyDiagnostics();
+            }
+        }
+
+        [Fact]
+        public void CannotDeconstructRefTuple22()
+        {
+            string template = @"
+using System;
+class C
+{
+    static void Main()
+    {
+        int VARIABLES; // int x1, x2, ...
+        (VARIABLES) = CreateLongRef(1, 2, 3, 4, 5, 6, 7, CreateLongRef(8, 9, 10, 11, 12, 13, 14, Tuple.Create(15, 16, 17, 18, 19, 20, 21, 22)));
+    }
+
+    public static Tuple<T1, T2, T3, T4, T5, T6, T7, TRest> CreateLongRef<T1, T2, T3, T4, T5, T6, T7, TRest>(T1 item1, T2 item2, T3 item3, T4 item4, T5 item5, T6 item6, T7 item7, TRest rest) =>
+        new Tuple<T1, T2, T3, T4, T5, T6, T7, TRest>(item1, item2, item3, item4, item5, item6, item7, rest);
+}
+";
+            var tuple = String.Join(", ", Enumerable.Range(1, 22).Select(n => n.ToString()));
+            var variables = String.Join(", ", Enumerable.Range(1, 22).Select(n => $"x{n}"));
+
+            var source = template.Replace("VARIABLES", variables).Replace("TUPLE", tuple);
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // (8,113): error CS1501: No overload for method 'Deconstruct' takes 22 arguments
+                //         (x1, x2, x3, x4, x5, x6, x7, x8, x9, x10, x11, x12, x13, x14, x15, x16, x17, x18, x19, x20, x21, x22) = CreateLongRef(1, 2, 3, 4, 5, 6, 7, CreateLongRef(8, 9, 10, 11, 12, 13, 14, Tuple.Create(15, 16, 17, 18, 19, 20, 21, 22)));
+                Diagnostic(ErrorCode.ERR_BadArgCount, "CreateLongRef(1, 2, 3, 4, 5, 6, 7, CreateLongRef(8, 9, 10, 11, 12, 13, 14, Tuple.Create(15, 16, 17, 18, 19, 20, 21, 22)))").WithArguments("Deconstruct", "22").WithLocation(8, 113)
+                );
+        }
+
+        [Fact]
+        public void DeconstructUsingDynamicMethod()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x;
+        string y;
+
+        dynamic c = new C();
+        (x, y) = c;
+    }
+    public void Deconstruct(out int a, out string b) { a = 1; b = ""hello""; }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // (10,18): error CS8212: Cannot deconstruct dynamic objects.
+                //         (x, y) = c;
+                Diagnostic(ErrorCode.ERR_CannotDeconstructDynamic, "c").WithLocation(10, 18)
+                );
+        }
+
+        [Fact]
+        public void StaticDeconstruct()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x;
+        string y;
+
+        (x, y) = new C();
+    }
+    public static void Deconstruct(out int a, out string b) { a = 1; b = ""hello""; }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // (9,18): error CS0176: Member 'C.Deconstruct(out int, out string)' cannot be accessed with an instance reference; qualify it with a type name instead
+                //         (x, y) = new C();
+                Diagnostic(ErrorCode.ERR_ObjectProhibited, "new C()").WithArguments("C.Deconstruct(out int, out string)").WithLocation(9, 18)
+                );
+        }
+
+        [Fact]
         public void AssignmentTypeIsVoid()
         {
             string source = @"
@@ -1672,7 +1922,7 @@ class C
     }
 }
 ";
-            // PROTOTYPE(tuples) we expect "2 hello" instead
+            // PROTOTYPE(tuples) we expect "2 hello" instead, which means the evaluation order is wrong
             var comp = CompileAndVerify(source, expectedOutput: "1 hello", parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics();
         }

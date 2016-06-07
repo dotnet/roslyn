@@ -41,6 +41,8 @@ It will be updated to support deconstruction-assignment, ie. when the left-hand-
 - Each item on the left needs to be assignable and needs to be compatible with corresponding position on the right (resulting from previous step).
 - Needs to handle nesting case such as `(x, (y, z)) = M();`, but note that the second item in the top-level group has no discernable type.
 
+#### Evaluation order
+
 The evaluation order can be summarized as: (1) all the side-effects on the left-hand-side, (2) all the Deconstruct invocations (if not tuple), (3) conversions (if needed), and (4) assignments.
 
 In the general case, the lowering for deconstruction-assignment would translate: `(expressionX, expressionY, expressionZ) = expressionRight` into:
@@ -100,7 +102,17 @@ evaluate the right-hand-side and do a tuple conversion (using a fake tuple repre
 assign element-wise from the right to the left
 ```
 
-Note that tuples (`System.ValueTuple` and `System.Tuple`) don't need to invoke Deconstruct.
+#### Resolution of the Deconstruct method
+
+The resolution is equivalent to typing `rhs.Deconstruct(out var x1, out var x2, ...);` with the appropriate number of parameters to deconstruct into.
+It is based on normal overload resolution.
+This implies that `rhs` cannot be dynamic.
+Also, the `Deconstruct` method must be an instance method or an extension (but not a static method).
+
+#### Tuple Deconstruction
+
+Note that tuples (`System.ValueTuple`) don't need to invoke Deconstruct.
+`System.Tuple` are not recognized as tuples, and so will rely on Deconstruct (which will be provided for up to 3 nestings deep, that is 21 elements)
 
 
 ###Deconstruction-declaration (deconstruction into new variables):

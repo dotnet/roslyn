@@ -114,6 +114,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var analyzedArguments = AnalyzedArguments.GetInstance();
             analyzedArguments.Arguments.AddRange(args);
+            Debug.Assert(!args.Any(e => e.Kind == BoundKind.OutDeconstructVarPendingInference));
             BoundExpression result = BindInvocationExpression(
                 node, node, methodName, boundExpression, analyzedArguments, diagnostics, queryClause,
                 allowUnexpandedForm: allowUnexpandedForm);
@@ -1100,7 +1101,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 BoundKind argumentKind = oldArguments[i].Kind;
 
-                if (argumentKind == BoundKind.UnboundLambda && i < parameterCount)
+                if (argumentKind == BoundKind.OutDeconstructVarPendingInference ||
+                    (argumentKind == BoundKind.UnboundLambda && i < parameterCount))
                 {
                     ArrayBuilder<BoundExpression> newArguments = ArrayBuilder<BoundExpression>.GetInstance(argumentCount);
                     newArguments.AddRange(oldArguments);
@@ -1120,7 +1122,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                                         newArguments[i] = ((UnboundLambda)oldArgument).Bind(parameterType);
                                     }
                                     break;
+                                case BoundKind.OutDeconstructVarPendingInference:
+                                    newArguments[i] = ((OutDeconstructVarPendingInference)oldArgument).SetInferredType(parameters[i].Type, success: true);
+                                    break;
                             }
+                        }
+                        else if (oldArgument.Kind == BoundKind.OutDeconstructVarPendingInference)
+                        {
+                            newArguments[i] = ((OutDeconstructVarPendingInference)oldArgument).FailInference(this);
                         }
 
                         i++;

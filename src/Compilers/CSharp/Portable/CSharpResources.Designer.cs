@@ -2321,6 +2321,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot deconstruct dynamic objects..
+        /// </summary>
+        internal static string ERR_CannotDeconstructDynamic {
+            get {
+                return ResourceManager.GetString("ERR_CannotDeconstructDynamic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot pass null for friend assembly name.
         /// </summary>
         internal static string ERR_CannotPassNullForFriendAssembly {

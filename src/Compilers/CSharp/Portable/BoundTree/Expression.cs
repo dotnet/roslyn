@@ -197,7 +197,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return new Argument(ArgumentKind.Named, parameter, argument);
                 });
         }
-        
+
         private static IOperation CreateParamArray(IParameterSymbol parameter, ImmutableArray<BoundExpression> boundArguments, int firstArgumentElementIndex, SyntaxNode invocationSyntax)
         {
             if (parameter.Type.TypeKind == TypeKind.Array)
@@ -515,7 +515,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
     }
 
-    internal partial class BoundTupleExpression 
+    internal partial class BoundTupleExpression
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
 
@@ -1322,7 +1322,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     internal partial class BoundImplicitReceiver : IInstanceReferenceExpression
     {
         InstanceReferenceKind IInstanceReferenceExpression.InstanceReferenceKind => InstanceReferenceKind.Implicit;
-        
+
         protected override OperationKind ExpressionKind => OperationKind.InstanceReferenceExpression;
 
         public override void Accept(OperationVisitor visitor)
@@ -1951,7 +1951,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return visitor.VisitNoneOperation(this, argument);
         }
     }
-    
+
     internal partial class BoundDynamicCollectionElementInitializer
     {
         protected override OperationKind ExpressionKind => OperationKind.None;
@@ -2824,6 +2824,24 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return BinaryOperationKind.Invalid;
         }
+    }
+
+    /// <summary>
+    /// Providing implementation as OperationKind.None. This implementation is sufficient because the node doesn't survive initial binding.
+    /// </summary>
+    internal partial class OutDeconstructVarPendingInference
+    {
+        public override void Accept(OperationVisitor visitor)
+        {
+            visitor.VisitNoneOperation(this);
+        }
+
+        public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
+        {
+            return visitor.VisitNoneOperation(this, argument);
+        }
+
+        protected override OperationKind ExpressionKind => OperationKind.None;
     }
 
     partial class BoundIsPatternExpression
