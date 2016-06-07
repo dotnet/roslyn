@@ -2155,11 +2155,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 this.ValidateDeclarationNameConflictsInScope(localSymbol, diagnostics);
             }
 
-            if (this.InConstructorInitializer)
-            {
-                Error(diagnostics, ErrorCode.ERR_OutVarInConstructorInitializer, argumentSyntax.Identifier);
-            }
-
             if (isVar)
             {
                 return new OutVarLocalPendingInference(argumentSyntax, localSymbol);

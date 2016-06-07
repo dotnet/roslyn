@@ -6902,15 +6902,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Out variable declarations are not allowed within constructor initializers..
-        /// </summary>
-        internal static string ERR_OutVarInConstructorInitializer {
-            get {
-                return ResourceManager.GetString("ERR_OutVarInConstructorInitializer", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos; cannot define overloaded methods that differ only on ref and out.
         /// </summary>
         internal static string ERR_OverloadRefOut {
