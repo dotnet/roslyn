@@ -26,10 +26,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             if (sessionOpt == null)
             {
                 // The user may be trying to invoke snippets in VB
+                var service = GetCompletionService();
                 var helper = GetCompletionHelper();
-                if (helper != null &&
+                if (service != null &&
+                    helper != null &&
                     helper.QuestionTabInvokesSnippetCompletion &&
-                    TryInvokeSnippetCompletion(args, helper.CompletionService))
+                    TryInvokeSnippetCompletion(args, service))
                 {
                     // We've taken care of the tab. Don't send it to the buffer.
                     return;
