@@ -1,12 +1,12 @@
 # Required Software
 
-1. [Visual Studio 2015 with Update 1](http://go.microsoft.com/fwlink/?LinkId=691129). _You need Update 1_.
+1. [Visual Studio 2015 with Update 2](http://go.microsoft.com/fwlink/?LinkId=691129). _You need Update 2_.
 2. Visual Studio 2015 Extensibility Tools.
  
     If you already installed Visual Studio, the Extensibility Tools can be added as follows: 
     - Open Control Panel -> Programs and Features
     - Select the entry for your installation of Microsoft Visual Studio. Depending on your version, it may appear as follows:
-        - Microsoft Visual Studio Community 2015 with Update 1
+        - Microsoft Visual Studio Community 2015 with Update 2
         - Microsoft Visual Studio Professional 2015
         - Microsoft Visual Studio Enterprise 2015
     - Press the 'Change' button
