@@ -236,15 +236,7 @@ namespace Microsoft.CodeAnalysis.Editor
 
         protected int CompareMatches(PatternMatch match1, PatternMatch match2, CompletionItem item1, CompletionItem item2)
         {
-            int diff;
-
-            diff = PatternMatch.CompareType(match1, match2);
-            if (diff != 0)
-            {
-                return diff;
-            }
-
-            diff = PatternMatch.CompareCamelCase(match1, match2);
+            var diff = match1.CompareTo(match2);
             if (diff != 0)
             {
                 return diff;
@@ -258,18 +250,6 @@ namespace Microsoft.CodeAnalysis.Editor
             else if (item2.Rules.Preselect && !item1.Rules.Preselect)
             {
                 return 1;
-            }
-
-            diff = PatternMatch.CompareCase(match1, match2);
-            if (diff != 0)
-            {
-                return diff;
-            }
-
-            diff = PatternMatch.ComparePunctuation(match1, match2);
-            if (diff != 0)
-            {
-                return diff;
             }
 
             return 0;
