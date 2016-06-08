@@ -15,14 +15,11 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal class CompletionHelper
     {
-        private readonly CompletionRules _rules;
-        
         public CompletionService CompletionService { get; }
 
         protected CompletionHelper(CompletionService completionService)
         {
             CompletionService = completionService;
-            _rules = CompletionService.GetRules();
         }
 
         public static CompletionHelper GetHelper(
