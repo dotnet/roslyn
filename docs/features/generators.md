@@ -8,8 +8,7 @@ and added to the compilation. The additional source can be based on the content 
 enabling some meta-programming scenarios.
 
 Like all pre-release features, code generators will need to be specially enabled, either by passing
-`/features:replace` directly to `csc` or by setting the `<Features>replace</Features>` flag in the project file. The flag name
-for code generators is `replace`.
+`/features:replace` directly to `csc` or by setting the `<Features>replace</Features>` flag in the project file.
 
 Scenarios
 ---------
