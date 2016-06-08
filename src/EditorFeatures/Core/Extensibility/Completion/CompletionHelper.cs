@@ -19,8 +19,7 @@ namespace Microsoft.CodeAnalysis.Editor
         {
         }
 
-        public static CompletionHelper GetHelper(
-            Workspace workspace, string language, CompletionService completionService)
+        public static CompletionHelper GetHelper(Workspace workspace, string language)
         {
             var ls = workspace.Services.GetLanguageServices(language);
             if (ls != null)
@@ -31,18 +30,15 @@ namespace Microsoft.CodeAnalysis.Editor
                     return factory.CreateCompletionHelper();
                 }
 
-                if (completionService != null)
-                {
-                    return new CompletionHelper();
-                }
+                return new CompletionHelper();
             }
 
             return null;
         }
 
-        public static CompletionHelper GetHelper(Document document, CompletionService service)
+        public static CompletionHelper GetHelper(Document document)
         {
-            return GetHelper(document.Project.Solution.Workspace, document.Project.Language, service);
+            return GetHelper(document.Project.Solution.Workspace, document.Project.Language);
         }
 
         public IReadOnlyList<TextSpan> GetHighlightedSpans(CompletionItem completionItem, string filterText)
