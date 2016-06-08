@@ -82,6 +82,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                 {
                     new KeyValuePair<string, IOption>(GetStorageKeyForOption(CompletionOptions.IncludeKeywords), CompletionOptions.IncludeKeywords),
                     new KeyValuePair<string, IOption>(GetStorageKeyForOption(CompletionOptions.TriggerOnTypingLetters), CompletionOptions.TriggerOnTypingLetters),
+                    new KeyValuePair<string, IOption>(GetStorageKeyForOption(CompletionOptions.ShowCompletionItemFilters), CompletionOptions.ShowCompletionItemFilters),
+                    new KeyValuePair<string, IOption>(GetStorageKeyForOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems), CompletionOptions.HighlightMatchingPortionsOfCompletionListItems),
                 });
 
             Type[] types = new[]
@@ -145,6 +147,8 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             {
                 if (option == CompletionOptions.IncludeKeywords ||
                     option == CompletionOptions.TriggerOnTypingLetters ||
+                    option == CompletionOptions.ShowCompletionItemFilters ||
+                    option == CompletionOptions.HighlightMatchingPortionsOfCompletionListItems ||
                     option.Feature == SimplificationOptions.PerLanguageFeatureName ||
                     option.Feature == ExtractMethodOptions.FeatureName ||
                     option.Feature == ServiceFeatureOnOffOptions.OptionName ||

@@ -7,6 +7,7 @@ Imports Microsoft.CodeAnalysis.LanguageServices
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember
+Imports Microsoft.CodeAnalysis.Utilities
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
     Partial Friend MustInherit Class VisualBasicGenerateParameterizedMemberService(Of TService As AbstractGenerateParameterizedMemberService(Of TService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax))
@@ -23,7 +24,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.GenerateMember.GenerateMethod
                 Me.InvocationExpression = state.InvocationExpressionOpt
             End Sub
 
-            Protected Overrides Function DetermineParameterNames(cancellationToken As CancellationToken) As IList(Of String)
+            Protected Overrides Function DetermineParameterNames(cancellationToken As CancellationToken) As IList(Of ParameterName)
                 Dim typeParametersNames = Me.DetermineTypeParameters(cancellationToken).Select(Function(t) t.Name).ToList()
                 Return Me.Document.SemanticModel.GenerateParameterNames(
                     Me.InvocationExpression.ArgumentList, reservedNames:=typeParametersNames)

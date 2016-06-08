@@ -116,7 +116,7 @@ namespace Roslyn.VisualStudio.DiagnosticsWindow.OptionsPages
                     {
                     }
 
-                    await Task.Delay(MonitorDelay);
+                    await Task.Delay(MonitorDelay).ConfigureAwait(true);
                 }
 
                 _blocks.Clear();

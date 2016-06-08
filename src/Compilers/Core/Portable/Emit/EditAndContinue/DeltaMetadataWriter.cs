@@ -1423,10 +1423,6 @@ namespace Microsoft.CodeAnalysis.Emit
                 _changes = writer._changes;
             }
 
-            private void ReportReferenceToAddedSymbolDefinedInExternalAssembly(IReference symbol)
-            {
-            }
-
             public override void Visit(IAssembly assembly)
             {
                 this.Visit((IModule)assembly);

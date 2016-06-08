@@ -2131,7 +2131,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// Merge (already ordered) non-type, non-indexer members with (already ordered) indexer members.
         /// </summary>
-        private Dictionary<string, ImmutableArray<Symbol>> MergeIndexersAndNonIndexers(ImmutableArray<Symbol> nonIndexerMembers, ArrayBuilder<Symbol> indexerMembers)
+        private static Dictionary<string, ImmutableArray<Symbol>> MergeIndexersAndNonIndexers(ImmutableArray<Symbol> nonIndexerMembers, ArrayBuilder<Symbol> indexerMembers)
         {
             int nonIndexerCount = nonIndexerMembers.Length;
             int indexerCount = indexerMembers.Count;

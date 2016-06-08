@@ -28,14 +28,17 @@
                                   x:Name="ShowSnippets"
                                   Content="{x:Static local:IntelliSenseOptionPageStrings.Option_ShowSnippets}" />
                     </StackPanel>
-                </StackPanel>
-            </GroupBox>
-            <GroupBox x:Uid="SelectionInCompletionListGroupBox"
-                      Header="{x:Static local:IntelliSenseOptionPageStrings.Option_SelectionInCompletionList}">
-                <StackPanel>
+
                     <CheckBox x:Uid="InsertNewlineOnEnterWithWholeWord"
-                              x:Name="InsertNewlineOnEnterWithWholeWord"
-                              Content="{x:Static local:IntelliSenseOptionPageStrings.Option_InsertNewlineOnEnterWithWholeWord}" />
+                                  x:Name="InsertNewlineOnEnterWithWholeWord"
+                                  Content="{x:Static local:IntelliSenseOptionPageStrings.Option_InsertNewlineOnEnterWithWholeWord}" />
+                    <CheckBox x:Uid="Highlight_matching_portions_of_completion_list_items"
+                                  x:Name="Highlight_matching_portions_of_completion_list_items"
+                                  Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Highlight_matching_portions_of_completion_list_items}" />
+                    <CheckBox x:Uid="Show_completion_item_filters"
+                                  x:Name="Show_completion_item_filters"
+                                  Content="{x:Static local:IntelliSenseOptionPageStrings.Option_Show_completion_item_filters}" />
+
                 </StackPanel>
             </GroupBox>
         </StackPanel>

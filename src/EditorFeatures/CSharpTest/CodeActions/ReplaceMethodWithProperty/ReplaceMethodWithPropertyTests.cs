@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings;
 using Microsoft.CodeAnalysis.ReplaceMethodWithProperty;
@@ -11,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeActions.ReplaceMeth
 {
     public class ReplaceMethodWithPropertyTests : AbstractCSharpCodeActionTest
     {
-        protected override object CreateCodeRefactoringProvider(Workspace workspace)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
         {
             return new ReplaceMethodWithPropertyCodeRefactoringProvider();
         }
@@ -437,8 +438,8 @@ withScriptOption: true);
         public async Task Tuple_GetAndSet()
         {
             await TestAsync(
-@"using System; class C { (int, string) [||]getFoo() { } void setFoo((int, string) i) { } }",
-@"using System; class C { (int, string) Foo { get { } set { } } }",
+@"using System; class C { (int, string) [||]getFoo() { } void setFoo((int, string) i) { } } " + TestResources.NetFX.ValueTuple.tuplelib_cs,
+@"using System; class C { (int, string) Foo { get { } set { } } } " + TestResources.NetFX.ValueTuple.tuplelib_cs,
 index: 1,
 parseOptions: TestOptions.Regular.WithTuplesFeature(),
 withScriptOption: true);
@@ -448,8 +449,8 @@ withScriptOption: true);
         public async Task TupleWithNames_GetAndSet()
         {
             await TestAsync(
-@"using System; class C { (int a, string b) [||]getFoo() { } void setFoo((int a, string b) i) { } }",
-@"using System; class C { (int a, string b) Foo { get { } set { } } }",
+@"using System; class C { (int a, string b) [||]getFoo() { } void setFoo((int a, string b) i) { } } " + TestResources.NetFX.ValueTuple.tuplelib_cs,
+@"using System; class C { (int a, string b) Foo { get { } set { } } } " + TestResources.NetFX.ValueTuple.tuplelib_cs,
 index: 1,
 parseOptions: TestOptions.Regular.WithTuplesFeature(),
 withScriptOption: true);

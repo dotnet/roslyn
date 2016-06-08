@@ -166,14 +166,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _statements.Add(statement);
             }
 
-            internal void AddStatements(ImmutableArray<BoundStatement> statements)
-            {
-                foreach (var statement in statements)
-                {
-                    AddStatement(statement);
-                }
-            }
-
             internal void AddExpressions(ImmutableArray<BoundExpression> expressions)
             {
                 foreach (var expression in expressions)

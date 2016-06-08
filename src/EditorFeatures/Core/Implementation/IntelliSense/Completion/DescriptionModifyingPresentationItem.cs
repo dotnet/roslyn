@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Snippets;
+using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
@@ -34,7 +35,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var description = await this.CompletionService.GetDescriptionAsync(document, this.Item, cancellationToken).ConfigureAwait(false);
             var parts = description.TaggedParts;
 
-            var change = await CompletionHelper.GetTextChangeAsync(this.CompletionService, document, this.Item, '\t').ConfigureAwait(false);
+            var change = await GetTextChangeAsync(this.CompletionService, document, this.Item, '\t').ConfigureAwait(false);
             var insertionText = change.NewText;
 
             var note = string.Empty;
@@ -54,6 +55,26 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             }
 
             return description.WithTaggedParts(parts);
+        }
+
+        /// <summary>
+        /// Internal for testing purposes only.
+        /// </summary>
+        internal static async Task<TextChange> GetTextChangeAsync(
+            CompletionService service, Document document, CompletionItem item,
+            char? commitKey = null, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var change = await service.GetChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false);
+
+            // normally the items that produce multiple changes are not expecting to trigger the behaviors that rely on looking at the text
+            if (change.TextChanges.Length == 1)
+            {
+                return change.TextChanges[0];
+            }
+            else
+            {
+                return new TextChange(item.Span, item.DisplayText);
+            }
         }
     }
 }

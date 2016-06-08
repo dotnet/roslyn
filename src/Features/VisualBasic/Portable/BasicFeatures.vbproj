@@ -126,12 +126,13 @@
     <Compile Include="CodeFixes\SimplifyTypeNames\SimplifyTypeNamesCodeFixProvider.vb" />
     <Compile Include="CodeFixes\Spellcheck\VisualBasicSpellCheckCodeFixProvider.vb" />
     <Compile Include="CodeFixes\Suppression\VisualBasicSuppressionCodeFixProvider.vb" />
+    <Compile Include="CodeRefactorings\ConvertToInterpolatedString\ConvertToInterpolatedStringRefactoringProvider.vb" />
     <Compile Include="CodeRefactorings\EncapsulateField\EncapsulateFieldRefactoringProvider.vb" />
     <Compile Include="CodeRefactorings\ExtractInterface\ExtractInterfaceCodeRefactoringProvider.vb" />
     <Compile Include="CodeRefactorings\ExtractMethod\ExtractMethodCodeActionProvider.vb" />
     <Compile Include="CodeRefactorings\GenerateDefaultConstructors\GenerateDefaultConstructorsCodeActionProvider.vb" />
     <Compile Include="CodeRefactorings\GenerateFromMembers\AddConstructorParameters\AddConstructorParametersCodeRefactoringProvider.vb" />
-    <Compile Include="CodeRefactorings\GenerateFromMembers\GenerateConstructor\GenerateConstructorCodeRefactoringProvider.vb" />
+    <Compile Include="CodeRefactorings\GenerateFromMembers\GenerateConstructorFromMembers\GenerateConstructorFromMembersCodeRefactoringProvider.vb" />
     <Compile Include="CodeRefactorings\GenerateFromMembers\GenerateEqualsAndGetHashCode\GenerateEqualsAndGetHashCodeCodeRefactoringProvider.vb" />
     <Compile Include="CodeRefactorings\InlineTemporary\InlineTemporaryCodeRefactoringProvider.ReferenceRewriter.vb" />
     <Compile Include="CodeRefactorings\InlineTemporary\InlineTemporaryCodeRefactoringProvider.vb" />
@@ -331,7 +332,7 @@
     <Compile Include="ExtractMethod\VisualBasicSyntaxTriviaService.vb" />
     <Compile Include="ExtractMethod\VisualBasicSyntaxTriviaServiceFactory.vb" />
     <Compile Include="GenerateFromMembers\AddConstructorParameters\VisualBasicAddConstructorParametersService.vb" />
-    <Compile Include="GenerateFromMembers\GenerateConstructor\VisualBasicGenerateConstructorService.vb" />
+    <Compile Include="GenerateFromMembers\GenerateConstructorFromMembers\VisualBasicGenerateConstructorFromMembersService.vb" />
     <Compile Include="GenerateFromMembers\GenerateEqualsAndGetHashCode\VisualBasicGenerateEqualsAndGetHashCodeService.vb" />
     <Compile Include="GenerateFromMembers\GenerateFromMembersHelpers.vb" />
     <Compile Include="GenerateMember\GenerateConstructor\VisualBasicGenerateConstructorService.vb" />
