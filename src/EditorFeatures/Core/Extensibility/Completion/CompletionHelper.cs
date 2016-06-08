@@ -250,16 +250,6 @@ namespace Microsoft.CodeAnalysis.Editor
                 return diff;
             }
 
-            // argument names are not prefered
-            if (IsArgumentName(item1) && !IsArgumentName(item2))
-            {
-                return 1;
-            }
-            else if (IsArgumentName(item2) && !IsArgumentName(item1))
-            {
-                return -1;
-            }
-
             // preselected items are prefered
             if (item1.Rules.Preselect && !item2.Rules.Preselect)
             {
@@ -283,11 +273,6 @@ namespace Microsoft.CodeAnalysis.Editor
             }
 
             return 0;
-        }
-
-        protected bool IsArgumentName(CompletionItem item)
-        {
-            return item.Tags.Contains(CompletionTags.ArgumentName);
         }
 
         private static bool TextTypedSoFarMatchesItem(CompletionItem item, char ch, string textTypedSoFar)
