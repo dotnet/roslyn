@@ -13,6 +13,7 @@ Scenarios
 * Implement `System.ComponentModel.INotifyPropertyChanged`.
 * Support code contracts defined through attributes.
 * Generate types from structured data similar to F# Type Providers.
+* Serialization/deserialization (see https://github.com/agocke/json-serializer)
 
 General
 -------
@@ -24,8 +25,14 @@ Source generators are implementations of `Microsoft.CodeAnalysis.SourceGenerator
     }
 ```
 `SourceGenerator` implementations are defined in external assemblies passed to the compiler
-using the same `-analyzer:` option used for diagnostic analyzers. An assembly can
-contain a mix of diagnostic analyzers and source generators.
+using the same `-analyzer:` option used for diagnostic analyzers. Valid source generators
+must:
+
+1. Implement `Microsoft.CodeAnalysis.SourceGenerator`
+1. Be decorated with the `Microsoft.CodeAnalysis.SourceGeneratorAttribute` to indicate 
+   supported languages.
+
+An assembly can contain a mix of diagnostic analyzers and source generators.
 Since generators are loaded from external assemblies, a generator cannot be used to build
 the assembly in which it is defined.
 
