@@ -47,8 +47,8 @@ class C
     $$
 }";
 
-            await VerifySendEnterThroughToEnterAsync(markup, "T", sendThroughEnterEnabled: false, expected: false);
-            await VerifySendEnterThroughToEnterAsync(markup, "T", sendThroughEnterEnabled: true, expected: true);
+            await VerifySendEnterThroughToEditorAsync(markup, "T", sendThroughEnterEnabled: false, expected: false);
+            await VerifySendEnterThroughToEditorAsync(markup, "T", sendThroughEnterEnabled: true, expected: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

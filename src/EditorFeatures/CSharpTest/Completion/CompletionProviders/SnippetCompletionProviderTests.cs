@@ -125,11 +125,11 @@ class C
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task CommitWithEnterObeysOption()
         {
-            await VerifySendEnterThroughToEnterAsync("$$", "SnippetShortcu", sendThroughEnterEnabled: true, expected: false);
-            await VerifySendEnterThroughToEnterAsync("$$", "SnippetShortcut", sendThroughEnterEnabled: true, expected: true);
+            await VerifySendEnterThroughToEditorAsync("$$", "SnippetShortcu", sendThroughEnterEnabled: true, expected: false);
+            await VerifySendEnterThroughToEditorAsync("$$", "SnippetShortcut", sendThroughEnterEnabled: true, expected: true);
 
-            await VerifySendEnterThroughToEnterAsync("$$", "SnippetShortcu", sendThroughEnterEnabled: false, expected: false);
-            await VerifySendEnterThroughToEnterAsync("$$", "SnippetShortcut", sendThroughEnterEnabled: false, expected: false);
+            await VerifySendEnterThroughToEditorAsync("$$", "SnippetShortcu", sendThroughEnterEnabled: false, expected: false);
+            await VerifySendEnterThroughToEditorAsync("$$", "SnippetShortcut", sendThroughEnterEnabled: false, expected: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
