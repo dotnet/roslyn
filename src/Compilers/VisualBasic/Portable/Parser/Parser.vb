@@ -6099,8 +6099,8 @@ checkNullable:
         End Function
 
         Friend Shared Function CheckFeatureAvailability(feature As Feature, opts As VisualBasicParseOptions) As Boolean
+            If opts Is Nothing Then Throw New ArgumentNullException(NameOf(opts), NameOf(VisualBasicParseOptions) & " is required.")
             Dim ff = feature.GetFeatureFlag
-            Debug.Assert(opts IsNot Nothing)
             'opts = If(opts, VisualBasicParseOptions.Default)
             Dim enabled = opts.Features.ContainsKey(ff)
             If enabled Then Return True
