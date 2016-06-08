@@ -7,6 +7,10 @@ Source generators provide a mechanism through which source code can be generated
 and added to the compilation. The additional source can be based on the content of the compilation,
 enabling some meta-programming scenarios.
 
+Like all pre-release features, code generators will need to be specially enabled, either by passing
+`/features:replace` directly to `csc` or by setting the `<Features>replace</Features>` flag in the project file. The flag name
+for code generators is `replace`.
+
 Scenarios
 ---------
 * Generate `BoundNode` classes from record definitions.
