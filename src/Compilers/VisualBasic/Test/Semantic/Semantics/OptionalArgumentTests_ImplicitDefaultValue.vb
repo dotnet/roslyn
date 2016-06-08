@@ -9,7 +9,6 @@ Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
-Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FeatureExtensions
 Imports Roslyn.Test.Utilities
 Imports Roslyn.Test.Utilities.VisualBasic
 
@@ -1949,7 +1948,7 @@ y: 15
 
         <Requires.Language.Feature(ImplicitDefaultValueOnOptionalParameter)>
         Public Sub TestCallerFilePath1()
-            Assert.True(ImplicitDefaultValueOnOptionalParameter.IsAvailable(MyParseOptions), "Feature is unavailable.")
+            Assert.True(InternalSyntax.Parser.CheckFeatureAvailability(ImplicitDefaultValueOnOptionalParameter, MyParseOptions), "Feature is unavailable.")
             Dim source1 = "
         Imports System.Runtime.CompilerServices
         Imports System
@@ -2012,7 +2011,7 @@ y: 15
 
         <Requires.Language.Feature(ImplicitDefaultValueOnOptionalParameter)>
         Public Sub TestCallerFilePath2()
-            Assert.True(ImplicitDefaultValueOnOptionalParameter.IsAvailable(MyParseOptions), "Language Feature Unavailable.")
+            Assert.True(InternalSyntax.Parser.CheckFeatureAvailability(ImplicitDefaultValueOnOptionalParameter, MyParseOptions), "Language Feature Unavailable.")
             Dim source1 = "
         Imports System.Runtime.CompilerServices
         Imports System
