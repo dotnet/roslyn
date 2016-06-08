@@ -3,7 +3,7 @@
     "Microsoft.NETCore.Portable.Compatibility": "1.0.1-rc3-24208-00",
     "Microsoft.NETCore.Platforms": "1.0.1-rc3-24208-04",
     "Microsoft.NETCore.Runtime.CoreCLR": "1.0.2-rc3-24208-04",
-    "Microsoft.NETCore.TestHost": "1.0.0-rc3-24208-01",
+    "Microsoft.NETCore.TestHost": "1.0.0-rc3-24208-00",
     "System.AppContext": "4.1.0-rc3-24208-04",
     "System.Collections": "4.0.11-rc3-24208-04",
     "System.Collections.Concurrent": "4.0.12-rc3-24208-04",
