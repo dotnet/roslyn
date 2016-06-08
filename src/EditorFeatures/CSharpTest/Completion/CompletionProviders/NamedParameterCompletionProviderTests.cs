@@ -36,8 +36,8 @@ class Foo
     }
 }";
 
-            await VerifySendEnterThroughToEnterAsync(markup, "a:", sendThroughEnterEnabled: false, expected: false);
-            await VerifySendEnterThroughToEnterAsync(markup, "a:", sendThroughEnterEnabled: true, expected: true);
+            await VerifySendEnterThroughToEditorAsync(markup, "a:", sendThroughEnterEnabled: false, expected: false);
+            await VerifySendEnterThroughToEditorAsync(markup, "a:", sendThroughEnterEnabled: true, expected: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
