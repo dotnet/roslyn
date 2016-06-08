@@ -181,24 +181,21 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (accessor.MethodKind == MethodKind.PropertyGet)
             {
-                statement = new BoundReturnStatement(syntax, RefKind.None, fieldAccess) { WasCompilerGenerated = true };
+                statement = new BoundReturnStatement(accessor.SyntaxNode, RefKind.None, fieldAccess);
             }
             else
             {
                 Debug.Assert(accessor.MethodKind == MethodKind.PropertySet);
                 var parameter = accessor.Parameters[0];
                 statement = new BoundExpressionStatement(
-                    syntax,
+                    accessor.SyntaxNode,
                     new BoundAssignmentOperator(
                         syntax,
                         fieldAccess,
                         new BoundParameter(syntax, parameter) { WasCompilerGenerated = true },
                         property.Type)
-                    { WasCompilerGenerated = true })
-                { WasCompilerGenerated = true };
+                    { WasCompilerGenerated = true });
             }
-
-            statement = new BoundSequencePoint(accessor.SyntaxNode, statement) { WasCompilerGenerated = true };
 
             return BoundBlock.SynthesizedNoLocals(syntax, statement);
         }

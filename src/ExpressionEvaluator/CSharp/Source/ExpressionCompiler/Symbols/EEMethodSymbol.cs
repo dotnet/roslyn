@@ -508,6 +508,8 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     compilationState: compilationState,
                     previousSubmissionFields: null,
                     allowOmissionOfConditionalCalls: false,
+                    instrumentForDynamicAnalysis: false,
+                    debugDocumentProvider: null,
                     diagnostics: diagnostics,
                     sawLambdas: out sawLambdas,
                 sawLocalFunctions: out sawLocalFunctions,
