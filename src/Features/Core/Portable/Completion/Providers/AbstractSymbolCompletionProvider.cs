@@ -125,7 +125,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 descriptionPosition: position,
                 symbols: symbols,
                 supportedPlatforms: supportedPlatformData,
-                preselect: preselect,
+                matchPriority: preselect ? MatchPriority.Preselect : MatchPriority.Default,
                 rules: GetCompletionItemRules(symbols, context));
         }
 
@@ -220,7 +220,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             var missingSymbolsMap = FindSymbolsMissingInLinkedContexts(unionedSymbolsList, contextAndSymbolLists);
             var totalProjects = contextAndSymbolLists.Select(t => t.Item1.ProjectId).ToList();
 
-            return CreateItems(position, unionedSymbolsList, span, originatingContextMap, missingSymbolsMap, totalProjects, preselect: preselect);
+            return CreateItems(position, unionedSymbolsList, span, originatingContextMap, missingSymbolsMap, totalProjects, preselect);
         }
 
         protected virtual bool IsExclusive()

@@ -1343,7 +1343,8 @@ Class C
             ' We don't trigger intellisense within numeric literals, so we 
             ' explicitly test only the "nothing typed" case.
             ' This is also the Dev12 behavior for suggesting labels.
-            Await VerifyAtPositionAsync(text, position, "10", Nothing, SourceCodeKind.Regular, usePreviousCharAsTrigger:=True, checkForAbsence:=False, glyph:=Nothing, experimental:=False)
+
+            Await VerifyAtPositionAsync(Text, position, "10", Nothing, SourceCodeKind.Regular, usePreviousCharAsTrigger:=True, checkForAbsence:=False, glyph:=Nothing, experimental:=False, matchPriority:=Nothing)
         End Function
 
         <WorkItem(541235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541235")>

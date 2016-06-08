@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Editor
             // MRU list, then we definitely want to include it.
             if (filterText.Length == 0)
             {
-                if (item.Rules.Preselect || (!recentItems.IsDefault && GetRecentItemIndex(recentItems, item) < 0))
+                if (item.Rules.MatchPriority > MatchPriority.Default || (!recentItems.IsDefault && GetRecentItemIndex(recentItems, item) < 0))
                 {
                     return true;
                 }
@@ -178,12 +178,17 @@ namespace Microsoft.CodeAnalysis.Editor
         /// </summary>
         public virtual bool IsBetterFilterMatch(CompletionItem item1, CompletionItem item2, string filterText, CompletionTrigger trigger, CompletionFilterReason filterReason, ImmutableArray<string> recentItems = default(ImmutableArray<string>))
         {
+            return IsBetterFilterMatchWorker(item1, item2, filterText, recentItems, comparePriorityBeforeCapitalization: false);
+        }
+
+        protected bool IsBetterFilterMatchWorker(CompletionItem item1, CompletionItem item2, string filterText, ImmutableArray<string> recentItems, bool comparePriorityBeforeCapitalization)
+        {
             var match1 = GetMatch(item1, filterText);
             var match2 = GetMatch(item2, filterText);
 
             if (match1 != null && match2 != null)
             {
-                var result = CompareMatches(match1.Value, match2.Value, item1, item2);
+                var result = CompareMatches(match1.Value, match2.Value, item1, item2, comparePriorityBeforeCapitalization);
                 if (result != 0)
                 {
                     return result < 0;
@@ -200,9 +205,9 @@ namespace Microsoft.CodeAnalysis.Editor
 
             // If they both seemed just as good, but they differ on preselection, then
             // item1 is better if it is preselected, otherwise it is worse.
-            if (item1.Rules.Preselect != item2.Rules.Preselect)
+            if (item1.Rules.MatchPriority != item2.Rules.MatchPriority)
             {
-                return item1.Rules.Preselect;
+                return item1.Rules.MatchPriority > item2.Rules.MatchPriority;
             }
 
             // Prefer things with a keyword tag, if the filter texts are the same.
@@ -257,7 +262,7 @@ namespace Microsoft.CodeAnalysis.Editor
             return x;
         }
 
-        protected int CompareMatches(PatternMatch match1, PatternMatch match2, CompletionItem item1, CompletionItem item2)
+        protected int CompareMatches(PatternMatch match1, PatternMatch match2, CompletionItem item1, CompletionItem item2, bool comparePriorityBeforeCapitalization)
         {
             int diff;
 
@@ -284,11 +289,11 @@ namespace Microsoft.CodeAnalysis.Editor
             }
 
             // preselected items are prefered
-            if (item1.Rules.Preselect && !item2.Rules.Preselect)
+            if (comparePriorityBeforeCapitalization && item1.Rules.MatchPriority > item2.Rules.MatchPriority)
             {
                 return -1;
             }
-            else if (item2.Rules.Preselect && !item1.Rules.Preselect)
+            else if (comparePriorityBeforeCapitalization && item2.Rules.MatchPriority > item1.Rules.MatchPriority)
             {
                 return 1;
             }
@@ -331,7 +336,7 @@ namespace Microsoft.CodeAnalysis.Editor
         /// </summary>
         public virtual bool ShouldSoftSelectItem(CompletionItem item, string filterText, CompletionTrigger trigger)
         {
-            return filterText.Length == 0 && !item.Rules.Preselect;
+            return filterText.Length == 0 && item.Rules.MatchPriority == MatchPriority.Default;
         }
 
         protected bool IsObjectCreationItem(CompletionItem item)
