@@ -3031,10 +3031,14 @@ ProduceBoundNode:
             If param.IsOptional Then
                 defaultConstantValue = param.ExplicitDefaultConstantValue(DefaultParametersInProgress)
                 If defaultConstantValue Is Nothing Then
-                    Dim opts = param.OriginalDefinition.DeclaringCompilation.Options.ParseOptions
+                    Debug.Assert(syntax IsNot Nothing)
+                    Debug.Assert(syntax.SyntaxTree IsNot Nothing)
+                    Debug.Assert(syntax.SyntaxTree.Options IsNot Nothing)
+                    Dim opts = DirectCast(syntax.SyntaxTree.Options, VisualBasicParseOptions)
+                    Debug.Assert(opts IsNot Nothing)
                     If opts IsNot Nothing Then
                         If InternalSyntax.Parser.CheckFeatureAvailability(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, opts) Then
-                            defaultConstantValue = ConstantValue.Nothing
+                            defaultConstantValue = ConstantValue.Null
                         End If
                     End If
                 End If

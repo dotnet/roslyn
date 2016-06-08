@@ -4618,6 +4618,9 @@ checkNullable:
                 If CheckFeatureAvailability(Feature.ImplicitDefaultValueOnOptionalParameter, Me._scanner.Options) = False Then
                     equals = ReportSyntaxError(InternalSyntaxFactory.MissingPunctuation(SyntaxKind.EqualsToken), ERRID.ERR_ObsoleteOptionalWithoutValue)
                     value = ParseExpressionCore()
+                Else
+                    equals = InternalSyntaxFactory.MissingPunctuation(SyntaxKind.EqualsToken)
+                    value = InternalSyntaxFactory.MissingExpression()
 
                 End If
             End If
