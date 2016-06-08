@@ -12,7 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         VisualBasic11 = 11
         VisualBasic12 = 12
         VisualBasic14 = 14
-        '       VisualBasic15 = 15
+        VisualBasic15 = 15
         VBNext = Int32.MaxValue
     End Enum
 

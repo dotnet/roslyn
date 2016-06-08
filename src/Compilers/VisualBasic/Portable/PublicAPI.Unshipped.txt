@@ -1,4 +1,5 @@
 Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VBNext = 2147483647 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
+Microsoft.CodeAnalysis.VisualBasic.LanguageVersion.VisualBasic15 = 15 -> Microsoft.CodeAnalysis.VisualBasic.LanguageVersion
 Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
 Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature.ArrayLiterals = 6 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
 Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature.AsyncExpressions = 7 -> Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
