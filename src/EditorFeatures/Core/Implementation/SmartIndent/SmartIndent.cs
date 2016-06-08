@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Microsoft.VisualStudio.Text.Editor;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 {
@@ -44,9 +45,22 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
             using (Logger.LogBlock(FunctionId.SmartIndentation_Start, cancellationToken))
             {
                 var document = lineToBeIndented.Snapshot.GetOpenDocumentInCurrentContextWithChanges();
-                var service = document?.GetLanguageService<IIndentationService>();
-                var result = service?.GetDesiredIndentation(document, lineToBeIndented.LineNumber, cancellationToken);
-                return result?.GetIndentation(_textView, lineToBeIndented);
+                var syncService = document?.GetLanguageService<ISynchronousIndentationService>();
+
+                if (syncService != null)
+                {
+                    var result = syncService.GetDesiredIndentation(document, lineToBeIndented.LineNumber, cancellationToken);
+                    return result?.GetIndentation(_textView, lineToBeIndented);
+                }
+
+                var asyncService = document?.GetLanguageService<IIndentationService>();
+                if (asyncService != null)
+                {
+                    var result = asyncService.GetDesiredIndentation(document, lineToBeIndented.LineBreakLength, cancellationToken).WaitAndGetResult(cancellationToken);
+                    return result?.GetIndentation(_textView, lineToBeIndented);
+                }
+
+                return null;
             }
         }
     }

@@ -128,7 +128,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Formatting.Indentation
                 return;
             }
 
-            var indentationService = document.GetLanguageService<IIndentationService>();
+            var indentationService = document.GetLanguageService<ISynchronousIndentationService>();
             var indentation = indentationService.GetDesiredIndentation(document,
                 currentPosition.GetContainingLine().LineNumber, cancellationToken);
 

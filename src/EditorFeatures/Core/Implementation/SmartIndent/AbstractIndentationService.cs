@@ -13,7 +13,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.SmartIndent
 {
-    internal abstract partial class AbstractIndentationService : IIndentationService
+    internal abstract partial class AbstractIndentationService : ISynchronousIndentationService
     {
         protected abstract IFormattingRule GetSpecializedIndentationFormattingRule();
 
