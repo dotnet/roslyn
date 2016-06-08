@@ -361,7 +361,7 @@ Public Class ParseMethods
 
     <Requires.Language.Feature(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)>
     Public Sub Bug862505_b()
-        Assert.True(ImplicitDefaultValueOnOptionalParameter.IsAvailable(MyParseOptions), "Language Feature Unavailable")
+        Assert.True(InternalSyntax.Parser.CheckFeatureAvailability(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, MyParseOptions), "Language Feature Unavailable")
         Dim source = "
             Class C1
                 Function f1(Optional ByVal c1 As New Object())

@@ -1457,7 +1457,7 @@ End Class
 
     <Requires.Language.Feature(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)>
     Public Sub BC30200ERR_InvalidNewInType_B()
-        Assert.True(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter.IsAvailable(MyParseOptions), "Language Feature Unavailable.")
+        Assert.True(InternalSyntax.Parser.CheckFeatureAvailability(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, MyParseOptions), "Language Feature Unavailable.")
         Dim code = "
 Class C1
     Function myfunc(Optional ByVal x As New test()) 
@@ -2252,7 +2252,7 @@ End Namespace
     <Requires.Language.Feature(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)>
     Public Sub BC30642ERR_MultipleOptionalParameterSpecifiers_B()
 
-        Assert.True(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter.IsAvailable(MyParseOptions), "Language Feature Unavailable")
+        Assert.True(InternalSyntax.Parser.CheckFeatureAvailability(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, MyParseOptions), "Language Feature Unavailable")
 
         Dim code = "
 Namespace NS1
@@ -2581,7 +2581,7 @@ End Class"
 
     <Requires.Language.Feature(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)>
     Public Sub BC30812ERR_ObsoleteOptionalWithoutValue_B()
-        Assert.True(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter.IsAvailable(MyParseOptions), "Language Feature Unavailable")
+        Assert.True(InternalSyntax.Parser.CheckFeatureAvailability(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, MyParseOptions), "Language Feature Unavailable")
 
         Dim code =
 "Class C1
