@@ -19,7 +19,8 @@ namespace Microsoft.CodeAnalysis.Host
         public AbstractSyntaxTreeFactoryService(HostLanguageServices languageServices)
         {
             this.LanguageServices = languageServices;
-            this.MinimumLengthForRecoverableTree = languageServices.WorkspaceServices.Workspace.Options.GetOption(CacheOptions.RecoverableTreeLengthThreshold);
+            //this.MinimumLengthForRecoverableTree = languageServices.WorkspaceServices.Workspace.Options.GetOption(CacheOptions.RecoverableTreeLengthThreshold);
+            this.MinimumLengthForRecoverableTree = 1;
             _hasCachingService = languageServices.WorkspaceServices.GetService<IProjectCacheHostService>() != null;
         }
 
