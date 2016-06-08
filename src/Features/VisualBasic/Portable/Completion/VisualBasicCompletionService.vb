@@ -86,8 +86,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
 
         Protected Overrides Function GetBetterItem(item As CompletionItem, existingItem As CompletionItem) As CompletionItem
             ' If one Is a keyword, And the other Is some other item that inserts the same text as the keyword,
-            ' keep the keyword (VB only)
-            If IsKeywordItem(existingItem) Then
+            ' keep the keyword (VB only), unless the other item is preselected
+            If IsKeywordItem(existingItem) AndAlso existingItem.Rules.MatchPriority >= item.Rules.MatchPriority Then
                 Return existingItem
             End If
 
