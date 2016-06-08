@@ -3,7 +3,10 @@
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.Feature
 Imports Roslyn.Test.Utilities
+Imports Roslyn.Test.Utilities.VisualBasic
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax.FeatureExtensions
 
 <CLSCompliant(False)>
 Public Class ParseMethods
@@ -338,39 +341,54 @@ Public Class ParseMethods
     End Sub
 
     <Fact>
-    Public Sub Bug862505()
-        ParseAndVerify(<![CDATA[
+    Public Sub Bug862505_a()
+        Dim source = "
             Class C1
                 Function f1(Optional ByVal c1 As New Object())
                 End Function
             End Class
-        ]]>,
-        <errors>
-            <error id="30201"/>
-            <error id="30812"/>
-            <error id="30180"/>
-        </errors>)
+"
+        Dim vbp = VisualBasicParseOptions.Default.WithLanguageVersion(LanguageVersion.VisualBasic14)
+        ParseAndVerify(source, vbp, <errors>
+                                        <error id="30201"/>
+                                        <error id="30812"/>
+                                        <error id="30180"/>
+                                    </errors>)
+
+    End Sub
+
+    Private ReadOnly Property MyParseOptions As VisualBasicParseOptions = VisualBasicParseOptions.Default.WithMyFeature
+
+    <Requires.Language.Feature(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)>
+    Public Sub Bug862505_b()
+        Assert.True(InternalSyntax.Parser.CheckFeatureAvailability(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, MyParseOptions), "Language Feature Unavailable")
+        Dim source = "
+            Class C1
+                Function f1(Optional ByVal c1 As New Object())
+                End Function
+            End Class"
+        ParseAndVerify(source, MyParseOptions, <errors><error id="30180"/></errors>)
     End Sub
 
     <Fact>
     Public Sub Bug863029()
-        ParseAndVerify(<![CDATA[
-            Module Helpers
-                Public Property Trace As String 
-                Sub AppendTrace(ByVal actual As String)
-                End Sub
-            End Module
-        ]]>)
+        ParseAndVerify(
+"Module Helpers
+    Public Property Trace As String 
+        Sub AppendTrace(ByVal actual As String)
+        End Sub
+   End Module
+")
     End Sub
 
     <Fact>
     Public Sub Bug863032()
-        ParseAndVerify(<![CDATA[
-            Class Class1
-                Public Shared Function Foo() As ULong? 
-                End Function
-            End Class
-        ]]>)
+        ParseAndVerify(
+"Class Class1
+    Public Shared Function Foo() As ULong? 
+    End Function
+End Class
+")
     End Sub
 
     <Fact>

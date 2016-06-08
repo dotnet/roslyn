@@ -4,7 +4,7 @@ Imports System.Runtime.CompilerServices
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
-    Friend Enum Feature
+    Public Enum Feature
         AutoProperties
         LineContinuation
         StatementLambdas

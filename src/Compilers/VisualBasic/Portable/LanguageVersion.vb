@@ -53,7 +53,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 'Case LanguageVersion.VisualBasic15
                 '    Return "15.0"
                 Case LanguageVersion.VBNext
-                    Return "next"
+                    Return "VBNext"
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(value)
             End Select
