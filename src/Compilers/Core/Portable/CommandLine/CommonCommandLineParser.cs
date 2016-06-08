@@ -988,7 +988,7 @@ namespace Microsoft.CodeAnalysis
             return ExpandFileNamePattern(arg, baseDirectory, PortableShim.SearchOption.AllDirectories, errors);
         }
 
-        internal Encoding TryParseEncodingName(string arg)
+        internal static Encoding TryParseEncodingName(string arg)
         {
             long codepage;
             if (!string.IsNullOrWhiteSpace(arg)
@@ -1008,7 +1008,7 @@ namespace Microsoft.CodeAnalysis
             return null;
         }
 
-        internal SourceHashAlgorithm TryParseHashAlgorithmName(string arg)
+        internal static SourceHashAlgorithm TryParseHashAlgorithmName(string arg)
         {
             if (string.Equals("sha1", arg, StringComparison.OrdinalIgnoreCase))
             {

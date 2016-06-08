@@ -605,7 +605,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ThreeState.True;
         }
 
-        internal bool IsSymbolAccessibleConditional(
+        internal static bool IsSymbolAccessibleConditional(
             Symbol symbol,
             AssemblySymbol within,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)

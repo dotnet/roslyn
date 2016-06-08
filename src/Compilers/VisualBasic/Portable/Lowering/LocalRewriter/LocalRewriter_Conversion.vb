@@ -827,7 +827,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return result
         End Function
 
-        Private Function RewriteAsDirectCast(node As BoundConversion) As BoundExpression
+        Private Shared Function RewriteAsDirectCast(node As BoundConversion) As BoundExpression
 #If DEBUG Then
             Dim useSiteDiagnostics As HashSet(Of DiagnosticInfo) = Nothing
             Debug.Assert(node.Operand.IsNothingLiteral() OrElse

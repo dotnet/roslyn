@@ -62,21 +62,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             return IsName(node, SyntaxKind.GlobalKeyword);
         }
 
-        private static bool IsNameAssembly(CSharpSyntaxNode node)
-        {
-            return IsName(node, SyntaxKind.AssemblyKeyword);
-        }
-
-        private static bool IsNameModule(CSharpSyntaxNode node)
-        {
-            return IsName(node, SyntaxKind.ModuleKeyword);
-        }
-
-        private static bool IsNameType(CSharpSyntaxNode node)
-        {
-            return IsName(node, SyntaxKind.TypeKeyword);
-        }
-
         private static bool IsNameGet(CSharpSyntaxNode node)
         {
             return IsName(node, SyntaxKind.GetKeyword);
@@ -1299,37 +1284,12 @@ tryAgain:
             }
         }
 
-        private static SyntaxModifier GetFieldModifier(SyntaxToken token)
-        {
-            switch (token.Kind)
-            {
-                case SyntaxKind.PublicKeyword:
-                    return SyntaxModifier.Public;
-                case SyntaxKind.InternalKeyword:
-                    return SyntaxModifier.Internal;
-                case SyntaxKind.ProtectedKeyword:
-                    return SyntaxModifier.Protected;
-                case SyntaxKind.PrivateKeyword:
-                    return SyntaxModifier.Private;
-                case SyntaxKind.StaticKeyword:
-                    return SyntaxModifier.Static;
-                case SyntaxKind.NewKeyword:
-                    return SyntaxModifier.New;
-                case SyntaxKind.ReadOnlyKeyword:
-                    return SyntaxModifier.ReadOnly;
-                case SyntaxKind.VolatileKeyword:
-                    return SyntaxModifier.Volatile;
-                default:
-                    return SyntaxModifier.None;
-            }
-        }
-
         private bool IsPossibleModifier()
         {
             return IsPossibleModifier(this.CurrentToken);
         }
 
-        private bool IsPossibleModifier(SyntaxToken token)
+        private static bool IsPossibleModifier(SyntaxToken token)
         {
             return GetModifier(token) != SyntaxModifier.None;
         }
@@ -1621,12 +1581,6 @@ tryAgain:
                 default:
                     throw ExceptionUtilities.UnexpectedValue(this.CurrentToken.Kind);
             }
-        }
-
-
-        private static bool IsMissingName(NameSyntax name)
-        {
-            return name.Kind == SyntaxKind.IdentifierName && ((IdentifierNameSyntax)name).Identifier.IsMissing;
         }
 
         private TypeDeclarationSyntax ParseClassOrStructOrInterfaceDeclaration(SyntaxListBuilder<AttributeListSyntax> attributes, SyntaxListBuilder modifiers)
@@ -2115,7 +2069,7 @@ tryAgain:
             return CanStartMember(this.CurrentToken.Kind);
         }
 
-        private bool CanStartMember(SyntaxKind kind)
+        private static bool CanStartMember(SyntaxKind kind)
         {
             switch (kind)
             {
@@ -9270,7 +9224,7 @@ tryAgain:
             }
         }
 
-        private bool CanStartConsequenceExpression(SyntaxKind kind)
+        private static bool CanStartConsequenceExpression(SyntaxKind kind)
         {
             return kind == SyntaxKind.DotToken ||
                     kind == SyntaxKind.OpenBracketToken;
@@ -10078,7 +10032,7 @@ tryAgain:
             return _syntaxFactory.AnonymousObjectMemberDeclarator(nameEquals, expression);
         }
 
-        private bool IsAnonymousTypeMemberExpression(ExpressionSyntax expr)
+        private static bool IsAnonymousTypeMemberExpression(ExpressionSyntax expr)
         {
             while (true)
             {
