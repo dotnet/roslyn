@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal class CompletionHelper
     {
-        protected CompletionHelper(CompletionService completionService)
+        protected CompletionHelper()
         {
         }
 
@@ -28,12 +28,12 @@ namespace Microsoft.CodeAnalysis.Editor
                 var factory = ls.GetService<CompletionHelperFactory>();
                 if (factory != null)
                 {
-                    return factory.CreateCompletionHelper(completionService);
+                    return factory.CreateCompletionHelper();
                 }
 
                 if (completionService != null)
                 {
-                    return new CompletionHelper(completionService);
+                    return new CompletionHelper();
                 }
             }
 
