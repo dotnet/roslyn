@@ -16,8 +16,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class AsyncExceptionHandlerRewriter : BoundTreeRewriterWithStackGuardWithoutRecursionOnTheLeftOfBinaryOperator
     {
-        private readonly bool _generateDebugInfo;
-        private readonly CSharpCompilation _compilation;
         private readonly SyntheticBoundNodeFactory _F;
         private readonly DiagnosticBag _diagnostics;
         private readonly AwaitInFinallyAnalysis _analysis;
@@ -29,12 +27,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol containingMethod,
             NamedTypeSymbol containingType,
             SyntheticBoundNodeFactory factory,
-            CSharpCompilation compilation,
             DiagnosticBag diagnostics,
             AwaitInFinallyAnalysis analysis)
         {
-            _generateDebugInfo = containingMethod.GenerateDebugInfo;
-            _compilation = compilation;
             _F = factory;
             _F.CurrentMethod = containingMethod;
             Debug.Assert(factory.CurrentType == (containingType ?? containingMethod.ContainingType));
@@ -126,9 +121,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return statement;
             }
 
-            var compilation = containingType.DeclaringCompilation;
             var factory = new SyntheticBoundNodeFactory(containingSymbol, statement.Syntax, compilationState, diagnostics);
-            var rewriter = new AsyncExceptionHandlerRewriter(containingSymbol, containingType, factory, compilation, diagnostics, analysis);
+            var rewriter = new AsyncExceptionHandlerRewriter(containingSymbol, containingType, factory, diagnostics, analysis);
             var loweredStatement = (BoundStatement)rewriter.Visit(statement);
 
             return loweredStatement;
@@ -290,7 +284,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // handle proxy labels if have any
             var proxiedLabels = frame.proxiedLabels;
-            var proxyLabels = frame.proxyLabels;
 
             // skip 0 - it means we took no explicit branches
             int i = 1;

@@ -423,7 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            private string MakeCommentMessage(Location location, MessageID messageId)
+            private static string MakeCommentMessage(Location location, MessageID messageId)
             {
                 if (location.IsInSource)
                 {

@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundThrowStatement(node, boundExpr, hasErrors);
         }
 
-        private BoundStatement BindEmpty(EmptyStatementSyntax node)
+        private static BoundStatement BindEmpty(EmptyStatementSyntax node)
         {
             return new BoundNoOpStatement(node, NoOpStatementFlavor.Default);
         }
@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundLocalFunctionStatement(node, localSymbol, block, hasErrors);
         }
 
-        private bool ImplicitReturnIsOkay(MethodSymbol method)
+        private static bool ImplicitReturnIsOkay(MethodSymbol method)
         {
             return method.ReturnsVoid || method.IsIterator ||
                 (method.IsAsync && method.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) == method.ReturnType);
@@ -703,7 +703,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return expression;
         }
 
-        protected bool IsInitializerRefKindValid(
+        protected static bool IsInitializerRefKindValid(
             EqualsValueClauseSyntax initializer,
             CSharpSyntaxNode node,
             RefKind variableRefKind,
@@ -1747,32 +1747,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new BoundAssignmentOperator(node, op1, op2, type, hasErrors: hasErrors);
-        }
-
-        private bool CheckIsRefAssignable(CSharpSyntaxNode node, BoundExpression expr, DiagnosticBag diagnostics)
-        {
-            Debug.Assert(expr != null);
-
-            if (expr.HasAnyErrors)
-            {
-                return false;
-            }
-
-            var boundLocal = expr as BoundLocal;
-            if (boundLocal != null)
-            {
-                if (boundLocal.LocalSymbol.RefKind != RefKind.None)
-                {
-                    return true;
-                }
-                Error(diagnostics, ErrorCode.ERR_MustBeRefAssignable, node, boundLocal.LocalSymbol);
-            }
-            else
-            {
-                Error(diagnostics, ErrorCode.ERR_MustBeRefAssignableLocal, node);
-            }
-
-            return false;
         }
 
         private static PropertySymbol GetPropertySymbol(BoundExpression expr, out BoundExpression receiver, out CSharpSyntaxNode propertySyntax)

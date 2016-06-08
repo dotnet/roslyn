@@ -23,7 +23,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _emittingPdb As Boolean
         Private ReadOnly _diagnostics As DiagnosticBag
         Private ReadOnly _hasDeclarationErrors As Boolean
-        Private ReadOnly _namespaceScopeBuilder As NamespaceScopeBuilder
         Private ReadOnly _moduleBeingBuiltOpt As PEModuleBuilder ' Nothing if compiling for diagnostics
         Private ReadOnly _filterOpt As Predicate(Of Symbol)      ' If not Nothing, limit analysis to specific symbols
         Private ReadOnly _debugDocumentProvider As DebugDocumentProvider
@@ -1042,7 +1041,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Sub
 
         ''' <summary> All the constructors in the cycle will be reported </summary>
-        Private Sub ReportConstructorCycles(startsAt As Integer, endsAt As Integer,
+        Private Shared Sub ReportConstructorCycles(startsAt As Integer, endsAt As Integer,
                                             path As ArrayBuilder(Of MethodSymbol),
                                             diagnostics As DiagnosticBag)
 

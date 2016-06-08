@@ -6,13 +6,12 @@ using System.Linq;
 using System.Security;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Completion;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
-using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Language.Intellisense;
 using Microsoft.VisualStudio.Text;
@@ -313,7 +312,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             {
                 var completionRules = GetCompletionHelper(document, service);
                 var textView = (await WorkspaceFixture.GetWorkspaceAsync()).Documents.Single().GetTextView();
-                VerifyCustomCommitWorker(customCommitCompletionProvider, firstItem, completionRules, textView, textBuffer, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
+                VerifyCustomCommitWorker(service, customCommitCompletionProvider, firstItem, completionRules, textView, textBuffer, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
             }
             else
             {
@@ -333,9 +332,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string actualExpectedCode = null;
             MarkupTestFile.GetPosition(expectedCodeAfterCommit, out actualExpectedCode, out expectedCaretPosition);
 
-            CompletionHelper completionRules = GetCompletionHelper(document, service);
-
-            if (commitChar.HasValue && !completionRules.IsCommitCharacter(completionItem, commitChar.Value, string.Empty))
+            if (commitChar.HasValue && !Controller.IsCommitCharacter(service.GetRules(), completionItem, commitChar.Value, string.Empty))
             {
                 Assert.Equal(codeBeforeCommit, actualExpectedCode);
                 return;
@@ -359,6 +356,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         }
 
         internal virtual void VerifyCustomCommitWorker(
+            CompletionService service,
             ICustomCommitCompletionProvider customCommitCompletionProvider,
             CompletionItem completionItem,
             CompletionHelper completionRules,
@@ -372,7 +370,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             string actualExpectedCode = null;
             MarkupTestFile.GetPosition(expectedCodeAfterCommit, out actualExpectedCode, out expectedCaretPosition);
 
-            if (commitChar.HasValue && !completionRules.IsCommitCharacter(completionItem, commitChar.Value, string.Empty))
+            if (commitChar.HasValue && !Controller.IsCommitCharacter(service.GetRules(), completionItem, commitChar.Value, string.Empty))
             {
                 Assert.Equal(codeBeforeCommit, actualExpectedCode);
                 return;
@@ -407,7 +405,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             }
         }
 
-        private async Task VerifyProviderCommitCheckResultsAsync(Document document, int position, string itemToCommit, string expectedCodeAfterCommit, char? commitCharOpt, string textTypedSoFar)
+        private async Task VerifyProviderCommitCheckResultsAsync(
+            Document document, int position, string itemToCommit, string expectedCodeAfterCommit, char? commitCharOpt, string textTypedSoFar)
         {
             var workspace = await WorkspaceFixture.GetWorkspaceAsync();
             var textBuffer = workspace.Documents.Single().TextBuffer;
@@ -422,9 +421,10 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
             var text = await document.GetTextAsync();
 
-            if (commitChar == '\t' || completionRules.IsCommitCharacter(firstItem, commitChar, textTypedSoFar))
+            if (commitChar == '\t' || Controller.IsCommitCharacter(service.GetRules(), firstItem, commitChar, textTypedSoFar))
             {
-                var textChange = CompletionHelper.GetTextChangeAsync(service, document, firstItem, commitChar).Result;
+                var textChange = await DescriptionModifyingPresentationItem.GetTextChangeAsync(
+                    service, document, firstItem, commitChar);
 
                 // Adjust TextChange to include commit character, so long as it isn't TAB.
                 if (commitChar != '\t')
