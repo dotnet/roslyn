@@ -15,11 +15,8 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal class CompletionHelper
     {
-        public CompletionService CompletionService { get; }
-
         protected CompletionHelper(CompletionService completionService)
         {
-            CompletionService = completionService;
         }
 
         public static CompletionHelper GetHelper(
