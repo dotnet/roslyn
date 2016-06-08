@@ -154,7 +154,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
             Dim defaultSyntax = parameterSyntax.[Default]
             If defaultSyntax Is Nothing Then
-                Return Nothing
+                '  Return Nothing
+                If Not InternalSyntax.Parser.CheckFeatureAvailability(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, Me.DeclaringCompilation.Options.ParseOptions) Then
+                    Return Nothing
+                End If
             End If
 
             Dim binder As Binder = BinderBuilder.CreateBinderForParameterDefaultValue(DirectCast(ContainingModule, SourceModuleSymbol),

@@ -1215,4 +1215,5 @@ Friend Module CompilationUtils
         Dim result = If(namespacesAndTypesOnly, model.LookupNamespacesAndTypes(position, container), model.LookupSymbols(position, container))
         Return result.Select(Function(s) s.Name).Distinct().ToList()
     End Function
+
 End Module

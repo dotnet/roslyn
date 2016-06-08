@@ -8,6 +8,7 @@ Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports TypeKind = Microsoft.CodeAnalysis.TypeKind
+Imports Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <summary>
@@ -145,9 +146,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Get
                 If HasExplicitDefaultValue Then
                     Return ExplicitDefaultConstantValue.Value
+                    'ElseIf Parser.CheckFeatureAvailability(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, Me.OriginalSymbolDefinition.DeclaringCompilation.Options.ParseOptions) Then
+                    '    Return ConstantValue.Null
                 End If
-
                 Throw New InvalidOperationException
+
             End Get
         End Property
 
@@ -185,8 +188,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             Return visitor.VisitParameter(Me, arg)
         End Function
 
-        Friend Sub New()
-        End Sub
+        'Friend Sub New()
+        'End Sub
 
         Public NotOverridable Overrides ReadOnly Property DeclaredAccessibility As Accessibility
             Get

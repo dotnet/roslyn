@@ -4615,21 +4615,23 @@ checkNullable:
                 value = ParseExpressionCore()
 
             ElseIf modifiers.Any AndAlso modifiers.Any(SyntaxKind.OptionalKeyword) Then
+                If CheckFeatureAvailability(Feature.ImplicitDefaultValueOnOptionalParameter, Me._scanner.Options) = False Then
+                    equals = ReportSyntaxError(InternalSyntaxFactory.MissingPunctuation(SyntaxKind.EqualsToken), ERRID.ERR_ObsoleteOptionalWithoutValue)
+                    value = ParseExpressionCore()
 
-                equals = ReportSyntaxError(InternalSyntaxFactory.MissingPunctuation(SyntaxKind.EqualsToken), ERRID.ERR_ObsoleteOptionalWithoutValue)
-                value = ParseExpressionCore()
-
+                End If
             End If
 
             Dim initializer As EqualsValueSyntax = Nothing
+            If equals IsNot Nothing Then
+                If value IsNot Nothing Then
 
-            If value IsNot Nothing Then
+                    If value.ContainsDiagnostics Then
+                        value = ResyncAt(value, SyntaxKind.CommaToken, SyntaxKind.CloseParenToken)
+                    End If
 
-                If value.ContainsDiagnostics Then
-                    value = ResyncAt(value, SyntaxKind.CommaToken, SyntaxKind.CloseParenToken)
+                    initializer = SyntaxFactory.EqualsValue(equals, value)
                 End If
-
-                initializer = SyntaxFactory.EqualsValue(equals, value)
             End If
 
             Return SyntaxFactory.Parameter(attributes, modifiers, paramName, optionalAsClause, initializer)
@@ -6080,10 +6082,19 @@ checkNullable:
         Friend Function CheckFeatureAvailability(feature As Feature) As Boolean
             Return CheckFeatureAvailability(_scanner.Options.LanguageVersion, feature)
         End Function
-
-        Friend Shared Function CheckFeatureAvailability(languageVersion As LanguageVersion, feature As Feature) As Boolean
+        Friend Shared Function CheckFeatureAvailability(languageVersion As LanguageVersion,
+                                                        feature As Feature) As Boolean
             Dim required = feature.GetLanguageVersion()
             Return CInt(required) <= CInt(languageVersion)
+        End Function
+        Friend Shared Function CheckFeatureAvailability(feature As Feature, opts As VisualBasicParseOptions) As Boolean
+            Dim ff = feature.GetFeatureFlag
+            Debug.Assert(opts IsNot Nothing)
+            'opts = If(opts, VisualBasicParseOptions.Default)
+            Dim enabled = opts.Features.ContainsKey(ff)
+            If enabled Then Return True
+            Dim required = feature.GetLanguageVersion()
+            Return CInt(required) <= CInt(opts.LanguageVersion)
         End Function
 
         Friend Shared Sub CheckFeatureAvailability(diagnostics As DiagnosticBag, location As Location, languageVersion As LanguageVersion, feature As Feature)

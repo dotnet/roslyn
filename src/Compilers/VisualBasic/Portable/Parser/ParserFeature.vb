@@ -31,6 +31,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
         ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
         DigitSeparators
         BinaryLiterals
+        ImplicitDefaultValueOnOptionalParameter
     End Enum
 
     Friend Module FeatureExtensions
@@ -42,7 +43,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
                 Case Feature.BinaryLiterals
                     Return "binaryLiterals"
-
+                Case Feature.ImplicitDefaultValueOnOptionalParameter
+                    Return "ImplicitDefaultValueOnOptionalParameter"
                 Case Else
                     Return Nothing
             End Select
@@ -81,7 +83,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                      Feature.PartialInterfaces,
                      Feature.ImplementingReadonlyOrWriteonlyPropertyWithReadwrite
                     Return LanguageVersion.VisualBasic14
-
+                Case Feature.ImplicitDefaultValueOnOptionalParameter
+                    Return LanguageVersion.VBNext
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select
@@ -141,6 +144,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
                     Return ERRID.FEATURE_DigitSeparators
                 Case Feature.BinaryLiterals
                     Return ERRID.FEATURE_BinaryLiterals
+                Case Feature.ImplicitDefaultValueOnOptionalParameter
+                    Return ERRID.FEATURE_ImplicitDefaultValueOnOptionalParameter
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(feature)
             End Select

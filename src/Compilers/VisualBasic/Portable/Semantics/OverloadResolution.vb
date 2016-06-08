@@ -3144,29 +3144,12 @@ Bailout:
             Next
 
 Bailout:
-            If diagnostics IsNot Nothing Then
-                diagnostics.Free()
-            End If
-
-            If paramArrayItems IsNot Nothing Then
-                paramArrayItems.Free()
-            End If
-
-            If conversionKinds IsNot Nothing Then
-                candidate.ConversionsOpt = conversionKinds.AsImmutableOrNull()
-            End If
-
-            If conversionBackKinds IsNot Nothing Then
-                candidate.ConversionsBackOpt = conversionBackKinds.AsImmutableOrNull()
-            End If
-
-            If optionalArguments IsNot Nothing Then
-                candidate.OptionalArguments = optionalArguments.AsImmutableOrNull()
-            End If
-
-            If parameterToArgumentMap IsNot Nothing Then
-                parameterToArgumentMap.Free()
-            End If
+            If diagnostics IsNot Nothing Then diagnostics.Free()
+            If paramArrayItems IsNot Nothing Then paramArrayItems.Free()
+            If conversionKinds IsNot Nothing Then candidate.ConversionsOpt = conversionKinds.AsImmutableOrNull()
+            If conversionBackKinds IsNot Nothing Then candidate.ConversionsBackOpt = conversionBackKinds.AsImmutableOrNull()
+            If optionalArguments IsNot Nothing Then candidate.OptionalArguments = optionalArguments.AsImmutableOrNull()
+            If parameterToArgumentMap IsNot Nothing Then parameterToArgumentMap.Free()
 
         End Sub
 
@@ -3175,16 +3158,16 @@ Bailout:
         ''' Should be in sync with Binder.ReportByRefConversionErrors.
         ''' </summary>
         Private Shared Sub MatchArgumentToByRefParameter(
-            methodOrPropertyGroup As BoundMethodOrPropertyGroup,
-            ByRef candidate As CandidateAnalysisResult,
-            argument As BoundExpression,
-            targetType As TypeSymbol,
-            binder As Binder,
-            <Out()> ByRef outConversionKind As KeyValuePair(Of ConversionKind, MethodSymbol),
-            <Out()> ByRef outConversionBackKind As KeyValuePair(Of ConversionKind, MethodSymbol),
-            <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
-        )
+                                                          methodOrPropertyGroup As BoundMethodOrPropertyGroup,
+                                                    ByRef candidate As CandidateAnalysisResult,
+                                                          argument As BoundExpression,
+                                                          targetType As TypeSymbol,
+                                                          binder As Binder,
+                                              <Out> ByRef outConversionKind As KeyValuePair(Of ConversionKind, MethodSymbol),
+                                              <Out> ByRef outConversionBackKind As KeyValuePair(Of ConversionKind, MethodSymbol),
+                                        <[In], Out> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
+                                        <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+                                                      )
 
             If argument.IsSupportingAssignment() Then
 
@@ -3255,16 +3238,16 @@ Bailout:
         ''' Should be in sync with Binder.ReportByValConversionErrors.
         ''' </summary>
         Private Shared Function MatchArgumentToByValParameter(
-            methodOrPropertyGroup As BoundMethodOrPropertyGroup,
-            ByRef candidate As CandidateAnalysisResult,
-            argument As BoundExpression,
-            targetType As TypeSymbol,
-            binder As Binder,
-            <Out()> ByRef outConversionKind As KeyValuePair(Of ConversionKind, MethodSymbol),
-            <[In](), Out()> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
-            Optional isDefaultValueArgument As Boolean = False
-        ) As Boolean
+                                                               methodOrPropertyGroup As BoundMethodOrPropertyGroup,
+                                                         ByRef candidate As CandidateAnalysisResult,
+                                                               argument As BoundExpression,
+                                                               targetType As TypeSymbol,
+                                                               binder As Binder,
+                                                   <Out> ByRef outConversionKind As KeyValuePair(Of ConversionKind, MethodSymbol),
+                                             <[In], Out> ByRef asyncLambdaSubToFunctionMismatch As HashSet(Of BoundExpression),
+                                             <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo),
+                                                      Optional isDefaultValueArgument As Boolean = False
+                                                             ) As Boolean
 
             outConversionKind = Nothing 'VBConversions.NoConversion
 

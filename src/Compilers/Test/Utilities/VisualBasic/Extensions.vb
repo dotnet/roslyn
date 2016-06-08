@@ -10,6 +10,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Xunit
 
 Friend Module Extensions
+
     <Extension>
     Public Function GetReferencedAssemblySymbol(compilation As Compilation, reference As MetadataReference) As AssemblySymbol
         Return DirectCast(compilation.GetAssemblyOrModuleSymbol(reference), AssemblySymbol)

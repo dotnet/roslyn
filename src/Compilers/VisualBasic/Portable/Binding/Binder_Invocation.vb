@@ -44,7 +44,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 lookupResult.Kind,
                 receiver,
                 qualKind,
-                HasErrors:=hasError)
+                hasErrors:=hasError)
         End Function
 
         ''' <summary>
@@ -699,20 +699,20 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Function
 
         Friend Function BindInvocationExpression(
-            node As VisualBasicSyntaxNode,
-            target As VisualBasicSyntaxNode,
-            typeChar As TypeCharacter,
-            group As BoundMethodOrPropertyGroup,
-            boundArguments As ImmutableArray(Of BoundExpression),
-            argumentNames As ImmutableArray(Of String),
-            diagnostics As DiagnosticBag,
-            callerInfoOpt As VisualBasicSyntaxNode,
-            Optional allowConstructorCall As Boolean = False,
-            Optional suppressAbstractCallDiagnostics As Boolean = False,
-            Optional isDefaultMemberAccess As Boolean = False,
-            Optional representCandidateInDiagnosticsOpt As Symbol = Nothing,
-            Optional forceExpandedForm As Boolean = False
-        ) As BoundExpression
+                                                  node As VisualBasicSyntaxNode,
+                                                  target As VisualBasicSyntaxNode,
+                                                  typeChar As TypeCharacter,
+                                                  group As BoundMethodOrPropertyGroup,
+                                                  boundArguments As ImmutableArray(Of BoundExpression),
+                                                  argumentNames As ImmutableArray(Of String),
+                                                  diagnostics As DiagnosticBag,
+                                                  callerInfoOpt As VisualBasicSyntaxNode,
+                                         Optional allowConstructorCall As Boolean = False,
+                                         Optional suppressAbstractCallDiagnostics As Boolean = False,
+                                         Optional isDefaultMemberAccess As Boolean = False,
+                                         Optional representCandidateInDiagnosticsOpt As Symbol = Nothing,
+                                         Optional forceExpandedForm As Boolean = False
+                                                ) As BoundExpression
 
             Debug.Assert(group IsNot Nothing)
             Debug.Assert(allowConstructorCall OrElse Not IsGroupOfConstructors(group))
@@ -1771,7 +1771,7 @@ ProduceBoundNode:
                 If isDelegateContext Then
                     If bestSymbolIsExtension Then
                         diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionMethodOverloadCandidate2, bestSymbol, bestSymbol.ContainingType))
-                    ElseIf withContainingTypeInDiagnostics
+                    ElseIf withContainingTypeInDiagnostics Then
                         diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OverloadCandidate1, CustomSymbolDisplayFormatter.WithContainingType(bestSymbol)))
                     Else
                         diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OverloadCandidate1, bestSymbol))
@@ -1779,7 +1779,7 @@ ProduceBoundNode:
                 Else
                     If bestSymbolIsExtension Then
                         diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_ExtensionMethodOverloadCandidate3, bestSymbol, bestSymbol.ContainingType, notMostSpecificMessage))
-                    ElseIf withContainingTypeInDiagnostics
+                    ElseIf withContainingTypeInDiagnostics Then
                         diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OverloadCandidate2, CustomSymbolDisplayFormatter.WithContainingType(bestSymbol), notMostSpecificMessage))
                     Else
                         diagnosticInfos.Add(ErrorFactory.ErrorInfo(ERRID.ERR_OverloadCandidate2, bestSymbol, notMostSpecificMessage))
@@ -3027,86 +3027,27 @@ ProduceBoundNode:
 
             ' See Section 3 of §11.8.2 Applicable Methods
             ' Deal with Optional arguments. HasDefaultValue is true if the parameter is optional and has a default value.
-            Dim defaultConstantValue As ConstantValue = If(param.IsOptional, param.ExplicitDefaultConstantValue(DefaultParametersInProgress), Nothing)
-            If defaultConstantValue IsNot Nothing Then
-
-                If callerInfoOpt IsNot Nothing AndAlso
-                   callerInfoOpt.SyntaxTree IsNot Nothing AndAlso
-                   Not callerInfoOpt.SyntaxTree.IsEmbeddedOrMyTemplateTree() AndAlso
-                   Not SuppressCallerInfo Then
-
-                    Dim isCallerLineNumber As Boolean = param.IsCallerLineNumber
-                    Dim isCallerMemberName As Boolean = param.IsCallerMemberName
-                    Dim isCallerFilePath As Boolean = param.IsCallerFilePath
-
-                    If isCallerLineNumber OrElse isCallerMemberName OrElse isCallerFilePath Then
-                        Dim callerInfoValue As ConstantValue = Nothing
-
-                        If isCallerLineNumber Then
-                            callerInfoValue = ConstantValue.Create(callerInfoOpt.SyntaxTree.GetDisplayLineNumber(GetCallerLocation(callerInfoOpt)))
-                        ElseIf isCallerMemberName Then
-                            Dim container As Symbol = ContainingMember
-
-                            While container IsNot Nothing
-                                Select Case container.Kind
-                                    Case SymbolKind.Field, SymbolKind.Property, SymbolKind.Event
-                                        Exit While
-
-                                    Case SymbolKind.Method
-                                        If container.IsLambdaMethod Then
-                                            container = container.ContainingSymbol
-                                        Else
-                                            Dim propertyOrEvent As Symbol = DirectCast(container, MethodSymbol).AssociatedSymbol
-
-                                            If propertyOrEvent IsNot Nothing Then
-                                                container = propertyOrEvent
-                                            End If
-
-                                            Exit While
-                                        End If
-
-                                    Case Else
-                                        container = container.ContainingSymbol
-                                End Select
-                            End While
-
-                            If container IsNot Nothing AndAlso container.Name IsNot Nothing Then
-                                callerInfoValue = ConstantValue.Create(container.Name)
-                            End If
-                        Else
-                            Debug.Assert(isCallerFilePath)
-                            callerInfoValue = ConstantValue.Create(callerInfoOpt.SyntaxTree.GetDisplayPath(callerInfoOpt.Span, Me.Compilation.Options.SourceReferenceResolver))
-                        End If
-
-                        If callerInfoValue IsNot Nothing Then
-                            ' Use the value only if it will not cause errors.
-                            Dim ignoreDiagnostics = DiagnosticBag.GetInstance()
-                            Dim literal As BoundLiteral
-
-                            If callerInfoValue.Discriminator = ConstantValueTypeDiscriminator.Int32 Then
-                                literal = New BoundLiteral(syntax, callerInfoValue, GetSpecialType(SpecialType.System_Int32, syntax, ignoreDiagnostics))
-                            Else
-                                Debug.Assert(callerInfoValue.Discriminator = ConstantValueTypeDiscriminator.String)
-                                literal = New BoundLiteral(syntax, callerInfoValue, GetSpecialType(SpecialType.System_String, syntax, ignoreDiagnostics))
-                            End If
-
-                            Dim convertedValue As BoundExpression = ApplyImplicitConversion(syntax, param.Type, literal, ignoreDiagnostics)
-
-                            If Not convertedValue.HasErrors AndAlso Not ignoreDiagnostics.HasAnyErrors Then
-                                ' Dev11 #248795: Caller info should be omitted if user defined conversion is involved.
-                                If Not (convertedValue.Kind = BoundKind.Conversion AndAlso (DirectCast(convertedValue, BoundConversion).ConversionKind And ConversionKind.UserDefined) <> 0) Then
-                                    defaultConstantValue = callerInfoValue
-                                End If
-                            End If
-
-                            ignoreDiagnostics.Free()
+            Dim defaultConstantValue As ConstantValue = Nothing
+            If param.IsOptional Then
+                defaultConstantValue = param.ExplicitDefaultConstantValue(DefaultParametersInProgress)
+                If defaultConstantValue Is Nothing Then
+                    Dim opts = param.OriginalDefinition.DeclaringCompilation.Options.ParseOptions
+                    If opts IsNot Nothing Then
+                        If InternalSyntax.Parser.CheckFeatureAvailability(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, opts) Then
+                            defaultConstantValue = ConstantValue.Nothing
                         End If
                     End If
                 End If
+            End If
+
+            ' Do we have a default constant value?
+            If defaultConstantValue IsNot Nothing Then
+
+                defaultConstantValue = CheckForCallerInfoAttributes(param, syntax, callerInfoOpt, defaultConstantValue)
 
                 ' For compatibility with the native compiler bad metadata constants should be treated as default(T).  This 
                 ' is a possible outcome of running an obfuscator over a valid DLL 
-                If defaultConstantValue.IsBad Then
+                If (defaultConstantValue Is Nothing) OrElse defaultConstantValue.IsBad Then
                     defaultConstantValue = ConstantValue.Null
                 End If
 
@@ -3180,12 +3121,96 @@ ProduceBoundNode:
                     End If
 
                 Else
+
+
                     defaultArgument = New BoundLiteral(syntax, ConstantValue.Null, Nothing)
                 End If
 
             End If
 
             Return defaultArgument
+        End Function
+
+        Private Function CheckForCallerInfoAttributes(
+                                          param As ParameterSymbol,
+                                          syntax As VisualBasicSyntaxNode,
+                                          callerInfoOpt As VisualBasicSyntaxNode,
+                                          defaultConstantValue As ConstantValue) As ConstantValue
+            If callerInfoOpt Is Nothing Then Return defaultConstantValue
+            If callerInfoOpt.SyntaxTree Is Nothing Then Return defaultConstantValue
+            If callerInfoOpt.SyntaxTree.IsEmbeddedOrMyTemplateTree() Then Return defaultConstantValue
+            If SuppressCallerInfo Then Return defaultConstantValue
+
+            Dim isCallerLineNumber As Boolean = param.IsCallerLineNumber
+            Dim isCallerMemberName As Boolean = param.IsCallerMemberName
+            Dim isCallerFilePath As Boolean = param.IsCallerFilePath
+
+            If isCallerLineNumber Or isCallerMemberName Or isCallerFilePath Then
+                Dim callerInfoValue As ConstantValue = Nothing
+
+                If isCallerLineNumber Then
+                    callerInfoValue = ConstantValue.Create(callerInfoOpt.SyntaxTree.GetDisplayLineNumber(GetCallerLocation(callerInfoOpt)))
+
+                ElseIf isCallerMemberName Then
+                    Dim container As Symbol = ContainingMember
+
+                    While container IsNot Nothing
+                        Select Case container.Kind
+                            Case SymbolKind.Field,
+                                 SymbolKind.Property,
+                                 SymbolKind.Event
+                                Exit While
+
+                            Case SymbolKind.Method
+                                If container.IsLambdaMethod Then
+                                    container = container.ContainingSymbol
+                                Else
+
+                                    Dim propertyOrEvent As Symbol = DirectCast(container, MethodSymbol).AssociatedSymbol
+                                    If propertyOrEvent IsNot Nothing Then container = propertyOrEvent
+                                    Exit While
+                                End If
+
+                            Case Else
+                                container = container.ContainingSymbol
+
+                        End Select
+                    End While
+
+                    If (container IsNot Nothing) AndAlso
+                       (container.Name IsNot Nothing) Then callerInfoValue = ConstantValue.Create(container.Name)
+
+                Else
+                    Debug.Assert(isCallerFilePath)
+                    callerInfoValue = ConstantValue.Create(callerInfoOpt.SyntaxTree.GetDisplayPath(callerInfoOpt.Span, Me.Compilation.Options.SourceReferenceResolver))
+                End If
+
+                If callerInfoValue IsNot Nothing Then
+                    ' Use the value only if it will not cause errors.
+                    Dim ignoreDiagnostics = DiagnosticBag.GetInstance()
+                    Dim literal As BoundLiteral
+
+                    If callerInfoValue.Discriminator = ConstantValueTypeDiscriminator.Int32 Then
+                        literal = New BoundLiteral(syntax, callerInfoValue, GetSpecialType(SpecialType.System_Int32, syntax, ignoreDiagnostics))
+                    Else
+                        Debug.Assert(callerInfoValue.Discriminator = ConstantValueTypeDiscriminator.String)
+                        literal = New BoundLiteral(syntax, callerInfoValue, GetSpecialType(SpecialType.System_String, syntax, ignoreDiagnostics))
+                    End If
+
+                    Dim convertedValue As BoundExpression = ApplyImplicitConversion(syntax, param.Type, literal, ignoreDiagnostics)
+
+                    If Not convertedValue.HasErrors AndAlso Not ignoreDiagnostics.HasAnyErrors Then
+                        ' Dev11 #248795: Caller info should be omitted if user defined conversion is involved.
+                        If Not (convertedValue.Kind = BoundKind.Conversion AndAlso
+                                  (DirectCast(convertedValue, BoundConversion).ConversionKind And ConversionKind.UserDefined) <> 0) Then
+                            defaultConstantValue = callerInfoValue
+                        End If
+                    End If
+
+                    ignoreDiagnostics.Free()
+                End If
+            End If
+            Return defaultConstantValue
         End Function
 
         Private Shared Function GetCallerLocation(syntax As VisualBasicSyntaxNode) As TextSpan

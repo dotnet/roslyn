@@ -865,10 +865,12 @@ Public Module VerificationHelpers
             IncrementTypeCounter(node, node.Kind.ToString)
             MyBase.VisitConstDirectiveTrivia(node)
         End Sub
+
         Public Overrides Sub VisitIfDirectiveTrivia(node As IfDirectiveTriviaSyntax)
             IncrementTypeCounter(node, node.Kind.ToString)
             MyBase.VisitIfDirectiveTrivia(node)
         End Sub
+
         Public Overrides Sub VisitElseDirectiveTrivia(node As ElseDirectiveTriviaSyntax)
             IncrementTypeCounter(node, node.Kind.ToString)
             MyBase.VisitElseDirectiveTrivia(node)
@@ -903,6 +905,7 @@ Public Module VerificationHelpers
             IncrementTypeCounter(node, node.Kind.ToString)
             MyBase.VisitRegionDirectiveTrivia(node)
         End Sub
+
         Public Overrides Sub VisitEndRegionDirectiveTrivia(node As EndRegionDirectiveTriviaSyntax)
             IncrementTypeCounter(node, node.Kind.ToString)
             MyBase.VisitEndRegionDirectiveTrivia(node)
@@ -922,6 +925,7 @@ Public Module VerificationHelpers
             IncrementTypeCounter(node, node.Kind.ToString)
             MyBase.VisitDistinctClause(node)
         End Sub
+
         Public Overrides Sub VisitGroupByClause(node As GroupByClauseSyntax)
             IncrementTypeCounter(node, node.Kind.ToString)
             MyBase.VisitGroupByClause(node)
@@ -946,6 +950,7 @@ Public Module VerificationHelpers
             IncrementTypeCounter(node, "PartitionClauseSyntax")
             MyBase.VisitPartitionClause(node)
         End Sub
+
         Public Overrides Sub VisitPartitionWhileClause(node As PartitionWhileClauseSyntax)
             IncrementTypeCounter(node, "PartitionWhileClauseSyntax")
             MyBase.VisitPartitionWhileClause(node)
@@ -1015,5 +1020,7 @@ Public Module VerificationHelpers
         Public Function GetItem() As List(Of VisualBasicSyntaxNode)
             Return _Items
         End Function
+
     End Class
+
 End Module
