@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                                                                    Return m.Kind = SymbolKind.Field AndAlso
                                                                       DirectCast(m, IFieldSymbol).IsConst AndAlso
                                                                       m.IsEditorBrowsable(hideAdvancedMembers, context.SemanticModel.Compilation)
-                                                               End Function))
+                                                               End Function).Concat(enumType))
 
         End Function
 
@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Dim otherInstances = otherSymbols.Where(Function(s) enumType Is GetTypeFromSymbol(s))
 
-            Return Task.FromResult(otherInstances.Concat(enumType))
+            Return Task.FromResult(otherInstances)
         End Function
 
         Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
@@ -109,17 +109,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Function CreateItem(displayText As String, insertionText As String, position As Integer, symbols As List(Of ISymbol), context As AbstractSyntaxContext, textChangeSpan As TextSpan, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
+        Protected Overrides Function CreateItem(displayText As String, insertionText As String, position As Integer, symbols As List(Of ISymbol), context As AbstractSyntaxContext, span As TextSpan, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
             Return SymbolCompletionItem.Create(
                 displayText:=displayText,
                 insertionText:=insertionText,
                 filterText:=GetFilterText(symbols(0), displayText, context),
-                span:=textChangeSpan,
+                span:=span,
                 symbols:=symbols,
                 contextPosition:=context.Position,
                 descriptionPosition:=position,
                 sortText:=insertionText,
-                preselect:=preselect,
+                matchPriority:=MatchPriority.Preselect,
                 supportedPlatforms:=supportedPlatformData,
                 rules:=GetCompletionItemRules(symbols, context))
         End Function

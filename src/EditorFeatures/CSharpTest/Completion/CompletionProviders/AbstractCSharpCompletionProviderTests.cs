@@ -27,64 +27,65 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             return new CSharpCompletionService(workspace, exclusiveProviders);
         }
 
-        protected override async Task VerifyWorkerAsync(string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence, bool experimental, int? glyph)
+        protected override async Task VerifyWorkerAsync(string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence, bool experimental, int? glyph, int? matchPriority)
         {
-            await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph);
-            await VerifyInFrontOfCommentAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph);
-            await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph);
+            await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph, matchPriority);
+            await VerifyInFrontOfCommentAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph, matchPriority);
+            await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph, matchPriority);
 
             // Items cannot be partially written if we're checking for their absence,
             // or if we're verifying that the list will show up (without specifying an actual item)
             if (!checkForAbsence && expectedItemOrNull != null)
             {
-                await VerifyAtPosition_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph);
-                await VerifyInFrontOfComment_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph);
-                await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph);
+                await VerifyAtPosition_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph, matchPriority);
+                await VerifyInFrontOfComment_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph, matchPriority);
+                await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph, matchPriority);
             }
         }
 
-        protected Task BaseVerifyWorkerAsync(string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence, int? glyph)
+        protected Task BaseVerifyWorkerAsync(string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence, int? glyph, int? matchPriority)
         {
-            return base.VerifyWorkerAsync(code, position, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, experimental: false, glyph: glyph);
+            return base.VerifyWorkerAsync(code, position, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, experimental: false, glyph: glyph, matchPriority: matchPriority);
         }
 
-        private Task VerifyInFrontOfCommentAsync(string code, int position, string insertText, bool usePreviousCharAsTrigger, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool checkForAbsence, bool experimental, int? glyph)
+        private Task VerifyInFrontOfCommentAsync(string code, int position, string insertText, bool usePreviousCharAsTrigger, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool checkForAbsence, bool experimental, int? glyph, int? matchPriority)
         {
             code = code.Substring(0, position) + insertText + "/**/" + code.Substring(position);
             position += insertText.Length;
 
-            return base.VerifyWorkerAsync(code, position, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, experimental, glyph: glyph);
+            return base.VerifyWorkerAsync(code, position, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, experimental, glyph: glyph, matchPriority: matchPriority);
         }
 
-        private Task VerifyInFrontOfCommentAsync(string code, int position, bool usePreviousCharAsTrigger, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool checkForAbsence, bool experimental, int? glyph)
+        private Task VerifyInFrontOfCommentAsync(string code, int position, bool usePreviousCharAsTrigger, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool checkForAbsence, bool experimental, int? glyph, int? matchPriority)
         {
-            return VerifyInFrontOfCommentAsync(code, position, string.Empty, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph: glyph);
+            return VerifyInFrontOfCommentAsync(code, position, string.Empty, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph: glyph, matchPriority: matchPriority);
         }
 
-        protected Task VerifyInFrontOfComment_ItemPartiallyWrittenAsync(string code, int position, bool usePreviousCharAsTrigger, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool checkForAbsence, bool experimental, int? glyph)
+        protected Task VerifyInFrontOfComment_ItemPartiallyWrittenAsync(string code, int position, bool usePreviousCharAsTrigger, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool checkForAbsence, bool experimental, int? glyph, int? matchPriority)
         {
-            return VerifyInFrontOfCommentAsync(code, position, ItemPartiallyWritten(expectedItemOrNull), usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph: glyph);
+            return VerifyInFrontOfCommentAsync(code, position, ItemPartiallyWritten(expectedItemOrNull), usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph: glyph, matchPriority: matchPriority);
         }
 
-        protected Task VerifyAtPositionAsync(string code, int position, string insertText, bool usePreviousCharAsTrigger, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool checkForAbsence, bool experimental, int? glyph)
+        protected Task VerifyAtPositionAsync(string code, int position, string insertText, bool usePreviousCharAsTrigger, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool checkForAbsence, bool experimental, int? glyph, int? matchPriority)
         {
             code = code.Substring(0, position) + insertText + code.Substring(position);
             position += insertText.Length;
 
-            return base.VerifyWorkerAsync(code, position, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, experimental, glyph: glyph);
+            return base.VerifyWorkerAsync(code, position, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, experimental, glyph: glyph, matchPriority: matchPriority);
         }
 
-        protected Task VerifyAtPositionAsync(string code, int position, bool usePreviousCharAsTrigger, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool checkForAbsence, bool experimental, int? glyph)
+        protected Task VerifyAtPositionAsync(string code, int position, bool usePreviousCharAsTrigger, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool checkForAbsence, bool experimental, int? glyph, int? matchPriority)
         {
-            return VerifyAtPositionAsync(code, position, string.Empty, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph);
+            return VerifyAtPositionAsync(code, position, string.Empty, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph, matchPriority);
         }
 
-        protected Task VerifyAtPosition_ItemPartiallyWrittenAsync(string code, int position, bool usePreviousCharAsTrigger, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool checkForAbsence, bool experimental, int? glyph)
+        protected Task VerifyAtPosition_ItemPartiallyWrittenAsync(string code, int position, bool usePreviousCharAsTrigger, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool checkForAbsence, bool experimental, int? glyph, int? matchPriority)
         {
-            return VerifyAtPositionAsync(code, position, ItemPartiallyWritten(expectedItemOrNull), usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph);
+            return VerifyAtPositionAsync(code, position, ItemPartiallyWritten(expectedItemOrNull), usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph, matchPriority);
         }
 
-        private async Task VerifyAtEndOfFileAsync(string code, int position, string insertText, bool usePreviousCharAsTrigger, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool checkForAbsence, bool experimental, int? glyph)
+        private async Task VerifyAtEndOfFileAsync(string code, int position, string insertText, bool usePreviousCharAsTrigger, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool checkForAbsence, bool experimental, int? glyph, int? matchPriority)
+
         {
             // only do this if the placeholder was at the end of the text.
             if (code.Length != position)
@@ -95,17 +96,17 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionPr
             code = code.Substring(startIndex: 0, length: position) + insertText;
             position += insertText.Length;
 
-            await base.VerifyWorkerAsync(code, position, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, experimental, glyph);
+            await base.VerifyWorkerAsync(code, position, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, experimental, glyph, matchPriority);
         }
 
-        protected Task VerifyAtEndOfFileAsync(string code, int position, bool usePreviousCharAsTrigger, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool checkForAbsence, bool experimental, int? glyph)
+        protected Task VerifyAtEndOfFileAsync(string code, int position, bool usePreviousCharAsTrigger, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool checkForAbsence, bool experimental, int? glyph, int? matchPriority)
         {
-            return VerifyAtEndOfFileAsync(code, position, string.Empty, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph);
+            return VerifyAtEndOfFileAsync(code, position, string.Empty, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph, matchPriority);
         }
 
-        protected Task VerifyAtEndOfFile_ItemPartiallyWrittenAsync(string code, int position, bool usePreviousCharAsTrigger, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool checkForAbsence, bool experimental, int? glyph)
+        protected Task VerifyAtEndOfFile_ItemPartiallyWrittenAsync(string code, int position, bool usePreviousCharAsTrigger, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool checkForAbsence, bool experimental, int? glyph, int? matchPriority)
         {
-            return VerifyAtEndOfFileAsync(code, position, ItemPartiallyWritten(expectedItemOrNull), usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph);
+            return VerifyAtEndOfFileAsync(code, position, ItemPartiallyWritten(expectedItemOrNull), usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, experimental, glyph, matchPriority);
         }
 
         private static string ItemPartiallyWritten(string expectedItemOrNull)

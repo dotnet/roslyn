@@ -188,6 +188,7 @@
     <Compile Include="Completion\ExportCompletionProviderAttribute.cs" />
     <Compile Include="Completion\CompletionService.cs" />
     <Compile Include="Completion\Providers\MemberInsertingCompletionItem.cs" />
+    <Compile Include="Completion\MatchPriority.cs" />
     <Compile Include="Completion\Providers\UnionCompletionItemComparer.cs" />
     <Compile Include="Completion\Providers\AbstractKeywordCompletionProvider.cs" />
     <Compile Include="Completion\Providers\AbstractObjectCreationCompletionProvider.cs" />
