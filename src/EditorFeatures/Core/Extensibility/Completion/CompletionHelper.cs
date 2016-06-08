@@ -4,10 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
@@ -15,42 +12,22 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal class CompletionHelper
     {
-        private readonly CompletionRules _rules;
-        private readonly string _language;
-        
-        public CompletionService CompletionService { get; }
-
-        protected CompletionHelper(CompletionService completionService)
+        protected CompletionHelper()
         {
-            CompletionService = completionService;
-            _language = CompletionService.Language;
-            _rules = CompletionService.GetRules();
         }
 
         public static CompletionHelper GetHelper(
-            Workspace workspace, string language, CompletionService completionService)
+            Workspace workspace, string language)
         {
-            var ls = workspace.Services.GetLanguageServices(language);
-            if (ls != null)
-            {
-                var factory = ls.GetService<CompletionHelperFactory>();
-                if (factory != null)
-                {
-                    return factory.CreateCompletionHelper(completionService);
-                }
-
-                if (completionService != null)
-                {
-                    return new CompletionHelper(completionService);
-                }
-            }
-
-            return null;
+            var helpers = workspace.Services.GetLanguageServices(language)?.
+                                             GetService<CompletionHelperFactory>()?.
+                                             CreateCompletionHelper();
+            return helpers ?? new CompletionHelper();
         }
 
-        public static CompletionHelper GetHelper(Document document, CompletionService service)
+        public static CompletionHelper GetHelper(Document document)
         {
-            return GetHelper(document.Project.Solution.Workspace, document.Project.Language, service);
+            return GetHelper(document.Project.Solution.Workspace, document.Project.Language);
         }
 
         public IReadOnlyList<TextSpan> GetHighlightedSpans(CompletionItem completionItem, string filterText)
@@ -259,28 +236,10 @@ namespace Microsoft.CodeAnalysis.Editor
 
         protected int CompareMatches(PatternMatch match1, PatternMatch match2, CompletionItem item1, CompletionItem item2)
         {
-            int diff;
-
-            diff = PatternMatch.CompareType(match1, match2);
+            var diff = match1.CompareTo(match2);
             if (diff != 0)
             {
                 return diff;
-            }
-
-            diff = PatternMatch.CompareCamelCase(match1, match2);
-            if (diff != 0)
-            {
-                return diff;
-            }
-
-            // argument names are not prefered
-            if (IsArgumentName(item1) && !IsArgumentName(item2))
-            {
-                return 1;
-            }
-            else if (IsArgumentName(item2) && !IsArgumentName(item1))
-            {
-                return -1;
             }
 
             // preselected items are prefered
@@ -293,24 +252,7 @@ namespace Microsoft.CodeAnalysis.Editor
                 return 1;
             }
 
-            diff = PatternMatch.CompareCase(match1, match2);
-            if (diff != 0)
-            {
-                return diff;
-            }
-
-            diff = PatternMatch.ComparePunctuation(match1, match2);
-            if (diff != 0)
-            {
-                return diff;
-            }
-
             return 0;
-        }
-
-        protected bool IsArgumentName(CompletionItem item)
-        {
-            return item.Tags.Contains(CompletionTags.ArgumentName);
         }
 
         private static bool TextTypedSoFarMatchesItem(CompletionItem item, char ch, string textTypedSoFar)
@@ -322,7 +264,7 @@ namespace Microsoft.CodeAnalysis.Editor
 
         private static StringComparison GetComparision(bool isCaseSensitive)
         {
-            return isCaseSensitive? StringComparison.CurrentCulture: StringComparison.CurrentCultureIgnoreCase;
+            return isCaseSensitive ? StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase;
         }
 
         /// <summary>

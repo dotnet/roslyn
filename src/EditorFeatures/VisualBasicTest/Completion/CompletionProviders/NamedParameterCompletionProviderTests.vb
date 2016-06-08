@@ -291,30 +291,6 @@ End Class
 </Text>.Value, "[Boolean]:=")
         End Function
 
-        <WorkItem(546589, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546589")>
-        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function TestCommitOnEquals() As Task
-            Dim text = <Text>
-Module Program
-    Sub Main(args As String())
-        Main(a$$
-    End Sub
-End Module
-
-</Text>.Value
-
-            Dim expected = <Text>
-Module Program
-    Sub Main(args As String())
-        Main(args:=
-    End Sub
-End Module
-
-</Text>.Value
-
-            Await VerifyProviderCommitAsync(text, "args:=", expected, "="c, Nothing)
-        End Function
-
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function TestCommitOnColon() As Task
             Dim text = <Text>
@@ -352,13 +328,36 @@ End Module
             Dim expected = <Text>
 Module Program
     Sub Main(args As String())
-        Main(args:= 
+        Main(args 
     End Sub
 End Module
 
 </Text>.Value
 
             Await VerifyProviderCommitAsync(text, "args:=", expected, " "c, Nothing)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestCommitOnEquals() As Task
+            Dim text = <Text>
+Module Program
+    Sub Main(args As String())
+        Main(a$$
+    End Sub
+End Module
+
+</Text>.Value
+
+            Dim expected = <Text>
+Module Program
+    Sub Main(args As String())
+        Main(args:=
+    End Sub
+End Module
+
+</Text>.Value
+
+            Await VerifyProviderCommitAsync(text, "args:=", expected, "="c, Nothing)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>

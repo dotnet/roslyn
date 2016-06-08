@@ -14,7 +14,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
     Partial Friend Class NamedParameterCompletionProvider
         Inherits CommonCompletionProvider
 
-        Friend Const s_colonEquals As String = ":="
+        Private Const s_colonEquals As String = ":="
+        Private Const s_equals As String = "="
 
         Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean
             Return CompletionUtilities.IsDefaultTriggerCharacter(text, characterPosition, options)
@@ -74,7 +75,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                         symbol:=parameter,
                         descriptionPosition:=position,
                         contextPosition:=position,
-                        isArgumentName:=True,
                         rules:=CompletionItemRules.Default))
             Next
         End Function
@@ -200,18 +200,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Sub
 
         Public Overrides Function GetTextChangeAsync(document As Document, selectedItem As CompletionItem, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)
-            Dim symbolItem = selectedItem
             Dim insertionText = SymbolCompletionItem.GetInsertionText(selectedItem)
-            Dim change As TextChange
-            If ch.HasValue AndAlso ch.Value = ":"c Then
-                change = New TextChange(symbolItem.Span, insertionText.Substring(0, insertionText.Length - s_colonEquals.Length))
-            ElseIf ch.HasValue AndAlso ch.Value = "="c Then
-                change = New TextChange(selectedItem.Span, insertionText.Substring(0, insertionText.Length - (s_colonEquals.Length - 1)))
-            Else
-                change = New TextChange(symbolItem.Span, insertionText)
-            End If
-            Return Task.FromResult(Of TextChange?)(change)
-        End Function
+            Dim trimLength = If(ch.HasValue AndAlso ch.Value = "="c, s_equals.Length, s_colonEquals.Length)
 
+            Return Task.FromResult(Of TextChange?)(
+                New TextChange(selectedItem.Span, insertionText.Substring(0, insertionText.Length - trimLength)))
+        End Function
     End Class
 End Namespace

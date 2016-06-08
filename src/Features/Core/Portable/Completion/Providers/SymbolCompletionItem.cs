@@ -28,7 +28,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string filterText = null,
             bool preselect = false,
             SupportedPlatformData supportedPlatforms = null,
-            bool isArgumentName = false,
             ImmutableDictionary<string, string> properties = null,
             ImmutableArray<string> tags = default(ImmutableArray<string>),
             CompletionItemRules rules = null)
@@ -59,7 +58,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 sortText: sortText ?? symbols[0].Name,
                 glyph: glyph ?? symbols[0].GetGlyph(),
                 preselect: preselect,
-                isArgumentName: isArgumentName,
                 showsWarningIcon: supportedPlatforms != null,
                 properties: props,
                 tags: tags,
@@ -80,7 +78,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
             string filterText = null,
             bool preselect = false,
             SupportedPlatformData supportedPlatforms = null,
-            bool isArgumentName = false,
             ImmutableDictionary<string, string> properties = null,
             CompletionItemRules rules = null)
         {
@@ -96,7 +93,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 filterText: filterText,
                 preselect: preselect,
                 supportedPlatforms: supportedPlatforms,
-                isArgumentName: isArgumentName,
                 properties: properties,
                 rules: rules);
         }
