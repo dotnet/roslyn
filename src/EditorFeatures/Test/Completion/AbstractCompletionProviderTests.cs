@@ -425,7 +425,8 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
             if (commitChar == '\t' || Controller.IsCommitCharacter(service.GetRules(), firstItem, commitChar, textTypedSoFar))
             {
-                var textChange = CompletionHelper.GetTextChangeAsync(service, document, firstItem, commitChar).Result;
+                var textChange = await DescriptionModifyingPresentationItem.GetTextChangeAsync(
+                    service, document, firstItem, commitChar);
 
                 // Adjust TextChange to include commit character, so long as it isn't TAB.
                 if (commitChar != '\t')
