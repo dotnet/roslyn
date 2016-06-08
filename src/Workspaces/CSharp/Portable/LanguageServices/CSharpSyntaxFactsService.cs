@@ -462,9 +462,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        public bool IsStringLiteral(SyntaxToken token)
+        public bool IsStringLiteralOrInterpolatedStringLiteral(SyntaxToken token)
         {
             return token.IsKind(SyntaxKind.StringLiteralToken, SyntaxKind.InterpolatedStringTextToken);
+        }
+
+        public bool IsNumericLiteralExpression(SyntaxNode node)
+        {
+            return node?.IsKind(SyntaxKind.NumericLiteralExpression) == true;
         }
 
         public bool IsTypeNamedVarInVariableOrFieldDeclaration(SyntaxToken token, SyntaxNode parent)
@@ -564,6 +569,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         public SyntaxNode GetExpressionOfConditionalMemberAccessExpression(SyntaxNode node)
         {
             return (node as ConditionalAccessExpressionSyntax)?.Expression;
+        }
+
+        public SyntaxNode GetExpressionOfInterpolation(SyntaxNode node)
+        {
+            return (node as InterpolationSyntax)?.Expression;
         }
 
         public bool IsInStaticContext(SyntaxNode node)
@@ -671,9 +681,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return node.Kind() == SyntaxKind.ElementAccessExpression;
         }
 
-        public SyntaxNode ConvertToSingleLine(SyntaxNode node)
+        public SyntaxNode ConvertToSingleLine(SyntaxNode node, bool useElasticTrivia = false)
         {
-            return node.ConvertToSingleLine();
+            return node.ConvertToSingleLine(useElasticTrivia);
         }
 
         public SyntaxToken ToIdentifierToken(string name)
@@ -1643,6 +1653,21 @@ namespace Microsoft.CodeAnalysis.CSharp
         public bool IsOperandOfIncrementOrDecrementExpression(SyntaxNode node)
         {
             return IsOperandOfIncrementExpression(node) || IsOperandOfDecrementExpression(node);
+        }
+
+        public SyntaxList<SyntaxNode> GetContentsOfInterpolatedString(SyntaxNode interpolatedString)
+        {
+            return ((interpolatedString as InterpolatedStringExpressionSyntax)?.Contents).Value;
+        }
+
+        public bool IsStringLiteral(SyntaxToken token)
+        {
+            return token.IsKind(SyntaxKind.StringLiteralToken);
+        }
+
+        public SeparatedSyntaxList<SyntaxNode> GetArgumentsForInvocationExpression(SyntaxNode invocationExpression)
+        {
+            return ((invocationExpression as InvocationExpressionSyntax)?.ArgumentList.Arguments).Value;
         }
     }
 }

@@ -453,7 +453,7 @@ class D
     public abstract void SetProp(dynamic i);
 }");
         }
-
+        
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsReplacePropertyWithMethods)]
         public async Task TestTrivia1()
         {
@@ -474,12 +474,12 @@ class D
 
     private int GetProp()
     {
-        return this.prop;
+        return prop;
     }
 
     private void SetProp(int value)
     {
-        this.prop = value;
+        prop = value;
     }
 
     void M()
@@ -510,12 +510,12 @@ class D
 
     private int GetProp()
     {
-        return this.prop;
+        return prop;
     }
 
     private void SetProp(int value)
     {
-        this.prop = value;
+        prop = value;
     }
 
     void M()
@@ -546,12 +546,12 @@ class D
 
     private int GetProp()
     {
-        return this.prop;
+        return prop;
     }
 
     private void SetProp(int value)
     {
-        this.prop = value;
+        prop = value;
     }
 
     void M()
@@ -581,12 +581,12 @@ class D
 
     private int GetProp()
     {
-        return this.prop;
+        return prop;
     }
 
     private void SetProp(int value)
     {
-        this.prop = value;
+        prop = value;
     }
 
     void M()
@@ -615,12 +615,12 @@ class D
 
     private int GetProp()
     {
-        return this.prop;
+        return prop;
     }
 
     private void SetProp(int value)
     {
-        this.prop = value;
+        prop = value;
     }
 
     void M()

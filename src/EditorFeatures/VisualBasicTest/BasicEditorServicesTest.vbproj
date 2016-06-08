@@ -126,6 +126,7 @@
     <Compile Include="Classification\SemanticClassifierTests.vb" />
     <Compile Include="Classification\SyntacticClassifierTests.vb" />
     <Compile Include="CodeActions\AbstractVisualBasicCodeActionTest.vb" />
+    <Compile Include="CodeActions\ConvertToInterpolatedString\ConvertToInterpolatedStringTests.vb" />
     <Compile Include="CodeActions\EncapsulateField\EncapsulateFieldTests.vb" />
     <Compile Include="CodeActions\ExtractMethod\ExtractMethodTests.vb" />
     <Compile Include="CodeActions\GenerateDefaultConstructors\GenerateDefaultConstructorsTests.vb" />
@@ -329,6 +330,8 @@
     <Compile Include="Outlining\RegionDirectiveOutlinerTests.vb" />
     <Compile Include="Outlining\TypeDeclarationOutlinerTests.vb" />
     <Compile Include="Outlining\XmlExpressionOutlinerTests.vb" />
+    <Compile Include="PopulateSwitch\PopulateSwitchTests.vb" />
+    <Compile Include="PopulateSwitch\PopulateSwitchTests_FixAllTests.vb" />
     <Compile Include="QuickInfo\SemanticQuickInfoSourceTests.vb" />
     <Compile Include="Recommendations\ArrayStatements\EraseKeywordRecommenderTests.vb" />
     <Compile Include="Recommendations\ArrayStatements\PreserveKeywordRecommenderTests.vb" />
