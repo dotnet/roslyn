@@ -147,8 +147,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If HasExplicitDefaultValue Then
                     Return ExplicitDefaultConstantValue.Value
                 Else
-                    If InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter.IsAvailable(Me.OriginalSymbolDefinition.DeclaringCompilation.Options.ParseOptions) Then
-                        Return ConstantValue.Nothing.Value
+                    If InternalSyntax.Parser.CheckFeatureAvailability(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter,
+                                                                      Me.OriginalSymbolDefinition.DeclaringCompilation.Options.ParseOptions) Then
+                        Return ConstantValue.Null.Value
                     Else
                         Throw New InvalidOperationException
                     End If

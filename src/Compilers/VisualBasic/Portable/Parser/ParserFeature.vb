@@ -36,24 +36,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Syntax.InternalSyntax
 
     Friend Module FeatureExtensions
 
-        <Extension>
-        Friend Function IsAvailable(feature As Feature, Optional opts As VisualBasicParseOptions = Nothing) As Boolean
-            If opts Is Nothing Then opts = VisualBasicParseOptions.Default
-            If [Enum].IsDefined(GetType(Feature), feature) = False Then Throw New NotSupportedException($"Language Feature {feature.ToString} is not supported.")
-            ' Is feature natively supported in this language version?
-            Dim required = feature.GetLanguageVersion()
-            Dim actual = opts.LanguageVersion
-            If CInt(required) <= CInt(actual) Then Return True
-            ' Otherwise check to see it a feature flag enables it.
-            Dim featureFlag = feature.GetFeatureFlag()
-            If (featureFlag IsNot Nothing) AndAlso opts.Features.ContainsKey(featureFlag) Then Return True
-            Return False
-        End Function
+        '<Extension>
+        'Friend Function IsAvailable(feature As Feature, Optional opts As VisualBasicParseOptions = Nothing) As Boolean
+        '    If opts Is Nothing Then opts = VisualBasicParseOptions.Default
+        '    If [Enum].IsDefined(GetType(Feature), feature) = False Then Throw New NotSupportedException($"Language Feature {feature.ToString} is not supported.")
+        '    ' Is feature natively supported in this language version?
+        '    Dim required = feature.GetLanguageVersion()
+        '    Dim actual = opts.LanguageVersion
+        '    If CInt(required) <= CInt(actual) Then Return True
+        '    ' Otherwise check to see it a feature flag enables it.
+        '    Dim featureFlag = feature.GetFeatureFlag()
+        '    If (featureFlag IsNot Nothing) AndAlso opts.Features.ContainsKey(featureFlag) Then Return True
+        '    Return False
+        'End Function
 
-        <Extension>
-        Friend Function IsUnavailable(feature As Feature, Optional opts As VisualBasicParseOptions = Nothing) As Boolean
-            Return Not (feature.IsAvailable(opts))
-        End Function
+        '<Extension>
+        'Friend Function IsUnavailable(feature As Feature, Optional opts As VisualBasicParseOptions = Nothing) As Boolean
+        '    Return Not (feature.IsAvailable(opts))
+        'End Function
 
 
         <Extension>

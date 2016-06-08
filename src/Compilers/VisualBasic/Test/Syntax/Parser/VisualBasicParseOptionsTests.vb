@@ -105,14 +105,13 @@ Public Class VisualBasicParseOptionsTests
 
     <Fact>
     Public Sub HighestPublicVersion()
-        Dim highest = System.Enum.
-            GetValues(GetType(LanguageVersion)).
-            Cast(Of LanguageVersion).
-            Select(Function(x) CInt(x)).
-            Where(Function(x) x < Integer.MaxValue).
-            Max()
+        Dim HighestPublicRelease = [Enum].GetValues(GetType(LanguageVersion)).
+                                          Cast(Of LanguageVersion).
+                                          Select(Function(x) CInt(x)).
+                                          Where(Function(x) x < Integer.MaxValue).
+                                          Max
 
-        Assert.Equal(highest, CInt(PredefinedPreprocessorSymbols.CurrentVersionNumber))
+        Assert.Equal(HighestPublicRelease, CInt(PredefinedPreprocessorSymbols.CurrentVersionNumber))
     End Sub
 
     <Fact>
