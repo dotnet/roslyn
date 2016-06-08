@@ -1,6 +1,6 @@
 ﻿{
   "dependencies": {
-    "System.Diagnostics.Process": "4.1.0-rc3-24206-00"
+    "System.Diagnostics.Process": "4.1.0-rc3-24208-04"
   },
   "frameworks": {
     "net46": {}

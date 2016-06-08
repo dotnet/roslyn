@@ -1,8 +1,8 @@
 ﻿{
   "dependencies": {
-    "Microsoft.NETCore.Runtime.CoreCLR": "1.0.2-rc3-24206-00",
-    "Microsoft.NETCore.TestHost": "1.0.0-rc3-24206-00",
-    "System.Runtime": "4.1.0-rc3-24206-00"
+    "Microsoft.NETCore.Runtime.CoreCLR": "1.0.2-rc3-24208-04",
+    "Microsoft.NETCore.TestHost": "1.0.0-rc3-24208-01",
+    "System.Runtime": "4.1.0-rc3-24208-04"
   },
   "frameworks": {
     "NETCoreApp1.0": {
