@@ -547,21 +547,21 @@ True
                 bool V_1,
                 T V_2,
                 T V_3)
-  IL_0000:  nop
-  IL_0001:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
-  IL_0006:  ldtoken    ""T MyBox<T>.GetValue()""
-  IL_000b:  ldelem.ref
-  IL_000c:  stloc.0
-  IL_000d:  ldloc.0
-  IL_000e:  brtrue.s   IL_0030
-  IL_0010:  ldsfld     ""System.Guid <PrivateImplementationDetails>.MVID""
-  IL_0015:  ldtoken    ""T MyBox<T>.GetValue()""
-  IL_001a:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
-  IL_001f:  ldtoken    ""T MyBox<T>.GetValue()""
-  IL_0024:  ldelema    ""bool[]""
-  IL_0029:  ldc.i4.3
-  IL_002a:  call       ""bool[] Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, ref bool[], int)""
-  IL_002f:  stloc.0
+  IL_0000:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
+  IL_0005:  ldtoken    ""T MyBox<T>.GetValue()""
+  IL_000a:  ldelem.ref
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  brtrue.s   IL_002f
+  IL_000f:  ldsfld     ""System.Guid <PrivateImplementationDetails>.MVID""
+  IL_0014:  ldtoken    ""T MyBox<T>.GetValue()""
+  IL_0019:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
+  IL_001e:  ldtoken    ""T MyBox<T>.GetValue()""
+  IL_0023:  ldelema    ""bool[]""
+  IL_0028:  ldc.i4.3
+  IL_0029:  call       ""bool[] Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, ref bool[], int)""
+  IL_002e:  stloc.0
+  IL_002f:  nop
   IL_0030:  ldloc.0
   IL_0031:  ldc.i4.1
   IL_0032:  ldc.i4.1
@@ -1010,7 +1010,10 @@ public class Program
         {
         }
 
-        return;
+        while (true)
+        {
+            return;
+        }
     }
 }
 ";
@@ -1052,6 +1055,7 @@ True
 True
 True
 False
+True
 True
 True
 6
