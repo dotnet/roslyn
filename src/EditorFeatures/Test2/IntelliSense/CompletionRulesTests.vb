@@ -48,8 +48,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Private Sub TestMatches(v As String, wordsToMatch() As String)
             Using New CultureContext("tr-TR")
                 Dim workspace = New TestWorkspace
-                Dim helper = CompletionHelper.GetHelper(workspace, LanguageNames.CSharp,
-                                                        workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService(Of CompletionService))
+                Dim helper = CompletionHelper.GetHelper(workspace, LanguageNames.CSharp)
                 For Each word In wordsToMatch
                     Dim item = CompletionItem.Create(word)
                     Assert.True(helper.MatchesFilterText(item, v, CompletionTrigger.Default, CompletionFilterReason.TypeChar), $"Expected item {word} does not match {v}")
@@ -60,8 +59,7 @@ Namespace Microsoft.CodeAnalysis.Editor.UnitTests.IntelliSense
         Private Sub TestNotMatches(v As String, wordsToNotMatch() As String)
             Using New CultureContext("tr-TR")
                 Dim workspace = New TestWorkspace
-                Dim helper = CompletionHelper.GetHelper(workspace, LanguageNames.CSharp,
-                                                        workspace.Services.GetLanguageServices(LanguageNames.CSharp).GetService(Of CompletionService))
+                Dim helper = CompletionHelper.GetHelper(workspace, LanguageNames.CSharp)
                 For Each word In wordsToNotMatch
                     Dim item = CompletionItem.Create(word)
                     Assert.False(helper.MatchesFilterText(item, v, CompletionTrigger.Default, CompletionFilterReason.TypeChar), $"Unexpected item {word} matches {v}")

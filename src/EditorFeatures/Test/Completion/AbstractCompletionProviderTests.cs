@@ -58,9 +58,9 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
         internal abstract CompletionServiceWithProviders CreateCompletionService(
             Workspace workspace, ImmutableArray<CompletionProvider> exclusiveProviders);
 
-        internal static CompletionHelper GetCompletionHelper(Document document, CompletionService service)
+        internal static CompletionHelper GetCompletionHelper(Document document)
         {
-            return CompletionHelper.GetHelper(document, service);
+            return CompletionHelper.GetHelper(document);
         }
 
         internal static async Task<CompletionContext> GetCompletionListContextAsync(
@@ -310,7 +310,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var customCommitCompletionProvider = service.ExclusiveProviders?[0] as ICustomCommitCompletionProvider;
             if (customCommitCompletionProvider != null)
             {
-                var completionRules = GetCompletionHelper(document, service);
+                var completionRules = GetCompletionHelper(document);
                 var textView = (await WorkspaceFixture.GetWorkspaceAsync()).Documents.Single().GetTextView();
                 VerifyCustomCommitWorker(service, customCommitCompletionProvider, firstItem, completionRules, textView, textBuffer, codeBeforeCommit, expectedCodeAfterCommit, commitChar);
             }
@@ -416,7 +416,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
             var items = (await GetCompletionListAsync(service, document, position, CompletionTrigger.Default)).Items;
             var firstItem = items.First(i => CompareItems(i.DisplayText, itemToCommit));
 
-            var completionRules = GetCompletionHelper(document, service);
+            var completionRules = GetCompletionHelper(document);
             var commitChar = commitCharOpt ?? '\t';
 
             var text = await document.GetTextAsync();
