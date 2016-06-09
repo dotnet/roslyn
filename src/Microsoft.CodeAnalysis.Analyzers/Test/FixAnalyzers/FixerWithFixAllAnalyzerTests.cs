@@ -44,7 +44,7 @@ public class MyCodeActionWithEquivalenceKey : CodeAction
     }
 }
 ";
-        private void TestCSharpCore(string source, bool withCustomCodeActions = false, params DiagnosticResult[] expected)
+        private void TestCSharpCore(string source, bool withCustomCodeActions = false, TestValidationMode validationMode = DefaultTestValidationMode, params DiagnosticResult[] expected)
         {
             var fixAllProviderString = @"public override FixAllProvider GetFixAllProvider()
     {
@@ -60,10 +60,10 @@ public class MyCodeActionWithEquivalenceKey : CodeAction
             }
 
             // Verify expected diagnostics for fixer that supports FixAllProvider.
-            VerifyCSharp(source + fixAllProviderString + sourceSuffix, expected);
+            VerifyCSharp(source + fixAllProviderString + sourceSuffix, validationMode, expected);
 
             // Verify no diagnostics for fixer that does not support FixAllProvider.
-            VerifyCSharp(source + sourceSuffix);
+            VerifyCSharp(source + sourceSuffix, validationMode);
         }
 
         [Fact]
@@ -154,11 +154,20 @@ class C1 : CodeFixProvider
         var codeAction2_3 = CodeAction.Create(equivalenceKey: equivalenceKey, title: ""Title2_3"", createChangedDocument: _ => Task.FromResult(context.Document));
 
         // Conservative no diagnostic cases.
-        var nullKey = null;
-        var codeAction3_1 = CodeAction.Create(""Title2_1"", _ => Task.FromResult(context.Document), nullKey);
-        var codeAction3_2 = CodeAction.Create(""Title2_1"", _ => Task.FromResult(context.Document), GetKey());
+        string nullKey = null;
+        var codeAction3_1 = CodeAction.Create(""Title3_1"", _ => Task.FromResult(context.Document), nullKey);
+        var codeAction3_2 = CodeAction.Create(""Title3_1"", _ => Task.FromResult(context.Document), GetKey());
         
-        context.RegisterCodeFix(codeAction, context.Diagnostics);
+        context.RegisterCodeFix(codeAction1_1, context.Diagnostics);
+        context.RegisterCodeFix(codeAction1_2, context.Diagnostics);
+
+        context.RegisterCodeFix(codeAction2_1, context.Diagnostics);
+        context.RegisterCodeFix(codeAction2_2, context.Diagnostics);
+        context.RegisterCodeFix(codeAction2_3, context.Diagnostics);
+
+        context.RegisterCodeFix(codeAction3_1, context.Diagnostics);
+        context.RegisterCodeFix(codeAction3_2, context.Diagnostics);
+
         return null;
     }
 
@@ -168,7 +177,7 @@ class C1 : CodeFixProvider
     }
 ";
             // Verify no diagnostics.
-            TestCSharpCore(source);
+            TestCSharpCore(source, validationMode: TestValidationMode.AllowCompileErrors);
         }
 
         [Fact]
@@ -273,7 +282,7 @@ Public Class MyCodeActionWithEquivalenceKey
 	End Property
 End Class
 ";
-        private void TestBasicCore(string source, bool withCustomCodeActions = false, params DiagnosticResult[] expected)
+        private void TestBasicCore(string source, bool withCustomCodeActions = false, TestValidationMode validationMode = DefaultTestValidationMode, params DiagnosticResult[] expected)
         {
             var fixAllProviderString = @"Public Overrides Function GetFixAllProvider() As FixAllProvider
 	Return WellKnownFixAllProviders.BatchFixer
@@ -290,10 +299,10 @@ End Class
             }
 
             // Verify expected diagnostics for fixer that supports FixAllProvider.
-            VerifyBasic(source + fixAllProviderString + sourceSuffix, expected);
+            VerifyBasic(source + fixAllProviderString + sourceSuffix, validationMode, expected);
 
             // Verify no diagnostics for fixer that does not support FixAllProvider.
-            VerifyBasic(source + sourceSuffix);
+            VerifyBasic(source + sourceSuffix, validationMode);
         }
 
         [Fact]
@@ -316,14 +325,14 @@ Class C1
 
 	Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
 		' Regular cases.
-		Dim codeAction1_1 = CodeAction.Create(""Title1_1"", Function(_) Task.FromResult(context.Document))
-		Dim codeAction1_2 = CodeAction.Create(""Title1_2"", createChangedDocument := Function(_) Task.FromResult(context.Document))
-		Dim codeAction1_3 = CodeAction.Create(createChangedDocument := Function(_) Task.FromResult(context.Document), title := ""Title1_3"")
+		Dim codeAction1_1 = CodeAction.Create(""Title1_1"", Function(x) Task.FromResult(context.Document))
+		Dim codeAction1_2 = CodeAction.Create(""Title1_2"", createChangedDocument := Function(x) Task.FromResult(context.Document))
+		Dim codeAction1_3 = CodeAction.Create(createChangedDocument := Function(x) Task.FromResult(context.Document), title := ""Title1_3"")
 
 		' Null argument for equivalenceKey.
-		Dim codeAction2_1 = CodeAction.Create(""Title2_1"", Function(_) Task.FromResult(context.Document), Nothing)
-		Dim codeAction2_2 = CodeAction.Create(createChangedDocument := Function(_) Task.FromResult(context.Document), equivalenceKey := Nothing, title := ""Title2_2"")
-		Dim codeAction2_3 = CodeAction.Create(""Title2_3"", Function(_) Task.FromResult(context.Document), equivalenceKey := Nothing)
+		Dim codeAction2_1 = CodeAction.Create(""Title2_1"", Function(x) Task.FromResult(context.Document), Nothing)
+		Dim codeAction2_2 = CodeAction.Create(createChangedDocument := Function(x) Task.FromResult(context.Document), equivalenceKey := Nothing, title := ""Title2_2"")
+		Dim codeAction2_3 = CodeAction.Create(""Title2_3"", Function(x) Task.FromResult(context.Document), equivalenceKey := Nothing)
 
 		Return Nothing
 	End Function
@@ -369,20 +378,29 @@ Class C1
 	Public Overrides Function RegisterCodeFixesAsync(context As CodeFixContext) As Task
 		' Overload resolution failure cases.
 		Dim codeAction1_1 = CodeAction.Create(""Title1_1"")
-		Dim codeAction1_2 = CodeAction.Create(createChangedDocument := Function(_) Task.FromResult(context.Document), equivalenceKey := Nothing)
+		Dim codeAction1_2 = CodeAction.Create(createChangedDocument := Function(x) Task.FromResult(context.Document), equivalenceKey := Nothing)
 
 		' Correct non-null arguments
 		Dim equivalenceKey = ""equivalenceKey""
-		Dim codeAction2_1 = CodeAction.Create(""Title2_1"", Function(_) Task.FromResult(context.Document), equivalenceKey)
-		Dim codeAction2_2 = CodeAction.Create(title := ""Title2_2"", createChangedDocument := Function(_) Task.FromResult(context.Document), equivalenceKey := equivalenceKey)
-		Dim codeAction2_3 = CodeAction.Create(equivalenceKey := equivalenceKey, title := ""Title2_3"", createChangedDocument := Function(_) Task.FromResult(context.Document))
+		Dim codeAction2_1 = CodeAction.Create(""Title2_1"", Function(x) Task.FromResult(context.Document), equivalenceKey)
+		Dim codeAction2_2 = CodeAction.Create(title := ""Title2_2"", createChangedDocument := Function(x) Task.FromResult(context.Document), equivalenceKey := equivalenceKey)
+		Dim codeAction2_3 = CodeAction.Create(equivalenceKey := equivalenceKey, title := ""Title2_3"", createChangedDocument := Function(x) Task.FromResult(context.Document))
 
 		' Conservative no diagnostic cases.
-		Dim nullKey = Nothing
-		Dim codeAction3_1 = CodeAction.Create(""Title2_1"", Function(_) Task.FromResult(context.Document), nullKey)
-		Dim codeAction3_2 = CodeAction.Create(""Title2_1"", Function(_) Task.FromResult(context.Document), GetKey())
+		Dim nullKey As String = Nothing
+		Dim codeAction3_1 = CodeAction.Create(""Title3_1"", Function(x) Task.FromResult(context.Document), nullKey)
+		Dim codeAction3_2 = CodeAction.Create(""Title3_1"", Function(x) Task.FromResult(context.Document), GetKey())
 
-		context.RegisterCodeFix(codeAction, context.Diagnostics)
+		context.RegisterCodeFix(codeAction1_1, context.Diagnostics)
+		context.RegisterCodeFix(codeAction1_2, context.Diagnostics)
+
+		context.RegisterCodeFix(codeAction2_1, context.Diagnostics)
+		context.RegisterCodeFix(codeAction2_2, context.Diagnostics)
+		context.RegisterCodeFix(codeAction2_3, context.Diagnostics)
+
+		context.RegisterCodeFix(codeAction3_1, context.Diagnostics)
+		context.RegisterCodeFix(codeAction3_2, context.Diagnostics)
+
 		Return Nothing
 	End Function
 
@@ -391,7 +409,7 @@ Class C1
 	End Function
 ";
             // Verify no diagnostics.
-            TestBasicCore(source);
+            TestBasicCore(source, validationMode: TestValidationMode.AllowCompileErrors);
         }
 
         [Fact]
@@ -431,7 +449,6 @@ Class C1
         public void VisualBasic_CustomCodeAction_NoDiagnostics()
         {
             var source = @"
-using System;
 Imports System
 Imports System.Collections.Immutable
 Imports System.Threading.Tasks

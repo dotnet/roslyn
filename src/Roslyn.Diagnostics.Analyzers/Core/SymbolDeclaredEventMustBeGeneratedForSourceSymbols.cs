@@ -31,13 +31,7 @@ namespace Roslyn.Diagnostics.Analyzers
             description: s_localizableDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-        {
-            get
-            {
-                return ImmutableArray.Create(SymbolDeclaredEventRule);
-            }
-        }
+        public sealed override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(SymbolDeclaredEventRule);
 
         public sealed override void Initialize(AnalysisContext context)
         {

@@ -23,14 +23,14 @@ using Microsoft.CodeAnalysis.Diagnostics;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 class MyAnalyzer : DiagnosticAnalyzer
 {
-    private static readonly DiagnosticDescriptor descriptor = new TriggerDiagnosticDescriptor(""MyDiagnosticId"");
-    private static readonly DiagnosticDescriptor descriptor2 = new TriggerDiagnosticDescriptor(""MyDiagnosticId2"");
+    private static readonly DiagnosticDescriptor descriptor1 = new DiagnosticDescriptor(""MyDiagnosticId1"", null, null, null, DiagnosticSeverity.Warning, false);
+    private static readonly DiagnosticDescriptor descriptor2 = new DiagnosticDescriptor(""MyDiagnosticId2"", null, null, null, DiagnosticSeverity.Warning, false);
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
     {
         get
         {
-            return ImmutableArray.Create(descriptor);
+            return ImmutableArray.Create(descriptor1);
         }
     }
 
@@ -88,8 +88,8 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Class MyAnalyzer
     Inherits DiagnosticAnalyzer
 
-    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = New TriggerDiagnosticDescriptor(""MyDiagnosticId"")
-    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = New TriggerDiagnosticDescriptor(""MyDiagnosticId2"")
+    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = New DiagnosticDescriptor(""MyDiagnosticId1"", Nothing, Nothing, Nothing, DiagnosticSeverity.Warning, False)
+    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = New DiagnosticDescriptor(""MyDiagnosticId2"", Nothing, Nothing, Nothing, DiagnosticSeverity.Warning, False)
 
     Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
         Get
@@ -147,14 +147,14 @@ using Microsoft.CodeAnalysis.Diagnostics;
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
 class MyAnalyzer : DiagnosticAnalyzer
 {
-    private static readonly DiagnosticDescriptor descriptor = new TriggerDiagnosticDescriptor(""MyDiagnosticId"");
-    private static readonly DiagnosticDescriptor descriptor2 = new TriggerDiagnosticDescriptor(""MyDiagnosticId2"");
+    private static readonly DiagnosticDescriptor descriptor1 = new DiagnosticDescriptor(""MyDiagnosticId1"", null, null, null, DiagnosticSeverity.Warning, false);
+    private static readonly DiagnosticDescriptor descriptor2 = new DiagnosticDescriptor(""MyDiagnosticId2"", null, null, null, DiagnosticSeverity.Warning, false);
 
     public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
     {
         get
         {
-            return ImmutableArray.Create(descriptor);
+            return ImmutableArray.Create(descriptor1);
         }
     }
 
@@ -176,7 +176,7 @@ class MyAnalyzer : DiagnosticAnalyzer
     }
 }";
 
-            VerifyCSharp(source);
+            VerifyCSharp(source, TestValidationMode.AllowCompileErrors);
         }
 
         [Fact]
@@ -184,6 +184,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         {
             var source = @"
 Imports System
+Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -192,8 +193,8 @@ Imports Microsoft.CodeAnalysis.Diagnostics
 Class MyAnalyzer
     Inherits DiagnosticAnalyzer
 
-    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = New TriggerDiagnosticDescriptor(""MyDiagnosticId"")
-    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = New TriggerDiagnosticDescriptor(""MyDiagnosticId2"")
+    Private Shared ReadOnly descriptor1 As DiagnosticDescriptor = New DiagnosticDescriptor(""MyDiagnosticId1"", Nothing, Nothing, Nothing, DiagnosticSeverity.Warning, False)
+    Private Shared ReadOnly descriptor2 As DiagnosticDescriptor = New DiagnosticDescriptor(""MyDiagnosticId2"", Nothing, Nothing, Nothing, DiagnosticSeverity.Warning, False)
 
     Public Overrides ReadOnly Property SupportedDiagnostics() As ImmutableArray(Of DiagnosticDescriptor)
         Get
@@ -218,7 +219,7 @@ Class MyAnalyzer
 End Class
 ";
 
-            VerifyBasic(source);
+            VerifyBasic(source, TestValidationMode.AllowCompileErrors);
         }
 
         protected override CodeFixProvider GetCSharpCodeFixProvider()

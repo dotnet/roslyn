@@ -41,7 +41,7 @@ class MyAnalyzer : DiagnosticAnalyzer
 
         context.RegisterSyntaxNodeAction(AnalyzeSyntax, SyntaxKind.InvocationExpression);
         context.RegisterCodeBlockStartAction<SyntaxKind>(AnalyzeCodeBlockStart);
-        context.RegisterOperationBlockStartAction<SyntaxKind>(AnalyzeOperationBlockStart);
+        context.RegisterOperationBlockStartAction(AnalyzeOperationBlockStart);
     }
 
     private static void AnalyzeSyntax(SyntaxNodeAnalysisContext context)
@@ -93,7 +93,7 @@ Class MyAnalyzer
 
         context.RegisterSyntaxNodeAction(AddressOf AnalyzeSyntax, SyntaxKind.InvocationExpression)
         context.RegisterCodeBlockStartAction(Of SyntaxKind)(AddressOf AnalyzeCodeBlockStart)
-        context.RegisterOperationBlockStartAction(Of SyntaxKind)(AddressOf AnalyzeOperationBlockStart)
+        context.RegisterOperationBlockStartAction(AddressOf AnalyzeOperationBlockStart)
     End Sub
 
     Private Shared Sub AnalyzeSyntax(context As SyntaxNodeAnalysisContext)
@@ -227,7 +227,7 @@ class MyAnalyzer : DiagnosticAnalyzer
 
     public override void Initialize(AnalysisContext context)
     {
-        compilationContext.RegisterOperationAction(AnalyzeOperation, OperationKind.InvocationExpression);
+        context.RegisterOperationAction(AnalyzeOperation, OperationKind.InvocationExpression);
     }
 
     private static void AnalyzeOperation(OperationAnalysisContext context)
@@ -248,7 +248,7 @@ class MyAnalyzer2 : DiagnosticAnalyzer
 
     public override void Initialize(AnalysisContext context)
     {
-        compilationContext.RegisterOperationBlockAction(AnalyzeOperationBlock);
+        context.RegisterOperationBlockAction(AnalyzeOperationBlock);
     }
 
     private static void AnalyzeOperationBlock(OperationBlockAnalysisContext context)
@@ -419,7 +419,7 @@ Class MyAnalyzer
 	End Property
 
 	Public Overrides Sub Initialize(context As AnalysisContext)
-		compilationContext.RegisterOperationAction(AddressOf AnalyzeOperation, OperationKind.InvocationExpression)
+		context.RegisterOperationAction(AddressOf AnalyzeOperation, OperationKind.InvocationExpression)
 	End Sub
 
 	Private Shared Sub AnalyzeOperation(context As OperationAnalysisContext)
@@ -436,7 +436,7 @@ Class MyAnalyzer2
 	End Property
 
 	Public Overrides Sub Initialize(context As AnalysisContext)
-		compilationContext.RegisterOperationBlockAction(AddressOf AnalyzeOperationBlock)
+		context.RegisterOperationBlockAction(AddressOf AnalyzeOperationBlock)
 	End Sub
 
 	Private Shared Sub AnalyzeOperationBlock(context As OperationBlockAnalysisContext)

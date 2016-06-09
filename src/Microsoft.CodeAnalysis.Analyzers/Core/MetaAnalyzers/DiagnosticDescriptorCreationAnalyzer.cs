@@ -26,13 +26,7 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: s_localizableDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-        {
-            get
-            {
-                return ImmutableArray.Create(UseLocalizableStringsInDescriptorRule);
-            }
-        }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(UseLocalizableStringsInDescriptorRule);
 
         protected abstract ImmutableArray<TLanguageKindEnum> SyntaxKindsOfInterest { get; }
 

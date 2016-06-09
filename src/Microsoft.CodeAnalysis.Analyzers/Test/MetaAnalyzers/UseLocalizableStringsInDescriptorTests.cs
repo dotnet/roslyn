@@ -71,7 +71,7 @@ End Class
             VerifyBasic(source, expected);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn-analyzers/issues/1039")]
         public void CSharp_NoDiagnosticCases()
         {
             var source = @"
@@ -104,7 +104,7 @@ class MyAnalyzer : DiagnosticAnalyzer
             VerifyCSharp(source);
         }
 
-        [Fact]
+        [Fact(Skip = "https://github.com/dotnet/roslyn-analyzers/issues/1039")]
         public void VisualBasic_NoDiagnosticCases()
         {
             var source = @"

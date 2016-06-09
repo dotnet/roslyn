@@ -11,21 +11,18 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
     {
         protected abstract class DiagnosticAnalyzerSymbolAnalyzer
         {
-            private readonly INamedTypeSymbol _diagnosticAnalyzer;
-            private readonly INamedTypeSymbol _diagnosticAnalyzerAttribute;
-
             protected DiagnosticAnalyzerSymbolAnalyzer(INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
             {
-                _diagnosticAnalyzer = diagnosticAnalyzer;
-                _diagnosticAnalyzerAttribute = diagnosticAnalyzerAttribute;
+                DiagnosticAnalyzer = diagnosticAnalyzer;
+                DiagnosticAnalyzerAttribute = diagnosticAnalyzerAttribute;
             }
 
-            protected INamedTypeSymbol DiagnosticAnalyzer { get { return _diagnosticAnalyzer; } }
-            protected INamedTypeSymbol DiagnosticAnalyzerAttribute { get { return _diagnosticAnalyzerAttribute; } }
+            protected INamedTypeSymbol DiagnosticAnalyzer { get; }
+            protected INamedTypeSymbol DiagnosticAnalyzerAttribute { get; }
 
             protected bool IsDiagnosticAnalyzer(INamedTypeSymbol type)
             {
-                return type.Equals(_diagnosticAnalyzer);
+                return type.Equals(DiagnosticAnalyzer);
             }
 
             internal void AnalyzeSymbol(SymbolAnalysisContext symbolContext)

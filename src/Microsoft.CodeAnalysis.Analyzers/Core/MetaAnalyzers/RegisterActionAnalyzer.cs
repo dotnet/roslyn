@@ -107,20 +107,14 @@ namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers
             description: s_localizableDescriptionStatefulAnalyzerRegisterActionsDescription,
             customTags: WellKnownDiagnosticTags.Telemetry);
 
-        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics
-        {
-            get
-            {
-                return ImmutableArray.Create(
-                    MissingSymbolKindArgumentRule,
-                    MissingSyntaxKindArgumentRule,
-                    MissingOperationKindArgumentRule,
-                    UnsupportedSymbolKindArgumentRule,
-                    InvalidSyntaxKindTypeArgumentRule,
-                    StartActionWithNoRegisteredActionsRule,
-                    StartActionWithOnlyEndActionRule);
-            }
-        }
+        public override ImmutableArray<DiagnosticDescriptor> SupportedDiagnostics => ImmutableArray.Create(
+            MissingSymbolKindArgumentRule,
+            MissingSyntaxKindArgumentRule,
+            MissingOperationKindArgumentRule,
+            UnsupportedSymbolKindArgumentRule,
+            InvalidSyntaxKindTypeArgumentRule,
+            StartActionWithNoRegisteredActionsRule,
+            StartActionWithOnlyEndActionRule);
 
         protected override DiagnosticAnalyzerSymbolAnalyzer GetDiagnosticAnalyzerSymbolAnalyzer(CompilationStartAnalysisContext compilationContext, INamedTypeSymbol diagnosticAnalyzer, INamedTypeSymbol diagnosticAnalyzerAttribute)
         {
