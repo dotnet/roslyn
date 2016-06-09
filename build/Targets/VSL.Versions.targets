@@ -12,6 +12,10 @@
     <MicrosoftCodeAnalysisElfieVersion>0.10.6-rc2</MicrosoftCodeAnalysisElfieVersion>
     <ManagedEsentVersion>1.9.2</ManagedEsentVersion>
     <CodeAnalysisAnalyzersVersion>1.1.0</CodeAnalysisAnalyzersVersion>
+    <!-- Pre-release version of CoreFX dependencies (empty for release). Used e.g. in used in .nuspec files. -->
+    <CoreFXVersionSuffix>-rc3-24208-04</CoreFXVersionSuffix>
+    <!-- Pre-release version of CoreCLR dependencies (empty for release). Used e.g. to find crossgen. -->
+    <CoreClrVersionSuffix>-rc3-24208-04</CoreClrVersionSuffix>
   </PropertyGroup>
   
   <Choose>
