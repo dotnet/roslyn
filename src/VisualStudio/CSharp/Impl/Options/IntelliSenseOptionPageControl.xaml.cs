@@ -20,9 +20,9 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             BindToOption(ShowKeywords, CompletionOptions.IncludeKeywords, LanguageNames.CSharp);
             BindToOption(BringUpOnIdentifier, CompletionOptions.TriggerOnTypingLetters, LanguageNames.CSharp);
 
-            BindToOption(Never_add_new_line_on_enter, CompletionOptions.AddNewLineOnEnterAfterFullyTypedWord, (int)EnterKeyRule.Never, LanguageNames.CSharp);
-            BindToOption(Only_add_new_line_on_enter_with_whole_word, CompletionOptions.AddNewLineOnEnterAfterFullyTypedWord, (int)EnterKeyRule.AfterFullyTypedWord, LanguageNames.CSharp);
-            BindToOption(Always_add_new_line_on_enter, CompletionOptions.AddNewLineOnEnterAfterFullyTypedWord, (int)EnterKeyRule.Always, LanguageNames.CSharp);
+            BindToOption(Never_add_new_line_on_enter, CompletionOptions.EnterKeyBehavior, EnterKeyRule.Never, LanguageNames.CSharp);
+            BindToOption(Only_add_new_line_on_enter_with_whole_word, CompletionOptions.EnterKeyBehavior, EnterKeyRule.AfterFullyTypedWord, LanguageNames.CSharp);
+            BindToOption(Always_add_new_line_on_enter, CompletionOptions.EnterKeyBehavior, EnterKeyRule.Always, LanguageNames.CSharp);
         }
 
         private void BringUpOnIdentifier_Checked(object sender, System.Windows.RoutedEventArgs e)

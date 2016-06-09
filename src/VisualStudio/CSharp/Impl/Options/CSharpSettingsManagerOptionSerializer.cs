@@ -148,7 +148,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                     option == CompletionOptions.TriggerOnTypingLetters ||
                     option == CompletionOptions.ShowCompletionItemFilters ||
                     option == CompletionOptions.HighlightMatchingPortionsOfCompletionListItems ||
-                    option == CompletionOptions.AddNewLineOnEnterAfterFullyTypedWord ||
+                    option == CompletionOptions.EnterKeyBehavior ||
                     option.Feature == SimplificationOptions.PerLanguageFeatureName ||
                     option.Feature == ExtractMethodOptions.FeatureName ||
                     option.Feature == ServiceFeatureOnOffOptions.OptionName ||
@@ -267,7 +267,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                 return FetchStyleBool(Style_UseImplicitTypeWherePossible, out value);
             }
 
-            if (optionKey.Option == CompletionOptions.AddNewLineOnEnterAfterFullyTypedWord)
+            if (optionKey.Option == CompletionOptions.EnterKeyBehavior)
             {
                 bool found = base.TryFetch(optionKey, out value);
                 value = ConvertToEnterKeyRule(value);
@@ -284,7 +284,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         }
 
         /// <summary>
-        /// The AddNewLineOnEnterAfterFullyTypedWord option used to only exist in C# and as a boolean.
+        /// The EnterKeyBehavior option (formerly AddNewLineOnEnterAfterFullyTypedWord) used to only exist in C# and as a boolean.
         /// We need to maintain the meaning of the serialized legacy setting.
         /// </summary>
         private EnterKeyRule ConvertToEnterKeyRule(object value)
@@ -399,7 +399,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                 return PersistStyleOption<bool>(Style_UseImplicitTypeWherePossible, value);
             }
 
-            if (optionKey.Option == CompletionOptions.AddNewLineOnEnterAfterFullyTypedWord)
+            if (optionKey.Option == CompletionOptions.EnterKeyBehavior)
             {
                 value = ConvertFromEnterKeyRule(value);
             }
@@ -413,7 +413,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         /// </summary>
         private int ConvertFromEnterKeyRule(object value)
         {
-            EnterKeyRule rule = (EnterKeyRule)value;
+            var rule = (EnterKeyRule)value;
             switch (rule)
             {
                 case EnterKeyRule.AfterFullyTypedWord:

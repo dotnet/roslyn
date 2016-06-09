@@ -103,11 +103,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
             _bindingExpressions.Add(bindingExpression);
         }
 
-        protected void BindToOption(RadioButton radiobutton, PerLanguageOption<int> optionKey, int optionValue, string languageName)
+        protected void BindToOption<T>(RadioButton radiobutton, PerLanguageOption<T> optionKey, T optionValue, string languageName)
         {
             var binding = new Binding()
             {
-                Source = new PerLanguageOptionBinding<int>(OptionService, optionKey, languageName),
+                Source = new PerLanguageOptionBinding<T>(OptionService, optionKey, languageName),
                 Path = new PropertyPath("Value"),
                 UpdateSourceTrigger = UpdateSourceTrigger.Explicit,
                 Converter = new RadioButtonCheckedConverter(),

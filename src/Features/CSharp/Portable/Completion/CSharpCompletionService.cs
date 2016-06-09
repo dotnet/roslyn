@@ -78,7 +78,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
         {
             var options = _workspace.Options;
 
-            var rule = (EnterKeyRule)options.GetOption(CompletionOptions.AddNewLineOnEnterAfterFullyTypedWord, LanguageNames.CSharp);
+            var rule = options.GetOption(CompletionOptions.EnterKeyBehavior, LanguageNames.CSharp);
 
             if (rule == EnterKeyRule.Default)
             {

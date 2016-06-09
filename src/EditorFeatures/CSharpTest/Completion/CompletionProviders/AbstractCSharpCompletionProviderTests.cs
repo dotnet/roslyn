@@ -146,9 +146,9 @@ text;
                 var position = hostDocument.CursorPosition.Value;
 
                 workspace.Options = workspace.Options.WithChangedOption(
-                    CompletionOptions.AddNewLineOnEnterAfterFullyTypedWord,
+                    CompletionOptions.EnterKeyBehavior,
                     LanguageNames.CSharp,
-                    (int)sendThroughEnterOption);
+                    sendThroughEnterOption);
 
                 var service = GetCompletionService(workspace);
                 var completionList = await GetCompletionListAsync(service, document, position, CompletionTrigger.Default);

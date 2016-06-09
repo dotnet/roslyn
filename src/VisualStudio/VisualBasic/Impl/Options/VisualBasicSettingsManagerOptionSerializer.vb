@@ -86,7 +86,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         End Property
 
         Protected Overrides Function SupportsOption([option] As IOption, languageName As String) As Boolean
-            If [option].Name = CompletionOptions.AddNewLineOnEnterAfterFullyTypedWord.Name Then
+            If [option].Name = CompletionOptions.EnterKeyBehavior.Name Then
                 Return True
 
             ElseIf languageName = LanguageNames.VisualBasic Then
@@ -161,7 +161,21 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                 Return FetchStyleBool(Style_QualifyEventAccess, value)
             End If
 
+            If optionKey.Option Is CompletionOptions.EnterKeyBehavior Then
+                Dim found = MyBase.TryFetch(optionKey, value)
+                value = FixDefaultForEnterKeyRule(value)
+                Return found
+            End If
+
             Return MyBase.TryFetch(optionKey, value)
+        End Function
+
+        Private Function FixDefaultForEnterKeyRule(value As Object) As Object
+            If value.Equals(EnterKeyRule.Default) Then
+                Return EnterKeyRule.Always
+            End If
+
+            Return value
         End Function
 
         Public Overrides Function TryPersist(optionKey As OptionKey, value As Object) As Boolean

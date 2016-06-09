@@ -18,7 +18,7 @@ namespace Microsoft.CodeAnalysis.Completion
             CompletionOptions.TriggerOnTypingLetters,
             CompletionOptions.ShowCompletionItemFilters,
             CompletionOptions.HighlightMatchingPortionsOfCompletionListItems,
-            CompletionOptions.AddNewLineOnEnterAfterFullyTypedWord);
+            CompletionOptions.EnterKeyBehavior);
 
         public IEnumerable<IOption> GetOptions() => _options;
     }
