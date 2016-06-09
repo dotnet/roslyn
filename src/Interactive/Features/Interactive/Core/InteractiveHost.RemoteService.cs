@@ -20,7 +20,8 @@ namespace Microsoft.CodeAnalysis.Interactive
             // output pumping threads (stream output from stdout/stderr of the host process to the output/errorOutput writers)
             private Thread _readOutputThread;           // nulled on dispose
             private Thread _readErrorOutputThread;      // nulled on dispose
-            private InteractiveHost _host;       // nulled on dispose
+            private InteractiveHost _host;              // nulled on dispose
+            private bool _isDisposed;                   // set to true on dispose
 
             internal RemoteService(InteractiveHost host, Process process, int processId, Service service)
             {
@@ -29,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                 Debug.Assert(service != null);
 
                 _host = host;
+                _isDisposed = false;
                 this.Process = process;
                 _processId = processId;
                 this.Service = service;
@@ -73,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Interactive
                     }
                 };
 
-                // hook the even only once per process:
+                // hook the event only once per process:
                 if (Interlocked.Exchange(ref processExitHandling, ProcessExitHooked) == 0)
                 {
                     Process.Exited += localHandler;
@@ -110,12 +112,12 @@ namespace Microsoft.CodeAnalysis.Interactive
                 }
             }
 
-            private bool IsDisposed => _host == null;
+            private bool IsDisposed => _isDisposed;
 
             internal void Dispose(bool joinThreads)
             {
-                // null the host so that we don't attempt to restart or write to the buffer anymore:
-                _host = null;
+                // set _isDisposed so that we don't attempt restart the host anymore:
+                _isDisposed = true;
 
                 InitiateTermination(Process, _processId);
 
@@ -146,6 +148,9 @@ namespace Microsoft.CodeAnalysis.Interactive
                         }
                     }
                 }
+
+                // null the host so that we don't attempt to write to the buffer anymore:
+                _host = null;
 
                 _readOutputThread = _readErrorOutputThread = null;
             }
