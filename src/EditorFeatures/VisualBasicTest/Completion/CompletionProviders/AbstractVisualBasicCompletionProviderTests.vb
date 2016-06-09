@@ -21,26 +21,26 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Return New VisualBasicCompletionService(workspace, exclusiveProviders)
         End Function
 
-        Protected Overrides Async Function VerifyWorkerAsync(code As String, position As Integer, expectedItemOrNull As String, expectedDescriptionOrNull As String, sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean, checkForAbsence As Boolean, experimental As Boolean, glyph As Integer?) As Threading.Tasks.Task
+        Protected Overrides Async Function VerifyWorkerAsync(code As String, position As Integer, expectedItemOrNull As String, expectedDescriptionOrNull As String, sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean, checkForAbsence As Boolean, experimental As Boolean, glyph As Integer?, matchPriority As Integer?) As Threading.Tasks.Task
             ' Script/interactive support removed for now.
             ' TODO: Re-enable these when interactive is back in the product.
             If sourceCodeKind <> Microsoft.CodeAnalysis.SourceCodeKind.Regular Then
                 Return
             End If
 
-            Await VerifyAtPositionAsync(code, position, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph, experimental)
-            Await VerifyAtEndOfFileAsync(code, position, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph, experimental)
+            Await VerifyAtPositionAsync(code, position, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph, matchPriority, experimental)
+            Await VerifyAtEndOfFileAsync(code, position, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph, matchPriority, experimental)
 
             ' Items cannot be partially written if we're checking for their absence,
             ' or if we're verifying that the list will show up (without specifying an actual item)
             If Not checkForAbsence AndAlso expectedItemOrNull <> Nothing Then
-                Await VerifyAtPosition_ItemPartiallyWrittenAsync(code, position, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph, experimental)
-                Await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(code, position, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph, experimental)
+                Await VerifyAtPosition_ItemPartiallyWrittenAsync(code, position, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph, matchPriority, experimental)
+                Await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(code, position, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph, matchPriority, experimental)
             End If
         End Function
 
-        Protected Overridable Async Function BaseVerifyWorkerAsync(code As String, position As Integer, expectedItemOrNull As String, expectedDescriptionOrNull As String, sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean, checkForAbsence As Boolean, glyph As Integer?, experimental As Boolean) As Threading.Tasks.Task
-            Await MyBase.VerifyWorkerAsync(code, position, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, experimental:=experimental, glyph:=glyph)
+        Protected Overridable Async Function BaseVerifyWorkerAsync(code As String, position As Integer, expectedItemOrNull As String, expectedDescriptionOrNull As String, sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean, checkForAbsence As Boolean, glyph As Integer?, experimental As Boolean, matchPriority As Integer?) As Threading.Tasks.Task
+            Await MyBase.VerifyWorkerAsync(code, position, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, experimental:=experimental, glyph:=glyph, matchPriority:=matchPriority)
         End Function
 
         Protected Overrides Async Function VerifyCustomCommitProviderWorkerAsync(codeBeforeCommit As String, position As Integer, itemToCommit As String, expectedCodeAfterCommit As String, sourceCodeKind As SourceCodeKind, Optional commitChar As Char? = Nothing) As Threading.Tasks.Task
@@ -53,22 +53,23 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Await MyBase.VerifyCustomCommitProviderWorkerAsync(codeBeforeCommit, position, itemToCommit, expectedCodeAfterCommit, sourceCodeKind, commitChar)
         End Function
 
-        Private Function VerifyAtPositionAsync(code As String, position As Integer, insertText As String, expectedItemOrNull As String, expectedDescriptionOrNull As String, sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean, checkForAbsence As Boolean, glyph As Integer?, experimental As Boolean) As Threading.Tasks.Task
+
+        Private Function VerifyAtPositionAsync(code As String, position As Integer, insertText As String, expectedItemOrNull As String, expectedDescriptionOrNull As String, sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean, checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?, experimental As Boolean) As Threading.Tasks.Task
             code = code.Substring(0, position) & insertText & code.Substring(position)
             position += insertText.Length
 
-            Return MyBase.VerifyWorkerAsync(code, position, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, experimental:=experimental, glyph:=glyph)
+            Return MyBase.VerifyWorkerAsync(code, position, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, experimental:=experimental, glyph:=glyph, matchPriority:=matchPriority)
         End Function
 
-        Protected Function VerifyAtPositionAsync(code As String, position As Integer, expectedItemOrNull As String, expectedDescriptionOrNull As String, sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean, checkForAbsence As Boolean, glyph As Integer?, experimental As Boolean) As Threading.Tasks.Task
-            Return VerifyAtPositionAsync(code, position, String.Empty, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph:=glyph, experimental:=experimental)
+        Protected Function VerifyAtPositionAsync(code As String, position As Integer, expectedItemOrNull As String, expectedDescriptionOrNull As String, sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean, checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?, experimental As Boolean) As Threading.Tasks.Task
+            Return VerifyAtPositionAsync(code, position, String.Empty, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph:=glyph, matchPriority:=matchPriority, experimental:=experimental)
         End Function
 
-        Private Function VerifyAtPosition_ItemPartiallyWrittenAsync(code As String, position As Integer, expectedItemOrNull As String, expectedDescriptionOrNull As String, sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean, checkForAbsence As Boolean, glyph As Integer?, experimental As Boolean) As Threading.Tasks.Task
-            Return VerifyAtPositionAsync(code, position, ItemPartiallyWritten(expectedItemOrNull), expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph:=glyph, experimental:=experimental)
+        Private Function VerifyAtPosition_ItemPartiallyWrittenAsync(code As String, position As Integer, expectedItemOrNull As String, expectedDescriptionOrNull As String, sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean, checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?, experimental As Boolean) As Threading.Tasks.Task
+            Return VerifyAtPositionAsync(code, position, ItemPartiallyWritten(expectedItemOrNull), expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph:=glyph, matchPriority:=matchPriority, experimental:=experimental)
         End Function
 
-        Private Async Function VerifyAtEndOfFileAsync(code As String, position As Integer, insertText As String, expectedItemOrNull As String, expectedDescriptionOrNull As String, sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean, checkForAbsence As Boolean, glyph As Integer?, experimental As Boolean) As Threading.Tasks.Task
+        Private Async Function VerifyAtEndOfFileAsync(code As String, position As Integer, insertText As String, expectedItemOrNull As String, expectedDescriptionOrNull As String, sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean, checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?, experimental As Boolean) As Threading.Tasks.Task
             ' only do this if the placeholder was at the end of the text.
             If code.Length <> position Then
                 Return
@@ -77,15 +78,15 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             code = code.Substring(startIndex:=0, length:=position) & insertText
             position += insertText.Length
 
-            Await MyBase.VerifyWorkerAsync(code, position, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, experimental:=experimental, glyph:=glyph)
+            Await MyBase.VerifyWorkerAsync(code, position, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, experimental:=experimental, glyph:=glyph, matchPriority:=matchPriority)
         End Function
 
-        Protected Function VerifyAtEndOfFileAsync(code As String, position As Integer, expectedItemOrNull As String, expectedDescriptionOrNull As String, sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean, checkForAbsence As Boolean, glyph As Integer?, experimental As Boolean) As Threading.Tasks.Task
-            Return VerifyAtEndOfFileAsync(code, position, String.Empty, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph, experimental)
+        Protected Function VerifyAtEndOfFileAsync(code As String, position As Integer, expectedItemOrNull As String, expectedDescriptionOrNull As String, sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean, checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?, experimental As Boolean) As Threading.Tasks.Task
+            Return VerifyAtEndOfFileAsync(code, position, String.Empty, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph, matchPriority, experimental)
         End Function
 
-        Private Function VerifyAtEndOfFile_ItemPartiallyWrittenAsync(code As String, position As Integer, expectedItemOrNull As String, expectedDescriptionOrNull As String, sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean, checkForAbsence As Boolean, glyph As Integer?, experimental As Boolean) As Threading.Tasks.Task
-            Return VerifyAtEndOfFileAsync(code, position, ItemPartiallyWritten(expectedItemOrNull), expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph, experimental)
+        Private Function VerifyAtEndOfFile_ItemPartiallyWrittenAsync(code As String, position As Integer, expectedItemOrNull As String, expectedDescriptionOrNull As String, sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean, checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?, experimental As Boolean) As Threading.Tasks.Task
+            Return VerifyAtEndOfFileAsync(code, position, ItemPartiallyWritten(expectedItemOrNull), expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph, matchPriority, experimental)
         End Function
 
         Private Shared Function ItemPartiallyWritten(expectedItemOrNull As String) As String
