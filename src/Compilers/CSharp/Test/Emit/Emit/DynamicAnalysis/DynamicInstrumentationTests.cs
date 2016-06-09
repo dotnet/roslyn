@@ -749,13 +749,13 @@ using System;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static void Main(string[] args)                                      // Method 1
     {
         TestMain();
         Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
     }
 
-    static void TestMain()
+    static void TestMain()                                                      // Method 2
     {
         int x;
         int a, b;
@@ -763,7 +763,7 @@ public class Program
         DoubleForDeclaration(5);
     }
 
-    static int DoubleDeclaration(int x)
+    static int DoubleDeclaration(int x)                                         // Method 3
     {
         int c = x;
         int a, b;
@@ -774,10 +774,11 @@ public class Program
         return d + e + f;
     }
 
-    static int DoubleForDeclaration(int x)
+    static int DoubleForDeclaration(int x)                                      // Method 4
     {
         for(int a = x, b = x; a + b < 10; a++)
         {
+            Console.WriteLine(""Cannot get here."");
             x++;
         }
 
@@ -797,8 +798,11 @@ True
 True
 True
 True
+True
 4
 True
+True
+False
 False
 False
 True
@@ -829,13 +833,13 @@ using System.IO;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static void Main(string[] args)                                          // Method 1
     {
         TestMain();
         Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
     }
 
-    static void TestMain()
+    static void TestMain()                                                          // Method 2
     {
         using (var memoryStream = new MemoryStream())
         {
@@ -873,6 +877,8 @@ public class Program
 True
 True
 2
+True
+True
 True
 True
 True
@@ -1074,10 +1080,10 @@ using System;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static void Main(string[] args)                                  // Method 1
     {
         TestMain();
-        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();      // Method 2
     }
 
     static void TestMain()
