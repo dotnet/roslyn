@@ -58,14 +58,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return;
                 }
 
-                // Don't show up within member access
-                // This previously worked because the type inferrer didn't work
-                // in member access expressions.
-                if (token.IsKind(SyntaxKind.DotToken))
-                {
-                    return;
-                }
-
                 var typeInferenceService = document.GetLanguageService<ITypeInferenceService>();
                 Contract.ThrowIfNull(typeInferenceService, nameof(typeInferenceService));
 

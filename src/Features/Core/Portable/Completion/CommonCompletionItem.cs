@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.Completion
             ImmutableArray<SymbolDisplayPart> description = default(ImmutableArray<SymbolDisplayPart>),
             string sortText = null,
             string filterText = null,
-            int matchPriority = MatchPriority.Default,
+            int? matchPriority = null,
             bool showsWarningIcon = false,
             bool shouldFormatOnCommit = false,
             bool isArgumentName = false,
@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             rules = rules ?? CompletionItemRules.Default;
-            rules = rules.WithMatchPriority(matchPriority)
+            rules = rules.WithMatchPriority(matchPriority ?? MatchPriority.Default)
                          .WithFormatOnCommit(shouldFormatOnCommit);
 
             return CompletionItem.Create(
