@@ -91,6 +91,26 @@ namespace Microsoft.CodeAnalysis.Completion
             }
         }
 
+        /// <summary>
+        /// Creates a new <see cref="CompletionItemRules"/> instance--internal for TypeScript.
+        /// </summary>
+        /// <param name="filterCharacterRules">Rules about which keys typed are used to filter the list of completion items.</param>
+        /// <param name="commitCharacterRules">Rules about which keys typed caused the completion item to be committed.</param>
+        /// <param name="enterKeyRule">Rule about whether the enter key is passed through to the editor after the selected item has been committed.</param>
+        /// <param name="formatOnCommit">True if the modified text should be formatted automatically.</param>
+        /// <param name="preselect">True if the related completion item should be initially selected.</param>
+        /// <returns></returns>
+        internal static CompletionItemRules Create(
+            ImmutableArray<CharacterSetModificationRule> filterCharacterRules,
+            ImmutableArray<CharacterSetModificationRule> commitCharacterRules,
+            EnterKeyRule enterKeyRule,
+            bool formatOnCommit,
+            bool preselect)
+        {
+            var matchPriority = preselect ? Completion.MatchPriority.Preselect : Completion.MatchPriority.Default;
+            return CompletionItemRules.Create(filterCharacterRules, commitCharacterRules, enterKeyRule, formatOnCommit, matchPriority);
+        }
+
         private CompletionItemRules With(
             Optional<ImmutableArray<CharacterSetModificationRule>> filterRules = default(Optional<ImmutableArray<CharacterSetModificationRule>>),
             Optional<ImmutableArray<CharacterSetModificationRule>> commitRules = default(Optional<ImmutableArray<CharacterSetModificationRule>>),
