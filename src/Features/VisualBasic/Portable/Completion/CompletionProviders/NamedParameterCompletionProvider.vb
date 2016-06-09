@@ -74,7 +74,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                         symbol:=parameter,
                         descriptionPosition:=position,
                         contextPosition:=position,
-                        isArgumentName:=True,
                         rules:=CompletionItemRules.Default))
             Next
         End Function
