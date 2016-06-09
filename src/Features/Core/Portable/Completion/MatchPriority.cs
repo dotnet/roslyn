@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Completion
         /// 
         /// Ordinary <see cref="CompletionProvider"/>s typically specify this.
         /// </summary>
-        public const int Default = 0;
+        public static readonly int Default = 0;
 
         /// <summary>
         /// The matching algorithm will tend to prefer this item unless

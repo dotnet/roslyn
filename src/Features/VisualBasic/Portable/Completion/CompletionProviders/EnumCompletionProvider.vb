@@ -33,7 +33,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                                                                    Return m.Kind = SymbolKind.Field AndAlso
                                                                       DirectCast(m, IFieldSymbol).IsConst AndAlso
                                                                       m.IsEditorBrowsable(hideAdvancedMembers, context.SemanticModel.Compilation)
-                                                               End Function).Concat(enumType))
+                                                               End Function))
 
         End Function
 
@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Dim otherInstances = otherSymbols.Where(Function(s) enumType Is GetTypeFromSymbol(s))
 
-            Return Task.FromResult(otherInstances)
+            Return Task.FromResult(otherInstances.Concat(enumType))
         End Function
 
         Friend Overrides Function IsInsertionTrigger(text As SourceText, characterPosition As Integer, options As OptionSet) As Boolean

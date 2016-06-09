@@ -75,7 +75,7 @@ namespace Microsoft.CodeAnalysis.Completion
             ImmutableArray<CharacterSetModificationRule> commitCharacterRules = default(ImmutableArray<CharacterSetModificationRule>),
             EnterKeyRule enterKeyRule = EnterKeyRule.Default,
             bool formatOnCommit = false,
-            int matchPriority = Completion.MatchPriority.Default)
+            int? matchPriority = null)
         {
             if (filterCharacterRules.IsDefaultOrEmpty
                 && commitCharacterRules.IsDefaultOrEmpty
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.Completion
             }
             else
             {
-                return new CompletionItemRules(filterCharacterRules, commitCharacterRules, enterKeyRule, formatOnCommit, matchPriority);
+                return new CompletionItemRules(filterCharacterRules, commitCharacterRules, enterKeyRule, formatOnCommit, matchPriority ?? Completion.MatchPriority.Default);
             }
         }
 
