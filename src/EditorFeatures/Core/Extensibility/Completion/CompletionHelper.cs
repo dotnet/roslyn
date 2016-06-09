@@ -296,6 +296,16 @@ namespace Microsoft.CodeAnalysis.Editor
                 return -1;
             }
 
+            // preselected items are prefered
+            if (item1.Rules.MatchPriority > item2.Rules.MatchPriority)
+            {
+                return -1;
+            }
+            else if (item2.Rules.MatchPriority > item1.Rules.MatchPriority)
+            {
+                return 1;
+            }
+
             diff = PatternMatch.CompareCase(match1, match2);
             if (diff != 0)
             {
