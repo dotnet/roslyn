@@ -247,15 +247,14 @@ namespace Microsoft.CodeAnalysis.Editor
 
         protected int CompareMatches(PatternMatch match1, PatternMatch match2, CompletionItem item1, CompletionItem item2)
         {
-            int diff;
-
-            diff = PatternMatch.CompareType(match1, match2);
-            if (diff != 0)
-            {
-                return diff;
-            }
-
-            diff = PatternMatch.CompareCamelCase(match1, match2);
+            // First see how the two items compare in a case insensitive fashion.  Matches that 
+            // are strictly better (ignoring case) should prioritize the item.  i.e. if we have
+            // a prefix match, that should always be better than a substring match.
+            //
+            // The reason we ignore case is that it's very common for people to type expecting
+            // completion to fix up their casing.  i.e. 'false' will be written with the 
+            // expectation that it will get fixed by the completion list to 'False'.  
+            var diff = match1.CompareTo(match2, ignoreCase: true);
             if (diff != 0)
             {
                 return diff;
@@ -271,23 +270,19 @@ namespace Microsoft.CodeAnalysis.Editor
                 return -1;
             }
 
-            // preselected items are prefered
-            if (item1.Rules.Preselect && !item2.Rules.Preselect)
+            // Now, after comparing matches, check if an item wants to be preselected.  If so,
+            // we prefer that.  i.e. say the user has typed 'f' and we have the items 'foo' 
+            // and 'False' (with the latter being 'Preselected').  Both will be a prefix match.
+            // And because we are ignoring case, neither will be seen as better.  Now, because
+            // 'False' is preselected we pick it even though 'foo' matches 'f' case sensitively.
+            if (item1.Rules.Preselect != item2.Rules.Preselect)
             {
-                return -1;
-            }
-            else if (item2.Rules.Preselect && !item1.Rules.Preselect)
-            {
-                return 1;
-            }
-
-            diff = PatternMatch.CompareCase(match1, match2);
-            if (diff != 0)
-            {
-                return diff;
+                return item1.Rules.Preselect ? -1 : 1;
             }
 
-            diff = PatternMatch.ComparePunctuation(match1, match2);
+            // Now compare the matches again in a case sensitive manner.  If everything was
+            // equal up to this point, we prefer the item that better matches based on case.
+            diff = match1.CompareTo(match2, ignoreCase: false);
             if (diff != 0)
             {
                 return diff;
