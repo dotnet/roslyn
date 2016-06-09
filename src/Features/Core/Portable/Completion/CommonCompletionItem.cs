@@ -54,7 +54,7 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             rules = rules ?? CompletionItemRules.Default;
-            rules = rules.WithMatchPriority(matchPriority ?? MatchPriority.Default)
+            rules = rules.WithMatchPriority(matchPriority.GetValueOrDefault())
                          .WithFormatOnCommit(shouldFormatOnCommit);
 
             return CompletionItem.Create(
