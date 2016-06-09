@@ -44,6 +44,7 @@ XNamespace ns = @"http://schemas.microsoft.com/developer/msbuild/2003";
 string SystemCollectionsImmutableVersion = doc.Descendants(ns + nameof(SystemCollectionsImmutableVersion)).Single().Value;
 string SystemReflectionMetadataVersion = doc.Descendants(ns + nameof(SystemReflectionMetadataVersion)).Single().Value;
 string CodeAnalysisAnalyzersVersion = doc.Descendants(ns + nameof(CodeAnalysisAnalyzersVersion)).Single().Value;
+string CoreFXVersionSuffix = doc.Descendants(ns + nameof(CoreFXVersionSuffix)).Single().Value;
 
 string MicrosoftDiaSymReaderVersion = GetExistingPackageVersion("Microsoft.DiaSymReader");
 string MicrosoftDiaSymReaderPortablePdbVersion = GetExistingPackageVersion("Microsoft.DiaSymReader.PortablePdb");
@@ -137,9 +138,10 @@ int PackFiles(string[] packageNames, string licenseUrl)
             $"-prop systemCollectionsImmutableVersion=\"{SystemCollectionsImmutableVersion}\" " +
             $"-prop systemReflectionMetadataVersion=\"{SystemReflectionMetadataVersion}\" " +
             $"-prop codeAnalysisAnalyzersVersion=\"{CodeAnalysisAnalyzersVersion}\" " +
+            $"-prop coreFXVersionSuffix=\"{CoreFXVersionSuffix}\" " +
             $"-prop thirdPartyNoticesPath=\"{ThirdPartyNoticesPath}\" " +
             $"-prop netCompilersPropsPath=\"{NetCompilersPropsPath}\" " +
-            $"-prop emptyDirPath=\"{emptyDir}\"";;
+            $"-prop emptyDirPath=\"{emptyDir}\"";
 
         var nugetExePath = Path.GetFullPath(Path.Combine(SolutionRoot, "nuget.exe"));
         var p = new Process();
