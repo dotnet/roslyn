@@ -2,6 +2,7 @@
 
 using System;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -11,6 +12,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundDeconstructValuePlaceholder SetInferredType(TypeSymbol type, bool success)
         {
+            Debug.Assert((object)Placeholder == null);
+
             Placeholder = new BoundDeconstructValuePlaceholder(this.Syntax, type, hasErrors: this.HasErrors || !success);
             return Placeholder;
         }

@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Semantics;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -2833,15 +2834,18 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override void Accept(OperationVisitor visitor)
         {
-            visitor.VisitNoneOperation(this);
+            throw ExceptionUtilities.Unreachable;
         }
 
         public override TResult Accept<TArgument, TResult>(OperationVisitor<TArgument, TResult> visitor, TArgument argument)
         {
-            return visitor.VisitNoneOperation(this, argument);
+            throw ExceptionUtilities.Unreachable;
         }
 
-        protected override OperationKind ExpressionKind => OperationKind.None;
+        protected override OperationKind ExpressionKind
+        {
+            get { throw ExceptionUtilities.Unreachable; }
+        }
     }
 
     partial class BoundIsPatternExpression

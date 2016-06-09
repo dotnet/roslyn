@@ -1968,7 +1968,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Figures out how to assign from sourceType into receivingVariable and bundles the information (leaving holes for the actual source and receiver) into an AssignmentInfo.
         /// </summary>
         private BoundDeconstructionAssignmentStep MakeDeconstructionAssignmentStep(
-                                                    BoundExpression receivingVariable, TypeSymbol sourceType, BoundDeconstructValuePlaceholder inputPlaceholder, 
+                                                    BoundExpression receivingVariable, TypeSymbol sourceType, BoundDeconstructValuePlaceholder inputPlaceholder,
                                                     AssignmentExpressionSyntax node, DiagnosticBag diagnostics)
         {
             var outputPlaceholder = new BoundDeconstructValuePlaceholder(receivingVariable.Syntax, receivingVariable.Type) { WasCompilerGenerated = true };
@@ -2036,16 +2036,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 string methodName = "Deconstruct";
-                var boundExpression = BindInstanceMemberAccess(
+                var memberAccess = BindInstanceMemberAccess(
                                         receiverSyntax, receiverSyntax, receiver, methodName, rightArity: 0,
                                         typeArgumentsSyntax: default(SeparatedSyntaxList<TypeSyntax>), typeArguments: default(ImmutableArray<TypeSymbol>),
                                         invoked: true, diagnostics: diagnostics);
 
-                boundExpression = CheckValue(boundExpression, BindValueKind.RValueOrMethodGroup, diagnostics);
-                boundExpression.WasCompilerGenerated = true;
+                memberAccess = CheckValue(memberAccess, BindValueKind.RValueOrMethodGroup, diagnostics);
+                memberAccess.WasCompilerGenerated = true;
 
+                if (memberAccess.Kind != BoundKind.MethodGroup)
+                {
+                    Error(diagnostics, ErrorCode.ERR_MissingDeconstruct, receiverSyntax, receiver.Type);
+                    outPlaceholders = default(ImmutableArray<BoundDeconstructValuePlaceholder>);
+
+                    return BadExpression(receiverSyntax, receiver);
+                }
+
+                // After the overload resolution completes, the last step is to coerce the arguments with inferred types.
+                // That step returns placeholder (of correct type) instead of the outVar nodes that were passed in as arguments.
+                // So the generated invocation expression will contain placeholders instead of those outVar nodes.
+                // Those placeholders are also recorded in the outVar for easy access below.
                 BoundExpression result = BindInvocationExpression(
-                                            receiverSyntax, receiverSyntax, methodName, boundExpression, analyzedArguments, diagnostics, queryClause: null,
+                                            receiverSyntax, receiverSyntax, methodName, memberAccess, analyzedArguments, diagnostics, queryClause: null,
                                             allowUnexpandedForm: true);
 
                 result.WasCompilerGenerated = true;

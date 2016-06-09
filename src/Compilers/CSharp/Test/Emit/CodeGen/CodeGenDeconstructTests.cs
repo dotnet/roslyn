@@ -1444,6 +1444,54 @@ class C
         }
 
         [Fact]
+        public void DeconstructIsDynamicField()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x, y;
+        (x, y) = new C();
+
+    }
+    public dynamic Deconstruct = null;
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef, SystemCoreRef, CSharpRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // (7,18): error CS8206: No Deconstruct instance or extension method was found for type 'C'.
+                //         (x, y) = new C();
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C").WithLocation(7, 18)
+                );
+        }
+
+        [Fact]
+        public void DeconstructIsField()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x, y;
+        (x, y) = new C();
+
+    }
+    public object Deconstruct = null;
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // (7,18): error CS1955: Non-invocable member 'C.Deconstruct' cannot be used like a method.
+                //         (x, y) = new C();
+                Diagnostic(ErrorCode.ERR_NonInvocableMemberCalled, "new C()").WithArguments("C.Deconstruct").WithLocation(7, 18)
+                );
+        }
+
+        [Fact]
         public void OverrideDeconstruct()
         {
             string source = @"
