@@ -298,11 +298,6 @@ namespace Microsoft.CodeAnalysis.Editor
             return 0;
         }
 
-        protected bool IsArgumentName(CompletionItem item)
-        {
-            return item.Tags.Contains(CompletionTags.ArgumentName);
-        }
-
         private static bool TextTypedSoFarMatchesItem(CompletionItem item, char ch, string textTypedSoFar)
         {
             var textTypedWithChar = textTypedSoFar + ch;
