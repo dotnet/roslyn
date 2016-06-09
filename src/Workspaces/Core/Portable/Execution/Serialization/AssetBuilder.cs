@@ -7,7 +7,7 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Execution
 {
-    internal sealed class AssetBuilder
+    internal struct AssetBuilder
     {
         private readonly Serializer _serializer;
         private readonly SnapshotStorage _storage;
@@ -20,98 +20,107 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public Task<Asset> BuildAsync(Solution solution, CancellationToken cancellationToken)
         {
-            return _storage.GetOrCreateAssetAsync(solution, GetInfo(solution), WellKnownChecksumObjects.SolutionSnapshotInfo,
-                (s, k, c) =>
-                {
-                    c.ThrowIfCancellationRequested();
-                    return Task.FromResult<Asset>(new Asset<SolutionSnapshotInfo>(s, k, _serializer.Serialize));
-                }, cancellationToken);
+            return _storage.GetOrCreateAssetAsync(solution, GetInfo(solution), WellKnownChecksumObjects.SolutionSnapshotInfo, CreateSolutionSnapshotInfoAsync, cancellationToken);
         }
 
         public Task<Asset> BuildAsync(Project project, CancellationToken cancellationToken)
         {
-            return _storage.GetOrCreateAssetAsync(project.Solution.GetProjectState(project.Id), GetInfo(project), WellKnownChecksumObjects.ProjectSnapshotInfo,
-                (p, k, c) =>
-                {
-                    c.ThrowIfCancellationRequested();
-                    return Task.FromResult<Asset>(new Asset<ProjectSnapshotInfo>(p, k, _serializer.Serialize));
-                }, cancellationToken);
+            return _storage.GetOrCreateAssetAsync(project.Solution.GetProjectState(project.Id), GetInfo(project), WellKnownChecksumObjects.ProjectSnapshotInfo, CreateProjectSnapshotInfoAsync, cancellationToken);
         }
 
         public Task<Asset> BuildAsync(TextDocument document, CancellationToken cancellationToken)
         {
-            return _storage.GetOrCreateAssetAsync(document.GetTextOrDocumentState(), GetInfo(document), WellKnownChecksumObjects.DocumentSnapshotInfo,
-                (d, k, c) =>
-                {
-                    c.ThrowIfCancellationRequested();
-                    return Task.FromResult<Asset>(new Asset<DocumentSnapshotInfo>(d, k, _serializer.Serialize));
-                }, cancellationToken);
+            return _storage.GetOrCreateAssetAsync(document.GetTextOrDocumentState(), GetInfo(document), WellKnownChecksumObjects.DocumentSnapshotInfo, CreateDocumentSnapshotInfoAsync, cancellationToken);
         }
 
         public Task<Asset> BuildAsync(Project project, CompilationOptions compilationOptions, CancellationToken cancellationToken)
         {
-            return _storage.GetOrCreateAssetAsync(compilationOptions, project, WellKnownChecksumObjects.CompilationOptions,
-                (p, k, c) =>
-                {
-                    c.ThrowIfCancellationRequested();
-                    return Task.FromResult<Asset>(new Asset<string, CompilationOptions>(p.Language, p.CompilationOptions, k, _serializer.Serialize));
-                }, cancellationToken);
+            return _storage.GetOrCreateAssetAsync(compilationOptions, project, WellKnownChecksumObjects.CompilationOptions, CreateCompilationOptionsAsync, cancellationToken);
         }
 
         public Task<Asset> BuildAsync(Project project, ParseOptions parseOptions, CancellationToken cancellationToken)
         {
-            return _storage.GetOrCreateAssetAsync(parseOptions, project, WellKnownChecksumObjects.ParseOptions,
-                (p, k, c) =>
-                {
-                    c.ThrowIfCancellationRequested();
-                    return Task.FromResult<Asset>(new Asset<string, ParseOptions>(p.Language, p.ParseOptions, k, _serializer.Serialize));
-                }, cancellationToken);
+            return _storage.GetOrCreateAssetAsync(parseOptions, project, WellKnownChecksumObjects.ParseOptions, CreateParseOptionsAsync, cancellationToken);
         }
 
         public Task<Asset> BuildAsync(ProjectReference reference, CancellationToken cancellationToken)
         {
-            return _storage.GetOrCreateAssetAsync(reference, reference, WellKnownChecksumObjects.ProjectReference,
-                (r, k, c) =>
-                {
-                    c.ThrowIfCancellationRequested();
-                    return Task.FromResult<Asset>(new Asset<ProjectReference>(r, k, _serializer.Serialize));
-                }, cancellationToken);
+            return _storage.GetOrCreateAssetAsync(reference, reference, WellKnownChecksumObjects.ProjectReference, CreateProjectReferenceAsync, cancellationToken);
         }
 
         public Task<Asset> BuildAsync(MetadataReference reference, CancellationToken cancellationToken)
         {
-            return _storage.GetOrCreateAssetAsync(reference, reference, WellKnownChecksumObjects.MetadataReference,
-                (r, k, c) =>
-                {
-                    c.ThrowIfCancellationRequested();
-                    return Task.FromResult<Asset>(new Asset<MetadataReference>(r, k, _serializer.Serialize));
-                }, cancellationToken);
+            return _storage.GetOrCreateAssetAsync(reference, reference, WellKnownChecksumObjects.MetadataReference, CreateMetadataReferenceAsync, cancellationToken);
         }
 
         public Task<Asset> BuildAsync(AnalyzerReference reference, CancellationToken cancellationToken)
         {
-            return _storage.GetOrCreateAssetAsync(reference, reference, WellKnownChecksumObjects.AnalyzerReference,
-                (r, k, c) =>
-                {
-                    c.ThrowIfCancellationRequested();
-                    return Task.FromResult<Asset>(new Asset<AnalyzerReference>(r, k, _serializer.Serialize));
-                }, cancellationToken);
+            return _storage.GetOrCreateAssetAsync(reference, reference, WellKnownChecksumObjects.AnalyzerReference, CreateAnalyzerReferenceAsync, cancellationToken);
         }
 
         public Task<Asset> BuildAsync(TextDocumentState state, SourceText unused, CancellationToken cancellationToken)
         {
             // TODO: currently this is a bit wierd not to hold onto source text.
             //       it would be nice if SourceText is changed like how recoverable syntax tree work.
-            return _storage.GetOrCreateAssetAsync(state, state, WellKnownChecksumObjects.SourceText,
-                async (s, k, c) =>
-                {
-                    c.ThrowIfCancellationRequested();
+            return _storage.GetOrCreateAssetAsync(state, state, WellKnownChecksumObjects.SourceText, CreateSourceTextAsync, cancellationToken);
+        }
 
-                    var text = await state.GetTextAsync(cancellationToken).ConfigureAwait(false);
-                    var checksum = new Checksum(text.GetChecksum(useDefaultEncodingIfNull: true));
+        private Task<Asset> CreateSolutionSnapshotInfoAsync(SolutionSnapshotInfo info, string kind, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return Task.FromResult<Asset>(new Asset<SolutionSnapshotInfo>(info, kind, _serializer.Serialize));
+        }
 
-                    return (Asset)new SourceTextAsset(_serializer, s, checksum, k);
-                }, cancellationToken);
+        private Task<Asset> CreateProjectSnapshotInfoAsync(ProjectSnapshotInfo info, string kind, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return Task.FromResult<Asset>(new Asset<ProjectSnapshotInfo>(info, kind, _serializer.Serialize));
+        }
+
+        private Task<Asset> CreateDocumentSnapshotInfoAsync(DocumentSnapshotInfo info, string kind, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return Task.FromResult<Asset>(new Asset<DocumentSnapshotInfo>(info, kind, _serializer.Serialize));
+        }
+
+        private Task<Asset> CreateCompilationOptionsAsync(Project project, string kind, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return Task.FromResult<Asset>(new Asset<string, CompilationOptions>(project.Language, project.CompilationOptions, kind, _serializer.Serialize));
+        }
+
+        private Task<Asset> CreateParseOptionsAsync(Project project, string kind, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return Task.FromResult<Asset>(new Asset<string, ParseOptions>(project.Language, project.ParseOptions, kind, _serializer.Serialize));
+        }
+
+        private Task<Asset> CreateProjectReferenceAsync(ProjectReference reference, string kind, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return Task.FromResult<Asset>(new Asset<ProjectReference>(reference, kind, _serializer.Serialize));
+        }
+
+        private Task<Asset> CreateMetadataReferenceAsync(MetadataReference reference, string kind, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return Task.FromResult<Asset>(new Asset<MetadataReference>(reference, kind, _serializer.Serialize));
+        }
+
+        private Task<Asset> CreateAnalyzerReferenceAsync(AnalyzerReference reference, string kind, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+            return Task.FromResult<Asset>(new Asset<AnalyzerReference>(reference, kind, _serializer.Serialize));
+        }
+
+        private async Task<Asset> CreateSourceTextAsync(TextDocumentState state, string kind, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            var text = await state.GetTextAsync(cancellationToken).ConfigureAwait(false);
+            var checksum = new Checksum(text.GetChecksum(useDefaultEncodingIfNull: true));
+
+            return new SourceTextAsset(_serializer, state, checksum, kind);
         }
 
         private SolutionSnapshotInfo GetInfo(Solution solution)
