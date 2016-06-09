@@ -3,7 +3,6 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.DynamicAnalysis.UnitTests
@@ -1010,6 +1009,7 @@ public class Program
         {
         }
 
+        // Include an infinite loop to make sure that a compiler optimization doesn't eliminate the instrumentation.
         while (true)
         {
             return;

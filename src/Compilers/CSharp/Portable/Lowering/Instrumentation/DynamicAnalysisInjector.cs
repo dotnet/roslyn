@@ -3,14 +3,13 @@
 using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// This type is responsible for adding instrumentation for dynamic analysis to executable code.
+    /// This type provides means for instrumenting compiled methods for dynamic analysis.
     /// It can be combined with other <see cref="Instrumenter"/>s.
     /// </summary>
     internal partial class DynamicAnalysisInjector : CompoundInstrumenter
