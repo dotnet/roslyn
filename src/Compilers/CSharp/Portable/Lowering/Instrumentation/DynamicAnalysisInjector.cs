@@ -162,10 +162,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AddDynamicAnalysis(original, base.InstrumentIfStatement(original, rewritten));
         }
 
+        public override BoundStatement InstrumentWhileStatementConditionalGotoStart(BoundWhileStatement original, BoundStatement ifConditionGotoStart)
+        {
+            return AddDynamicAnalysis(original, base.InstrumentWhileStatementConditionalGotoStart(original, ifConditionGotoStart));
+        }
+
         public override BoundStatement InstrumentLocalInitialization(BoundLocalDeclaration original, BoundStatement rewritten)
         {
             rewritten = base.InstrumentLocalInitialization(original, rewritten);
 
+#if false
             if (original.Syntax.Parent.Kind() == SyntaxKind.VariableDeclaration)
             {
                 VariableDeclarationSyntax declarationSyntax = (VariableDeclarationSyntax)original.Syntax.Parent;
@@ -193,7 +199,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         break;
                 }
             }
-
+#endif
             // Declarations without initializers are not instrumented.
             if (!HasInitializer((BoundLocalDeclaration)original))
             {
