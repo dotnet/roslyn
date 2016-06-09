@@ -1,10 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
@@ -95,13 +97,22 @@ namespace Microsoft.CodeAnalysis.Execution
             return new DocumentSnapshotInfo(documentId, name, folders, sourceCodeKind, filePath, isGenerated);
         }
 
-        public void Serialize(SourceText text, ObjectWriter writer, CancellationToken cancellationToken)
+        public void Serialize(ITemporaryTextStorage2 storage, SourceText text, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            // TODO: optimize this by getting memory map file we already saved. rather than sending over copied content itself
             writer.WriteInt32((int)text.ChecksumAlgorithm);
             writer.WriteString(text.Encoding?.WebName);
+
+            if (storage != null && storage.Name != null)
+            {
+                writer.WriteInt32((int)SerializationKinds.MemoryMapFile);
+                writer.WriteString(storage.Name);
+                writer.WriteInt64(storage.Size);
+                return;
+            }
+
+            writer.WriteInt32((int)SerializationKinds.Bits);
             writer.WriteString(text.ToString());
         }
 
@@ -109,15 +120,28 @@ namespace Microsoft.CodeAnalysis.Execution
         {
             cancellationToken.ThrowIfCancellationRequested();
 
-            // TODO: optimize this by reading from memory map file we already saved.
+            // REVIEW: why IDE services doesnt care about checksumAlgorithm?
             var checksumAlgorithm = (SourceHashAlgorithm)reader.ReadInt32();
             var webName = reader.ReadString();
             var encoding = webName == null ? null : Encoding.GetEncoding(webName);
-            var text = reader.ReadString();
 
-            // REVIEW: should it use TextFactoryService rather than creating from string.
-            //         also, does this return same checksum as the original one?
-            return SourceText.From(text, encoding, checksumAlgorithm);
+            var kind = (SerializationKinds)reader.ReadInt32();
+            if (kind == SerializationKinds.MemoryMapFile)
+            {
+                var name = reader.ReadString();
+                var size = reader.ReadInt64();
+
+                var tempService = _workspaceServices.GetService<ITemporaryStorageService>() as ITemporaryStorageService2;
+                var storage = tempService.AttachTemporaryTextStorage(name, size, encoding, cancellationToken);
+
+                return storage.ReadText(cancellationToken);
+            }
+
+            var textService = _workspaceServices.GetService<ITextFactoryService>();
+            using (var textReader = new StringReader(reader.ReadString()))
+            {
+                return textService.CreateText(textReader, encoding, cancellationToken);
+            }
         }
 
         public void Serialize(string language, CompilationOptions options, ObjectWriter writer, CancellationToken cancellationToken)

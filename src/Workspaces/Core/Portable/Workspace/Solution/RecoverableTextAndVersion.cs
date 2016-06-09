@@ -34,6 +34,8 @@ namespace Microsoft.CodeAnalysis
 
         private SemaphoreSlim Gate => LazyInitialization.EnsureInitialized(ref _gateDoNotAccessDirectly, SemaphoreSlimFactory.Instance);
 
+        public ITemporaryTextStorage Storage => _text?.Storage;
+
         public override bool TryGetValue(out TextAndVersion value)
         {
             SourceText text;
@@ -120,6 +122,8 @@ namespace Microsoft.CodeAnalysis
             {
                 _parent = parent;
             }
+
+            public ITemporaryTextStorage Storage => _storage;
 
             protected override async Task<SourceText> RecoverAsync(CancellationToken cancellationToken)
             {

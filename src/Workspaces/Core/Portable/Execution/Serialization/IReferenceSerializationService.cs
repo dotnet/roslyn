@@ -15,11 +15,4 @@ namespace Microsoft.CodeAnalysis.Execution
         MetadataReference ReadMetadataReferenceFrom(ObjectReader reader, CancellationToken cancellationToken);
         AnalyzerReference ReadAnalyzerReferenceFrom(ObjectReader reader, CancellationToken cancellationToken);
     }
-
-    internal static class ReferenceSerializationKinds
-    {
-        public const string Bits = nameof(Bits);
-        public const string FilePath = nameof(FilePath);
-        public const string MemoryMapFile = nameof(MemoryMapFile);
-    }
 }

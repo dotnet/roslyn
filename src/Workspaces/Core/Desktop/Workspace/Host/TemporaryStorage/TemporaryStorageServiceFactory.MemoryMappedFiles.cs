@@ -17,25 +17,6 @@ namespace Microsoft.CodeAnalysis.Host
         /// most of our view will have short lifetime, but there are cases where view might live a bit longer such as
         /// metadata dll shadow copy. shared view will help those cases.
         /// </summary>
-        internal class MemoryMappedFileManager
-        {
-            public MemoryMappedFileManager()
-            {
-            }
-
-            public MemoryMappedInfo CreateViewInfo(long size)
-            {
-                // The requested size is larger than HugeFileMaxBytes, give it its own MemoryMappedFile
-                var name = CreateUniqueName(size);
-                return new MemoryMappedInfo(name, size);
-            }
-
-            public static string CreateUniqueName(long size)
-            {
-                return "Roslyn Temp Storage " + size.ToString() + " " + Guid.NewGuid().ToString("N");
-            }
-        }
-
         internal sealed class MemoryMappedInfo : IDisposable
         {
             private readonly string _name;
@@ -52,21 +33,33 @@ namespace Microsoft.CodeAnalysis.Host
             /// </summary>
             private MemoryMappedViewAccessor _accessor;
 
+            public MemoryMappedInfo(long size)
+            {
+                _name = CreateUniqueName(size);
+                _size = size;
+
+                _memoryMappedFile = MemoryMappedFile.CreateNew(_name, size);
+
+                _streamCount = 0;
+                _accessor = null;
+            }
+
             public MemoryMappedInfo(string name, long size)
             {
                 _name = name;
                 _size = size;
 
-                _memoryMappedFile = MemoryMappedFile.CreateNew(name, size);
+                _memoryMappedFile = MemoryMappedFile.OpenExisting(_name);
 
                 _streamCount = 0;
                 _accessor = null;
             }
 
             /// <summary>
-            /// Name of memory map file
+            /// Name and Size of memory map file
             /// </summary>
             public string Name => _name;
+            public long Size => _size;
 
             /// <summary>
             /// Caller is responsible for disposing the returned stream.
@@ -140,10 +133,13 @@ namespace Microsoft.CodeAnalysis.Host
                     _accessor = null;
                 }
 
-                // Dispose the memoryMappedFile if we own it, otherwise 
-                // notify our containingArena that this offset is available
-                // for someone else 
+                // Dispose the memoryMappedFile
                 _memoryMappedFile.Dispose();
+            }
+
+            public static string CreateUniqueName(long size)
+            {
+                return "Roslyn Temp Storage " + size.ToString() + " " + Guid.NewGuid().ToString("N");
             }
 
             private unsafe sealed class SharedReadableStream : Stream, ISupportDirectMemoryAccess

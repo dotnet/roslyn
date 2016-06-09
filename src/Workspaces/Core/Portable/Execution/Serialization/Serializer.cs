@@ -78,4 +78,11 @@ namespace Microsoft.CodeAnalysis.Execution
             return _lazyLanguageSerializationService.GetOrAdd(languageName, n => _workspaceServices.GetLanguageServices(n).GetService<ILanguageSpecificSerializationService>());
         }
     }
+
+    internal enum SerializationKinds
+    {
+        Bits,
+        FilePath,
+        MemoryMapFile
+    }
 }

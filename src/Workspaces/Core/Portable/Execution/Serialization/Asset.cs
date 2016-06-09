@@ -3,6 +3,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Execution
@@ -81,7 +82,7 @@ namespace Microsoft.CodeAnalysis.Execution
         public override async Task WriteToAsync(ObjectWriter writer, CancellationToken cancellationToken)
         {
             var text = await _state.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            _serializer.Serialize(text, writer, cancellationToken);
+            _serializer.Serialize(_state.Storage as ITemporaryTextStorage2, text, writer, cancellationToken);
         }
     }
 }

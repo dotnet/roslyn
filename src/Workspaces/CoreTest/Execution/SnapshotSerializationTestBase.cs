@@ -7,6 +7,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 using Xunit;
@@ -15,9 +16,9 @@ namespace Microsoft.CodeAnalysis.UnitTests
 {
     public class SnapshotSerializationTestBase
     {
-        internal static Solution CreateFullSolution()
+        internal static Solution CreateFullSolution(HostServices hostServices = null)
         {
-            var solution = new AdhocWorkspace().CurrentSolution;
+            var solution = new AdhocWorkspace(hostServices ?? Host.Mef.MefHostServices.DefaultHost).CurrentSolution;
             var csCode = "class A { }";
             var project1 = solution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
             var document1 = project1.AddDocument("Document1", SourceText.From(csCode));

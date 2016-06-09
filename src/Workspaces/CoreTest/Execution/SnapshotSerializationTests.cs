@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Xunit;
 
@@ -147,6 +148,21 @@ namespace Microsoft.CodeAnalysis.UnitTests
         public async Task CreateSolutionSnapshotId_Full_Asset_Serialization()
         {
             var solution = CreateFullSolution();
+
+            var snapshotService = (new SolutionSnapshotService()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
+            using (var snapshot = await snapshotService.CreateSnapshotAsync(solution, CancellationToken.None).ConfigureAwait(false))
+            {
+                await VerifyAssetAsync(snapshotService, solution, snapshot.Id).ConfigureAwait(false);
+            }
+        }
+
+        [Fact]
+        public async Task CreateSolutionSnapshotId_Full_Asset_Serialization_Desktop()
+        {
+            var hostServices = MefHostServices.Create(
+                MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
+
+            var solution = CreateFullSolution(hostServices);
 
             var snapshotService = (new SolutionSnapshotService()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
             using (var snapshot = await snapshotService.CreateSnapshotAsync(solution, CancellationToken.None).ConfigureAwait(false))

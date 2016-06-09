@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
             if (portable != null)
             {
                 writer.WriteString(nameof(PortableExecutableReference));
-                writer.WriteString(ReferenceSerializationKinds.FilePath);
+                writer.WriteInt32((int)SerializationKinds.FilePath);
                 writer.WriteString(portable.FilePath);
 
                 // TODO: what I should do with documentation provider? it is not exposed outside
@@ -46,7 +46,7 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
             if (file != null)
             {
                 writer.WriteString(nameof(AnalyzerFileReference));
-                writer.WriteString(ReferenceSerializationKinds.FilePath);
+                writer.WriteInt32((int)SerializationKinds.FilePath);
                 return;
             }
 
@@ -74,8 +74,8 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
             var type = reader.ReadString();
             if (type == nameof(PortableExecutableReference))
             {
-                var kind = reader.ReadString();
-                Contract.ThrowIfFalse(kind == ReferenceSerializationKinds.FilePath);
+                var kind = (SerializationKinds)reader.ReadInt32();
+                Contract.ThrowIfFalse(kind == SerializationKinds.FilePath);
 
                 // TODO: find a way to deal with documentation
                 var filePath = reader.ReadString();
@@ -92,8 +92,8 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
             var type = reader.ReadString();
             if (type == nameof(AnalyzerFileReference))
             {
-                var kind = reader.ReadString();
-                Contract.ThrowIfFalse(kind == ReferenceSerializationKinds.FilePath);
+                var kind = (SerializationKinds)reader.ReadInt32();
+                Contract.ThrowIfFalse(kind == SerializationKinds.FilePath);
 
                 return new AnalyzerFileReference(fullPath, s_loader);
             }
