@@ -269,9 +269,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             if (optionKey.Option == CompletionOptions.EnterKeyBehavior)
             {
-                bool found = base.TryFetch(optionKey, out value);
-                value = ConvertToEnterKeyRule(value);
-                return found;
+                return FetchEnterKeyBehavior(optionKey, out value);
             }
 
             return base.TryFetch(optionKey, out value);
@@ -287,19 +285,38 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         /// The EnterKeyBehavior option (formerly AddNewLineOnEnterAfterFullyTypedWord) used to only exist in C# and as a boolean.
         /// We need to maintain the meaning of the serialized legacy setting.
         /// </summary>
-        private EnterKeyRule ConvertToEnterKeyRule(object value)
+        private bool FetchEnterKeyBehavior(OptionKey optionKey, out object value)
         {
-            int intValue = (int)value;
-            switch (intValue)
+            if (!base.TryFetch(optionKey, out value))
             {
-                case 1:
-                    return EnterKeyRule.AfterFullyTypedWord;
-                case 2:
-                    return EnterKeyRule.Always;
-                case 0:
-                default:
-                    return EnterKeyRule.Never;
+                return false;
             }
+
+            if (!value.Equals(EnterKeyRule.Default))
+            {
+                return true;
+            }
+
+            // if the EnterKeyBehavior setting cannot be loaded, then attempt to load and upgrade the legacy AddNewLineOnEnterAfterFullyTypedWord setting
+            if (base.TryFetch(CSharpCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord, out value))
+            {
+                int intValue = (int)value;
+                switch (intValue)
+                {
+                    case 1:
+                        value = EnterKeyRule.AfterFullyTypedWord;
+                        break;
+                    case 0:
+                    default:
+                        value = EnterKeyRule.Never;
+                        break;
+                }
+
+                return true;
+            }
+
+            value = EnterKeyRule.Never;
+            return true;
         }
 
         public override bool TryPersist(OptionKey optionKey, object value)
@@ -399,31 +416,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                 return PersistStyleOption<bool>(Style_UseImplicitTypeWherePossible, value);
             }
 
-            if (optionKey.Option == CompletionOptions.EnterKeyBehavior)
-            {
-                value = ConvertFromEnterKeyRule(value);
-            }
-
             return base.TryPersist(optionKey, value);
-        }
-
-        /// <summary>
-        /// The AddNewLineOnEnterAfterFullyTypedWord option used to only exist in C# and as a boolean.
-        /// We need to maintain the meaning of the serialized legacy setting.
-        /// </summary>
-        private int ConvertFromEnterKeyRule(object value)
-        {
-            var rule = (EnterKeyRule)value;
-            switch (rule)
-            {
-                case EnterKeyRule.AfterFullyTypedWord:
-                    return 1;
-                case EnterKeyRule.Always:
-                    return 2;
-                case EnterKeyRule.Never:
-                default:
-                    return 0;
-            }
         }
 
         private bool PersistStyleOption<T>(string option, object value)

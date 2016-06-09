@@ -162,20 +162,22 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End If
 
             If optionKey.Option Is CompletionOptions.EnterKeyBehavior Then
-                Dim found = MyBase.TryFetch(optionKey, value)
-                value = FixDefaultForEnterKeyRule(value)
-                Return found
+                Return FetchEnterKeyBehavior(optionKey, value)
             End If
 
             Return MyBase.TryFetch(optionKey, value)
         End Function
 
-        Private Function FixDefaultForEnterKeyRule(value As Object) As Object
-            If value.Equals(EnterKeyRule.Default) Then
-                Return EnterKeyRule.Always
+        Private Function FetchEnterKeyBehavior(optionKey As OptionKey, ByRef value As Object) As Boolean
+            If MyBase.TryFetch(optionKey, value) Then
+                If value.Equals(EnterKeyRule.Default) Then
+                    value = EnterKeyRule.Always
+                End If
+
+                Return True
             End If
 
-            Return value
+            Return False
         End Function
 
         Public Overrides Function TryPersist(optionKey As OptionKey, value As Object) As Boolean

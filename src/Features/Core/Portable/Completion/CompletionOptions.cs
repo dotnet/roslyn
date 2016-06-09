@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.Completion
         public static readonly PerLanguageOption<bool> TriggerOnTypingLetters = new PerLanguageOption<bool>(FeatureName, "TriggerOnTypingLetters", defaultValue: true);
 
         public static readonly PerLanguageOption<EnterKeyRule> EnterKeyBehavior =
-            new PerLanguageOption<EnterKeyRule>(FeatureName, "AddNewLineOnEnterAfterFullyTypedWord", defaultValue: EnterKeyRule.Default);
+            new PerLanguageOption<EnterKeyRule>(FeatureName, nameof(EnterKeyBehavior), defaultValue: EnterKeyRule.Default);
 
         // Dev15 options
         public static readonly PerLanguageOption<bool> ShowCompletionItemFilters = new PerLanguageOption<bool>(FeatureName, nameof(ShowCompletionItemFilters), defaultValue: false);
