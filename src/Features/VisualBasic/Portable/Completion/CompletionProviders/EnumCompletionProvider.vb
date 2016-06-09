@@ -119,7 +119,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 contextPosition:=context.Position,
                 descriptionPosition:=position,
                 sortText:=insertionText,
-                matchPriority:=MatchPriority.Preselect,
+                matchPriority:=If(preselect, MatchPriority.Preselect, MatchPriority.Default),
                 supportedPlatforms:=supportedPlatformData,
                 rules:=GetCompletionItemRules(symbols, context))
         End Function

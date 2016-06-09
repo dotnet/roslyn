@@ -87,7 +87,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion
                 End If
             End If
 
-            Return IsBetterFilterMatchWorker(item1, item2, filterText, recentItems, comparePriorityBeforeCapitalization:=True)
+            Return MyBase.IsBetterFilterMatch(item1, item2, filterText, trigger, filterReason, recentItems)
         End Function
 
         Public Overrides Function ShouldSoftSelectItem(item As CompletionItem, filterText As String, trigger As CompletionTrigger) As Boolean

@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 insertionText: insertionText,
                 glyph: glyph,
                 filterText: filterText,
-                matchPriority: matchPriority ?? MatchPriority.Default,
+                matchPriority: matchPriority.GetValueOrDefault(),
                 supportedPlatforms: supportedPlatforms,
                 isArgumentName: isArgumentName,
                 properties: properties,

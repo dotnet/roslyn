@@ -191,17 +191,12 @@ namespace Microsoft.CodeAnalysis.Editor
         /// </summary>
         public virtual bool IsBetterFilterMatch(CompletionItem item1, CompletionItem item2, string filterText, CompletionTrigger trigger, CompletionFilterReason filterReason, ImmutableArray<string> recentItems = default(ImmutableArray<string>))
         {
-            return IsBetterFilterMatchWorker(item1, item2, filterText, recentItems, comparePriorityBeforeCapitalization: false);
-        }
-
-        protected bool IsBetterFilterMatchWorker(CompletionItem item1, CompletionItem item2, string filterText, ImmutableArray<string> recentItems, bool comparePriorityBeforeCapitalization)
-        {
             var match1 = GetMatch(item1, filterText);
             var match2 = GetMatch(item2, filterText);
 
             if (match1 != null && match2 != null)
             {
-                var result = CompareMatches(match1.Value, match2.Value, item1, item2, comparePriorityBeforeCapitalization);
+                var result = CompareMatches(match1.Value, match2.Value, item1, item2);
                 if (result != 0)
                 {
                     return result < 0;
@@ -275,7 +270,7 @@ namespace Microsoft.CodeAnalysis.Editor
             return x;
         }
 
-        protected int CompareMatches(PatternMatch match1, PatternMatch match2, CompletionItem item1, CompletionItem item2, bool comparePriorityBeforeCapitalization)
+        protected int CompareMatches(PatternMatch match1, PatternMatch match2, CompletionItem item1, CompletionItem item2)
         {
             int diff;
 
@@ -299,16 +294,6 @@ namespace Microsoft.CodeAnalysis.Editor
             else if (IsArgumentName(item2) && !IsArgumentName(item1))
             {
                 return -1;
-            }
-
-            // preselected items are prefered
-            if (comparePriorityBeforeCapitalization && item1.Rules.MatchPriority > item2.Rules.MatchPriority)
-            {
-                return -1;
-            }
-            else if (comparePriorityBeforeCapitalization && item2.Rules.MatchPriority > item1.Rules.MatchPriority)
-            {
-                return 1;
             }
 
             diff = PatternMatch.CompareCase(match1, match2);
