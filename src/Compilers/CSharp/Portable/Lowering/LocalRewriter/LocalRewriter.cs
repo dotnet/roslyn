@@ -64,6 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             SynthesizedSubmissionFields previousSubmissionFields,
             bool allowOmissionOfConditionalCalls,
             bool instrumentForDynamicAnalysis,
+            ref ImmutableArray<SourceSpan> dynamicAnalysisSpans,
             DebugDocumentProvider debugDocumentProvider,
             DiagnosticBag diagnostics,
             out bool sawLambdas,
@@ -76,7 +77,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 var factory = new SyntheticBoundNodeFactory(method, statement.Syntax, compilationState, diagnostics);
-                ImmutableArray<SourceSpan> dynamicAnalysisSpans = ImmutableArray<SourceSpan>.Empty;
                 DynamicAnalysisInjector dynamicInstrumenter = instrumentForDynamicAnalysis ? new DynamicAnalysisInjector(method, statement, factory, compilationState, diagnostics, debugDocumentProvider, Instrumenter.NoOp) : null;
 
                 // We don’t want IL to differ based upon whether we write the PDB to a file/stream or not.
@@ -94,7 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     BoundBlock loweredBlock = loweredStatement as BoundBlock;
                     if (loweredBlock != null)
                     {
-                        loweredStatement = dynamicInstrumenter.AddInstrumentationPrologue(loweredBlock);
+                        loweredStatement = dynamicInstrumenter.AddInstrumentationPrologue(loweredBlock, ref dynamicAnalysisSpans);
                     }
                 }
 

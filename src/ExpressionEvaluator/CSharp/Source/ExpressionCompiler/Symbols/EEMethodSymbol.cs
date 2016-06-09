@@ -491,14 +491,15 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                 }
                 localsSet.Free();
 
-            body = new BoundBlock(syntax, localsBuilder.ToImmutableAndFree(), ImmutableArray<LocalFunctionSymbol>.Empty, statementsBuilder.ToImmutableAndFree()) { WasCompilerGenerated = true };
+                body = new BoundBlock(syntax, localsBuilder.ToImmutableAndFree(), ImmutableArray<LocalFunctionSymbol>.Empty, statementsBuilder.ToImmutableAndFree()) { WasCompilerGenerated = true };
 
                 Debug.Assert(!diagnostics.HasAnyErrors());
                 Debug.Assert(!body.HasErrors);
 
                 bool sawLambdas;
-            bool sawLocalFunctions;
+                bool sawLocalFunctions;
                 bool sawAwaitInExceptionHandler;
+                ImmutableArray<SourceSpan> dynamicAnalysisSpans = ImmutableArray<SourceSpan>.Empty;
                 body = LocalRewriter.Rewrite(
                     compilation: this.DeclaringCompilation,
                     method: this,
@@ -510,12 +511,14 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     allowOmissionOfConditionalCalls: false,
                     instrumentForDynamicAnalysis: false,
                     debugDocumentProvider: null,
+                    dynamicAnalysisSpans: ref dynamicAnalysisSpans,
                     diagnostics: diagnostics,
                     sawLambdas: out sawLambdas,
-                sawLocalFunctions: out sawLocalFunctions,
+                    sawLocalFunctions: out sawLocalFunctions,
                     sawAwaitInExceptionHandler: out sawAwaitInExceptionHandler);
 
                 Debug.Assert(!sawAwaitInExceptionHandler);
+                Debug.Assert(dynamicAnalysisSpans.Length == 0);
 
                 if (body.HasErrors)
                 {
@@ -567,7 +570,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     return;
                 }
 
-            if (sawLambdas || sawLocalFunctions)
+                if (sawLambdas || sawLocalFunctions)
                 {
                     var closureDebugInfoBuilder = ArrayBuilder<ClosureDebugInfo>.GetInstance();
                     var lambdaDebugInfoBuilder = ArrayBuilder<LambdaDebugInfo>.GetInstance();
@@ -578,7 +581,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                         thisParameter: _thisParameter,
                         method: this,
                         methodOrdinal: _methodOrdinal,
-                    substitutedSourceMethod: this.SubstitutedSourceMethod.OriginalDefinition,
+                        substitutedSourceMethod: this.SubstitutedSourceMethod.OriginalDefinition,
                         closureDebugInfoBuilder: closureDebugInfoBuilder,
                         lambdaDebugInfoBuilder: lambdaDebugInfoBuilder,
                         slotAllocatorOpt: null,
@@ -611,7 +614,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExpressionEvaluator
                     localBuilder.Add(local);
                 }
 
-            body = block.Update(localBuilder.ToImmutableAndFree(), block.LocalFunctions, block.Statements);
+                body = block.Update(localBuilder.ToImmutableAndFree(), block.LocalFunctions, block.Statements);
                 TypeParameterChecker.Check(body, _allTypeParameters);
                 compilationState.AddSynthesizedMethod(this, body);
             }

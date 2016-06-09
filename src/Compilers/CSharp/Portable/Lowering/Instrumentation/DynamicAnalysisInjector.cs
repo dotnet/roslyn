@@ -51,11 +51,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        public BoundStatement AddInstrumentationPrologue(BoundBlock rewrittenMethodBody)
+        public BoundStatement AddInstrumentationPrologue(BoundBlock rewrittenMethodBody, ref ImmutableArray<SourceSpan> dynamicAnalysisSpans)
         {
             if (_doInstrumentation)
             {
-                ImmutableArray<SourceSpan> dynamicAnalysisSpans = _spansBuilder.ToImmutableAndFree();
+                dynamicAnalysisSpans = _spansBuilder.ToImmutableAndFree();
                 // PROTOTYPE (https://github.com/dotnet/roslyn/issues/10411): In the future there will be multiple analysis kinds.
                 const int analysisKind = 0;
 
@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!_methodHasExplicitBlock)
             {
                 // The assignment statement for a property set method defined without a block is compiler generated, but requires instrumentation.
-                return CollectDynamicAnalysis(rewritten);
+                return CollectDynamicAnalysis(original, rewritten);
             }
 
             return AddDynamicAnalysis(original, rewritten);
@@ -169,44 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundStatement InstrumentLocalInitialization(BoundLocalDeclaration original, BoundStatement rewritten)
         {
-            rewritten = base.InstrumentLocalInitialization(original, rewritten);
-
-#if false
-            if (original.Syntax.Parent.Kind() == SyntaxKind.VariableDeclaration)
-            {
-                VariableDeclarationSyntax declarationSyntax = (VariableDeclarationSyntax)original.Syntax.Parent;
-                if (declarationSyntax.Variables.Count > 1)
-                {
-                    // This declaration is part of a MultipleLocalDeclarations statement,
-                    // and so should not be treated as a separate statement.
-                    return rewritten;
-                }
-
-                // A statement that represents the declarations in a using or fixed statement should not be treated as a separate statement.
-                switch (declarationSyntax.Parent.Kind())
-                {
-                    case SyntaxKind.UsingStatement:
-                        if (declarationSyntax == ((UsingStatementSyntax)declarationSyntax.Parent).Declaration)
-                        {
-                            return rewritten;
-                        }
-                        break;
-                    case SyntaxKind.FixedStatement:
-                        if (declarationSyntax == ((FixedStatementSyntax)declarationSyntax.Parent).Declaration)
-                        {
-                            return rewritten;
-                        }
-                        break;
-                }
-            }
-#endif
-            // Declarations without initializers are not instrumented.
-            if (!HasInitializer((BoundLocalDeclaration)original))
-            {
-                return rewritten;
-            }
-
-            return AddDynamicAnalysis(original, rewritten);
+            return AddDynamicAnalysis(original, base.InstrumentLocalInitialization(original, rewritten));
         }
 
         public override BoundStatement InstrumentLockTargetCapture(BoundLockStatement original, BoundStatement lockTargetCapture)
@@ -223,7 +186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (!_methodHasExplicitBlock && ((BoundReturnStatement)original).ExpressionOpt != null)
             {
                 // The return statement for value-returning methods defined without a block is compiler generated, but requires instrumentation.
-                return CollectDynamicAnalysis(rewritten);
+                return CollectDynamicAnalysis(original, rewritten);
             }
 
             return AddDynamicAnalysis(original, rewritten);
@@ -246,20 +209,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Do not instrument implicit constructor initializers
                 if (!original.IsConstructorInitializer() || original.Syntax.Kind() != SyntaxKind.ConstructorDeclaration)
                 {
-                    return CollectDynamicAnalysis(rewritten);
+                    return CollectDynamicAnalysis(original, rewritten);
                 }
             }
 
             return rewritten;
         }
 
-        private BoundStatement CollectDynamicAnalysis(BoundStatement statement)
+        private BoundStatement CollectDynamicAnalysis(BoundStatement original, BoundStatement rewritten)
         {
             if (_doInstrumentation)
             {
                 // Add an entry in the spans array.
 
-                CSharpSyntaxNode syntaxForSpan = SyntaxForSpan(statement);
+                CSharpSyntaxNode syntaxForSpan = SyntaxForSpan(original);
                 Location location = syntaxForSpan.GetLocation();
                 FileLinePositionSpan spanPosition = location.GetMappedLineSpan();
                 string path = spanPosition.Path;
@@ -273,14 +236,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Generate "_payload[pointIndex] = true".
 
-                SyntheticBoundNodeFactory statementFactory = new SyntheticBoundNodeFactory(_method, statement.Syntax, _compilationState, _diagnostics);
+                SyntheticBoundNodeFactory statementFactory = new SyntheticBoundNodeFactory(_method, rewritten.Syntax, _compilationState, _diagnostics);
                 BoundArrayAccess payloadCell = statementFactory.ArrayAccess(statementFactory.Local(_methodPayload), statementFactory.Literal(spansIndex));
                 BoundExpressionStatement cellAssignment = statementFactory.Assignment(payloadCell, statementFactory.Literal(true));
 
-                return statementFactory.Block(ImmutableArray.Create(cellAssignment, statement));
+                return statementFactory.Block(ImmutableArray.Create(cellAssignment, rewritten));
             }
 
-            return statement;
+            return rewritten;
         }
 
         private static CSharpSyntaxNode SyntaxForSpan(BoundStatement statement)
