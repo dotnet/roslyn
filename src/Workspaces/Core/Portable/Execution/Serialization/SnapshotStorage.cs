@@ -86,6 +86,14 @@ namespace Microsoft.CodeAnalysis.Execution
             Contract.ThrowIfFalse(_snapshots.TryRemove(snapshot, out dummy));
         }
 
+        internal void TestOnly_ClearCache()
+        {
+            foreach (var storage in _snapshots.Values)
+            {
+                storage.TestOnly_ClearCache();
+            }
+        }
+
         private sealed class Storage : SnapshotStorage
         {
             private readonly SnapshotStorages _owner;
@@ -242,6 +250,11 @@ namespace Microsoft.CodeAnalysis.Execution
             {
                 var entry = _cache.GetOrAdd(key, _ => new ChecksumObjectCache());
                 return entry.GetOrCreateStorage(_owner, Solution);
+            }
+
+            internal void TestOnly_ClearCache()
+            {
+                _cache.Clear();
             }
         }
 

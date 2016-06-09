@@ -14,7 +14,6 @@ namespace Microsoft.CodeAnalysis.Execution
     {
         Task<SolutionSnapshot> CreateSnapshotAsync(Solution solution, CancellationToken cancellationToken);
         Task<ChecksumObject> GetChecksumObjectAsync(Checksum checksum, CancellationToken cancellationToken);
-        // Task<SnapshotStream> CreateSnapshotStreamAsync(ChecksumObject checksumObject, CancellationToken cancellationToken);
     }
 
     /// <summary>

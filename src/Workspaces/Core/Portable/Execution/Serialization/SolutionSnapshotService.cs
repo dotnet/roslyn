@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.Execution
             return new Service(workspaceServices);
         }
 
-        private class Service : ISolutionSnapshotService
+        internal class Service : ISolutionSnapshotService
         {
             private readonly HostWorkspaceServices _workspaceServices;
             private readonly Serializer _serializer;
@@ -41,6 +41,11 @@ namespace Microsoft.CodeAnalysis.Execution
             public Task<ChecksumObject> GetChecksumObjectAsync(Checksum checksum, CancellationToken cancellationToken)
             {
                 return _storages.GetChecksumObjectAsync(checksum, cancellationToken);
+            }
+
+            internal void TestOnly_ClearCache()
+            {
+                _storages.TestOnly_ClearCache();
             }
 
             private class Snapshot : SolutionSnapshot
