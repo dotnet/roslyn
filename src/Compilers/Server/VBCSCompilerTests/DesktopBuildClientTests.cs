@@ -162,25 +162,16 @@ namespace Microsoft.CodeAnalysis.CompilerServer.UnitTests
                                           cts.Token);
                 Assert.False(connection.IsCompleted);
                 cts.Cancel();
-                // Give plenty of time for cancellation, in case the machine is very overloaded
-                await Task.WhenAny(connection, Task.Delay(oneSec))
-                    .ConfigureAwait(false);
-                Assert.True(connection.IsCompleted);
-                Assert.True(connection.IsCanceled);
+                await Assert.ThrowsAnyAsync<OperationCanceledException>(
+                    async () => await connection.ConfigureAwait(false)).ConfigureAwait(false);
 
                 // Create server and try again
                 Assert.True(TryCreateServer(_pipeName));
                 Assert.True(client.TryConnectToNamedPipeWithSpinWait((int)oneSec.TotalMilliseconds,
                                                                      default(CancellationToken)));
                 // With infinite timeout
-                connection = Task.Run(() =>
-                    client.TryConnectToNamedPipeWithSpinWait(Timeout.Infinite,
-                                                             default(CancellationToken)));
-                // Give plenty of time for cancellation, in case the machine is very overloaded
-                await Task.WhenAny(connection, Task.Delay(oneSec))
-                    .ConfigureAwait(false);
-                Assert.True(connection.IsCompleted);
-                Assert.True(await connection.ConfigureAwait(false));
+                Assert.True(client.TryConnectToNamedPipeWithSpinWait(Timeout.Infinite,
+                                                                     default(CancellationToken)));
             }
 
             [Fact]
