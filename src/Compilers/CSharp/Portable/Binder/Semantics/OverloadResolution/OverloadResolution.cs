@@ -2406,7 +2406,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             for (int arg = 0; arg < argumentCount; ++arg)
             {
                 int parm = argToParamMap.IsDefault ? arg : argToParamMap[arg];
-                // If this is the __arglist parameter, just skip it.
+                // If this is the __arglist parameter, or an extra argument in error situations, just skip it.
                 if (parm >= parameters.Length)
                 {
                     continue;

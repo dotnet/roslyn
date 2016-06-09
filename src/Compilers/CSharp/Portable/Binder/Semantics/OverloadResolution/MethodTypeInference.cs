@@ -101,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// For error recovery, we allow a mismatch between the number of arguments and parameters
         /// during type inference. This sometimes enables inferring the type for a lambda parameter.
         /// </summary>
-        private int Length => System.Math.Min(_arguments.Length, _formalParameterTypes.Length);
+        private int NumberArgumentsToProcess => System.Math.Min(_arguments.Length, _formalParameterTypes.Length);
 
         public static MethodTypeInferenceResult Infer(
             Binder binder,
@@ -536,7 +536,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // optional parameters have already been dealt with.
 
             // SPEC: For each of the method arguments Ei:
-            for (int arg = 0, length = this.Length; arg < length; arg++)
+            for (int arg = 0, length = this.NumberArgumentsToProcess; arg < length; arg++)
             {
                 var argument = _arguments[arg];
 
@@ -800,7 +800,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: where the output types contain unfixed type parameters but the input
             // SPEC: types do not, an output type inference is made from Ei to Ti.
 
-            for (int arg = 0, length = this.Length; arg < length; arg++)
+            for (int arg = 0, length = this.NumberArgumentsToProcess; arg < length; arg++)
             {
                 var formalType = _formalParameterTypes[arg];
                 var argument = _arguments[arg];
@@ -1072,7 +1072,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(IsUnfixed(iParam));
             Debug.Assert(IsUnfixed(jParam));
 
-            for (int iArg = 0, length = this.Length; iArg < length; iArg++)
+            for (int iArg = 0, length = this.NumberArgumentsToProcess; iArg < length; iArg++)
             {
                 var formalParameterType = _formalParameterTypes[iArg];
                 var argument = _arguments[iArg];
