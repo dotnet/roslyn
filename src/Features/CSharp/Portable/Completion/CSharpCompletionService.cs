@@ -80,6 +80,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
 
             var rule = options.GetOption(CompletionOptions.EnterKeyBehavior, LanguageNames.CSharp);
 
+            // Although EnterKeyBehavior is a per-language setting, the meaning of an unset setting (Default) differs between C# and VB
+            // In C# the default means Never to maintain previous behavior
             if (rule == EnterKeyRule.Default)
             {
                 rule = EnterKeyRule.Never;

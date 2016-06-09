@@ -66,6 +66,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
         Public Overrides Function GetRules() As CompletionRules
             Dim options = _workspace.Options
 
+            ' Although EnterKeyBehavior is a per-language setting, the meaning of an unset setting (Default) differs between C# And VB
+            ' In VB the default means Always to maintain previous behavior
             Dim rule = options.GetOption(CompletionOptions.EnterKeyBehavior, LanguageNames.VisualBasic)
 
             If rule = EnterKeyRule.Default Then
