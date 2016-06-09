@@ -27,8 +27,9 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Semantics;
 using MyNamedType = Microsoft.CodeAnalysis.INamedTypeSymbol;
 
-class MyCompilation : Compilation
+abstract class MyCompilation : Compilation
 {
+    // Compile error: no public constructor exists on Compilation.
 }
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
@@ -54,14 +55,14 @@ class MyAnalyzer : DiagnosticAnalyzer
 }";
             DiagnosticResult[] expected = new[]
             {
-                GetCSharpExpectedDiagnostic(18, 29, violatingTypeName: typeof(ITypeSymbol).FullName),
-                GetCSharpExpectedDiagnostic(19, 28, violatingTypeName: typeof(CSharpCompilation).FullName),
-                GetCSharpExpectedDiagnostic(20, 27, violatingTypeName: typeof(INamedTypeSymbol).FullName),
-                GetCSharpExpectedDiagnostic(21, 31, violatingTypeName: "MyCompilation"),
-                GetCSharpExpectedDiagnostic(22, 29, violatingTypeName: typeof(IBinaryOperatorExpression).FullName)
+                GetCSharpExpectedDiagnostic(19, 29, violatingTypeName: typeof(ITypeSymbol).FullName),
+                GetCSharpExpectedDiagnostic(20, 28, violatingTypeName: typeof(CSharpCompilation).FullName),
+                GetCSharpExpectedDiagnostic(21, 27, violatingTypeName: typeof(INamedTypeSymbol).FullName),
+                GetCSharpExpectedDiagnostic(22, 31, violatingTypeName: "MyCompilation"),
+                GetCSharpExpectedDiagnostic(23, 29, violatingTypeName: typeof(IBinaryOperatorExpression).FullName)
             };
 
-            VerifyCSharp(source, expected);
+            VerifyCSharp(source, TestValidationMode.AllowCompileErrors, expected);
         }
 
         [Fact]
@@ -69,6 +70,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         {
             var source = @"
 Imports System
+Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -76,8 +78,8 @@ Imports Microsoft.CodeAnalysis.Semantics
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports MyNamedType = Microsoft.CodeAnalysis.INamedTypeSymbol
 
-Class MyCompilation
-    Inherits Compilation
+MustInherit Class MyCompilation
+    Inherits Compilation ' Compile error: no public constructor exists on Compilation.
 End Class
 
 <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
@@ -102,14 +104,14 @@ End Class
 ";
             DiagnosticResult[] expected = new[]
             {
-                GetBasicExpectedDiagnostic(18, 35, violatingTypeName: typeof(ITypeSymbol).FullName),
-                GetBasicExpectedDiagnostic(19, 34, violatingTypeName: typeof(VisualBasicCompilation).FullName),
-                GetBasicExpectedDiagnostic(20, 36, violatingTypeName: typeof(INamedTypeSymbol).FullName),
-                GetBasicExpectedDiagnostic(21, 40, violatingTypeName: "MyCompilation"),
-                GetBasicExpectedDiagnostic(22, 35, violatingTypeName: typeof(IBinaryOperatorExpression).FullName)
+                GetBasicExpectedDiagnostic(19, 35, violatingTypeName: typeof(ITypeSymbol).FullName),
+                GetBasicExpectedDiagnostic(20, 34, violatingTypeName: typeof(VisualBasicCompilation).FullName),
+                GetBasicExpectedDiagnostic(21, 36, violatingTypeName: typeof(INamedTypeSymbol).FullName),
+                GetBasicExpectedDiagnostic(22, 40, violatingTypeName: "MyCompilation"),
+                GetBasicExpectedDiagnostic(23, 35, violatingTypeName: typeof(IBinaryOperatorExpression).FullName)
             };
 
-            VerifyBasic(source, expected);
+            VerifyBasic(source, TestValidationMode.AllowCompileErrors, expected);
         }
 
         [Fact]
@@ -124,8 +126,9 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.Diagnostics;
 using MyNamedType = Microsoft.CodeAnalysis.INamedTypeSymbol;
 
-class MyCompilation : Compilation
+abstract class MyCompilation : Compilation
 {
+    // Compile error: no public constructor exists on Compilation.
 }
 
 [DiagnosticAnalyzer(LanguageNames.CSharp)]
@@ -178,7 +181,7 @@ class MyAnalyzerWithoutAttribute : DiagnosticAnalyzer
     }
 }";
 
-            VerifyCSharp(source);
+            VerifyCSharp(source, TestValidationMode.AllowCompileErrors);
         }
 
         [Fact]
@@ -186,14 +189,15 @@ class MyAnalyzerWithoutAttribute : DiagnosticAnalyzer
         {
             var source = @"
 Imports System
+Imports System.Collections.Generic
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports MyNamedType = Microsoft.CodeAnalysis.INamedTypeSymbol
 
-Class MyCompilation
-    Inherits Compilation
+MustInherit Class MyCompilation
+    Inherits Compilation ' Compile error: no public constructor exists on Compilation.
 End Class
 
 <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
@@ -241,7 +245,7 @@ Class MyAnalyzerWithoutAttribute
 End Class
 ";
 
-            VerifyBasic(source);
+            VerifyBasic(source, TestValidationMode.AllowCompileErrors);
         }
 
         protected override CodeFixProvider GetCSharpCodeFixProvider()

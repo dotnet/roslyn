@@ -142,7 +142,7 @@ abstract class MyAnalyzer<T> : DiagnosticAnalyzer
     }
 }";
 
-            VerifyCSharp(source);
+            VerifyCSharp(source, TestValidationMode.AllowCompileErrors);
         }
 
         [Fact]
@@ -181,7 +181,7 @@ Class MyAnalyzer(Of T As Structure)
 End Class
 ";
 
-            VerifyBasic(source);
+            VerifyBasic(source, TestValidationMode.AllowCompileErrors);
         }
 
         protected override CodeFixProvider GetCSharpCodeFixProvider()

@@ -124,6 +124,7 @@ class MyAnalyzer : DiagnosticAnalyzer
         public void VisualBasic_VerifyRegisterSyntaxActionDiagnostic()
         {
             var source = @"
+Imports System
 Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
@@ -149,7 +150,7 @@ Class MyAnalyzer
     End Sub
 End Class
 ";
-            DiagnosticResult expected = GetBasicExpectedDiagnostic(17, 9, MissingKindArgument.SyntaxKind);
+            DiagnosticResult expected = GetBasicExpectedDiagnostic(18, 9, MissingKindArgument.SyntaxKind);
             VerifyBasic(source, expected);
         }
 

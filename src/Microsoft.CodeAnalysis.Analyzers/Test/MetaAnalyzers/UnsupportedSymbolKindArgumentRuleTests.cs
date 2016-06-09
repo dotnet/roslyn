@@ -189,7 +189,7 @@ class MyAnalyzer : DiagnosticAnalyzer
     }
 }";
 
-            VerifyCSharp(source);
+            VerifyCSharp(source, TestValidationMode.AllowCompileErrors);
         }
 
         [Fact]
@@ -234,7 +234,7 @@ Class MyAnalyzer
 End Class
 ";
 
-            VerifyBasic(source);
+            VerifyBasic(source, TestValidationMode.AllowCompileErrors);
         }
 
         protected override CodeFixProvider GetCSharpCodeFixProvider()

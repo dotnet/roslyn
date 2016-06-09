@@ -82,11 +82,6 @@ namespace Roslyn.Diagnostics.Analyzers.UnitTests
             VerifyAdditionalFileFix(LanguageNames.CSharp, source, shippedApiText, oldUnshippedApiText, newUnshippedApiText, onlyFixFirstFixableDiagnostic);
         }
 
-        private void VerifyBasicAdditionalFileFix(string source, string shippedApiText, string oldUnshippedApiText, string newUnshippedApiText, bool onlyFixFirstFixableDiagnostic = false)
-        {
-            VerifyAdditionalFileFix(LanguageNames.VisualBasic, source, shippedApiText, oldUnshippedApiText, newUnshippedApiText, onlyFixFirstFixableDiagnostic);
-        }
-
         private void VerifyAdditionalFileFix(string language, string source, string shippedApiText, string oldUnshippedApiText, string newUnshippedApiText, bool onlyFixFirstFixableDiagnostic)
         {
             var analyzer = language == LanguageNames.CSharp ? GetCSharpDiagnosticAnalyzer() : GetBasicDiagnosticAnalyzer();

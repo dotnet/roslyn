@@ -79,13 +79,14 @@ class Boo : IBar { }";
         public void CSharp_VerifyISymbol()
         {
             var source = @"
+// Causes many compile errors, because not all members are implemented.
 class Foo : Microsoft.CodeAnalysis.ISymbol { }
 class Bar : Microsoft.CodeAnalysis.IAssemblySymbol { }
 ";
-            DiagnosticResult[] expected = new[] { GetCSharpExpectedDiagnostic(2, 7, "Foo", "ISymbol"), GetCSharpExpectedDiagnostic(3, 7, "Bar", "ISymbol") };
+            DiagnosticResult[] expected = new[] { GetCSharpExpectedDiagnostic(3, 7, "Foo", "ISymbol"), GetCSharpExpectedDiagnostic(4, 7, "Bar", "ISymbol") };
 
             // Verify that ISymbol is not implementable.
-            VerifyCSharp(source, addLanguageSpecificCodeAnalysisReference: true, expected: expected);
+            VerifyCSharp(source, addLanguageSpecificCodeAnalysisReference: true, validationMode: TestValidationMode.AllowCompileErrors, expected: expected);
         }
 
         private const string AttributeStringBasic = @"
@@ -177,6 +178,7 @@ End Class
         public void Basic_VerifyISymbol()
         {
             var source = @"
+' Causes many compile errors, because not all members are implemented.
 Class Foo 
     Implements Microsoft.CodeAnalysis.ISymbol
 End Class
@@ -184,10 +186,10 @@ Class Bar
     Implements Microsoft.CodeAnalysis.IAssemblySymbol
 End Class
 ";
-            DiagnosticResult[] expected = new[] { GetBasicExpectedDiagnostic(2, 7, "Foo", "ISymbol"), GetBasicExpectedDiagnostic(5, 7, "Bar", "ISymbol") };
+            DiagnosticResult[] expected = new[] { GetBasicExpectedDiagnostic(3, 7, "Foo", "ISymbol"), GetBasicExpectedDiagnostic(6, 7, "Bar", "ISymbol") };
 
             // Verify that ISymbol is not implementable.
-            VerifyBasic(source, addLanguageSpecificCodeAnalysisReference: true, expected: expected);
+            VerifyBasic(source, addLanguageSpecificCodeAnalysisReference: true, validationMode: TestValidationMode.AllowCompileErrors, expected: expected);
         }
 
         private void VerifyAcrossTwoAssemblies(string source1, string source2, string language, params DiagnosticResult[] expected)
