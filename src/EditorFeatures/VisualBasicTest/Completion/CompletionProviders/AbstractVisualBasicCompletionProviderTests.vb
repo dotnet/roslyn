@@ -142,7 +142,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 Dim completionList = Await GetCompletionListAsync(service, document, position, CompletionTrigger.Default)
                 Dim item = completionList.Items.First()
 
-                Dim helper = CompletionHelper.GetHelper(document, service)
+                Dim helper = CompletionHelper.GetHelper(document)
 
                 For Each ch In chars
                     Assert.True(Controller.IsCommitCharacter(service.GetRules(), item, ch, textTypedSoFar), $"Expected '{ch}' to be a commit character")

@@ -15,20 +15,11 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal class CompletionHelper
     {
-        private readonly CompletionRules _rules;
-        private readonly string _language;
-        
-        public CompletionService CompletionService { get; }
-
-        protected CompletionHelper(CompletionService completionService)
+        protected CompletionHelper()
         {
-            CompletionService = completionService;
-            _language = CompletionService.Language;
-            _rules = CompletionService.GetRules();
         }
 
-        public static CompletionHelper GetHelper(
-            Workspace workspace, string language, CompletionService completionService)
+        public static CompletionHelper GetHelper(Workspace workspace, string language)
         {
             var ls = workspace.Services.GetLanguageServices(language);
             if (ls != null)
@@ -36,21 +27,18 @@ namespace Microsoft.CodeAnalysis.Editor
                 var factory = ls.GetService<CompletionHelperFactory>();
                 if (factory != null)
                 {
-                    return factory.CreateCompletionHelper(completionService);
+                    return factory.CreateCompletionHelper();
                 }
 
-                if (completionService != null)
-                {
-                    return new CompletionHelper(completionService);
-                }
+                return new CompletionHelper();
             }
 
             return null;
         }
 
-        public static CompletionHelper GetHelper(Document document, CompletionService service)
+        public static CompletionHelper GetHelper(Document document)
         {
-            return GetHelper(document.Project.Solution.Workspace, document.Project.Language, service);
+            return GetHelper(document.Project.Solution.Workspace, document.Project.Language);
         }
 
         public IReadOnlyList<TextSpan> GetHighlightedSpans(CompletionItem completionItem, string filterText)
