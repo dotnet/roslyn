@@ -298,7 +298,10 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             }
 
             // if the EnterKeyBehavior setting cannot be loaded, then attempt to load and upgrade the legacy AddNewLineOnEnterAfterFullyTypedWord setting
+
+#pragma warning disable CS0618 // AddNewLineOnEnterAfterFullyTypedWord is obsolete
             if (base.TryFetch(CSharpCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord, out value))
+#pragma warning restore CS0618
             {
                 int intValue = (int)value;
                 switch (intValue)
