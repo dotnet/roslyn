@@ -8,7 +8,7 @@
     <SystemReflectionMetadataVersion>1.3.0-rc3-24102-00</SystemReflectionMetadataVersion>
     <SystemCollectionsImmutableVersion>1.2.0-rc3-24102-00</SystemCollectionsImmutableVersion>
     <MicrosoftDiaSymReaderVersion>1.0.8-rc3-60429-03</MicrosoftDiaSymReaderVersion>
-    <MicrosoftDiaSymReaderNativeVersion>1.4.0-rc</MicrosoftDiaSymReaderNativeVersion>
+    <MicrosoftDiaSymReaderNativeVersion>1.4.0-rc2</MicrosoftDiaSymReaderNativeVersion>
     <MicrosoftCodeAnalysisElfieVersion>0.10.6-rc2</MicrosoftCodeAnalysisElfieVersion>
     <ManagedEsentVersion>1.9.2</ManagedEsentVersion>
     <CodeAnalysisAnalyzersVersion>1.1.0</CodeAnalysisAnalyzersVersion>
