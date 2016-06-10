@@ -260,15 +260,15 @@ namespace Microsoft.CodeAnalysis.Editor
                 return diff;
             }
 
-            // argument names are not prefered
-            if (IsArgumentName(item1) && !IsArgumentName(item2))
-            {
-                return 1;
-            }
-            else if (IsArgumentName(item2) && !IsArgumentName(item1))
-            {
-                return -1;
-            }
+            //// argument names are not prefered
+            //if (IsArgumentName(item1) && !IsArgumentName(item2))
+            //{
+            //    return 1;
+            //}
+            //else if (IsArgumentName(item2) && !IsArgumentName(item1))
+            //{
+            //    return -1;
+            //}
 
             // Now, after comparing matches, check if an item wants to be preselected.  If so,
             // we prefer that.  i.e. say the user has typed 'f' and we have the items 'foo' 
@@ -280,6 +280,13 @@ namespace Microsoft.CodeAnalysis.Editor
                 return item1.Rules.Preselect ? -1 : 1;
             }
 
+            // Prefer a shorter match between the two.
+            diff = item1.DisplayText.Length - item2.DisplayText.Length;
+            if (diff != 0)
+            {
+                return diff;
+            }
+
             // Now compare the matches again in a case sensitive manner.  If everything was
             // equal up to this point, we prefer the item that better matches based on case.
             diff = match1.CompareTo(match2, ignoreCase: false);
@@ -289,11 +296,6 @@ namespace Microsoft.CodeAnalysis.Editor
             }
 
             return 0;
-        }
-
-        protected bool IsArgumentName(CompletionItem item)
-        {
-            return item.Tags.Contains(CompletionTags.ArgumentName);
         }
 
         private static bool TextTypedSoFarMatchesItem(CompletionItem item, char ch, string textTypedSoFar)
