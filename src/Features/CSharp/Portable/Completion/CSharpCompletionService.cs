@@ -78,9 +78,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
         {
             var options = _workspace.Options;
 
-            var rule = options.GetOption(CSharpCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord) 
-                ? EnterKeyRule.AfterFullyTypedWord 
-                : EnterKeyRule.Never;
+            var rule = options.GetOption(CompletionOptions.EnterKeyBehavior, LanguageNames.CSharp);
+
+            // Although EnterKeyBehavior is a per-language setting, the meaning of an unset setting (Default) differs between C# and VB
+            // In C# the default means Never to maintain previous behavior
+            if (rule == EnterKeyRule.Default)
+            {
+                rule = EnterKeyRule.Never;
+            }
 
             // use interlocked + stored rules to reduce # of times this gets created when option is different than default
             var newRules = _latestRules.WithDefaultEnterKeyRule(rule);

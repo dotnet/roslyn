@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion
     {
         private readonly IEnumerable<IOption> _options = new List<IOption>
             {
-                CSharpCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord,
                 CSharpCompletionOptions.IncludeSnippets,
             }.ToImmutableArray();
 
