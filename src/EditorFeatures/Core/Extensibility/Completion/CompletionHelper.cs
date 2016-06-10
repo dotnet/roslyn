@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using System.Threading;
 using System.Threading.Tasks;
@@ -326,7 +327,26 @@ namespace Microsoft.CodeAnalysis.Editor
             // If the user hasn't actually typed anything, then don't hard select any item.
             // The only exception to this is if the completion provider has requested the
             // item be preselected.
-            return filterText.Length == 0 && !item.Rules.Preselect;
+            if (filterText.Length == 0)
+            {
+                // Item didn't want to be hard selected with no filter text.
+                // So definitely soft select it.
+                if (item.Rules.SelectionBehavior != CompletionItemSelectionBehavior.HardSelection)
+                {
+                    return true;
+                }
+
+                // Item did not ask to be preselected.  So definitely soft select it.
+                if (!item.Rules.Preselect)
+                {
+                    return true;
+                }
+            }
+
+            // The user typed something, or the item asked to be preselected.  In 
+            // either case, don't soft select this.
+            Debug.Assert(filterText.Length > 0 || item.Rules.Preselect);
+            return false;
         }
 
         private bool IsAllPunctuation(string filterText)

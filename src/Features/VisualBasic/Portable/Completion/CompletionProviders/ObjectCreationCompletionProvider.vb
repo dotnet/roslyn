@@ -47,7 +47,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
         End Function
 
         Private Shared s_rules As CompletionItemRules =
-            CompletionItemRules.Create(commitCharacterRules:=ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, " "c, "("c)))
+            CompletionItemRules.Create(
+                commitCharacterRules:=ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, " "c, "("c)),
+                preselect:=True,
+                selectionBehavior:=CompletionItemSelectionBehavior.HardSelection)
 
         Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol), context As AbstractSyntaxContext) As CompletionItemRules
             Return s_rules

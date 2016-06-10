@@ -6,6 +6,28 @@ using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
+    public enum CompletionItemSelectionBehavior
+    {
+        Default,
+
+        /// <summary>
+        /// If no text has been typed, the item should be soft selected. This is appropriate for 
+        /// completion providers that want to provide suggestions that shouldn't interfere with 
+        /// typing.  For example a provider that comes up on space might offer items that are soft
+        /// selected so that an additional space (or other puntuation character) will not then 
+        /// commit that item.
+        /// </summary>
+        SoftSelection,
+
+        /// <summary>
+        /// If no text has been typed, the item should be hard selected.  This is appropriate for
+        /// completion providers that are providing suggestions the user is nearly certain to 
+        /// select.  Because the item is hard selected, any commit characters typed after it will
+        /// cause it to be committed.
+        /// </summary>
+        HardSelection,
+    }
+
     /// <summary>
     /// Rules for how the individual items are handled.
     /// </summary>
@@ -20,7 +42,8 @@ namespace Microsoft.CodeAnalysis.Completion
                 commitCharacterRules: default(ImmutableArray<CharacterSetModificationRule>),
                 enterKeyRule: EnterKeyRule.Default, 
                 formatOnCommit: false, 
-                preselect: false);
+                preselect: false,
+                selectionBehavior: CompletionItemSelectionBehavior.Default);
 
         /// <summary>
         /// Rules that modify the set of characters that can be typed to filter the list of completion items.
@@ -47,18 +70,26 @@ namespace Microsoft.CodeAnalysis.Completion
         /// </summary>
         public bool Preselect { get; }
 
+        /// <summary>
+        /// How this item should be selected when the completion list first appears and
+        /// before the user has typed any characters.
+        /// </summary>
+        public CompletionItemSelectionBehavior SelectionBehavior { get; }
+
         private CompletionItemRules(
             ImmutableArray<CharacterSetModificationRule> filterCharacterRules,
             ImmutableArray<CharacterSetModificationRule> commitCharacterRules,
             EnterKeyRule enterKeyRule,
             bool formatOnCommit,
-            bool preselect)
+            bool preselect,
+            CompletionItemSelectionBehavior selectionBehavior)
         {
-            this.FilterCharacterRules = filterCharacterRules.IsDefault ? ImmutableArray<CharacterSetModificationRule>.Empty : filterCharacterRules;
-            this.CommitCharacterRules = commitCharacterRules.IsDefault ? ImmutableArray<CharacterSetModificationRule>.Empty : commitCharacterRules;
-            this.EnterKeyRule = enterKeyRule;
-            this.FormatOnCommit = formatOnCommit;
-            this.Preselect = preselect;
+            FilterCharacterRules = filterCharacterRules.IsDefault ? ImmutableArray<CharacterSetModificationRule>.Empty : filterCharacterRules;
+            CommitCharacterRules = commitCharacterRules.IsDefault ? ImmutableArray<CharacterSetModificationRule>.Empty : commitCharacterRules;
+            EnterKeyRule = enterKeyRule;
+            FormatOnCommit = formatOnCommit;
+            Preselect = preselect;
+            SelectionBehavior = selectionBehavior;
         }
 
         /// <summary>
@@ -71,23 +102,49 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <param name="preselect">True if the related completion item should be initially selected.</param>
         /// <returns></returns>
         public static CompletionItemRules Create(
+            ImmutableArray<CharacterSetModificationRule> filterCharacterRules,
+            ImmutableArray<CharacterSetModificationRule> commitCharacterRules,
+            EnterKeyRule enterKeyRule,
+            bool formatOnCommit,
+            bool preselect)
+        {
+            return Create(
+                filterCharacterRules, commitCharacterRules, 
+                enterKeyRule, formatOnCommit, preselect, 
+                selectionBehavior: CompletionItemSelectionBehavior.Default);
+        }
+
+        /// <summary>
+        /// Creates a new <see cref="CompletionItemRules"/> instance.
+        /// </summary>
+        /// <param name="filterCharacterRules">Rules about which keys typed are used to filter the list of completion items.</param>
+        /// <param name="commitCharacterRules">Rules about which keys typed caused the completion item to be committed.</param>
+        /// <param name="enterKeyRule">Rule about whether the enter key is passed through to the editor after the selected item has been committed.</param>
+        /// <param name="formatOnCommit">True if the modified text should be formatted automatically.</param>
+        /// <param name="preselect">True if the related completion item should be initially selected.</param>
+        /// <param name="selectionBehavior">How this item should be selected if no text has been typed after the completion list is brought up.</param>
+        /// <returns></returns>
+        public static CompletionItemRules Create(
             ImmutableArray<CharacterSetModificationRule> filterCharacterRules = default(ImmutableArray<CharacterSetModificationRule>),
             ImmutableArray<CharacterSetModificationRule> commitCharacterRules = default(ImmutableArray<CharacterSetModificationRule>),
             EnterKeyRule enterKeyRule = EnterKeyRule.Default,
             bool formatOnCommit = false,
-            bool preselect = false)
+            bool preselect = false,
+            CompletionItemSelectionBehavior selectionBehavior = CompletionItemSelectionBehavior.Default)
         {
-            if (filterCharacterRules.IsDefaultOrEmpty
-                && commitCharacterRules.IsDefaultOrEmpty
-                && enterKeyRule == Default.EnterKeyRule
-                && formatOnCommit == Default.FormatOnCommit
-                && preselect == Default.Preselect)
+            if (filterCharacterRules.IsDefaultOrEmpty &&
+                commitCharacterRules.IsDefaultOrEmpty &&
+                enterKeyRule == Default.EnterKeyRule &&
+                formatOnCommit == Default.FormatOnCommit &&
+                preselect == Default.Preselect &&
+                selectionBehavior == Default.SelectionBehavior)
             {
                 return Default;
             }
             else
             {
-                return new CompletionItemRules(filterCharacterRules, commitCharacterRules, enterKeyRule, formatOnCommit, preselect);
+                return new CompletionItemRules(
+                    filterCharacterRules, commitCharacterRules, enterKeyRule, formatOnCommit, preselect, selectionBehavior);
             }
         }
 
@@ -96,25 +153,28 @@ namespace Microsoft.CodeAnalysis.Completion
             Optional<ImmutableArray<CharacterSetModificationRule>> commitRules = default(Optional<ImmutableArray<CharacterSetModificationRule>>),
             Optional<EnterKeyRule> enterKeyRule = default(Optional<EnterKeyRule>),
             Optional<bool> formatOnCommit = default(Optional<bool>),
-            Optional<bool> preselect = default(Optional<bool>))
+            Optional<bool> preselect = default(Optional<bool>),
+            Optional<CompletionItemSelectionBehavior> selectionBehavior = default(Optional<CompletionItemSelectionBehavior>))
         {
             var newFilterRules = filterRules.HasValue ? filterRules.Value : this.FilterCharacterRules;
             var newCommitRules = commitRules.HasValue ? commitRules.Value : this.CommitCharacterRules;
             var newEnterKeyRule = enterKeyRule.HasValue ? enterKeyRule.Value : this.EnterKeyRule;
             var newFormatOnCommit = formatOnCommit.HasValue ? formatOnCommit.Value : this.FormatOnCommit;
             var newPreselect = preselect.HasValue ? preselect.Value : this.Preselect;
+            var newSelectionBehavior = selectionBehavior.HasValue ? selectionBehavior.Value : this.SelectionBehavior;
 
             if (newFilterRules == this.FilterCharacterRules &&
                 newCommitRules == this.CommitCharacterRules &&
                 newEnterKeyRule == this.EnterKeyRule &&
                 newFormatOnCommit == this.FormatOnCommit &&
-                newPreselect == this.Preselect)
+                newPreselect == this.Preselect &&
+                newSelectionBehavior == this.SelectionBehavior)
             {
                 return this;
             }
             else
             { 
-                return Create(newFilterRules, newCommitRules, newEnterKeyRule, newFormatOnCommit, newPreselect);
+                return Create(newFilterRules, newCommitRules, newEnterKeyRule, newFormatOnCommit, newPreselect, newSelectionBehavior);
             }
         }
 
@@ -156,6 +216,14 @@ namespace Microsoft.CodeAnalysis.Completion
         public CompletionItemRules WithPreselect(bool preselect)
         {
             return this.With(preselect: preselect);
+        }
+
+        /// <summary>
+        /// Creates a copy of this <see cref="CompletionItemRules"/> with the <see cref="SelectionBehavior"/> property changed.
+        /// </summary>
+        public CompletionItemRules WithSelectionBehavior(CompletionItemSelectionBehavior selectionBehavior)
+        {
+            return this.With(selectionBehavior: selectionBehavior);
         }
     }
 }

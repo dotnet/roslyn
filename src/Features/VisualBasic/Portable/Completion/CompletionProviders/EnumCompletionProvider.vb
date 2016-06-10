@@ -127,8 +127,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 rules:=GetCompletionItemRules(symbols, context))
         End Function
 
+        Private Shared ReadOnly s_rules As CompletionItemRules = CompletionItemRules.Default.WithPreselect(True)
+
         Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol), context As AbstractSyntaxContext) As CompletionItemRules
-            Return CompletionItemRules.Default
+            Return s_rules
         End Function
 
         Public Overrides Function GetTextChangeAsync(document As Document, selectedItem As CompletionItem, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)

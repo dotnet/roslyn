@@ -79,7 +79,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 glyph:=Glyph.EnumMember,
                 preselect:=preselect,
                 supportedPlatforms:=supportedPlatformData)
-
         End Function
     End Class
 End Namespace
