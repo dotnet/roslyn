@@ -312,9 +312,30 @@ namespace Microsoft.CodeAnalysis.Editor
         /// Returns true if the completion item should be "soft" selected, or false if it should be "hard"
         /// selected.
         /// </summary>
-        public virtual bool ShouldSoftSelectItem(CompletionItem item, string filterText, CompletionTrigger trigger)
+        public bool ShouldSoftSelectItem(CompletionItem item, string filterText, CompletionTrigger trigger)
         {
+            // if the filter text is all punctuation, then it's likely that we're just picking up
+            // code that is intended to be syntax, and not an actual item.  Don't hard select the
+            // item unless it matches the filter text exactly.  
+            if (filterText.Length > 0 && IsAllPunctuation(filterText) && item.DisplayText != filterText)
+            {
+                return true;
+            }
+
             return filterText.Length == 0 && !item.Rules.Preselect;
+        }
+
+        private bool IsAllPunctuation(string filterText)
+        {
+            foreach (var c in filterText)
+            {
+                if (!char.IsPunctuation(c))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         protected bool IsObjectCreationItem(CompletionItem item)
