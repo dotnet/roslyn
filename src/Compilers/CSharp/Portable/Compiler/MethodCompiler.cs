@@ -992,11 +992,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // and will not be reported to callers Compilation.GetDiagnostics()
 
                 ImmutableArray<SourceSpan> dynamicAnalysisSpans = ImmutableArray<SourceSpan>.Empty;
-                if (_moduleBeingBuiltOpt?.EmitOptions.EmitDynamicAnalysisData == true)
-                {
-                    flowAnalyzedBody = Instrumentation.InjectInstrumentation(methodSymbol, flowAnalyzedBody, compilationState, _diagnostics, _debugDocumentProvider, out dynamicAnalysisSpans);
-                }
-
                 bool hasBody = flowAnalyzedBody != null;
                 VariableSlotAllocator lazyVariableSlotAllocator = null;
                 StateMachineTypeSymbol stateMachineTypeOpt = null;
@@ -1014,6 +1009,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                             flowAnalyzedBody,
                             previousSubmissionFields,
                             compilationState,
+                            _moduleBeingBuiltOpt?.EmitOptions.EmitDynamicAnalysisData == true,
+                            _debugDocumentProvider,
+                            ref dynamicAnalysisSpans,
                             diagsForCurrentMethod,
                             ref lazyVariableSlotAllocator,
                             lambdaDebugInfoBuilder,
@@ -1049,6 +1047,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (analyzedInitializers != null)
                             {
+                                // Eventually we will instrument field initializers, but for now we skip them.
+                                const bool instrumentFieldInitializersForDynamicAnalysis = false;
                                 StateMachineTypeSymbol initializerStateMachineTypeOpt;
 
                                 processedInitializers.LoweredInitializers = (BoundStatementList)LowerBodyOrInitializer(
@@ -1057,6 +1057,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     analyzedInitializers,
                                     previousSubmissionFields,
                                     compilationState,
+                                    instrumentFieldInitializersForDynamicAnalysis,
+                                    _debugDocumentProvider,
+                                    ref dynamicAnalysisSpans,
                                     diagsForCurrentMethod,
                                     ref lazyVariableSlotAllocator,
                                     lambdaDebugInfoBuilder,
@@ -1097,6 +1100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             methodSymbol.IsImplicitInstanceConstructor)
                         {
                             StateMachineTypeSymbol ctorStateMachineTypeOpt;
+                            const bool instrumentChainedConstructorsForDynamicAnalysis = false;
 
                             var chain = ChainImplicitStructConstructor(methodSymbol, container);
                             chain = LowerBodyOrInitializer(
@@ -1105,6 +1109,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 chain,
                                 previousSubmissionFields,
                                 compilationState,
+                                instrumentChainedConstructorsForDynamicAnalysis,
+                                _debugDocumentProvider,
+                                ref dynamicAnalysisSpans,
                                 diagsForCurrentMethod,
                                 ref lazyVariableSlotAllocator,
                                 lambdaDebugInfoBuilder,
@@ -1183,6 +1190,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundStatement body,
             SynthesizedSubmissionFields previousSubmissionFields,
             TypeCompilationState compilationState,
+            bool instrumentForDynamicAnalysis,
+            DebugDocumentProvider debugDocumentProvider,
+            ref ImmutableArray<SourceSpan> dynamicAnalysisSpans,
             DiagnosticBag diagnostics,
             ref VariableSlotAllocator lazyVariableSlotAllocator,
             ArrayBuilder<LambdaDebugInfo> lambdaDebugInfoBuilder,
@@ -1200,7 +1210,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 bool sawLambdas;
-            bool sawLocalFunctions;
+                bool sawLocalFunctions;
                 bool sawAwaitInExceptionHandler;
                 var loweredBody = LocalRewriter.Rewrite(
                     method.DeclaringCompilation,
@@ -1211,9 +1221,12 @@ namespace Microsoft.CodeAnalysis.CSharp
                     compilationState,
                     previousSubmissionFields: previousSubmissionFields,
                     allowOmissionOfConditionalCalls: true,
+                    instrumentForDynamicAnalysis: instrumentForDynamicAnalysis,
+                    debugDocumentProvider:debugDocumentProvider,
+                    dynamicAnalysisSpans: ref dynamicAnalysisSpans,
                     diagnostics: diagnostics,
                     sawLambdas: out sawLambdas,
-                sawLocalFunctions: out sawLocalFunctions,
+                    sawLocalFunctions: out sawLocalFunctions,
                     sawAwaitInExceptionHandler: out sawAwaitInExceptionHandler);
 
                 if (loweredBody.HasErrors)
@@ -1248,7 +1261,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 BoundStatement bodyWithoutLambdas = loweredBody;
-            if (sawLambdas || sawLocalFunctions)
+                if (sawLambdas || sawLocalFunctions)
                 {
                     bodyWithoutLambdas = LambdaRewriter.Rewrite(
                         loweredBody,
@@ -1256,7 +1269,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         method.ThisParameter,
                         method,
                         methodOrdinal,
-                    null,
+                        null,
                         lambdaDebugInfoBuilder,
                         closureDebugInfoBuilder,
                         lazyVariableSlotAllocator,

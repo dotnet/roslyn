@@ -247,7 +247,6 @@
     <Compile Include="Compiler\DocumentationCommentCompiler.DocumentationCommentWalker.cs" />
     <Compile Include="Compiler\DocumentationCommentCompiler.IncludeElementExpander.cs" />
     <Compile Include="Compiler\EntryPointCandidateFinder.cs" />
-    <Compile Include="Compiler\Instrumentation.cs" />
     <Compile Include="Compiler\MethodCompiler.cs" />
     <Compile Include="Compiler\MethodBodySynthesizer.cs" />
     <Compile Include="Compiler\MethodBodySynthesizer.Lowered.cs" />
@@ -382,6 +381,7 @@
     <Compile Include="Lowering\Instrumentation\CompoundInstrumenter.cs" />
     <Compile Include="Lowering\Instrumentation\DebugInfoInjector.cs" />
     <Compile Include="Lowering\Instrumentation\DebugInfoInjector_SequencePoints.cs" />
+    <Compile Include="Lowering\Instrumentation\DynamicAnalysisInjector.cs" />
     <Compile Include="Lowering\Instrumentation\Instrumenter.cs" />
     <Compile Include="Lowering\IteratorRewriter\IteratorConstructor.cs" />
     <Compile Include="Lowering\IteratorRewriter\IteratorFinallyMethodSymbol.cs" />

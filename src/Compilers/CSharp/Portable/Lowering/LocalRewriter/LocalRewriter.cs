@@ -3,6 +3,7 @@
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
+using Microsoft.CodeAnalysis.CodeGen;
 using Microsoft.CodeAnalysis.CSharp.Emit;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -25,11 +26,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         private bool _sawAwaitInExceptionHandler;
         private readonly DiagnosticBag _diagnostics;
         private readonly Instrumenter _instrumenter;
+        private readonly BoundStatement _rootStatement;
 
         private LocalRewriter(
             CSharpCompilation compilation,
             MethodSymbol containingMethod,
             int containingMethodOrdinal,
+            BoundStatement rootStatement,
             NamedTypeSymbol containingType,
             SyntheticBoundNodeFactory factory,
             SynthesizedSubmissionFields previousSubmissionFields,
@@ -48,6 +51,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             Debug.Assert(instrumenter != null);
             _instrumenter = instrumenter;
+            _rootStatement = rootStatement;
         }
 
         /// <summary>
@@ -62,6 +66,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             TypeCompilationState compilationState,
             SynthesizedSubmissionFields previousSubmissionFields,
             bool allowOmissionOfConditionalCalls,
+            bool instrumentForDynamicAnalysis,
+            ref ImmutableArray<SourceSpan> dynamicAnalysisSpans,
+            DebugDocumentProvider debugDocumentProvider,
             DiagnosticBag diagnostics,
             out bool sawLambdas,
             out bool sawLocalFunctions,
@@ -73,16 +80,22 @@ namespace Microsoft.CodeAnalysis.CSharp
             try
             {
                 var factory = new SyntheticBoundNodeFactory(method, statement.Syntax, compilationState, diagnostics);
+                DynamicAnalysisInjector dynamicInstrumenter = instrumentForDynamicAnalysis ? DynamicAnalysisInjector.TryCreate(method, statement, factory, diagnostics, debugDocumentProvider, Instrumenter.NoOp) : null;
 
                 // We don’t want IL to differ based upon whether we write the PDB to a file/stream or not.
                 // Presence of sequence points in the tree affects final IL, therefore, we always generate them.
-                var localRewriter = new LocalRewriter(compilation, method, methodOrdinal, containingType, factory, previousSubmissionFields, allowOmissionOfConditionalCalls, diagnostics,
-                                                      DebugInfoInjector.Singleton);
+                var localRewriter = new LocalRewriter(compilation, method, methodOrdinal, statement, containingType, factory, previousSubmissionFields, allowOmissionOfConditionalCalls, diagnostics,
+                                                      dynamicInstrumenter != null ? new DebugInfoInjector(dynamicInstrumenter) : DebugInfoInjector.Singleton);
 
                 var loweredStatement = (BoundStatement)localRewriter.Visit(statement);
                 sawLambdas = localRewriter._sawLambdas;
                 sawLocalFunctions = localRewriter._sawLocalFunctions;
                 sawAwaitInExceptionHandler = localRewriter._sawAwaitInExceptionHandler;
+                if (dynamicInstrumenter != null)
+                {
+                    dynamicAnalysisSpans = dynamicInstrumenter.DynamicAnalysisSpans;
+                }
+
                 return loweredStatement;
             }
             catch (SyntheticBoundNodeFactory.MissingPredefinedMember ex)

@@ -3,7 +3,6 @@
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Emit;
-using Microsoft.CodeAnalysis.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.DynamicAnalysis.UnitTests
@@ -541,59 +540,58 @@ True
 }";
 
             string expectedDebugGetValueIL = @"{
-  // Code size      102 (0x66)
+  // Code size      101 (0x65)
   .maxstack  4
   .locals init (bool[] V_0,
                 bool V_1,
                 T V_2,
                 T V_3)
-  IL_0000:  nop
-  IL_0001:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
-  IL_0006:  ldtoken    ""T MyBox<T>.GetValue()""
-  IL_000b:  ldelem.ref
-  IL_000c:  stloc.0
-  IL_000d:  ldloc.0
-  IL_000e:  brtrue.s   IL_0030
-  IL_0010:  ldsfld     ""System.Guid <PrivateImplementationDetails>.MVID""
-  IL_0015:  ldtoken    ""T MyBox<T>.GetValue()""
-  IL_001a:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
-  IL_001f:  ldtoken    ""T MyBox<T>.GetValue()""
-  IL_0024:  ldelema    ""bool[]""
-  IL_0029:  ldc.i4.3
-  IL_002a:  call       ""bool[] Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, ref bool[], int)""
-  IL_002f:  stloc.0
-  IL_0030:  ldloc.0
+  IL_0000:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
+  IL_0005:  ldtoken    ""T MyBox<T>.GetValue()""
+  IL_000a:  ldelem.ref
+  IL_000b:  stloc.0
+  IL_000c:  ldloc.0
+  IL_000d:  brtrue.s   IL_002f
+  IL_000f:  ldsfld     ""System.Guid <PrivateImplementationDetails>.MVID""
+  IL_0014:  ldtoken    ""T MyBox<T>.GetValue()""
+  IL_0019:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
+  IL_001e:  ldtoken    ""T MyBox<T>.GetValue()""
+  IL_0023:  ldelema    ""bool[]""
+  IL_0028:  ldc.i4.3
+  IL_0029:  call       ""bool[] Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, ref bool[], int)""
+  IL_002e:  stloc.0
+  IL_002f:  ldloc.0
+  IL_0030:  ldc.i4.1
   IL_0031:  ldc.i4.1
-  IL_0032:  ldc.i4.1
-  IL_0033:  stelem.i1
-  IL_0034:  ldarg.0
-  IL_0035:  ldfld      ""T MyBox<T>._value""
-  IL_003a:  box        ""T""
-  IL_003f:  ldnull
-  IL_0040:  ceq
-  IL_0042:  stloc.1
-  IL_0043:  ldloc.1
-  IL_0044:  brfalse.s  IL_0057
-  IL_0046:  nop
-  IL_0047:  ldloc.0
-  IL_0048:  ldc.i4.0
-  IL_0049:  ldc.i4.1
-  IL_004a:  stelem.i1
-  IL_004b:  ldloca.s   V_2
-  IL_004d:  initobj    ""T""
-  IL_0053:  ldloc.2
-  IL_0054:  stloc.3
-  IL_0055:  br.s       IL_0064
-  IL_0057:  ldloc.0
-  IL_0058:  ldc.i4.2
-  IL_0059:  ldc.i4.1
-  IL_005a:  stelem.i1
-  IL_005b:  ldarg.0
-  IL_005c:  ldfld      ""T MyBox<T>._value""
-  IL_0061:  stloc.3
-  IL_0062:  br.s       IL_0064
-  IL_0064:  ldloc.3
-  IL_0065:  ret
+  IL_0032:  stelem.i1
+  IL_0033:  ldarg.0
+  IL_0034:  ldfld      ""T MyBox<T>._value""
+  IL_0039:  box        ""T""
+  IL_003e:  ldnull
+  IL_003f:  ceq
+  IL_0041:  stloc.1
+  IL_0042:  ldloc.1
+  IL_0043:  brfalse.s  IL_0056
+  IL_0045:  nop
+  IL_0046:  ldloc.0
+  IL_0047:  ldc.i4.0
+  IL_0048:  ldc.i4.1
+  IL_0049:  stelem.i1
+  IL_004a:  ldloca.s   V_2
+  IL_004c:  initobj    ""T""
+  IL_0052:  ldloc.2
+  IL_0053:  stloc.3
+  IL_0054:  br.s       IL_0063
+  IL_0056:  ldloc.0
+  IL_0057:  ldc.i4.2
+  IL_0058:  ldc.i4.1
+  IL_0059:  stelem.i1
+  IL_005a:  ldarg.0
+  IL_005b:  ldfld      ""T MyBox<T>._value""
+  IL_0060:  stloc.3
+  IL_0061:  br.s       IL_0063
+  IL_0063:  ldloc.3
+  IL_0064:  ret
 }";
 
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
@@ -615,16 +613,16 @@ public class Program
 
     public int Prop2 { get; } = 25;
 
-    public int Prop3 { get; set; }
+    public int Prop3 { get; set; }                                              // Methods 3 and 4
 
-    public Program()
+    public Program()                                                            // Method 5
     {
         Prop = 12;
         Prop3 = 12;
         Prop2 = Prop3;
     }
 
-    public static void Main(string[] args)
+    public static void Main(string[] args)                                      // Method 6
     {
         new Program();
         Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
@@ -749,13 +747,13 @@ using System;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static void Main(string[] args)                                      // Method 1
     {
         TestMain();
         Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
     }
 
-    static void TestMain()
+    static void TestMain()                                                      // Method 2
     {
         int x;
         int a, b;
@@ -763,7 +761,7 @@ public class Program
         DoubleForDeclaration(5);
     }
 
-    static int DoubleDeclaration(int x)
+    static int DoubleDeclaration(int x)                                         // Method 3
     {
         int c = x;
         int a, b;
@@ -774,10 +772,11 @@ public class Program
         return d + e + f;
     }
 
-    static int DoubleForDeclaration(int x)
+    static int DoubleForDeclaration(int x)                                      // Method 4
     {
         for(int a = x, b = x; a + b < 10; a++)
         {
+            Console.WriteLine(""Cannot get here."");
             x++;
         }
 
@@ -797,8 +796,11 @@ True
 True
 True
 True
+True
 4
 True
+True
+False
 False
 False
 True
@@ -829,13 +831,13 @@ using System.IO;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static void Main(string[] args)                                          // Method 1
     {
         TestMain();
         Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
     }
 
-    static void TestMain()
+    static void TestMain()                                                          // Method 2
     {
         using (var memoryStream = new MemoryStream())
         {
@@ -873,6 +875,8 @@ public class Program
 True
 True
 2
+True
+True
 True
 True
 True
@@ -1004,7 +1008,11 @@ public class Program
         {
         }
 
-        return;
+        // Include an infinite loop to make sure that a compiler optimization doesn't eliminate the instrumentation.
+        while (true)
+        {
+            return;
+        }
     }
 }
 ";
@@ -1048,6 +1056,7 @@ True
 False
 True
 True
+True
 6
 True
 False
@@ -1074,10 +1083,10 @@ using System;
 
 public class Program
 {
-    public static void Main(string[] args)
+    public static void Main(string[] args)                                  // Method 1
     {
         TestMain();
-        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();
+        Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload();      // Method 2
     }
 
     static void TestMain()

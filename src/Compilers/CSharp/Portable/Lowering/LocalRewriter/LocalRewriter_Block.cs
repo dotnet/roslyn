@@ -12,25 +12,24 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override BoundNode VisitBlock(BoundBlock node)
         {
-            if (node.WasCompilerGenerated || !this.Instrument || node.Syntax.Kind() != SyntaxKind.Block)
+            if (!this.Instrument || (node != _rootStatement && (node.WasCompilerGenerated || node.Syntax.Kind() != SyntaxKind.Block)))
             {
                 return node.Update(node.Locals, node.LocalFunctions, VisitList(node.Statements));
             }
 
-            BlockSyntax syntax = (BlockSyntax)node.Syntax;
-
             var builder = ArrayBuilder<BoundStatement>.GetInstance();
-
-            BoundStatement prologue = _instrumenter.CreateBlockPrologue(node);
-            if (prologue != null)
-            {
-                builder.Add(prologue);
-            }
 
             for (int i = 0; i < node.Statements.Length; i++)
             {
                 var stmt = (BoundStatement)Visit(node.Statements[i]);
                 if (stmt != null) builder.Add(stmt);
+            }
+
+            LocalSymbol synthesizedLocal;
+            BoundStatement prologue = _instrumenter.CreateBlockPrologue(node, out synthesizedLocal);
+            if (prologue != null)
+            {
+                builder.Insert(0, prologue);
             }
 
             BoundStatement epilogue = _instrumenter.CreateBlockEpilogue(node);
@@ -39,7 +38,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 builder.Add(epilogue);
             }
 
-            return new BoundBlock(node.Syntax, node.Locals, node.LocalFunctions, builder.ToImmutableAndFree(), node.HasErrors);
+            return new BoundBlock(node.Syntax, synthesizedLocal == null ? node.Locals : node.Locals.Add(synthesizedLocal), node.LocalFunctions, builder.ToImmutableAndFree(), node.HasErrors);
         }
 
         public override BoundNode VisitNoOpStatement(BoundNoOpStatement node)

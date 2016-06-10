@@ -68,9 +68,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             return Previous.InstrumentBreakStatement(original, rewritten);
         }
 
-        public override BoundStatement CreateBlockPrologue(BoundBlock original)
+        public override BoundStatement CreateBlockPrologue(BoundBlock original, out Symbols.LocalSymbol synthesizedLocal)
         {
-            return Previous.CreateBlockPrologue(original);
+            return Previous.CreateBlockPrologue(original, out synthesizedLocal);
         }
 
         public override BoundStatement CreateBlockEpilogue(BoundBlock original)
