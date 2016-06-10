@@ -63,7 +63,7 @@ namespace Microsoft.CodeAnalysis.Editor
             // MRU list, then we definitely want to include it.
             if (filterText.Length == 0)
             {
-                if (item.Rules.Preselect || (!recentItems.IsDefault && GetRecentItemIndex(recentItems, item) < 0))
+                if (item.Rules.MatchPriority > MatchPriority.Default || (!recentItems.IsDefault && GetRecentItemIndex(recentItems, item) < 0))
                 {
                     return true;
                 }
@@ -188,9 +188,9 @@ namespace Microsoft.CodeAnalysis.Editor
 
             // If they both seemed just as good, but they differ on preselection, then
             // item1 is better if it is preselected, otherwise it is worse.
-            if (item1.Rules.Preselect != item2.Rules.Preselect)
+            if (item1.Rules.MatchPriority != item2.Rules.MatchPriority)
             {
-                return item1.Rules.Preselect;
+                return item1.Rules.MatchPriority > item2.Rules.MatchPriority;
             }
 
             // Prefer things with a keyword tag, if the filter texts are the same.
@@ -275,9 +275,10 @@ namespace Microsoft.CodeAnalysis.Editor
             // and 'False' (with the latter being 'Preselected').  Both will be a prefix match.
             // And because we are ignoring case, neither will be seen as better.  Now, because
             // 'False' is preselected we pick it even though 'foo' matches 'f' case sensitively.
-            if (item1.Rules.Preselect != item2.Rules.Preselect)
+            diff = item1.Rules.MatchPriority - item2.Rules.MatchPriority;
+            if (diff != 0)
             {
-                return item1.Rules.Preselect ? -1 : 1;
+                return diff;
             }
 
             // Now compare the matches again in a case sensitive manner.  If everything was
@@ -314,7 +315,7 @@ namespace Microsoft.CodeAnalysis.Editor
         /// </summary>
         public virtual bool ShouldSoftSelectItem(CompletionItem item, string filterText, CompletionTrigger trigger)
         {
-            return filterText.Length == 0 && !item.Rules.Preselect;
+            return filterText.Length == 0 && item.Rules.MatchPriority == MatchPriority.Default;
         }
 
         protected bool IsObjectCreationItem(CompletionItem item)

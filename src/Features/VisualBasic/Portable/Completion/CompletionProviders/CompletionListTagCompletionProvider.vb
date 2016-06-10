@@ -77,7 +77,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 descriptionPosition:=position,
                 sortText:=displayText,
                 glyph:=Glyph.EnumMember,
-                preselect:=preselect,
+                matchPriority:=MatchPriority.Preselect,
                 supportedPlatforms:=supportedPlatformData)
 
         End Function

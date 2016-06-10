@@ -21,6 +21,7 @@ Supported Platforms:
     <projectUrl>$projectUrl$</projectUrl>
     <releaseNotes>$releaseNotes$</releaseNotes>
     <tags>$tags$</tags>
+    <serviceable>true</serviceable>
   </metadata>
   <files>
     <file src="Microsoft.CodeAnalysis.CSharp.Workspaces.dll" target="lib\portable-net45+win8" />
