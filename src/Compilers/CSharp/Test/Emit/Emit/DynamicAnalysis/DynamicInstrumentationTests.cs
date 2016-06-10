@@ -76,7 +76,9 @@ public class Program
             string expectedOutput = @"Flushing
 1
 True
+True
 4
+True
 True
 False
 True
@@ -123,7 +125,7 @@ True
 }";
 
             string expectedFlushPayloadIL = @"{
-  // Code size      179 (0xb3)
+  // Code size      184 (0xb8)
   .maxstack  4
   .locals init (bool[] V_0,
                 int V_1, //i
@@ -140,103 +142,107 @@ True
   IL_0019:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
   IL_001e:  ldtoken    ""void Microsoft.CodeAnalysis.Runtime.Instrumentation.FlushPayload()""
   IL_0023:  ldelema    ""bool[]""
-  IL_0028:  ldc.i4.s   12
+  IL_0028:  ldc.i4.s   13
   IL_002a:  call       ""bool[] Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, ref bool[], int)""
   IL_002f:  stloc.0
   IL_0030:  ldloc.0
   IL_0031:  ldc.i4.0
   IL_0032:  ldc.i4.1
   IL_0033:  stelem.i1
-  IL_0034:  ldstr      ""Flushing""
-  IL_0039:  call       ""void System.Console.WriteLine(string)""
-  IL_003e:  ldloc.0
-  IL_003f:  ldc.i4.2
-  IL_0040:  ldc.i4.1
-  IL_0041:  stelem.i1
-  IL_0042:  ldsfld     ""bool[][] Microsoft.CodeAnalysis.Runtime.Instrumentation._payloads""
-  IL_0047:  brtrue.s   IL_004e
-  IL_0049:  ldloc.0
-  IL_004a:  ldc.i4.1
-  IL_004b:  ldc.i4.1
-  IL_004c:  stelem.i1
-  IL_004d:  ret
-  IL_004e:  ldloc.0
-  IL_004f:  ldc.i4.3
-  IL_0050:  ldc.i4.1
-  IL_0051:  stelem.i1
-  IL_0052:  ldc.i4.0
-  IL_0053:  stloc.1
-  IL_0054:  br.s       IL_00a8
-  IL_0056:  ldloc.0
-  IL_0057:  ldc.i4.5
-  IL_0058:  ldc.i4.1
-  IL_0059:  stelem.i1
-  IL_005a:  ldsfld     ""bool[][] Microsoft.CodeAnalysis.Runtime.Instrumentation._payloads""
-  IL_005f:  ldloc.1
-  IL_0060:  ldelem.ref
-  IL_0061:  stloc.2
-  IL_0062:  ldloc.0
-  IL_0063:  ldc.i4.s   11
-  IL_0065:  ldc.i4.1
-  IL_0066:  stelem.i1
-  IL_0067:  ldloc.2
-  IL_0068:  brfalse.s  IL_00a0
-  IL_006a:  ldloc.0
-  IL_006b:  ldc.i4.6
-  IL_006c:  ldc.i4.1
-  IL_006d:  stelem.i1
-  IL_006e:  ldloc.1
-  IL_006f:  call       ""void System.Console.WriteLine(int)""
-  IL_0074:  ldloc.0
-  IL_0075:  ldc.i4.7
-  IL_0076:  ldc.i4.1
-  IL_0077:  stelem.i1
-  IL_0078:  ldc.i4.0
-  IL_0079:  stloc.3
-  IL_007a:  br.s       IL_009a
-  IL_007c:  ldloc.0
-  IL_007d:  ldc.i4.s   9
-  IL_007f:  ldc.i4.1
-  IL_0080:  stelem.i1
-  IL_0081:  ldloc.2
-  IL_0082:  ldloc.3
-  IL_0083:  ldelem.u1
-  IL_0084:  call       ""void System.Console.WriteLine(bool)""
-  IL_0089:  ldloc.0
-  IL_008a:  ldc.i4.s   10
-  IL_008c:  ldc.i4.1
-  IL_008d:  stelem.i1
-  IL_008e:  ldloc.2
-  IL_008f:  ldloc.3
-  IL_0090:  ldc.i4.0
+  IL_0034:  ldloc.0
+  IL_0035:  ldc.i4.1
+  IL_0036:  ldc.i4.1
+  IL_0037:  stelem.i1
+  IL_0038:  ldstr      ""Flushing""
+  IL_003d:  call       ""void System.Console.WriteLine(string)""
+  IL_0042:  ldloc.0
+  IL_0043:  ldc.i4.3
+  IL_0044:  ldc.i4.1
+  IL_0045:  stelem.i1
+  IL_0046:  ldsfld     ""bool[][] Microsoft.CodeAnalysis.Runtime.Instrumentation._payloads""
+  IL_004b:  brtrue.s   IL_0052
+  IL_004d:  ldloc.0
+  IL_004e:  ldc.i4.2
+  IL_004f:  ldc.i4.1
+  IL_0050:  stelem.i1
+  IL_0051:  ret
+  IL_0052:  ldloc.0
+  IL_0053:  ldc.i4.4
+  IL_0054:  ldc.i4.1
+  IL_0055:  stelem.i1
+  IL_0056:  ldc.i4.0
+  IL_0057:  stloc.1
+  IL_0058:  br.s       IL_00ad
+  IL_005a:  ldloc.0
+  IL_005b:  ldc.i4.6
+  IL_005c:  ldc.i4.1
+  IL_005d:  stelem.i1
+  IL_005e:  ldsfld     ""bool[][] Microsoft.CodeAnalysis.Runtime.Instrumentation._payloads""
+  IL_0063:  ldloc.1
+  IL_0064:  ldelem.ref
+  IL_0065:  stloc.2
+  IL_0066:  ldloc.0
+  IL_0067:  ldc.i4.s   12
+  IL_0069:  ldc.i4.1
+  IL_006a:  stelem.i1
+  IL_006b:  ldloc.2
+  IL_006c:  brfalse.s  IL_00a5
+  IL_006e:  ldloc.0
+  IL_006f:  ldc.i4.7
+  IL_0070:  ldc.i4.1
+  IL_0071:  stelem.i1
+  IL_0072:  ldloc.1
+  IL_0073:  call       ""void System.Console.WriteLine(int)""
+  IL_0078:  ldloc.0
+  IL_0079:  ldc.i4.8
+  IL_007a:  ldc.i4.1
+  IL_007b:  stelem.i1
+  IL_007c:  ldc.i4.0
+  IL_007d:  stloc.3
+  IL_007e:  br.s       IL_009f
+  IL_0080:  ldloc.0
+  IL_0081:  ldc.i4.s   10
+  IL_0083:  ldc.i4.1
+  IL_0084:  stelem.i1
+  IL_0085:  ldloc.2
+  IL_0086:  ldloc.3
+  IL_0087:  ldelem.u1
+  IL_0088:  call       ""void System.Console.WriteLine(bool)""
+  IL_008d:  ldloc.0
+  IL_008e:  ldc.i4.s   11
+  IL_0090:  ldc.i4.1
   IL_0091:  stelem.i1
-  IL_0092:  ldloc.0
-  IL_0093:  ldc.i4.8
-  IL_0094:  ldc.i4.1
+  IL_0092:  ldloc.2
+  IL_0093:  ldloc.3
+  IL_0094:  ldc.i4.0
   IL_0095:  stelem.i1
-  IL_0096:  ldloc.3
-  IL_0097:  ldc.i4.1
-  IL_0098:  add
-  IL_0099:  stloc.3
-  IL_009a:  ldloc.3
-  IL_009b:  ldloc.2
-  IL_009c:  ldlen
-  IL_009d:  conv.i4
-  IL_009e:  blt.s      IL_007c
-  IL_00a0:  ldloc.0
-  IL_00a1:  ldc.i4.4
-  IL_00a2:  ldc.i4.1
-  IL_00a3:  stelem.i1
-  IL_00a4:  ldloc.1
-  IL_00a5:  ldc.i4.1
-  IL_00a6:  add
-  IL_00a7:  stloc.1
-  IL_00a8:  ldloc.1
-  IL_00a9:  ldsfld     ""bool[][] Microsoft.CodeAnalysis.Runtime.Instrumentation._payloads""
-  IL_00ae:  ldlen
-  IL_00af:  conv.i4
-  IL_00b0:  blt.s      IL_0056
-  IL_00b2:  ret
+  IL_0096:  ldloc.0
+  IL_0097:  ldc.i4.s   9
+  IL_0099:  ldc.i4.1
+  IL_009a:  stelem.i1
+  IL_009b:  ldloc.3
+  IL_009c:  ldc.i4.1
+  IL_009d:  add
+  IL_009e:  stloc.3
+  IL_009f:  ldloc.3
+  IL_00a0:  ldloc.2
+  IL_00a1:  ldlen
+  IL_00a2:  conv.i4
+  IL_00a3:  blt.s      IL_0080
+  IL_00a5:  ldloc.0
+  IL_00a6:  ldc.i4.5
+  IL_00a7:  ldc.i4.1
+  IL_00a8:  stelem.i1
+  IL_00a9:  ldloc.1
+  IL_00aa:  ldc.i4.1
+  IL_00ab:  add
+  IL_00ac:  stloc.1
+  IL_00ad:  ldloc.1
+  IL_00ae:  ldsfld     ""bool[][] Microsoft.CodeAnalysis.Runtime.Instrumentation._payloads""
+  IL_00b3:  ldlen
+  IL_00b4:  conv.i4
+  IL_00b5:  blt.s      IL_005a
+  IL_00b7:  ret
 }";
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput);
             verifier.VerifyIL("Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload", expectedCreatePayloadIL);
@@ -305,7 +311,9 @@ Flushing
 1
 True
 True
+True
 2
+True
 True
 True
 False
@@ -317,7 +325,9 @@ True
 True
 True
 True
+True
 4
+True
 True
 True
 False
@@ -326,12 +336,15 @@ True
 5
 True
 True
+True
 False
 False
 False
 6
 True
+True
 9
+True
 True
 False
 True
@@ -347,7 +360,7 @@ True
 ";
 
             string expectedBarneyIL = @"{
-  // Code size       82 (0x52)
+  // Code size       86 (0x56)
   .maxstack  4
   .locals init (bool[] V_0)
   IL_0000:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
@@ -361,41 +374,44 @@ True
   IL_0019:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
   IL_001e:  ldtoken    ""int Program.Barney(bool)""
   IL_0023:  ldelema    ""bool[]""
-  IL_0028:  ldc.i4.5
+  IL_0028:  ldc.i4.6
   IL_0029:  call       ""bool[] Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, ref bool[], int)""
   IL_002e:  stloc.0
   IL_002f:  ldloc.0
-  IL_0030:  ldc.i4.1
+  IL_0030:  ldc.i4.0
   IL_0031:  ldc.i4.1
   IL_0032:  stelem.i1
-  IL_0033:  ldarg.0
-  IL_0034:  brfalse.s  IL_003d
-  IL_0036:  ldloc.0
-  IL_0037:  ldc.i4.0
-  IL_0038:  ldc.i4.1
-  IL_0039:  stelem.i1
-  IL_003a:  ldc.i4.s   10
-  IL_003c:  ret
-  IL_003d:  ldloc.0
-  IL_003e:  ldc.i4.3
-  IL_003f:  ldc.i4.1
-  IL_0040:  stelem.i1
-  IL_0041:  ldarg.0
-  IL_0042:  brfalse.s  IL_004b
-  IL_0044:  ldloc.0
-  IL_0045:  ldc.i4.2
-  IL_0046:  ldc.i4.1
-  IL_0047:  stelem.i1
-  IL_0048:  ldc.i4.s   100
-  IL_004a:  ret
-  IL_004b:  ldloc.0
-  IL_004c:  ldc.i4.4
-  IL_004d:  ldc.i4.1
-  IL_004e:  stelem.i1
-  IL_004f:  ldc.i4.s   20
-  IL_0051:  ret
-}
-";
+  IL_0033:  ldloc.0
+  IL_0034:  ldc.i4.2
+  IL_0035:  ldc.i4.1
+  IL_0036:  stelem.i1
+  IL_0037:  ldarg.0
+  IL_0038:  brfalse.s  IL_0041
+  IL_003a:  ldloc.0
+  IL_003b:  ldc.i4.1
+  IL_003c:  ldc.i4.1
+  IL_003d:  stelem.i1
+  IL_003e:  ldc.i4.s   10
+  IL_0040:  ret
+  IL_0041:  ldloc.0
+  IL_0042:  ldc.i4.4
+  IL_0043:  ldc.i4.1
+  IL_0044:  stelem.i1
+  IL_0045:  ldarg.0
+  IL_0046:  brfalse.s  IL_004f
+  IL_0048:  ldloc.0
+  IL_0049:  ldc.i4.3
+  IL_004a:  ldc.i4.1
+  IL_004b:  stelem.i1
+  IL_004c:  ldc.i4.s   100
+  IL_004e:  ret
+  IL_004f:  ldloc.0
+  IL_0050:  ldc.i4.5
+  IL_0051:  ldc.i4.1
+  IL_0052:  stelem.i1
+  IL_0053:  ldc.i4.s   20
+  IL_0055:  ret
+}";
 
             string expectedPIDStaticConstructorIL = @"{
   // Code size       33 (0x21)
@@ -468,11 +484,14 @@ Hello
 Flushing
 1
 True
+True
 2
 True
 True
 True
+True
 3
+True
 True
 True
 4
@@ -480,7 +499,9 @@ True
 True
 True
 True
+True
 7
+True
 True
 False
 True
@@ -496,7 +517,7 @@ True
 ";
 
             string expectedReleaseGetValueIL = @"{
-  // Code size       89 (0x59)
+  // Code size       93 (0x5d)
   .maxstack  4
   .locals init (bool[] V_0,
                 T V_1)
@@ -511,36 +532,40 @@ True
   IL_0019:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
   IL_001e:  ldtoken    ""T MyBox<T>.GetValue()""
   IL_0023:  ldelema    ""bool[]""
-  IL_0028:  ldc.i4.3
+  IL_0028:  ldc.i4.4
   IL_0029:  call       ""bool[] Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, ref bool[], int)""
   IL_002e:  stloc.0
   IL_002f:  ldloc.0
-  IL_0030:  ldc.i4.1
+  IL_0030:  ldc.i4.0
   IL_0031:  ldc.i4.1
   IL_0032:  stelem.i1
-  IL_0033:  ldarg.0
-  IL_0034:  ldfld      ""T MyBox<T>._value""
-  IL_0039:  box        ""T""
-  IL_003e:  brtrue.s   IL_004e
-  IL_0040:  ldloc.0
-  IL_0041:  ldc.i4.0
-  IL_0042:  ldc.i4.1
-  IL_0043:  stelem.i1
-  IL_0044:  ldloca.s   V_1
-  IL_0046:  initobj    ""T""
-  IL_004c:  ldloc.1
-  IL_004d:  ret
-  IL_004e:  ldloc.0
-  IL_004f:  ldc.i4.2
-  IL_0050:  ldc.i4.1
-  IL_0051:  stelem.i1
-  IL_0052:  ldarg.0
-  IL_0053:  ldfld      ""T MyBox<T>._value""
-  IL_0058:  ret
+  IL_0033:  ldloc.0
+  IL_0034:  ldc.i4.2
+  IL_0035:  ldc.i4.1
+  IL_0036:  stelem.i1
+  IL_0037:  ldarg.0
+  IL_0038:  ldfld      ""T MyBox<T>._value""
+  IL_003d:  box        ""T""
+  IL_0042:  brtrue.s   IL_0052
+  IL_0044:  ldloc.0
+  IL_0045:  ldc.i4.1
+  IL_0046:  ldc.i4.1
+  IL_0047:  stelem.i1
+  IL_0048:  ldloca.s   V_1
+  IL_004a:  initobj    ""T""
+  IL_0050:  ldloc.1
+  IL_0051:  ret
+  IL_0052:  ldloc.0
+  IL_0053:  ldc.i4.3
+  IL_0054:  ldc.i4.1
+  IL_0055:  stelem.i1
+  IL_0056:  ldarg.0
+  IL_0057:  ldfld      ""T MyBox<T>._value""
+  IL_005c:  ret
 }";
 
             string expectedDebugGetValueIL = @"{
-  // Code size      101 (0x65)
+  // Code size      105 (0x69)
   .maxstack  4
   .locals init (bool[] V_0,
                 bool V_1,
@@ -557,41 +582,45 @@ True
   IL_0019:  ldsfld     ""bool[][] <PrivateImplementationDetails>.PayloadRoot0""
   IL_001e:  ldtoken    ""T MyBox<T>.GetValue()""
   IL_0023:  ldelema    ""bool[]""
-  IL_0028:  ldc.i4.3
+  IL_0028:  ldc.i4.4
   IL_0029:  call       ""bool[] Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, ref bool[], int)""
   IL_002e:  stloc.0
   IL_002f:  ldloc.0
-  IL_0030:  ldc.i4.1
+  IL_0030:  ldc.i4.0
   IL_0031:  ldc.i4.1
   IL_0032:  stelem.i1
-  IL_0033:  ldarg.0
-  IL_0034:  ldfld      ""T MyBox<T>._value""
-  IL_0039:  box        ""T""
-  IL_003e:  ldnull
-  IL_003f:  ceq
-  IL_0041:  stloc.1
-  IL_0042:  ldloc.1
-  IL_0043:  brfalse.s  IL_0056
-  IL_0045:  nop
-  IL_0046:  ldloc.0
-  IL_0047:  ldc.i4.0
-  IL_0048:  ldc.i4.1
-  IL_0049:  stelem.i1
-  IL_004a:  ldloca.s   V_2
-  IL_004c:  initobj    ""T""
-  IL_0052:  ldloc.2
-  IL_0053:  stloc.3
-  IL_0054:  br.s       IL_0063
-  IL_0056:  ldloc.0
-  IL_0057:  ldc.i4.2
-  IL_0058:  ldc.i4.1
-  IL_0059:  stelem.i1
-  IL_005a:  ldarg.0
-  IL_005b:  ldfld      ""T MyBox<T>._value""
-  IL_0060:  stloc.3
-  IL_0061:  br.s       IL_0063
-  IL_0063:  ldloc.3
-  IL_0064:  ret
+  IL_0033:  ldloc.0
+  IL_0034:  ldc.i4.2
+  IL_0035:  ldc.i4.1
+  IL_0036:  stelem.i1
+  IL_0037:  ldarg.0
+  IL_0038:  ldfld      ""T MyBox<T>._value""
+  IL_003d:  box        ""T""
+  IL_0042:  ldnull
+  IL_0043:  ceq
+  IL_0045:  stloc.1
+  IL_0046:  ldloc.1
+  IL_0047:  brfalse.s  IL_005a
+  IL_0049:  nop
+  IL_004a:  ldloc.0
+  IL_004b:  ldc.i4.1
+  IL_004c:  ldc.i4.1
+  IL_004d:  stelem.i1
+  IL_004e:  ldloca.s   V_2
+  IL_0050:  initobj    ""T""
+  IL_0056:  ldloc.2
+  IL_0057:  stloc.3
+  IL_0058:  br.s       IL_0067
+  IL_005a:  ldloc.0
+  IL_005b:  ldc.i4.3
+  IL_005c:  ldc.i4.1
+  IL_005d:  stelem.i1
+  IL_005e:  ldarg.0
+  IL_005f:  ldfld      ""T MyBox<T>._value""
+  IL_0064:  stloc.3
+  IL_0065:  br.s       IL_0067
+  IL_0067:  ldloc.3
+  IL_0068:  ret
 }";
 
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);
@@ -632,16 +661,21 @@ public class Program
             string expectedOutput = @"Flushing
 3
 True
+True
 4
 True
+True
 5
+True
 True
 True
 True
 6
 True
 True
+True
 8
+True
 True
 False
 True
@@ -702,7 +736,9 @@ public class Program
 1
 True
 True
+True
 2
+True
 True
 True
 True
@@ -710,17 +746,24 @@ True
 True
 3
 True
+True
 4
+True
 True
 5
 True
+True
 6
+True
 True
 7
 True
+True
 9
 True
+True
 13
+True
 True
 False
 True
@@ -788,7 +831,9 @@ public class Program
 1
 True
 True
+True
 2
+True
 True
 True
 3
@@ -797,7 +842,9 @@ True
 True
 True
 True
+True
 4
+True
 True
 True
 False
@@ -805,6 +852,7 @@ False
 False
 True
 7
+True
 True
 False
 True
@@ -874,6 +922,7 @@ public class Program
 1
 True
 True
+True
 2
 True
 True
@@ -889,7 +938,9 @@ True
 True
 True
 True
+True
 5
+True
 True
 False
 True
@@ -908,7 +959,7 @@ True
         }
 
         [Fact]
-        public void ManyStatementsCoverage()
+        public void ManyStatementsCoverage()                                    // Method 3
         {
             string source = @"
 using System;
@@ -924,6 +975,7 @@ public class Program
     static void TestMain()
     {
         VariousStatements(2);
+        Empty();
     }
 
     static void VariousStatements(int z)
@@ -1014,6 +1066,10 @@ public class Program
             return;
         }
     }
+
+    static void Empty()                                 // Method 4
+    {
+    }
 }
 ";
             string expectedOutput = @"103
@@ -1021,33 +1077,31 @@ Flushing
 1
 True
 True
+True
 2
+True
+True
 True
 3
 True
-False
-True
-False
-False
-True
 True
 False
 True
-True
-True
-True
-True
-True
-True
-True
-True
-True
-True
-True
-True
+False
+False
 True
 True
 False
+True
+True
+True
+True
+True
+True
+True
+True
+True
+True
 True
 True
 True
@@ -1057,7 +1111,16 @@ False
 True
 True
 True
-6
+True
+True
+False
+True
+True
+True
+4
+True
+7
+True
 True
 False
 True
@@ -1115,7 +1178,9 @@ Flushing
 1
 True
 True
+True
 2
+True
 True
 True
 True
@@ -1126,6 +1191,7 @@ True
 False
 True
 5
+True
 True
 False
 True
@@ -1196,13 +1262,17 @@ Flushing
 1
 True
 True
+True
 2
+True
 True
 3
 True
 True
 True
+True
 4
+True
 True
 True
 False
@@ -1210,10 +1280,12 @@ True
 5
 True
 True
+True
 False
 True
 True
 8
+True
 True
 False
 True

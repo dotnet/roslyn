@@ -436,6 +436,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundStatementList(Syntax, ImmutableArray.Create(first, second, third)) { WasCompilerGenerated = true };
         }
 
+        public BoundStatementList StatementList(BoundStatement first, BoundStatement second, BoundStatement third, BoundStatement fourth)
+        {
+            return new BoundStatementList(Syntax, ImmutableArray.Create(first, second, third, fourth)) { WasCompilerGenerated = true };
+        }
+
         public BoundReturnStatement Return(BoundExpression expression = null)
         {
             if (expression != null)

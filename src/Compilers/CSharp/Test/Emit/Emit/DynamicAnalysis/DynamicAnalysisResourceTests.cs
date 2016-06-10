@@ -41,6 +41,18 @@ public class C
         Console.WriteLine(123);
         Console.WriteLine(123);
     }
+
+    public static int Fred => 3;
+
+    public static int Barney(int x) => x;
+
+    public static int Wilma
+    {
+        get { return 12; }
+        set { }
+    }
+
+    public static int Betty { get; }
 }
 ";
 
@@ -54,15 +66,35 @@ public class C
             var reader = DynamicAnalysisDataReader.TryCreateFromPE(peReader, "<DynamicAnalysisData>");
 
             VerifyDocuments(reader, reader.Documents,
-                @"'C:\myproject\doc1.cs' B8-F7-5B-45-79-BC-51-18-00-2B-11-40-B6-E8-E2-85-28-D9-11-0C (SHA1)");
+                @"'C:\myproject\doc1.cs' 87-3F-1A-28-F7-34-C9-43-19-00-ED-0F-8F-2F-0D-EB-DD-32-D4-8E (SHA1)");
 
-            Assert.Equal(5, reader.Methods.Length);
+            Assert.Equal(10, reader.Methods.Length);
 
-            VerifySpans(reader, reader.Methods[0],
+            VerifySpans(reader, reader.Methods[0],                                      // Main
+                "(5,4)-(9,5)",
                 "(7,8)-(7,31)",
                 "(8,8)-(8,31)");
 
-            VerifySpans(reader, reader.Methods[1]);
+            VerifySpans(reader, reader.Methods[1],                                      // Fred get
+                "(11,4)-(11,32)",
+                "(11,30)-(11,31)");
+
+            VerifySpans(reader, reader.Methods[2],                                      // Barney
+                "(13,4)-(13,41)",
+                "(13,39)-(13,40)");
+
+            VerifySpans(reader, reader.Methods[3],                                      // Wilma get
+                "(17,8)-(17,26)",
+                "(17,14)-(17,24)");
+
+            VerifySpans(reader, reader.Methods[4],
+                "(18,8)-(18,15)");                                                      // Wilma set
+
+            VerifySpans(reader, reader.Methods[5],                                      // Betty get
+                "(21,4)-(21,36)",
+                "(21,30)-(21,34)");
+
+            VerifySpans(reader, reader.Methods[6]);
         }
 
         [Fact]
@@ -173,6 +205,7 @@ public class C
             Assert.Equal(5, reader.Methods.Length);
 
             VerifySpans(reader, reader.Methods[0],
+                "(5,4)-(89,5)",
                 "(7,8)-(7,19)",
                 "(8,8)-(8,23)",
                 "(12,16)-(12,22)",
