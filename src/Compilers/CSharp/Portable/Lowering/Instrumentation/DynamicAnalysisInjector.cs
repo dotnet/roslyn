@@ -15,7 +15,6 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// </summary>
     internal sealed class DynamicAnalysisInjector : CompoundInstrumenter
     {
-        private readonly bool _doInstrumentation;
         private readonly MethodSymbol _method;
         private readonly BoundStatement _methodBody;
         private readonly MethodSymbol _createPayload;
@@ -45,7 +44,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             : base(previous)
         {
             _createPayload = createPayload;
-            _doInstrumentation = true;
             _method = method;
             _methodBody = methodBody;
             _spansBuilder = ArrayBuilder<SourceSpan>.GetInstance();
@@ -60,7 +58,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundStatement CreateBlockPrologue(BoundBlock original, out LocalSymbol synthesizedLocal)
         {
-            if (_doInstrumentation && _methodBody == original)
+            if (_methodBody == original)
             {
                 _dynamicAnalysisSpans = _spansBuilder.ToImmutableAndFree();
                 // In the future there will be multiple analysis kinds.
@@ -226,32 +224,27 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement CollectDynamicAnalysis(BoundStatement original, BoundStatement rewritten)
         {
-            if (_doInstrumentation)
+            // Add an entry in the spans array.
+
+            CSharpSyntaxNode syntaxForSpan = SyntaxForSpan(original);
+            Location location = syntaxForSpan.GetLocation();
+            FileLinePositionSpan spanPosition = location.GetMappedLineSpan();
+            string path = spanPosition.Path;
+            if (path.Length == 0)
             {
-                // Add an entry in the spans array.
-
-                CSharpSyntaxNode syntaxForSpan = SyntaxForSpan(original);
-                Location location = syntaxForSpan.GetLocation();
-                FileLinePositionSpan spanPosition = location.GetMappedLineSpan();
-                string path = spanPosition.Path;
-                if (path.Length == 0)
-                {
-                    path = syntaxForSpan.SyntaxTree.FilePath;
-                }
-
-                int spansIndex = _spansBuilder.Count;
-                _spansBuilder.Add(new SourceSpan(_debugDocumentProvider.Invoke(path, ""), spanPosition.StartLinePosition.Line, spanPosition.StartLinePosition.Character, spanPosition.EndLinePosition.Line, spanPosition.EndLinePosition.Character));
-
-                // Generate "_payload[pointIndex] = true".
-
-                SyntheticBoundNodeFactory statementFactory = new SyntheticBoundNodeFactory(_method, original.Syntax, _factory.CompilationState, _diagnostics);
-                BoundArrayAccess payloadCell = statementFactory.ArrayAccess(statementFactory.Local(_methodPayload), statementFactory.Literal(spansIndex));
-                BoundExpressionStatement cellAssignment = statementFactory.Assignment(payloadCell, statementFactory.Literal(true));
-
-                return statementFactory.Block(ImmutableArray.Create(cellAssignment, rewritten));
+                path = syntaxForSpan.SyntaxTree.FilePath;
             }
 
-            return rewritten;
+            int spansIndex = _spansBuilder.Count;
+            _spansBuilder.Add(new SourceSpan(_debugDocumentProvider.Invoke(path, ""), spanPosition.StartLinePosition.Line, spanPosition.StartLinePosition.Character, spanPosition.EndLinePosition.Line, spanPosition.EndLinePosition.Character));
+
+            // Generate "_payload[pointIndex] = true".
+
+            SyntheticBoundNodeFactory statementFactory = new SyntheticBoundNodeFactory(_method, original.Syntax, _factory.CompilationState, _diagnostics);
+            BoundArrayAccess payloadCell = statementFactory.ArrayAccess(statementFactory.Local(_methodPayload), statementFactory.Literal(spansIndex));
+            BoundExpressionStatement cellAssignment = statementFactory.Assignment(payloadCell, statementFactory.Literal(true));
+
+            return statementFactory.Block(ImmutableArray.Create(cellAssignment, rewritten));
         }
 
         private static CSharpSyntaxNode SyntaxForSpan(BoundStatement statement)
