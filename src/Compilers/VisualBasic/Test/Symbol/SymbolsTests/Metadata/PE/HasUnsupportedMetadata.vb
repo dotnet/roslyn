@@ -1,15 +1,12 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Runtime.CompilerServices
-Imports CompilationCreationTestHelpers
+Imports System.Collections.Immutable
 Imports Microsoft.CodeAnalysis.Test.Utilities
-Imports Microsoft.CodeAnalysis.Text
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Roslyn.Test.Utilities
-
 
 Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
 
@@ -434,6 +431,86 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests.Symbols.Metadata.PE
             Dim tok = typeX.GetMember("Token")
             Assert.True(tok.HasUnsupportedMetadata)
         End Sub
+
+        ''' <summary>
+        ''' Throw a (handled) BadImageFormatException from MetadataDecoder
+        ''' for a TypeRef assembly resolution scope with Nil AssemblyRef.
+        ''' </summary>
+        <Fact>
+        <WorkItem(217689, "https://devdiv.visualstudio.com/DefaultCollection/DevDiv/_workitems?_a=edit&id=217689")>
+        Public Sub ResolutionScopeNilAssembly()
+            Dim options = TestOptions.ReleaseDll.WithDeterministic(True)
+            Dim comp1 = CreateCompilationWithMscorlib(
+{"Public Class A
+End Class"},
+                options:=options,
+                assemblyName:="4D94B345-92CE-46BB-891E-048109648A0A")
+            comp1.VerifyDiagnostics()
+            Dim bytes1 = comp1.EmitToArray()
+            Dim ref1 = AssemblyMetadata.CreateFromImage(bytes1).GetReference()
+
+            Dim comp2 = CreateCompilationWithMscorlib(
+{"Public Class B
+    Inherits A
+End Class"},
+                options:=options,
+                assemblyName:="D4954046-BDDC-42C4-98F8-7E5573C16C33",
+                references:=New MetadataReference() {ref1})
+            comp2.VerifyDiagnostics()
+            Dim bytes2 = comp2.EmitToArray()
+            ' Construct an unexpected assembly resolution scope from the valid compilation.
+            ' Metadata contains a single TypeRef with assembly resolution scope where the
+            ' scope is AssemblyRef 2: specifically the TypeRef to base class A. Replace that
+            ' assembly resolution scope with AssemblyRef 0 (the unexpected value). In the
+            ' TypeRef signatures below, 10 and 2 are the assembly scopes (AssemblyRef << 2 | 2).
+            ' (To verify, break in MetadataWriter.SerializeTypeRefTable when emitting comp2.)
+            bytes2 = ReplaceBytes(bytes2, {10, 0, 82, 0, 0, 0}, {2, 0, 82, 0, 0, 0})
+            Dim ref2 = AssemblyMetadata.CreateFromImage(bytes2).GetReference()
+
+            Dim comp3 = CreateCompilationWithMscorlib(
+{"Class C
+    Shared Sub Main()
+        Dim o As New B()
+    End Sub
+End Class"},
+                options:=options,
+                references:=New MetadataReference() {ref2})
+            comp3.VerifyDiagnostics()
+
+            Dim tree = comp3.SyntaxTrees(0)
+            Dim model = comp3.GetSemanticModel(tree)
+            Dim decl = tree.GetRoot().DescendantNodes.OfType(Of ObjectCreationExpressionSyntax).Single()
+            Dim type = DirectCast(model.GetTypeInfo(decl).Type, TypeSymbol)
+            Assert.Equal("B", type.ToTestDisplayString())
+            Assert.False(type.IsErrorType())
+            Assert.True(type.BaseType.IsErrorType()) ' Handled exception decoding base type TypeRef.
+        End Sub
+
+        Private Shared Function ReplaceBytes(bytes As ImmutableArray(Of Byte), before As Byte(), after As Byte()) As ImmutableArray(Of Byte)
+            Dim index = IndexOfBytes(bytes, before, 0)
+            Debug.Assert(index >= 0)
+            Debug.Assert(IndexOfBytes(bytes, before, index + 1) < 0)
+            Dim builder = ArrayBuilder(Of Byte).GetInstance()
+            builder.AddRange(bytes.Take(index))
+            builder.AddRange(after)
+            builder.AddRange(bytes.Skip(index + before.Length))
+            Return builder.ToImmutableAndFree()
+        End Function
+
+        Private Shared Function IndexOfBytes(bytes As ImmutableArray(Of Byte), pattern As Byte(), startIndex As Integer) As Integer
+            Dim n = bytes.Length
+            Dim m = pattern.Length
+            For i = startIndex To n - m - 1
+                For j = 0 To m - 1
+                    If bytes(i + j) <> pattern(j) Then
+                        GoTo EndOfLoop
+                    End If
+                Next
+                Return i
+EndOfLoop:
+            Next
+            Return -1
+        End Function
 
     End Class
 

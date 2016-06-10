@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.Completion
         public const string Assembly = nameof(Assembly);
 
         // language elements
-        public const string ArgumentName = nameof(ArgumentName);
         public const string Class = nameof(Class);
         public const string Constant = nameof(Constant);
         public const string Delegate = nameof(Delegate);

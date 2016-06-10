@@ -4,10 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
@@ -15,8 +13,15 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal class CompletionHelper
     {
-        protected CompletionHelper()
+        private readonly object _gate = new object();
+        private readonly Dictionary<string, PatternMatcher> _patternMatcherMap = new Dictionary<string, PatternMatcher>();
+        private readonly Dictionary<string, PatternMatcher> _fallbackPatternMatcherMap = new Dictionary<string, PatternMatcher>();
+        private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
+        private readonly bool _isCaseSensitive;
+
+        protected CompletionHelper(bool isCaseSensitive)
         {
+            _isCaseSensitive = isCaseSensitive;
         }
 
         public static CompletionHelper GetHelper(Workspace workspace, string language)
@@ -30,7 +35,8 @@ namespace Microsoft.CodeAnalysis.Editor
                     return factory.CreateCompletionHelper();
                 }
 
-                return new CompletionHelper();
+                var syntaxFacts = ls.GetService<ISyntaxFactsService>();
+                return new CompletionHelper(syntaxFacts?.IsCaseSensitive ?? true);
             }
 
             return null;
@@ -126,11 +132,6 @@ namespace Microsoft.CodeAnalysis.Editor
 
             return null;
         }
-
-        private readonly object _gate = new object();
-        private readonly Dictionary<string, PatternMatcher> _patternMatcherMap = new Dictionary<string, PatternMatcher>();
-        private readonly Dictionary<string, PatternMatcher> _fallbackPatternMatcherMap = new Dictionary<string, PatternMatcher>();
-        internal static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
 
         private PatternMatcher GetPatternMatcher(
             string value, CultureInfo culture, Dictionary<string, PatternMatcher> map)
@@ -247,58 +248,52 @@ namespace Microsoft.CodeAnalysis.Editor
 
         protected int CompareMatches(PatternMatch match1, PatternMatch match2, CompletionItem item1, CompletionItem item2)
         {
-            int diff;
-
-            diff = PatternMatch.CompareType(match1, match2);
+            // First see how the two items compare in a case insensitive fashion.  Matches that 
+            // are strictly better (ignoring case) should prioritize the item.  i.e. if we have
+            // a prefix match, that should always be better than a substring match.
+            //
+            // The reason we ignore case is that it's very common for people to type expecting
+            // completion to fix up their casing.  i.e. 'false' will be written with the 
+            // expectation that it will get fixed by the completion list to 'False'.  
+            var diff = match1.CompareTo(match2, ignoreCase: true);
             if (diff != 0)
             {
                 return diff;
             }
 
-            diff = PatternMatch.CompareCamelCase(match1, match2);
-            if (diff != 0)
+            // Now, after comparing matches, check if an item wants to be preselected.  If so,
+            // we prefer that.  i.e. say the user has typed 'f' and we have the items 'foo' 
+            // and 'False' (with the latter being 'Preselected').  Both will be a prefix match.
+            // And because we are ignoring case, neither will be seen as better.  Now, because
+            // 'False' is preselected we pick it even though 'foo' matches 'f' case sensitively.
+            if (item1.Rules.Preselect != item2.Rules.Preselect)
             {
-                return diff;
+                return item1.Rules.Preselect ? -1 : 1;
             }
 
-            // argument names are not prefered
-            if (IsArgumentName(item1) && !IsArgumentName(item2))
-            {
-                return 1;
-            }
-            else if (IsArgumentName(item2) && !IsArgumentName(item1))
+            // At this point we have two items which we're matching in a rather similar fasion.
+            // If one is a prefix of the other, prefer the prefix.  i.e. if we have 
+            // "Table" and "table:=" and the user types 't' and we are in a case insensitive 
+            // language, then we prefer the former.
+            var comparison = _isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+            if (item2.DisplayText.StartsWith(item1.DisplayText, comparison))
             {
                 return -1;
             }
-
-            // preselected items are prefered
-            if (item1.Rules.Preselect && !item2.Rules.Preselect)
-            {
-                return -1;
-            }
-            else if (item2.Rules.Preselect && !item1.Rules.Preselect)
+            else if (item1.DisplayText.StartsWith(item2.DisplayText, comparison))
             {
                 return 1;
             }
 
-            diff = PatternMatch.CompareCase(match1, match2);
-            if (diff != 0)
-            {
-                return diff;
-            }
-
-            diff = PatternMatch.ComparePunctuation(match1, match2);
+            // Now compare the matches again in a case sensitive manner.  If everything was
+            // equal up to this point, we prefer the item that better matches based on case.
+            diff = match1.CompareTo(match2, ignoreCase: false);
             if (diff != 0)
             {
                 return diff;
             }
 
             return 0;
-        }
-
-        protected bool IsArgumentName(CompletionItem item)
-        {
-            return item.Tags.Contains(CompletionTags.ArgumentName);
         }
 
         private static bool TextTypedSoFarMatchesItem(CompletionItem item, char ch, string textTypedSoFar)
