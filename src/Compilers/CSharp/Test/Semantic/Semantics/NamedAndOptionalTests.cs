@@ -845,6 +845,27 @@ namespace NS
                 Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "M2()").WithArguments("value").WithLocation(5, 37));
         }
 
+        [WorkItem(11638, "https://github.com/dotnet/roslyn/issues/11638")]
+        [Fact]
+        public void OptionalValueHasObjectInitializer()
+        {
+            var source =
+@"class C
+{
+    static void Test(Vector3 vector = new Vector3() { X = 1f, Y = 1f, Z = 1f}) { }
+}
+
+public struct Vector3
+{
+    public float X;
+    public float Y;
+    public float Z;
+}";
+            CreateCompilationWithMscorlib(source).VerifyDiagnostics(
+                // (3,39): error CS1736: Default parameter value for 'vector' must be a compile-time constant
+                Diagnostic(ErrorCode.ERR_DefaultValueMustBeConstant, "new Vector3() { X = 1f, Y = 1f, Z = 1f}").WithArguments("vector").WithLocation(3, 39));
+        }
+
         [WorkItem(542411, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542411")]
         [WorkItem(542365, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542365")]
         [Fact]

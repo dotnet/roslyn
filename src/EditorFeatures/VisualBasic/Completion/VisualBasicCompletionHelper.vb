@@ -31,6 +31,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion
     Friend Class VisualBasicCompletionHelper
         Inherits CompletionHelper
 
+        Public Sub New()
+            MyBase.New(isCaseSensitive:=False)
+        End Sub
+
         Public Overrides ReadOnly Property QuestionTabInvokesSnippetCompletion As Boolean
             Get
                 Return True

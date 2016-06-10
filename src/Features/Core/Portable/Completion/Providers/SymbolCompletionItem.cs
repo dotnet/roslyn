@@ -59,7 +59,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 sortText: sortText ?? symbols[0].Name,
                 glyph: glyph ?? symbols[0].GetGlyph(),
                 preselect: preselect,
-                isArgumentName: isArgumentName,
                 showsWarningIcon: supportedPlatforms != null,
                 properties: props,
                 tags: tags,

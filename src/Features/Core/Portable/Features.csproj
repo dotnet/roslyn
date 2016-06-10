@@ -116,6 +116,7 @@
     <Compile Include="CodeFixes\CodeFixCollection.cs" />
     <Compile Include="CodeFixes\FirstDiagnosticResult.cs" />
     <Compile Include="CodeFixes\FixAllOccurrences\IFixMultipleOccurrencesService.cs" />
+    <Compile Include="CodeFixes\Qualify\AbstractFullyQualifyCodeFixProvider.SymbolResult.cs" />
     <Compile Include="CodeFixes\Qualify\AbstractFullyQualifyCodeFixProvider.cs" />
     <Compile Include="CodeFixes\GenerateMember\AbstractGenerateMemberCodeFixProvider.cs" />
     <Compile Include="CodeFixes\ICodeFixProviderFactory.cs" />
