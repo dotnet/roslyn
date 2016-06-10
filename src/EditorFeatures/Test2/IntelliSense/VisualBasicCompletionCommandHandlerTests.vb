@@ -985,7 +985,7 @@ class Foo
 
                 state.SendTypeChars(", ")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem(displayText:="Numeros.Dos", isSoftSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="Numeros", isSoftSelected:=False)
                 Assert.Equal(1, state.CurrentCompletionPresenterSession.PresentationItems.Where(Function(c) c.Item.DisplayText = "Numeros").Count())
             End Using
         End Function
@@ -1173,7 +1173,10 @@ End Module
 Imports System
 Module Program
     Sub Main()
-        Console.WriteLine$$
+        Test$$
+    End Sub
+
+    Sub Test(i As Integer)
     End Sub
 End Module
                               </Document>)
@@ -2032,7 +2035,7 @@ Class C
 End Class</Document>)
                 state.SendTypeChars("(")
                 Await state.AssertCompletionSession()
-                Assert.True(state.CurrentCompletionPresenterSession.IsSoftSelected)
+                Assert.False(state.CurrentCompletionPresenterSession.IsSoftSelected)
             End Using
         End Function
 
