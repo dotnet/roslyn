@@ -4,10 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
@@ -15,8 +13,15 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal class CompletionHelper
     {
-        protected CompletionHelper()
+        private readonly object _gate = new object();
+        private readonly Dictionary<string, PatternMatcher> _patternMatcherMap = new Dictionary<string, PatternMatcher>();
+        private readonly Dictionary<string, PatternMatcher> _fallbackPatternMatcherMap = new Dictionary<string, PatternMatcher>();
+        private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
+        private readonly bool _isCaseSensitive;
+
+        protected CompletionHelper(bool isCaseSensitive)
         {
+            _isCaseSensitive = isCaseSensitive;
         }
 
         public static CompletionHelper GetHelper(Workspace workspace, string language)
@@ -30,7 +35,8 @@ namespace Microsoft.CodeAnalysis.Editor
                     return factory.CreateCompletionHelper();
                 }
 
-                return new CompletionHelper();
+                var syntaxFacts = ls.GetService<ISyntaxFactsService>();
+                return new CompletionHelper(syntaxFacts?.IsCaseSensitive ?? true);
             }
 
             return null;
@@ -126,11 +132,6 @@ namespace Microsoft.CodeAnalysis.Editor
 
             return null;
         }
-
-        private readonly object _gate = new object();
-        private readonly Dictionary<string, PatternMatcher> _patternMatcherMap = new Dictionary<string, PatternMatcher>();
-        private readonly Dictionary<string, PatternMatcher> _fallbackPatternMatcherMap = new Dictionary<string, PatternMatcher>();
-        internal static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
 
         private PatternMatcher GetPatternMatcher(
             string value, CultureInfo culture, Dictionary<string, PatternMatcher> map)
@@ -260,16 +261,6 @@ namespace Microsoft.CodeAnalysis.Editor
                 return diff;
             }
 
-            // argument names are not prefered
-            if (IsArgumentName(item1) && !IsArgumentName(item2))
-            {
-                return 1;
-            }
-            else if (IsArgumentName(item2) && !IsArgumentName(item1))
-            {
-                return -1;
-            }
-
             // Now, after comparing matches, check if an item wants to be preselected.  If so,
             // we prefer that.  i.e. say the user has typed 'f' and we have the items 'foo' 
             // and 'False' (with the latter being 'Preselected').  Both will be a prefix match.
@@ -278,6 +269,20 @@ namespace Microsoft.CodeAnalysis.Editor
             if (item1.Rules.Preselect != item2.Rules.Preselect)
             {
                 return item1.Rules.Preselect ? -1 : 1;
+            }
+
+            // At this point we have two items which we're matching in a rather similar fasion.
+            // If one is a prefix of the other, prefer the prefix.  i.e. if we have 
+            // "Table" and "table:=" and the user types 't' and we are in a case insensitive 
+            // language, then we prefer the former.
+            var comparison = _isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+            if (item2.DisplayText.StartsWith(item1.DisplayText, comparison))
+            {
+                return -1;
+            }
+            else if (item1.DisplayText.StartsWith(item2.DisplayText, comparison))
+            {
+                return 1;
             }
 
             // Now compare the matches again in a case sensitive manner.  If everything was
@@ -289,11 +294,6 @@ namespace Microsoft.CodeAnalysis.Editor
             }
 
             return 0;
-        }
-
-        protected bool IsArgumentName(CompletionItem item)
-        {
-            return item.Tags.Contains(CompletionTags.ArgumentName);
         }
 
         private static bool TextTypedSoFarMatchesItem(CompletionItem item, char ch, string textTypedSoFar)

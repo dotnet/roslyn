@@ -24,7 +24,6 @@ namespace Microsoft.CodeAnalysis.Completion
             bool preselect = false,
             bool showsWarningIcon = false,
             bool shouldFormatOnCommit = false,
-            bool isArgumentName = false,
             ImmutableDictionary<string, string> properties = null,
             ImmutableArray<string> tags = default(ImmutableArray<string>),
             CompletionItemRules rules = null)
@@ -40,11 +39,6 @@ namespace Microsoft.CodeAnalysis.Completion
             if (showsWarningIcon)
             {
                 tags = tags.Add(CompletionTags.Warning);
-            }
-
-            if (isArgumentName)
-            {
-                tags = tags.Add(CompletionTags.ArgumentName);
             }
 
             properties = properties ?? ImmutableDictionary<string, string>.Empty;
