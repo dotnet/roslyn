@@ -15,6 +15,7 @@
         <licenseUrl>$licenseUrl$</licenseUrl>
         <projectUrl>$projectUrl$</projectUrl>
         <tags>$tags$</tags>
+        <serviceable>true</serviceable>
         <dependencies>
             <group targetFramework="NETCoreApp1.0">
                 <dependency id="Microsoft.CodeAnalysis.Compilers" version="[$version$]" />

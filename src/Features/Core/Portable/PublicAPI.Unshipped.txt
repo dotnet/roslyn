@@ -118,7 +118,6 @@ Microsoft.CodeAnalysis.TextTags
 abstract Microsoft.CodeAnalysis.Completion.CompletionProvider.ProvideCompletionsAsync(Microsoft.CodeAnalysis.Completion.CompletionContext context) -> System.Threading.Tasks.Task
 abstract Microsoft.CodeAnalysis.Completion.CompletionService.GetCompletionsAsync(Microsoft.CodeAnalysis.Document document, int caretPosition, Microsoft.CodeAnalysis.Completion.CompletionTrigger trigger = default(Microsoft.CodeAnalysis.Completion.CompletionTrigger), System.Collections.Immutable.ImmutableHashSet<string> roles = null, Microsoft.CodeAnalysis.Options.OptionSet options = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> System.Threading.Tasks.Task<Microsoft.CodeAnalysis.Completion.CompletionList>
 abstract Microsoft.CodeAnalysis.Completion.CompletionService.Language.get -> string
-const Microsoft.CodeAnalysis.Completion.CompletionTags.ArgumentName = "ArgumentName" -> string
 const Microsoft.CodeAnalysis.Completion.CompletionTags.Assembly = "Assembly" -> string
 const Microsoft.CodeAnalysis.Completion.CompletionTags.Class = "Class" -> string
 const Microsoft.CodeAnalysis.Completion.CompletionTags.Constant = "Constant" -> string
