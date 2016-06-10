@@ -20,6 +20,7 @@
     <frameworkAssemblies>
       <frameworkAssembly assemblyName="System" targetFramework="" />
     </frameworkAssemblies>
+    <developmentDependency>true</developmentDependency>
   </metadata>
   <files>
     <file src="$binaries$Roslyn.Diagnostics.Analyzers.dll" target="analyzers\dotnet\cs" />
