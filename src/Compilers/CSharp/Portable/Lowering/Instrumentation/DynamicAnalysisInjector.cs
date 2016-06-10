@@ -5,6 +5,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
 using System.Collections.Immutable;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -12,53 +13,60 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// This type provides means for instrumenting compiled methods for dynamic analysis.
     /// It can be combined with other <see cref="Instrumenter"/>s.
     /// </summary>
-    internal partial class DynamicAnalysisInjector : CompoundInstrumenter
+    internal sealed class DynamicAnalysisInjector : CompoundInstrumenter
     {
         private readonly bool _doInstrumentation;
         private readonly MethodSymbol _method;
+        private readonly BoundStatement _methodBody;
         private readonly MethodSymbol _createPayload;
         private readonly ArrayBuilder<SourceSpan> _spansBuilder;
+        private ImmutableArray<SourceSpan> _dynamicAnalysisSpans = ImmutableArray<SourceSpan>.Empty;
         private readonly ArrayTypeSymbol _payloadType;
         private readonly LocalSymbol _methodPayload;
-        private readonly TypeCompilationState _compilationState;
         private readonly DiagnosticBag _diagnostics;
         private readonly DebugDocumentProvider _debugDocumentProvider;
         private readonly bool _methodHasExplicitBlock;
         private readonly SyntheticBoundNodeFactory _factory;
 
-        public DynamicAnalysisInjector(MethodSymbol method, BoundStatement methodBody, SyntheticBoundNodeFactory factory, TypeCompilationState compilationState, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider, Instrumenter previous)
-            : base (previous)
+        public static DynamicAnalysisInjector TryCreate(MethodSymbol method, BoundStatement methodBody, SyntheticBoundNodeFactory factory, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider, Instrumenter previous)
         {
-            CSharpCompilation compilation = compilationState.Compilation;
-            _createPayload = GetCreatePayload(compilation, methodBody.Syntax, diagnostics);
+            MethodSymbol createPayload = GetCreatePayload(factory.Compilation, methodBody.Syntax, diagnostics);
 
             // Do not instrument the instrumentation helpers if they are part of the current compilation (which occurs only during testing). GetCreatePayload will fail with an infinite recursion if it is instrumented.
-            // PROTOTYPE (https://github.com/dotnet/roslyn/issues/10266): It is not correct to always skip implict methods, because that will miss field initializers.
-            if ((object)_createPayload != null && !method.IsImplicitlyDeclared && !method.Equals(_createPayload))
+            if ((object)createPayload != null && !method.IsImplicitlyDeclared && !method.Equals(createPayload))
             {
-                _doInstrumentation = true;
-                _method = method;
-                _spansBuilder = ArrayBuilder<SourceSpan>.GetInstance();
-                TypeSymbol payloadElementType = factory.SpecialType(SpecialType.System_Boolean);
-                _payloadType = ArrayTypeSymbol.CreateCSharpArray(compilation.Assembly, payloadElementType);
-                _methodPayload = factory.SynthesizedLocal(_payloadType, kind: SynthesizedLocalKind.InstrumentationPayload, syntax: methodBody.Syntax); ;
-                _compilationState = compilationState;
-                _diagnostics = diagnostics;
-                _debugDocumentProvider = debugDocumentProvider;
-                _methodHasExplicitBlock = MethodHasExplicitBlock(method);
-                _factory = factory;
+                return new DynamicAnalysisInjector(method, methodBody, factory, createPayload, diagnostics, debugDocumentProvider, previous);
             }
+
+            return null;
         }
 
-        public BoundStatement AddInstrumentationPrologue(BoundBlock rewrittenMethodBody, ref ImmutableArray<SourceSpan> dynamicAnalysisSpans)
+        private DynamicAnalysisInjector(MethodSymbol method, BoundStatement methodBody, SyntheticBoundNodeFactory factory, MethodSymbol createPayload, DiagnosticBag diagnostics, DebugDocumentProvider debugDocumentProvider, Instrumenter previous)
+            : base(previous)
         {
-            if (_doInstrumentation)
+            _createPayload = createPayload;
+            _doInstrumentation = true;
+            _method = method;
+            _methodBody = methodBody;
+            _spansBuilder = ArrayBuilder<SourceSpan>.GetInstance();
+            TypeSymbol payloadElementType = factory.SpecialType(SpecialType.System_Boolean);
+            _payloadType = ArrayTypeSymbol.CreateCSharpArray(factory.Compilation.Assembly, payloadElementType);
+            _methodPayload = factory.SynthesizedLocal(_payloadType, kind: SynthesizedLocalKind.InstrumentationPayload, syntax: methodBody.Syntax);
+            _diagnostics = diagnostics;
+            _debugDocumentProvider = debugDocumentProvider;
+            _methodHasExplicitBlock = MethodHasExplicitBlock(method);
+            _factory = factory;
+        }
+
+        public override BoundStatement CreateBlockPrologue(BoundBlock original, out LocalSymbol synthesizedLocal)
+        {
+            if (_doInstrumentation && _methodBody == original)
             {
-                dynamicAnalysisSpans = _spansBuilder.ToImmutableAndFree();
-                // PROTOTYPE (https://github.com/dotnet/roslyn/issues/10411): In the future there will be multiple analysis kinds.
+                _dynamicAnalysisSpans = _spansBuilder.ToImmutableAndFree();
+                // In the future there will be multiple analysis kinds.
                 const int analysisKind = 0;
 
-                ArrayTypeSymbol modulePayloadType = ArrayTypeSymbol.CreateCSharpArray(_compilationState.Compilation.Assembly, _payloadType);
+                ArrayTypeSymbol modulePayloadType = ArrayTypeSymbol.CreateCSharpArray(_factory.Compilation.Assembly, _payloadType);
 
                 // Synthesize the initialization of the instrumentation payload array, using concurrency-safe code:
                 //
@@ -70,22 +78,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression mvid = _factory.ModuleVersionId();
                 BoundExpression methodToken = _factory.MethodDefIndex(_method);
                 BoundExpression payloadSlot = _factory.ArrayAccess(_factory.InstrumentationPayloadRoot(analysisKind, modulePayloadType), ImmutableArray.Create(_factory.MethodDefIndex(_method)));
-                BoundStatement createPayloadCall = _factory.Assignment(_factory.Local(_methodPayload), _factory.Call(null, _createPayload, mvid, methodToken, payloadSlot, _factory.Literal(dynamicAnalysisSpans.Length)));
+                BoundStatement createPayloadCall = _factory.Assignment(_factory.Local(_methodPayload), _factory.Call(null, _createPayload, mvid, methodToken, payloadSlot, _factory.Literal(_dynamicAnalysisSpans.Length)));
 
                 BoundExpression payloadNullTest = _factory.Binary(BinaryOperatorKind.ObjectEqual, _factory.SpecialType(SpecialType.System_Boolean), _factory.Local(_methodPayload), _factory.Null(_payloadType));
                 BoundStatement payloadIf = _factory.If(payloadNullTest, createPayloadCall);
 
-                // There must be a sequence point before any executable code. A sequence point
-                // won't be generated automatically for the synthesized prologue because the prologue is compiler generated, so
-                // force the generation of a sequence point for the prologue.
-                payloadInitialization = _factory.SequencePoint(payloadInitialization.Syntax, payloadInitialization);
+                BoundStatement previousPrologue = base.CreateBlockPrologue(original, out synthesizedLocal);
+                Debug.Assert(synthesizedLocal == null);
 
-                ImmutableArray<BoundStatement> newStatements = ImmutableArray.Create<BoundStatement>(payloadInitialization, payloadIf).AddRange(rewrittenMethodBody.Statements);
-                rewrittenMethodBody = rewrittenMethodBody.Update(rewrittenMethodBody.Locals.Add(_methodPayload), rewrittenMethodBody.LocalFunctions, newStatements);
+                synthesizedLocal = _methodPayload;
+                return previousPrologue == null ?_factory.StatementList(payloadInitialization, payloadIf) : _factory.StatementList(payloadInitialization, payloadIf, previousPrologue);
             }
 
-            return rewrittenMethodBody;
+            synthesizedLocal = null;
+            return null;
         }
+
+        public ImmutableArray<SourceSpan> DynamicAnalysisSpans => _dynamicAnalysisSpans;
 
         public override BoundStatement InstrumentNoOpStatement(BoundNoOpStatement original, BoundStatement rewritten)
         {
@@ -235,7 +244,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // Generate "_payload[pointIndex] = true".
 
-                SyntheticBoundNodeFactory statementFactory = new SyntheticBoundNodeFactory(_method, rewritten.Syntax, _compilationState, _diagnostics);
+                SyntheticBoundNodeFactory statementFactory = new SyntheticBoundNodeFactory(_method, original.Syntax, _factory.CompilationState, _diagnostics);
                 BoundArrayAccess payloadCell = statementFactory.ArrayAccess(statementFactory.Local(_methodPayload), statementFactory.Literal(spansIndex));
                 BoundExpressionStatement cellAssignment = statementFactory.Assignment(payloadCell, statementFactory.Literal(true));
 
@@ -258,7 +267,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     syntaxForSpan = ((BoundWhileStatement)statement).Condition.Syntax;
                     break;
                 case BoundKind.ForEachStatement:
-                    // PROTOTYPE (https://github.com/dotnet/roslyn/issues/10141): Also include the declaration of the loop variable in the span.
                     syntaxForSpan = ((BoundForEachStatement)statement).Expression.Syntax;
                     break;
                 case BoundKind.DoStatement:
@@ -286,28 +294,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             return syntaxForSpan;
         }
-
-        private static bool HasInitializer(BoundLocalDeclaration local)
-        {
-            return local.InitializerOpt != null;
-        }
-
-        private static bool HasInitializer(BoundMultipleLocalDeclarations multiple)
-        {
-            foreach (BoundLocalDeclaration local in multiple.LocalDeclarations)
-            {
-                if (HasInitializer(local))
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
+        
         private static bool MethodHasExplicitBlock(MethodSymbol method)
         {
-            SourceMethodSymbol asSourceMethod = method.ConstructedFrom as SourceMethodSymbol;
+            SourceMethodSymbol asSourceMethod = method.OriginalDefinition as SourceMethodSymbol;
             if ((object)asSourceMethod != null)
             {
                 return asSourceMethod.BodySyntax is BlockSyntax;

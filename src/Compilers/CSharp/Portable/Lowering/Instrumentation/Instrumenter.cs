@@ -53,10 +53,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Return a node that is associated with open brace of the block. Ok to return null.
         /// </summary>
-        public virtual BoundStatement CreateBlockPrologue(BoundBlock original)
+        public virtual BoundStatement CreateBlockPrologue(BoundBlock original, out Symbols.LocalSymbol synthesizedLocal)
         {
-            Debug.Assert(!original.WasCompilerGenerated);
-            Debug.Assert(original.Syntax.Kind() == SyntaxKind.Block);
+            synthesizedLocal = null;
             return null;
         }
 
@@ -65,8 +64,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public virtual BoundStatement CreateBlockEpilogue(BoundBlock original)
         {
-            Debug.Assert(!original.WasCompilerGenerated);
-            Debug.Assert(original.Syntax.Kind() == SyntaxKind.Block);
             return null;
         }
 

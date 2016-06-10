@@ -1047,6 +1047,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                             if (analyzedInitializers != null)
                             {
+                                // Eventually we will instrument field initializers, but for now we skip them.
+                                const bool instrumentFieldInitializersForDynamicAnalysis = false;
                                 StateMachineTypeSymbol initializerStateMachineTypeOpt;
 
                                 processedInitializers.LoweredInitializers = (BoundStatementList)LowerBodyOrInitializer(
@@ -1055,7 +1057,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                     analyzedInitializers,
                                     previousSubmissionFields,
                                     compilationState,
-                                    false,
+                                    instrumentFieldInitializersForDynamicAnalysis,
                                     _debugDocumentProvider,
                                     ref dynamicAnalysisSpans,
                                     diagsForCurrentMethod,
@@ -1098,6 +1100,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             methodSymbol.IsImplicitInstanceConstructor)
                         {
                             StateMachineTypeSymbol ctorStateMachineTypeOpt;
+                            const bool instrumentChainedConstructorsForDynamicAnalysis = false;
 
                             var chain = ChainImplicitStructConstructor(methodSymbol, container);
                             chain = LowerBodyOrInitializer(
@@ -1106,7 +1109,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 chain,
                                 previousSubmissionFields,
                                 compilationState,
-                                false,
+                                instrumentChainedConstructorsForDynamicAnalysis,
                                 _debugDocumentProvider,
                                 ref dynamicAnalysisSpans,
                                 diagsForCurrentMethod,

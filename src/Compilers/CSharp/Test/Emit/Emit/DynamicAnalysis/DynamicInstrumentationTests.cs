@@ -540,7 +540,7 @@ True
 }";
 
             string expectedDebugGetValueIL = @"{
-  // Code size      102 (0x66)
+  // Code size      101 (0x65)
   .maxstack  4
   .locals init (bool[] V_0,
                 bool V_1,
@@ -560,39 +560,38 @@ True
   IL_0028:  ldc.i4.3
   IL_0029:  call       ""bool[] Microsoft.CodeAnalysis.Runtime.Instrumentation.CreatePayload(System.Guid, int, ref bool[], int)""
   IL_002e:  stloc.0
-  IL_002f:  nop
-  IL_0030:  ldloc.0
+  IL_002f:  ldloc.0
+  IL_0030:  ldc.i4.1
   IL_0031:  ldc.i4.1
-  IL_0032:  ldc.i4.1
-  IL_0033:  stelem.i1
-  IL_0034:  ldarg.0
-  IL_0035:  ldfld      ""T MyBox<T>._value""
-  IL_003a:  box        ""T""
-  IL_003f:  ldnull
-  IL_0040:  ceq
-  IL_0042:  stloc.1
-  IL_0043:  ldloc.1
-  IL_0044:  brfalse.s  IL_0057
-  IL_0046:  nop
-  IL_0047:  ldloc.0
-  IL_0048:  ldc.i4.0
-  IL_0049:  ldc.i4.1
-  IL_004a:  stelem.i1
-  IL_004b:  ldloca.s   V_2
-  IL_004d:  initobj    ""T""
-  IL_0053:  ldloc.2
-  IL_0054:  stloc.3
-  IL_0055:  br.s       IL_0064
-  IL_0057:  ldloc.0
-  IL_0058:  ldc.i4.2
-  IL_0059:  ldc.i4.1
-  IL_005a:  stelem.i1
-  IL_005b:  ldarg.0
-  IL_005c:  ldfld      ""T MyBox<T>._value""
-  IL_0061:  stloc.3
-  IL_0062:  br.s       IL_0064
-  IL_0064:  ldloc.3
-  IL_0065:  ret
+  IL_0032:  stelem.i1
+  IL_0033:  ldarg.0
+  IL_0034:  ldfld      ""T MyBox<T>._value""
+  IL_0039:  box        ""T""
+  IL_003e:  ldnull
+  IL_003f:  ceq
+  IL_0041:  stloc.1
+  IL_0042:  ldloc.1
+  IL_0043:  brfalse.s  IL_0056
+  IL_0045:  nop
+  IL_0046:  ldloc.0
+  IL_0047:  ldc.i4.0
+  IL_0048:  ldc.i4.1
+  IL_0049:  stelem.i1
+  IL_004a:  ldloca.s   V_2
+  IL_004c:  initobj    ""T""
+  IL_0052:  ldloc.2
+  IL_0053:  stloc.3
+  IL_0054:  br.s       IL_0063
+  IL_0056:  ldloc.0
+  IL_0057:  ldc.i4.2
+  IL_0058:  ldc.i4.1
+  IL_0059:  stelem.i1
+  IL_005a:  ldarg.0
+  IL_005b:  ldfld      ""T MyBox<T>._value""
+  IL_0060:  stloc.3
+  IL_0061:  br.s       IL_0063
+  IL_0063:  ldloc.3
+  IL_0064:  ret
 }";
 
             CompilationVerifier verifier = CompileAndVerify(source + InstrumentationHelperSource, expectedOutput: expectedOutput, options: TestOptions.ReleaseExe);

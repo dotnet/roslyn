@@ -110,23 +110,36 @@ namespace Microsoft.CodeAnalysis.CSharp
             return AddSequencePoint(base.InstrumentYieldReturnStatement(original, rewritten));
         }
 
-        public override BoundStatement CreateBlockPrologue(BoundBlock original)
+        public override BoundStatement CreateBlockPrologue(BoundBlock original, out Symbols.LocalSymbol synthesizedLocal)
         {
-            var oBspan = ((BlockSyntax)original.Syntax).OpenBraceToken.Span;
-            return new BoundSequencePointWithSpan(original.Syntax, base.CreateBlockPrologue(original), oBspan);
+            var previous = base.CreateBlockPrologue(original, out synthesizedLocal);
+            if (original.Syntax.Kind() == SyntaxKind.Block && !original.WasCompilerGenerated)
+            {
+                var oBspan = ((BlockSyntax)original.Syntax).OpenBraceToken.Span;
+                return new BoundSequencePointWithSpan(original.Syntax, previous, oBspan);
+            }
+            else if (previous != null)
+            {
+                return new BoundSequencePoint(original.Syntax, previous);
+            }
+
+            return null;
         }
 
         public override BoundStatement CreateBlockEpilogue(BoundBlock original)
         {
             var previous = base.CreateBlockEpilogue(original);
 
-            // no need to mark "}" on the outermost block
-            // as it cannot leave it normally. The block will have "return" at the end.
-            CSharpSyntaxNode parent = original.Syntax.Parent;
-            if (parent == null || !(parent.IsAnonymousFunction() || parent is BaseMethodDeclarationSyntax))
+            if (original.Syntax.Kind() == SyntaxKind.Block && !original.WasCompilerGenerated)
             {
-                var cBspan = ((BlockSyntax)original.Syntax).CloseBraceToken.Span;
-                return new BoundSequencePointWithSpan(original.Syntax, previous, cBspan);
+                // no need to mark "}" on the outermost block
+                // as it cannot leave it normally. The block will have "return" at the end.
+                CSharpSyntaxNode parent = original.Syntax.Parent;
+                if (parent == null || !(parent.IsAnonymousFunction() || parent is BaseMethodDeclarationSyntax))
+                {
+                    var cBspan = ((BlockSyntax)original.Syntax).CloseBraceToken.Span;
+                    return new BoundSequencePointWithSpan(original.Syntax, previous, cBspan);
+                }
             }
 
             return previous;
