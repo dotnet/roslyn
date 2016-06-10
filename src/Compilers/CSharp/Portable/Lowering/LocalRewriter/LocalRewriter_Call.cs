@@ -301,6 +301,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case ConversionKind.MethodGroup:
                                 case ConversionKind.NullLiteral:
                                     return true;
+
                                 case ConversionKind.Boxing:
                                 case ConversionKind.ImplicitDynamic:
                                 case ConversionKind.ExplicitDynamic:
@@ -321,12 +322,23 @@ namespace Microsoft.CodeAnalysis.CSharp
                                 case ConversionKind.IntegerToPointer:
                                     current = conv.Operand;
                                     break;
+
                                 case ConversionKind.ExplicitUserDefined:
                                 case ConversionKind.ImplicitUserDefined:
+                                // expression trees rewrite this later.
+                                // it is a kind of user defined conversions on IntPtr and in some cases can fail
+                                case ConversionKind.IntPtr:
                                     return false;
+
                                 default:
-                                    // Unhandled conversion kind in reordering logic
-                                    throw ExceptionUtilities.UnexpectedValue(conv.ConversionKind);
+                                    // when this assert is hit, examine whether such conversion kind is 
+                                    // 1) actually expected to get this far
+                                    // 2) figure if it is possibly not producing or consuming any sideeffects (rare case)
+                                    // 3) add a case for it
+                                    Debug.Assert(false, "Unexpected conversion kind" + conv.ConversionKind);
+
+                                    // it is safe to assume that conversion is not reorderable
+                                    return false;
                             }
                             break;
                         }
