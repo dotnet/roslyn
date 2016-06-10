@@ -312,9 +312,34 @@ namespace Microsoft.CodeAnalysis.Editor
         /// Returns true if the completion item should be "soft" selected, or false if it should be "hard"
         /// selected.
         /// </summary>
-        public virtual bool ShouldSoftSelectItem(CompletionItem item, string filterText, CompletionTrigger trigger)
+        public bool ShouldSoftSelectItem(CompletionItem item, string filterText, CompletionTrigger trigger)
         {
+            // If all that has been typed is puntuation, then don't hard select anything.
+            // It's possible the user is just typing language punctuation and selecting
+            // anything in the list will interfere.  We only allow this if the filter text
+            // exactly matches something in the list already. 
+            if (filterText.Length > 0 && IsAllPunctuation(filterText) && filterText != item.DisplayText)
+            {
+                return true;
+            }
+
+            // If the user hasn't actually typed anything, then don't hard select any item.
+            // The only exception to this is if the completion provider has requested the
+            // item be preselected.
             return filterText.Length == 0 && !item.Rules.Preselect;
+        }
+
+        private bool IsAllPunctuation(string filterText)
+        {
+            foreach (var ch in filterText)
+            {
+                if (!char.IsPunctuation(ch))
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         protected bool IsObjectCreationItem(CompletionItem item)
