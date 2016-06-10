@@ -306,65 +306,7 @@ namespace Microsoft.CodeAnalysis.Editor
 
         private static StringComparison GetComparision(bool isCaseSensitive)
         {
-            return isCaseSensitive? StringComparison.CurrentCulture: StringComparison.CurrentCultureIgnoreCase;
-        }
-
-        /// <summary>
-        /// Returns true if the completion item should be "soft" selected, or false if it should be "hard"
-        /// selected.
-        /// </summary>
-        public bool ShouldSoftSelectItem(CompletionItem item, string filterText, CompletionTrigger trigger)
-        {
-            // If all that has been typed is puntuation, then don't hard select anything.
-            // It's possible the user is just typing language punctuation and selecting
-            // anything in the list will interfere.  We only allow this if the filter text
-            // exactly matches something in the list already. 
-            if (filterText.Length > 0 && IsAllPunctuation(filterText) && filterText != item.DisplayText)
-            {
-                return true;
-            }
-
-            // If the user hasn't actually typed anything, then don't hard select any item.
-            // The only exception to this is if the completion provider has requested the
-            // item be preselected.
-            if (filterText.Length == 0)
-            {
-                // Item didn't want to be hard selected with no filter text.
-                // So definitely soft select it.
-                if (item.Rules.SelectionBehavior != CompletionItemSelectionBehavior.HardSelection)
-                {
-                    return true;
-                }
-
-                // Item did not ask to be preselected.  So definitely soft select it.
-                if (!item.Rules.Preselect)
-                {
-                    return true;
-                }
-            }
-
-            // The user typed something, or the item asked to be preselected.  In 
-            // either case, don't soft select this.
-            Debug.Assert(filterText.Length > 0 || item.Rules.Preselect);
-            return false;
-        }
-
-        private bool IsAllPunctuation(string filterText)
-        {
-            foreach (var ch in filterText)
-            {
-                if (!char.IsPunctuation(ch))
-                {
-                    return false;
-                }
-            }
-
-            return true;
-        }
-
-        protected bool IsObjectCreationItem(CompletionItem item)
-        {
-            return item.Tags.Contains(CompletionTags.ObjectCreation);
+            return isCaseSensitive ? StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase;
         }
     }
 }
