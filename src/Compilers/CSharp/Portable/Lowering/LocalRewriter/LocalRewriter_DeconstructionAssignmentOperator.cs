@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var outParameters = outParametersBuilder.ToImmutableAndFree();
 
             // invoke Deconstruct with placeholders replaced by locals
-            stores.Add((BoundExpression)Visit(deconstruction.DeconstructInvocationOpt));
+            stores.Add(VisitExpression(deconstruction.DeconstructInvocationOpt));
         }
     }
 }

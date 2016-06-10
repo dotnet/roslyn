@@ -2024,6 +2024,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var analyzedArguments = AnalyzedArguments.GetInstance();
             var outVars = ArrayBuilder<OutDeconstructVarPendingInference>.GetInstance(numCheckedVariables);
+            DiagnosticBag bag = null;
 
             try
             {
@@ -2046,26 +2047,34 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 if (memberAccess.Kind != BoundKind.MethodGroup)
                 {
-                    Error(diagnostics, ErrorCode.ERR_MissingDeconstruct, receiverSyntax, receiver.Type);
-                    outPlaceholders = default(ImmutableArray<BoundDeconstructValuePlaceholder>);
-
-                    return BadExpression(receiverSyntax, receiver);
+                    return MissingDeconstruct(receiver, assignmentSyntax, numCheckedVariables, diagnostics, out outPlaceholders, receiver);
                 }
 
                 // After the overload resolution completes, the last step is to coerce the arguments with inferred types.
                 // That step returns placeholder (of correct type) instead of the outVar nodes that were passed in as arguments.
                 // So the generated invocation expression will contain placeholders instead of those outVar nodes.
                 // Those placeholders are also recorded in the outVar for easy access below, by the `SetInferredType` call on the outVar nodes.
+                bag = DiagnosticBag.GetInstance();
                 BoundExpression result = BindMethodGroupInvocation(
-                                            receiverSyntax, receiverSyntax, methodName, (BoundMethodGroup)memberAccess, analyzedArguments, diagnostics, queryClause: null,
+                                            receiverSyntax, receiverSyntax, methodName, (BoundMethodGroup)memberAccess, analyzedArguments, bag, queryClause: null,
                                             allowUnexpandedForm: true);
 
                 result.WasCompilerGenerated = true;
 
-                if (result.HasAnyErrors)
+                if (bag.HasAnyErrors())
                 {
-                    outPlaceholders = default(ImmutableArray<BoundDeconstructValuePlaceholder>);
-                    return BadExpression(assignmentSyntax, result);
+                    return MissingDeconstruct(receiver, assignmentSyntax, numCheckedVariables, diagnostics, out outPlaceholders, result);
+                }
+                else
+                {
+                    diagnostics.AddRange(bag);
+                }
+
+                var deconstructMethod = ((BoundCall)result).Method;
+                var parameters = deconstructMethod.IsExtensionMethod ? deconstructMethod.Parameters.Skip(1) : deconstructMethod.Parameters;
+                if (parameters.Any(p => p.RefKind != RefKind.Out && !p.IsThis))
+                {
+                    return MissingDeconstruct(receiver, assignmentSyntax, numCheckedVariables, diagnostics, out outPlaceholders, result);
                 }
 
                 outPlaceholders = outVars.SelectAsArray(v => v.Placeholder);
@@ -2076,8 +2085,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 analyzedArguments.Free();
                 outVars.Free();
+                if (bag != null)
+                {
+                    bag.Free();
+                }
             }
 
+        }
+
+        private BoundExpression MissingDeconstruct(BoundExpression receiver, AssignmentExpressionSyntax syntax, int numParameters, DiagnosticBag diagnostics, out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders, BoundNode childNode)
+        {
+            Error(diagnostics, ErrorCode.ERR_MissingDeconstruct, receiver.Syntax, receiver.Type, numParameters);
+            outPlaceholders = default(ImmutableArray<BoundDeconstructValuePlaceholder>);
+
+            return BadExpression(syntax, childNode);
         }
 
         private BoundAssignmentOperator BindAssignment(AssignmentExpressionSyntax node, BoundExpression op1, BoundExpression op2, DiagnosticBag diagnostics)

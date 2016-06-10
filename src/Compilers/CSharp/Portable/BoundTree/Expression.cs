@@ -2828,7 +2828,8 @@ namespace Microsoft.CodeAnalysis.CSharp
     }
 
     /// <summary>
-    /// Providing implementation as OperationKind.None. This implementation is sufficient because the node doesn't survive initial binding.
+    /// This node represents an 'out var' parameter to a Deconstruct method.
+    /// It is only used temporarily during initial binding.
     /// </summary>
     internal partial class OutDeconstructVarPendingInference
     {

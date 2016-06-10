@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public BoundDeconstructValuePlaceholder FailInference(Binder binder)
         {
-            return SetInferredType(binder.CreateErrorType("var"), success: false);
+            return SetInferredType(binder.CreateErrorType(), success: false);
         }
     }
 }
