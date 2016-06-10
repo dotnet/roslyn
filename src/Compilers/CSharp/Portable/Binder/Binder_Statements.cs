@@ -2055,9 +2055,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // After the overload resolution completes, the last step is to coerce the arguments with inferred types.
                 // That step returns placeholder (of correct type) instead of the outVar nodes that were passed in as arguments.
                 // So the generated invocation expression will contain placeholders instead of those outVar nodes.
-                // Those placeholders are also recorded in the outVar for easy access below.
-                BoundExpression result = BindInvocationExpression(
-                                            receiverSyntax, receiverSyntax, methodName, memberAccess, analyzedArguments, diagnostics, queryClause: null,
+                // Those placeholders are also recorded in the outVar for easy access below, by the `SetInferredType` call on the outVar nodes.
+                BoundExpression result = BindMethodGroupInvocation(
+                                            receiverSyntax, receiverSyntax, methodName, (BoundMethodGroup)memberAccess, analyzedArguments, diagnostics, queryClause: null,
                                             allowUnexpandedForm: true);
 
                 result.WasCompilerGenerated = true;
