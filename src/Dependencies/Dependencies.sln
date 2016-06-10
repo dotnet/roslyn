@@ -9,8 +9,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.DiaSymReader.NetF
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Microsoft.DiaSymReader.Portable", "Microsoft.DiaSymReader\Portable\Microsoft.DiaSymReader.Portable.csproj", "{316FD2AD-8514-41BD-98D5-61A821F3320E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestResourcesProprietary", "..\..\..\Closed\Test\Resources\TestResourcesProprietary.csproj", "{77E6B002-89D8-4298-9B1B-0B5C247DD1FD}"
-EndProject
 Global
 	GlobalSection(SharedMSBuildProjectFiles) = preSolution
 		Microsoft.DiaSymReader\Microsoft.DiaSymReader.projitems*{fa2c8969-bd1f-457a-a6e3-ca772135ff73}*SharedItemsImports = 4
@@ -50,18 +48,6 @@ Global
 		{316FD2AD-8514-41BD-98D5-61A821F3320E}.Release|ARM.Build.0 = Release|Any CPU
 		{316FD2AD-8514-41BD-98D5-61A821F3320E}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{316FD2AD-8514-41BD-98D5-61A821F3320E}.Release|Mixed Platforms.Build.0 = Release|Any CPU
-		{77E6B002-89D8-4298-9B1B-0B5C247DD1FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{77E6B002-89D8-4298-9B1B-0B5C247DD1FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{77E6B002-89D8-4298-9B1B-0B5C247DD1FD}.Debug|ARM.ActiveCfg = Debug|ARM
-		{77E6B002-89D8-4298-9B1B-0B5C247DD1FD}.Debug|ARM.Build.0 = Debug|ARM
-		{77E6B002-89D8-4298-9B1B-0B5C247DD1FD}.Debug|Mixed Platforms.ActiveCfg = Debug|Any CPU
-		{77E6B002-89D8-4298-9B1B-0B5C247DD1FD}.Debug|Mixed Platforms.Build.0 = Debug|Any CPU
-		{77E6B002-89D8-4298-9B1B-0B5C247DD1FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{77E6B002-89D8-4298-9B1B-0B5C247DD1FD}.Release|Any CPU.Build.0 = Release|Any CPU
-		{77E6B002-89D8-4298-9B1B-0B5C247DD1FD}.Release|ARM.ActiveCfg = Release|ARM
-		{77E6B002-89D8-4298-9B1B-0B5C247DD1FD}.Release|ARM.Build.0 = Release|ARM
-		{77E6B002-89D8-4298-9B1B-0B5C247DD1FD}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
-		{77E6B002-89D8-4298-9B1B-0B5C247DD1FD}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
