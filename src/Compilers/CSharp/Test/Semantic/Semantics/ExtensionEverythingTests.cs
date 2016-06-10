@@ -1160,5 +1160,100 @@ class Program
                 Diagnostic(ErrorCode.ERR_AmbigMember, "PropStatic").WithArguments("ExtOne.PropStatic", "ExtTwo.PropStatic").WithLocation(46, 33)
             );
         }
+
+        // This test is essentially just testing all the places in the compiler where the TypeKind enum is switched over, or otherwise checked.
+        // It's useful because those points are usually where bugs are easy, since the exact kind of type is important at those points - so
+        // extension classes usually have behavior that needs to be explicitly accounted for (and easily forgotten).
+        [Fact]
+        public void InvalidUses()
+        {
+            // PROTOTYPE: Todo, does ToTypeKind have to be modified? PENamedTypeSymbol.TypeKind? Also MightContainExtensionMethods, MakeModifiers
+            // PROTOTYPE: Binder.AddMemberLookupSymbolsInfoInType enumerates TypeKind, but isn't tested here (not sure what it does or how to test it)
+            var text = @"
+using System;
+
+[assembly: CLSCompliant(true)]
+
+class BaseClass { }
+
+extension class ExtClass : BaseClass
+{
+}
+
+// Also need to test constraint on loaded type (ConstraintsHelper.ResolveBounds)
+class ExtAsConstraint<T> where T : ExtClass { }
+// Binder.ContainsNestedTypeOfUnconstructedGenericType specifically enumerates all TypeKinds,
+// which we want to make sure we handle extension classes.
+public class UnqualifiedNestedTypeInCref<T>
+{
+    public extension class Inner : BaseClass { }
+    public void M(Inner i) { } // should also emit diagnostic, can't have ext class as parameter
+    /// <see cref=""UnqualifiedNestedTypeInCref{int}.M(Inner)""/> // WRN_UnqualifiedNestedTypeInCref
+    public void N() { }
+}
+class NewExtClass
+{
+    void Test()
+    {
+        new ExtClass();
+    }
+}
+// DebuggerDisplay just used as pre-existing attribute. Test because EarlyWellKnownAttributeBinder.CanBeValidAttributeArgument enumerates TypeKinds.
+[System.Diagnostics.DebuggerDisplay(new ExtClass())]
+class CanBeValidAttributeArgument { }
+// Compilation options: MainTypeName == ""EntryPoint""
+extension class EntryPoint : BaseClass
+{
+    static void Main() { }
+}
+class ExtAsNewConstraint
+{
+    void Foo<T>() where T : new() => new T();
+    void TestFoo() => Foo<ExtClass>();
+}
+class BaseWithInterface : IEnumerable
+{
+    IEnumerator IEnumerable.GetEnumerator() => null;
+}
+extension class ExtExplicitInterfaceImpl : BaseWithInterface
+{
+    IEnumerator IEnumerable.GetEnumerator() => null;
+}
+extension class MemberNameSame : BaseClass
+{
+    void MemberNameSame() { }
+}
+extension class MemberNameSame : BaseClass
+{
+    void MemberNameSame() { }
+}
+// SourceMemberContainerTypeSymbol.CheckMembersAgainstBaseType should trigger in other examples
+[Obsolete(""An attribute on a extension class"")] // ObsoleteAttribute just used as pre-existing attribute.
+extension class AllowedAttributeLocations : BaseClass { }
+[System.Runtime.InteropServices.ComImport]
+extension class ExtComImport : BaseClass { }
+class Visibility
+{
+    private class BaseClass { }
+    public extension class ExtClass : BaseClass { }
+}
+class VolatileField
+{
+    volatile ExtClass field; // invalid due to extension class as field type,
+    // but we're testing the detection processing of ERR_VolatileStruct (although that shouldn't be reported)
+}
+interface VariantInterface<in TIn, out TOut> { }
+class VariantInterfaceTest : VariantInterface<ExtClass, ExtClass> { }
+extension class ExtCycle : ExtCycle { }
+// TypeSymbolExtensions.GetDefaultBaseOrNull might also need modifying
+";
+
+            // Not tested, since it's impossible to get an expression of type `extension class`: ForEachLoopBinder.SatisfiesForEachPattern,
+            // ConversionsBase.HasImplicitReferenceConversion, OperatorFacts.DefinitelyHasNoUserDefinedOperators,
+            // All of the cases in MethodTypeInferrer, DataFlowPass.MarkFieldsUsed, AsyncMethodToStateMachineRewriter.GenerateAwaitOnCompleted{Dynamic}
+            CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.ReleaseExe.WithMainTypeName("EntryPoint"), parseOptions: parseOptions).VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_NoMetadataFile, "").WithArguments("").WithLocation(1, 1)
+            );
+        }
     }
 }
