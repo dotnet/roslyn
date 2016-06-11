@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ClassifyConversionFromExpression(sourceExpression, sourceExpression.Type, destination, ref useSiteDiagnostics);
         }
 
-        public Conversion ClassifyConversionFromExpression(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public Conversion ClassifyConversionFromType(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);

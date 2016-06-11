@@ -12011,6 +12011,38 @@ namespace System
         }
 
         [Fact]
+        public void ImplicitConversions07()
+        {
+            var source = @"
+using System;
+
+    internal class Program
+    {
+        static void Main(string[] args)
+        {
+            var t = (1, 1);
+            (C2, C2) aa = t;
+            System.Console.WriteLine(aa);
+        }
+
+        private class C2
+        {
+            public static implicit operator C2(int arg)
+            {
+                return new C2();
+            }
+        }
+    }
+
+" + trivial2uple;
+
+            var comp = CompileAndVerify(source, parseOptions: TestOptions.Regular.WithTuplesFeature(), expectedOutput: @"
+{Program+C2, Program+C2}
+");
+        }
+
+
+        [Fact]
         public void ConversionsOverload02()
         {
             var source = @"
