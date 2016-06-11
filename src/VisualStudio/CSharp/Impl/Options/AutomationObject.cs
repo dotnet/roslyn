@@ -183,10 +183,16 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             }
         }
 
-        public EnterKeyRule InsertNewlineOnEnterWithWholeWord
+        public int InsertNewlineOnEnterWithWholeWord
         {
-            get { return GetOption(CompletionOptions.EnterKeyBehavior); }
-            set { SetOption(CompletionOptions.EnterKeyBehavior, value); }
+            get { return (int)GetOption(CompletionOptions.EnterKeyBehavior); }
+            set { SetOption(CompletionOptions.EnterKeyBehavior, (EnterKeyRule)value); }
+        }
+
+        public int EnterKeyBehavior
+        {
+            get { return (int)GetOption(CompletionOptions.EnterKeyBehavior); }
+            set { SetOption(CompletionOptions.EnterKeyBehavior, (EnterKeyRule)value); }
         }
 
         public int NewLines_AnonymousTypeInitializer_EachMember
