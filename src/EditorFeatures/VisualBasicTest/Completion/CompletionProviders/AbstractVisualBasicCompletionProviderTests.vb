@@ -96,6 +96,37 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             End Using
         End Function
 
+        '<<<<<<< HEAD
+        '=======
+        '        Protected Async Function VerifyCommonCommitCharactersAsync(initialMarkup As String, textTypedSoFar As String) As Threading.Tasks.Task
+        '            Dim commitCharacters = {" "c, ";"c, "("c, ")"c, "["c, "]"c, "{"c, "}"c, "."c, ","c, ":"c, "+"c, "-"c, "*"c, "/"c, "\"c, "^"c, "<"c, ">"c, "'"c, "="c}
+        '            Await VerifyCommitCharactersAsync(initialMarkup, textTypedSoFar, commitCharacters)
+        '        End Function
+
+        '        Protected Async Function VerifyCommitCharactersAsync(initialMarkup As String, textTypedSoFar As String, ParamArray chars As Char()) As Threading.Tasks.Task
+        '            Using workspace = Await TestWorkspace.CreateVisualBasicAsync(initialMarkup)
+        '                Dim hostDocument = workspace.DocumentWithCursor
+        '                Dim documentId = workspace.GetDocumentId(hostDocument)
+        '                Dim document = workspace.CurrentSolution.GetDocument(documentId)
+        '                Dim position = hostDocument.CursorPosition.Value
+
+        '                Dim service = GetCompletionService(workspace)
+        '                Dim completionList = Await GetCompletionListAsync(service, document, position, CompletionTrigger.Default)
+        '                Dim item = completionList.Items.First()
+
+        '                Dim helper = CompletionHelper.GetHelper(document)
+
+        '                For Each ch In chars
+        '                    Assert.True(Controller.IsCommitCharacter(service.GetRules(), item, ch, textTypedSoFar), $"Expected '{ch}' to be a commit character")
+        '                Next
+
+        '                Dim chr = "x"c
+        '                Assert.False(Controller.IsCommitCharacter(service.GetRules(), item, chr, textTypedSoFar), $"Expected '{chr}' NOT to be a commit character")
+        '            End Using
+
+        '        End Function
+
+        '>>>>>>> master
         Protected Async Function TestCommonIsTextualTriggerCharacterAsync() As Threading.Tasks.Task
             Dim alwaysTriggerList =
             {

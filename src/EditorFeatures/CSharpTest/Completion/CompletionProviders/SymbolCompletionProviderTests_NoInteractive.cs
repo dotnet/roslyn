@@ -44,8 +44,9 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Completion.CompletionSe
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task SendEnterThroughToEditorTest()
         {
-            await VerifySendEnterThroughToEditorAsync("class C { void M() { System.Console.$$", "Beep", sendThroughEnterEnabled: false, expected: false);
-            await VerifySendEnterThroughToEditorAsync("class C { void M() { System.Console.$$", "Beep", sendThroughEnterEnabled: true, expected: true);
+            await VerifySendEnterThroughToEnterAsync("class C { void M() { System.Console.$$", "Beep", sendThroughEnterOption: EnterKeyRule.Never, expected: false);
+            await VerifySendEnterThroughToEnterAsync("class C { void M() { System.Console.$$", "Beep", sendThroughEnterOption: EnterKeyRule.AfterFullyTypedWord, expected: true);
+            await VerifySendEnterThroughToEnterAsync("class C { void M() { System.Console.$$", "Beep", sendThroughEnterOption: EnterKeyRule.Always, expected: true);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

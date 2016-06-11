@@ -62,8 +62,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                 var document = GetDocument();
                 if (document != null)
                 {
-                    _completionHelper = CompletionHelper.GetHelper(document,
-                        document.Project.LanguageServices.GetService<CompletionService>());
+                    _completionHelper = CompletionHelper.GetHelper(document);
                 }
             }
 

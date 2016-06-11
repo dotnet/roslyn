@@ -180,7 +180,6 @@ namespace Microsoft.CodeAnalysis.Completion
             var providers = GetProviders(roles, trigger);
 
             var completionProviderToIndex = GetCompletionProviderToIndex(providers);
-            var completionRules = this.GetRules();
 
             var triggeredProviders = ImmutableArray<CompletionProvider>.Empty;
             switch (trigger.Kind)

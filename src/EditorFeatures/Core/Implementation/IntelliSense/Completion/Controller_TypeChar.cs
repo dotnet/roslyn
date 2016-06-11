@@ -272,8 +272,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             var document = this.SubjectBuffer.CurrentSnapshot.GetOpenDocumentInCurrentContextWithChanges();
             if (document != null)
             {
-                return CompletionHelper.GetHelper(
-                    document, document.GetLanguageService<CompletionService>());
+                return CompletionHelper.GetHelper(document);
             }
 
             return null;

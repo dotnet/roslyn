@@ -100,8 +100,7 @@ usingDirectives +
 text;
         }
 
-        protected async Task VerifySendEnterThroughToEditorAsync(
-            string initialMarkup, string textTypedSoFar, bool sendThroughEnterEnabled, bool expected)
+        protected async Task VerifySendEnterThroughToEnterAsync(string initialMarkup, string textTypedSoFar, EnterKeyRule sendThroughEnterOption, bool expected)
         {
             using (var workspace = await TestWorkspace.CreateCSharpAsync(initialMarkup))
             {
@@ -111,7 +110,9 @@ text;
                 var position = hostDocument.CursorPosition.Value;
 
                 workspace.Options = workspace.Options.WithChangedOption(
-                    CSharpCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord, sendThroughEnterEnabled);
+                    CompletionOptions.EnterKeyBehavior,
+                    LanguageNames.CSharp,
+                    sendThroughEnterOption);
 
                 var service = GetCompletionService(workspace);
                 var completionList = await GetCompletionListAsync(service, document, position, CompletionTrigger.Default);

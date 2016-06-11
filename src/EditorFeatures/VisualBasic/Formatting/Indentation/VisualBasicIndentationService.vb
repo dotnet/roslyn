@@ -14,7 +14,7 @@ Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
 Imports Microsoft.VisualStudio.Text
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Formatting.Indentation
-    <ExportLanguageService(GetType(IIndentationService), LanguageNames.VisualBasic), [Shared]>
+    <ExportLanguageService(GetType(ISynchronousIndentationService), LanguageNames.VisualBasic), [Shared]>
     Partial Friend Class VisualBasicIndentationService
         Inherits AbstractIndentationService
 
