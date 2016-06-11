@@ -243,5 +243,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Public Function IsNameOfContext(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsNameOfContext
             Return semanticModel.SyntaxTree.IsNameOfContext(position, cancellationToken)
         End Function
+
+        Public Function IsNamespaceDeclarationNameContext(semanticModel As SemanticModel, position As Integer, cancellationToken As CancellationToken) As Boolean Implements ISemanticFactsService.IsNamespaceDeclarationNameContext
+            '
+            ' TODO: part of https://github.com/dotnet/roslyn/issues/7213
+            '
+            Return False
+        End Function
     End Class
 End Namespace
