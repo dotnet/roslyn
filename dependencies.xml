@@ -1,0 +1,10 @@
+<!--
+  Lists dotnet repos containing packages this repo depends on.
+  The latest and LKG versions of these dependencies are maintained on github.com/dotnet/versions.
+-->
+<dependencies>
+  <repo name="corefx" channel="master" commonVersionSuffix="CoreFXVersionSuffix"/>
+  <repo name="coreclr" channel="master" commonVersionSuffix="CoreClrVersionSuffix" />
+  <repo name="projectk-tfs" channel="master" />
+  <repo name="symreader" channel="master" />
+</dependencies>

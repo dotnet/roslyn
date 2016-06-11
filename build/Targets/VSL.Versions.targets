@@ -12,6 +12,10 @@
     <MicrosoftCodeAnalysisElfieVersion>0.10.6-rc2</MicrosoftCodeAnalysisElfieVersion>
     <ManagedEsentVersion>1.9.2</ManagedEsentVersion>
     <CodeAnalysisAnalyzersVersion>1.1.0</CodeAnalysisAnalyzersVersion>
+    <!-- Pre-release version of CoreFX dependencies (empty for release). Used e.g. in used in .nuspec files. -->
+    <CoreFXVersionSuffix>-rc3-24128-00</CoreFXVersionSuffix>
+    <!-- Pre-release version of CoreCLR dependencies (empty for release). Used e.g. to find crossgen. -->
+    <CoreClrVersionSuffix>-rc3-24128-00</CoreClrVersionSuffix>
   </PropertyGroup>
   
   <Choose>
@@ -58,8 +62,7 @@
 
   <!-- NuGet version -->
   <PropertyGroup>
-    <BuildNumberSuffix Condition="('$(BUILD_BUILDNUMBER)' != '')
-                     and ($(BUILD_BUILDNUMBER.Split('_').Length) == 2)">$(BUILD_BUILDNUMBER.Split('_')[1])</BuildNumberSuffix>
+    <BuildNumberSuffix>$(BUILD_BUILDNUMBER)</BuildNumberSuffix>
     <BuildNumberPart1 Condition="'$(BuildNumberSuffix)' != ''">
       $(BuildNumberSuffix.Split('.')[0])
     </BuildNumberPart1>
