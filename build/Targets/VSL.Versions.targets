@@ -9,6 +9,7 @@
     <SystemCollectionsImmutableVersion>1.2.0-rc3-24102-00</SystemCollectionsImmutableVersion>
     <MicrosoftDiaSymReaderVersion>1.0.8-rc3-60429-03</MicrosoftDiaSymReaderVersion>
     <MicrosoftDiaSymReaderNativeVersion>1.4.0-rc2</MicrosoftDiaSymReaderNativeVersion>
+    <MicrosoftDiaSymReaderPortablePdbVersion>1.0.0</MicrosoftDiaSymReaderPortablePdbVersion>
     <MicrosoftCodeAnalysisElfieVersion>0.10.6-rc2</MicrosoftCodeAnalysisElfieVersion>
     <ManagedEsentVersion>1.9.2</ManagedEsentVersion>
     <CodeAnalysisAnalyzersVersion>1.1.0</CodeAnalysisAnalyzersVersion>
