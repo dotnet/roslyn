@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var leftType = left.Type;
 
-            Conversion finalConversion = Conversions.ClassifyConversionFromExpression(bestSignature.ReturnType, leftType, ref useSiteDiagnostics);
+            Conversion finalConversion = Conversions.ClassifyConversionFromType(bestSignature.ReturnType, leftType, ref useSiteDiagnostics);
             BoundExpression rightConverted = CreateConversion(right, best.RightConversion, bestSignature.RightType, diagnostics);
 
             bool isPredefinedOperator = !bestSignature.Kind.IsUserDefined();
