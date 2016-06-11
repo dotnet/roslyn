@@ -538,6 +538,41 @@ class C
         }
 
         [Fact]
+        public void BadDeconstructShadowsBaseDeconstruct()
+        {
+            string source = @"
+class D
+{
+    public void Deconstruct(out int a, out string b) { a = 2; b = ""world""; }
+}
+class C : D
+{
+    static void Main()
+    {
+        long x;
+        string y;
+
+        (x, y) = new C();
+        System.Console.WriteLine(x + "" "" + y);
+    }
+
+    public void Deconstruct(out int a, out string b, int c = 42) // not a Deconstruct operator
+    {
+        a = 1;
+        b = ""hello"";
+    }
+}
+";
+
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // (13,18): error CS8206: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
+                //         (x, y) = new C();
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(13, 18)
+                );
+        }
+
+        [Fact]
         public void DeconstructMethodHasParams()
         {
             string source = @"

@@ -2070,11 +2070,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     diagnostics.AddRange(bag);
                 }
 
+                // Verify all the parameters (except "this" for extension methods) are out parameters
                 var deconstructMethod = ((BoundCall)result).Method;
-                var parameters = deconstructMethod.IsExtensionMethod ? deconstructMethod.Parameters.Skip(1) : deconstructMethod.Parameters;
-                if (parameters.Any(p => p.RefKind != RefKind.Out && !p.IsThis))
+                var parameters = deconstructMethod.Parameters;
+                for (int i = (deconstructMethod.IsExtensionMethod ? 1 : 0); i < parameters.Length; i++)
                 {
-                    return MissingDeconstruct(receiver, assignmentSyntax, numCheckedVariables, diagnostics, out outPlaceholders, result);
+                    if (parameters[i].RefKind != RefKind.Out)
+                    {
+                        return MissingDeconstruct(receiver, assignmentSyntax, numCheckedVariables, diagnostics, out outPlaceholders, result);
+                    }
                 }
 
                 outPlaceholders = outVars.SelectAsArray(v => v.Placeholder);
@@ -2085,6 +2089,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 analyzedArguments.Free();
                 outVars.Free();
+
                 if (bag != null)
                 {
                     bag.Free();
