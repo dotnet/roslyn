@@ -27,6 +27,19 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             _workspace = workspace;
         }
 
+        /// <summary>
+        /// Unused.  But kept around for back compat.  Note this option is not about
+        /// turning warning into errors.  It's about an aspect of 'remove unused using'
+        /// functionality we don't support anymore.  Namely whether or not 'remove unused
+        /// using' should warn if you have any build errors as that might mean we 
+        /// remove some usings inappropriately.
+        /// </summary>
+        public int WarnOnBuildErrors
+        {
+            get { return 0; }
+            set { }
+        }
+
         public int AutoComment
         {
             get { return GetBooleanOption(FeatureOnOffOptions.AutoXmlDocCommentGeneration); }
@@ -185,8 +198,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int InsertNewlineOnEnterWithWholeWord
         {
-            get { return GetBooleanOption(CSharpCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord); }
-            set { SetBooleanOption(CSharpCompletionOptions.AddNewLineOnEnterAfterFullyTypedWord, value); }
+            get { return (int)GetOption(CompletionOptions.EnterKeyBehavior); }
+            set { SetOption(CompletionOptions.EnterKeyBehavior, (EnterKeyRule)value); }
+        }
+
+        public int EnterKeyBehavior
+        {
+            get { return (int)GetOption(CompletionOptions.EnterKeyBehavior); }
+            set { SetOption(CompletionOptions.EnterKeyBehavior, (EnterKeyRule)value); }
         }
 
         public int NewLines_AnonymousTypeInitializer_EachMember
@@ -588,6 +607,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             return _workspace.Options.GetOption(key, LanguageNames.CSharp) ? 1 : 0;
         }
 
+        private T GetOption<T>(PerLanguageOption<T> key)
+        {
+            return _workspace.Options.GetOption(key, LanguageNames.CSharp);
+        }
+
         private void SetBooleanOption(Option<bool> key, int value)
         {
             _workspace.Options = _workspace.Options.WithChangedOption(key, value != 0);
@@ -596,6 +620,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         private void SetBooleanOption(PerLanguageOption<bool> key, int value)
         {
             _workspace.Options = _workspace.Options.WithChangedOption(key, LanguageNames.CSharp, value != 0);
+        }
+
+        private void SetOption<T>(PerLanguageOption<T> key, T value)
+        {
+            _workspace.Options = _workspace.Options.WithChangedOption(key, LanguageNames.CSharp, value);
         }
 
         private int GetBooleanOption(PerLanguageOption<bool?> key)

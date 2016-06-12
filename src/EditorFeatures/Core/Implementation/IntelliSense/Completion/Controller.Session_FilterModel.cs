@@ -364,7 +364,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     }
 
                     // Item did not ask to be preselected.  So definitely soft select it.
-                    if (!item.Rules.Preselect)
+                    if (item.Rules.MatchPriority == MatchPriority.Default)
                     {
                         return true;
                     }
@@ -372,7 +372,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 // The user typed something, or the item asked to be preselected.  In 
                 // either case, don't soft select this.
-                Debug.Assert(filterText.Length > 0 || item.Rules.Preselect);
+                Debug.Assert(filterText.Length > 0 || item.Rules.MatchPriority != MatchPriority.Default);
                 return false;
             }
 

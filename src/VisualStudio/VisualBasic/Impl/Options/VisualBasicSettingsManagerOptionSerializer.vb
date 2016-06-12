@@ -13,6 +13,7 @@ Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Options
 Imports Microsoft.CodeAnalysis.Simplification
+Imports Microsoft.CodeAnalysis.VisualBasic.Completion
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
 Imports Microsoft.VisualStudio.Shell
@@ -85,7 +86,10 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         End Property
 
         Protected Overrides Function SupportsOption([option] As IOption, languageName As String) As Boolean
-            If languageName = LanguageNames.VisualBasic Then
+            If [option].Name = CompletionOptions.EnterKeyBehavior.Name Then
+                Return True
+
+            ElseIf languageName = LanguageNames.VisualBasic Then
                 If [option].Feature = FeatureOnOffOptions.OptionName Then
                     Return [option].Name = FeatureOnOffOptions.PrettyListing.Name OrElse
                            [option].Name = FeatureOnOffOptions.LineSeparator.Name OrElse
@@ -157,7 +161,23 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                 Return FetchStyleBool(Style_QualifyEventAccess, value)
             End If
 
+            If optionKey.Option Is CompletionOptions.EnterKeyBehavior Then
+                Return FetchEnterKeyBehavior(optionKey, value)
+            End If
+
             Return MyBase.TryFetch(optionKey, value)
+        End Function
+
+        Private Function FetchEnterKeyBehavior(optionKey As OptionKey, ByRef value As Object) As Boolean
+            If MyBase.TryFetch(optionKey, value) Then
+                If value.Equals(EnterKeyRule.Default) Then
+                    value = EnterKeyRule.Always
+                End If
+
+                Return True
+            End If
+
+            Return False
         End Function
 
         Public Overrides Function TryPersist(optionKey As OptionKey, value As Object) As Boolean
