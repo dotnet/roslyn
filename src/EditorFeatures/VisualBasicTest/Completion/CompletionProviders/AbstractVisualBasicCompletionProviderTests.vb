@@ -40,7 +40,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
                 code As String, position As Integer,
                 expectedItemOrNull As String, expectedDescriptionOrNull As String,
                 sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean,
-                checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?) As Threading.Tasks.Task
+                checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?) As Task
             ' Script/interactive support removed for now.
             ' TODO: Re-enable these when interactive is back in the product.
             If sourceCodeKind <> Microsoft.CodeAnalysis.SourceCodeKind.Regular Then
@@ -58,7 +58,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             End If
         End Function
 
-        Protected Overrides Async Function VerifyCustomCommitProviderWorkerAsync(codeBeforeCommit As String, position As Integer, itemToCommit As String, expectedCodeAfterCommit As String, sourceCodeKind As SourceCodeKind, Optional commitChar As Char? = Nothing) As Threading.Tasks.Task
+        Protected Overrides Async Function VerifyCustomCommitProviderWorkerAsync(codeBeforeCommit As String, position As Integer, itemToCommit As String, expectedCodeAfterCommit As String, sourceCodeKind As SourceCodeKind, Optional commitChar As Char? = Nothing) As Task
             ' Script/interactive support removed for now.
             ' TODO: Re-enable these when interactive is back in the product.
             If sourceCodeKind <> Microsoft.CodeAnalysis.SourceCodeKind.Regular Then
@@ -92,7 +92,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
         End Function
 
         Protected Async Function VerifySendEnterThroughToEditorAsync(
-                initialMarkup As String, textTypedSoFar As String, expected As Boolean) As Threading.Tasks.Task
+                initialMarkup As String, textTypedSoFar As String, expected As Boolean) As Task
             Using workspace = Await TestWorkspace.CreateVisualBasicAsync(initialMarkup)
                 Dim hostDocument = workspace.DocumentWithCursor
                 Dim documentId = workspace.GetDocumentId(hostDocument)
@@ -107,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             End Using
         End Function
 
-        Protected Async Function TestCommonIsTextualTriggerCharacterAsync() As Threading.Tasks.Task
+        Protected Async Function TestCommonIsTextualTriggerCharacterAsync() As Task
             Dim alwaysTriggerList =
             {
                 "foo$$.",
