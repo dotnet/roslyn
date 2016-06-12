@@ -53,6 +53,9 @@ namespace Microsoft.CodeAnalysis.Completion
         public const string Error = nameof(Error);
         public const string Warning = nameof(Warning);
 
-        public const string ObjectCreation = nameof(ObjectCreation);
+        // Currently needed, but removed from Dev15.  Internal so no one accidently takes a 
+        // dependency on them.
+        internal const string ArgumentName = nameof(ArgumentName);
+        internal const string ObjectCreation = nameof(ObjectCreation);
     }
 }

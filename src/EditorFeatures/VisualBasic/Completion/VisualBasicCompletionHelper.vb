@@ -57,7 +57,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion
             If filterReason = CompletionFilterReason.BackspaceOrDelete Then
                 Dim prefixLength1 = GetPrefixLength(item1.FilterText, filterText)
                 Dim prefixLength2 = GetPrefixLength(item2.FilterText, filterText)
-                Return prefixLength1 > prefixLength2 OrElse ((item1.Rules.Preselect AndAlso Not item2.Rules.Preselect) AndAlso Not IsEnumMemberItem(item1))
+                Return prefixLength1 > prefixLength2 OrElse ((item1.Rules.MatchPriority > MatchPriority.Default AndAlso Not item2.Rules.MatchPriority > MatchPriority.Default) AndAlso Not IsEnumMemberItem(item1))
             End If
 
             If IsEnumMemberItem(item2) Then

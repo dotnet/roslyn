@@ -1849,7 +1849,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     convertedType = convertedLiteral.Type;
                     conversion = convertedType.Equals(type, ignoreDynamic: true) ?
                                         Conversion.Identity :
-                                        Conversion.ImplicitTuple;
+                                        Conversion.ImplicitTupleLiteral;
                 }
                 else if (highestBoundExpr != null && highestBoundExpr != boundExpr && highestBoundExpr.HasExpressionType())
                 {

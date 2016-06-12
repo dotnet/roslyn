@@ -18,9 +18,13 @@ Namespace Tests
             Return New XmlDocCommentCompletionProvider()
         End Function
 
-        Protected Overrides Async Function VerifyWorkerAsync(code As String, position As Integer, expectedItemOrNull As String, expectedDescriptionOrNull As String, sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean, checkForAbsence As Boolean, glyph As Integer?) As Task
-            Await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph)
-            Await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph)
+        Protected Overrides Async Function VerifyWorkerAsync(
+                code As String, position As Integer,
+                expectedItemOrNull As String, expectedDescriptionOrNull As String,
+                sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean,
+                checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?) As Task
+            Await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority)
+            Await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority)
         End Function
 
         Private Async Function VerifyItemsExistAsync(markup As String, ParamArray items() As String) As Task

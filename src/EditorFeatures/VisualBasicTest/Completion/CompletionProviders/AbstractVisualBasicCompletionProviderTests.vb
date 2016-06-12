@@ -25,25 +25,36 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Return New VisualBasicCompletionService(workspace, exclusiveProviders)
         End Function
 
-        Protected Overrides Function BaseVerifyWorkerAsync(code As String, position As Integer, expectedItemOrNull As String, expectedDescriptionOrNull As String, sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean, checkForAbsence As Boolean, glyph As Integer?) As Task
-            Return MyBase.VerifyWorkerAsync(code, position, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence, glyph:=glyph)
+        Protected Overrides Function BaseVerifyWorkerAsync(
+                code As String, position As Integer,
+                expectedItemOrNull As String, expectedDescriptionOrNull As String,
+                sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean,
+                checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?) As Task
+            Return MyBase.VerifyWorkerAsync(
+                code, position, expectedItemOrNull, expectedDescriptionOrNull,
+                sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence,
+                glyph, matchPriority)
         End Function
 
-        Protected Overrides Async Function VerifyWorkerAsync(code As String, position As Integer, expectedItemOrNull As String, expectedDescriptionOrNull As String, sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean, checkForAbsence As Boolean, glyph As Integer?) As Threading.Tasks.Task
+        Protected Overrides Async Function VerifyWorkerAsync(
+                code As String, position As Integer,
+                expectedItemOrNull As String, expectedDescriptionOrNull As String,
+                sourceCodeKind As SourceCodeKind, usePreviousCharAsTrigger As Boolean,
+                checkForAbsence As Boolean, glyph As Integer?, matchPriority As Integer?) As Threading.Tasks.Task
             ' Script/interactive support removed for now.
             ' TODO: Re-enable these when interactive is back in the product.
             If sourceCodeKind <> Microsoft.CodeAnalysis.SourceCodeKind.Regular Then
                 Return
             End If
 
-            Await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph)
-            Await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph)
+            Await VerifyAtPositionAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority)
+            Await VerifyAtEndOfFileAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority)
 
             ' Items cannot be partially written if we're checking for their absence,
             ' or if we're verifying that the list will show up (without specifying an actual item)
             If Not checkForAbsence AndAlso expectedItemOrNull <> Nothing Then
-                Await VerifyAtPosition_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph)
-                Await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph)
+                Await VerifyAtPosition_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority)
+                Await VerifyAtEndOfFile_ItemPartiallyWrittenAsync(code, position, usePreviousCharAsTrigger, expectedItemOrNull, expectedDescriptionOrNull, sourceCodeKind, checkForAbsence, glyph, matchPriority)
             End If
         End Function
 
