@@ -109,7 +109,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     span: context.DefaultItemSpan,
                     symbol: alias ?? type,
                     descriptionPosition: position,
-                    preselect: true,
+                    matchPriority: MatchPriority.Preselect,
                     rules: s_rules);
 
                 context.AddItem(item);
