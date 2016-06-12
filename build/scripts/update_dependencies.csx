@@ -1,54 +1,28 @@
 #r "System.Net.Http.dll"
+#r "System.Xml.Linq"
 
 using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 
-var knownRepos = new[] { "coreclr", "corefx", "projectk-tfs", "symreader" };
+bool lkg = Args.Remove("/lkg");
+bool help = Args.Remove("/help") || Args.Remove("/?");
 
-if (Args.Count < 1)
+if (help || Args.Count > 0)
 {
-    Console.Error.WriteLine("Usage: fxupdate <Roslyn branch> [/c:<repo>=<commit-sha1>]");
-    Console.Error.WriteLine($"Where <repo> is name of a repo: {string.Join(", ", knownRepos)}");
-    return 1;
-}
-
-string roslynBranch = Args[0];
-
-var commits = 
-    Args.Skip(1).Where(a => a.StartsWith("/c:")).Select(a => a.Substring("/c:".Length)).
-    ToDictionary(k => k.Split('=')[0].Trim(), k => k.Split('=')[1].Trim(), StringComparer.OrdinalIgnoreCase);
-
-string unknownRepo = commits.Keys.FirstOrDefault(k => !knownRepos.Contains(k));
-if (unknownRepo != null)
-{
-    Console.Error.WriteLine($"Unknown repo: {unknownRepo}");
+    Console.Error.WriteLine("Usage: fxupdate [/help] [/lkg]");
+    Console.Error.WriteLine();
+    Console.Error.WriteLine($"/lkg ... if specified the script uses the package versions specified in LKG_Packages.txt files in dotnet/versions repo");
     return 1;
 }
 
 string GetScriptPath([CallerFilePath]string path = null) => path;
 string roslynRoot = Path.GetFullPath(Path.Combine(GetScriptPath(), "..", "..", ".."));
 
-string coreFxChannel, coreClrChannel, symReaderChannel, projectkChannel;
-
-switch (roslynBranch)
-{
-    case "master":
-    case "future-stabilization":
-        coreFxChannel = coreClrChannel = projectkChannel = symReaderChannel = "master";
-        break;
-
-    case "stabilization":
-        coreFxChannel = coreClrChannel = projectkChannel = "release/1.0.0";
-        symReaderChannel = "netcore1.0";
-        break;
-
-    default:
-        Console.Error.WriteLine($"Error: Unexpected branch name: '{roslynBranch}'.");
-        return 2;
-}
-
-// fetch latest CoreCLR and CoreFX package versions:
+string specPath = Path.Combine(roslynRoot, "dependencies.xml");
+var spec = XDocument.Load(specPath);
+var repos = spec.Element("dependencies").Elements("repo");
 var client = new HttpClient();
 
 IEnumerable<KeyValuePair<string, string>> ParsePackageVersions(string content) =>
@@ -79,8 +53,7 @@ string GetCommonVersionSuffix(IEnumerable<KeyValuePair<string, string>> packages
 async Task<string> DownloadPackageList(string repo, string channel)
 {
     string versionsUrl = "https://raw.githubusercontent.com/dotnet/versions";
-    string commit = commits.ContainsKey(repo) ? "blob/" + commits[repo] : "master";
-    string url = $"{versionsUrl}/{commit}/build-info/dotnet/{repo}/{channel}/Latest_Packages.txt";
+    string url = $"{versionsUrl}/master/build-info/dotnet/{repo}/{channel}/{(lkg ? "LKG" : "Latest")}_Packages.txt";
 
     try
     {
@@ -96,25 +69,30 @@ async Task<string> DownloadPackageList(string repo, string channel)
     }
 }
 
-Write("Downloading list of CoreFX packages...");
-var coreFXPackages = ParsePackageVersions(await DownloadPackageList("corefx", coreFxChannel));
-var coreFXVersionSuffix = GetCommonVersionSuffix(coreFXPackages);
-WriteLine($"Done. Version suffix: {coreFXVersionSuffix}");
+var allPackages = new List<KeyValuePair<string, string>>();
+var suffixes = new List<KeyValuePair<string, string>>();
 
-Write("Downloading list of ProjectK packages ...");
-var projectkPackages = ParsePackageVersions(await DownloadPackageList("projectk-tfs", projectkChannel));
-WriteLine("Done.");
+foreach (var repo in repos)
+{
+    string name = repo.Attribute("name").Value;
+    string channel = repo.Attribute("channel").Value;
+    string commonVersionSuffix = repo.Attribute("commonVersionSuffix")?.Value;
 
-Write("Downloading list of CoreCLR packages ...");
-var coreClrPackages = ParsePackageVersions(await DownloadPackageList("coreclr", coreClrChannel));
-var coreClrVersionSuffix = GetCommonVersionSuffix(coreClrPackages);
-WriteLine($"Done. Version suffix: {coreClrVersionSuffix}");
+    WriteLine($"Downloading list of '{name}' packages...");
+    var packages = ParsePackageVersions(await DownloadPackageList(name, channel)).ToArray();
 
-Write("Downloading list of SymReader packages ...");
-var symReaderPackages = ParsePackageVersions(await DownloadPackageList("symreader", symReaderChannel));
-WriteLine("Done.");
+    WriteLine($"  Found {packages.Length} packages.");
 
-var packages = coreFXPackages.Concat(projectkPackages).Concat(coreClrPackages).Concat(symReaderPackages).ToArray();
+    if (commonVersionSuffix != null)
+    {
+        var suffix = GetCommonVersionSuffix(packages);
+        suffixes.Add(new KeyValuePair<string, string>(commonVersionSuffix, suffix));
+        WriteLine($"  Version suffix: '{suffix}'");
+    }
+
+    allPackages.AddRange(packages);
+    WriteLine("Done.");
+}
 
 WriteLine("Updating project.json files ...");
 
@@ -127,7 +105,7 @@ void UpdateProjectJsonFiles(string root)
         string originalText = File.ReadAllText(filePath);
         string text = originalText;
 
-        foreach (var package in packages)
+        foreach (var package in allPackages)
         {
             // only update pre-release versions
             text = Regex.Replace(
@@ -154,19 +132,26 @@ UpdateProjectJsonFiles(Path.Combine(roslynRoot, "build"));
 
 WriteLine("Done.");
 
-WriteLine("Updating VSL.Versions.targets ...");
-
 void UpdateTargetsFile(string path)
 {
+    Write("Updating VSL.Versions.targets ... ");
+
     string originalText = File.ReadAllText(path);
     string newText = originalText;
 
-    newText = UpdateVersionElement(newText, "CoreFXVersionSuffix", coreFXVersionSuffix);
-    newText = UpdateVersionElement(newText, "CoreClrVersionSuffix", coreClrVersionSuffix);
+    foreach (var suffix in suffixes)
+    {
+        newText = UpdateVersionElement(newText, suffix.Key, suffix.Value);
+    }
 
     if (originalText != newText)
     {
         File.WriteAllText(path, newText);
+        Console.WriteLine("UPDATED");
+    }
+    else
+    {
+        Console.WriteLine("OK");
     }
 }
 
@@ -178,7 +163,8 @@ string UpdateVersionElement(string text, string elementName, string newValue)
         $"<{elementName}>{newValue}</{elementName}>");
 }
 
-UpdateTargetsFile(Path.Combine(roslynRoot, "build", "Targets", "VSL.Versions.targets"));
-
-WriteLine("Done.");
+if (suffixes.Count > 0)
+{
+    UpdateTargetsFile(Path.Combine(roslynRoot, "build", "Targets", "VSL.Versions.targets"));
+}
 
