@@ -9,14 +9,13 @@
     <SystemCollectionsImmutableVersion>1.2.0-rc3-24102-00</SystemCollectionsImmutableVersion>
     <MicrosoftDiaSymReaderVersion>1.0.8-rc3-60429-03</MicrosoftDiaSymReaderVersion>
     <MicrosoftDiaSymReaderNativeVersion>1.4.0-rc2</MicrosoftDiaSymReaderNativeVersion>
-    <MicrosoftDiaSymReaderPortablePdbVersion>1.0.0</MicrosoftDiaSymReaderPortablePdbVersion>
     <MicrosoftCodeAnalysisElfieVersion>0.10.6-rc2</MicrosoftCodeAnalysisElfieVersion>
     <ManagedEsentVersion>1.9.2</ManagedEsentVersion>
     <CodeAnalysisAnalyzersVersion>1.1.0</CodeAnalysisAnalyzersVersion>
     <!-- Pre-release version of CoreFX dependencies (empty for release). Used e.g. in used in .nuspec files. -->
-    <CoreFXVersionSuffix>-rc3-24210-10</CoreFXVersionSuffix>
+    <CoreFXVersionSuffix>-rc3-24128-00</CoreFXVersionSuffix>
     <!-- Pre-release version of CoreCLR dependencies (empty for release). Used e.g. to find crossgen. -->
-    <CoreClrVersionSuffix>-rc3-24210-10</CoreClrVersionSuffix>
+    <CoreClrVersionSuffix>-rc3-24128-00</CoreClrVersionSuffix>
   </PropertyGroup>
   
   <Choose>
