@@ -7144,8 +7144,8 @@ class A
         var q = a?.$$AB.BA.AB.BA;
     }
 }";
-            await VerifyItemExistsAsync(markup, "AA", experimental: true);
-            await VerifyItemExistsAsync(markup, "AB", experimental: true);
+            await VerifyItemExistsAsync(markup, "AA");
+            await VerifyItemExistsAsync(markup, "AB");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -7167,8 +7167,8 @@ class A
         var q = a?.s?.$$;
     }
 }";
-            await VerifyItemExistsAsync(markup, "i", experimental: true);
-            await VerifyItemIsAbsentAsync(markup, "value", experimental: true);
+            await VerifyItemExistsAsync(markup, "i");
+            await VerifyItemIsAbsentAsync(markup, "value");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -7189,8 +7189,8 @@ class A
         var q = s?.$$i?.ToString();
     }
 }";
-            await VerifyItemExistsAsync(markup, "i", experimental: true);
-            await VerifyItemIsAbsentAsync(markup, "value", experimental: true);
+            await VerifyItemExistsAsync(markup, "i");
+            await VerifyItemIsAbsentAsync(markup, "value");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -7212,7 +7212,7 @@ class A
         var q = a?.s?[$$;
     }
 }";
-            await VerifyItemExistsAsync(markup, "System", experimental: true);
+            await VerifyItemExistsAsync(markup, "System");
         }
 
         [WorkItem(1109319, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1109319")]
@@ -7551,7 +7551,7 @@ class C
     }
 }
 ";
-            await VerifyItemExistsAsync(markup, "WriteLine", experimental: true);
+            await VerifyItemExistsAsync(markup, "WriteLine");
         }
 
         [WorkItem(1024380, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1024380")]
