@@ -131,7 +131,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             if (option == OrganizerOptions.PlaceSystemNamespaceFirst ||
                 option == AddImportOptions.SuggestForTypesInReferenceAssemblies ||
                 option == AddImportOptions.SuggestForTypesInNuGetPackages ||
-                option == CSharpCompletionOptions.IncludeSnippets ||
                 option.Feature == CodeStyleOptions.PerLanguageCodeStyleOption ||
                 option.Feature == CSharpCodeStyleOptions.FeatureName ||
                 option.Feature == CSharpFormattingOptions.WrappingFeatureName ||
