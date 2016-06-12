@@ -35,12 +35,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion
             MyBase.New(isCaseSensitive:=False)
         End Sub
 
-        Public Overrides ReadOnly Property QuestionTabInvokesSnippetCompletion As Boolean
-            Get
-                Return True
-            End Get
-        End Property
-
         Public Overrides Function MatchesFilterText(item As CompletionItem, filterText As String, trigger As CompletionTrigger, filterReason As CompletionFilterReason, Optional recentItems As ImmutableArray(Of String) = Nothing) As Boolean
             ' If this Is a session started on backspace, we use a much looser prefix match check
             ' to see if an item matches

@@ -208,6 +208,12 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetOption(CompletionOptions.EnterKeyBehavior, (EnterKeyRule)value); }
         }
 
+        public int SnippetsBehavior
+        {
+            get { return (int)GetOption(CompletionOptions.SnippetsBehavior); }
+            set { SetOption(CompletionOptions.SnippetsBehavior, (SnippetsRule)value); }
+        }
+
         public int NewLines_AnonymousTypeInitializer_EachMember
         {
             get { return GetBooleanOption(CSharpFormattingOptions.NewLineForMembersInAnonymousTypes); }
@@ -318,14 +324,14 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
         public int ShowKeywords
         {
-            get { return GetBooleanOption(CompletionOptions.IncludeKeywords); }
-            set { SetBooleanOption(CompletionOptions.IncludeKeywords, value); }
+            get { return 0; }
+            set { }
         }
 
         public int ShowSnippets
         {
-            get { return GetBooleanOption(CSharpCompletionOptions.IncludeSnippets); }
-            set { SetBooleanOption(CSharpCompletionOptions.IncludeSnippets, value); }
+            get { return this.SnippetsBehavior; }
+            set { this.SnippetsBehavior = value; }
         }
 
         public int SortUsings_PlaceSystemFirst

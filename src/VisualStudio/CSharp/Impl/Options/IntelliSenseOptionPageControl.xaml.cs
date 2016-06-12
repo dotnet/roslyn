@@ -16,28 +16,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 
             BindToOption(Show_completion_item_filters, CompletionOptions.ShowCompletionItemFilters, LanguageNames.CSharp);
             BindToOption(Highlight_matching_portions_of_completion_list_items, CompletionOptions.HighlightMatchingPortionsOfCompletionListItems, LanguageNames.CSharp);
-            BindToOption(ShowSnippets, CSharpCompletionOptions.IncludeSnippets);
-            BindToOption(ShowKeywords, CompletionOptions.IncludeKeywords, LanguageNames.CSharp);
             BindToOption(BringUpOnIdentifier, CompletionOptions.TriggerOnTypingLetters, LanguageNames.CSharp);
+
+            BindToOption(Never_include_snippets, CompletionOptions.SnippetsBehavior, SnippetsRule.NeverInclude, LanguageNames.CSharp);
+            BindToOption(Always_include_snippets, CompletionOptions.SnippetsBehavior, SnippetsRule.AlwaysInclude, LanguageNames.CSharp);
+            BindToOption(Include_snippets_when_question_Tab_is_typed_after_an_identifier, CompletionOptions.SnippetsBehavior, SnippetsRule.IncludeAfterTypingIdentifierQuestionTab, LanguageNames.CSharp);
 
             BindToOption(Never_add_new_line_on_enter, CompletionOptions.EnterKeyBehavior, EnterKeyRule.Never, LanguageNames.CSharp);
             BindToOption(Only_add_new_line_on_enter_with_whole_word, CompletionOptions.EnterKeyBehavior, EnterKeyRule.AfterFullyTypedWord, LanguageNames.CSharp);
             BindToOption(Always_add_new_line_on_enter, CompletionOptions.EnterKeyBehavior, EnterKeyRule.Always, LanguageNames.CSharp);
-        }
-
-        private void BringUpOnIdentifier_Checked(object sender, System.Windows.RoutedEventArgs e)
-        {
-            ShowKeywords.IsEnabled = false;
-            ShowSnippets.IsEnabled = false;
-
-            ShowKeywords.IsChecked = true;
-            ShowSnippets.IsChecked = true;
-        }
-
-        private void BringUpOnIdentifier_Unchecked(object sender, System.Windows.RoutedEventArgs e)
-        {
-            ShowKeywords.IsEnabled = true;
-            ShowSnippets.IsEnabled = true;
         }
     }
 }

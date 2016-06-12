@@ -5,16 +5,14 @@ using System.Collections.Immutable;
 using System.Composition;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Options.Providers;
+using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion
 {
     [ExportOptionProvider, Shared]
     internal class CSharpCompletionOptionsProvider : IOptionProvider
     {
-        private readonly IEnumerable<IOption> _options = new List<IOption>
-            {
-                CSharpCompletionOptions.IncludeSnippets,
-            }.ToImmutableArray();
+        private readonly IEnumerable<IOption> _options = SpecializedCollections.EmptyEnumerable<IOption>();
 
         public IEnumerable<IOption> GetOptions()
         {

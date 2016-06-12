@@ -55,11 +55,6 @@ namespace Microsoft.CodeAnalysis.Editor
         }
 
         /// <summary>
-        /// If true then a [TAB] after a question mark brings up completion.
-        /// </summary>
-        public virtual bool QuestionTabInvokesSnippetCompletion => false;
-
-        /// <summary>
         /// Returns true if the completion item matches the filter text typed so far.  Returns 'true'
         /// iff the completion item matches and should be included in the filtered completion
         /// results, or false if it should not be.
