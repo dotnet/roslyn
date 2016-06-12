@@ -73,20 +73,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 // The user is typing inside an XmlElement
                 if (token.Parent.Parent.Kind() == SyntaxKind.XmlElement)
                 {
-                    // Add corresponding tags except ParamRefTag and TypeParamRefTag
-                    items.AddRange(NestedTagNames.Where(name => name != ParamRefTagName && name != TypeParamRefTagName)
-                                                 .Select(name => GetItem(name, span)));
-
-                    if (declaredSymbol != null)
-                    {
-                        // Add a ParamRefTag for each available parameter
-                        var parameters = declaredSymbol.GetParameters();
-                        items.AddRange(parameters.Select(p => CreateCompletionItem(span, FormatParameter(ParamRefTagName, p.Name))));
-
-                        // Add a TypeParamRefTag for each available type parameter
-                        var typeParameters = declaredSymbol.GetTypeParameters();
-                        items.AddRange(typeParameters.Select(t => CreateCompletionItem(span, FormatParameter(TypeParamRefTagName, t.Name))));
-                    }
+                    items.AddRange(GetNestedTags(span, declaredSymbol));
                 }
 
                 if (token.Parent.Parent.Kind() == SyntaxKind.XmlElement && ((XmlElementSyntax)token.Parent.Parent).StartTag.Name.LocalName.ValueText == ListTagName)
