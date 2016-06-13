@@ -135,6 +135,7 @@ class C
         long x;
         string y;
         (x, y) = new C();
+        System.Console.WriteLine(x + "" "" + y);
     }
 
     public void Deconstruct(out int a, out string b)
@@ -145,11 +146,11 @@ class C
 
     public void Deconstruct(out int a)
     {
-        a = 1;
+        a = 2;
     }
 }";
 
-            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            var comp = CompileAndVerify(source, expectedOutput: "1 hello", parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics();
         }
 
@@ -1967,6 +1968,38 @@ static class D
 ";
 
             var comp = CompileAndVerify(source, expectedOutput: "1 hello", additionalRefs: new[] { SystemCoreRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics();
+        }
+
+        [Fact]
+        public void DeconstructGenericExtensionMethod()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        long x;
+        string y;
+
+        (x, y) = new C1<string>();
+    }
+}
+
+public class C1<T> { }
+
+static class Extension
+{
+    public static void Deconstruct<T>(this C1<T> value, out int a, out T b)
+    {
+        a = 2;
+        b = default(T);
+        System.Console.WriteLine(""Deconstructed"");
+    }
+}
+";
+
+            var comp = CompileAndVerify(source, expectedOutput: "Deconstructed", additionalRefs: new[] { SystemCoreRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
             comp.VerifyDiagnostics();
         }
 

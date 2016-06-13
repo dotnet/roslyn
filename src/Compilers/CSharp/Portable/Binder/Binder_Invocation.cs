@@ -330,6 +330,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private ImmutableArray<BoundExpression> BuildArgumentsForDynamicInvocation(AnalyzedArguments arguments, DiagnosticBag diagnostics)
         {
+            Debug.Assert(!arguments.Arguments.Any(a => a.Kind == BoundKind.OutDeconstructVarPendingInference));
+
             return arguments.Arguments.ToImmutable();
         }
 

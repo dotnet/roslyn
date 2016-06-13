@@ -2036,7 +2036,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     outVars.Add(variable);
                 }
 
-                string methodName = "Deconstruct";
+                const string methodName = "Deconstruct";
                 var memberAccess = BindInstanceMemberAccess(
                                         receiverSyntax, receiverSyntax, receiver, methodName, rightArity: 0,
                                         typeArgumentsSyntax: default(SeparatedSyntaxList<TypeSyntax>), typeArguments: default(ImmutableArray<TypeSymbol>),
@@ -2071,6 +2071,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
 
                 // Verify all the parameters (except "this" for extension methods) are out parameters
+                if (result.Kind != BoundKind.Call)
+                {
+                    return MissingDeconstruct(receiver, assignmentSyntax, numCheckedVariables, diagnostics, out outPlaceholders, result);
+                }
+
                 var deconstructMethod = ((BoundCall)result).Method;
                 var parameters = deconstructMethod.Parameters;
                 for (int i = (deconstructMethod.IsExtensionMethod ? 1 : 0); i < parameters.Length; i++)
@@ -2079,6 +2084,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     {
                         return MissingDeconstruct(receiver, assignmentSyntax, numCheckedVariables, diagnostics, out outPlaceholders, result);
                     }
+                }
+
+                if (outVars.Any(v => (object)v.Placeholder == null))
+                {
+                    return MissingDeconstruct(receiver, assignmentSyntax, numCheckedVariables, diagnostics, out outPlaceholders, result);
                 }
 
                 outPlaceholders = outVars.SelectAsArray(v => v.Placeholder);
