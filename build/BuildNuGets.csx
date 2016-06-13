@@ -207,7 +207,7 @@ void GeneratePublishingConfig()
     {
         // nuget:
         var packages = MakeRoslynPackageElements(isRelease: true).Concat(MakePackageElementsForPublishedDependencies(isRelease: true));
-        GeneratePublishingConfig("nuget_org-packages.config", packages);
+        GeneratePublishingConfig("myget_org-packages.config", packages);
     }
     else
     {
