@@ -2092,6 +2092,45 @@ class C1
         }
 
         [Fact]
+        public void DeconstructHasUseSiteError()
+        {
+            string libMissingSource = @"public class Missing { }";
+
+            string libSource = @"
+public class C
+{
+    public void Deconstruct(out Missing a, out Missing b) { a = new Missing(); b = new Missing(); }
+}
+";
+
+            string source = @"
+class C1
+{
+    static void Main()
+    {
+        object x, y;
+        (x, y) = new C();
+    }
+}
+";
+            var libMissingComp = CreateCompilationWithMscorlib(new string[] { libMissingSource }, assemblyName: "libMissingComp").VerifyDiagnostics();
+            var libMissingRef = libMissingComp.EmitToImageReference();
+
+            var libComp = CreateCompilationWithMscorlib(new string[] { libSource }, references: new[] { libMissingRef }, parseOptions: TestOptions.Regular.WithTuplesFeature()).VerifyDiagnostics();
+            var libRef = libComp.EmitToImageReference();
+
+            var comp = CreateCompilationWithMscorlib(new string[] { source }, references: new[] { libRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // (7,18): error CS0012: The type 'Missing' is defined in an assembly that is not referenced. You must add a reference to assembly 'libMissingComp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null'.
+                //         (x, y) = new C();
+                Diagnostic(ErrorCode.ERR_NoTypeDef, "new C()").WithArguments("Missing", "libMissingComp, Version=0.0.0.0, Culture=neutral, PublicKeyToken=null").WithLocation(7, 18),
+                // (7,18): error CS8206: No Deconstruct instance or extension method was found for type 'C', with 2 out parameters.
+                //         (x, y) = new C();
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C()").WithArguments("C", "2").WithLocation(7, 18)
+                );
+        }
+
+        [Fact]
         public void StaticDeconstruct()
         {
             string source = @"
