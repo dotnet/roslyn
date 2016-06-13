@@ -20,6 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         private readonly MethodSymbol _createPayload;
         private readonly ArrayBuilder<SourceSpan> _spansBuilder;
         private ImmutableArray<SourceSpan> _dynamicAnalysisSpans = ImmutableArray<SourceSpan>.Empty;
+        private readonly BoundStatement _methodEntryInstrumentation;
         private readonly ArrayTypeSymbol _payloadType;
         private readonly LocalSymbol _methodPayload;
         private readonly DiagnosticBag _diagnostics;
@@ -54,6 +55,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             _debugDocumentProvider = debugDocumentProvider;
             _methodHasExplicitBlock = MethodHasExplicitBlock(method);
             _factory = factory;
+
+            // The first point indicates entry into the method and has the span of the method definition.
+            _methodEntryInstrumentation = AddAnalysisPoint(MethodDeclarationIfAvailable(methodBody.Syntax), factory);
         }
 
         public override BoundStatement CreateBlockPrologue(BoundBlock original, out LocalSymbol synthesizedLocal)
@@ -85,7 +89,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(synthesizedLocal == null);
 
                 synthesizedLocal = _methodPayload;
-                return previousPrologue == null ?_factory.StatementList(payloadInitialization, payloadIf) : _factory.StatementList(payloadInitialization, payloadIf, previousPrologue);
+                return previousPrologue == null ?_factory.StatementList(payloadInitialization, payloadIf, _methodEntryInstrumentation) : _factory.StatementList(payloadInitialization, payloadIf, _methodEntryInstrumentation, previousPrologue);
             }
 
             synthesizedLocal = null;
@@ -224,9 +228,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private BoundStatement CollectDynamicAnalysis(BoundStatement original, BoundStatement rewritten)
         {
+            SyntheticBoundNodeFactory statementFactory = new SyntheticBoundNodeFactory(_method, original.Syntax, _factory.CompilationState, _diagnostics);
+            return statementFactory.Block(ImmutableArray.Create(AddAnalysisPoint(SyntaxForSpan(original), statementFactory), rewritten));
+        }
+
+        private BoundStatement AddAnalysisPoint(CSharpSyntaxNode syntaxForSpan, SyntheticBoundNodeFactory statementFactory)
+        {
             // Add an entry in the spans array.
 
-            CSharpSyntaxNode syntaxForSpan = SyntaxForSpan(original);
             Location location = syntaxForSpan.GetLocation();
             FileLinePositionSpan spanPosition = location.GetMappedLineSpan();
             string path = spanPosition.Path;
@@ -240,11 +249,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Generate "_payload[pointIndex] = true".
 
-            SyntheticBoundNodeFactory statementFactory = new SyntheticBoundNodeFactory(_method, original.Syntax, _factory.CompilationState, _diagnostics);
             BoundArrayAccess payloadCell = statementFactory.ArrayAccess(statementFactory.Local(_methodPayload), statementFactory.Literal(spansIndex));
-            BoundExpressionStatement cellAssignment = statementFactory.Assignment(payloadCell, statementFactory.Literal(true));
-
-            return statementFactory.Block(ImmutableArray.Create(cellAssignment, rewritten));
+            return statementFactory.Assignment(payloadCell, statementFactory.Literal(true));
         }
 
         private static CSharpSyntaxNode SyntaxForSpan(BoundStatement statement)
@@ -302,6 +308,24 @@ namespace Microsoft.CodeAnalysis.CSharp
         private static MethodSymbol GetCreatePayload(CSharpCompilation compilation, CSharpSyntaxNode syntax, DiagnosticBag diagnostics)
         {
             return (MethodSymbol)Binder.GetWellKnownTypeMember(compilation, WellKnownMember.Microsoft_CodeAnalysis_Runtime_Instrumentation__CreatePayload, diagnostics, syntax: syntax);
+        }
+
+        private static CSharpSyntaxNode MethodDeclarationIfAvailable(CSharpSyntaxNode body)
+        {
+            CSharpSyntaxNode parent = body.Parent;
+            if (parent != null)
+            {
+                switch (parent.Kind())
+                {
+                    case SyntaxKind.MethodDeclaration:
+                    case SyntaxKind.PropertyDeclaration:
+                    case SyntaxKind.GetAccessorDeclaration:
+                    case SyntaxKind.SetAccessorDeclaration:
+                        return parent;
+                }
+            }
+
+            return body;
         }
     }
 }
