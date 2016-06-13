@@ -2076,5 +2076,200 @@ public static class XThing
                 Assert.NotEmpty(typeInfo.Type.GetMembers("Replace"));
             }
         }
+
+        [Fact]
+        [WorkItem(11901, "https://github.com/dotnet/roslyn/issues/11901")]
+        public void TestLambdaWithError15()
+        {
+            // These tests ensure we attempt to perform type inference and bind a lambda expression
+            // argument even when there are too many or too few arguments to an invocation, in the
+            // case when there is exactly one method in the method group.
+            var source =
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Thing<string> t = null;
+        t.X1(x => x, 1); // too many args
+        t.X2(x => x);    // too few args
+        t.M2(string.Empty, x => x, 1); // too many args
+        t.M3(string.Empty, x => x); // too few args
+    }
+}
+public class Thing<T>
+{
+    public void M2<T>(T x, Func<T, T> func) {}
+    public void M3<T>(T x, Func<T, T> func, T y) {}
+}
+public static class XThing
+{
+    public static Thing<T> X1<T>(this Thing<T> self, Func<T, T> func) => null;
+    public static Thing<T> X2<T>(this Thing<T> self, Func<T, T> func, int i) => null;
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var tree = compilation.SyntaxTrees[0];
+            var sm = compilation.GetSemanticModel(tree);
+            foreach (var lambda in tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>())
+            {
+                var reference = lambda.Body.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>().First();
+                Assert.Equal("x", reference.ToString());
+                var typeInfo = sm.GetTypeInfo(reference);
+                Assert.Equal(TypeKind.Class, typeInfo.Type.TypeKind);
+                Assert.Equal("String", typeInfo.Type.Name);
+                Assert.NotEmpty(typeInfo.Type.GetMembers("Replace"));
+            }
+        }
+
+        [Fact]
+        [WorkItem(11901, "https://github.com/dotnet/roslyn/issues/11901")]
+        public void TestLambdaWithError16()
+        {
+            // These tests ensure we use the substituted method to bind a lambda expression
+            // argument even when there are too many or too few arguments to an invocation, in the
+            // case when there is exactly one method in the method group.
+            var source =
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Thing<string> t = null;
+        t.X1<string>(x => x, 1); // too many args
+        t.X2<string>(x => x);    // too few args
+        t.M2<string>(string.Empty, x => x, 1); // too many args
+        t.M3<string>(string.Empty, x => x); // too few args
+    }
+}
+public class Thing<T>
+{
+    public void M2<T>(T x, Func<T, T> func) {}
+    public void M3<T>(T x, Func<T, T> func, T y) {}
+}
+public static class XThing
+{
+    public static Thing<T> X1<T>(this Thing<T> self, Func<T, T> func) => null;
+    public static Thing<T> X2<T>(this Thing<T> self, Func<T, T> func, int i) => null;
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var tree = compilation.SyntaxTrees[0];
+            var sm = compilation.GetSemanticModel(tree);
+            foreach (var lambda in tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>())
+            {
+                var reference = lambda.Body.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>().First();
+                Assert.Equal("x", reference.ToString());
+                var typeInfo = sm.GetTypeInfo(reference);
+                Assert.Equal(TypeKind.Class, typeInfo.Type.TypeKind);
+                Assert.Equal("String", typeInfo.Type.Name);
+                Assert.NotEmpty(typeInfo.Type.GetMembers("Replace"));
+            }
+        }
+
+        [Fact]
+        [WorkItem(12063, "https://github.com/dotnet/roslyn/issues/12063")]
+        public void TestLambdaWithError17()
+        {
+            var source =
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Ma(action: (x, y) => x.ToString(), t: string.Empty);
+        Mb(action: (x, y) => x.ToString(), t: string.Empty);
+    }
+    static void Ma<T>(T t, Action<T, T, int> action) { }
+    static void Mb<T>(T t, Action<T, T, int> action) { }
+    static void Mb() { }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var tree = compilation.SyntaxTrees[0];
+            var sm = compilation.GetSemanticModel(tree);
+            foreach (var lambda in tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>())
+            {
+                var reference = lambda.Body.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>().First();
+                Assert.Equal("x", reference.ToString());
+                var typeInfo = sm.GetTypeInfo(reference);
+                Assert.Equal(TypeKind.Class, typeInfo.Type.TypeKind);
+                Assert.Equal("String", typeInfo.Type.Name);
+                Assert.NotEmpty(typeInfo.Type.GetMembers("Replace"));
+            }
+        }
+
+        [Fact]
+        [WorkItem(12063, "https://github.com/dotnet/roslyn/issues/12063")]
+        public void TestLambdaWithError18()
+        {
+            var source =
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Ma(string.Empty, (x, y) => x.ToString());
+        Mb(string.Empty, (x, y) => x.ToString());
+    }
+    static void Ma<T>(T t, Action<T, T, int> action) { }
+    static void Mb<T>(T t, Action<T, T, int> action) { }
+    static void Mb() { }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var tree = compilation.SyntaxTrees[0];
+            var sm = compilation.GetSemanticModel(tree);
+            foreach (var lambda in tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>())
+            {
+                var reference = lambda.Body.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>().First();
+                Assert.Equal("x", reference.ToString());
+                var typeInfo = sm.GetTypeInfo(reference);
+                Assert.Equal(TypeKind.Class, typeInfo.Type.TypeKind);
+                Assert.Equal("String", typeInfo.Type.Name);
+                Assert.NotEmpty(typeInfo.Type.GetMembers("Replace"));
+            }
+        }
+
+        [Fact]
+        [WorkItem(12063, "https://github.com/dotnet/roslyn/issues/12063")]
+        public void TestLambdaWithError19()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Ma(string.Empty, (x, y) => x.ToString());
+        Mb(string.Empty, (x, y) => x.ToString());
+        Mc(string.Empty, (x, y) => x.ToString());
+    }
+    static void Ma<T>(T t, Expression<Action<T, T, int>> action) { }
+    static void Mb<T>(T t, Expression<Action<T, T, int>> action) { }
+    static void Mb<T>(T t, Action<T, T, int> action) { }
+    static void Mc<T>(T t, Expression<Action<T, T, int>> action) { }
+    static void Mc() { }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var tree = compilation.SyntaxTrees[0];
+            var sm = compilation.GetSemanticModel(tree);
+            foreach (var lambda in tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>())
+            {
+                var reference = lambda.Body.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>().First();
+                Assert.Equal("x", reference.ToString());
+                var typeInfo = sm.GetTypeInfo(reference);
+                Assert.Equal(TypeKind.Class, typeInfo.Type.TypeKind);
+                Assert.Equal("String", typeInfo.Type.Name);
+                Assert.NotEmpty(typeInfo.Type.GetMembers("Replace"));
+            }
+        }
     }
 }
