@@ -72,13 +72,10 @@
     </BuildNumberPart2>
 
     <!-- Only set when building RTM with no dependencies on pre-release packages
-    -->
     <NuGetReleaseVersion>$(RoslynSemanticVersion)</NuGetReleaseVersion>
-    <NuGetPerBuildPreReleaseVersion>$(RoslynSemanticVersion)</NuGetPerBuildPreReleaseVersion>
-<!--
+    -->
     <NuGetPreReleaseVersion>$(RoslynSemanticVersion)-beta1</NuGetPreReleaseVersion>
     <NuGetPerBuildPreReleaseVersion Condition="'$(BuildNumberSuffix)' != ''">$(NuGetPreReleaseVersion)-$(BuildNumberPart1.Trim())-$(BuildNumberPart2.Trim())</NuGetPerBuildPreReleaseVersion>
--->
   </PropertyGroup>
   
 </Project>
