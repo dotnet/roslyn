@@ -89,7 +89,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 Debug.Assert(synthesizedLocal == null);
 
                 synthesizedLocal = _methodPayload;
-                return previousPrologue == null ?_factory.StatementList(payloadInitialization, payloadIf, _methodEntryInstrumentation) : _factory.StatementList(payloadInitialization, payloadIf, _methodEntryInstrumentation, previousPrologue);
+
+                return previousPrologue == null
+                     ? _factory.StatementList(payloadInitialization, payloadIf, _methodEntryInstrumentation)
+                     : _factory.StatementList(payloadInitialization, payloadIf, _methodEntryInstrumentation, previousPrologue);
             }
 
             synthesizedLocal = null;
