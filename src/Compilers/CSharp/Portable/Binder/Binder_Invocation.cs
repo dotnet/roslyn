@@ -1075,11 +1075,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methods = constructedMethods.ToImmutableAndFree();
             }
 
-            if (methods.Length == 1 && !extensionMethodsOfSameViabilityAreAvailable)
+            if (methods.Length == 1 && methods[0].Arity == 0 && !extensionMethodsOfSameViabilityAreAvailable)
             {
-                // If there is only one method in the group and no additional extension methods with the same lookup viability,
-                // we should attempt to bind to it.  That includes binding any lambdas in the argument list against
-                // the method's parameter types.
+                // If there is only one non-generic method in the group and no additional extension methods with the same lookup viability,
+                // we should attempt to bind the argument list (particularly, lambdas appearing therein) to its parameter types.
                 method = methods[0];
                 args = BuildArgumentsForErrorRecovery(analyzedArguments, method.Parameters);
             }
@@ -1089,7 +1088,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var methodContainer = (object)receiver != null && (object)receiver.Type != null
                     ? receiver.Type
                     : this.ContainingType;
-                method = new ErrorMethodSymbol(methodContainer, returnType, name);
+                method = methods.Length == 1 ? methods[0] : new ErrorMethodSymbol(methodContainer, returnType, name);
                 args = BuildArgumentsForErrorRecovery(analyzedArguments);
             }
 

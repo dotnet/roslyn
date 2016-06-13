@@ -1824,7 +1824,7 @@ End Module</Document>)
         End Function
 
         <WorkItem(546208, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546208")>
-        <WpfFact, Trait(Traits.Feature, Traits.Features.Completion)>
+        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/11980"), Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function SelectKeywordFirst() As Task
             Using state = TestState.CreateVisualBasicTestState(
                               <Document>

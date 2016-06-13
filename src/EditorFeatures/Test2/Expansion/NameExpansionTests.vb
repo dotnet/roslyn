@@ -185,7 +185,7 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/11979"), Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Async Function TestCSharp_LambdaParameter_DontExpandAnonymousTypes1() As Task
             Dim input =
 <Workspace>
@@ -222,7 +222,7 @@ class C
             Await TestAsync(input, expected, expandParameter:=True)
         End Function
 
-        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/11979"), Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Async Function TestCSharp_LambdaParameter_DontExpandAnonymousTypes2() As Task
             Dim input =
 <Workspace>
