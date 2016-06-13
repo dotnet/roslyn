@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
@@ -11,17 +10,16 @@ using Roslyn.Utilities;
 namespace Microsoft.CodeAnalysis.CSharp
 {
     /// <summary>
-    /// This portion of the binder converts StatementSyntax nodes into BoundStatements
+    /// This portion of the binder converts deconstruction-assignment syntax (AssignmentExpressionSyntax nodes with the left being a tuple expression)
+    /// into a BoundDeconstructionAssignmentOperator (or bad node).
     /// </summary>
     internal partial class Binder
     {
-
         /// <summary>
         /// There are two kinds of deconstruction-assignments which this binding handles: tuple and non-tuple.
         ///
-        /// Returns a BoundDeconstructionAssignmentOperator
-        ///     - with all the fields populated except deconstructMember, for the tuple case
-        ///     - with all the fields populated, for a non-tuple case
+        /// Returns a BoundDeconstructionAssignmentOperator with a list of deconstruction steps and assignment steps.
+        /// Deconstruct steps for tuples have no invocation to Deconstruct, but steps for non-tuples do.
         /// </summary>
         private BoundExpression BindDeconstructionAssignment(AssignmentExpressionSyntax node, DiagnosticBag diagnostics)
         {
