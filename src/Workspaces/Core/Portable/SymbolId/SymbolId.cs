@@ -467,7 +467,7 @@ namespace Microsoft.CodeAnalysis
             {
                 if (symbol.IsGenericType)
                 {
-                    if (symbol.OriginalDefinition == symbol)
+                    if (Equals(symbol.OriginalDefinition, symbol))
                     {
                         _builder.Append("`");
                         _builder.Append(symbol.TypeParameters.Length);
@@ -563,7 +563,7 @@ namespace Microsoft.CodeAnalysis
 
                 for (var scope = _typeParameterContext; scope != null; scope = scope.ContainingSymbol)
                 {
-                    if (scope == typeParameterDeclarer)
+                    if (Equals(scope, typeParameterDeclarer))
                     {
                         return true;
                     }
