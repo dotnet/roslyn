@@ -1,6 +1,5 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
@@ -21,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 
 #Region "StandaloneNamespaceAndTypeSourceTests"
 
-        Private Async Function VerifyNSATIsAbsentAsync(markup As String) As Threading.Tasks.Task
+        Private Async Function VerifyNSATIsAbsentAsync(markup As String) As Task
             ' Verify namespace 'System' is absent
             Await VerifyItemIsAbsentAsync(markup, "System")
 
@@ -29,7 +28,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
             Await VerifyItemIsAbsentAsync(markup, "String")
         End Function
 
-        Private Async Function VerifyNSATExistsAsync(markup As String) As Threading.Tasks.Task
+        Private Async Function VerifyNSATExistsAsync(markup As String) As Task
             ' Verify namespace 'System' is absent
             Await VerifyItemExistsAsync(markup, "System")
 
@@ -694,7 +693,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Completion.Complet
 #Region "SymbolCompletionProviderTests"
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function IsCommitCharacterTest() As Threading.Tasks.Task
+        Public Async Function IsCommitCharacterTest() As Task
             Const code = "
 Imports System
 Class C
@@ -707,12 +706,12 @@ End Class"
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function IsTextualTriggerCharacterTest() As Threading.Tasks.Task
+        Public Async Function IsTextualTriggerCharacterTest() As Task
             Await TestCommonIsTextualTriggerCharacterAsync()
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function SendEnterThroughToEditorTest() As Threading.Tasks.Task
+        Public Async Function SendEnterThroughToEditorTest() As Task
             Const code = "
 Imports System
 Class C
@@ -1328,7 +1327,7 @@ Class C
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function LabelAfterGoto3() As Threading.Tasks.Task
+        Public Async Function LabelAfterGoto3() As Task
             Dim test = <Text>
 Class C
     Sub M()
@@ -1343,7 +1342,11 @@ Class C
             ' We don't trigger intellisense within numeric literals, so we 
             ' explicitly test only the "nothing typed" case.
             ' This is also the Dev12 behavior for suggesting labels.
-            Await VerifyAtPositionAsync(text, position, "10", Nothing, SourceCodeKind.Regular, usePreviousCharAsTrigger:=True, checkForAbsence:=False, glyph:=Nothing, experimental:=False)
+            Await VerifyAtPositionAsync(
+                text, position, usePreviousCharAsTrigger:=True,
+                expectedItemOrNull:="10", expectedDescriptionOrNull:=Nothing,
+                sourceCodeKind:=SourceCodeKind.Regular, checkForAbsence:=False,
+                glyph:=Nothing, matchPriority:=Nothing)
         End Function
 
         <WorkItem(541235, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/541235")>
@@ -2592,7 +2595,7 @@ End Class
 
         <WorkItem(645898, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/645898")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function EscapedKeywordAttributeCommit() As Threading.Tasks.Task
+        Public Async Function EscapedKeywordAttributeCommit() As Task
             Dim markup = <Text>
 Imports System
 Class classattribute : Inherits Attribute
@@ -5218,7 +5221,7 @@ Class C
 
         <WorkItem(546802, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546802")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function Inherits_KeywordIdentifiersCommitEscaped() As Threading.Tasks.Task
+        Public Async Function Inherits_KeywordIdentifiersCommitEscaped() As Task
             Const markup = "
 Public Class [Inherits]
 End Class
@@ -5377,7 +5380,7 @@ Interface IFoo
 
         <WorkItem(547291, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/547291")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function Inherits_CommitGenericOnParen() As Threading.Tasks.Task
+        Public Async Function Inherits_CommitGenericOnParen() As Task
             Const markup = "
 Class G(Of T)
 End Class
@@ -5419,7 +5422,7 @@ End Class
 
         <WorkItem(622563, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/622563")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function Inherits_CommitNonGenericOnParen() As Threading.Tasks.Task
+        Public Async Function Inherits_CommitNonGenericOnParen() As Task
             Const markup = "
 Class G
 End Class
@@ -5620,7 +5623,7 @@ Class C
         <WorkItem(909121, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/909121")>
         <WorkItem(2048, "https://github.com/dotnet/roslyn/issues/2048")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CommitGenericOnParen() As Threading.Tasks.Task
+        Public Async Function CommitGenericOnParen() As Task
             Dim text =
 <code>
 Class G(Of T)
@@ -5746,7 +5749,7 @@ End Module
 
         <WorkItem(925469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/925469")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CommitWithCloseBracketLeaveOpeningBracket1() As Threading.Tasks.Task
+        Public Async Function CommitWithCloseBracketLeaveOpeningBracket1() As Task
             Dim text =
 <code><![CDATA[
 Class Await
@@ -5768,7 +5771,7 @@ End Class]]></code>.Value
 
         <WorkItem(925469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/925469")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function CommitWithCloseBracketLeavesOpeningBracket2() As Threading.Tasks.Task
+        Public Async Function CommitWithCloseBracketLeavesOpeningBracket2() As Task
             Dim text =
 <code><![CDATA[
 Class [Class]
@@ -5799,7 +5802,7 @@ Class [Class]
     End Sub
 End Class]]></code>.Value
 
-            Await VerifyItemExistsAsync(text, "ToString", experimental:=True)
+            Await VerifyItemExistsAsync(text, "ToString")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -5813,7 +5816,7 @@ Class [Class]
     End Sub
 End Class]]></code>.Value
 
-            Await VerifyItemExistsAsync(text, "ToString", experimental:=True)
+            Await VerifyItemExistsAsync(text, "ToString")
         End Function
 
         <WorkItem(1041269, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1041269")>
@@ -6719,7 +6722,7 @@ End Class]]>
 
         <WorkItem(4405, "https://github.com/dotnet/roslyn/issues/4405")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
-        Public Async Function VerifyDelegateEscapedWhenCommitted() As Threading.Tasks.Task
+        Public Async Function VerifyDelegateEscapedWhenCommitted() As Task
             Dim text =
 <code><![CDATA[
 Imports System

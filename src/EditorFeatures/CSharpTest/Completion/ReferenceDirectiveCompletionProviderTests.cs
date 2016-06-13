@@ -29,16 +29,16 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.IntelliSense.Completion
             return actualItem.Equals(expectedItem, StringComparison.OrdinalIgnoreCase);
         }
 
-        protected override Task VerifyWorkerAsync(string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull, SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence, bool experimental, int? glyph)
+        protected override Task VerifyWorkerAsync(
+            string code, int position, string expectedItemOrNull, string expectedDescriptionOrNull,
+            SourceCodeKind sourceCodeKind, bool usePreviousCharAsTrigger, bool checkForAbsence,
+            int? glyph, int? matchPriority)
         {
-            return BaseVerifyWorkerAsync(code,
-                position,
-                expectedItemOrNull,
-                expectedDescriptionOrNull,
-                sourceCodeKind,
-                usePreviousCharAsTrigger,
-                checkForAbsence,
-                glyph);
+            return BaseVerifyWorkerAsync(
+                code, position,
+                expectedItemOrNull, expectedDescriptionOrNull,
+                sourceCodeKind, usePreviousCharAsTrigger, checkForAbsence,
+                glyph, matchPriority);
         }
 
         private async Task VerifyItemsExistInScriptAndInteractiveAsync(string code, params string[] expected)
