@@ -97,6 +97,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private Dependency[,] _dependencies; // Initialized lazily
         private bool _dependenciesDirty;
 
+        /// <summary>
+        /// For error recovery, we allow a mismatch between the number of arguments and parameters
+        /// during type inference. This sometimes enables inferring the type for a lambda parameter.
+        /// </summary>
+        private int NumberArgumentsToProcess => System.Math.Min(_arguments.Length, _formalParameterTypes.Length);
+
         public static MethodTypeInferenceResult Infer(
             Binder binder,
             ImmutableArray<TypeParameterSymbol> methodTypeParameters,
@@ -524,14 +530,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!_formalParameterTypes.IsDefault);
             Debug.Assert(!_arguments.IsDefault);
-            Debug.Assert(_arguments.Length == _formalParameterTypes.Length);
 
             // We expect that we have been handed a list of arguments and a list of the 
             // formal parameter types they correspond to; all the details about named and 
             // optional parameters have already been dealt with.
 
             // SPEC: For each of the method arguments Ei:
-            for (int arg = 0; arg < _arguments.Length; arg++)
+            for (int arg = 0, length = this.NumberArgumentsToProcess; arg < length; arg++)
             {
                 var argument = _arguments[arg];
 
@@ -783,7 +788,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: where the output types contain unfixed type parameters but the input
             // SPEC: types do not, an output type inference is made from Ei to Ti.
 
-            for (int arg = 0; arg < _arguments.Length; arg++)
+            for (int arg = 0, length = this.NumberArgumentsToProcess; arg < length; arg++)
             {
                 var formalType = _formalParameterTypes[arg];
                 var argument = _arguments[arg];
@@ -1043,7 +1048,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(IsUnfixed(iParam));
             Debug.Assert(IsUnfixed(jParam));
 
-            for (int iArg = 0; iArg < _arguments.Length; iArg++)
+            for (int iArg = 0, length = this.NumberArgumentsToProcess; iArg < length; iArg++)
             {
                 var formalParameterType = _formalParameterTypes[iArg];
                 var argument = _arguments[iArg];
