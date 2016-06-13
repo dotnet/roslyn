@@ -2062,6 +2062,36 @@ class C
         }
 
         [Fact]
+        public void DeconstructMethodInaccessible()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        int x;
+        string y;
+
+        (x, y) = new C1();
+    }
+}
+class C1
+{
+    protected void Deconstruct(out int a, out string b) { a = 1; b = ""hello""; }
+}
+";
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // (9,18): error CS0122: 'C1.Deconstruct(out int, out string)' is inaccessible due to its protection level
+                //         (x, y) = new C1();
+                Diagnostic(ErrorCode.ERR_BadAccess, "new C1()").WithArguments("C1.Deconstruct(out int, out string)").WithLocation(9, 18),
+                // (9,18): error CS8206: No Deconstruct instance or extension method was found for type 'C1', with 2 out parameters.
+                //         (x, y) = new C1();
+                Diagnostic(ErrorCode.ERR_MissingDeconstruct, "new C1()").WithArguments("C1", "2").WithLocation(9, 18)
+                );
+        }
+
+        [Fact]
         public void StaticDeconstruct()
         {
             string source = @"
