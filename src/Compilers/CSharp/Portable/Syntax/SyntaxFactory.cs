@@ -2503,6 +2503,24 @@ namespace Microsoft.CodeAnalysis.CSharp
                 semicolonToken: semicolonToken);
         }
 
+        /// <summary>Creates a new VariableDeclarationSyntax instance.</summary>
+        public static VariableDeclarationSyntax VariableDeclaration(TypeSyntax type)
+        {
+            return SyntaxFactory.VariableDeclaration(type, default(SeparatedSyntaxList<VariableDeclaratorSyntax>));
+        }
+
+        /// <summary>Creates a new VariableDeclarationSyntax instance.</summary>
+        public static VariableDeclarationSyntax VariableDeclaration(TypeSyntax type, SeparatedSyntaxList<VariableDeclaratorSyntax> variables)
+        {
+            return SyntaxFactory.VariableDeclaration(SyntaxKind.VariableDeclaration, type, variables, default(VariableDeconstructionDeclarationSyntax));
+        }
+
+        /// <summary>Creates a new VariableDeclarationSyntax instance.</summary>
+        public static VariableDeclarationSyntax VariableDeclaration(VariableDeconstructionDeclarationSyntax deconstructionDeclaration)
+        {
+            return SyntaxFactory.VariableDeclaration(SyntaxKind.DeconstructionDeclaration, null, default(SeparatedSyntaxList<VariableDeclaratorSyntax>), deconstructionDeclaration);
+        }
+
         /// <summary>Creates a new UsingDirectiveSyntax instance.</summary>
         public static UsingDirectiveSyntax UsingDirective(NameEqualsSyntax alias, NameSyntax name)
         {
@@ -2512,6 +2530,28 @@ namespace Microsoft.CodeAnalysis.CSharp
                 alias: alias,
                 name: name,
                 semicolonToken: Token(SyntaxKind.SemicolonToken));
+        }
+    }
+}
+
+// PROTOTYPE(tuples) This should be moved to a separate file
+namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
+{
+    internal partial class ContextAwareSyntax
+    {
+        public VariableDeclarationSyntax VariableDeclaration(TypeSyntax type, SeparatedSyntaxList<VariableDeclaratorSyntax> variables)
+        {
+            return VariableDeclaration(SyntaxKind.VariableDeclaration, type, variables, null);
+        }
+
+        public VariableDeclarationSyntax VariableDeclaration(VariableDeconstructionDeclarationSyntax deconstructionDeclaration)
+        {
+            return VariableDeclaration(SyntaxKind.VariableDeclaration, null, default(SeparatedSyntaxList<VariableDeclaratorSyntax>), deconstructionDeclaration);
+        }
+
+        public ForEachStatementSyntax ForEachStatement(SyntaxToken forEachKeyword, SyntaxToken openParenToken, TypeSyntax type, SyntaxToken identifier, SyntaxToken inKeyword, ExpressionSyntax expression, SyntaxToken closeParenToken, StatementSyntax statement)
+        {
+            return ForEachStatement(SyntaxKind.ForEachStatement, forEachKeyword, openParenToken, type, identifier, null, inKeyword, expression, closeParenToken, statement);
         }
     }
 }

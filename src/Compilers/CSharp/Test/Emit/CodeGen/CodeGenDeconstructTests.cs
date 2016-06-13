@@ -2558,5 +2558,24 @@ class C
                 Diagnostic(ErrorCode.ERR_DeconstructWrongCardinality, "(x, (y, z, w)) = Pair.Create(42, (43, 44))").WithArguments("2", "3").WithLocation(8, 9)
                 );
         }
+
+        [Fact(Skip = "PROTOTYPE(tuples)")]
+        public void DeconstructionTooFewElements()
+        {
+            string source = @"
+class C
+{
+    static void Main()
+    {
+        for ((var (x, y)) = new C(); ;) { }
+    }
+}
+" + commonSource;
+
+            var comp = CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature());
+            comp.VerifyDiagnostics(
+                // expect ERR_DeconstructTooFewElements
+                );
+        }
     }
 }

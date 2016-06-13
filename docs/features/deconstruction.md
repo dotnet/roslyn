@@ -121,61 +121,63 @@ Note that tuples (`System.ValueTuple`) don't need to invoke Deconstruct.
 declaration_statement
     : local_variable_declaration ';'
     | local_constant_declaration ';'
-    | local_variable_combo_declaration ';'  // new
     ;
 
-local_variable_combo_declaration
-    : local_variable_combo_declaration_lhs '=' expression
+local_variable_declaration
+	: local_variable_type local_variable_declarators
+	| deconstruction_declaration // new
+	;
 
-local_variable_combo_declaration_lhs
-    : 'var' '(' identifier_list ')'
-    | '(' local_variable_list ')'
-    ;
+deconstruction_declaration // new
+	: deconstruction_variables '=' expression
+	;
 
-identifier_list
-    : identifier ',' identifier
-    | identifier_list ',' identifier
-    ;
+deconstuction_variables
+	: '(' deconstuction_variables_nested (',' deconstuction_variables_nested)* ')'
+	| 'var' deconstruction_identifiers
+	;
 
-local_variable_list
-    : local_variable_type identifier ',' local_variable_type identifier
-    | local_variable_list ',' local_variable_type identifier
-    ;
+deconstuction_variables_nested // new
+	: deconstuction_variables
+	| type identifier
+	;
+
+deconstruction_identifiers
+	: '(' deconstruction_identifiers_nested (',' deconstruction_identifiers_nested)* ')'
+	;
+
+deconstruction_identifiers_nested // new
+	: deconstruction_identifiers
+	| identifier
+	;
 
 foreach_statement
     : 'foreach' '(' local_variable_type identifier 'in' expression ')' embedded_statement
-    | 'foreach' '(' local_variable_combo_declaration_lhs 'in' expression ')' embedded_statement // new
+    | 'foreach' '(' deconstruction_variables 'in' expression ')' embedded_statement // new
+    ;
+
+for_statement
+    : 'for' '(' for_initializer? ';' for_condition? ';' for_iterator? ')' embedded_statement
     ;
 
 for_initializer
     : local_variable_declaration
-    | local_variable_combo_declaration // new
+    | deconstruction_declaration // new
     | statement_expression_list
     ;
 
 let_clause
     : 'let' identifier '=' expression
-    | 'let' '(' identifier_list ')' '=' expression // new
+    | 'let' deconstruction_identifiers '=' expression // new
     ;
 
-from_clause // not sure
+from_clause
     : 'from' type? identifier 'in' expression
-    ;
-
-join_clause // not sure
-    : 'join' type? identifier 'in' expression 'on' expression 'equals' expression
-    ;
-
-join_into_clause // not sure
-    : 'join' type? identifier 'in' expression 'on' expression 'equals' expression 'into' identifier
-    ;
-
-constant_declarator // not sure
-    : identifier '=' constant_expression
+	| 'from' deconstuction_variables 'in' expression // new
+	| 'from' deconstruction_identifiers 'in' expression // new
     ;
 ```
 
-Treat deconstruction of a tuple into new variables as a new kind of node (not AssignmentExpression).
 It would pick up the behavior of each contexts where new variables can be declared (TODO: need to list). For instance, in LINQ, new variables go into a transparent identifiers.
 It is seen as deconstructing into separate variables (we don't introduce transparent identifiers in contexts where they didn't exist previously).
 
