@@ -13,9 +13,9 @@
     <ManagedEsentVersion>1.9.2</ManagedEsentVersion>
     <CodeAnalysisAnalyzersVersion>1.1.0</CodeAnalysisAnalyzersVersion>
     <!-- Pre-release version of CoreFX dependencies (empty for release). Used e.g. in used in .nuspec files. -->
-    <CoreFXVersionSuffix>-rc3-24210-10</CoreFXVersionSuffix>
+    <CoreFXVersionSuffix></CoreFXVersionSuffix>
     <!-- Pre-release version of CoreCLR dependencies (empty for release). Used e.g. to find crossgen. -->
-    <CoreClrVersionSuffix>-rc3-24210-10</CoreClrVersionSuffix>
+    <CoreClrVersionSuffix></CoreClrVersionSuffix>
   </PropertyGroup>
   
   <Choose>
@@ -72,10 +72,12 @@
     </BuildNumberPart2>
 
     <!-- Only set when building RTM with no dependencies on pre-release packages
-    <NuGetReleaseVersion>$(RoslynSemanticVersion)</NuGetReleaseVersion>
     -->
+    <NuGetReleaseVersion>$(RoslynSemanticVersion)</NuGetReleaseVersion>
+<!--
     <NuGetPreReleaseVersion>$(RoslynSemanticVersion)-beta1</NuGetPreReleaseVersion>
     <NuGetPerBuildPreReleaseVersion Condition="'$(BuildNumberSuffix)' != ''">$(NuGetPreReleaseVersion)-$(BuildNumberPart1.Trim())-$(BuildNumberPart2.Trim())</NuGetPerBuildPreReleaseVersion>
+-->
   </PropertyGroup>
   
 </Project>
