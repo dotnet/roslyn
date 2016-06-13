@@ -1526,6 +1526,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override sealed BoundNode VisitOutDeconstructVarPendingInference(OutDeconstructVarPendingInference node)
+        {
+            // OutDeconstructVarPendingInference nodes are only used within initial binding, but don't survive past that stage
+            throw ExceptionUtilities.Unreachable;
+        }
+
         public override BoundNode VisitCompoundAssignmentOperator(BoundCompoundAssignmentOperator node)
         {
             // TODO: should events be handled specially too?
