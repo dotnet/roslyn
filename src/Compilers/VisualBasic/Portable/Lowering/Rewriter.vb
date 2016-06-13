@@ -34,6 +34,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim localDiagnostics = DiagnosticBag.GetInstance()
 
             Try
+                ' We don't want IL to differ based upon whether we write the PDB to a file/stream or not.
+                ' Presence of sequence points in the tree affects final IL, therefore, we always generate them.
                 Dim loweredBody = LocalRewriter.Rewrite(body,
                                                     method,
                                                     compilationState,
@@ -43,6 +45,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                     sawLambdas,
                                                     symbolsCapturedWithoutCopyCtor,
                                                     flags,
+                                                    DebugInfoInjector.Singleton,
                                                     currentMethod:=Nothing)
 
                 If loweredBody.HasErrors OrElse localDiagnostics.HasAnyErrors Then

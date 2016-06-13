@@ -795,8 +795,8 @@ nextm:
             Return boundNode
         End Function
 
-        Public Function HiddenSequencePoint() As BoundStatement
-            Return New BoundSequencePoint(Nothing, Nothing).MakeCompilerGenerated
+        Public Shared Function HiddenSequencePoint(Optional statementOpt As BoundStatement = Nothing) As BoundStatement
+            Return New BoundSequencePoint(Nothing, statementOpt).MakeCompilerGenerated
         End Function
 
         Public Function Null() As BoundExpression

@@ -160,7 +160,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             statements.Add(DirectCast(Visit(node.Body), BoundBlock))
 
             ' We reach this statement if there were no exceptions. 
-            statements.Add(nodeFactory.HiddenSequencePoint())
+            If Instrument Then
+                statements.Add(SyntheticBoundNodeFactory.HiddenSequencePoint())
+            End If
 
             If _unstructuredExceptionHandling.CurrentStatementTemporary IsNot Nothing Then
                 RegisterUnstructuredExceptionHandlingResumeTarget(node.Syntax, False, statements)
@@ -288,14 +290,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim clearProjectError As MethodSymbol = nodeFactory.WellKnownMember(Of MethodSymbol)(WellKnownMember.Microsoft_VisualBasic_CompilerServices_ProjectData__ClearProjectError)
 
             If clearProjectError IsNot Nothing Then
-                statements.Add(RewriteIfStatement(node.Syntax, node.Syntax,
+                statements.Add(RewriteIfStatement(node.Syntax,
                                                   nodeFactory.Binary(BinaryOperatorKind.NotEquals,
                                                                      bool,
                                                                      nodeFactory.Local(_unstructuredExceptionHandling.ResumeTargetTemporary, isLValue:=False),
                                                                      nodeFactory.Literal(0)),
                                                   New BoundCall(node.Syntax, clearProjectError, Nothing, Nothing, ImmutableArray(Of BoundExpression).Empty, Nothing, clearProjectError.ReturnType).ToStatement(),
                                                   Nothing,
-                                                  generateDebugInfo:=False))
+                                                  instrumentationTargetOpt:=Nothing))
             End If
 
             _unstructuredExceptionHandling.Context = Nothing
@@ -367,7 +369,13 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 Done:
 
             Debug.Assert(Not node.WasCompilerGenerated)
-            Return MarkStatementWithSequencePoint(New BoundStatementList(node.Syntax, statements.ToImmutableAndFree()))
+            Dim rewritten As BoundStatement = New BoundStatementList(node.Syntax, statements.ToImmutableAndFree())
+
+            If Instrument(node, rewritten) Then
+                rewritten = _instrumenter.InstrumentOnErrorStatement(node, rewritten)
+            End If
+
+            Return rewritten
         End Function
 
         Public Overrides Function VisitResumeStatement(node As BoundResumeStatement) As BoundNode
@@ -393,7 +401,7 @@ Done:
             If createProjectError IsNot Nothing Then
                 Const E_RESUMEWITHOUTERROR As Integer = &H800A0014 ' 20
 
-                statements.Add(RewriteIfStatement(node.Syntax, node.Syntax,
+                statements.Add(RewriteIfStatement(node.Syntax,
                                                   nodeFactory.Binary(BinaryOperatorKind.Equals,
                                                                      nodeFactory.SpecialType(SpecialType.System_Boolean),
                                                                      nodeFactory.Local(_unstructuredExceptionHandling.ResumeTargetTemporary, isLValue:=False),
@@ -402,7 +410,7 @@ Done:
                                                                                   ImmutableArray.Create(Of BoundExpression)(nodeFactory.Literal(E_RESUMEWITHOUTERROR)),
                                                                                   Nothing, createProjectError.ReturnType)),
                                                   Nothing,
-                                                  generateDebugInfo:=False))
+                                                  instrumentationTargetOpt:=Nothing))
             End If
 
             ' Now generate code based on what kind of Resume we have
@@ -427,7 +435,13 @@ Done:
             End Select
 
             Debug.Assert(Not node.WasCompilerGenerated)
-            Return MarkStatementWithSequencePoint(New BoundStatementList(node.Syntax, statements.ToImmutableAndFree()))
+            Dim rewritten As BoundStatement = New BoundStatementList(node.Syntax, statements.ToImmutableAndFree())
+
+            If Instrument(node, rewritten) Then
+                rewritten = _instrumenter.InstrumentResumeStatement(node, rewritten)
+            End If
+
+            Return rewritten
         End Function
 
         Private Function AddResumeTargetLabel(syntax As VisualBasicSyntaxNode) As BoundLabelStatement
