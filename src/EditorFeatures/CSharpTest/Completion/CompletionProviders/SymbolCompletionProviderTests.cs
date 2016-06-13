@@ -8767,5 +8767,92 @@ class Class2
             await VerifyNoItemsExistAsync("#!$$", sourceCodeKind: SourceCodeKind.Script);
             await VerifyNoItemsExistAsync("#! S$$", sourceCodeKind: SourceCodeKind.Script, usePreviousCharAsTrigger: true);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task CompoundNameTargetTypePreselection()
+        {
+            var markup = @"
+class Class1
+{
+    void foo()
+    {
+        int x = 3;
+        string y = x.$$
+    }
+}";
+            await VerifyItemExistsAsync(markup, "ToString", matchPriority: SymbolMatchPriority.PreferEventOrMethod);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TargetTypeInCollectionInitializer1()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        int z;
+        string q;
+        List<int> x = new List<int>() { $$  }
+    }
+}";
+            await VerifyItemExistsAsync(markup, "z", matchPriority: SymbolMatchPriority.PreferLocal);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TargetTypeInCollectionInitializer2()
+        {
+            var markup = @"
+using System.Collections.Generic;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        int z;
+        string q;
+        List<int> x = new List<int>() { 1, $$  }
+    }
+}";
+            await VerifyItemExistsAsync(markup, "z", matchPriority: SymbolMatchPriority.PreferLocal);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TargeTypeInObjectInitializer1()
+        {
+            var markup = @"
+class C
+{
+    public int X { get; set; }
+    public int Y { get; set; }
+
+    void foo()
+    {
+        int i;
+        var c = new C() { X = $$ }
+    }
+}";
+            await VerifyItemExistsAsync(markup, "i", matchPriority: SymbolMatchPriority.PreferLocal);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TargeTypeInObjectInitializer2()
+        {
+            var markup = @"
+class C
+{
+    public int X { get; set; }
+    public int Y { get; set; }
+
+    void foo()
+    {
+        int i;
+        var c = new C() { X = 1, Y = $$ }
+    }
+}";
+            await VerifyItemExistsAsync(markup, "i", matchPriority: SymbolMatchPriority.PreferLocal);
+        }
     }
 }

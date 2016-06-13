@@ -6,6 +6,8 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
+using System;
+using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 {
@@ -47,6 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         public readonly bool IsCrefContext;
         public readonly bool IsCatchFilterContext;
         public readonly bool IsDestructorTypeContext;
+
 
         private CSharpSyntaxContext(
             Workspace workspace,
@@ -95,13 +98,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             bool isInstanceContext,
             bool isCrefContext,
             bool isCatchFilterContext,
-            bool isDestructorTypeContext)
+            bool isDestructorTypeContext,
+            CancellationToken cancellationToken)
             : base(workspace, semanticModel, position, leftToken, targetToken,
                    isTypeContext, isNamespaceContext, isNamespaceDeclarationNameContext,
                    isPreProcessorDirectiveContext,
                    isRightOfDotOrArrowOrColonColon, isStatementContext, isAnyExpressionContext,
                    isAttributeNameContext, isEnumTypeMemberAccessContext, isNameOfContext,
-                   isInQuery, isInImportsDirective)
+                   isInQuery, isInImportsDirective, cancellationToken)
         {
             this.ContainingTypeDeclaration = containingTypeDeclaration;
             this.ContainingTypeOrEnumDeclaration = containingTypeOrEnumDeclaration;
@@ -136,6 +140,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
         }
 
         public static CSharpSyntaxContext CreateContext(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+        {
+            return CreateContextWorker(workspace, semanticModel, position, cancellationToken);
+        }
+
+        private static CSharpSyntaxContext CreateContextWorker(Workspace workspace, SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
             var syntaxTree = semanticModel.SyntaxTree;
 
@@ -232,12 +241,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
                 syntaxTree.IsInstanceContext(position, leftToken, cancellationToken),
                 syntaxTree.IsCrefContext(position, cancellationToken) && !leftToken.IsKind(SyntaxKind.DotToken),
                 syntaxTree.IsCatchFilterContext(position, leftToken),
-                isDestructorTypeContext);
+                isDestructorTypeContext,
+                cancellationToken);
         }
 
         public static CSharpSyntaxContext CreateContext_Test(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
-            return CreateContext(/*workspace*/null, semanticModel, position, cancellationToken);
+            var inferenceService = new CSharpTypeInferenceService();
+            var types = inferenceService.InferTypes(semanticModel, position, cancellationToken);
+            return CreateContextWorker(workspace: null, semanticModel: semanticModel, position: position, cancellationToken: cancellationToken);
         }
 
         public bool IsTypeAttributeContext(CancellationToken cancellationToken)
@@ -312,6 +324,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
             }
 
             return false;
+        }
+
+        internal override ITypeInferenceService GetTypeInferenceServiceWithoutWorkspace()
+        {
+            return new CSharpTypeInferenceService();
         }
     }
 }
