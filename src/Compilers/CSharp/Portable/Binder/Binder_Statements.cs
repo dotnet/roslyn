@@ -2060,14 +2060,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                                             allowUnexpandedForm: true);
 
                 result.WasCompilerGenerated = true;
+                diagnostics.AddRange(bag);
 
                 if (bag.HasAnyErrors())
                 {
                     return MissingDeconstruct(receiver, assignmentSyntax, numCheckedVariables, diagnostics, out outPlaceholders, result);
-                }
-                else
-                {
-                    diagnostics.AddRange(bag);
                 }
 
                 // Verify all the parameters (except "this" for extension methods) are out parameters
