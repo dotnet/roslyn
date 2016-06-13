@@ -395,15 +395,6 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to More than one Deconstruct instance or extension method was found for type &apos;{0}&apos;..
-        /// </summary>
-        internal static string ERR_AmbiguousDeconstruct {
-            get {
-                return ResourceManager.GetString("ERR_AmbiguousDeconstruct", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Cannot use ref or out parameter &apos;{0}&apos; inside an anonymous method, lambda expression, or query expression.
         /// </summary>
         internal static string ERR_AnonDelegateCantUse {
@@ -2321,6 +2312,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Cannot deconstruct dynamic objects..
+        /// </summary>
+        internal static string ERR_CannotDeconstructDynamic {
+            get {
+                return ResourceManager.GetString("ERR_CannotDeconstructDynamic", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Cannot pass null for friend assembly name.
         /// </summary>
         internal static string ERR_CannotPassNullForFriendAssembly {
@@ -3104,29 +3104,11 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to The Deconstruct method for type &apos;{0}&apos; must have only out parameters..
-        /// </summary>
-        internal static string ERR_DeconstructRequiresOutParams {
-            get {
-                return ResourceManager.GetString("ERR_DeconstructRequiresOutParams", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Cannot deconstruct a tuple of &apos;{0}&apos; elements into &apos;{1}&apos; variables..
         /// </summary>
         internal static string ERR_DeconstructWrongCardinality {
             get {
                 return ResourceManager.GetString("ERR_DeconstructWrongCardinality", resourceCulture);
-            }
-        }
-        
-        /// <summary>
-        ///   Looks up a localized string similar to The Deconstruct method for type &apos;{0}&apos; doesn&apos;t have the number of parameters ({1}) needed for this deconstruction..
-        /// </summary>
-        internal static string ERR_DeconstructWrongParams {
-            get {
-                return ResourceManager.GetString("ERR_DeconstructWrongParams", resourceCulture);
             }
         }
         
@@ -5921,7 +5903,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to No Deconstruct instance or extension method was found for type &apos;{0}&apos;..
+        ///   Looks up a localized string similar to No Deconstruct instance or extension method was found for type &apos;{0}&apos;, with {1} out parameters..
         /// </summary>
         internal static string ERR_MissingDeconstruct {
             get {

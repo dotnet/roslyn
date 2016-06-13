@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var deconstruction in node.DeconstructSteps)
             {
-                if (deconstruction.DeconstructMemberOpt == null)
+                if (deconstruction.DeconstructInvocationOpt == null)
                 {
                     // tuple case
                     AccessTupleFields(node, deconstruction, temps, stores, placeholders);
@@ -122,12 +122,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private void CallDeconstruct(BoundDeconstructionAssignmentOperator node, BoundDeconstructionDeconstructStep deconstruction, ArrayBuilder<LocalSymbol> temps, ArrayBuilder<BoundExpression> stores, ArrayBuilder<BoundValuePlaceholderBase> placeholders)
         {
-            Debug.Assert((object)deconstruction.DeconstructMemberOpt != null);
+            Debug.Assert((object)deconstruction.DeconstructInvocationOpt != null);
 
             CSharpSyntaxNode syntax = node.Syntax;
 
             // prepare out parameters for Deconstruct
-            var deconstructParameters = deconstruction.DeconstructMemberOpt.Parameters;
+            var deconstructParameters = deconstruction.OutputPlaceholders;
             var outParametersBuilder = ArrayBuilder<BoundExpression>.GetInstance(deconstructParameters.Length);
 
             for (var i = 0; i < deconstructParameters.Length; i++)
@@ -151,9 +151,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var outParameters = outParametersBuilder.ToImmutableAndFree();
 
-            // invoke Deconstruct
-            var invokeDeconstruct = MakeCall(syntax, PlaceholderReplacement(deconstruction.TargetPlaceholder), deconstruction.DeconstructMemberOpt, outParameters, deconstruction.DeconstructMemberOpt.ReturnType);
-            stores.Add(invokeDeconstruct);
+            // invoke Deconstruct with placeholders replaced by locals
+            stores.Add(VisitExpression(deconstruction.DeconstructInvocationOpt));
         }
     }
 }

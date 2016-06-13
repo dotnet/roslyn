@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -1831,7 +1830,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// This will generate and stack appropriate deconstruction and assignment steps for a non-tuple type.
         /// Returns null if there was an error (if a suitable Deconstruct method was not found).
         /// </summary>
-        static private BoundDeconstructionDeconstructStep MakeNonTupleDeconstructStep(
+        private BoundDeconstructionDeconstructStep MakeNonTupleDeconstructStep(
                                                             BoundDeconstructValuePlaceholder targetPlaceholder,
                                                             AssignmentExpressionSyntax syntax,
                                                             DiagnosticBag diagnostics,
@@ -1840,16 +1839,22 @@ namespace Microsoft.CodeAnalysis.CSharp
                                                             ArrayBuilder<BoundDeconstructionAssignmentStep> assignmentSteps)
         {
             // symbol and parameters for Deconstruct
-            MethodSymbol deconstructMethod = FindDeconstruct(variables.Length, targetPlaceholder, syntax, diagnostics);
+            ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders;
+            var deconstructInvocation = MakeDeconstructInvocationExpression(variables.Length, targetPlaceholder, syntax, diagnostics, out outPlaceholders);
 
-            if ((object)deconstructMethod == null)
+            if (deconstructInvocation.HasAnyErrors)
             {
                 return null;
             }
-
-            return new BoundDeconstructionDeconstructStep(syntax, deconstructMethod, targetPlaceholder, deconstructMethod.Parameters.SelectAsArray((p, s) => new BoundDeconstructValuePlaceholder(s, p.Type), syntax));
+            else
+            {
+                return new BoundDeconstructionDeconstructStep(syntax, deconstructInvocation, targetPlaceholder, outPlaceholders);
+            }
         }
 
+        /// <summary>
+        /// Holds the variables on the LHS of a deconstruction as a tree of bound expressions.
+        /// </summary>
         private class DeconstructionVariable
         {
             public readonly BoundExpression Single;
@@ -1898,7 +1903,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    var assignment = MakeAssignmentInfo(variable.Single, valuePlaceholder.Type, valuePlaceholder, syntax, diagnostics);
+                    var assignment = MakeDeconstructionAssignmentStep(variable.Single, valuePlaceholder.Type, valuePlaceholder, syntax, diagnostics);
                     assignmentSteps.Add(assignment);
                 }
             }
@@ -1962,7 +1967,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Figures out how to assign from sourceType into receivingVariable and bundles the information (leaving holes for the actual source and receiver) into an AssignmentInfo.
         /// </summary>
-        private BoundDeconstructionAssignmentStep MakeAssignmentInfo(BoundExpression receivingVariable, TypeSymbol sourceType, BoundDeconstructValuePlaceholder inputPlaceholder, AssignmentExpressionSyntax node, DiagnosticBag diagnostics)
+        private BoundDeconstructionAssignmentStep MakeDeconstructionAssignmentStep(
+                                                    BoundExpression receivingVariable, TypeSymbol sourceType, BoundDeconstructValuePlaceholder inputPlaceholder,
+                                                    AssignmentExpressionSyntax node, DiagnosticBag diagnostics)
         {
             var outputPlaceholder = new BoundDeconstructValuePlaceholder(receivingVariable.Syntax, receivingVariable.Type) { WasCompilerGenerated = true };
 
@@ -1996,55 +2003,114 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Find the Deconstruct method for the expression on the right, that will fit the assignable bound expressions on the left.
-        /// Returns true if the Deconstruct method is found.
-        ///     If so, it outputs the method.
+        /// Find the Deconstruct method for the expression on the right, that will fit the number of assignable variables on the left.
+        /// Returns an invocation expression if the Deconstruct method is found.
+        ///     If so, it outputs placeholders that were coerced to the output types of the resolved Deconstruct method.
+        /// The overload resolution is similar to writing `receiver.Deconstruct(out var x1, out var x2, ...)`.
         /// </summary>
-        private static MethodSymbol FindDeconstruct(int numCheckedVariables, BoundExpression boundRHS, SyntaxNode node, DiagnosticBag diagnostics)
+        private BoundExpression MakeDeconstructInvocationExpression(
+                                    int numCheckedVariables, BoundExpression receiver, AssignmentExpressionSyntax assignmentSyntax,
+                                    DiagnosticBag diagnostics, out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders)
         {
-            // find symbol for Deconstruct member
-            ImmutableArray<Symbol> candidates = boundRHS.Type.GetMembers("Deconstruct");
-            switch (candidates.Length)
+            var receiverSyntax = receiver.Syntax;
+
+            if (receiver.Type.IsDynamic())
             {
-                case 0:
-                    Error(diagnostics, ErrorCode.ERR_MissingDeconstruct, boundRHS.Syntax, boundRHS.Type);
-                    return null;
-                case 1:
-                    break;
-                default:
-                    Error(diagnostics, ErrorCode.ERR_AmbiguousDeconstruct, boundRHS.Syntax, boundRHS.Type);
-                    return null;
+                Error(diagnostics, ErrorCode.ERR_CannotDeconstructDynamic, receiverSyntax);
+                outPlaceholders = default(ImmutableArray<BoundDeconstructValuePlaceholder>);
+
+                return BadExpression(receiverSyntax, receiver);
             }
 
-            Symbol deconstructMember = candidates[0];
+            var analyzedArguments = AnalyzedArguments.GetInstance();
+            var outVars = ArrayBuilder<OutDeconstructVarPendingInference>.GetInstance(numCheckedVariables);
+            DiagnosticBag bag = null;
 
-            // check that the deconstruct fits
-            if (deconstructMember.Kind != SymbolKind.Method)
+            try
             {
-                Error(diagnostics, ErrorCode.ERR_MissingDeconstruct, boundRHS.Syntax, boundRHS.Type);
-                return null;
+                for (int i = 0; i < numCheckedVariables; i++)
+                {
+                    var variable = new OutDeconstructVarPendingInference(assignmentSyntax);
+                    analyzedArguments.Arguments.Add(variable);
+                    analyzedArguments.RefKinds.Add(RefKind.Out);
+                    outVars.Add(variable);
+                }
+
+                const string methodName = "Deconstruct";
+                var memberAccess = BindInstanceMemberAccess(
+                                        receiverSyntax, receiverSyntax, receiver, methodName, rightArity: 0,
+                                        typeArgumentsSyntax: default(SeparatedSyntaxList<TypeSyntax>), typeArguments: default(ImmutableArray<TypeSymbol>),
+                                        invoked: true, diagnostics: diagnostics);
+
+                memberAccess = CheckValue(memberAccess, BindValueKind.RValueOrMethodGroup, diagnostics);
+                memberAccess.WasCompilerGenerated = true;
+
+                if (memberAccess.Kind != BoundKind.MethodGroup)
+                {
+                    return MissingDeconstruct(receiver, assignmentSyntax, numCheckedVariables, diagnostics, out outPlaceholders, receiver);
+                }
+
+                // After the overload resolution completes, the last step is to coerce the arguments with inferred types.
+                // That step returns placeholder (of correct type) instead of the outVar nodes that were passed in as arguments.
+                // So the generated invocation expression will contain placeholders instead of those outVar nodes.
+                // Those placeholders are also recorded in the outVar for easy access below, by the `SetInferredType` call on the outVar nodes.
+                bag = DiagnosticBag.GetInstance();
+                BoundExpression result = BindMethodGroupInvocation(
+                                            receiverSyntax, receiverSyntax, methodName, (BoundMethodGroup)memberAccess, analyzedArguments, bag, queryClause: null,
+                                            allowUnexpandedForm: true);
+
+                result.WasCompilerGenerated = true;
+                diagnostics.AddRange(bag);
+
+                if (bag.HasAnyErrors())
+                {
+                    return MissingDeconstruct(receiver, assignmentSyntax, numCheckedVariables, diagnostics, out outPlaceholders, result);
+                }
+
+                // Verify all the parameters (except "this" for extension methods) are out parameters
+                if (result.Kind != BoundKind.Call)
+                {
+                    return MissingDeconstruct(receiver, assignmentSyntax, numCheckedVariables, diagnostics, out outPlaceholders, result);
+                }
+
+                var deconstructMethod = ((BoundCall)result).Method;
+                var parameters = deconstructMethod.Parameters;
+                for (int i = (deconstructMethod.IsExtensionMethod ? 1 : 0); i < parameters.Length; i++)
+                {
+                    if (parameters[i].RefKind != RefKind.Out)
+                    {
+                        return MissingDeconstruct(receiver, assignmentSyntax, numCheckedVariables, diagnostics, out outPlaceholders, result);
+                    }
+                }
+
+                if (outVars.Any(v => (object)v.Placeholder == null))
+                {
+                    return MissingDeconstruct(receiver, assignmentSyntax, numCheckedVariables, diagnostics, out outPlaceholders, result);
+                }
+
+                outPlaceholders = outVars.SelectAsArray(v => v.Placeholder);
+
+                return result;
+            }
+            finally
+            {
+                analyzedArguments.Free();
+                outVars.Free();
+
+                if (bag != null)
+                {
+                    bag.Free();
+                }
             }
 
-            MethodSymbol deconstructMethod = (MethodSymbol)deconstructMember;
-            if (deconstructMethod.MethodKind != MethodKind.Ordinary)
-            {
-                Error(diagnostics, ErrorCode.ERR_MissingDeconstruct, boundRHS.Syntax, boundRHS.Type);
-                return null;
-            }
+        }
 
-            if (deconstructMethod.ParameterCount != numCheckedVariables)
-            {
-                Error(diagnostics, ErrorCode.ERR_DeconstructWrongParams, boundRHS.Syntax, deconstructMethod, numCheckedVariables);
-                return null;
-            }
+        private BoundExpression MissingDeconstruct(BoundExpression receiver, AssignmentExpressionSyntax syntax, int numParameters, DiagnosticBag diagnostics, out ImmutableArray<BoundDeconstructValuePlaceholder> outPlaceholders, BoundNode childNode)
+        {
+            Error(diagnostics, ErrorCode.ERR_MissingDeconstruct, receiver.Syntax, receiver.Type, numParameters);
+            outPlaceholders = default(ImmutableArray<BoundDeconstructValuePlaceholder>);
 
-            if (deconstructMethod.Parameters.Any(p => p.RefKind != RefKind.Out))
-            {
-                Error(diagnostics, ErrorCode.ERR_DeconstructRequiresOutParams, boundRHS.Syntax, deconstructMethod);
-                return null;
-            }
-
-            return deconstructMethod;
+            return BadExpression(syntax, childNode);
         }
 
         private BoundAssignmentOperator BindAssignment(AssignmentExpressionSyntax node, BoundExpression op1, BoundExpression op2, DiagnosticBag diagnostics)
@@ -2196,6 +2262,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case BoundKind.PropertyGroup:
                     expr = BindIndexedPropertyAccess((BoundPropertyGroup)expr, mustHaveAllOptionalParameters: false, diagnostics: diagnostics);
                     break;
+
+                case BoundKind.OutDeconstructVarPendingInference:
+                    Debug.Assert(valueKind == BindValueKind.RefOrOut);
+                    return expr;
             }
 
             bool hasResolutionErrors = false;
