@@ -111,10 +111,7 @@ string[] TestPackageNames = {
 var PreReleaseOnlyPackages = new HashSet<string>
 {
     "Microsoft.CodeAnalysis.EditorFeatures",
-    "Microsoft.CodeAnalysis.EditorFeatures.Text",
     "Microsoft.CodeAnalysis.VisualBasic.Scripting",
-    "Microsoft.VisualStudio.LanguageServices",
-    "Microsoft.Net.Compilers",
     "Microsoft.Net.Compilers.netcore",
     "Microsoft.Net.CSharp.Interactive.netcore",
 };
