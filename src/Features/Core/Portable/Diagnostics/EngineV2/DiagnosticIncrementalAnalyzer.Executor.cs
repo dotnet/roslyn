@@ -309,7 +309,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                         }
 
                         // merge the result to existing one.
-                        result = result.Add(analyzer, builder.ToResult());
+                        // there can be existing one from compiler driver with empty set. overwrite it with
+                        // ide one.
+                        result = result.SetItem(analyzer, builder.ToResult());
                     }
 
                     return result;
