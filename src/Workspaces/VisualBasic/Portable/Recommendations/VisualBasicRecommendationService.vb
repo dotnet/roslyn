@@ -80,6 +80,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Recommendations
 
         Private Function GetUnqualifiedSymbolsForNamespaceDeclarationNameContext(context As VisualBasicSyntaxContext, cancellationToken As CancellationToken) As IEnumerable(Of ISymbol)
             Dim declarationSyntax = context.TargetToken.GetAncestor(Of NamespaceBlockSyntax)
+
+            If declarationSyntax Is Nothing Then
+                Return SpecializedCollections.EmptyEnumerable(Of ISymbol)()
+            End If
+
             Return GetRecommendedNamespaceNameSymbols(context.SemanticModel, declarationSyntax, cancellationToken)
         End Function
 

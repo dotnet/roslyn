@@ -372,14 +372,36 @@ class CL {}";
 
         [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NamespaceName_EmptyNameSpan_TopLevel()
+        {
+            var source = @"namespace $$ { }";
+
+            await VerifyItemExistsAsync(source, "System", sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NamespaceName_EmptyNameSpan_Nested()
+        {
+            var source = @";
+namespace System
+{
+    namespace $$ { }
+}";
+
+            await VerifyItemExistsAsync(source, "Runtime", sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
         public async Task NamespaceName_Unqualified_TopLevelNoPeers()
         {
             var source = @"using System;
 
 namespace $$";
 
-            await VerifyItemExistsAsync(source, "System");
-            await VerifyItemIsAbsentAsync(source, "String");
+            await VerifyItemExistsAsync(source, "System", sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemIsAbsentAsync(source, "String", sourceCodeKind: SourceCodeKind.Regular);
         }
 
         [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
@@ -391,7 +413,7 @@ namespace A { }
 
 namespace $$";
 
-            await VerifyItemExistsAsync(source, "A");
+            await VerifyItemExistsAsync(source, "A", sourceCodeKind: SourceCodeKind.Regular);
         }
 
         [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
@@ -404,7 +426,7 @@ namespace A
     namespace $$
 }";
 
-            await VerifyNoItemsExistAsync(source);
+            await VerifyNoItemsExistAsync(source, sourceCodeKind: SourceCodeKind.Regular);
         }
 
         [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
@@ -419,8 +441,8 @@ namespace A
     namespace $$
 }";
 
-            await VerifyItemIsAbsentAsync(source, "A");
-            await VerifyItemExistsAsync(source, "B");
+            await VerifyItemIsAbsentAsync(source, "A", sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemExistsAsync(source, "B", sourceCodeKind: SourceCodeKind.Regular);
         }
 
         [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
@@ -429,7 +451,7 @@ namespace A
         {
             var source = @"namespace N$$S";
 
-            await VerifyItemIsAbsentAsync(source, "NS");
+            await VerifyItemIsAbsentAsync(source, "NS", sourceCodeKind: SourceCodeKind.Regular);
         }
 
         [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
@@ -445,8 +467,8 @@ namespace A
     }
 }";
 
-            await VerifyItemIsAbsentAsync(source, "A");
-            await VerifyItemIsAbsentAsync(source, "B");
+            await VerifyItemIsAbsentAsync(source, "A", sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemIsAbsentAsync(source, "B", sourceCodeKind: SourceCodeKind.Regular);
         }
 
         [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
@@ -464,8 +486,8 @@ namespace A
     }
 }";
 
-            await VerifyItemIsAbsentAsync(source, "A");
-            await VerifyItemExistsAsync(source, "B");
+            await VerifyItemIsAbsentAsync(source, "A", sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemExistsAsync(source, "B", sourceCodeKind: SourceCodeKind.Regular);
         }
 
         [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
@@ -474,8 +496,8 @@ namespace A
         {
             var source = @"namespace Sys$$tem { }";
 
-            await VerifyItemExistsAsync(source, "System");
-            await VerifyItemIsAbsentAsync(source, "Runtime");
+            await VerifyItemExistsAsync(source, "System", sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemIsAbsentAsync(source, "Runtime", sourceCodeKind: SourceCodeKind.Regular);
         }
 
         [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
@@ -506,15 +528,15 @@ namespace A.B.C3 { }";
             //     C3 => A.A.B.C3
             //
             // ...none of which are found by the current algorithm.
-            await VerifyItemIsAbsentAsync(source, "C1");
-            await VerifyItemIsAbsentAsync(source, "C2");
-            await VerifyItemIsAbsentAsync(source, "C3");
+            await VerifyItemIsAbsentAsync(source, "C1", sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemIsAbsentAsync(source, "C2", sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemIsAbsentAsync(source, "C3", sourceCodeKind: SourceCodeKind.Regular);
 
-            await VerifyItemIsAbsentAsync(source, "A");
+            await VerifyItemIsAbsentAsync(source, "A", sourceCodeKind: SourceCodeKind.Regular);
 
             // Because of the above, B does end up in the completion list
             // since A.B.B appears to be a peer of the new declaration
-            await VerifyItemExistsAsync(source, "B");
+            await VerifyItemExistsAsync(source, "B", sourceCodeKind: SourceCodeKind.Regular);
         }
 
         [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
@@ -523,7 +545,7 @@ namespace A.B.C3 { }";
         {
             var source = @"namespace A.$$";
 
-            await VerifyNoItemsExistAsync(source);
+            await VerifyNoItemsExistAsync(source, sourceCodeKind: SourceCodeKind.Regular);
         }
 
         [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
@@ -535,7 +557,7 @@ namespace A.B { }
 
 namespace A.$$";
 
-            await VerifyItemExistsAsync(source, "B");
+            await VerifyItemExistsAsync(source, "B", sourceCodeKind: SourceCodeKind.Regular);
         }
 
         [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
@@ -550,9 +572,9 @@ namespace A
     namespace B.$$
 }";
 
-            await VerifyItemIsAbsentAsync(source, "A");
-            await VerifyItemIsAbsentAsync(source, "B");
-            await VerifyItemExistsAsync(source, "C");
+            await VerifyItemIsAbsentAsync(source, "A", sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemIsAbsentAsync(source, "B", sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemExistsAsync(source, "C", sourceCodeKind: SourceCodeKind.Regular);
         }
 
         [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
@@ -566,8 +588,8 @@ namespace A.$$
 }
 ";
 
-            await VerifyItemIsAbsentAsync(source, "A");
-            await VerifyItemIsAbsentAsync(source, "B");
+            await VerifyItemIsAbsentAsync(source, "A", sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemIsAbsentAsync(source, "B", sourceCodeKind: SourceCodeKind.Regular);
         }
 
         [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
@@ -583,8 +605,8 @@ namespace A.$$
 }
 ";
 
-            await VerifyItemIsAbsentAsync(source, "A");
-            await VerifyItemExistsAsync(source, "B");
+            await VerifyItemIsAbsentAsync(source, "A", sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemExistsAsync(source, "B", sourceCodeKind: SourceCodeKind.Regular);
         }
 
         [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
@@ -593,8 +615,31 @@ namespace A.$$
         {
             var source = @"namespace Sys$$tem.Runtime { }";
 
-            await VerifyItemExistsAsync(source, "System");
-            await VerifyItemIsAbsentAsync(source, "Runtime");
+            await VerifyItemExistsAsync(source, "System", sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemIsAbsentAsync(source, "Runtime", sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NamespaceName_OnKeyword()
+        {
+            var source = @"name$$space System { }";
+
+            await VerifyItemIsAbsentAsync(source, "System", sourceCodeKind: SourceCodeKind.Regular);
+        }
+
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NamespaceName_OnNestedKeyword()
+        {
+            var source = @"
+namespace System
+{
+    name$$space Runtime { }
+}";
+
+            await VerifyItemIsAbsentAsync(source, "System", sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemIsAbsentAsync(source, "Runtime", sourceCodeKind: SourceCodeKind.Regular);
         }
 
         [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
@@ -616,9 +661,9 @@ namespace A
 
 namespace A.B.C.D3 { }";
 
-            await VerifyItemIsAbsentAsync(source, "A");
-            await VerifyItemIsAbsentAsync(source, "B");
-            await VerifyItemIsAbsentAsync(source, "C");
+            await VerifyItemIsAbsentAsync(source, "A", sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemIsAbsentAsync(source, "B", sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemIsAbsentAsync(source, "C", sourceCodeKind: SourceCodeKind.Regular);
 
             // Ideally, all the D* namespaces would be recommended but, because of how the parser
             // recovers from the missing braces, they end up with the following qualified names...
@@ -628,9 +673,9 @@ namespace A.B.C.D3 { }";
             //     D3 => A.A.B.C.D3
             //
             // ...none of which are found by the current algorithm.
-            await VerifyItemIsAbsentAsync(source, "D1");
-            await VerifyItemIsAbsentAsync(source, "D2");
-            await VerifyItemIsAbsentAsync(source, "D3");
+            await VerifyItemIsAbsentAsync(source, "D1", sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemIsAbsentAsync(source, "D2", sourceCodeKind: SourceCodeKind.Regular);
+            await VerifyItemIsAbsentAsync(source, "D3", sourceCodeKind: SourceCodeKind.Regular);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]

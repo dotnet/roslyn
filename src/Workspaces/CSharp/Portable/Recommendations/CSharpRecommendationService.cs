@@ -237,6 +237,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
         private static IEnumerable<ISymbol> GetSymbolsForNamespaceDeclarationNameContext(CSharpSyntaxContext context, CancellationToken cancellationToken)
         {
             var declarationSyntax = context.TargetToken.GetAncestor<NamespaceDeclarationSyntax>();
+
+            if (declarationSyntax == null)
+            {
+                return SpecializedCollections.EmptyEnumerable<ISymbol>();
+            }
+
             return GetRecommendedNamespaceNameSymbols(context.SemanticModel, declarationSyntax, cancellationToken);
         }
 
@@ -325,7 +331,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Recommendations
 
                 if (context.IsNamespaceDeclarationNameContext)
                 {
-                    NamespaceDeclarationSyntax declarationSyntax = name.GetAncestorOrThis<NamespaceDeclarationSyntax>();
+                    var declarationSyntax = name.GetAncestorOrThis<NamespaceDeclarationSyntax>();
                     return symbols.Where(s => IsNonIntersectingNamespace(s, declarationSyntax));
                 }
 

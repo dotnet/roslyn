@@ -5749,6 +5749,28 @@ End Module
 
         <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_EmptyNameSpan_TopLevel() As Task
+            Dim source = <code><![CDATA[
+Namespace $$
+End Namespace
+]]></code>.Value
+            Await VerifyItemExistsAsync(source, "System")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_EmptyNameSpan_Nested() As Task
+            Dim source = <code><![CDATA[
+Namespace System
+    Namespace $$
+    End Namespace
+End Namespace
+]]></code>.Value
+            Await VerifyItemExistsAsync(source, "Runtime")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function NamespaceName_Unqualified_TopLevelNoPeers() As Task
             Dim source = <code><![CDATA[
 Imports System;
@@ -6006,7 +6028,7 @@ End Namespace
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
         Public Async Function NamespaceName_Qualified_InnerCompletionPosition() As Task
             Dim source = <code><![CDATA[
-Namespace Sys$$tem.Runtim
+Namespace Sys$$tem.Runtime
 End Namespace
 
 ]]></code>.Value
@@ -6056,6 +6078,33 @@ End Namespace
             Await VerifyItemIsAbsentAsync(source, "D1")
             Await VerifyItemIsAbsentAsync(source, "D2")
             Await VerifyItemIsAbsentAsync(source, "D3")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_OnKeyword() As Task
+            Dim source = <code><![CDATA[
+Name$$space System
+End Namespace
+
+]]></code>.Value
+
+            Await VerifyItemIsAbsentAsync(source, "System")
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceName_OnNestedKeyword() As Task
+            Dim source = <code><![CDATA[
+Namespace System
+    Name$$space Runtime
+    End Namespace
+End Namespace
+
+]]></code>.Value
+
+            Await VerifyItemIsAbsentAsync(source, "System")
+            Await VerifyItemIsAbsentAsync(source, "Runtime")
         End Function
 
         <WorkItem(925469, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/925469")>

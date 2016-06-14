@@ -62,8 +62,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions.ContextQuery
 
         <Extension()>
         Public Function IsNamespaceDeclarationNameContext(syntaxTree As SyntaxTree, position As Integer, cancellationToken As CancellationToken) As Boolean
-            Dim statement = syntaxTree.GetTargetToken(position, cancellationToken).GetAncestor(Of NamespaceStatementSyntax)
-            Return statement IsNot Nothing AndAlso statement.Name.Span.IntersectsWith(position)
+            If syntaxTree.IsScript() OrElse syntaxTree.IsInNonUserCode(position, cancellationToken) Then
+                Return False
+            End If
+
+            Dim token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken) _
+                                  .GetPreviousTokenIfTouchingWord(position)
+
+            Dim statement = token.GetAncestor(Of NamespaceStatementSyntax)()
+
+            Return statement IsNot Nothing AndAlso (statement.Name.Span.IntersectsWith(position) OrElse statement.NamespaceKeyword = token)
         End Function
 
         <Extension()>

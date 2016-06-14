@@ -32,6 +32,11 @@ namespace Microsoft.CodeAnalysis.Recommendations
         protected static IEnumerable<ISymbol> GetRecommendedNamespaceNameSymbols(
             SemanticModel semanticModel, SyntaxNode declarationSyntax, CancellationToken cancellationToken)
         {
+            if (declarationSyntax == null)
+            {
+                throw new ArgumentNullException(nameof(declarationSyntax));
+            }
+
             var containingNamespaceSymbol = semanticModel.Compilation.GetCompilationNamespace(
                 semanticModel.GetEnclosingNamespace(declarationSyntax.SpanStart, cancellationToken));
 
@@ -43,6 +48,23 @@ namespace Microsoft.CodeAnalysis.Recommendations
 
         protected static bool IsNonIntersectingNamespace(ISymbol recommendationSymbol, SyntaxNode declarationSyntax)
         {
+            //
+            // Apart from filtering out non-namespace symbols, this also filters out the symbol
+            // currently being declared. For example...
+            //
+            //     namespace X$$
+            //
+            // ...X won't show in the completion list (unless it is also declared elsewhere).
+            //
+            // In addition, in VB, it will filter out Bar from the sample below...
+            //
+            //     Namespace Foo.$$
+            //         Namespace Bar
+            //         End Namespace
+            //     End Namespace
+            //
+            // ...unless, again, it's also declared elsewhere.
+            //
             return recommendationSymbol.IsNamespace() &&
                    recommendationSymbol.Locations.Any(
                        candidateLocation => !(declarationSyntax.SyntaxTree == candidateLocation.SourceTree &&

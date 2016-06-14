@@ -605,14 +605,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery
 
         public static bool IsNamespaceDeclarationNameContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
-            var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            var namespaceDeclaration = token.GetAncestor<NamespaceDeclarationSyntax>();
-            if (namespaceDeclaration == null)
+            if (syntaxTree.IsScript() || syntaxTree.IsInNonUserCode(position, cancellationToken))
             {
                 return false;
             }
 
-            return namespaceDeclaration.Name.Span.IntersectsWith(position) || token == namespaceDeclaration.NamespaceKeyword;
+            var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken)
+                                  .GetPreviousTokenIfTouchingWord(position);
+
+            var declaration = token.GetAncestor<NamespaceDeclarationSyntax>();
+
+            return declaration != null && (declaration.Name.Span.IntersectsWith(position) || declaration.NamespaceKeyword == token);
         }
 
         public static bool IsDefinitelyNotTypeContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
