@@ -108,7 +108,35 @@ Class C
 End Class
 "
 
-            Await VerifyItemsExistAsync(text, "code", "list", "para", "paramref", "typeparamref")
+            Await VerifyItemsExistAsync(text, "code", "list", "para")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestRepeatableNestedParamRefAndTypeParamRefTagsOnMethod() As Task
+            Dim text = "
+Class C
+    ''' <summary>
+    ''' <$$
+    ''' </summary>
+    Sub Foo(Of T)(i as Integer)
+    End Sub
+End Class
+"
+
+            Await VerifyItemsExistAsync(text, "paramref name=""i""", "typeparamref name=""T""")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function TestRepeatableNestedTypeParamRefTagOnClass() As Task
+            Dim text = "
+''' <summary>
+''' <$$
+''' </summary>
+Class C(Of T)
+End Class
+"
+
+            Await VerifyItemsExistAsync(text, "typeparamref name=""T""")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
@@ -380,7 +408,7 @@ Module Program
 End Module
 "
 
-            Await VerifyItemsExistAsync(text, "code", "list", "para", "paramref", "typeparamref")
+            Await VerifyItemsExistAsync(text, "code", "list", "para")
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.Completion)>

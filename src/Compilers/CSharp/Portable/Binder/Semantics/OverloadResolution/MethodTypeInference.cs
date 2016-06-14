@@ -664,7 +664,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var destTypes = destination.GetElementTypesIfTupleOrCompatible();
+            var destTypes = destination.GetElementTypesOfTupleOrCompatible();
             Debug.Assert(sourceArguments.Length == destTypes.Length);
 
             // NOTE: we are losing tuple element names when recursing into argument expressions.
@@ -835,7 +835,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var destTypes = destination.GetElementTypesIfTupleOrCompatible();
+            var destTypes = destination.GetElementTypesOfTupleOrCompatible();
             Debug.Assert(sourceArguments.Length == destTypes.Length);
 
             for (int i = 0; i < sourceArguments.Length; i++)

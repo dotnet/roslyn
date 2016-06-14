@@ -191,14 +191,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ClassifyImplicitConversionFromExpression(sourceExpression, sourceExpression.Type, destination, ref useSiteDiagnostics);
         }
 
-        public Conversion ClassifyImplicitConversionFromExpression(TypeSymbol sourceExpressionType, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
-        {
-            Debug.Assert((object)sourceExpressionType != null);
-            Debug.Assert((object)destination != null);
-
-            return ClassifyImplicitConversionFromExpression(null, sourceExpressionType, destination, ref useSiteDiagnostics);
-        }
-
         /// <summary>
         /// Determines if the source expression is convertible to the destination type via
         /// any built-in or user-defined implicit conversion.
@@ -715,7 +707,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            ImmutableArray<TypeSymbol> targetElementTypes = destination.GetElementTypesIfTupleOrCompatible();
+            ImmutableArray<TypeSymbol> targetElementTypes = destination.GetElementTypesOfTupleOrCompatible();
             Debug.Assert(arguments.Length == targetElementTypes.Length);
 
             // check arguments against flattened list of target element types 

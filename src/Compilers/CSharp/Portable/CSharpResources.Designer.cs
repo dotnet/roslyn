@@ -2987,6 +2987,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Tuple with {0} elements cannot be converted to type &apos;{1}&apos;..
+        /// </summary>
+        internal static string ERR_ConversionNotTupleCompatible {
+            get {
+                return ResourceManager.GetString("ERR_ConversionNotTupleCompatible", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to &apos;{0}&apos;: user-defined conversions to or from a base class are not allowed.
         /// </summary>
         internal static string ERR_ConversionWithBase {
@@ -4225,6 +4234,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string ERR_FeatureNotAvailableInVersion6 {
             get {
                 return ResourceManager.GetString("ERR_FeatureNotAvailableInVersion6", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Feature &apos;{0}&apos; is not available in C# 7.  Please use language version {1} or greater..
+        /// </summary>
+        internal static string ERR_FeatureNotAvailableInVersion7 {
+            get {
+                return ResourceManager.GetString("ERR_FeatureNotAvailableInVersion7", resourceCulture);
             }
         }
         

@@ -1952,7 +1952,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            var destTypes = destination.GetElementTypesIfTupleOrCompatible();
+            var destTypes = destination.GetElementTypesOfTupleOrCompatible();
             Debug.Assert(sourceArguments.Length == destTypes.Length);
 
             for (int i = 0; i < sourceArguments.Length; i++)
