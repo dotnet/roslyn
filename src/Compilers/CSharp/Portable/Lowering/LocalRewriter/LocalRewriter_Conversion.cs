@@ -636,7 +636,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool explicitCastInCode,
             NamedTypeSymbol rewrittenType)
         {
-            var destElementTypes = rewrittenType.GetElementTypesIfTupleOrCompatible();
+            var destElementTypes = rewrittenType.GetElementTypesOfTupleOrCompatible();
             var numElements = destElementTypes.Length;
 
             ImmutableArray<FieldSymbol> srcElementFields;
