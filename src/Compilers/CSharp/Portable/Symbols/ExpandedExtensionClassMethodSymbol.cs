@@ -142,7 +142,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         public override ImmutableArray<TypeSymbol> TypeArguments => _typeArguments;
 
-        internal override Microsoft.Cci.CallingConvention CallingConvention => _expandedFrom.CallingConvention;
+        internal override Cci.CallingConvention CallingConvention
+        {
+            get
+            {
+                var originalCallingConvention = _expandedFrom.CallingConvention;
+                Debug.Assert((originalCallingConvention & Cci.CallingConvention.HasThis) != 0);
+                return originalCallingConvention & ~Cci.CallingConvention.HasThis;
+            }
+        }
 
         public override int Arity => _expandedFrom.Arity;
 

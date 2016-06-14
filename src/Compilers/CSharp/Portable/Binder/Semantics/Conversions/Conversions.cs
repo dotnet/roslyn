@@ -822,17 +822,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                         Debug.Assert((object)method != null);
                         if (resolution.MethodGroup.IsExtensionMethodGroup)
                         {
-                            Debug.Assert(method.IsExtensionMethod);
+                            Debug.Assert(method.IsExtensionMethod || method.IsInExtensionClass);
 
-                            var thisParameter = method.Parameters[0];
-                            if (!thisParameter.Type.IsReferenceType)
+                            var thisParameterType = method.IsExtensionMethod ? method.Parameters[0].Type : method.ReceiverType;
+                            if (!thisParameterType.IsReferenceType)
                             {
                                 // Extension method '{0}' defined on value type '{1}' cannot be used to create delegates
                                 diagnostics.Add(
                                     ErrorCode.ERR_ValueTypeExtDelegate,
                                     expr.Syntax.Location,
                                     method,
-                                    thisParameter.Type);
+                                    thisParameterType);
                                 hasErrors = true;
                             }
                         }

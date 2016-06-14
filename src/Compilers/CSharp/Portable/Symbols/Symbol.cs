@@ -601,6 +601,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         case MethodKind.DelegateInvoke:
                         case MethodKind.Destructor: // See comment in CanBeReferencedByName.
                         case MethodKind.ExpandedExtensionClass:
+                        case MethodKind.ReducedExtension:
                             return true;
                         case MethodKind.PropertyGet:
                         case MethodKind.PropertySet:

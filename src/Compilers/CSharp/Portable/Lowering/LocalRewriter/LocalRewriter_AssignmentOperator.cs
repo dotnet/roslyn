@@ -221,6 +221,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Lower to the actual underlying method
             property = property.ExpandExtensionClassProperty() ?? property;
+            // PROTOTYPE: rewrite argsToParamsOpt etc.
 
             // Rewrite property assignment into call to setter.
             var setMethod = property.GetOwnOrInheritedSetMethod();

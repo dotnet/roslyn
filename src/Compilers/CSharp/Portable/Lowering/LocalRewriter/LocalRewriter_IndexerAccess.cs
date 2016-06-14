@@ -111,6 +111,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 indexer = indexer.ExpandExtensionClassProperty() ?? indexer;
+                // PROTOTYPE: rewrite argsToParamsOpt etc.
 
                 var getMethod = indexer.GetOwnOrInheritedGetMethod();
                 Debug.Assert((object)getMethod != null);

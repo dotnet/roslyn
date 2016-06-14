@@ -537,8 +537,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     cc |= Cci.CallingConvention.Generic;
                 }
 
-                // IsInExtensionClass is equivalent to IsStatic here.
-                if (!IsStatic && !IsInExtensionClass)
+                // If this is an expanded extension class method, ExpandedExtensionClassMethodSymbol.CallingConvention will remove the HasThis flag
+                // If this is a "normal" (instance) extension class method, we still want to return HasThis for things like
+                //  MemberSignatureComparer.GetCallingConvention which calls CallingConvention outside of emit.
+                if (!IsStatic)
                 {
                     cc |= Cci.CallingConvention.HasThis;
                 }

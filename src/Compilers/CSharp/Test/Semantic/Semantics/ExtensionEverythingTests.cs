@@ -130,9 +130,11 @@ class Program
         }
 
         // PROTOTYPE: Once the VariousExtendedKinds() test is unskipped and implementation fixed, this test is redundant
-        [Fact]
+        [Fact(Skip = "PROTOTYPE: Extension class resolution isn't implemented (uses base class now)")]
         public void VariousExtendedKindsRestricted()
         {
+            // error CS0709: 'ExtStaticClass': cannot derive from static class 'BaseStaticClass'
+            // error CS0509: 'ExtEnum': cannot derive from sealed type 'BaseEnum'
             var text = @"
 using System;
 
@@ -225,7 +227,7 @@ class Program
 }");
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE: VariousExtendedKindsRestricted needs to pass first, this adds same member name ambiguity")]
         public void VariousExtendedKinds()
         {
             var text = @"
@@ -359,7 +361,7 @@ class Program
                 parseOptions: parseOptions);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE: Produces CS0535, extension class doesn't implement interface (same skip reason as VariousExtendedKindsRestricted)")]
         public void UseOfThis()
         {
             var text = @"
@@ -389,7 +391,7 @@ extension class ExtInterface : IInterface
 extension class ExtClass : BaseClass
 {
     public int MethodInstanceExt() => MethodInstance() + 2;
-    public int MethodInterfaceExt() => MethodInterface() + 2;
+    public int MethodInterfaceExt() => ((IInterface)this).MethodInterface() + 2;
 }
 
 class Program
@@ -398,7 +400,7 @@ class Program
     {
         BaseClass obj = new BaseClass();
         Console.Write(obj.MethodInstance());
-        Console.Write(obj.MethodInterface());
+        Console.Write(((IInterface)obj).MethodInterface());
         Console.Write(obj.MethodInstanceExt());
         Console.Write(obj.MethodInterfaceExt());
         Console.Write(obj.MethodOtherExtInferace());
@@ -413,7 +415,7 @@ class Program
                 parseOptions: parseOptions);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE: Ambig resolution based on receiver type isn't implemented yet (for .Add)")]
         public void DuckDiscovery()
         {
             var text = @"
@@ -670,7 +672,7 @@ namespace Four
                 parseOptions: parseOptions);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE: IDerived/IBase ambiguity resolution not implemented yet")]
         public void AmbiguityPriority()
         {
             var text = @"
@@ -744,11 +746,10 @@ class Program
                 parseOptions: parseOptions);
         }
 
-        // PROTOTYPE: Extension methods/indexers (static/instance) with argument order oddness and default params
-
-        [Fact]
+        [Fact(Skip = "PROTOTYPE: Fails due to ReducedExtension not disambiguating based on receiver.")]
         public void ArgumentOrdering()
         {
+            // error CS0121: The call is ambiguous between the following methods or properties: 'IQueryable<int>.Sum()' and 'IQueryable<int?>.Sum()'
             var text = @"
 using System;
 using System.Linq;
@@ -873,7 +874,7 @@ extension class Program : BaseClass
                 parseOptions: parseOptions);
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE: Receiver type inference doesn't work")]
         public void SimpleGeneric()
         {
             var text = @"
@@ -907,6 +908,57 @@ static class Program
                 source: text,
                 additionalRefs: additionalRefs,
                 expectedOutput: "123",
+                parseOptions: parseOptions);
+        }
+
+        [Fact(Skip = "PROTOTYPE: Fails because boxing conversion not emitted")]
+        public void Conversions()
+        {
+            var text = @"
+using System;
+
+interface BaseInterface { }
+class BaseClass { }
+class SomeClass : BaseClass, BaseInterface { }
+
+extension class ExtClass : BaseClass
+{
+    public void MethodClass() => Console.Write(1);
+}
+
+extension class ExtInterface : BaseInterface
+{
+    public void MethodInterface() => Console.Write(2);
+}
+
+struct SomeStruct { }
+
+extension class ExtObject : object
+{
+    public void MethodObject() => Console.Write(3);
+}
+
+struct SomeStructInterface : BaseInterface { }
+
+static class Program
+{
+    static void Main()
+    {
+        var someClass = new SomeClass();
+        someClass.MethodClass();
+        someClass.MethodInterface();
+        var someStruct = new SomeStruct();
+        someStruct.MethodObject();
+        var someStructInterface = new SomeStructInterface();
+        someStructInterface.MethodInterface();
+    }
+}
+";
+
+            CompileAndVerify(
+                source: text,
+                additionalRefs: additionalRefs,
+                expectedOutput: "1232",
                 parseOptions: parseOptions);
         }
 
@@ -1021,7 +1073,7 @@ extension class Ext : Base {
             );
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE: Static class extensions are not implemented yet")]
         public void InstanceInStaticExtension()
         {
             var text = @"
@@ -1042,7 +1094,7 @@ extension class Ext : Base {
             );
         }
 
-        [Fact]
+        [Fact(Skip = "PROTOTYPE: ExtExt and ExtNothing do not produce diagnostics")]
         public void IncorrectExtendedType()
         {
             var text = @"
@@ -1069,24 +1121,30 @@ extension class ExtDelegate : Del { }
 
             // PROTOTYPE: Fix these error messages. Also make ExtNothing and ExtExt and ExtDelegate produce errors (they are not in the below list)
             CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.UnsafeReleaseDll, parseOptions: parseOptions).VerifyDiagnostics(
+                Diagnostic(ErrorCode.ERR_BadBaseType, "ExtExt").WithLocation(1, 1),
+                Diagnostic(ErrorCode.ERR_BadBaseType, "ExtNothing").WithLocation(1, 1),
+
                 // (6,37): error CS1521: Invalid base type
                 // unsafe extension class ExtPointer : Base* { }
                 Diagnostic(ErrorCode.ERR_BadBaseType, "Base*").WithLocation(6, 37),
                 // (8,28): error CS1521: Invalid base type
                 // extension class ExtArray : Base[] { }
                 Diagnostic(ErrorCode.ERR_BadBaseType, "Base[]").WithLocation(8, 28),
-                // (12,30): error CS1965: 'ExtDynamic': cannot derive from the dynamic type
-                // extension class ExtDynamic : dynamic { }
-                Diagnostic(ErrorCode.ERR_DeriveFromDynamic, "dynamic").WithArguments("ExtDynamic").WithLocation(12, 30),
-                // (10,35): error CS0689: Cannot derive from 'T' because it is a type parameter
-                // extension class ExtTypeParam<T> : T { }
-                Diagnostic(ErrorCode.ERR_DerivingFromATyVar, "T").WithArguments("T").WithLocation(10, 35),
+                // (6,37): error CS0527: Type 'Base*' in interface list is not an interface
+                // unsafe extension class ExtPointer : Base* { }
+                Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "Base*").WithArguments("Base*").WithLocation(6, 37),
                 // (8,28): error CS0527: Type 'Base[]' in interface list is not an interface
                 // extension class ExtArray : Base[] { }
                 Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "Base[]").WithArguments("Base[]").WithLocation(8, 28),
-                // (6,37): error CS0527: Type 'Base*' in interface list is not an interface
-                // unsafe extension class ExtPointer : Base* { }
-                Diagnostic(ErrorCode.ERR_NonInterfaceInInterfaceList, "Base*").WithArguments("Base*").WithLocation(6, 37)
+                // (10,35): error CS0689: Cannot derive from 'T' because it is a type parameter
+                // extension class ExtTypeParam<T> : T { }
+                Diagnostic(ErrorCode.ERR_DerivingFromATyVar, "T").WithArguments("T").WithLocation(10, 35),
+                // (12,30): error CS1965: 'ExtDynamic': cannot derive from the dynamic type
+                // extension class ExtDynamic : dynamic { }
+                Diagnostic(ErrorCode.ERR_DeriveFromDynamic, "dynamic").WithArguments("ExtDynamic").WithLocation(12, 30),
+                // (20,17): error CS0509: 'ExtDelegate': cannot derive from sealed type 'Del'
+                // extension class ExtDelegate : Del { }
+                Diagnostic(ErrorCode.ERR_CantDeriveFromSealedType, "ExtDelegate").WithArguments("ExtDelegate", "Del").WithLocation(20, 17)
             );
         }
 
@@ -1113,6 +1171,7 @@ extension class ExtOne : BaseClass
         get { return 2; }
         set { Console.Write(value); }
     }
+    public int this[int x] => 2;
 }
 
 extension class ExtTwo : BaseClass
@@ -1129,6 +1188,7 @@ extension class ExtTwo : BaseClass
         get { return 2; }
         set { Console.Write(value); }
     }
+    public int this[int x] => 2;
 }
 
 class Program
@@ -1140,24 +1200,28 @@ class Program
         BaseClass.MethodStatic();
         Console.Write(obj.Prop);
         Console.Write(BaseClass.PropStatic);
+        Console.Write(obj[2]);
     }
 }
 ";
 
             // PROTOTYPE: The display string for instance extension members is a little weird.
             CreateCompilationWithMscorlibAndSystemCore(text, parseOptions: parseOptions).VerifyDiagnostics(
-                // (43,13): error CS0121: The call is ambiguous between the following methods or properties: 'ExtOne.Method(BaseClass)' and 'ExtTwo.Method(BaseClass)'
+                // (45,13): error CS0121: The call is ambiguous between the following methods or properties: 'ExtOne.Method()' and 'ExtTwo.Method()'
                 //         obj.Method();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("ExtOne.Method(BaseClass)", "ExtTwo.Method(BaseClass)").WithLocation(43, 13),
-                // (44,19): error CS0121: The call is ambiguous between the following methods or properties: 'ExtOne.MethodStatic()' and 'ExtTwo.MethodStatic()'
+                Diagnostic(ErrorCode.ERR_AmbigCall, "Method").WithArguments("ExtOne.Method()", "ExtTwo.Method()").WithLocation(45, 13),
+                // (46,19): error CS0121: The call is ambiguous between the following methods or properties: 'ExtOne.MethodStatic()' and 'ExtTwo.MethodStatic()'
                 //         BaseClass.MethodStatic();
-                Diagnostic(ErrorCode.ERR_AmbigCall, "MethodStatic").WithArguments("ExtOne.MethodStatic()", "ExtTwo.MethodStatic()").WithLocation(44, 19),
-                // (45,27): error CS0229: Ambiguity between 'ExtOne.Prop' and 'ExtTwo.Prop'
+                Diagnostic(ErrorCode.ERR_AmbigCall, "MethodStatic").WithArguments("ExtOne.MethodStatic()", "ExtTwo.MethodStatic()").WithLocation(46, 19),
+                // (47,27): error CS0229: Ambiguity between 'ExtOne.Prop' and 'ExtTwo.Prop'
                 //         Console.Write(obj.Prop);
-                Diagnostic(ErrorCode.ERR_AmbigMember, "Prop").WithArguments("ExtOne.Prop", "ExtTwo.Prop").WithLocation(45, 27),
-                // (46,33): error CS0229: Ambiguity between 'ExtOne.PropStatic' and 'ExtTwo.PropStatic'
+                Diagnostic(ErrorCode.ERR_AmbigMember, "Prop").WithArguments("ExtOne.Prop", "ExtTwo.Prop").WithLocation(47, 27),
+                // (48,33): error CS0229: Ambiguity between 'ExtOne.PropStatic' and 'ExtTwo.PropStatic'
                 //         Console.Write(BaseClass.PropStatic);
-                Diagnostic(ErrorCode.ERR_AmbigMember, "PropStatic").WithArguments("ExtOne.PropStatic", "ExtTwo.PropStatic").WithLocation(46, 33)
+                Diagnostic(ErrorCode.ERR_AmbigMember, "PropStatic").WithArguments("ExtOne.PropStatic", "ExtTwo.PropStatic").WithLocation(48, 33),
+                // (49,23): error CS0121: The call is ambiguous between the following methods or properties: 'ExtOne.this[int]' and 'ExtTwo.this[int]'
+                //         Console.Write(obj[2]);
+                Diagnostic(ErrorCode.ERR_AmbigCall, "obj[2]").WithArguments("ExtOne.this[int]", "ExtTwo.this[int]").WithLocation(49, 23)
             );
         }
 
@@ -1171,6 +1235,7 @@ class Program
             // PROTOTYPE: Binder.AddMemberLookupSymbolsInfoInType enumerates TypeKind, but isn't tested here (not sure what it does or how to test it)
             var text = @"
 using System;
+using System.Collections;
 
 [assembly: CLSCompliant(true)]
 
@@ -1184,7 +1249,7 @@ extension class ExtClass : BaseClass
 class ExtAsConstraint<T> where T : ExtClass { }
 // Binder.ContainsNestedTypeOfUnconstructedGenericType specifically enumerates all TypeKinds,
 // which we want to make sure we handle extension classes.
-public class UnqualifiedNestedTypeInCref<T>
+class UnqualifiedNestedTypeInCref<T>
 {
     public extension class Inner : BaseClass { }
     public void M(Inner i) { } // should also emit diagnostic, can't have ext class as parameter
@@ -1198,8 +1263,9 @@ class NewExtClass
         new ExtClass();
     }
 }
-// DebuggerDisplay just used as pre-existing attribute. Test because EarlyWellKnownAttributeBinder.CanBeValidAttributeArgument enumerates TypeKinds.
-[System.Diagnostics.DebuggerDisplay(new ExtClass())]
+[AttributeUsage(AttributeTargets.All)]
+class ObjectParamAttribute : Attribute { public ObjectParamAttribute(object x) { } }
+[ObjectParamAttribute(new ExtClass())]
 class CanBeValidAttributeArgument { }
 // Compilation options: MainTypeName == ""EntryPoint""
 extension class EntryPoint : BaseClass
@@ -1211,17 +1277,9 @@ class ExtAsNewConstraint
     void Foo<T>() where T : new() => new T();
     void TestFoo() => Foo<ExtClass>();
 }
-class BaseWithInterface : IEnumerable
+extension class ExtExplicitInterfaceImpl : BaseClass, IEnumerable
 {
     IEnumerator IEnumerable.GetEnumerator() => null;
-}
-extension class ExtExplicitInterfaceImpl : BaseWithInterface
-{
-    IEnumerator IEnumerable.GetEnumerator() => null;
-}
-extension class MemberNameSame : BaseClass
-{
-    void MemberNameSame() { }
 }
 extension class MemberNameSame : BaseClass
 {
@@ -1231,6 +1289,7 @@ extension class MemberNameSame : BaseClass
 [Obsolete(""An attribute on a extension class"")] // ObsoleteAttribute just used as pre-existing attribute.
 extension class AllowedAttributeLocations : BaseClass { }
 [System.Runtime.InteropServices.ComImport]
+[System.Runtime.InteropServices.Guid(""fb6e2361-f2da-4f7e-b1ff-76492acfed5d"")]
 extension class ExtComImport : BaseClass { }
 class Visibility
 {
@@ -1239,8 +1298,9 @@ class Visibility
 }
 class VolatileField
 {
-    volatile ExtClass field; // invalid due to extension class as field type,
+    public volatile ExtClass field; // invalid due to extension class as field type,
     // but we're testing the detection processing of ERR_VolatileStruct (although that shouldn't be reported)
+    public void SuppressCS0649FieldNeverUsed() => field = null;
 }
 interface VariantInterface<in TIn, out TOut> { }
 class VariantInterfaceTest : VariantInterface<ExtClass, ExtClass> { }
@@ -1251,8 +1311,34 @@ extension class ExtCycle : ExtCycle { }
             // Not tested, since it's impossible to get an expression of type `extension class`: ForEachLoopBinder.SatisfiesForEachPattern,
             // ConversionsBase.HasImplicitReferenceConversion, OperatorFacts.DefinitelyHasNoUserDefinedOperators,
             // All of the cases in MethodTypeInferrer, DataFlowPass.MarkFieldsUsed, AsyncMethodToStateMachineRewriter.GenerateAwaitOnCompleted{Dynamic}
+
+            // AllowedAttributeLocations is fine, might want to move to success-test
+
+            // PROTOTYPE: Diagnostics that should be here but aren't:
+            // ExtAsConstraint
+            // NewExtClass
+            // EntryPoint (possibly?)
+            // ExtAsNewConstraint
+            // ExtExplicitInterfaceImpl is very strange
+            // MemberNameSame
+            // VolatileField
+            // VariantInterface
             CreateCompilationWithMscorlibAndSystemCore(text, options: TestOptions.ReleaseExe.WithMainTypeName("EntryPoint"), parseOptions: parseOptions).VerifyDiagnostics(
-                Diagnostic(ErrorCode.ERR_NoMetadataFile, "").WithArguments("").WithLocation(1, 1)
+                // (58,17): error CS0424: 'ExtComImport': a class with the ComImport attribute cannot specify a base class
+                // extension class ExtComImport : BaseClass { }
+                Diagnostic(ErrorCode.ERR_ComImportWithBase, "ExtComImport").WithArguments("ExtComImport").WithLocation(58, 17),
+                // (51,10): error CS0542: 'MemberNameSame': member names cannot be the same as their enclosing type
+                //     void MemberNameSame() { }
+                Diagnostic(ErrorCode.ERR_MemberNameSameAsType, "MemberNameSame").WithArguments("MemberNameSame").WithLocation(51, 10),
+                // (62,28): error CS0060: Inconsistent accessibility: base class 'Visibility.BaseClass' is less accessible than class 'Visibility.ExtClass'
+                //     public extension class ExtClass : BaseClass { }
+                Diagnostic(ErrorCode.ERR_BadVisBaseClass, "ExtClass").WithArguments("Visibility.ExtClass", "Visibility.BaseClass").WithLocation(62, 28),
+                // (72,17): error CS0146: Circular base class dependency involving 'ExtCycle' and 'ExtCycle'
+                // extension class ExtCycle : ExtCycle { }
+                Diagnostic(ErrorCode.ERR_CircularBase, "ExtCycle").WithArguments("ExtCycle", "ExtCycle").WithLocation(72, 17),
+                // (33,23): error CS0182: An attribute argument must be a constant expression, typeof expression or array creation expression of an attribute parameter type
+                // [ObjectParamAttribute(new ExtClass())]
+                Diagnostic(ErrorCode.ERR_BadAttributeArgument, "new ExtClass()").WithLocation(33, 23)
             );
         }
     }

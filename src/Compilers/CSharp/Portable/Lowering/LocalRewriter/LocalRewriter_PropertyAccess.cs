@@ -109,23 +109,5 @@ namespace Microsoft.CodeAnalysis.CSharp
                     rewrittenArguments);
             }
         }
-
-        private void RewritePossibleExtensionPropertyDonotuse(ref PropertySymbol property, ref BoundExpression receiver, ref ImmutableArray<BoundExpression> arguments)
-        {
-            // Rewrite extension class properties to their expanded forms.
-            // ExpandExtensionClassProperty has a check for IsInExtensionClass, so no need to check that twice.
-            var expandedProperty = property.ExpandExtensionClassProperty() ?? property;
-            if (expandedProperty.IsStatic && !property.IsStatic)
-            {
-                Debug.Assert(receiver != null);
-                // Method was rewritten from instance to static. Transfer receiver to first argument.
-                var builder = ArrayBuilder<BoundExpression>.GetInstance();
-                builder.Add(receiver);
-                builder.AddRange(arguments);
-                receiver = null;
-                arguments = builder.ToImmutableAndFree();
-            }
-            property = expandedProperty;
-        }
     }
 }
