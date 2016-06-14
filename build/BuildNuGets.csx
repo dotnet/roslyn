@@ -101,6 +101,7 @@ string[] NonRedistPackageNames = {
     "Microsoft.Net.Compilers",
     "Microsoft.Net.Compilers.netcore",
     "Microsoft.Net.CSharp.Interactive.netcore",
+    "Roslyn.VisualStudio.Test.Utilities",
 };
 
 string[] TestPackageNames = {
