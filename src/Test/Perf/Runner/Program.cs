@@ -20,8 +20,28 @@ namespace Runner
             return Environment.GetCommandLineArgs().Contains($"/{arg}") ||
                    Environment.GetCommandLineArgs().Contains($"--{arg}");
         }
+
+        private static string ValueForCommandLineKey(string key, string otherwise=null)
+        {
+            var args = Environment.GetCommandLineArgs().ToList();
+            var n = args.IndexOf($"/{key}");
+            n = (n == -1) ? args.IndexOf("--{key}") : n;
+
+            if (n == -1)
+            {
+                return otherwise;
+            }
+
+            if (args.Count == n)
+            {
+                return otherwise;
+            }
+
+            return args[n + 1];
+        }
+
         private static bool ShouldReportBenchview => LaunchedWithArgument("report-benchview");
-        private static bool ShouldUploadTrace => !LaunchedWithArgument("no-trace-upload");
+        private static bool ShouldUploadTrace => !LaunchedWithArgument("no-trace-upload") || ValueForCommandLineKey("trace-destination-location") == null;
         private static bool IsRunningUnderCI => LaunchedWithArgument("ci-test");
         public static void Main(string[] args)
         {
@@ -40,7 +60,7 @@ namespace Runner
             if (ShouldUploadTrace)
             {
                 Log("Uploading traces");
-                UploadTraces();
+                UploadTraces(CPCDirectoryPath, ValueForCommandLineKey("trace-destination-location", otherwise: @"\\mlangfs1\public\basoundr\PerfTraces"));
             }
         }
 
