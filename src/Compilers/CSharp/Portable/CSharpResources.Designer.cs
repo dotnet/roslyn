@@ -2987,7 +2987,7 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Tuple with &apos;{0}&apos; elements cannot be converted to type &apos;{1}&apos;..
+        ///   Looks up a localized string similar to Tuple with {0} elements cannot be converted to type &apos;{1}&apos;..
         /// </summary>
         internal static string ERR_ConversionNotTupleCompatible {
             get {
