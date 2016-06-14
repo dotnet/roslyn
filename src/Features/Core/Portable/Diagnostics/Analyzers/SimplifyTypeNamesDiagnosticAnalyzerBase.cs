@@ -48,6 +48,13 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
                                                                     DiagnosticSeverity.Info,
                                                                     isEnabledByDefault: true,
                                                                     customTags: DiagnosticCustomTags.Unnecessary);
+        private static readonly DiagnosticDescriptor s_descriptorRemoveThisOrMeSuggestion = new DiagnosticDescriptor(IDEDiagnosticIds.RemoveQualificationDiagnosticId,
+                                                                    s_localizableTitleRemoveThisOrMe,
+                                                                    s_localizableMessage,
+                                                                    DiagnosticCategory.Style,
+                                                                    DiagnosticSeverity.Suggestion,
+                                                                    isEnabledByDefault: true,
+                                                                    customTags: DiagnosticCustomTags.Unnecessary);
         private static readonly DiagnosticDescriptor s_descriptorRemoveThisOrMeWarning = new DiagnosticDescriptor(IDEDiagnosticIds.RemoveQualificationDiagnosticId,
                                                                     s_localizableTitleRemoveThisOrMe,
                                                                     s_localizableMessage,
@@ -149,6 +156,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.SimplifyTypeNames
                     return s_descriptorRemoveThisOrMeHidden;
                 case DiagnosticSeverity.Info:
                     return s_descriptorRemoveThisOrMeInfo;
+                case DiagnosticSeverity.Suggestion:
+                    return s_descriptorRemoveThisOrMeSuggestion;
                 case DiagnosticSeverity.Warning:
                     return s_descriptorRemoveThisOrMeWarning;
                 case DiagnosticSeverity.Error:

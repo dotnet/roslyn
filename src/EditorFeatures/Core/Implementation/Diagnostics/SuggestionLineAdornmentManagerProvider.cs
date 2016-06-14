@@ -25,7 +25,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         [Export]
         [Name(LayerName)]
         [ContentType(ContentTypeNames.RoslynContentType)]
-        [Order(After = PredefinedAdornmentLayers.Selection, Before = PredefinedAdornmentLayers.Squiggle)]
+        [Order(After = PredefinedAdornmentLayers.Selection)]
+        [Order(After = PredefinedAdornmentLayers.Squiggle)]
 #pragma warning disable 0169
         private readonly AdornmentLayerDefinition _lineSeparatorLayer;
 #pragma warning restore 0169

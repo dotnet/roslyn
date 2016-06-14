@@ -1,12 +1,8 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
-using System.Windows;
-using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
 using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
-using Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators;
 using Microsoft.VisualStudio.Text.Editor;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
@@ -41,22 +37,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
         /// <summary>
         /// Creates a very long line at the bottom of bounds.
         /// </summary>
-        public override GraphicsResult GetGraphics(IWpfTextView view, Geometry bounds)
+        public override GraphicsResult GetGraphics(IWpfTextView view, Geometry geometry)
         {
             Initialize(view);
 
+            // We clip off a bit off the start of the line to prevent a half-square being
+            // drawn.
+            var clipRectangle = geometry.Bounds;
+            clipRectangle.Offset(1, 0);
+
             var line = new Line
             {
-                Width = bounds.Bounds.Width,
-                X2 = bounds.Bounds.BottomLeft.X,
-                Y1 = bounds.Bounds.BottomLeft.Y - s_pen.Thickness,
-                X1 = bounds.Bounds.BottomRight.X,
-                Y2 = bounds.Bounds.BottomRight.Y - s_pen.Thickness,
+                X1 = geometry.Bounds.Left,
+                Y1 = geometry.Bounds.Bottom - s_pen.Thickness,
+                X2 = geometry.Bounds.Right,
+                Y2 = geometry.Bounds.Bottom - s_pen.Thickness,
+                Clip = new RectangleGeometry { Rect = clipRectangle }
             };
             RenderOptions.SetEdgeMode(line, EdgeMode.Aliased);
 
             ApplyPen(line, s_pen);
 
+            // Shift the line over to offset the clipping we did.
+            line.RenderTransform = new TranslateTransform(-s_pen.Thickness, 0);
             return new GraphicsResult(line, null);
         }
 
