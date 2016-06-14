@@ -382,6 +382,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             return _documents.Values.ToImmutableArrayOrEmpty();
         }
 
+        public IEnumerable<IVisualStudioHostDocument> GetCurrentAdditionalDocuments()
+        {
+            return _additionalDocuments.Values.ToImmutableArrayOrEmpty();
+        }
+
         public bool ContainsFile(string moniker)
         {
             return _documentMonikers.ContainsKey(moniker);
@@ -993,11 +998,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 // Unsubscribe IVsHierarchyEvents
                 DisconnectHierarchyEvents();
 
+                var wasPushing = _pushingChangesToWorkspaceHosts;
+
+                // disable pushing down to workspaces, so we don't get redundant workspace document removed events
+                _pushingChangesToWorkspaceHosts = false;
+
                 // The project is going away, so let's remove ourselves from the host. First, we
                 // close and dispose of any remaining documents
                 foreach (var document in this.GetCurrentDocuments())
                 {
                     UninitializeDocument(document);
+                }
+
+                foreach (var document in this.GetCurrentAdditionalDocuments())
+                {
+                    UninitializeAdditionalDocument(document);
                 }
 
                 // Dispose metadata references.
@@ -1025,7 +1040,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
 
                 ClearAnalyzerRuleSet();
 
+                // reinstate pushing down to workspace, so the workspace project remove event fires
+                _pushingChangesToWorkspaceHosts = wasPushing;
+
                 this.ProjectTracker.RemoveProject(this);
+
+                _pushingChangesToWorkspaceHosts = false;
             }
         }
 
