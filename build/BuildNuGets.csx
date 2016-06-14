@@ -113,7 +113,6 @@ string[] TestPackageNames = {
 // the following packages will only be publised on myget not on nuget:
 var PreReleaseOnlyPackages = new HashSet<string>
 {
-    "Microsoft.CodeAnalysis.EditorFeatures",
     "Microsoft.CodeAnalysis.VisualBasic.Scripting",
     "Microsoft.Net.Compilers.netcore",
     "Microsoft.Net.CSharp.Interactive.netcore",
