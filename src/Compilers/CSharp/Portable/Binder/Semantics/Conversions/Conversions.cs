@@ -707,7 +707,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return false;
             }
 
-            ImmutableArray<TypeSymbol> targetElementTypes = destination.GetElementTypesIfTupleOrCompatible();
+            ImmutableArray<TypeSymbol> targetElementTypes = destination.GetElementTypesOfTupleOrCompatible();
             Debug.Assert(arguments.Length == targetElementTypes.Length);
 
             // check arguments against flattened list of target element types 

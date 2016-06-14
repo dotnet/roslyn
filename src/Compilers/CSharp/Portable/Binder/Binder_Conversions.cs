@@ -357,7 +357,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             var arguments = sourceTuple.Arguments;
             var convertedArguments = ArrayBuilder<BoundExpression>.GetInstance(arguments.Length);
 
-            ImmutableArray<TypeSymbol> targetElementTypes = targetType.GetElementTypesIfTupleOrCompatible();
+            ImmutableArray<TypeSymbol> targetElementTypes = targetType.GetElementTypesOfTupleOrCompatible();
             Debug.Assert(targetElementTypes.Length == arguments.Length, "converting a tuple literal to incompatible type?");
 
             for (int i = 0; i < arguments.Length; i++)
