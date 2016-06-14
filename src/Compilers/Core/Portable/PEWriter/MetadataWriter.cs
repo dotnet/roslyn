@@ -2131,79 +2131,89 @@ namespace Microsoft.Cci
 
         private void PopulateExportedTypeTableRows()
         {
-            if (this.IsFullMetadata)
+            if (!IsFullMetadata)
             {
-                metadata.SetCapacity(TableIndex.ExportedType, NumberOfTypeDefsEstimate);
+                return;
+            }
 
-                foreach (ITypeReference exportedType in this.module.GetExportedTypes(Context))
+            metadata.SetCapacity(TableIndex.ExportedType, NumberOfTypeDefsEstimate);
+
+            foreach (ITypeReference exportedType in module.GetExportedTypes(Context))
+            {
+                INestedTypeReference nestedRef;
+                INamespaceTypeReference namespaceTypeRef;
+                int typeDefinitionId;
+                TypeAttributes attributes;
+                StringHandle typeName;
+                StringHandle typeNamespace;
+                EntityHandle implementation;
+
+                if ((namespaceTypeRef = exportedType.AsNamespaceTypeReference) != null)
                 {
-                    INestedTypeReference nestedRef;
-                    INamespaceTypeReference namespaceTypeRef;
+                    string mangledTypeName = GetMangledName(namespaceTypeRef);
+                    typeName = this.GetStringHandleForNameAndCheckLength(mangledTypeName, namespaceTypeRef);
+                    typeNamespace = this.GetStringHandleForNamespaceAndCheckLength(namespaceTypeRef, mangledTypeName);
+                    implementation = GetExportedTypeImplementation(namespaceTypeRef);
 
-                    TypeFlags flags;
-                    int typeDefinitionId = MetadataTokens.GetToken(exportedType.TypeDef);
-                    StringHandle typeName;
-                    StringHandle typeNamespace;
-                    EntityHandle implementation;
-
-                    if ((namespaceTypeRef = exportedType.AsNamespaceTypeReference) != null)
+                    if (implementation.Kind == HandleKind.AssemblyReference)
                     {
-                        flags = TypeFlags.PublicAccess;
-
-                        string mangledTypeName = GetMangledName(namespaceTypeRef);
-                        typeName = this.GetStringHandleForNameAndCheckLength(mangledTypeName, namespaceTypeRef);
-                        typeNamespace = this.GetStringHandleForNamespaceAndCheckLength(namespaceTypeRef, mangledTypeName);
-                        implementation = GetExportedTypeImplementation(namespaceTypeRef);
-
-                        if (implementation.Kind == HandleKind.AssemblyReference)
-                        {
-                            flags = TypeFlags.PrivateAccess | TypeFlags.ForwarderImplementation;
-                            typeDefinitionId = 0; // Must be cleared for type forwarders.
-                        }
-                    }
-                    else if ((nestedRef = exportedType.AsNestedTypeReference) != null)
-                    {
-                        flags = TypeFlags.NestedPublicAccess;
-                        typeName = this.GetStringHandleForNameAndCheckLength(GetMangledName(nestedRef), nestedRef);
-                        typeNamespace = default(StringHandle);
-
-                        ITypeReference containingType = nestedRef.GetContainingType(Context);
-
-                        int exportedTypeIndex = _exportedTypeIndex[containingType];
-                        implementation = MetadataTokens.ExportedTypeHandle(exportedTypeIndex);
-
-                        var parentFlags = (TypeFlags)metadata.GetExportedTypeFlags(exportedTypeIndex - 1);
-                        if (parentFlags == TypeFlags.PrivateAccess)
-                        {
-                            flags = TypeFlags.PrivateAccess;
-                        }
-
-                        ITypeReference topLevelType = containingType;
-                        INestedTypeReference tmp;
-                        while ((tmp = topLevelType.AsNestedTypeReference) != null)
-                        {
-                            topLevelType = tmp.GetContainingType(Context);
-                        }
-
-                        var topLevelFlags = (TypeFlags)metadata.GetExportedTypeFlags(_exportedTypeIndex[topLevelType] - 1);
-                        if ((topLevelFlags & TypeFlags.ForwarderImplementation) != 0)
-                        {
-                            flags = TypeFlags.PrivateAccess;
-                            typeDefinitionId = 0; // Must be cleared for type forwarders and types they contain.
-                        }
+                        attributes = TypeAttributes.NotPublic | Constants.TypeAttributes_TypeForwarder;
+                        typeDefinitionId = 0; // Must be 0 for type forwarders.
                     }
                     else
                     {
-                        throw ExceptionUtilities.UnexpectedValue(exportedType);
+                        attributes = TypeAttributes.Public;
+                        typeDefinitionId = MetadataTokens.GetToken(exportedType.TypeDef);
+                    }
+                }
+                else if ((nestedRef = exportedType.AsNestedTypeReference) != null)
+                {
+                    typeName = this.GetStringHandleForNameAndCheckLength(GetMangledName(nestedRef), nestedRef);
+                    typeNamespace = default(StringHandle);
+
+                    ITypeReference containingType = nestedRef.GetContainingType(Context);
+                    ITypeReference topLevelType = containingType;
+                    INestedTypeReference tmp;
+                    while ((tmp = topLevelType.AsNestedTypeReference) != null)
+                    {
+                        topLevelType = tmp.GetContainingType(Context);
                     }
 
-                    metadata.AddExportedType(
-                        attributes: (TypeAttributes)flags,
-                        @namespace: typeNamespace,
-                        name: typeName,
-                        implementation: implementation,
-                        typeDefinitionId: typeDefinitionId);
+                    implementation = MetadataTokens.ExportedTypeHandle(_exportedTypeIndex[containingType]);
+
+                    var topLevelFlags = (TypeAttributes)metadata.GetExportedTypeFlags(_exportedTypeIndex[topLevelType] - 1);
+                    if ((topLevelFlags & Constants.TypeAttributes_TypeForwarder) != 0)
+                    {
+                        attributes = TypeAttributes.NotPublic;
+                        typeDefinitionId = 0; // Must be 0 for type forwarders and types they contain.
+                    }
+                    else
+                    {
+                        var parentFlags = (TypeAttributes)metadata.GetExportedTypeFlags(_exportedTypeIndex[containingType] - 1);
+
+                        if (parentFlags == TypeAttributes.NotPublic)
+                        {
+                            attributes = TypeAttributes.NotPublic;
+                        }
+                        else
+                        {
+                            attributes = TypeAttributes.NestedPublic;
+                        }
+
+                        typeDefinitionId = MetadataTokens.GetToken(exportedType.TypeDef);
+                    }
                 }
+                else
+                {
+                    throw ExceptionUtilities.UnexpectedValue(exportedType);
+                }
+
+                metadata.AddExportedType(
+                    attributes: (TypeAttributes)attributes,
+                    @namespace: typeNamespace,
+                    name: typeName,
+                    implementation: implementation,
+                    typeDefinitionId: typeDefinitionId);
             }
         }
 
