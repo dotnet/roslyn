@@ -49,9 +49,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             {
                 Width = bounds.Bounds.Width,
                 X2 = bounds.Bounds.BottomLeft.X,
-                Y1 = bounds.Bounds.BottomLeft.Y - 2,
+                Y1 = bounds.Bounds.BottomLeft.Y - s_pen.Thickness,
                 X1 = bounds.Bounds.BottomRight.X,
-                Y2 = bounds.Bounds.BottomRight.Y - 2,
+                Y2 = bounds.Bounds.BottomRight.Y - s_pen.Thickness,
             };
             RenderOptions.SetEdgeMode(line, EdgeMode.Aliased);
 
