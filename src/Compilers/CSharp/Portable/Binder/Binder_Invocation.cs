@@ -1079,6 +1079,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // If there is only one non-generic method in the group and no additional extension methods with the same lookup viability,
                 // we should attempt to bind the argument list (particularly, lambdas appearing therein) to its parameter types.
+                // However, if it was generic we don't want to bind to its (possibly unsubstituted) parameters, and instead we rely on the
+                // compiler's previous binding of any lambda arguments to parameters that occurred when identifying method candidates.
                 method = methods[0];
                 args = BuildArgumentsForErrorRecovery(analyzedArguments, method.Parameters);
             }
