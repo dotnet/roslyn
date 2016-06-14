@@ -244,7 +244,7 @@ void GeneratePublishingConfig(string[] roslynPackageNames)
 
 bool IsReleaseVersion(string version) => !version.Contains('-');
 Directory.CreateDirectory(OutDir);
-var ErrorLogFile = Path.Combine(OutDir, "ERRORS.txt");
+var ErrorLogFile = Path.Combine(OutDir, "skipped_packages.txt");
 try
 {
     if (File.Exists(ErrorLogFile)) File.Delete(ErrorLogFile);
