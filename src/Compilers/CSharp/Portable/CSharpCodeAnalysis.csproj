@@ -85,6 +85,7 @@
     <Compile Include="Binder\Binder_Patterns.cs" />
     <Compile Include="Binder\Binder_Query.cs" />
     <Compile Include="Binder\Binder_QueryErrors.cs" />
+    <Compile Include="Binder\Binder_Deconstruct.cs" />
     <Compile Include="Binder\Binder_Statements.cs" />
     <Compile Include="Binder\Binder_Symbols.cs" />
     <Compile Include="Binder\Binder_Unsafe.cs" />
