@@ -104,7 +104,9 @@ namespace Microsoft.CodeAnalysis.Execution
         private Task<Asset> CreateMetadataReferenceAsync(MetadataReference reference, string kind, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return Task.FromResult<Asset>(new Asset<MetadataReference>(reference, kind, _serializer.Serialize));
+
+            var checksum = _serializer.HostSerializationService.CreateChecksum(reference, cancellationToken);
+            return Task.FromResult<Asset>(new MetadataReferenceAsset(_serializer, reference, checksum, kind));
         }
 
         private Task<Asset> CreateAnalyzerReferenceAsync(AnalyzerReference reference, string kind, CancellationToken cancellationToken)

@@ -82,7 +82,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 await VerifyAssetSerializationAsync<MetadataReference>(
                     service, solution, metadataReference, WellKnownChecksumObjects.MetadataReference,
-                    (v, k, s) => new Asset<MetadataReference>(v, k, s.Serialize));
+                    (v, k, s) => new MetadataReferenceAsset(s, v, s.HostSerializationService.CreateChecksum(v, CancellationToken.None), k));
             }
 
             foreach (var analyzerReference in projectId.AnalyzerReferences.Objects)

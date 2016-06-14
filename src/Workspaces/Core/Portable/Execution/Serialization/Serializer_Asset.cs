@@ -104,6 +104,8 @@ namespace Microsoft.CodeAnalysis.Execution
             writer.WriteInt32((int)text.ChecksumAlgorithm);
             writer.WriteString(text.Encoding?.WebName);
 
+            // TODO: refactor this part in its own abstraction (Bits) that has multiple sub types
+            //       rather than using enums
             if (storage != null && storage.Name != null)
             {
                 writer.WriteInt32((int)SerializationKinds.MemoryMapFile);
@@ -209,25 +211,25 @@ namespace Microsoft.CodeAnalysis.Execution
         public void Serialize(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            _hostSerializationService.WriteTo(reference, writer, cancellationToken);
+            HostSerializationService.WriteTo(reference, writer, cancellationToken);
         }
 
         private MetadataReference DeserializeMetadataReference(ObjectReader reader, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return _hostSerializationService.ReadMetadataReferenceFrom(reader, cancellationToken);
+            return HostSerializationService.ReadMetadataReferenceFrom(reader, cancellationToken);
         }
 
         public void Serialize(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            _hostSerializationService.WriteTo(reference, writer, cancellationToken);
+            HostSerializationService.WriteTo(reference, writer, cancellationToken);
         }
 
         private AnalyzerReference DeserializeAnalyzerReference(ObjectReader reader, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return _hostSerializationService.ReadAnalyzerReferenceFrom(reader, cancellationToken);
+            return HostSerializationService.ReadAnalyzerReferenceFrom(reader, cancellationToken);
         }
 
         public void Serialize(SolutionId solutionId, ObjectWriter writer, CancellationToken cancellationToken)

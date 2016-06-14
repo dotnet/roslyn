@@ -15,14 +15,15 @@ namespace Microsoft.CodeAnalysis.Execution
     internal partial class Serializer
     {
         private readonly HostWorkspaceServices _workspaceServices;
-        private readonly IReferenceSerializationService _hostSerializationService;
         private readonly ConcurrentDictionary<string, ILanguageSpecificSerializationService> _lazyLanguageSerializationService;
+
+        public readonly IReferenceSerializationService HostSerializationService;
 
         public Serializer(HostWorkspaceServices workspaceServices)
         {
             _workspaceServices = workspaceServices;
 
-            _hostSerializationService = _workspaceServices.GetService<IReferenceSerializationService>();
+            HostSerializationService = _workspaceServices.GetService<IReferenceSerializationService>();
             _lazyLanguageSerializationService = new ConcurrentDictionary<string, ILanguageSpecificSerializationService>(concurrencyLevel: 2, capacity: _workspaceServices.SupportedLanguages.Count());
         }
 
@@ -79,6 +80,7 @@ namespace Microsoft.CodeAnalysis.Execution
         }
     }
 
+    // TODO: convert this to sub class rather than using enum with if statement.
     internal enum SerializationKinds
     {
         Bits,

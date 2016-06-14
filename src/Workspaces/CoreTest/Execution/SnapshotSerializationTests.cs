@@ -4,8 +4,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Execution;
+using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
+using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
@@ -310,6 +312,44 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
                     // project unchanged are same
                     Assert.True(object.ReferenceEquals(solutionId1.Projects.Objects[1], solutionId2.Projects.Objects[1]));
+                }
+            }
+        }
+
+        [Fact]
+        public async Task MetadataReference_RoundTrip_Test()
+        {
+            var hostServices = MefHostServices.Create(
+                MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
+
+            var workspace = new AdhocWorkspace(hostServices);
+            var reference = MetadataReference.CreateFromFile(typeof(object).Assembly.Location);
+
+            var serializer = new Serializer(workspace.Services);
+            var snapshotStorages = new SnapshotStorages(serializer);
+            var assetBuilder = new AssetBuilder(serializer, snapshotStorages.CreateSnapshotStorage(workspace.CurrentSolution));
+
+            var assetFromFile = await assetBuilder.BuildAsync(reference, CancellationToken.None).ConfigureAwait(false);
+            var assetFromStorage = await CloneAssetAsync(serializer, assetBuilder, assetFromFile).ConfigureAwait(false);
+            var assetFromStorage2 = await CloneAssetAsync(serializer, assetBuilder, assetFromStorage).ConfigureAwait(false);
+        }
+
+        private static async Task<Asset> CloneAssetAsync(Serializer serializer, AssetBuilder assetBuilder, Asset asset)
+        {
+            using (var stream = SerializableBytes.CreateWritableStream())
+            using (var writer = new ObjectWriter(stream))
+            {
+                await asset.WriteToAsync(writer, CancellationToken.None).ConfigureAwait(false);
+
+                stream.Position = 0;
+                using (var reader = new ObjectReader(stream))
+                {
+                    var recovered = serializer.Deserialize<MetadataReference>(WellKnownChecksumObjects.MetadataReference, reader, CancellationToken.None);
+                    var assetFromStorage = await assetBuilder.BuildAsync(recovered, CancellationToken.None).ConfigureAwait(false);
+
+                    Assert.Equal(asset.Checksum, assetFromStorage.Checksum);
+
+                    return assetFromStorage;
                 }
             }
         }

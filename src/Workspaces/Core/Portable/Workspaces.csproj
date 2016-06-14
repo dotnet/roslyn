@@ -353,7 +353,8 @@
     <Compile Include="Execution\Serialization\Checksum.cs" />
     <Compile Include="Execution\Serialization\Checksum_Factory.cs" />
     <Compile Include="Execution\Serialization\HierarchicalChecksumObject.cs" />
-    <Compile Include="Execution\Serialization\ReferenceSerializationService.cs" />
+    <Compile Include="Execution\Serialization\AbstractReferenceSerializationService.cs" />
+    <Compile Include="Execution\Serialization\ReferenceSerializationServiceFactory.cs" />
     <Compile Include="Execution\Serialization\IReferenceSerializationService.cs" />
     <Compile Include="Execution\Serialization\ILanguageSpecificSerializationService.cs" />
     <Compile Include="Execution\Serialization\LanguageSpecificSerializationService.cs" />

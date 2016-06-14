@@ -64,6 +64,29 @@ namespace Microsoft.CodeAnalysis.Execution
         }
     }
 
+    internal sealed class MetadataReferenceAsset : Asset
+    {
+        // TODO: change this to recoverable text rather than document state
+        private readonly Serializer _serializer;
+        private readonly MetadataReference _reference;
+
+        public MetadataReferenceAsset(Serializer serializer, MetadataReference reference, Checksum checksum, string kind) :
+            base(checksum, WellKnownChecksumObjects.MetadataReference)
+        {
+            Contract.Requires(kind == WellKnownChecksumObjects.MetadataReference);
+
+            _serializer = serializer;
+            _reference = reference;
+        }
+
+        public override Task WriteToAsync(ObjectWriter writer, CancellationToken cancellationToken)
+        {
+            _serializer.Serialize(_reference, writer, cancellationToken);
+
+            return SpecializedTasks.EmptyTask;
+        }
+    }
+
     internal sealed class SourceTextAsset : Asset
     {
         // TODO: change this to recoverable text rather than document state
@@ -82,6 +105,8 @@ namespace Microsoft.CodeAnalysis.Execution
         public override async Task WriteToAsync(ObjectWriter writer, CancellationToken cancellationToken)
         {
             var text = await _state.GetTextAsync(cancellationToken).ConfigureAwait(false);
+
+            // TODO: make TextDocumentState to implement ISupportTemporaryStorage?
             _serializer.Serialize(_state.Storage as ITemporaryTextStorage2, text, writer, cancellationToken);
         }
     }
