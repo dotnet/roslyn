@@ -2673,7 +2673,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var tuple = (BoundTupleLiteral)expression;
                 var targetElementTypes = default(ImmutableArray<TypeSymbol>);
 
-                // If target is a tuple or compatible type with same nummer of elements,
+                // If target is a tuple or compatible type with the same number of elements,
                 // report errors for tuple arguments that failed to convert, which would be more useful.
                 if (targetType.TryGetElementTypesIfTupleOrCompatible(out targetElementTypes) && 
                     targetElementTypes.Length == tuple.Arguments.Length)
@@ -2757,7 +2757,10 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // report all leaf elements of the tuple literal that failed to convert
             // NOTE: we are not responsible for reporting use site errors here, just the failed leaf conversions.
-            HashSet<DiagnosticInfo> usDiagsUnused = null;
+            // By the time we get here we have done analysis and know we have failed the cast in general, and diagnostics collected in the process is already in the bag. 
+            // The only thing left is to form a diagnostics about the actually failing conversion(s).
+            // This whole method does not itself collect any usesite diagnostics. Its only purpose is to produce an error better than "conversion failed here"           
+            HashSet <DiagnosticInfo> usDiagsUnused = null;
 
             for (int i = 0; i < targetElementTypes.Length; i++)
             {
