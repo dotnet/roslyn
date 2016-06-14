@@ -56,6 +56,9 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                 case DiagnosticSeverity.Info:
                     notificationOption = NotificationOption.Info;
                     break;
+                case DiagnosticSeverity.Suggestion:
+                    notificationOption = NotificationOption.Suggestion;
+                    break;
                 case DiagnosticSeverity.Warning:
                     notificationOption = NotificationOption.Warning;
                     break;

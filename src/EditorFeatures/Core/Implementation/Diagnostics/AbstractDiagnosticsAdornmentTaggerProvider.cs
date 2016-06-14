@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             return new TagSpan<TTag>(adjustedSpan, errorTag);
         }
 
-        private static SnapshotSpan AdjustSnapshotSpan(SnapshotSpan span, int minimumLength)
+        protected virtual SnapshotSpan AdjustSnapshotSpan(SnapshotSpan span, int minimumLength)
         {
             var snapshot = span.Snapshot;
 

@@ -40,6 +40,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
 
             switch (EnforcementLevel.Value)
             {
+                case CodeAnalysis.DiagnosticSeverity.Suggestion:
                 case CodeAnalysis.DiagnosticSeverity.Hidden:
                     return KnownMonikers.None;
                 case CodeAnalysis.DiagnosticSeverity.Info:

@@ -9,7 +9,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
+namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 {
     /// <summary>
     /// This factory is called to create the view service that will manage line separators.
@@ -17,10 +17,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
     [Export(typeof(IWpfTextViewCreationListener))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TextViewRole(PredefinedTextViewRoles.Document)]
-    internal class LineSeparatorAdornmentManagerProvider :
-        AbstractAdornmentManagerProvider<LineSeparatorTag>
+    internal class SuggestionLineAdornmentManagerProvider :
+        AbstractAdornmentManagerProvider<SuggestionLineTag>
     {
-        private const string LayerName = "RoslynLineSeparator";
+        private const string LayerName = "RoslynSuggestions";
 
         [Export]
         [Name(LayerName)]
@@ -31,14 +31,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
 #pragma warning restore 0169
 
         [ImportingConstructor]
-        public LineSeparatorAdornmentManagerProvider(
+        public SuggestionLineAdornmentManagerProvider(
             IViewTagAggregatorFactoryService tagAggregatorFactoryService,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
             : base(tagAggregatorFactoryService, asyncListeners)
         {
         }
 
-        protected override string FeatureAttributeName => FeatureAttribute.LineSeparators;
+        protected override string FeatureAttributeName => FeatureAttribute.ErrorSquiggles;
         protected override string AdornmentLayerName => LayerName;
     }
 }

@@ -179,7 +179,17 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     return false;
                 }
 
-                return diagnostic?.Severity != DiagnosticSeverity.Hidden;
+                switch (diagnostic.Severity)
+                {
+                    case DiagnosticSeverity.Info:
+                    case DiagnosticSeverity.Warning:
+                    case DiagnosticSeverity.Error:
+                        return true;
+                    case DiagnosticSeverity.Hidden:
+                    case DiagnosticSeverity.Suggestion:
+                    default:
+                        return false;
+                }
             }
 
             private static IEnumerable<TableItem<DiagnosticData>> Order(IEnumerable<TableItem<DiagnosticData>> groupedItems)
