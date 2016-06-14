@@ -10,7 +10,7 @@ using Xunit;
 namespace Roslyn.VisualStudio.IntegrationTests.CSharp
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class CSharpIntelliSense : EditorTestFixture
+    public class CSharpIntelliSense : AbstractEditorTests
     {
         protected override string LanguageName => LanguageNames.CSharp;
 

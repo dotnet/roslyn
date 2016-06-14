@@ -11,13 +11,13 @@ using Xunit;
 
 namespace Roslyn.VisualStudio.IntegrationTests
 {
-    public abstract class EditorTestFixture : IDisposable
+    public abstract class AbstractEditorTests : IDisposable
     {
         private readonly VisualStudioInstanceContext _visualStudio;
         private readonly VisualStudioWorkspace_OutOfProc _visualStudioWorkspace;
         private readonly Editor_OutOfProc _editor;
 
-        protected EditorTestFixture(VisualStudioInstanceFactory instanceFactory, string solutionName)
+        protected AbstractEditorTests(VisualStudioInstanceFactory instanceFactory, string solutionName)
         {
             _visualStudio = instanceFactory.GetNewOrUsedInstance();
 

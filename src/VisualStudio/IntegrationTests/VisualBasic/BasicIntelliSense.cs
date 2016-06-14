@@ -9,7 +9,7 @@ using Xunit;
 namespace Roslyn.VisualStudio.IntegrationTests.VisualBasic
 {
     [Collection(nameof(SharedIntegrationHostFixture))]
-    public class BasicIntelliSense : EditorTestFixture
+    public class BasicIntelliSense : AbstractEditorTests
     {
         protected override string LanguageName => LanguageNames.VisualBasic;
 
