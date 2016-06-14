@@ -4887,4 +4887,7 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_OptionMustBeAbsolutePath" xml:space="preserve">
     <value>Option '{0}' must be an absolute path.</value>
   </data>
+  <data name="ERR_ConversionNotTupleCompatible" xml:space="preserve">
+    <value>Tuple with '{0}' elements cannot be converted to type '{1}'.</value>
+  </data>
 </root>

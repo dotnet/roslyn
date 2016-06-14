@@ -843,7 +843,7 @@ class C
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, @"(1, ""hello"", 2)").WithArguments("(int, string, int)", "(int, string)").WithLocation(6, 27));
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/11282")]
+        [Fact]
         [WorkItem(11282, "https://github.com/dotnet/roslyn/issues/11282")]
         public void TupleTypeMismatch_02()
         {
@@ -858,7 +858,10 @@ class C
 " + trivial2uple + trivial3uple;
 
             CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature()).VerifyDiagnostics(
-                );
+                // (6,27): error CS8206: Tuple with '3' elements cannot be converted to type '(int, string)'.
+                //         (int, string) x = (1, null, 2);
+                Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "(1, null, 2)").WithArguments("3", "(int, string)").WithLocation(6, 27)
+            );
         }
 
         [Fact]
@@ -877,9 +880,9 @@ class C
 ";
 
             CreateCompilationWithMscorlib(source, references: new[] { ValueTupleRef, SystemRuntimeFacadeRef }, parseOptions: TestOptions.Regular.WithTuplesFeature()).VerifyDiagnostics(
-                // (6,54): error CS0029: Cannot implicitly convert type '(string, int, int, int, int, int, int, int)' to '(int, int, int, int, int, int, int, int)'
+                // (6,55): error CS0029: Cannot implicitly convert type 'string' to 'int'
                 //         (int, int, int, int, int, int, int, int) x = ("Alice", 2, 3, 4, 5, 6, 7, 8);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"(""Alice"", 2, 3, 4, 5, 6, 7, 8)").WithArguments("(string, int, int, int, int, int, int, int)", "(int, int, int, int, int, int, int, int)").WithLocation(6, 54),
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""Alice""").WithArguments("string", "int").WithLocation(6, 55),
                 // (7,54): error CS0029: Cannot implicitly convert type '(int, int, int, int, int, int, int, int, int)' to '(int, int, int, int, int, int, int, int)'
                 //         (int, int, int, int, int, int, int, int) y = (1, 2, 3, 4, 5, 6, 7, 8, 9);
                 Diagnostic(ErrorCode.ERR_NoImplicitConv, "(1, 2, 3, 4, 5, 6, 7, 8, 9)").WithArguments("(int, int, int, int, int, int, int, int, int)", "(int, int, int, int, int, int, int, int)").WithLocation(7, 54)
@@ -3583,9 +3586,9 @@ class C2 : I<CB, CA>
                 // (15,25): error CS0425: The constraints for type parameter 'TC' of method 'C1.M<TC>((CB, (CA, TC)))' must match the constraints for type parameter 'TC' of interface method 'I<CB, CA>.M<TC>((CB, (CA, TC)))'. Consider using an explicit interface implementation instead.
                 //     public (CB, CA, TC) M<TC>((CB, (CA, TC)) arg)
                 Diagnostic(ErrorCode.ERR_ImplBadConstraints, "M").WithArguments("TC", "C1.M<TC>((CB, (CA, TC)))", "TC", "I<CB, CA>.M<TC>((CB, (CA, TC)))").WithLocation(15, 25),
-                // (25,16): error CS0029: Cannot implicitly convert type '(CA, CB, TC)' to '(CB, CA, TC)'
+                // (25,17): error CS0029: Cannot implicitly convert type 'CA' to 'CB'
                 //         return (arg.Item2.Item1, arg.Item1, arg.Item2.Item2);
-                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(arg.Item2.Item1, arg.Item1, arg.Item2.Item2)").WithArguments("(CA, CB, TC)", "(CB, CA, TC)").WithLocation(25, 16)
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "arg.Item2.Item1").WithArguments("CA", "CB").WithLocation(25, 17)
                 );
         }
 
@@ -4442,23 +4445,319 @@ class C
 "); ;
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/11875")]
+        [Fact]
         [WorkItem(11875, "https://github.com/dotnet/roslyn/issues/11875")]
-        public void TupleTargetTypeFail01()
+        public void TupleImplicitConversionFail01()
         {
             var source = @"
 class C
 {
     static void Main()
     {
-        (int, int) x = (null, null);
-        (int, int) x = null;
+        (int, int) x;
+
+        x = (null, null, null);
+        x = (1, 1, 1);
+        x = (1, ""string"");
+        x = (1, 1, garbage);
+        x = (1, 1, );
+        x = (null, null);
+        x = (1, null);
+        x = (1, (t)=>t);
+        x = null;
     }
 }
-" + trivial2uple;
+" + trivial2uple + trivial3uple;
 
             CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature()).VerifyDiagnostics(
-                // appropriate errors here
+                // (12,20): error CS1525: Invalid expression term ')'
+                //         x = (1, 1, );
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(12, 20),
+                // (8,13): error CS8206: Tuple with '3' elements cannot be converted to type '(int, int)'.
+                //         x = (null, null, null);
+                Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "(null, null, null)").WithArguments("3", "(int, int)").WithLocation(8, 13),
+                // (9,13): error CS0029: Cannot implicitly convert type '(int, int, int)' to '(int, int)'
+                //         x = (1, 1, 1);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(1, 1, 1)").WithArguments("(int, int, int)", "(int, int)").WithLocation(9, 13),
+                // (10,17): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //         x = (1, "string");
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""string""").WithArguments("string", "int").WithLocation(10, 17),
+                // (11,20): error CS0103: The name 'garbage' does not exist in the current context
+                //         x = (1, 1, garbage);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "garbage").WithArguments("garbage").WithLocation(11, 20),
+                // (13,14): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //         x = (null, null);
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(13, 14),
+                // (13,20): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //         x = (null, null);
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(13, 20),
+                // (14,17): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //         x = (1, null);
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(14, 17),
+                // (15,17): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
+                //         x = (1, (t)=>t);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(t)=>t").WithArguments("lambda expression", "int").WithLocation(15, 17),
+                // (16,13): error CS0037: Cannot convert null to '(int, int)' because it is a non-nullable value type
+                //         x = null;
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("(int, int)").WithLocation(16, 13)
+                );
+        }
+
+        [Fact]
+        [WorkItem(11875, "https://github.com/dotnet/roslyn/issues/11875")]
+        public void TupleImplicitConversionFail02()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        System.ValueTuple<int, int> x;
+
+        x = (null, null, null);
+        x = (1, 1, 1);
+        x = (1, ""string"");
+        x = (1, 1, garbage);
+        x = (1, 1, );
+        x = (null, null);
+        x = (1, null);
+        x = (1, (t)=>t);
+        x = null;
+    }
+}
+" + trivial2uple + trivial3uple;
+
+            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature()).VerifyDiagnostics(
+                // (12,20): error CS1525: Invalid expression term ')'
+                //         x = (1, 1, );
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(12, 20),
+                // (8,13): error CS8206: Tuple with '3' elements cannot be converted to type '(int, int)'.
+                //         x = (null, null, null);
+                Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "(null, null, null)").WithArguments("3", "(int, int)").WithLocation(8, 13),
+                // (9,13): error CS0029: Cannot implicitly convert type '(int, int, int)' to '(int, int)'
+                //         x = (1, 1, 1);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(1, 1, 1)").WithArguments("(int, int, int)", "(int, int)").WithLocation(9, 13),
+                // (10,17): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //         x = (1, "string");
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""string""").WithArguments("string", "int").WithLocation(10, 17),
+                // (11,20): error CS0103: The name 'garbage' does not exist in the current context
+                //         x = (1, 1, garbage);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "garbage").WithArguments("garbage").WithLocation(11, 20),
+                // (13,14): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //         x = (null, null);
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(13, 14),
+                // (13,20): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //         x = (null, null);
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(13, 20),
+                // (14,17): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //         x = (1, null);
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(14, 17),
+                // (15,17): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
+                //         x = (1, (t)=>t);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(t)=>t").WithArguments("lambda expression", "int").WithLocation(15, 17),
+                // (16,13): error CS0037: Cannot convert null to '(int, int)' because it is a non-nullable value type
+                //         x = null;
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("(int, int)").WithLocation(16, 13)
+
+            );
+        }
+
+        [Fact]
+        [WorkItem(11875, "https://github.com/dotnet/roslyn/issues/11875")]
+        public void TupleImplicitConversionFail03()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        (string, string) x;
+
+        x = (null, null, null);
+        x = (1, 1, 1);
+        x = (1, ""string"");
+        x = (1, 1, garbage);
+        x = (1, 1, );
+        x = (null, null);
+        x = (1, null);
+        x = (1, (t)=>t);
+        x = null;
+    }
+}
+" + trivial2uple + trivial3uple;
+
+            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature()).VerifyDiagnostics(
+                // (12,20): error CS1525: Invalid expression term ')'
+                //         x = (1, 1, );
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(12, 20),
+                // (8,13): error CS8206: Tuple with '3' elements cannot be converted to type '(string, string)'.
+                //         x = (null, null, null);
+                Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "(null, null, null)").WithArguments("3", "(string, string)").WithLocation(8, 13),
+                // (9,13): error CS0029: Cannot implicitly convert type '(int, int, int)' to '(string, string)'
+                //         x = (1, 1, 1);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(1, 1, 1)").WithArguments("(int, int, int)", "(string, string)").WithLocation(9, 13),
+                // (10,14): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         x = (1, "string");
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(10, 14),
+                // (11,20): error CS0103: The name 'garbage' does not exist in the current context
+                //         x = (1, 1, garbage);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "garbage").WithArguments("garbage").WithLocation(11, 20),
+                // (14,14): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         x = (1, null);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(14, 14),
+                // (15,14): error CS0029: Cannot implicitly convert type 'int' to 'string'
+                //         x = (1, (t)=>t);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "1").WithArguments("int", "string").WithLocation(15, 14),
+                // (15,17): error CS1660: Cannot convert lambda expression to type 'string' because it is not a delegate type
+                //         x = (1, (t)=>t);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(t)=>t").WithArguments("lambda expression", "string").WithLocation(15, 17),
+                // (16,13): error CS0037: Cannot convert null to '(string, string)' because it is a non-nullable value type
+                //         x = null;
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("(string, string)").WithLocation(16, 13)
+                );
+
+        }
+
+        [Fact]
+        [WorkItem(11875, "https://github.com/dotnet/roslyn/issues/11875")]
+        public void TupleImplicitConversionFail04()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        ((int, int), int) x;
+
+        x = ((null, null, null), 1);
+        x = ((1, 1, 1), 1);
+        x = ((1, ""string""), 1);
+        x = ((1, 1, garbage), 1);
+        x = ((1, 1, ), 1);
+        x = ((null, null), 1);
+        x = ((1, null), 1);
+        x = ((1, (t)=>t), 1);
+        x = (null, 1);
+    }
+}
+" + trivial2uple + trivial3uple;
+
+            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature()).VerifyDiagnostics(
+                // (12,21): error CS1525: Invalid expression term ')'
+                //         x = ((1, 1, ), 1);
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ")").WithArguments(")").WithLocation(12, 21),
+                // (8,14): error CS8206: Tuple with '3' elements cannot be converted to type '(int, int)'.
+                //         x = ((null, null, null), 1);
+                Diagnostic(ErrorCode.ERR_ConversionNotTupleCompatible, "(null, null, null)").WithArguments("3", "(int, int)").WithLocation(8, 14),
+                // (9,14): error CS0029: Cannot implicitly convert type '(int, int, int)' to '(int, int)'
+                //         x = ((1, 1, 1), 1);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(1, 1, 1)").WithArguments("(int, int, int)", "(int, int)").WithLocation(9, 14),
+                // (10,18): error CS0029: Cannot implicitly convert type 'string' to 'int'
+                //         x = ((1, "string"), 1);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, @"""string""").WithArguments("string", "int").WithLocation(10, 18),
+                // (11,21): error CS0103: The name 'garbage' does not exist in the current context
+                //         x = ((1, 1, garbage), 1);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "garbage").WithArguments("garbage").WithLocation(11, 21),
+                // (13,15): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //         x = ((null, null), 1);
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(13, 15),
+                // (13,21): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //         x = ((null, null), 1);
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(13, 21),
+                // (14,18): error CS0037: Cannot convert null to 'int' because it is a non-nullable value type
+                //         x = ((1, null), 1);
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("int").WithLocation(14, 18),
+                // (15,18): error CS1660: Cannot convert lambda expression to type 'int' because it is not a delegate type
+                //         x = ((1, (t)=>t), 1);
+                Diagnostic(ErrorCode.ERR_AnonMethToNonDel, "(t)=>t").WithArguments("lambda expression", "int").WithLocation(15, 18),
+                // (16,14): error CS0037: Cannot convert null to '(int, int)' because it is a non-nullable value type
+                //         x = (null, 1);
+                Diagnostic(ErrorCode.ERR_ValueCantBeNull, "null").WithArguments("(int, int)").WithLocation(16, 14)
+
+             );
+        }
+
+        [Fact]
+        [WorkItem(11875, "https://github.com/dotnet/roslyn/issues/11875")]
+        public void TupleImplicitConversionFail05()
+        {
+            var source = @"
+class C
+{
+    static void Main()
+    {
+        (System.ValueTuple<int, int> x0, int x1, int x2, int x3, int x4, int x5, int x6, int x7, int x8, int x9, int x10) x;
+
+        x = (0,1,2,3,4,5,6,7,8,9,10);
+        x = ((0, 0.0),1,2,3,4,5,6,7,8,9,10);
+        x = ((0, 0),1,2,3,4,5,6,7,8,9,10,11);
+        x = ((0, 0),1,2,3,4,5,6,7,8);
+        x = ((0, 0),1,2,3,4,5,6,7,8,9.1,10);
+        x = ((0, 0),1,2,3,4,5,6,7,8,;
+        x = ((0, 0),1,2,3,4,5,6,7,8,9
+        x = ((0, 0),1,2,3,4,oops,6,7,oopsss,9,10);
+
+        x = ((0, 0),1,2,3,4,5,6,7,8,9);
+        x = ((0, 0),1,2,3,4,5,6,7,8,(1,1,1), 10);
+    }
+}
+
+"+ trivial2uple + trivalRemainingTuples; //intentionally not including 3-tuple for usesite errors
+
+            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature()).VerifyDiagnostics(
+                // (13,37): error CS1525: Invalid expression term ';'
+                //         x = ((0, 0),1,2,3,4,5,6,7,8,;
+                Diagnostic(ErrorCode.ERR_InvalidExprTerm, ";").WithArguments(";").WithLocation(13, 37),
+                // (13,37): error CS1026: ) expected
+                //         x = ((0, 0),1,2,3,4,5,6,7,8,;
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, ";").WithLocation(13, 37),
+                // (14,38): error CS1026: ) expected
+                //         x = ((0, 0),1,2,3,4,5,6,7,8,9
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(14, 38),
+                // (14,38): error CS1002: ; expected
+                //         x = ((0, 0),1,2,3,4,5,6,7,8,9
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "").WithLocation(14, 38),
+                // (8,14): error CS0029: Cannot implicitly convert type 'int' to '(int, int)'
+                //         x = (0,1,2,3,4,5,6,7,8,9,10);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "0").WithArguments("int", "(int, int)").WithLocation(8, 14),
+                // (9,18): error CS0029: Cannot implicitly convert type 'double' to 'int'
+                //         x = ((0, 0.0),1,2,3,4,5,6,7,8,9,10);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "0.0").WithArguments("double", "int").WithLocation(9, 18),
+                // (10,13): error CS0029: Cannot implicitly convert type '((int, int), int, int, int, int, int, int, int, int, int, int, int)' to '((int, int) x0, int x1, int x2, int x3, int x4, int x5, int x6, int x7, int x8, int x9, int x10)'
+                //         x = ((0, 0),1,2,3,4,5,6,7,8,9,10,11);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "((0, 0),1,2,3,4,5,6,7,8,9,10,11)").WithArguments("((int, int), int, int, int, int, int, int, int, int, int, int, int)", "((int, int) x0, int x1, int x2, int x3, int x4, int x5, int x6, int x7, int x8, int x9, int x10)").WithLocation(10, 13),
+                // (11,13): error CS0029: Cannot implicitly convert type '((int, int), int, int, int, int, int, int, int, int)' to '((int, int) x0, int x1, int x2, int x3, int x4, int x5, int x6, int x7, int x8, int x9, int x10)'
+                //         x = ((0, 0),1,2,3,4,5,6,7,8);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "((0, 0),1,2,3,4,5,6,7,8)").WithArguments("((int, int), int, int, int, int, int, int, int, int)", "((int, int) x0, int x1, int x2, int x3, int x4, int x5, int x6, int x7, int x8, int x9, int x10)").WithLocation(11, 13),
+                // (12,37): error CS0029: Cannot implicitly convert type 'double' to 'int'
+                //         x = ((0, 0),1,2,3,4,5,6,7,8,9.1,10);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "9.1").WithArguments("double", "int").WithLocation(12, 37),
+                // (13,13): error CS0518: Predefined type 'System.ValueTuple`3' is not defined or imported
+                //         x = ((0, 0),1,2,3,4,5,6,7,8,;
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "((0, 0),1,2,3,4,5,6,7,8,").WithArguments("System.ValueTuple`3").WithLocation(13, 13),
+                // (14,13): error CS0518: Predefined type 'System.ValueTuple`3' is not defined or imported
+                //         x = ((0, 0),1,2,3,4,5,6,7,8,9
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, @"((0, 0),1,2,3,4,5,6,7,8,9
+").WithArguments("System.ValueTuple`3").WithLocation(14, 13),
+                // (15,29): error CS0103: The name 'oops' does not exist in the current context
+                //         x = ((0, 0),1,2,3,4,oops,6,7,oopsss,9,10);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "oops").WithArguments("oops").WithLocation(15, 29),
+                // (15,38): error CS0103: The name 'oopsss' does not exist in the current context
+                //         x = ((0, 0),1,2,3,4,oops,6,7,oopsss,9,10);
+                Diagnostic(ErrorCode.ERR_NameNotInContext, "oopsss").WithArguments("oopsss").WithLocation(15, 38),
+                // (17,13): error CS0518: Predefined type 'System.ValueTuple`3' is not defined or imported
+                //         x = ((0, 0),1,2,3,4,5,6,7,8,9);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "((0, 0),1,2,3,4,5,6,7,8,9)").WithArguments("System.ValueTuple`3").WithLocation(17, 13),
+                // (17,13): error CS0029: Cannot implicitly convert type '((int, int), int, int, int, int, int, int, int, int, int)' to '((int, int) x0, int x1, int x2, int x3, int x4, int x5, int x6, int x7, int x8, int x9, int x10)'
+                //         x = ((0, 0),1,2,3,4,5,6,7,8,9);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "((0, 0),1,2,3,4,5,6,7,8,9)").WithArguments("((int, int), int, int, int, int, int, int, int, int, int)", "((int, int) x0, int x1, int x2, int x3, int x4, int x5, int x6, int x7, int x8, int x9, int x10)").WithLocation(17, 13),
+                // (18,37): error CS0518: Predefined type 'System.ValueTuple`3' is not defined or imported
+                //         x = ((0, 0),1,2,3,4,5,6,7,8,(1,1,1), 10);
+                Diagnostic(ErrorCode.ERR_PredefinedTypeNotFound, "(1,1,1)").WithArguments("System.ValueTuple`3").WithLocation(18, 37),
+                // (18,37): error CS0029: Cannot implicitly convert type '(int, int, int)' to 'int'
+                //         x = ((0, 0),1,2,3,4,5,6,7,8,(1,1,1), 10);
+                Diagnostic(ErrorCode.ERR_NoImplicitConv, "(1,1,1)").WithArguments("(int, int, int)", "int").WithLocation(18, 37)
+
             );
         }
 

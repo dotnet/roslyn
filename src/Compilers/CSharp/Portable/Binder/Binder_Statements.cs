@@ -2668,13 +2668,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            if (expression.Kind == BoundKind.TupleLiteral)
+            {
+                var tuple = (BoundTupleLiteral)expression;
+                var targetElementTypes = default(ImmutableArray<TypeSymbol>);
+
+                // If target is a tuple or compatible type with same nummer of elements,
+                // report errors for tuple arguments that failed to convert, which would be more useful.
+                if (targetType.TryGetElementTypesIfTupleOrCompatible(out targetElementTypes) && 
+                    targetElementTypes.Length == tuple.Arguments.Length)
+                {
+                    GenerateImplicitConversionErrorsForTupleLiteralArguments(diagnostics, syntax, tuple.Arguments, targetElementTypes);
+                    return;
+                }
+
+                // target is not compatible with source and source does not have a type
+                if ((object)tuple.Type == null)
+                {
+                    Error(diagnostics, ErrorCode.ERR_ConversionNotTupleCompatible, syntax, tuple.Arguments.Length, targetType);
+                    return;
+                }
+
+                // Otherwise it is just a regular conversion failure from T1 to T2.
+            }
+
             var sourceType = expression.Type;
             if ((object)sourceType != null)
             {
                 GenerateImplicitConversionError(diagnostics, this.Compilation, syntax, conversion, sourceType, targetType, expression.ConstantValue);
                 return;
             }
-
+            
             if (expression.IsLiteralNull())
             {
                 if (targetType.TypeKind == TypeKind.TypeParameter)
@@ -2721,6 +2745,31 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(expression.HasAnyErrors && expression.Kind != BoundKind.UnboundLambda, "Missing a case in implicit conversion error reporting");
+        }
+
+        private void GenerateImplicitConversionErrorsForTupleLiteralArguments(
+            DiagnosticBag diagnostics, 
+            CSharpSyntaxNode syntax,
+            ImmutableArray<BoundExpression> tupleArguments, 
+            ImmutableArray<TypeSymbol> targetElementTypes)
+        {
+            var argLength = tupleArguments.Length;
+
+            // report all leaf elements of the tuple literal that failed to convert
+            // NOTE: we are not responsible for reporting use site errors here, just the failed leaf conversions.
+            HashSet<DiagnosticInfo> usDiagsUnused = null;
+
+            for (int i = 0; i < targetElementTypes.Length; i++)
+            {
+                var argument = tupleArguments[i];
+                var targetElementType = targetElementTypes[i];
+
+                var elementConversion = Conversions.ClassifyImplicitConversionFromExpression(argument, targetElementType, ref usDiagsUnused);
+                if (!elementConversion.IsValid)
+                {
+                    GenerateImplicitConversionError(diagnostics, argument.Syntax, elementConversion, argument, targetElementType);
+                }
+            }
         }
 
         private BoundStatement BindIfStatement(IfStatementSyntax node, DiagnosticBag diagnostics)
