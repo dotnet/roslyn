@@ -546,7 +546,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // and an ambiguity error may be reported. Also additional checks are performed in runtime final validation 
                             // that are not performed at compile-time.
                             // Only if the set of final applicable candidates is empty we know for sure the call will fail at runtime.
-                            var finalApplicableCandidates = GetCandidatesPassingFinalValidation(syntax, resolution.OverloadResolutionResult, methodGroup, diagnostics);
+                            var finalApplicableCandidates = GetCandidatesPassingFinalValidation(syntax, resolution.OverloadResolutionResult, 
+                                                                                                methodGroup.ReceiverOpt, 
+                                                                                                methodGroup.TypeArgumentsOpt,
+                                                                                                diagnostics);
                             if (finalApplicableCandidates.Length > 0)
                             {
                                 result = BindDynamicInvocation(syntax, methodGroup, resolution.AnalyzedArguments, finalApplicableCandidates, diagnostics, queryClause);
@@ -648,11 +651,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 queryClause: queryClause);
         }
 
-        private ImmutableArray<MethodSymbol> GetCandidatesPassingFinalValidation(CSharpSyntaxNode syntax, OverloadResolutionResult<MethodSymbol> overloadResolutionResult, BoundMethodGroup methodGroup, DiagnosticBag diagnostics)
+        private ImmutableArray<TMethodOrPropertySymbol> GetCandidatesPassingFinalValidation<TMethodOrPropertySymbol>(
+            CSharpSyntaxNode syntax,
+            OverloadResolutionResult<TMethodOrPropertySymbol> overloadResolutionResult,
+            BoundExpression receiverOpt,
+            ImmutableArray<TypeSymbol> typeArgumentsOpt,
+            DiagnosticBag diagnostics) where TMethodOrPropertySymbol : Symbol
         {
             Debug.Assert(overloadResolutionResult.HasAnyApplicableMember);
 
-            var finalCandidates = ArrayBuilder<MethodSymbol>.GetInstance();
+            var finalCandidates = ArrayBuilder<TMethodOrPropertySymbol>.GetInstance();
             DiagnosticBag firstFailed = null;
             DiagnosticBag candidateDiagnostics = DiagnosticBag.GetInstance();
 
@@ -669,8 +677,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // * If F is an instance method, the method group must have resulted from a simple-name, a member-access through a variable or value, 
                     //   or a member-access whose receiver can't be classified as a type or value until after overload resolution (see §7.6.4.1).
 
-                    if (!MemberGroupFinalValidationAccessibilityChecks(methodGroup.ReceiverOpt, result.Member, syntax, candidateDiagnostics, invokedAsExtensionMethod: false) &&
-                        (methodGroup.TypeArgumentsOpt.IsDefault || result.Member.CheckConstraints(this.Conversions, syntax, this.Compilation, candidateDiagnostics)))
+                    if (!MemberGroupFinalValidationAccessibilityChecks(receiverOpt, result.Member, syntax, candidateDiagnostics, invokedAsExtensionMethod: false) &&
+                        (typeArgumentsOpt.IsDefault || ((MethodSymbol)(object)result.Member).CheckConstraints(this.Conversions, syntax, this.Compilation, candidateDiagnostics)))
                     {
                         finalCandidates.Add(result.Member);
                         continue;

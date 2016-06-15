@@ -41,8 +41,7 @@ chmod +x crossgen
 
 ./crossgen -nologo -platform_assemblies_paths $BIN_DIR System.Reflection.Metadata.dll
 
-# The bootstrap build is currently not copying a dependency. See dotnet/roslyn #7907
-./crossgen -nologo -MissingDependenciesOK -platform_assemblies_paths $BIN_DIR Microsoft.CodeAnalysis.dll
+./crossgen -nologo -platform_assemblies_paths $BIN_DIR Microsoft.CodeAnalysis.dll
 
 ./crossgen -nologo -platform_assemblies_paths $BIN_DIR Microsoft.CodeAnalysis.CSharp.dll
 

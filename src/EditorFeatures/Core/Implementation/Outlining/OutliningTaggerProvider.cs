@@ -92,54 +92,106 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Outlining
                 TaggerEventSources.OnWorkspaceRegistrationChanged(subjectBuffer, TaggerDelay.OnIdle));
         }
 
-        protected override async Task ProduceTagsAsync(TaggerContext<IOutliningRegionTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
+        /// <summary>
+        /// Keep this in sync with <see cref="ProduceTagsSynchronously"/>
+        /// </summary>
+        protected override async Task ProduceTagsAsync(
+            TaggerContext<IOutliningRegionTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
         {
             try
             {
-                var cancellationToken = context.CancellationToken;
-                using (Logger.LogBlock(FunctionId.Tagger_Outlining_TagProducer_ProduceTags, cancellationToken))
+                var outliningService = TryGetOutliningService(context, documentSnapshotSpan);
+                if (outliningService != null)
                 {
-                    var document = documentSnapshotSpan.Document;
-                    var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
-                    var snapshot = snapshotSpan.Snapshot;
-
-                    if (document != null)
-                    {
-                        var outliningService = document.Project.LanguageServices.GetService<IOutliningService>();
-                        if (outliningService != null)
-                        {
-                            var regions = await outliningService.GetOutliningSpansAsync(document, cancellationToken).ConfigureAwait(false);
-                            if (regions != null)
-                            {
-                                regions = GetMultiLineRegions(outliningService, regions, snapshotSpan.Snapshot);
-
-                                // Create the outlining tags.
-                                var tagSpans =
-                                    from region in regions
-                                    let spanToCollapse = new SnapshotSpan(snapshot, region.TextSpan.ToSpan())
-                                    let hintSpan = new SnapshotSpan(snapshot, region.HintSpan.ToSpan())
-                                    let tag = new Tag(snapshot.TextBuffer,
-                                                      region.BannerText,
-                                                      hintSpan,
-                                                      region.AutoCollapse,
-                                                      region.IsDefaultCollapsed,
-                                                      _textEditorFactoryService,
-                                                      _projectionBufferFactoryService,
-                                                      _editorOptionsFactoryService)
-                                    select new TagSpan<IOutliningRegionTag>(spanToCollapse, tag);
-
-                                foreach (var tagSpan in tagSpans)
-                                {
-                                    context.AddTag(tagSpan);
-                                }
-                            }
-                        }
-                    }
+                    var regions = await outliningService.GetOutliningSpansAsync(
+                        documentSnapshotSpan.Document, context.CancellationToken).ConfigureAwait(false);
+                    ProcessOutliningSpans(context, documentSnapshotSpan.SnapshotSpan, outliningService, regions);
                 }
             }
             catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
             {
                 throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        /// <summary>
+        /// Keep this in sync with <see cref="ProduceTagsAsync"/>
+        /// </summary>
+        protected override void ProduceTagsSynchronously(
+            TaggerContext<IOutliningRegionTag> context, DocumentSnapshotSpan documentSnapshotSpan, int? caretPosition)
+        {
+            try
+            {
+                var outliningService = TryGetOutliningService(context, documentSnapshotSpan);
+                if (outliningService != null)
+                {
+                    var document = documentSnapshotSpan.Document;
+                    var cancellationToken = context.CancellationToken;
+
+                    // Try to call through the synchronous service if possible. Otherwise, fallback
+                    // and make a blocking call against the async service.
+                    var synchronousOutliningService = outliningService as ISynchronousOutliningService;
+
+                    var regions = synchronousOutliningService != null
+                        ? synchronousOutliningService.GetOutliningSpans(document, cancellationToken)
+                        : outliningService.GetOutliningSpansAsync(document, cancellationToken).WaitAndGetResult(cancellationToken);
+
+                    ProcessOutliningSpans(context, documentSnapshotSpan.SnapshotSpan, outliningService, regions);
+                }
+            }
+            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            {
+                throw ExceptionUtilities.Unreachable;
+            }
+        }
+
+        private IOutliningService TryGetOutliningService(
+            TaggerContext<IOutliningRegionTag> context,
+            DocumentSnapshotSpan documentSnapshotSpan)
+        {
+            var cancellationToken = context.CancellationToken;
+            using (Logger.LogBlock(FunctionId.Tagger_Outlining_TagProducer_ProduceTags, cancellationToken))
+            {
+                var document = documentSnapshotSpan.Document;
+                var snapshotSpan = documentSnapshotSpan.SnapshotSpan;
+                var snapshot = snapshotSpan.Snapshot;
+
+                if (document != null)
+                {
+                    return document.Project.LanguageServices.GetService<IOutliningService>();
+                }
+            }
+
+            return null;
+        }
+
+        private void ProcessOutliningSpans(
+            TaggerContext<IOutliningRegionTag> context, SnapshotSpan snapshotSpan, IOutliningService outliningService, IList<OutliningSpan> regions)
+        {
+            if (regions != null)
+            {
+                var snapshot = snapshotSpan.Snapshot;
+                regions = GetMultiLineRegions(outliningService, regions, snapshot);
+
+                // Create the outlining tags.
+                var tagSpans =
+                    from region in regions
+                    let spanToCollapse = new SnapshotSpan(snapshot, region.TextSpan.ToSpan())
+                    let hintSpan = new SnapshotSpan(snapshot, region.HintSpan.ToSpan())
+                    let tag = new Tag(snapshot.TextBuffer,
+                                      region.BannerText,
+                                      hintSpan,
+                                      region.AutoCollapse,
+                                      region.IsDefaultCollapsed,
+                                      _textEditorFactoryService,
+                                      _projectionBufferFactoryService,
+                                      _editorOptionsFactoryService)
+                    select new TagSpan<IOutliningRegionTag>(spanToCollapse, tag);
+
+                foreach (var tagSpan in tagSpans)
+                {
+                    context.AddTag(tagSpan);
+                }
             }
         }
 
