@@ -9,6 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -1580,9 +1581,13 @@ class Derived : Base<int>
             keyPositions = keyPositionBuilder.ToArrayAndFree();
             var text = textBuilder.ToString();
 
-            var compilation = experimental
-                ? CreateExperimentalCompilationWithMscorlib45(text)
-                : CreateCompilationWithMscorlibAndDocumentationComments(text);
+            var parseOptions = TestOptions.RegularWithDocumentationComments;
+            if (experimental)
+            {
+                parseOptions = parseOptions.WithTuplesFeature().WithRefsFeature();
+            }
+
+            var compilation = CreateCompilationWithMscorlib(text, parseOptions: parseOptions);
             var tree = compilation.SyntaxTrees[0];
             return compilation.GetSemanticModel(tree);
         }
