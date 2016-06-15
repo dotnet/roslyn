@@ -243,15 +243,6 @@
         <OptionStrict>On</OptionStrict>
         <RootNamespace></RootNamespace>
         <VBRuntime>Embed</VBRuntime>
-
-        <!-- Suppress the following warnings by default for C# projects
-                42366: GeneratedAssemblyInfo_<version>.vb will report this warning if any of the four parts
-                       of the version string (major.minor.build.revision) are above 65535. This breaks for
-                       various build formats involving the current year/month/day. For example it works for
-                       60614 (June 14th, 2016), but breaks for 70614 (June 14th, 2017) and it also breaks
-                       for something like 20160614 (also June 14th, 2016).
-        -->
-        <NoWarn>$(NoWarn);42366</NoWarn>
       </PropertyGroup>
       <ItemGroup>
         <Import Include="Microsoft.VisualBasic" />
@@ -285,13 +276,8 @@
                       the methods are public.  We don't want to duplicate documentation for them
                       and hence suppress this warning until we get closer to release and a more
                       thorough documentation story
-                7035: GeneratedAssemblyInfo_<version>.cs will report this warning if any of the four parts
-                       of the version string (major.minor.build.revision) are above 65535. This breaks for
-                       various build formats involving the current year/month/day. For example it works for
-                       60614 (June 14th, 2016), but breaks for 70614 (June 14th, 2017) and it also breaks
-                       for something like 20160614 (also June 14th, 2016).
         -->
-        <NoWarn>$(NoWarn);1591;7035</NoWarn>
+        <NoWarn>$(NoWarn);1591</NoWarn>
       </PropertyGroup>
       <PropertyGroup Condition="'$(Configuration)' == 'Debug'">
         <DebugSymbols>true</DebugSymbols>
