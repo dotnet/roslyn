@@ -34,6 +34,20 @@ namespace Microsoft.Cci
         public const TypeAttributes TypeAttributes_TypeForwarder = (TypeAttributes)0x00200000;
     }
 
+    internal struct ExportedType
+    {
+        public readonly ITypeReference Type;
+        public readonly bool IsForwarder;
+        public readonly int ParentIndex;
+
+        public ExportedType(ITypeReference type, int parentIndex, bool isForwarder)
+        {
+            Type = type;
+            IsForwarder = isForwarder;
+            ParentIndex = parentIndex;
+        }
+    }
+
     /// <summary>
     /// System.Runtime.InteropServices.VarEnum is obsolete.
     /// </summary>

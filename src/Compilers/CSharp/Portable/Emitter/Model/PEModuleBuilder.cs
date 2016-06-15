@@ -33,7 +33,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         // See Assembly.MetadataName.
         private readonly string _metadataName;
 
-        private ImmutableArray<NamedTypeSymbol> _lazyExportedTypes;
+        private ImmutableArray<Cci.ExportedType> _lazyExportedTypes;
 
         /// <summary>
         /// The compiler-generated implementation type for each fixed-size buffer.
@@ -407,45 +407,46 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
-        private void GetExportedTypes(NamespaceOrTypeSymbol sym, ArrayBuilder<NamedTypeSymbol> builder)
+        private void GetExportedTypes(NamespaceOrTypeSymbol symbol, int parentIndex, ArrayBuilder<Cci.ExportedType> builder)
         {
-            if (sym.Kind == SymbolKind.NamedType)
+            int index;
+            if (symbol.Kind == SymbolKind.NamedType)
             {
-                if (sym.DeclaredAccessibility == Accessibility.Public)
-                {
-                    Debug.Assert(sym.IsDefinition);
-                    builder.Add((NamedTypeSymbol)sym);
-                }
-                else
+                if (symbol.DeclaredAccessibility != Accessibility.Public)
                 {
                     return;
                 }
+
+                Debug.Assert(symbol.IsDefinition);
+                index = builder.Count;
+                builder.Add(new Cci.ExportedType((Cci.ITypeReference)symbol, parentIndex, isForwarder: false));
+            }
+            else
+            {
+                index = -1;
             }
 
-            foreach (var t in sym.GetMembers())
+            foreach (var member in symbol.GetMembers())
             {
-                NamespaceOrTypeSymbol nortsym = t as NamespaceOrTypeSymbol;
-
-                if ((object)nortsym != null)
+                var namespaceOrType = member as NamespaceOrTypeSymbol;
+                if ((object)namespaceOrType != null)
                 {
-                    GetExportedTypes(nortsym, builder);
+                    GetExportedTypes(namespaceOrType, index, builder);
                 }
             }
         }
 
-        public override IEnumerable<Cci.ITypeReference> GetExportedTypes(EmitContext context)
+        public override ImmutableArray<Cci.ExportedType> GetExportedTypes(DiagnosticBag diagnostics)
         {
             Debug.Assert(HaveDeterminedTopLevelTypes);
 
             if (_lazyExportedTypes.IsDefault)
             {
-                var exportedTypes = BuildExportedTypeList();
-                Debug.Assert(_lazyExportedTypes.IsDefault);
-                _lazyExportedTypes = exportedTypes;
+                _lazyExportedTypes = CalculateExportedTypes();
 
                 if (_lazyExportedTypes.Length > 0)
                 {
-                    ReportExportedTypeNameCollisions(_lazyExportedTypes, context.Diagnostics);
+                    ReportExportedTypeNameCollisions(_lazyExportedTypes, diagnostics);
                 }
             }
 
@@ -456,17 +457,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         /// Builds an array of public type symbols defined in netmodules included in the compilation
         /// and type forwarders defined in this compilation or any included netmodule (in this order).
         /// </summary>
-        private ImmutableArray<NamedTypeSymbol> BuildExportedTypeList()
+        private ImmutableArray<Cci.ExportedType> CalculateExportedTypes()
         {
             SourceAssemblySymbol sourceAssembly = SourceModule.ContainingSourceAssembly;
-            var builder = ArrayBuilder<NamedTypeSymbol>.GetInstance();
+            var builder = ArrayBuilder<Cci.ExportedType>.GetInstance();
 
             if (!OutputKind.IsNetModule())
             {
                 var modules = sourceAssembly.Modules;
                 for (int i = 1; i < modules.Length; i++) //NOTE: skipping modules[0]
                 {
-                    GetExportedTypes(modules[i].GlobalNamespace, builder);
+                    GetExportedTypes(modules[i].GlobalNamespace, -1, builder);
                 }
             }
 
@@ -481,33 +482,35 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return builder.ToImmutableAndFree();
         }
 
-        private void ReportExportedTypeNameCollisions(ImmutableArray<NamedTypeSymbol> exportedTypes, DiagnosticBag diagnostics)
+        private void ReportExportedTypeNameCollisions(ImmutableArray<Cci.ExportedType> exportedTypes, DiagnosticBag diagnostics)
         {
             var sourceAssembly = SourceModule.ContainingSourceAssembly;
             var exportedNamesMap = new Dictionary<string, NamedTypeSymbol>(StringOrdinalComparer.Instance);
 
             foreach (var exportedType in exportedTypes)
             {
-                Debug.Assert(exportedType.IsDefinition);
+                var type = (NamedTypeSymbol)exportedType.Type;
 
-                if (exportedType.IsTopLevelType())
+                Debug.Assert(type.IsDefinition);
+
+                if (type.IsTopLevelType())
                 {
                     string fullEmittedName = MetadataHelpers.BuildQualifiedName(
-                        ((Cci.INamespaceTypeReference)exportedType).NamespaceName,
-                        Cci.MetadataWriter.GetMangledName(exportedType));
+                        ((Cci.INamespaceTypeReference)type).NamespaceName,
+                        Cci.MetadataWriter.GetMangledName(type));
 
                     // First check against types declared in the primary module
                     if (ContainsTopLevelType(fullEmittedName))
                     {
-                        if (exportedType.ContainingAssembly == sourceAssembly)
+                        if (type.ContainingAssembly == sourceAssembly)
                         {
                             diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(
-                                ErrorCode.ERR_ExportedTypeConflictsWithDeclaration, exportedType, exportedType.ContainingModule), NoLocation.Singleton));
+                                ErrorCode.ERR_ExportedTypeConflictsWithDeclaration, type, type.ContainingModule), NoLocation.Singleton));
                         }
                         else
                         {
                             diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(
-                                ErrorCode.ERR_ForwardedTypeConflictsWithDeclaration, exportedType), NoLocation.Singleton));
+                                ErrorCode.ERR_ForwardedTypeConflictsWithDeclaration, type), NoLocation.Singleton));
                         }
 
                         continue;
@@ -518,13 +521,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     // Now check against other exported types
                     if (exportedNamesMap.TryGetValue(fullEmittedName, out contender))
                     {
-                        if (exportedType.ContainingAssembly == sourceAssembly)
+                        if (type.ContainingAssembly == sourceAssembly)
                         {
                             // all exported types precede forwarded types, therefore contender cannot be a forwarded type.
                             Debug.Assert(contender.ContainingAssembly == sourceAssembly);
 
                             diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(
-                                ErrorCode.ERR_ExportedTypesConflict, exportedType, exportedType.ContainingModule, contender, contender.ContainingModule), NoLocation.Singleton));
+                                ErrorCode.ERR_ExportedTypesConflict, type, type.ContainingModule, contender, contender.ContainingModule), NoLocation.Singleton));
                         }
                         else
                         {
@@ -532,20 +535,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                             {
                                 // Forwarded type conflicts with exported type
                                 diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(
-                                    ErrorCode.ERR_ForwardedTypeConflictsWithExportedType, exportedType, exportedType.ContainingAssembly, contender, contender.ContainingModule), NoLocation.Singleton));
+                                    ErrorCode.ERR_ForwardedTypeConflictsWithExportedType, type, type.ContainingAssembly, contender, contender.ContainingModule), NoLocation.Singleton));
                             }
                             else
                             {
                                 // Forwarded type conflicts with another forwarded type
                                 diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(
-                                    ErrorCode.ERR_ForwardedTypesConflict, exportedType, exportedType.ContainingAssembly, contender, contender.ContainingAssembly), NoLocation.Singleton));
+                                    ErrorCode.ERR_ForwardedTypesConflict, type, type.ContainingAssembly, contender, contender.ContainingAssembly), NoLocation.Singleton));
                             }
                         }
 
                         continue;
                     }
 
-                    exportedNamesMap.Add(fullEmittedName, exportedType);
+                    exportedNamesMap.Add(fullEmittedName, type);
                 }
             }
         }
@@ -553,11 +556,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
         private static void GetForwardedTypes(
             HashSet<NamedTypeSymbol> seenTopLevelTypes,
             CommonAssemblyWellKnownAttributeData<NamedTypeSymbol> wellKnownAttributeData,
-            ArrayBuilder<NamedTypeSymbol> builder)
+            ArrayBuilder<Cci.ExportedType> builder)
         {
-            if (wellKnownAttributeData?.ForwardedTypes.Count > 0)
+            if (wellKnownAttributeData?.ForwardedTypes?.Count > 0)
             {
-                var stack = new Stack<NamedTypeSymbol>();
+                // (type, index of the parent exported type in builder, or -1 if the type is a top-level type)
+                var stack = new Stack<ValueTuple<NamedTypeSymbol, int>>();
 
                 foreach (NamedTypeSymbol forwardedType in wellKnownAttributeData.ForwardedTypes)
                 {
@@ -571,30 +575,33 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                     // Return all nested types.
                     // Note the order: depth first, children in reverse order (to match dev10, not a requirement).
                     Debug.Assert(stack.Count == 0);
-                    stack.Push(originalDefinition);
+                    stack.Push(ValueTuple.Create(originalDefinition, -1));
 
                     while (stack.Count > 0)
                     {
-                        NamedTypeSymbol current = stack.Pop();
+                        var entry = stack.Pop();
+                        NamedTypeSymbol type = entry.Item1;
+                        int parentIndex = entry.Item2;
 
                         // In general, we don't want private types to appear in the ExportedTypes table.
                         // BREAK: dev11 emits these types.  The problem was discovered in dev10, but failed
                         // to meet the bar Bug: Dev10/258038 and was left as-is.
-                        if (current.DeclaredAccessibility == Accessibility.Private)
+                        if (type.DeclaredAccessibility == Accessibility.Private)
                         {
-                            // NOTE: this will also exclude nested types of curr
+                            // NOTE: this will also exclude nested types of type
                             continue;
                         }
 
                         // NOTE: not bothering to put nested types in seenTypes - the top-level type is adequate protection.
 
-                        builder.Add(current);
+                        int index = builder.Count;
+                        builder.Add(new Cci.ExportedType(type, parentIndex, isForwarder: true));
 
                         // Iterate backwards so they get popped in forward order.
-                        ImmutableArray<NamedTypeSymbol> nested = current.GetTypeMembers(); // Ordered.
+                        ImmutableArray<NamedTypeSymbol> nested = type.GetTypeMembers(); // Ordered.
                         for (int i = nested.Length - 1; i >= 0; i--)
                         {
-                            stack.Push(nested[i]);
+                            stack.Push(ValueTuple.Create(nested[i], index));
                         }
                     }
                 }

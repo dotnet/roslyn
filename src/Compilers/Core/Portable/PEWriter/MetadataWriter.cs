@@ -96,7 +96,6 @@ namespace Microsoft.Cci
             _signatureIndex = new Dictionary<ISignature, KeyValuePair<BlobHandle, ImmutableArray<byte>>>(module.HintNumberOfMethodDefinitions); //ignores field signatures
 
             _numTypeDefsEstimate = module.HintNumberOfMethodDefinitions / 6;
-            _exportedTypeIndex = new Dictionary<ITypeReference, int>(_numTypeDefsEstimate);
             _exportedTypeList = new List<ITypeReference>(_numTypeDefsEstimate);
 
             this.Context = context;
@@ -430,7 +429,6 @@ namespace Microsoft.Cci
 
         private readonly Dictionary<ICustomAttribute, BlobHandle> _customAttributeSignatureIndex = new Dictionary<ICustomAttribute, BlobHandle>();
         private readonly Dictionary<ITypeReference, BlobHandle> _typeSpecSignatureIndex = new Dictionary<ITypeReference, BlobHandle>();
-        private readonly Dictionary<ITypeReference, int> _exportedTypeIndex; // value is a RowId
         private readonly List<ITypeReference> _exportedTypeList;
         private readonly Dictionary<string, int> _fileRefIndex = new Dictionary<string, int>(32);  // more than enough in most cases, value is a RowId
         private readonly List<IFileReference> _fileRefList = new List<IFileReference>(32);
@@ -476,7 +474,6 @@ namespace Microsoft.Cci
             this.CreateInitialAssemblyRefIndex();
             this.CreateInitialFileRefIndex();
             this.CreateIndicesForModule();
-            this.CreateInitialExportedTypeIndex();
 
             // Find all references and assign tokens.
             _referenceVisitor = this.CreateReferenceVisitor();
@@ -671,23 +668,6 @@ namespace Microsoft.Cci
             foreach (IAssemblyReference assemblyRef in this.module.GetAssemblyReferences(Context))
             {
                 this.GetOrAddAssemblyReferenceHandle(assemblyRef);
-            }
-        }
-
-        private void CreateInitialExportedTypeIndex()
-        {
-            Debug.Assert(!_tableIndicesAreComplete);
-
-            if (this.IsFullMetadata)
-            {
-                foreach (ITypeReference exportedType in this.module.GetExportedTypes(Context))
-                {
-                    if (!_exportedTypeIndex.ContainsKey(exportedType))
-                    {
-                        _exportedTypeList.Add(exportedType);
-                        _exportedTypeIndex.Add(exportedType, _exportedTypeList.Count);
-                    }
-                }
             }
         }
 
@@ -2136,72 +2116,39 @@ namespace Microsoft.Cci
                 return;
             }
 
-            metadata.SetCapacity(TableIndex.ExportedType, NumberOfTypeDefsEstimate);
+            var exportedTypes = module.GetExportedTypes(Context.Diagnostics);
+            if (exportedTypes.Length == 0)
+            {
+                return;
+            }
 
-            foreach (ITypeReference exportedType in module.GetExportedTypes(Context))
+            metadata.SetCapacity(TableIndex.ExportedType, exportedTypes.Length);
+
+            foreach (var exportedType in exportedTypes)
             {
                 INestedTypeReference nestedRef;
                 INamespaceTypeReference namespaceTypeRef;
-                int typeDefinitionId;
                 TypeAttributes attributes;
                 StringHandle typeName;
                 StringHandle typeNamespace;
                 EntityHandle implementation;
 
-                if ((namespaceTypeRef = exportedType.AsNamespaceTypeReference) != null)
+                if ((namespaceTypeRef = exportedType.Type.AsNamespaceTypeReference) != null)
                 {
                     string mangledTypeName = GetMangledName(namespaceTypeRef);
-                    typeName = this.GetStringHandleForNameAndCheckLength(mangledTypeName, namespaceTypeRef);
-                    typeNamespace = this.GetStringHandleForNamespaceAndCheckLength(namespaceTypeRef, mangledTypeName);
+                    typeName = GetStringHandleForNameAndCheckLength(mangledTypeName, namespaceTypeRef);
+                    typeNamespace = GetStringHandleForNamespaceAndCheckLength(namespaceTypeRef, mangledTypeName);
                     implementation = GetExportedTypeImplementation(namespaceTypeRef);
-
-                    if (implementation.Kind == HandleKind.AssemblyReference)
-                    {
-                        attributes = TypeAttributes.NotPublic | Constants.TypeAttributes_TypeForwarder;
-                        typeDefinitionId = 0; // Must be 0 for type forwarders.
-                    }
-                    else
-                    {
-                        attributes = TypeAttributes.Public;
-                        typeDefinitionId = MetadataTokens.GetToken(exportedType.TypeDef);
-                    }
+                    attributes = exportedType.IsForwarder ? TypeAttributes.NotPublic | Constants.TypeAttributes_TypeForwarder : TypeAttributes.Public;
                 }
-                else if ((nestedRef = exportedType.AsNestedTypeReference) != null)
+                else if ((nestedRef = exportedType.Type.AsNestedTypeReference) != null)
                 {
-                    typeName = this.GetStringHandleForNameAndCheckLength(GetMangledName(nestedRef), nestedRef);
+                    Debug.Assert(exportedType.ParentIndex != -1);
+
+                    typeName = GetStringHandleForNameAndCheckLength(GetMangledName(nestedRef), nestedRef);
                     typeNamespace = default(StringHandle);
-
-                    ITypeReference containingType = nestedRef.GetContainingType(Context);
-                    ITypeReference topLevelType = containingType;
-                    INestedTypeReference tmp;
-                    while ((tmp = topLevelType.AsNestedTypeReference) != null)
-                    {
-                        topLevelType = tmp.GetContainingType(Context);
-                    }
-
-                    implementation = MetadataTokens.ExportedTypeHandle(_exportedTypeIndex[containingType]);
-
-                    var topLevelFlags = (TypeAttributes)metadata.GetExportedTypeFlags(_exportedTypeIndex[topLevelType] - 1);
-                    if ((topLevelFlags & Constants.TypeAttributes_TypeForwarder) != 0)
-                    {
-                        attributes = TypeAttributes.NotPublic;
-                        typeDefinitionId = 0; // Must be 0 for type forwarders and types they contain.
-                    }
-                    else
-                    {
-                        var parentFlags = (TypeAttributes)metadata.GetExportedTypeFlags(_exportedTypeIndex[containingType] - 1);
-
-                        if (parentFlags == TypeAttributes.NotPublic)
-                        {
-                            attributes = TypeAttributes.NotPublic;
-                        }
-                        else
-                        {
-                            attributes = TypeAttributes.NestedPublic;
-                        }
-
-                        typeDefinitionId = MetadataTokens.GetToken(exportedType.TypeDef);
-                    }
+                    implementation = MetadataTokens.ExportedTypeHandle(exportedType.ParentIndex + 1);
+                    attributes = exportedType.IsForwarder ? TypeAttributes.NotPublic : TypeAttributes.NestedPublic;
                 }
                 else
                 {
@@ -2209,11 +2156,11 @@ namespace Microsoft.Cci
                 }
 
                 metadata.AddExportedType(
-                    attributes: (TypeAttributes)attributes,
+                    attributes: attributes,
                     @namespace: typeNamespace,
                     name: typeName,
                     implementation: implementation,
-                    typeDefinitionId: typeDefinitionId);
+                    typeDefinitionId: exportedType.IsForwarder ? 0 : MetadataTokens.GetToken(exportedType.Type.TypeDef));
             }
         }
 
