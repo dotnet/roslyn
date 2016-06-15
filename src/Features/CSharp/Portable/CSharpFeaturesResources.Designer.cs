@@ -62,6 +62,24 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Add XML documentation for parameter {0}.
+        /// </summary>
+        internal static string AddParameterXmlDocumentation {
+            get {
+                return ResourceManager.GetString("AddParameterXmlDocumentation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Add XML documentation for type parameter {0}.
+        /// </summary>
+        internal static string AddTypeParameterXmlDocumentation {
+            get {
+                return ResourceManager.GetString("AddTypeParameterXmlDocumentation", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to anonymous method.
         /// </summary>
         internal static string AnonymousMethod {

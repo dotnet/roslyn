@@ -65,6 +65,7 @@
     <Compile Include="ChangeSignature\CSharpChangeSignatureService.cs" />
     <Compile Include="ChangeSignature\UnifiedArgumentSyntax.cs" />
     <Compile Include="CodeFixes\AddImport\CSharpAddImportCodeFixProvider.cs" />
+    <Compile Include="CodeFixes\AddParameterXmlDocumentation\AddParameterXmlDocumentationCodeFixProvider.cs" />
     <Compile Include="CodeFixes\AddMissingReference\AddMissingReferenceCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Async\CSharpAddAsyncCodeFixProvider.cs" />
     <Compile Include="CodeFixes\Async\CSharpAddAwaitCodeFixProvider.cs" />
