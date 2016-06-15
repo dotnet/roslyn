@@ -37,7 +37,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 
         protected internal override bool IncludeDiagnostic(DiagnosticData diagnostic)
         {
-            return diagnostic.Severity == DiagnosticSeverity.Suggestion;
+            return diagnostic.Severity == DiagnosticSeverity.Info;
         }
 
         protected override SuggestionTag CreateTag(DiagnosticData diagnostic)

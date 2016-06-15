@@ -186,7 +186,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource
                     case DiagnosticSeverity.Error:
                         return true;
                     case DiagnosticSeverity.Hidden:
-                    case DiagnosticSeverity.Suggestion:
                     default:
                         return false;
                 }

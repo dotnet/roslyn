@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     {
         public static CodeStyleOption<T> Default => new CodeStyleOption<T>(default(T), NotificationOption.None);
 
-        private const int SerializationVersion = 1;
+        private const int SerializationVersion = 2;
 
         public CodeStyleOption(T value, NotificationOption notification)
         {
@@ -36,10 +36,16 @@ namespace Microsoft.CodeAnalysis.CodeStyle
             var typeAttribute = element.Attribute("Type");
             var valueAttribute = element.Attribute(nameof(Value));
             var severityAttribute = element.Attribute(nameof(DiagnosticSeverity));
+            var version = (int)element.Attribute(nameof(SerializationVersion));
 
             if (typeAttribute == null || valueAttribute == null || severityAttribute == null)
             {
                 // data from storage is corrupt, or nothing has been stored yet.
+                return Default;
+            }
+
+            if (version != SerializationVersion)
+            {
                 return Default;
             }
 
@@ -54,9 +60,6 @@ namespace Microsoft.CodeAnalysis.CodeStyle
                     notificationOption = NotificationOption.None;
                     break;
                 case DiagnosticSeverity.Info:
-                    notificationOption = NotificationOption.Info;
-                    break;
-                case DiagnosticSeverity.Suggestion:
                     notificationOption = NotificationOption.Suggestion;
                     break;
                 case DiagnosticSeverity.Warning:

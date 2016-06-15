@@ -16,13 +16,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
             Value = severity;
             switch (severity)
             {
-                case DiagnosticSeverity.Suggestion:
                 case DiagnosticSeverity.Hidden:
                     Name = "None";
                     Moniker = KnownMonikers.None;
                     return;
                 case DiagnosticSeverity.Info:
-                    Name = "Info";
+                    Name = "Suggestion";
                     Moniker = KnownMonikers.StatusInformation;
                     return;
                 case DiagnosticSeverity.Warning:

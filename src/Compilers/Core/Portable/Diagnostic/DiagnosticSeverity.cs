@@ -28,11 +28,6 @@ namespace Microsoft.CodeAnalysis
         /// Something not allowed by the rules of the language or other authority.
         /// </summary>
         Error = 3,
-
-        /// <summary>
-        /// Something that can be potentially improved.
-        /// </summary>
-        Suggestion = 4,
     }
 
     /// <summary>

@@ -43,7 +43,6 @@ namespace Microsoft.CodeAnalysis.CodeFixes.Suppression
                 case DiagnosticSeverity.Error:
                 case DiagnosticSeverity.Warning:
                 case DiagnosticSeverity.Info:
-                case DiagnosticSeverity.Suggestion:
                     // We allow suppressions for all the remaining configurable, non-hidden diagnostics.
                     // Note that compiler errors are not configurable by default, so only analyzer errors are suppressable.
                     return true;

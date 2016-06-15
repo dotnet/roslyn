@@ -251,8 +251,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     return ReportDiagnostic.Warn;
                 case DiagnosticSeverity.Error:
                     return ReportDiagnostic.Error;
-                case DiagnosticSeverity.Suggestion:
-                    return ReportDiagnostic.Suggestion;
                 default:
                     throw ExceptionUtilities.Unreachable;
             }
