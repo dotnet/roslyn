@@ -12,7 +12,7 @@ using Microsoft.VisualStudio.Utilities;
 namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 {
     /// <summary>
-    /// This factory is called to create the view service that will manage line separators.
+    /// This factory is called to create the view service that will manage suggestion adornments.
     /// </summary>
     [Export(typeof(IWpfTextViewCreationListener))]
     [ContentType(ContentTypeNames.RoslynContentType)]

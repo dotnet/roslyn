@@ -35,9 +35,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             };
         }
 
-        /// <summary>
-        /// Creates a very long line at the bottom of bounds.
-        /// </summary>
         public override GraphicsResult GetGraphics(IWpfTextView view, Geometry geometry)
         {
             Initialize(view);
