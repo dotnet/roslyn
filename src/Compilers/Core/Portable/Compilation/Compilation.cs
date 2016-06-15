@@ -2360,5 +2360,7 @@ namespace Microsoft.CodeAnalysis
         {
             return _lazyMakeWellKnownTypeMissingMap != null && _lazyMakeWellKnownTypeMissingMap.ContainsKey((int)type);
         }
+        
+        internal abstract bool IsIOperationFeatureEnabled();
     }
 }

@@ -22,6 +22,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         // enable pattern-switch translation even for switches that use no new syntax.
         public static readonly CSharpParseOptions RegularWithPatterns = Regular.WithFeatures(new Dictionary<string, string>() { { "typeswitch", "true" } });
 
+        public static readonly CSharpParseOptions RegularWithIOperationFeature = Regular.WithIOperationsFeature();
+        
         public static readonly CSharpCompilationOptions ReleaseDll = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release).WithExtendedCustomDebugInformation(true);
         public static readonly CSharpCompilationOptions ReleaseExe = new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Release).WithExtendedCustomDebugInformation(true);
 
@@ -95,7 +97,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
             return options.WithFeatures(options.Features.Concat(list));
         }
-
+        
+        public static CSharpParseOptions WithIOperationsFeature(this CSharpParseOptions options)
+        {
+            return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>("IOperation", "true") }));
+        }
     }
 }
 
