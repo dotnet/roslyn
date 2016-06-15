@@ -1,26 +1,23 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using System.Text;
-using System.Threading.Tasks;
 using Roslyn.Test.Utilities;
-using Roslyn.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.UnitTests
 {
-    public sealed class SimpleAnalyzerAssemblyLoaderTests : TestBase
+    public sealed class DesktopAnalyzerAssemblyLoaderTests : TestBase
     {
         [Fact]
         public void AddDependencyLocationThrowsOnNull()
         {
-            var loader = new SimpleAnalyzerAssemblyLoader();
+            var loader = new DesktopAnalyzerAssemblyLoader();
 
             Assert.Throws<ArgumentNullException>("fullPath", () => loader.AddDependencyLocation(null));
+            Assert.Throws<ArgumentException>("fullPath", () => loader.AddDependencyLocation("a"));
         }
 
         [Fact]
@@ -28,7 +25,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var path = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName() + ".dll");
 
-            var loader = new SimpleAnalyzerAssemblyLoader();
+            var loader = new DesktopAnalyzerAssemblyLoader();
 
             Assert.ThrowsAny<Exception>(() => loader.LoadFromPath(path));
         }
@@ -40,7 +37,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var alphaDll = directory.CreateFile("Alpha.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Alpha);
 
-            var loader = new SimpleAnalyzerAssemblyLoader();
+            var loader = new DesktopAnalyzerAssemblyLoader();
 
             Assembly alpha = loader.LoadFromPath(alphaDll.Path);
 
@@ -58,7 +55,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var gammaDll = Temp.CreateDirectory().CreateFile("Gamma.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Gamma);
             var deltaDll = Temp.CreateDirectory().CreateFile("Delta.dll").WriteAllBytes(TestResources.AssemblyLoadTests.Delta);
 
-            var loader = new SimpleAnalyzerAssemblyLoader();
+            var loader = new DesktopAnalyzerAssemblyLoader();
             loader.AddDependencyLocation(alphaDll.Path);
             loader.AddDependencyLocation(betaDll.Path);
             loader.AddDependencyLocation(gammaDll.Path);

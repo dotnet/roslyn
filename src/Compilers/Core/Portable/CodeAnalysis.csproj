@@ -94,6 +94,9 @@
     <Compile Include="CaseInsensitiveComparison.cs" />
     <Compile Include="CodeGen\ILEmitStyle.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalysisResult.cs" />
+    <Compile Include="DiagnosticAnalyzer\AnalyzerAssemblyLoader.cs" />
+    <Compile Include="FileSystem\CompilerPathUtilities.cs" />
+    <Compile Include="InternalUtilities\AssemblyIdentityUtils.cs" />
     <Compile Include="InternalUtilities\EmptyComparer.cs" />
     <Compile Include="InternalUtilities\StringOrdinalComparer.cs" />
     <Compile Include="MetadataReference\AssemblyIdentityMap.cs" />
@@ -211,7 +214,6 @@
     <Compile Include="Compilation\LoadDirective.cs" />
     <Compile Include="Compilation\CommonSyntaxAndDeclarationManager.cs" />
     <Compile Include="Compilation\SymbolFilter.cs" />
-    <Compile Include="CompilerPathUtilities.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalysisResultBuilder.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalysisScope.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalysisState.AnalyzerStateData.cs" />

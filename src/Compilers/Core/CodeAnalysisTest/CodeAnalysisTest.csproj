@@ -54,7 +54,7 @@
     <Compile Include="PEWriter\PEBuilderTests.cs" />
     <Compile Include="PEWriter\UsedNamespaceOrTypeTests.cs" />
     <Compile Include="RealParserTests.cs" />
-    <Compile Include="SimpleAnalyzerAssemblyLoaderTests.cs" />
+    <Compile Include="DesktopAnalyzerAssemblyLoaderTests.cs" />
     <Compile Include="SourceFileResolverTest.cs" />
     <Compile Include="SourceGeneratorTests.cs" />
     <Compile Include="Text\LargeTextTests.cs" />

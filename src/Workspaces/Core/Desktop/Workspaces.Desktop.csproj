@@ -56,17 +56,11 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\FileKey.cs">
       <Link>InternalUtilities\FileKey.cs</Link>
     </Compile>
-    <Compile Include="..\..\..\Compilers\Shared\AbstractAnalyzerAssemblyLoader.cs">
-      <Link>InternalUtilities\AbstractAnalyzerAssemblyLoader.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Core\CommandLine\AssemblyIdentityUtils.cs">
-      <Link>AssemblyIdentityUtils.cs</Link>
+    <Compile Include="..\..\..\Compilers\Shared\DesktopAnalyzerAssemblyLoader.cs">
+      <Link>InternalUtilities\DesktopAnalyzerAssemblyLoader.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Shared\GlobalAssemblyCacheHelpers\GlobalAssemblyCacheLocation.cs">
       <Link>InternalUtilities\GlobalAssemblyCache.cs</Link>
-    </Compile>
-    <Compile Include="..\..\..\Compilers\Shared\SimpleAnalyzerAssemblyLoader.cs">
-      <Link>InternalUtilities\SimpleAnalyzerAssemblyLoader.cs</Link>
     </Compile>
     <Compile Include="Options\ExportOptionAttribute.cs" />
     <Compile Include="InternalUtilities\FilePathUtilities.cs" />
