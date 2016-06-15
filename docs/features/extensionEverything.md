@@ -257,3 +257,34 @@ Example of how type parameters might be useful:
     }
     // ...
     var thing = MemoryStream.Use(mem => ... use mem as buffer ...);
+
+## Non-obvious design decisions
+
+(Some of these may need to go to LDM)
+
+    public Func<int> ExtMember => () => 2;
+    public int ExtMember() => 2;
+    var x = obj.ExtMember(); // ambiguous
+
+    public void Foo(int x);
+    public void Foo(Func<int> x);
+    public int ExtMember => 2;
+    public int ExtMember() => 2;
+    Foo(obj.ExtMember); // ambiguous
+
+    extension class ExtCollection : ICollection
+	{
+        public int ExtProperty => 2;
+        public static int ExtStaticProperty => 2;
+	}
+    extension class ExtEnumerable : IEnumerable
+	{
+        public int ExtProperty => 2;
+        public static int ExtStaticProperty => 2;
+	}
+    List<int> list = ...;
+	var x = list.ExtProperty; // calls ExtCollection
+    var x = IList.ExtStaticProperty; // calls ExtCollection
+    var x = List.ExtStaticProperty; // Compiler error?
+
+    ... and others
