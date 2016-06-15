@@ -30,6 +30,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             {
                 Brush = new SolidColorBrush(color),
                 DashStyle = DashStyles.Dot,
+                DashCap = PenLineCap.Round,
                 Thickness = 2,
             };
         }
