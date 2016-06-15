@@ -94,8 +94,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
 
             Dim grandParent = parentElement.Parent
 
+            Dim symbol = semanticModel.GetDeclaredSymbol(declaration, cancellationToken)
+
             If grandParent.IsKind(SyntaxKind.XmlElement) Then
-                items.AddRange(GetNestedTags(span))
+                items.AddRange(GetNestedTags(span, symbol))
 
                 If GetStartTagName(grandParent) = ListTagName Then
                     items.AddRange(GetListItems(span))
@@ -105,7 +107,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                     items.AddRange(GetListHeaderItems(span))
                 End If
             ElseIf token.Parent.IsKind(SyntaxKind.XmlText) AndAlso token.Parent.Parent.IsKind(SyntaxKind.XmlElement) Then
-                items.AddRange(GetNestedTags(span))
+                items.AddRange(GetNestedTags(span, symbol))
 
                 If GetStartTagName(token.Parent.Parent) = ListTagName Then
                     items.AddRange(GetListItems(span))
