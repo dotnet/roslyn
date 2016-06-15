@@ -47,6 +47,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
                 {
                     new EnforcementLevel(DiagnosticSeverity.Hidden),
                     new EnforcementLevel(DiagnosticSeverity.Info),
+                    new EnforcementLevel(DiagnosticSeverity.Suggestion),
                     new EnforcementLevel(DiagnosticSeverity.Warning),
                     new EnforcementLevel(DiagnosticSeverity.Error),
                 };

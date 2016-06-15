@@ -35,6 +35,11 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Suppress a diagnostic.
         /// </summary>
-        Suppress = 5
+        Suppress = 5,
+
+        /// <summary>
+        /// Report a diagnostic as a suggestion.
+        /// </summary>
+        Suggestion = 6,
     }
 }
