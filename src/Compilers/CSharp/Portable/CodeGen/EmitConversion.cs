@@ -239,9 +239,9 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             _builder.EmitNumericConversion(fromPredefTypeKind, toPredefTypeKind, conversion.Checked);
         }
 
-        private void EmitDelegateCreation(BoundExpression node, BoundExpression receiver, bool isExtensionMethod, MethodSymbol method, TypeSymbol delegateType, bool used)
+        private void EmitDelegateCreation(BoundExpression node, BoundExpression receiver, MethodSymbol method, TypeSymbol delegateType, bool used)
         {
-            var isStatic = receiver == null || (!isExtensionMethod && method.IsStatic);
+            var isStatic = receiver == null || method.IsStatic;
             if (!used)
             {
                 if (!isStatic)
@@ -318,7 +318,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
         private void EmitMethodGroupConversion(BoundConversion conversion, bool used)
         {
             var group = (BoundMethodGroup)conversion.Operand;
-            EmitDelegateCreation(conversion, group.InstanceOpt, conversion.IsExtensionMethod, conversion.SymbolOpt, conversion.Type, used);
+            EmitDelegateCreation(conversion, group.InstanceOpt, conversion.SymbolOpt, conversion.Type, used);
         }
     }
 }

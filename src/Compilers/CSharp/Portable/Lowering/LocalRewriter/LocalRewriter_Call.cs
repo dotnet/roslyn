@@ -373,6 +373,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ReferenceEquals(methodOrIndexer, optionalParametersMethod));
 
             Debug.Assert(!methodOrIndexer.IsInExtensionClass || (methodOrIndexer.IsExpandedExtensionClassMember || methodOrIndexer.IsStatic));
+            Debug.Assert(((methodOrIndexer as MethodSymbol)?.MethodKind ?? MethodKind.Ordinary) != MethodKind.ReducedExtension);
 
             // We need to do a fancy rewrite under the following circumstances:
             // (1) a params array is being used; we need to generate the array.
@@ -422,6 +423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             bool isComReceiver = (object)receiverNamedType != null && receiverNamedType.IsComImport;
+            var needsExtensionExpanding = methodOrIndexer.IsExpandedExtensionClassMember || ((methodOrIndexer as MethodSymbol)?.IsExtensionMethod ?? false) && !methodOrIndexer.IsStatic;
 
             if (rewrittenArguments.Length == methodOrIndexer.GetParameterCount() &&
                 argsToParamsOpt.IsDefault &&
@@ -431,7 +433,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 temps = default(ImmutableArray<LocalSymbol>);
                 return rewrittenArguments;
             }
-            else if (methodOrIndexer.IsExpandedExtensionClassMember &&
+            else if (needsExtensionExpanding &&
                 rewrittenArguments.Length + 1 == methodOrIndexer.GetParameterCount() &&
                 argsToParamsOpt.IsDefault &&
                 !expanded &&
@@ -495,7 +497,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We start by binding everything that is not obviously reorderable as a temporary, and
             // then run an optimizer to remove unnecessary temporaries.
 
-            var needsExtensionExpanding = methodOrIndexer.IsExpandedExtensionClassMember;
             ImmutableArray<ParameterSymbol> parameters = methodOrIndexer.GetParameters();
             BoundExpression[] actualArguments = new BoundExpression[parameters.Length]; // The actual arguments that will be passed; one actual argument per formal parameter.
             ArrayBuilder<BoundAssignmentOperator> storesToTemps = ArrayBuilder<BoundAssignmentOperator>.GetInstance(rewrittenArguments.Length);

@@ -608,7 +608,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case ConversionKind.MethodGroup:
                     {
                         var mg = (BoundMethodGroup)node.Operand;
-                        return DelegateCreation(mg.ReceiverOpt, node.SymbolOpt, node.Type, node.SymbolOpt.IsStatic && !node.IsExtensionMethod);
+                        return DelegateCreation(mg.ReceiverOpt, node.SymbolOpt, node.Type, node.SymbolOpt.IsStatic);
                     }
                 case ConversionKind.ExplicitUserDefined:
                 case ConversionKind.ImplicitUserDefined:

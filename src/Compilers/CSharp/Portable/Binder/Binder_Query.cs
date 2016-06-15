@@ -466,7 +466,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ImmutableArray.Create(collectionSelectorLambda, resultSelectorLambda),
                     diagnostics);
 
-                // Adjust the second-to-last parameter to be a query clause (if it was an extension method, an extra parameter was added)
+                // Adjust the second-to-last parameter to be a query clause
                 BoundExpression castInvocation = (from.Type != null) ? ExtractCastInvocation(invocation) : null;
 
                 var arguments = invocation.Arguments;
@@ -512,8 +512,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private static BoundExpression ExtractCastInvocation(BoundCall invocation)
         {
-            int index = invocation.InvokedAsExtensionMethod ? 1 : 0;
-            var c1 = invocation.Arguments[index] as BoundConversion;
+            var c1 = invocation.Arguments[0] as BoundConversion;
             var l1 = c1 != null ? c1.Operand as BoundLambda : null;
             var r1 = l1 != null ? l1.Body.Statements[0] as BoundReturnStatement : null;
             var i1 = r1 != null ? r1.ExpressionOpt as BoundCall : null;

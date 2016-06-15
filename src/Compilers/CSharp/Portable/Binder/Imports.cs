@@ -711,7 +711,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // lookup via "using static" ignores extension methods and non-static methods
                 case SymbolKind.Method:
-                    if (!symbol.IsStatic || ((MethodSymbol)symbol).IsExtensionMethod)
+                    if (!symbol.IsStatic)
                     {
                         return false;
                     }

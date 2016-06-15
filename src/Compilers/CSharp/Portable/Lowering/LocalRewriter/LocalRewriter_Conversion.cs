@@ -116,6 +116,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                 (_inExpressionLambda && (explicitCastInCode || DistinctSpecialTypes(rewrittenOperand.Type, rewrittenType)) ||
                 NeedsChecked(rewrittenOperand.Type, rewrittenType));
 
+            if (isExtensionMethod)
+            {
+                // PROTOTYPE: Is this the right place to put this?
+                Debug.Assert(symbolOpt != null);
+                Debug.Assert(symbolOpt.IsInExtensionClass || symbolOpt.MethodKind == MethodKind.ReducedExtension);
+                var extensionClass = symbolOpt.ExpandExtensionClassMethod();
+                var extensionMethod = symbolOpt.ReducedFrom;
+                Debug.Assert(((object)extensionClass != null) ^ ((object)extensionMethod != null)); // xor, exactly one is non-null
+                symbolOpt = extensionClass ?? extensionMethod;
+            }
+
             switch (conversionKind)
             {
                 case ConversionKind.Identity:
@@ -156,7 +167,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 case ConversionKind.IntPtr:
                     return RewriteIntPtrConversion(oldNode, syntax, rewrittenOperand, conversionKind, symbolOpt, @checked,
-                        explicitCastInCode, isExtensionMethod, isArrayIndex, constantValueOpt, rewrittenType);
+                        explicitCastInCode, isArrayIndex, constantValueOpt, rewrittenType);
 
                 case ConversionKind.ImplicitNullable:
                 case ConversionKind.ExplicitNullable:
@@ -1071,7 +1082,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol symbolOpt,
             bool @checked,
             bool explicitCastInCode,
-            bool isExtensionMethod,
             bool isArrayIndex,
             ConstantValue constantValueOpt,
             TypeSymbol rewrittenType)

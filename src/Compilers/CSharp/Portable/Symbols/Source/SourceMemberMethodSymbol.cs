@@ -175,6 +175,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // errors relevant for extension methods
             if (IsExtensionMethod)
             {
+                // PROTOTYPE: Why isn't this throwing for extension class methods with zero parameters?
                 var parameter0Type = this.Parameters[0].Type;
                 if (this.IsInExtensionClass)
                 {

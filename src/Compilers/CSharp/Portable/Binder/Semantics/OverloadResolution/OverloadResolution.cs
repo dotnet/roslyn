@@ -2242,7 +2242,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (conv.IsMethodGroup)
             {
                 DiagnosticBag ignore = DiagnosticBag.GetInstance();
-                bool result = !_binder.MethodGroupIsCompatibleWithDelegate(node.ReceiverOpt, conv.IsExtensionMethod, conv.Method, delegateType, Location.None, ignore);
+                bool result = !_binder.MethodGroupIsCompatibleWithDelegate(node.ReceiverOpt, conv.Method, delegateType, Location.None, ignore);
                 ignore.Free();
                 return result;
             }

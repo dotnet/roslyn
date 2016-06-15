@@ -2934,7 +2934,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             if ((object)call.Method != null)
                             {
-                                symbols = CreateReducedExtensionMethodIfPossible(call);
+                                symbols = GetSymbolFromCall(call);
                                 resultKind = call.ResultKind;
                             }
                         }
@@ -2985,8 +2985,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if ((conversion.ConversionKind == ConversionKind.MethodGroup) && conversion.IsExtensionMethod)
                         {
                             var symbol = conversion.SymbolOpt;
-                            Debug.Assert((object)symbol != null);
-                            symbols = ImmutableArray.Create<Symbol>(ReducedExtensionMethodSymbol.Create(symbol));
+                            Debug.Assert((object)symbol != null && symbol.MethodKind == MethodKind.ReducedExtension);
+                            symbols = ImmutableArray.Create<Symbol>(symbol);
                             resultKind = conversion.ResultKind;
                         }
                         else if (conversion.ConversionKind.IsUserDefinedConversion())
@@ -3700,7 +3700,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                             if (call.OriginalMethodsOpt.IsDefault)
                             {
                                 // Overload resolution succeeded.
-                                symbols = CreateReducedExtensionMethodIfPossible(call);
+                                symbols = GetSymbolFromCall(call);
                                 resultKind = LookupResultKind.Viable;
                             }
                             else
@@ -3717,7 +3717,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         var delegateCreation = (BoundDelegateCreationExpression)boundNodeForSyntacticParent;
                         if (delegateCreation.Argument == boundNode && (object)delegateCreation.MethodOpt != null)
                         {
-                            symbols = CreateReducedExtensionMethodIfPossible(delegateCreation, boundNode.ReceiverOpt);
+                            symbols = GetSymbolFromDelegateCreation(delegateCreation, boundNode.ReceiverOpt);
                         }
                         break;
 
@@ -3730,11 +3730,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         if ((object)method != null)
                         {
                             Debug.Assert(conversion.ConversionKind == ConversionKind.MethodGroup);
-
-                            if (conversion.IsExtensionMethod)
-                            {
-                                method = ReducedExtensionMethodSymbol.Create(method);
-                            }
+                            Debug.Assert(!conversion.IsExtensionMethod || method.MethodKind == MethodKind.ReducedExtension);
 
                             symbols = ImmutableArray.Create((Symbol)method);
                             resultKind = conversion.ResultKind;
@@ -4180,37 +4176,25 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// If the call represents an extension method with an explicit receiver, return a
-        /// ReducedExtensionMethodSymbol if it can be constructed. Otherwise, return the 
-        /// original call method.
+        /// Return the symbol associated with a call. Also assert that we're not accidentally returning a non-reduced extension method.
         /// </summary>
-        private static ImmutableArray<Symbol> CreateReducedExtensionMethodIfPossible(BoundCall call)
+        private static ImmutableArray<Symbol> GetSymbolFromCall(BoundCall call)
         {
             var method = call.Method;
             Debug.Assert((object)method != null);
-
-            if (call.InvokedAsExtensionMethod && method.IsExtensionMethod && method.MethodKind != MethodKind.ReducedExtension)
-            {
-                Debug.Assert(call.Arguments.Length > 0);
-                BoundExpression receiver = call.Arguments[0];
-                MethodSymbol reduced = method.ReduceExtensionMethod(receiver.Type);
-                // If the extension method can't be applied to the receiver of the given
-                // type, we should also return the original call method.
-                method = reduced ?? method;
-            }
+            Debug.Assert(!call.InvokedAsExtensionMethod || !method.IsExtensionMethod || method.MethodKind != MethodKind.ReducedExtension);
             return ImmutableArray.Create<Symbol>(method);
         }
 
-        private static ImmutableArray<Symbol> CreateReducedExtensionMethodIfPossible(BoundDelegateCreationExpression delegateCreation, BoundExpression receiverOpt)
+
+        /// <summary>
+        /// Return the symbol associated with a delegate creation. Also assert that we're not accidentally returning a non-reduced extension method.
+        /// </summary>
+        private static ImmutableArray<Symbol> GetSymbolFromDelegateCreation(BoundDelegateCreationExpression delegateCreation, BoundExpression receiverOpt)
         {
             var method = delegateCreation.MethodOpt;
             Debug.Assert((object)method != null);
-
-            if (delegateCreation.IsExtensionMethod && method.IsExtensionMethod && (receiverOpt != null))
-            {
-                MethodSymbol reduced = method.ReduceExtensionMethod(receiverOpt.Type);
-                method = reduced ?? method;
-            }
+            Debug.Assert(!delegateCreation.IsExtensionMethod || !method.IsExtensionMethod || (receiverOpt == null) || method.MethodKind != MethodKind.ReducedExtension);
             return ImmutableArray.Create<Symbol>(method);
         }
 

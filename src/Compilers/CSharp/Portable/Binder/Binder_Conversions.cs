@@ -432,7 +432,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundExpression receiverOpt = group.ReceiverOpt;
             Debug.Assert(receiverOpt != null);
             Debug.Assert((object)conversion.Method != null);
-            receiverOpt = ReplaceTypeOrValueReceiver(receiverOpt, conversion.Method.IsStatic && !conversion.IsExtensionMethod, diagnostics);
+            receiverOpt = ReplaceTypeOrValueReceiver(receiverOpt, conversion.Method.IsStatic, diagnostics);
             return group.Update(
                 group.TypeArgumentsOpt,
                 group.Name,
@@ -660,7 +660,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// This method implements the checks in spec section 15.2.
         /// </summary>
-        internal bool MethodGroupIsCompatibleWithDelegate(BoundExpression receiverOpt, bool isExtensionMethod, MethodSymbol method, NamedTypeSymbol delegateType, Location errorLocation, DiagnosticBag diagnostics)
+        internal bool MethodGroupIsCompatibleWithDelegate(BoundExpression receiverOpt, MethodSymbol method, NamedTypeSymbol delegateType, Location errorLocation, DiagnosticBag diagnostics)
         {
             Debug.Assert(delegateType.TypeKind == TypeKind.Delegate);
             Debug.Assert((object)delegateType.DelegateInvokeMethod != null && !delegateType.DelegateInvokeMethod.HasUseSiteError,
@@ -668,17 +668,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MethodSymbol delegateMethod = delegateType.DelegateInvokeMethod;
 
-            Debug.Assert(!isExtensionMethod || (receiverOpt != null));
-
             // - Argument types "match", and
             var delegateParameters = delegateMethod.Parameters;
             var methodParameters = method.Parameters;
             int numParams = delegateParameters.Length;
 
-            if (methodParameters.Length != numParams + (isExtensionMethod ? 1 : 0))
+            if (methodParameters.Length != numParams)
             {
                 // This can happen if "method" has optional parameters.
-                Debug.Assert(methodParameters.Length > numParams + (isExtensionMethod ? 1 : 0));
+                Debug.Assert(methodParameters.Length > numParams);
                 Error(diagnostics, ErrorCode.ERR_MethDelegateMismatch, errorLocation, method, delegateType);
                 return false;
             }
@@ -687,15 +685,15 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // If this is an extension method delegate, the caller should have verified the
             // receiver is compatible with the "this" parameter of the extension method.
-            Debug.Assert(!isExtensionMethod ||
-                (Conversions.ConvertExtensionMethodThisArg(methodParameters[0].Type, receiverOpt.Type, ref useSiteDiagnostics).Exists && useSiteDiagnostics.IsNullOrEmpty()));
+            Debug.Assert(method.MethodKind != MethodKind.ReducedExtension ||
+                (Conversions.ConvertExtensionMethodThisArg(method.ReceiverType, receiverOpt.Type, ref useSiteDiagnostics).Exists && useSiteDiagnostics.IsNullOrEmpty()));
 
             useSiteDiagnostics = null;
 
             for (int i = 0; i < numParams; i++)
             {
                 var delegateParameterType = delegateParameters[i].Type;
-                var methodParameterType = methodParameters[isExtensionMethod ? i + 1 : i].Type;
+                var methodParameterType = methodParameters[i].Type;
 
                 if (!Conversions.HasIdentityOrImplicitReferenceConversion(delegateParameterType, methodParameterType, ref useSiteDiagnostics))
                 {
@@ -744,7 +742,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             MethodSymbol selectedMethod = conversion.Method;
 
             if (MemberGroupFinalValidation(receiverOpt, selectedMethod, syntax, diagnostics, isExtensionMethod) ||
-                !MethodGroupIsCompatibleWithDelegate(receiverOpt, isExtensionMethod, selectedMethod, delegateType, syntax.Location, diagnostics))
+                !MethodGroupIsCompatibleWithDelegate(receiverOpt, selectedMethod, delegateType, syntax.Location, diagnostics))
             {
                 return true;
             }

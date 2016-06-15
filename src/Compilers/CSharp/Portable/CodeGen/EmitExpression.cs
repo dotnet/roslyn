@@ -603,7 +603,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGen
             var receiver = mg != null ? mg.ReceiverOpt : expression.Argument;
             var meth = expression.MethodOpt ?? receiver.Type.DelegateInvokeMethod();
             Debug.Assert((object)meth != null);
-            EmitDelegateCreation(expression, receiver, expression.IsExtensionMethod, meth, expression.Type, used);
+            EmitDelegateCreation(expression, receiver, meth, expression.Type, used);
         }
 
         private void EmitThisReferenceExpression(BoundThisReference thisRef)

@@ -824,7 +824,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                         {
                             Debug.Assert(method.IsExtensionMethod || method.IsInExtensionClass);
 
-                            var thisParameterType = method.IsExtensionMethod ? method.Parameters[0].Type : method.ReceiverType;
+                            var thisParameterType = method.ReceiverType;
                             if (!thisParameterType.IsReferenceType)
                             {
                                 // Extension method '{0}' defined on value type '{1}' cannot be used to create delegates
@@ -938,9 +938,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             MethodSymbol method = result.BestResult.Member;
 
-            if (methodGroup.IsExtensionMethodGroup && !method.Parameters[0].Type.IsReferenceType)
+            if (methodGroup.IsExtensionMethodGroup)
             {
-                return Conversion.NoConversion;
+                TypeSymbol receiverType = method.IsInExtensionClass ? method.ContainingType.ExtensionClassType : method.Parameters[0].Type;
+                if (!receiverType.IsReferenceType)
+                {
+                    return Conversion.NoConversion;
+                }
             }
 
             if (method.OriginalDefinition.ContainingType.SpecialType == SpecialType.System_Nullable_T &&
@@ -960,7 +964,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // NOTE: Delegate type compatibility is important, but is not part of the existence check.
 
-            Debug.Assert(method.ParameterCount == delegateType.DelegateInvokeMethod.ParameterCount + (methodGroup.IsExtensionMethodGroup ? 1 : 0));
+            Debug.Assert(method.ParameterCount == delegateType.DelegateInvokeMethod.ParameterCount + (methodGroup.IsExtensionMethodGroup && !method.IsInExtensionClass ? 1 : 0));
 
             return new Conversion(ConversionKind.MethodGroup, method, methodGroup.IsExtensionMethodGroup);
         }
