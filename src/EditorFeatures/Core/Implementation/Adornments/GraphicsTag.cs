@@ -27,9 +27,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
             var lightGray = Color.FromRgb(0xE0, 0xE0, 0xE0);
 
             var outliningForegroundBrush = view.VisualElement.TryFindResource("outlining.verticalrule.foreground") as SolidColorBrush;
-            var darkGray = outliningForegroundBrush?.Color ?? lightGray;
+            var color = outliningForegroundBrush?.Color ?? lightGray;
 
-            VerticalRuleColor = darkGray;
+            VerticalRuleColor = color;
             VerticalRuleBrush = new SolidColorBrush(VerticalRuleColor);
         }
 

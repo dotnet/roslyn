@@ -55,7 +55,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                 Y2 = geometry.Bounds.Bottom - s_pen.Thickness,
                 Clip = new RectangleGeometry { Rect = clipRectangle }
             };
-            RenderOptions.SetEdgeMode(line, EdgeMode.Aliased);
+            // RenderOptions.SetEdgeMode(line, EdgeMode.Aliased);
 
             ApplyPen(line, s_pen);
 
