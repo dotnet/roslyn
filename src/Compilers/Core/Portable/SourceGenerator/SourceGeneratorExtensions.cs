@@ -11,12 +11,27 @@ namespace Microsoft.CodeAnalysis
 {
     public static class SourceGeneratorExtensions
     {
+        /// <summary>
+        /// Invoke each <see cref="SourceGenerator"/> passing the <paramref name="compilation"/>
+        /// and return the collection of <see cref="SyntaxTree"/>s generated. Diagnostics reported
+        /// by the generators are returned in <paramref name="diagnostics"/>. Exceptions thrown
+        /// by the generators are also returned as diagnostics in the <paramref name="diagnostics"/>
+        /// collection.
+        /// </summary>
+        /// <param name="compilation">The compilation to pass to each generator.</param>
+        /// <param name="generators">The collection of source generators.</param>
+        /// <param name="path">The path to persist generated source if <paramref name="writeToDisk"/> is true.</param>
+        /// <param name="writeToDisk">Persist generated source to <paramref name="path"/>.</param>
+        /// <param name="cancellationToken">The cancellation token.</param>
+        /// <param name="diagnostics">Diagnostics and exceptions from the generators.</param>
+        /// <returns></returns>
         public static ImmutableArray<SyntaxTree> GenerateSource(
             this Compilation compilation,
             ImmutableArray<SourceGenerator> generators,
             string path,
             bool writeToDisk,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            out ImmutableArray<Diagnostic> diagnostics)
         {
             if (generators.IsDefault)
             {
@@ -28,25 +43,55 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(path));
             }
 
-            var builder = ArrayBuilder<SyntaxTree>.GetInstance();
-            var context = new Context(builder, compilation, path, writeToDisk);
+            var treeBuilder = ArrayBuilder<SyntaxTree>.GetInstance();
+            var diagnosticBuilder = ArrayBuilder<Diagnostic>.GetInstance();
+            var context = new Context(treeBuilder, diagnosticBuilder, compilation, path, writeToDisk);
             foreach (var generator in generators)
             {
-                generator.Execute(context);
+                try
+                {
+                    generator.Execute(context);
+                }
+                catch (Exception e) when (ExceptionFilter(e))
+                {
+                    var descriptor = CreateExceptionDiagnosticDescriptor();
+                    var diagnostic = Diagnostic.Create(descriptor, Location.None, generator, e.GetType().ToString(), e.Message);
+                    diagnosticBuilder.Add(diagnostic);
+                }
             }
-            return builder.ToImmutableAndFree();
+            diagnostics = diagnosticBuilder.ToImmutableAndFree();
+            return treeBuilder.ToImmutableAndFree();
+        }
+
+        private static bool ExceptionFilter(Exception e)
+        {
+            return !(e is OperationCanceledException);
+        }
+
+        private static DiagnosticDescriptor CreateExceptionDiagnosticDescriptor()
+        {
+            return new DiagnosticDescriptor(
+                id: "SG0001",
+                title: CodeAnalysisResources.SourceGeneratorFailure,
+                messageFormat: CodeAnalysisResources.SourceGeneratorThrows,
+                category: "Compiler",
+                defaultSeverity: DiagnosticSeverity.Error,
+                isEnabledByDefault: true,
+                description: CodeAnalysisResources.SourceGeneratorThrowsDescription);
         }
 
         private sealed class Context : SourceGeneratorContext
         {
-            private readonly ArrayBuilder<SyntaxTree> _builder;
+            private readonly ArrayBuilder<SyntaxTree> _trees;
+            private readonly ArrayBuilder<Diagnostic> _diagnostics;
             private readonly Compilation _compilation;
             private readonly string _path;
             private readonly bool _writeToDisk;
 
-            internal Context(ArrayBuilder<SyntaxTree> builder, Compilation compilation, string path, bool writeToDisk)
+            internal Context(ArrayBuilder<SyntaxTree> trees, ArrayBuilder<Diagnostic> diagnostics, Compilation compilation, string path, bool writeToDisk)
             {
-                _builder = builder;
+                _trees = trees;
+                _diagnostics = diagnostics;
                 _compilation = compilation;
                 _path = path;
                 _writeToDisk = writeToDisk;
@@ -59,12 +104,12 @@ namespace Microsoft.CodeAnalysis
 
             public override void ReportDiagnostic(Diagnostic diagnostic)
             {
-                throw new NotImplementedException();
+                _diagnostics.Add(diagnostic);
             }
 
             public override void AddCompilationUnit(string name, SyntaxTree tree)
             {
-                _builder.Add(ToResult(_compilation, name, tree, _path, _writeToDisk));
+                _trees.Add(ToResult(_compilation, name, tree, _path, _writeToDisk));
             }
 
             private static SyntaxTree ToResult(Compilation compilation, string name, SyntaxTree tree, string path, bool writeToDisk)

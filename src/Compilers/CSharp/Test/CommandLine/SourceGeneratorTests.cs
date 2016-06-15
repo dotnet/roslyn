@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 });
 
                 int generatorCalls = 0;
-                var generator = new MyGenerator(c =>
+                var generator = new SimpleSourceGenerator(c =>
                 {
                     generatorCalls++;
                     c.AddCompilationUnit("__c", CSharpSyntaxTree.ParseText("class __C { }"));
@@ -94,21 +94,6 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             public override void Initialize(AnalysisContext context)
             {
                 context.RegisterCompilationStartAction(_startAction);
-            }
-        }
-
-        private sealed class MyGenerator : SourceGenerator
-        {
-            private readonly Action<SourceGeneratorContext> _execute;
-
-            internal MyGenerator(Action<SourceGeneratorContext> execute)
-            {
-                _execute = execute;
-            }
-
-            public override void Execute(SourceGeneratorContext context)
-            {
-                _execute(context);
             }
         }
 
