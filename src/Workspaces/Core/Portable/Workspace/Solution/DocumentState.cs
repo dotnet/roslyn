@@ -559,6 +559,15 @@ namespace Microsoft.CodeAnalysis
             return treeAndVersion.Tree;
         }
 
+        internal SyntaxTree GetSyntaxTree(CancellationToken cancellationToken)
+        {
+            var treeAndVersion = _treeSource.GetValue(cancellationToken);
+
+            // make sure there is an association between this tree and this doc id before handing it out
+            BindSyntaxTreeToId(treeAndVersion.Tree, this.Id);
+            return treeAndVersion.Tree;
+        }
+
         public bool TryGetTopLevelChangeTextVersion(out VersionStamp version)
         {
             TreeAndVersion treeAndVersion;

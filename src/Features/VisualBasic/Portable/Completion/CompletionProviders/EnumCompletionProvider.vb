@@ -109,17 +109,17 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Return Await VisualBasicSyntaxContext.CreateContextAsync(document.Project.Solution.Workspace, semanticModel, position, cancellationToken).ConfigureAwait(False)
         End Function
 
-        Protected Overrides Function CreateItem(displayText As String, insertionText As String, position As Integer, symbols As List(Of ISymbol), context As AbstractSyntaxContext, textChangeSpan As TextSpan, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
+        Protected Overrides Function CreateItem(displayText As String, insertionText As String, position As Integer, symbols As List(Of ISymbol), context As AbstractSyntaxContext, span As TextSpan, preselect As Boolean, supportedPlatformData As SupportedPlatformData) As CompletionItem
             Return SymbolCompletionItem.Create(
                 displayText:=displayText,
                 insertionText:=insertionText,
                 filterText:=GetFilterText(symbols(0), displayText, context),
-                span:=textChangeSpan,
+                span:=span,
                 symbols:=symbols,
                 contextPosition:=context.Position,
                 descriptionPosition:=position,
                 sortText:=insertionText,
-                preselect:=preselect,
+                matchPriority:=If(preselect, MatchPriority.Preselect, MatchPriority.Default),
                 supportedPlatforms:=supportedPlatformData,
                 rules:=GetCompletionItemRules(symbols, context))
         End Function
