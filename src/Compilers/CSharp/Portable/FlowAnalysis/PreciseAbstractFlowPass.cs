@@ -2511,6 +2511,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        public override sealed BoundNode VisitOutVarLocalPendingInference(OutVarLocalPendingInference node)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
         #endregion visitors
     }
 }

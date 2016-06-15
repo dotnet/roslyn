@@ -80,10 +80,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     {
         public override object Display
         {
-            get
-            {
-                return MessageID.IDS_FeatureOutVar.Localize();
-            }
+            get { return string.Empty; }
         }
     }
 }
