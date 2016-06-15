@@ -110,7 +110,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     return SpecializedCollections.EmptyEnumerable<CompletionItem>();
                 }
 
-                return await GetSnippetCompletionItemsAsync(workspace, semanticModel, position, itemSpan, isPreProcessorContext: true, cancellationToken: cancellationToken).ConfigureAwait(false);
+                return await GetSnippetCompletionItemsAsync(workspace, semanticModel, itemSpan, isPreProcessorContext: true, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
 
             if (semanticFacts.IsGlobalStatementContext(semanticModel, position, cancellationToken) ||
@@ -119,16 +119,17 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 semanticFacts.IsTypeContext(semanticModel, position, cancellationToken) ||
                 semanticFacts.IsTypeDeclarationContext(semanticModel, position, cancellationToken) ||
                 semanticFacts.IsNamespaceContext(semanticModel, position, cancellationToken) ||
+                semanticFacts.IsNamespaceDeclarationNameContext(semanticModel, position, cancellationToken) ||
                 semanticFacts.IsMemberDeclarationContext(semanticModel, position, cancellationToken) ||
                 semanticFacts.IsLabelContext(semanticModel, position, cancellationToken))
             {
-                return await GetSnippetCompletionItemsAsync(workspace, semanticModel, position, itemSpan, isPreProcessorContext: false, cancellationToken: cancellationToken).ConfigureAwait(false);
+                return await GetSnippetCompletionItemsAsync(workspace, semanticModel, itemSpan, isPreProcessorContext: false, cancellationToken: cancellationToken).ConfigureAwait(false);
             }
 
             return SpecializedCollections.EmptyEnumerable<CompletionItem>();
         }
 
-        private async Task<IEnumerable<CompletionItem>> GetSnippetCompletionItemsAsync(Workspace workspace, SemanticModel semanticModel, int position, TextSpan itemSpan, bool isPreProcessorContext, CancellationToken cancellationToken)
+        private async Task<IEnumerable<CompletionItem>> GetSnippetCompletionItemsAsync(Workspace workspace, SemanticModel semanticModel, TextSpan itemSpan, bool isPreProcessorContext, CancellationToken cancellationToken)
         {
             var service = _snippetInfoService ?? workspace.Services.GetLanguageServices(semanticModel.Language).GetService<ISnippetInfoService>();
             if (service == null)

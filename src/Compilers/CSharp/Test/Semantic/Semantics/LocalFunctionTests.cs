@@ -65,7 +65,7 @@ class Program
 
         internal void VerifyDiagnostics(string source, params DiagnosticDescription[] expected)
         {
-            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: TestOptions.ReleaseExe, parseOptions: DefaultParseOptions);
+            var comp = CreateCompilationWithMscorlib45AndCSruntime(source, options: TestOptions.ReleaseDll, parseOptions: DefaultParseOptions);
             comp.VerifyDiagnostics(expected);
         }
 
@@ -105,6 +105,43 @@ class C
     }
 }";
             VerifyOutput(src, "012");
+        }
+
+        [Fact]
+        public void VarLocalFunction()
+        {
+            var src = @"
+class C
+{
+    void M()
+    {
+        var local() => 0;
+        int x = local();
+   } 
+}";
+            VerifyDiagnostics(src,
+                // (6,9): error CS0825: The contextual keyword 'var' may only appear within a local variable declaration or in script code
+                //         var local() => 0;
+                Diagnostic(ErrorCode.ERR_TypeVarNotFound, "var").WithLocation(6, 9));
+        }
+
+        [Fact]
+        public void VarLocalFunction2()
+        {
+            var comp = CreateCompilationWithMscorlib(@"
+class C
+{
+    private class var
+    {
+    }
+
+    void M()
+    {
+        var local() => new var();
+        var x = local();
+   } 
+}", parseOptions: DefaultParseOptions);
+            comp.VerifyDiagnostics();
         }
 
         [Fact]

@@ -111,18 +111,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
         private static readonly Func<SyntaxKind, bool> s_isDotOrArrowOrColonColon =
             k => k == SyntaxKind.DotToken || k == SyntaxKind.MinusGreaterThanToken || k == SyntaxKind.ColonColonToken;
 
-        public static bool IsNamespaceDeclarationNameContext(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
-        {
-            var token = syntaxTree.FindTokenOnLeftOfPosition(position, cancellationToken);
-            var namespaceName = token.GetAncestor<NamespaceDeclarationSyntax>();
-            if (namespaceName == null)
-            {
-                return false;
-            }
-
-            return namespaceName.Name.Span.IntersectsWith(position);
-        }
-
         public static bool IsRightOfDotOrArrowOrColonColon(this SyntaxTree syntaxTree, int position, CancellationToken cancellationToken)
         {
             return syntaxTree.IsRightOf(position, s_isDotOrArrowOrColonColon, cancellationToken);

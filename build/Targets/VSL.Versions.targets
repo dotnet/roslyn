@@ -31,15 +31,22 @@
   </PropertyGroup>
 
   <PropertyGroup>
-    <!-- When a build number is not specified, then we should default back to '0.0' -->
-    <BuildNumber Condition="'$(BuildNumber)' == ''">0.0</BuildNumber>
+    <!-- When a build number is not specified, then we should default back to '00000000.0', which is a build number in the
+         same format as provided by MicroBuild v2, but with all digits set to zero. -->
+    <BuildNumber Condition="'$(BuildNumber)' == ''">00000000.0</BuildNumber>
     <!-- When a build number is specified, it needs to be in the format of 'x.y' -->
     <Error Condition="$(BuildNumber.Split('.').Length) != 2">BuildNumber should have two parts (in the form of 'x.y')</Error>
   </PropertyGroup>
 
   <PropertyGroup>
-    <!-- Split the build parts out from the BuildNumber -->
-    <BuildNumberPart1>$(BuildNumber.Split('.')[0])</BuildNumberPart1>
+    <!-- Split the build parts out from the BuildNumber which is given to us by MicroBuild in the format of yyyymmdd.nn
+         where BuildNumberPart1 is yyyymmdd (such as 20160615) and BuildNumberPart2 is nn (which represents the nth build 
+         started that day). So the first build of the day, 20160615.1, will produce something similar to BuildNumberPart1: 20160615,
+         BuildNumberPart2: 01; and the 12th build of the day, 20160615.12, will produce BuildNumberPart1: 20160615, BuildNumberPart2: 12 -->
+    <!-- Additionally, in order to match the MicroBuild v1 behavior, we will only take the last five digits of the BuildNumber, so
+         in the case of 20160615, we will set BuildNumberPart1 to 60615. This will begin failing in the 2017 as the BuildVersion only allows
+         each part to be in the range of 0 through 65535. Issue #12038 tracks the fix that needs to happen. -->
+    <BuildNumberPart1>$(BuildNumber.Split('.')[0].Substring(3))</BuildNumberPart1>
     <BuildNumberPart2>$(BuildNumber.Split('.')[1].PadLeft(2,'0'))</BuildNumberPart2>
   </PropertyGroup>
   
@@ -56,7 +63,7 @@
     <When Condition="'$(OfficialBuild)' == 'true' OR '$(SignedBuild)' == 'true'">
       <PropertyGroup>
         <AssemblyVersion>$(RoslynSemanticVersion).0</AssemblyVersion>
-        <BuildVersion>$(RoslynSemanticVersion).$(BuildNumberPart1)$(BuildNumberPart2)</BuildVersion>
+        <BuildVersion>$(RoslynSemanticVersion).0</BuildVersion>
       </PropertyGroup>
     </When>
 
@@ -73,7 +80,7 @@
   </Choose>
 
   <!-- Returns the current build version. Used in .vsixmanifests to substitute our build version into them -->
-  <Target Name="GetBuildVersion" Outputs="$(BuildVersion)" />
+  <Target Name="GetBuildVersion" Outputs="$(RoslynSemanticVersion).$(BuildNumberPart1.Trim())$(BuildNumberPart2.Trim())" />
 
   <!-- NuGet version -->
   <PropertyGroup>
@@ -85,5 +92,5 @@
     <MicrosoftDiaSymReaderPortablePdbVersion>1.1.0-beta1</MicrosoftDiaSymReaderPortablePdbVersion>
     <MicrosoftDiaSymReaderPortablePdbVersion Condition="'$(BuildNumber)' != ''">$(MicrosoftDiaSymReaderPortablePdbVersion)-$(BuildNumber.Split('.')[0])-$(BuildNumber.Split('.')[1].PadLeft(2,'0'))</MicrosoftDiaSymReaderPortablePdbVersion>
   </PropertyGroup>
-  
+
 </Project>

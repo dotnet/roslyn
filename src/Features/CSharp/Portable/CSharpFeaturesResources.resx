@@ -455,4 +455,10 @@
   <data name="UseImplicitTypeDiagnosticTitle" xml:space="preserve">
     <value>Use implicit type</value>
   </data>
+  <data name="AutoselectDisabledDueToNamespaceDeclaration" xml:space="preserve">
+    <value>Autoselect disabled due to namespace declaration.</value>
+  </data>
+  <data name="NamespaceName" xml:space="preserve">
+    <value>&lt;namespace name&gt;</value>
+  </data>
 </root>

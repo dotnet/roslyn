@@ -1204,4 +1204,10 @@ Sub(&lt;parameterList&gt;) &lt;statement&gt;</value>
   <data name="Properties" xml:space="preserve">
     <value>Properties</value>
   </data>
+  <data name="NamespaceName" xml:space="preserve">
+    <value>&lt;namespace name&gt;</value>
+  </data>
+  <data name="TypeANameHereToDeclareANamespace" xml:space="preserve">
+    <value>Type a name here to declare a namespace.</value>
+  </data>
 </root>
