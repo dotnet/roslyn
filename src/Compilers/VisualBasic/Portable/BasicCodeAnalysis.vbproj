@@ -424,6 +424,7 @@
     <Compile Include="Lowering\Instrumentation\CompoundInstrumenter.vb" />
     <Compile Include="Lowering\Instrumentation\DebugInfoInjector.vb" />
     <Compile Include="Lowering\Instrumentation\DebugInfoInjector_SequencePoints.vb" />
+    <Compile Include="Lowering\Instrumentation\DynamicAnalysisInjector.vb" />
     <Compile Include="Lowering\Instrumentation\Instrumenter.vb" />
     <Compile Include="Lowering\IteratorRewriter\IteratorRewriter.IteratorMethodToClassRewriter.vb" />
     <Compile Include="Lowering\IteratorRewriter\IteratorRewriter.vb" />
