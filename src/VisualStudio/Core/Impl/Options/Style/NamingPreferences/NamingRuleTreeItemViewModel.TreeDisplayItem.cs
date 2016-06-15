@@ -40,11 +40,12 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options.Style.N
 
             switch (EnforcementLevel.Value)
             {
-                case CodeAnalysis.DiagnosticSeverity.Suggestion:
                 case CodeAnalysis.DiagnosticSeverity.Hidden:
                     return KnownMonikers.None;
                 case CodeAnalysis.DiagnosticSeverity.Info:
                     return KnownMonikers.StatusInformation;
+                case CodeAnalysis.DiagnosticSeverity.Suggestion:
+                    return KnownMonikers.Ellipsis;
                 case CodeAnalysis.DiagnosticSeverity.Warning:
                     return KnownMonikers.StatusWarning;
                 case CodeAnalysis.DiagnosticSeverity.Error:
