@@ -59,18 +59,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         // internal for testing
         internal class IncrementalAnalyzerDelegatee : BaseDiagnosticIncrementalAnalyzer
         {
-            // v1 diagnostic engine
-            private readonly EngineV1.DiagnosticIncrementalAnalyzer _engineV1;
-
             // v2 diagnostic engine - for now v1
             private readonly EngineV2.DiagnosticIncrementalAnalyzer _engineV2;
 
             public IncrementalAnalyzerDelegatee(DiagnosticAnalyzerService owner, Workspace workspace, HostAnalyzerManager hostAnalyzerManager, AbstractHostDiagnosticUpdateSource hostDiagnosticUpdateSource)
                 : base(owner, workspace, hostAnalyzerManager, hostDiagnosticUpdateSource)
             {
-                var v1CorrelationId = LogAggregator.GetNextId();
-                _engineV1 = new EngineV1.DiagnosticIncrementalAnalyzer(owner, v1CorrelationId, workspace, hostAnalyzerManager, hostDiagnosticUpdateSource);
-
                 var v2CorrelationId = LogAggregator.GetNextId();
                 _engineV2 = new EngineV2.DiagnosticIncrementalAnalyzer(owner, v2CorrelationId, workspace, hostAnalyzerManager, hostDiagnosticUpdateSource);
             }
@@ -193,17 +187,19 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public void TurnOff(bool useV2)
             {
-                var turnedOffAnalyzer = GetAnalyzer(!useV2);
+                // Uncomment the below when we add a v3 engine.
 
-                foreach (var project in Workspace.CurrentSolution.Projects)
-                {
-                    foreach (var document in project.Documents)
-                    {
-                        turnedOffAnalyzer.RemoveDocument(document.Id);
-                    }
+                //var turnedOffAnalyzer = GetAnalyzer(!useV2);
 
-                    turnedOffAnalyzer.RemoveProject(project.Id);
-                }
+                //foreach (var project in Workspace.CurrentSolution.Projects)
+                //{
+                //    foreach (var document in project.Documents)
+                //    {
+                //        turnedOffAnalyzer.RemoveDocument(document.Id);
+                //    }
+
+                //    turnedOffAnalyzer.RemoveProject(project.Id);
+                //}
             }
 
             // internal for testing
@@ -218,7 +214,10 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             private BaseDiagnosticIncrementalAnalyzer GetAnalyzer(bool useV2)
             {
-                return useV2 ? (BaseDiagnosticIncrementalAnalyzer)_engineV2 : _engineV1;
+                // v1 engine has been removed, always use v2 engine (until v3 engine is added).
+                //return useV2 ? (BaseDiagnosticIncrementalAnalyzer)_engineV2 : _engineV1;
+
+                return (BaseDiagnosticIncrementalAnalyzer)_engineV2;
             }
         }
     }
