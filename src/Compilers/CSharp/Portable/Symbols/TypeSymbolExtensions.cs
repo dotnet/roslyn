@@ -392,7 +392,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return true;
         }
 
-       public static ImmutableArray<TypeSymbol> GetElementTypesIfTupleOrCompatible(this TypeSymbol type)
+       public static ImmutableArray<TypeSymbol> GetElementTypesOfTupleOrCompatible(this TypeSymbol type)
         {
             if (type.IsTupleType)
             {
