@@ -266,9 +266,9 @@
     <Compile Include="Implementation\CodeFixes\CodeFixService.ProjectCodeFixProvider.cs" />
     <Compile Include="Implementation\CodeFixes\ICodeFixService.cs" />
     <Compile Include="Implementation\Diagnostics\AbstractDiagnosticsAdornmentTaggerProvider.cs" />
-    <Compile Include="Implementation\Diagnostics\DiagnosticsSuggestionLineTaggerProvider.cs" />
-    <Compile Include="Implementation\Diagnostics\SuggestionLineAdornmentManagerProvider.cs" />
-    <Compile Include="Implementation\Diagnostics\SuggestionLineTag.cs" />
+    <Compile Include="Implementation\Diagnostics\DiagnosticsSuggestionTaggerProvider.cs" />
+    <Compile Include="Implementation\Diagnostics\SuggestionAdornmentManagerProvider.cs" />
+    <Compile Include="Implementation\Diagnostics\SuggestionTag.cs" />
     <Compile Include="Implementation\FindReferences\IFindReferencesNavigableItemResultProvider.cs" />
     <Compile Include="Implementation\GoToDefinition\INavigableDefinitionProvider.cs" />
     <Compile Include="Implementation\GoToImplementation\AbstractGoToImplementationService.cs" />

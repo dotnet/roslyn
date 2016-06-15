@@ -17,8 +17,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
     [Export(typeof(IWpfTextViewCreationListener))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TextViewRole(PredefinedTextViewRoles.Document)]
-    internal class SuggestionLineAdornmentManagerProvider :
-        AbstractAdornmentManagerProvider<SuggestionLineTag>
+    internal class SuggestionAdornmentManagerProvider :
+        AbstractAdornmentManagerProvider<SuggestionTag>
     {
         private const string LayerName = "RoslynSuggestions";
 
@@ -32,7 +32,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 #pragma warning restore 0169
 
         [ImportingConstructor]
-        public SuggestionLineAdornmentManagerProvider(
+        public SuggestionAdornmentManagerProvider(
             IViewTagAggregatorFactoryService tagAggregatorFactoryService,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
             : base(tagAggregatorFactoryService, asyncListeners)

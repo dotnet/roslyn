@@ -10,9 +10,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
     /// <summary>
     /// Tag that specifies line separator.
     /// </summary>
-    internal class SuggestionLineTag : GraphicsTag
+    internal class SuggestionTag : GraphicsTag
     {
-        public static readonly SuggestionLineTag Instance = new SuggestionLineTag();
+        public static readonly SuggestionTag Instance = new SuggestionTag();
 
         private static Pen s_pen;
 

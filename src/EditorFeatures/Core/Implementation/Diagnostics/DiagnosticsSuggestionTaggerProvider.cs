@@ -17,16 +17,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 {
     [Export(typeof(ITaggerProvider))]
     [ContentType(ContentTypeNames.RoslynContentType)]
-    [TagType(typeof(SuggestionLineTag))]
-    internal partial class DiagnosticsSuggestionLineTaggerProvider : 
-        AbstractDiagnosticsAdornmentTaggerProvider<SuggestionLineTag>
+    [TagType(typeof(SuggestionTag))]
+    internal partial class DiagnosticsSuggestionTaggerProvider : 
+        AbstractDiagnosticsAdornmentTaggerProvider<SuggestionTag>
     {
         private static readonly IEnumerable<Option<bool>> s_tagSourceOptions =
             ImmutableArray.Create(EditorComponentOnOffOptions.Tagger, InternalFeatureOnOffOptions.Squiggles, ServiceComponentOnOffOptions.DiagnosticProvider);
         protected internal override IEnumerable<Option<bool>> Options => s_tagSourceOptions;
 
         [ImportingConstructor]
-        public DiagnosticsSuggestionLineTaggerProvider(
+        public DiagnosticsSuggestionTaggerProvider(
             IOptionService optionService,
             IDiagnosticService diagnosticService,
             IForegroundNotificationService notificationService,
@@ -40,9 +40,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
             return diagnostic.Severity == DiagnosticSeverity.Suggestion;
         }
 
-        protected override SuggestionLineTag CreateTag(DiagnosticData diagnostic)
+        protected override SuggestionTag CreateTag(DiagnosticData diagnostic)
         {
-            return SuggestionLineTag.Instance;
+            return SuggestionTag.Instance;
         }
 
         protected override SnapshotSpan AdjustSnapshotSpan(SnapshotSpan snapshotSpan, int minimumLength)
