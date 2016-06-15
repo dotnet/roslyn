@@ -16,5 +16,8 @@
     <Asset Type="Microsoft.VisualStudio.Analyzer" Path="|CodeAnalysisDiagnosticAnalyzers|" />
     <Asset Type="Microsoft.VisualStudio.Analyzer" Path="|BasicCodeAnalysisDiagnosticAnalyzers|" />
     <Asset Type="Microsoft.VisualStudio.Analyzer" Path="|CSharpCodeAnalysisDiagnosticAnalyzers|" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" Path="|CodeAnalysisDiagnosticAnalyzers|" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" Path="|BasicCodeAnalysisDiagnosticAnalyzers|" />
+    <Asset Type="Microsoft.VisualStudio.MefComponent" Path="|CSharpCodeAnalysisDiagnosticAnalyzers|" />
   </Assets>
 </PackageManifest>
