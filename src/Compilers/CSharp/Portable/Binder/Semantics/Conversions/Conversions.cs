@@ -49,7 +49,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return result;
             }
 
-            return ClassifyExplicitOnlyConversionFromExpression(sourceExpression, source, destination, ref useSiteDiagnostics);
+            return ClassifyExplicitOnlyConversionFromExpression(sourceExpression, source, destination, ref useSiteDiagnostics, forCast: false);
         }
 
         /// <summary>
@@ -71,12 +71,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)destination != null);
 
             Conversion implicitConversion = ClassifyImplicitConversionFromExpression(source, destination, ref useSiteDiagnostics);
-            if (implicitConversion.Exists && !implicitConversion.IsUserDefined && !implicitConversion.IsDynamic)
+            if (implicitConversion.Exists && !ExplicitConversionMayDifferFromImplicit(implicitConversion))
             {
                 return implicitConversion;
             }
 
-            Conversion explicitConversion = ClassifyExplicitOnlyConversionFromExpression(source, source.Type, destination, ref useSiteDiagnostics);
+            Conversion explicitConversion = ClassifyExplicitOnlyConversionFromExpression(source, source.Type, destination, ref useSiteDiagnostics, forCast: true);
             if (explicitConversion.Exists)
             {
                 return explicitConversion;
@@ -107,6 +107,24 @@ namespace Microsoft.CodeAnalysis.CSharp
             // and for backwards compatibility, we match it.
 
             return implicitConversion.Exists ? implicitConversion : Conversion.NoConversion;
+        }
+
+        /// <summary>
+        /// returns true when implicit conversion is not necessarily the same as explicit conversion
+        /// </summary>
+        private static bool ExplicitConversionMayDifferFromImplicit(Conversion implicitConversion)
+        {
+            switch (implicitConversion.Kind)
+            {
+                case ConversionKind.ImplicitUserDefined:
+                case ConversionKind.ImplicitDynamic:
+                case ConversionKind.ImplicitTuple:
+                case ConversionKind.ImplicitNullable:
+                    return true;
+
+                default:
+                    return false;
+            }
         }
 
         private Conversion ClassifyImplicitBuiltInConversionFromExpression(BoundExpression sourceExpression, TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
@@ -369,7 +387,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private Conversion ClassifyExplicitOnlyConversionFromExpression(BoundExpression sourceExpression, TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        private Conversion ClassifyExplicitOnlyConversionFromExpression(
+            BoundExpression sourceExpression, 
+            TypeSymbol source, 
+            TypeSymbol destination, 
+            ref HashSet<DiagnosticInfo> useSiteDiagnostics, 
+            bool forCast)
         {
             Debug.Assert(sourceExpression != null || (object)source != null);
             Debug.Assert(sourceExpression == null || (object)sourceExpression.Type == (object)source);
@@ -385,7 +408,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
                 else
                 {
-                    Conversion conversion = ClassifyExplicitBuiltInOnlyConversion(source, destination, ref useSiteDiagnostics);
+                    Conversion conversion = ClassifyExplicitBuiltInOnlyConversion(source, destination, ref useSiteDiagnostics, forCast);
                     if (conversion.Exists)
                     {
                         return conversion;
