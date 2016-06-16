@@ -1,6 +1,9 @@
-{
-  "dependencies": { },
+﻿{
+  "dependencies": {
+    "RoslynDependencies.Microsoft.VisualStudio.Language.CallHierarchy": "14.0.23107",
+    "RoslynDependencies.Microsoft.VisualStudio.Language.NavigateTo.Interfaces": "14.0.23107"
+  },
   "frameworks": {
-    "net46": { }
+    "net46": {}
   }
 }

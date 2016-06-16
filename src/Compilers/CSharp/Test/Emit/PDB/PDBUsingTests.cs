@@ -8,6 +8,7 @@ using System.Reflection.Metadata.Ecma335;
 using System.Reflection.PortableExecutable;
 using System.Text;
 using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
+using Microsoft.CodeAnalysis.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.MetadataUtilities;
 using Roslyn.Test.Utilities;
@@ -2385,6 +2386,92 @@ class C
     </method>
   </methods>
 </symbols>");
+        }
+
+        [Fact]
+        public void ImportScopeEquality()
+        {
+            var sources = new[] { @"
+extern alias A;
+using System;
+using C = System;
+
+namespace N.M 
+{
+   using System.Collections;
+
+   class C1 { void F() {} }
+}
+
+namespace N.M 
+{
+   using System.Collections;
+
+   class C2 { void F() {} }
+}
+", @"
+extern alias A;
+using System;
+using C = System;
+
+namespace N.M 
+{
+   using System.Collections;
+
+   class C3 { void F() {} }
+}
+
+namespace N.M 
+{
+   using System.Collections.Generic;
+
+   class C4 { void F() {} }
+}
+", @"
+extern alias A;
+using System;
+using D = System;
+
+namespace N.M 
+{
+   using System.Collections;
+
+   class C5 { void F() {} }
+}
+", @"
+extern alias A;
+using System;
+
+class C6 { void F() {} }
+" };
+
+            var c = CreateCompilationWithMscorlib(sources, new[] { SystemCoreRef.WithAliases(ImmutableArray.Create("A")) });
+            var pdbStream = new MemoryStream();
+            c.EmitToArray(EmitOptions.Default.WithDebugInformationFormat(DebugInformationFormat.PortablePdb), pdbStream: pdbStream);
+            var pdbImage = pdbStream.ToImmutable();
+            using (var metadata = new PinnedMetadata(pdbImage))
+            {
+                var mdReader = metadata.Reader;
+                var writer = new StringWriter();
+                var mdVisualizer = new MetadataVisualizer(mdReader, writer);
+                mdVisualizer.WriteImportScope();
+
+                AssertEx.AssertEqualToleratingWhitespaceDifferences(@"
+ImportScope (index: 0x35, size: 36): 
+=============================================================================================
+   Parent                    Imports                                                          
+=============================================================================================
+1: nil                       'A' (#1) = 0x23000002 (AssemblyRef)                              
+2: 0x35000001 (ImportScope)  Extern Alias 'A' (#1), 'System' (#7)                             
+3: 0x35000001 (ImportScope)  Extern Alias 'A' (#1), 'System' (#7), 'C' (#1d) = 'System' (#7)  
+4: 0x35000003 (ImportScope)  nil                                                              
+5: 0x35000004 (ImportScope)  'System.Collections' (#27)                                       
+6: 0x35000004 (ImportScope)  'System.Collections.Generic' (#4b)                               
+7: 0x35000001 (ImportScope)  Extern Alias 'A' (#1), 'System' (#7), 'D' (#69) = 'System' (#7)  
+8: 0x35000007 (ImportScope)  nil                                                              
+9: 0x35000008 (ImportScope)  'System.Collections' (#27)    
+", writer.ToString());
+            }
         }
     }
 }

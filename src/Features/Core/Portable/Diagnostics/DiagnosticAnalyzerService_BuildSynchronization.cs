@@ -13,28 +13,12 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// 
         /// no cancellationToken since this can't be cancelled
         /// </summary>
-        public Task SynchronizeWithBuildAsync(Project project, ImmutableArray<DiagnosticData> diagnostics)
+        public Task SynchronizeWithBuildAsync(Workspace workspace, ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> diagnostics)
         {
             BaseDiagnosticIncrementalAnalyzer analyzer;
-            if (_map.TryGetValue(project.Solution.Workspace, out analyzer))
+            if (_map.TryGetValue(workspace, out analyzer))
             {
-                return analyzer.SynchronizeWithBuildAsync(project, diagnostics);
-            }
-
-            return SpecializedTasks.EmptyTask;
-        }
-
-        /// <summary>
-        /// Synchronize build errors with live error
-        /// 
-        /// no cancellationToken since this can't be cancelled
-        /// </summary>
-        public Task SynchronizeWithBuildAsync(Document document, ImmutableArray<DiagnosticData> diagnostics)
-        {
-            BaseDiagnosticIncrementalAnalyzer analyzer;
-            if (_map.TryGetValue(document.Project.Solution.Workspace, out analyzer))
-            {
-                return analyzer.SynchronizeWithBuildAsync(document, diagnostics);
+                return analyzer.SynchronizeWithBuildAsync(workspace, diagnostics);
             }
 
             return SpecializedTasks.EmptyTask;

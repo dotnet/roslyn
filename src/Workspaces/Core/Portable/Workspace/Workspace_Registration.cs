@@ -56,7 +56,12 @@ namespace Microsoft.CodeAnalysis
                 throw new ArgumentNullException(nameof(textContainer));
             }
 
-            GetWorkspaceRegistration(textContainer).SetWorkspaceAndRaiseEvents(null);
+            var registration = GetWorkspaceRegistration(textContainer);
+
+            if (registration.Workspace == this)
+            {
+                registration.SetWorkspaceAndRaiseEvents(null);
+            }
         }
 
         private static WorkspaceRegistration CreateRegistration(SourceTextContainer container)

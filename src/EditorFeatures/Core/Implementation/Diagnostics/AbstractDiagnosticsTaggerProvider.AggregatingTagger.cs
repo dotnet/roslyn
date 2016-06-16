@@ -2,10 +2,12 @@
 
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -65,10 +67,47 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
                     var workspace = project.Solution.Workspace;
                     foreach (var updateArgs in _owner._diagnosticService.GetDiagnosticsUpdatedEventArgs(workspace, project.Id, document.Id, cancellationToken))
                     {
-                        var diagnostics = _owner._diagnosticService.GetDiagnostics(updateArgs.Workspace, updateArgs.ProjectId, updateArgs.DocumentId, updateArgs.Id, includeSuppressedDiagnostics: false, cancellationToken: cancellationToken);
-                        OnDiagnosticsUpdated(DiagnosticsUpdatedArgs.DiagnosticsCreated(updateArgs.Id, updateArgs.Workspace, project.Solution, updateArgs.ProjectId, updateArgs.DocumentId, diagnostics.AsImmutableOrEmpty()));
+                        var diagnostics = AdjustInitialDiagnostics(project.Solution, updateArgs, cancellationToken);
+                        if (diagnostics.Length == 0)
+                        {
+                            continue;
+                        }
+
+                        OnDiagnosticsUpdated(
+                            DiagnosticsUpdatedArgs.DiagnosticsCreated(
+                                updateArgs.Id, updateArgs.Workspace, project.Solution, updateArgs.ProjectId, updateArgs.DocumentId, diagnostics));
                     }
                 }
+            }
+
+            private ImmutableArray<DiagnosticData> AdjustInitialDiagnostics(Solution solution, UpdatedEventArgs args, CancellationToken cancellationToken)
+            {
+                // we only reach here if there is the document
+                var document = solution.GetDocument(args.DocumentId);
+                Contract.ThrowIfNull(document);
+
+                // if there is no source text for this document, we don't populate the initial tags. this behavior is equivalent of existing
+                // behavior in OnDiagnosticsUpdated.
+                SourceText text;
+                if (!document.TryGetText(out text))
+                {
+                    return ImmutableArray<DiagnosticData>.Empty;
+                }
+
+                // GetDiagnostics returns whatever cached diagnostics in the service which can be stale ones. for example, build error will be most likely stale
+                // diagnostics. so here we make sure we filter out any diagnostics that is not in the text range.
+                var builder = ImmutableArray.CreateBuilder<DiagnosticData>();
+                var fullSpan = new TextSpan(0, text.Length);
+                foreach (var diagnostic in _owner._diagnosticService.GetDiagnostics(
+                    args.Workspace, args.ProjectId, args.DocumentId, args.Id, includeSuppressedDiagnostics: false, cancellationToken: cancellationToken))
+                {
+                    if (fullSpan.Contains(diagnostic.GetExistingOrCalculatedTextSpan(text)))
+                    {
+                        builder.Add(diagnostic);
+                    }
+                }
+
+                return builder.ToImmutable();
             }
 
             public void OnTaggerCreated()

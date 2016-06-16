@@ -25,10 +25,29 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             _optionService = optionService;
         }
 
+        /// <summary>
+        /// Unused.  But kept around for back compat.  Note this option is not about
+        /// turning warning into errors.  It's about an aspect of 'remove unused using'
+        /// functionality we don't support anymore.  Namely whether or not 'remove unused
+        /// using' should warn if you have any build errors as that might mean we 
+        /// remove some usings inappropriately.
+        /// </summary>
+        public int WarnOnBuildErrors
+        {
+            get { return 0; }
+            set { }
+        }
+
         public int AutoComment
         {
             get { return GetBooleanOption(FeatureOnOffOptions.AutoXmlDocCommentGeneration); }
             set { SetBooleanOption(FeatureOnOffOptions.AutoXmlDocCommentGeneration, value); }
+        }
+
+        public int AutoInsertAsteriskForNewLinesOfBlockComments
+        {
+            get { return GetBooleanOption(FeatureOnOffOptions.AutoInsertBlockCommentStartString); }
+            set { SetBooleanOption(FeatureOnOffOptions.AutoInsertBlockCommentStartString, value); }
         }
 
         public int BringUpOnIdentifier
@@ -300,6 +319,18 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { SetBooleanOption(OrganizerOptions.PlaceSystemNamespaceFirst, value); }
         }
 
+        public int AddImport_SuggestForTypesInReferenceAssemblies
+        {
+            get { return GetBooleanOption(AddImportOptions.SuggestForTypesInReferenceAssemblies); }
+            set { SetBooleanOption(AddImportOptions.SuggestForTypesInReferenceAssemblies, value); }
+        }
+
+        public int AddImport_SuggestForTypesInNuGetPackages
+        {
+            get { return GetBooleanOption(AddImportOptions.SuggestForTypesInNuGetPackages); }
+            set { SetBooleanOption(AddImportOptions.SuggestForTypesInNuGetPackages, value); }
+        }
+
         public int Space_AfterBasesColon
         {
             get { return GetBooleanOption(CSharpFormattingOptions.SpaceAfterColonInBaseTypeDeclaration); }
@@ -471,12 +502,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
         {
             get { return GetBooleanOption(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals); }
             set { SetBooleanOption(CSharpCodeStyleOptions.UseVarWhenDeclaringLocals, value); }
-        }
-
-        public int WarnOnBuildErrors
-        {
-            get { return GetBooleanOption(OrganizerOptions.WarnOnBuildErrors); }
-            set { SetBooleanOption(OrganizerOptions.WarnOnBuildErrors, value); }
         }
 
         public int Wrapping_IgnoreSpacesAroundBinaryOperators

@@ -379,16 +379,12 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
         public static string GetAssertText(DiagnosticDescription[] expected, IEnumerable<Diagnostic> actual)
         {
             var includeCompilerOutput = false;
-            var includeDiagnosticMessagesAsComments = false;
 
             const int CSharp = 1;
             const int VisualBasic = 2;
             var language = actual.Any() && actual.First().Id.StartsWith("CS", StringComparison.Ordinal) ? CSharp : VisualBasic;
-
-            if (language == CSharp)
-            {
-                includeDiagnosticMessagesAsComments = true;
-            }
+            var includeDiagnosticMessagesAsComments = (language == CSharp);
+            int indentDepth = (language == CSharp) ? 4 : 1;
 
             StringBuilder assertText = new StringBuilder();
             assertText.AppendLine();
@@ -422,8 +418,7 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             for (i = 0; i < expected.Length; i++)
             {
                 var d = expected[i];
-
-                AppendDiagnosticDescription(expectedText, d);
+                AppendDiagnosticDescription(expectedText, d, indentDepth);
 
                 if (i < expected.Length - 1)
                 {
@@ -455,21 +450,21 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
 
                 if (includeDiagnosticMessagesAsComments)
                 {
-                    Indent(assertText, 1);
+                    Indent(assertText, indentDepth);
                     assertText.Append("// ");
                     assertText.AppendLine(d.ToString());
                     var l = d.Location;
                     if (l.IsInSource)
                     {
-                        Indent(assertText, 1);
+                        Indent(assertText, indentDepth);
                         assertText.Append("// ");
                         assertText.AppendLine(l.SourceTree.GetText().Lines.GetLineFromPosition(l.SourceSpan.Start).ToString());
                     }
                 }
 
                 var description = new DiagnosticDescription(d, errorCodeOnly: false, showPosition: true);
-                AppendDiagnosticDescription(assertText, description);
-                AppendDiagnosticDescription(actualText, description);
+                AppendDiagnosticDescription(assertText, description, indentDepth);
+                AppendDiagnosticDescription(actualText, description, indentDepth);
             }
             if (i > 0)
             {
@@ -483,9 +478,9 @@ namespace Microsoft.CodeAnalysis.Test.Utilities
             return assertText.ToString();
         }
 
-        private static void AppendDiagnosticDescription(StringBuilder sb, DiagnosticDescription d)
+        private static void AppendDiagnosticDescription(StringBuilder sb, DiagnosticDescription d, int indentDepth)
         {
-            Indent(sb, 1);
+            Indent(sb, indentDepth);
             sb.Append(d.ToString());
         }
 

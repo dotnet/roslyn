@@ -1115,17 +1115,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols.Metadata.PE
 
             Dim moduleSymbol = Me.ContainingPEModule
             Dim [module] = moduleSymbol.Module
-            Dim isOrdinaryStruct As Boolean = Me.TypeKind = TypeKind.Structure AndAlso
-                                                    (Me.SpecialType = SpecialType.None OrElse Me.SpecialType = SpecialType.System_Nullable_T)
 
             Try
                 For Each fieldDef In [module].GetFieldsOfTypeOrThrow(_handle)
-                    Dim import As Boolean = True
+                    Dim import As Boolean
 
                     Try
-                        If Not ([module].ShouldImportField(fieldDef, moduleSymbol.ImportOptions) OrElse
-                                isOrdinaryStruct AndAlso ([module].GetFieldDefFlagsOrThrow(fieldDef) And FieldAttributes.Static) = 0) Then
-                            import = False
+                        import = [module].ShouldImportField(fieldDef, moduleSymbol.ImportOptions)
+
+                        If Not import Then
+                            Select Case Me.TypeKind
+                                Case TypeKind.Structure
+                                    Dim specialType = Me.SpecialType
+                                    If specialType = SpecialType.None OrElse specialType = SpecialType.System_Nullable_T Then
+                                        ' This is an ordinary struct
+                                        If ([module].GetFieldDefFlagsOrThrow(fieldDef) And FieldAttributes.Static) = 0 Then
+                                            import = True
+                                        End If
+                                    End If
+
+                                Case TypeKind.Enum
+                                    If ([module].GetFieldDefFlagsOrThrow(fieldDef) And FieldAttributes.Static) = 0 Then
+                                        import = True
+                                    End If
+                            End Select
                         End If
                     Catch mrEx As BadImageFormatException
                     End Try

@@ -271,7 +271,7 @@ NewLines("Module Program \n Sub Main(args As String()) \n Dim x As OUTER.INNER.F
         End Function
 
         <WorkItem(821292, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/821292")>
-        <WpfFact(Skip:="https://github.com/dotnet/roslyn/issues/7369"), Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsFullyQualify)>
         Public Async Function TestCaseSensitivity3() As Task
             Await TestAsync(
 NewLines("Imports System \n Module Program \n Sub Main(args As String()) \n Dim x As [|stream|] \n End Sub \n End Module"),

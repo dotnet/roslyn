@@ -11,7 +11,7 @@ using Microsoft.CodeAnalysis.Utilities;
 
 namespace Roslyn.Utilities
 {
-    [SuppressMessage("ApiDesign", "RS0011", Justification = "Matching TPL Signatures")]
+    [SuppressMessage("ApiDesign", "CA1068", Justification = "Matching TPL Signatures")]
     internal static partial class TaskExtensions
     {
         public static T WaitAndGetResult<T>(this Task<T> task, CancellationToken cancellationToken)

@@ -16,7 +16,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                        ProjectSystemName As String,
                        Hierarchy As IVsHierarchy,
                        ServiceProvider As IServiceProvider,
-                       miscellaneousFilesWorkspaceOpt As MiscellaneousFilesWorkspace,
                        visualStudioWorkspaceOpt As VisualStudioWorkspaceImpl,
                        hostDiagnosticUpdateSourceOpt As HostDiagnosticUpdateSource)
             MyBase.New(projectTracker,
@@ -25,7 +24,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                        Hierarchy,
                        ServiceProvider,
                        Function(id) New ProjectExternalErrorReporter(id, "BC", ServiceProvider),
-                       miscellaneousFilesWorkspaceOpt,
                        visualStudioWorkspaceOpt,
                        hostDiagnosticUpdateSourceOpt)
         End Sub
@@ -41,7 +39,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.ProjectSystemShim
                        compilerHost,
                        hierarchy,
                        serviceProvider,
-                       Nothing,
                        Nothing,
                        Nothing,
                        Nothing)

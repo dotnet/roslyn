@@ -51,19 +51,33 @@ namespace Microsoft.CodeAnalysis.Text
                 return SourceText.From(string.Empty, encoding, checksumAlgorithm);
             }
 
+            var maxCharRemainingGuess = encoding.GetMaxCharCount(length);
+
             using (var reader = new StreamReader(stream, encoding, detectEncodingFromByteOrderMarks: true, bufferSize: Math.Min(length, 4096), leaveOpen: true))
             {
-                ArrayBuilder<char[]> chunks = ArrayBuilder<char[]>.GetInstance(1 + length / ChunkSize);
+                ArrayBuilder<char[]> chunks = ArrayBuilder<char[]>.GetInstance(1 + maxCharRemainingGuess / ChunkSize);
                 while (!reader.EndOfStream)
                 {
-                    char[] chunk = new char[ChunkSize];
-                    int charsRead = reader.ReadBlock(chunk, 0, ChunkSize);
+                    var nextChunkSize = ChunkSize;
+                    if (maxCharRemainingGuess < ChunkSize)
+                    {
+                        // maxCharRemainingGuess typically overestimates a little
+                        // so we will first fill a slightly smaller (maxCharRemainingGuess - 64) chunk
+                        // and then use 64 char tail, which is likley to be resized.
+                        nextChunkSize = Math.Max(maxCharRemainingGuess - 64, 64);
+                    }
+
+                    char[] chunk = new char[nextChunkSize];
+
+                    int charsRead = reader.ReadBlock(chunk, 0, chunk.Length);
                     if (charsRead == 0)
                     {
                         break;
                     }
 
-                    if (charsRead < ChunkSize)
+                    maxCharRemainingGuess -= charsRead;
+
+                    if (charsRead < chunk.Length)
                     {
                         Array.Resize(ref chunk, charsRead);
                     }

@@ -94,60 +94,62 @@ End Class
       ""results"": [
         {{
           ""ruleId"": ""BC42024"",
-          ""kind"": ""warning"",
+          ""level"": ""warning"",
+          ""message"": ""Unused local variable: 'x'."",
           ""locations"": [
             {{
-              ""analysisTarget"": [
-                {{
-                  ""uri"": ""{0}"",
-                  ""region"": {{
-                    ""startLine"": 4,
-                    ""startColumn"": 13,
-                    ""endLine"": 4,
-                    ""endColumn"": 14
-                  }}
+              ""resultFile"": {{
+                ""uri"": ""{0}"",
+                ""region"": {{
+                  ""startLine"": 4,
+                  ""startColumn"": 13,
+                  ""endLine"": 4,
+                  ""endColumn"": 14
                 }}
-              ]
+              }}
             }}
           ],
-          ""fullMessage"": ""Unused local variable: 'x'."",
-          ""isSuppressedInSource"": false,
-          ""tags"": [
-            ""Compiler"",
-            ""Telemetry""
-          ],
           ""properties"": {{
-            ""severity"": ""Warning"",
-            ""warningLevel"": ""1"",
-            ""defaultSeverity"": ""Warning"",
-            ""title"": ""Unused local variable"",
-            ""category"": ""Compiler"",
-            ""isEnabledByDefault"": ""True""
+            ""warningLevel"": 1
           }}
         }},
         {{
           ""ruleId"": ""BC30420"",
-          ""kind"": ""error"",
-          ""locations"": [
-          ],
-          ""fullMessage"": ""'Sub Main' was not found in '{1}'."",
-          ""isSuppressedInSource"": false,
-          ""tags"": [
-            ""Compiler"",
-            ""Telemetry"",
-            ""NotConfigurable""
-          ],
+          ""level"": ""error"",
+          ""message"": ""'Sub Main' was not found in '{1}'.""
+        }}
+      ],
+      ""rules"": {{
+        ""BC30420"": {{
+          ""id"": ""BC30420"",
+          ""defaultLevel"": ""error"",
           ""properties"": {{
-            ""severity"": ""Error"",
-            ""defaultSeverity"": ""Error"",
             ""category"": ""Compiler"",
-            ""isEnabledByDefault"": ""True""
+            ""isEnabledByDefault"": true,
+            ""tags"": [
+              ""Compiler"",
+              ""Telemetry"",
+              ""NotConfigurable""
+            ]
+          }}
+        }},
+        ""BC42024"": {{
+          ""id"": ""BC42024"",
+          ""shortDescription"": ""Unused local variable"",
+          ""defaultLevel"": ""warning"",
+          ""properties"": {{
+            ""category"": ""Compiler"",
+            ""isEnabledByDefault"": true,
+            ""tags"": [
+              ""Compiler"",
+              ""Telemetry""
+            ]
           }}
         }}
-      ]
+      }}
     }}
   ]
-}}", AnalyzerForErrorLogTest.GetEscapedUriForPath(sourceFilePath), Path.GetFileNameWithoutExtension(sourceFilePath))
+}}", AnalyzerForErrorLogTest.GetUriForPath(sourceFilePath), Path.GetFileNameWithoutExtension(sourceFilePath))
 
             Dim expectedText = expectedHeader + expectedIssues
             Assert.Equal(expectedText, actualOutput)
@@ -194,60 +196,65 @@ End Class
       ""results"": [
         {{
           ""ruleId"": ""BC42024"",
-          ""kind"": ""warning"",
+          ""level"": ""warning"",
+          ""message"": ""Unused local variable: 'x'."",
+          ""suppressionStates"": [
+            ""suppressedInSource""
+          ],
           ""locations"": [
             {{
-              ""analysisTarget"": [
-                {{
-                  ""uri"": ""{0}"",
-                  ""region"": {{
-                    ""startLine"": 5,
-                    ""startColumn"": 13,
-                    ""endLine"": 5,
-                    ""endColumn"": 14
-                  }}
+              ""resultFile"": {{
+                ""uri"": ""{0}"",
+                ""region"": {{
+                  ""startLine"": 5,
+                  ""startColumn"": 13,
+                  ""endLine"": 5,
+                  ""endColumn"": 14
                 }}
-              ]
+              }}
             }}
           ],
-          ""fullMessage"": ""Unused local variable: 'x'."",
-          ""isSuppressedInSource"": true,
-          ""tags"": [
-            ""Compiler"",
-            ""Telemetry""
-          ],
           ""properties"": {{
-            ""severity"": ""Warning"",
-            ""warningLevel"": ""1"",
-            ""defaultSeverity"": ""Warning"",
-            ""title"": ""Unused local variable"",
-            ""category"": ""Compiler"",
-            ""isEnabledByDefault"": ""True""
+            ""warningLevel"": 1
           }}
         }},
         {{
           ""ruleId"": ""BC30420"",
-          ""kind"": ""error"",
-          ""locations"": [
-          ],
-          ""fullMessage"": ""'Sub Main' was not found in '{1}'."",
-          ""isSuppressedInSource"": false,
-          ""tags"": [
-            ""Compiler"",
-            ""Telemetry"",
-            ""NotConfigurable""
-          ],
+          ""level"": ""error"",
+          ""message"": ""'Sub Main' was not found in '{1}'.""
+        }}
+      ],
+      ""rules"": {{
+        ""BC30420"": {{
+          ""id"": ""BC30420"",
+          ""defaultLevel"": ""error"",
           ""properties"": {{
-            ""severity"": ""Error"",
-            ""defaultSeverity"": ""Error"",
             ""category"": ""Compiler"",
-            ""isEnabledByDefault"": ""True""
+            ""isEnabledByDefault"": true,
+            ""tags"": [
+              ""Compiler"",
+              ""Telemetry"",
+              ""NotConfigurable""
+            ]
+          }}
+        }},
+        ""BC42024"": {{
+          ""id"": ""BC42024"",
+          ""shortDescription"": ""Unused local variable"",
+          ""defaultLevel"": ""warning"",
+          ""properties"": {{
+            ""category"": ""Compiler"",
+            ""isEnabledByDefault"": true,
+            ""tags"": [
+              ""Compiler"",
+              ""Telemetry""
+            ]
           }}
         }}
-      ]
+      }}
     }}
   ]
-}}", AnalyzerForErrorLogTest.GetEscapedUriForPath(sourceFilePath), Path.GetFileNameWithoutExtension(sourceFilePath))
+}}", AnalyzerForErrorLogTest.GetUriForPath(sourceFilePath), Path.GetFileNameWithoutExtension(sourceFilePath))
 
             Dim expectedText = expectedHeader + expectedIssues
             Assert.Equal(expectedText, actualOutput)

@@ -23,9 +23,16 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private readonly IReadOnlyList<Node> _nodes;
 
         /// <summary>
-        /// The spell checker we use for fuzzy match queries.
+        /// The task that produces the spell checker we use for fuzzy match queries.
+        /// We use a task so that we can generate the <see cref="SymbolTreeInfo"/> 
+        /// without having to wait for the spell checker construction to finish.
+        /// 
+        /// Features that don't need fuzzy matching don't want to incur the cost of 
+        /// the creation of this value.  And the only feature which does want fuzzy
+        /// matching (add-using) doesn't want to block waiting for the value to be
+        /// created.
         /// </summary>
-        private readonly SpellChecker _spellChecker;
+        private readonly Task<SpellChecker> _spellCheckerTask;
 
         private static readonly StringComparer s_caseInsensitiveComparer = CaseInsensitiveComparison.Comparer;
 
@@ -45,21 +52,21 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 : StringComparer.Ordinal.Compare(s1, s2);
         };
 
-        private SymbolTreeInfo(VersionStamp version, IReadOnlyList<Node> orderedNodes, SpellChecker spellChecker)
+        private SymbolTreeInfo(VersionStamp version, IReadOnlyList<Node> orderedNodes, Task<SpellChecker> spellCheckerTask)
         {
             _version = version;
             _nodes = orderedNodes;
-            _spellChecker = spellChecker;
+            _spellCheckerTask = spellCheckerTask;
         }
 
-        public int Count => _nodes.Count;
-
-        public Task<IEnumerable<ISymbol>> FindAsync(SearchQuery query, IAssemblySymbol assembly, CancellationToken cancellationToken)
+        public Task<IEnumerable<ISymbol>> FindAsync(
+            SearchQuery query, IAssemblySymbol assembly, CancellationToken cancellationToken)
         {
-            return FindAsync(query, new AsyncLazy<IAssemblySymbol>(assembly), cancellationToken);
+            return this.FindAsync(query, new AsyncLazy<IAssemblySymbol>(assembly), cancellationToken);
         }
 
-        public Task<IEnumerable<ISymbol>> FindAsync(SearchQuery query, AsyncLazy<IAssemblySymbol> lazyAssembly, CancellationToken cancellationToken)
+        public Task<IEnumerable<ISymbol>> FindAsync(
+            SearchQuery query, AsyncLazy<IAssemblySymbol> lazyAssembly, CancellationToken cancellationToken)
         {
             // If the query has a specific string provided, then call into the SymbolTreeInfo
             // helpers optimized for lookup based on an exact name.
@@ -82,9 +89,17 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Finds symbols in this assembly that match the provided name in a fuzzy manner.
         /// </summary>
-        public async Task<IEnumerable<ISymbol>> FuzzyFindAsync(AsyncLazy<IAssemblySymbol> lazyAssembly, string name, CancellationToken cancellationToken)
+        private async Task<IEnumerable<ISymbol>> FuzzyFindAsync(
+            AsyncLazy<IAssemblySymbol> lazyAssembly, string name, CancellationToken cancellationToken)
         {
-            var similarNames = _spellChecker.FindSimilarWords(name);
+            if (_spellCheckerTask.Status != TaskStatus.RanToCompletion)
+            {
+                // Spell checker isn't ready.  Just return immediately.
+                return SpecializedCollections.EmptyEnumerable<ISymbol>();
+            }
+
+            var spellChecker = _spellCheckerTask.Result;
+            var similarNames = spellChecker.FindSimilarWords(name, substringsAreSimilar: false);
             var result = new List<ISymbol>();
 
             foreach (var similarName in similarNames)
@@ -99,7 +114,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Get all symbols that have a name matching the specified name.
         /// </summary>
-        public async Task<IEnumerable<ISymbol>> FindAsync(
+        private async Task<IEnumerable<ISymbol>> FindAsync(
             AsyncLazy<IAssemblySymbol> lazyAssembly,
             string name,
             bool ignoreCase,
@@ -123,7 +138,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         /// <summary>
         /// Slow, linear scan of all the symbols in this assembly to look for matches.
         /// </summary>
-        public async Task<IEnumerable<ISymbol>> FindAsync(AsyncLazy<IAssemblySymbol> lazyAssembly, Func<string, bool> predicate, CancellationToken cancellationToken)
+        private async Task<IEnumerable<ISymbol>> FindAsync(AsyncLazy<IAssemblySymbol> lazyAssembly, Func<string, bool> predicate, CancellationToken cancellationToken)
         {
             var result = new List<ISymbol>();
             IAssemblySymbol assembly = null;
@@ -215,7 +230,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return -1;
         }
 
-        #region Construction
+#region Construction
 
         // Cache the symbol tree infos for assembly symbols that share the same underlying metadata.
         // Generating symbol trees for metadata can be expensive (in large metadata cases).  And it's
@@ -233,66 +248,15 @@ namespace Microsoft.CodeAnalysis.FindSymbols
         private static readonly ConditionalWeakTable<MetadataId, SemaphoreSlim>.CreateValueCallback s_metadataIdToGateCallback =
             _ => new SemaphoreSlim(1);
 
-        /// <summary>
-        /// this gives you SymbolTreeInfo for a metadata
-        /// </summary>
-        public static async Task<SymbolTreeInfo> TryGetInfoForMetadataAssemblyAsync(
-            Solution solution,
-            IAssemblySymbol assembly,
-            PortableExecutableReference reference,
-            bool loadOnly,
-            CancellationToken cancellationToken)
+        private static Task<SpellChecker> GetSpellCheckerTask(
+            Solution solution, VersionStamp version, string filePath, Node[] nodes)
         {
-            var metadata = assembly.GetMetadata();
-            if (metadata == null)
-            {
-                return null;
-            }
-
-            // Find the lock associated with this piece of metadata.  This way only one thread is
-            // computing a symbol tree info for a particular piece of metadata at a time.
-            var gate = s_metadataIdToGate.GetValue(metadata.Id, s_metadataIdToGateCallback);
-            using (await gate.DisposableWaitAsync(cancellationToken).ConfigureAwait(false))
-            {
-                cancellationToken.ThrowIfCancellationRequested();
-
-                SymbolTreeInfo info;
-                if (s_metadataIdToInfo.TryGetValue(metadata.Id, out info))
-                {
-                    return info;
-                }
-
-                info = await LoadOrCreateAsync(solution, assembly, reference.FilePath, loadOnly, cancellationToken).ConfigureAwait(false);
-                if (info == null && loadOnly)
-                {
-                    return null;
-                }
-
-                return s_metadataIdToInfo.GetValue(metadata.Id, _ => info);
-            }
-        }
-
-        public static async Task<SymbolTreeInfo> GetInfoForSourceAssemblyAsync(
-            Project project, CancellationToken cancellationToken)
-        {
-            var compilation = await project.GetCompilationAsync(cancellationToken).ConfigureAwait(false);
-
-            return await LoadOrCreateAsync(
-                project.Solution, compilation.Assembly, project.FilePath, loadOnly: false, cancellationToken: cancellationToken).ConfigureAwait(false);
-        }
-
-        internal static SymbolTreeInfo Create(VersionStamp version, IAssemblySymbol assembly, CancellationToken cancellationToken)
-        {
-            if (assembly == null)
-            {
-                return null;
-            }
-
-            var list = new List<Node>();
-            GenerateNodes(assembly.GlobalNamespace, list);
-
-            var spellChecker = new SpellChecker(list.Select(n => n.Name));
-            return new SymbolTreeInfo(version, SortNodes(list), spellChecker);
+            // Create a new task to attempt to load or create the spell checker for this 
+            // SymbolTreeInfo.  This way the SymbolTreeInfo will be ready immediately
+            // for non-fuzzy searches, and soon afterwards it will be able to perform
+            // fuzzy searches as well.
+            return Task.Run(() => LoadOrCreateSpellCheckerAsync(solution, filePath,
+                v => new SpellChecker(v, nodes.Select(n => n.Name))));
         }
 
         private static Node[] SortNodes(List<Node> nodes)
@@ -357,51 +321,9 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             return comp;
         }
 
-        // generate nodes for the global namespace an all descendants
-        private static void GenerateNodes(INamespaceSymbol globalNamespace, List<Node> list)
-        {
-            var node = new Node(globalNamespace.Name, Node.RootNodeParentIndex);
-            list.Add(node);
+#endregion
 
-            // Add all child members
-            var memberLookup = s_getMembers(globalNamespace).ToLookup(c => c.Name);
-
-            foreach (var grouping in memberLookup)
-            {
-                GenerateNodes(grouping.Key, 0 /*index of root node*/, grouping, list);
-            }
-        }
-
-        private static readonly Func<ISymbol, bool> s_useSymbol =
-            s => s.CanBeReferencedByName && s.DeclaredAccessibility != Accessibility.Private;
-
-        // generate nodes for symbols that share the same name, and all their descendants
-        private static void GenerateNodes(string name, int parentIndex, IEnumerable<ISymbol> symbolsWithSameName, List<Node> list)
-        {
-            var node = new Node(name, parentIndex);
-            var nodeIndex = list.Count;
-            list.Add(node);
-
-            // Add all child members
-            var membersByName = symbolsWithSameName.SelectMany(s_getMembers).ToLookup(s => s.Name);
-
-            foreach (var grouping in membersByName)
-            {
-                GenerateNodes(grouping.Key, nodeIndex, grouping, list);
-            }
-        }
-
-        private static Func<ISymbol, IEnumerable<ISymbol>> s_getMembers = symbol =>
-        {
-            var nt = symbol as INamespaceOrTypeSymbol;
-            return nt != null
-                ? nt.GetMembers().Where(s_useSymbol)
-                : SpecializedCollections.EmptyEnumerable<ISymbol>();
-        };
-
-        #endregion
-
-        #region Binding 
+#region Binding 
 
         // returns all the symbols in the container corresponding to the node
         private IEnumerable<ISymbol> Bind(int index, INamespaceOrTypeSymbol rootContainer, CancellationToken cancellationToken)
@@ -450,7 +372,7 @@ namespace Microsoft.CodeAnalysis.FindSymbols
                 }
             }
         }
-        #endregion
+#endregion
 
         internal bool IsEquivalent(SymbolTreeInfo other)
         {
@@ -468,6 +390,14 @@ namespace Microsoft.CodeAnalysis.FindSymbols
             }
 
             return true;
+        }
+
+        private static SymbolTreeInfo CreateSymbolTreeInfo(
+            Solution solution, VersionStamp version, string filePath, List<Node> unsortedNodes)
+        {
+            var sortedNodes = SortNodes(unsortedNodes);
+            var createSpellCheckerTask = GetSpellCheckerTask(solution, version, filePath, sortedNodes);
+            return new SymbolTreeInfo(version, sortedNodes, createSpellCheckerTask);
         }
     }
 }

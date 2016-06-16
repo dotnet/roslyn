@@ -13,11 +13,11 @@ using Microsoft.VisualStudio.Text;
 
 namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
 {
-    internal abstract partial class AbstractReferenceDirectiveCompletionProvider : CompletionListProvider
+    internal abstract partial class AbstractReferenceDirectiveCompletionProvider : CommonCompletionProvider
     {
         protected abstract bool TryGetStringLiteralToken(SyntaxTree tree, int position, out SyntaxToken stringLiteral, CancellationToken cancellationToken);
 
-        public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
+        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             return PathCompletionUtilities.IsTriggerCharacter(text, characterPosition);
         }
@@ -35,7 +35,15 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
             return CurrentWorkingDirectoryDiscoveryService.GetService(textSnapshot);
         }
 
-        public override async Task ProduceCompletionListAsync(CompletionListContext context)
+        private static readonly ImmutableArray<CharacterSetModificationRule> s_commitRules =
+            ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, '"', '\\', ','));
+
+        private static readonly ImmutableArray<CharacterSetModificationRule> s_filterRules = ImmutableArray<CharacterSetModificationRule>.Empty;
+
+        private static readonly CompletionItemRules s_rules = CompletionItemRules.Create(
+            filterCharacterRules: s_filterRules, commitCharacterRules: s_commitRules, enterKeyRule: EnterKeyRule.Never);
+
+        public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
             var document = context.Document;
             var position = context.Position;
@@ -53,7 +61,7 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
 
             var textChangeSpan = this.GetTextChangeSpan(stringLiteral, position);
 
-            var gacHelper = new GlobalAssemblyCacheCompletionHelper(this, textChangeSpan, ItemRules.Instance);
+            var gacHelper = new GlobalAssemblyCacheCompletionHelper(this, textChangeSpan, itemRules: s_rules);
             var text = await document.GetTextAsync(context.CancellationToken).ConfigureAwait(false);
             var snapshot = text.FindCorrespondingEditorTextSnapshot();
             if (snapshot == null)
@@ -96,7 +104,7 @@ namespace Microsoft.CodeAnalysis.Editor.Completion.FileSystem
                 searchPaths: searchPaths,
                 allowableExtensions: new[] { ".dll", ".exe" },
                 exclude: path => path.Contains(","),
-                itemRules: ItemRules.Instance);
+                itemRules: s_rules);
 
             var pathThroughLastSlash = GetPathThroughLastSlash(stringLiteral, position);
 

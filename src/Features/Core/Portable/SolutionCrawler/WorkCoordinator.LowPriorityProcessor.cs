@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         base(listener, processor, globalOperationNotificationService, backOffTimeSpanInMs, shutdownToken)
                     {
                         _lazyAnalyzers = lazyAnalyzers;
-                        _workItemQueue = new AsyncProjectWorkItemQueue(processor._registration.ProgressReporter);
+                        _workItemQueue = new AsyncProjectWorkItemQueue(processor._registration.ProgressReporter, processor._registration.Workspace);
 
                         Start();
                     }
@@ -62,7 +62,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             // process any available project work, preferring the active project.
                             WorkItem workItem;
                             CancellationTokenSource projectCancellation;
-                            if (_workItemQueue.TryTakeAnyWork(this.Processor.GetActiveProject(), this.Processor.DependencyGraph, out workItem, out projectCancellation))
+                            if (_workItemQueue.TryTakeAnyWork(
+                                this.Processor.GetActiveProject(), this.Processor.DependencyGraph, this.Processor.DiagnosticAnalyzerService, 
+                                out workItem, out projectCancellation))
                             {
                                 await ProcessProjectAsync(this.Analyzers, workItem, projectCancellation).ConfigureAwait(false);
                             }

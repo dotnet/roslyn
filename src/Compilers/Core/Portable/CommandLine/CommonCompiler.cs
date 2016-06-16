@@ -84,6 +84,11 @@ namespace Microsoft.CodeAnalysis
             return typeof(CommonCompiler).GetTypeInfo().Assembly.GetName().Version;
         }
 
+        internal string GetCultureName()
+        {
+            return Culture.Name;
+        }
+
         internal virtual Func<string, MetadataReferenceProperties, PortableExecutableReference> GetMetadataProvider()
         {
             return (path, properties) => MetadataReference.CreateFromFile(path, properties);
@@ -207,13 +212,13 @@ namespace Microsoft.CodeAnalysis
 
                 // We want to report diagnostics with source suppression in the error log file.
                 // However, these diagnostics should not be reported on the console output.
-                errorLoggerOpt?.LogDiagnostic(diag, this.Culture);
+                errorLoggerOpt?.LogDiagnostic(diag);
                 if (diag.IsSuppressed)
                 {
                     continue;
                 }
 
-                consoleOutput.WriteLine(DiagnosticFormatter.Format(diag, this.Culture));
+                consoleOutput.WriteLine(DiagnosticFormatter.Format(diag));
 
                 if (diag.Severity == DiagnosticSeverity.Error)
                 {
@@ -240,7 +245,7 @@ namespace Microsoft.CodeAnalysis
                     }
 
                     PrintError(diagnostic, consoleOutput);
-                    errorLoggerOpt?.LogDiagnostic(Diagnostic.Create(diagnostic), this.Culture);
+                    errorLoggerOpt?.LogDiagnostic(Diagnostic.Create(diagnostic));
 
                     if (diagnostic.Severity == DiagnosticSeverity.Error)
                     {
@@ -267,7 +272,7 @@ namespace Microsoft.CodeAnalysis
                 return null;
             }
 
-            return new ErrorLogger(errorLog, GetToolName(), GetAssemblyFileVersion(), GetAssemblyVersion());
+            return new ErrorLogger(errorLog, GetToolName(), GetAssemblyFileVersion(), GetAssemblyVersion(), Culture);
         }
 
         /// <summary>
@@ -435,6 +440,19 @@ namespace Microsoft.CodeAnalysis
                     var emitOptions = Arguments.EmitOptions.
                         WithOutputNameOverride(outputName).
                         WithPdbFilePath(finalPdbFilePath);
+
+                    // The PDB path is emitted in it's entirety into the PE.  This makes it impossible to have deterministic
+                    // builds that occur in different source directories.  To enable this we shave all path information from
+                    // the PDB when specified by the user.  
+                    //
+                    // This is a temporary work around to allow us to make progress with determinism.  The following issue 
+                    // tracks getting an official solution here.
+                    //
+                    // https://github.com/dotnet/roslyn/issues/9813
+                    if (Arguments.ParseOptions.Features.ContainsKey("pdb-path-determinism") && !string.IsNullOrEmpty(emitOptions.PdbFilePath))
+                    {
+                        emitOptions = emitOptions.WithPdbFilePath(Path.GetFileName(emitOptions.PdbFilePath));
+                    }
 
                     using (var peStreamProvider = new CompilerEmitStreamProvider(this, finalPeFilePath))
                     using (var pdbStreamProviderOpt = Arguments.EmitPdb ? new CompilerEmitStreamProvider(this, finalPdbFilePath) : null)

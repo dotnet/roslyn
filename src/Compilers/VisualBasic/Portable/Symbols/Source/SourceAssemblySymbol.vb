@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
     ''' <remarks></remarks>
     Friend NotInheritable Class SourceAssemblySymbol
         Inherits MetadataOrSourceAssemblySymbol
-        Implements IAttributeTargetSymbol
+        Implements ISourceAssemblySymbol, IAttributeTargetSymbol
 
         ''' <summary>
         ''' A Compilation the assembly is created for.
@@ -461,8 +461,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Function GetAttributeDeclarations() As ImmutableArray(Of SyntaxList(Of AttributeListSyntax))
             Dim attributeBlocks = ArrayBuilder(Of SyntaxList(Of AttributeListSyntax)).GetInstance()
+            Dim declarations = DeclaringCompilation.MergedRootDeclaration.Declarations
 
-            For Each rootNs In DeclaringCompilation.Declarations.AllRootNamespaces
+            For Each rootNs As RootSingleNamespaceDeclaration In declarations
                 If rootNs.HasAssemblyAttributes Then
                     Dim compilationUnitSyntax = DirectCast(rootNs.Location.SourceTree.GetRoot(), CompilationUnitSyntax)
                     Dim attributeStatements = compilationUnitSyntax.Attributes
@@ -1021,6 +1022,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
 
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblyFileVersionAttributeSetting = verString
+            ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.AssemblyInformationalVersionAttribute) Then
+                arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblyInformationalVersionAttributeSetting = DirectCast(attrData.CommonConstructorArguments(0).Value, String)
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.AssemblyTitleAttribute) Then
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblyTitleAttributeSetting = DirectCast(attrData.CommonConstructorArguments(0).Value, String)
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.AssemblyDescriptionAttribute) Then
@@ -1708,5 +1711,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Public Overrides Function GetMetadata() As AssemblyMetadata
             Return Nothing
         End Function
+
+        Private ReadOnly Property ISourceAssemblySymbol_Compilation As Compilation Implements ISourceAssemblySymbol.Compilation
+            Get
+                Return _compilation
+            End Get
+        End Property
     End Class
 End Namespace

@@ -26,7 +26,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
                 wszName,
                 pProjHier,
                 Me,
-                Me.ComponentModel.GetService(Of MiscellaneousFilesWorkspace),
                 visualStudioWorkspace,
                 hostDiagnosticUpdateSource)
         End Function

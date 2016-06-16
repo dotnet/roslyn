@@ -441,6 +441,12 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
         }
 
         [Fact]
+        public void TestNameOfExpressions()
+        {
+            VerifySyntax<InvocationExpressionSyntax>(_g.NameOfExpression(_g.IdentifierName("x")), "nameof(x)");
+        }
+
+        [Fact]
         public void TestReturnStatements()
         {
             VerifySyntax<ReturnStatementSyntax>(_g.ReturnStatement(), "return;");

@@ -440,7 +440,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (memberSymbol.IsStatic)
             {
                 Debug.Assert(!invokedAsExtensionMethod || (receiverOpt != null));
-                if (!invokedAsExtensionMethod && !WasImplicitReceiver(receiverOpt) && IsMemberAccessedThroughVariableOrValue(receiverOpt))
+
+                if (invokedAsExtensionMethod)
+                {
+                    if (receiverOpt?.Kind == BoundKind.QueryClause && IsMemberAccessedThroughType(receiverOpt))
+                    {
+                        // Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.
+                        diagnostics.Add(ErrorCode.ERR_QueryNoProvider, node.Location, receiverOpt.Type, memberSymbol.Name);
+                        return true;
+                    }
+                }
+                else if (!WasImplicitReceiver(receiverOpt) && IsMemberAccessedThroughVariableOrValue(receiverOpt))
                 {
                     if (this.Flags.Includes(BinderFlags.CollectionInitializerAddMethod))
                     {

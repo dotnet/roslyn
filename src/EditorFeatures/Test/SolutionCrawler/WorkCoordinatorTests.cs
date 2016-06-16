@@ -696,12 +696,14 @@ End Class";
         }
 
         [Fact, WorkItem(739943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739943")]
-        public async Task SemanticChange_Propagation()
+        public async Task SemanticChange_Propagation_Transitive()
         {
             var solution = GetInitialSolutionInfoWithP2P();
 
             using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
             {
+                workspace.Options = workspace.Options.WithChangedOption(InternalSolutionCrawlerOptions.DirectDependencyPropagationOnly, false);
+
                 workspace.OnSolutionAdded(solution);
                 await WaitWaiterAsync(workspace.ExportProvider);
 
@@ -712,13 +714,28 @@ End Class";
 
                 Assert.Equal(1, worker.SyntaxDocumentIds.Count);
                 Assert.Equal(4, worker.DocumentIds.Count);
+            }
+        }
 
-#if false
-                Assert.True(1 == worker.SyntaxDocumentIds.Count,
-                    string.Format("Expected 1 SyntaxDocumentIds, Got {0}\n\n{1}", worker.SyntaxDocumentIds.Count, GetListenerTrace(workspace.ExportProvider)));
-                Assert.True(4 == worker.DocumentIds.Count, 
-                    string.Format("Expected 4 DocumentIds, Got {0}\n\n{1}", worker.DocumentIds.Count, GetListenerTrace(workspace.ExportProvider)));
-#endif
+        [Fact, WorkItem(739943, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/739943")]
+        public async Task SemanticChange_Propagation_Direct()
+        {
+            var solution = GetInitialSolutionInfoWithP2P();
+
+            using (var workspace = new WorkCoordinatorWorkspace(SolutionCrawler))
+            {
+                workspace.Options = workspace.Options.WithChangedOption(InternalSolutionCrawlerOptions.DirectDependencyPropagationOnly, true);
+
+                workspace.OnSolutionAdded(solution);
+                await WaitWaiterAsync(workspace.ExportProvider);
+
+                var id = solution.Projects[0].Id;
+                var info = DocumentInfo.Create(DocumentId.CreateNewId(id), "D6");
+
+                var worker = await ExecuteOperation(workspace, w => w.OnDocumentAdded(info));
+
+                Assert.Equal(1, worker.SyntaxDocumentIds.Count);
+                Assert.Equal(3, worker.DocumentIds.Count);
             }
         }
 
@@ -774,6 +791,8 @@ End Class";
             using (var workspace = await TestWorkspace.CreateAsync(
                 SolutionCrawler, language, compilationOptions: null, parseOptions: null, content: code))
             {
+                SetOptions(workspace);
+
                 var analyzer = new Analyzer();
                 var lazyWorker = new Lazy<IIncrementalAnalyzerProvider, IncrementalAnalyzerProviderMetadata>(() => new AnalyzerProvider(analyzer), Metadata.Crawler);
                 var service = new SolutionCrawlerRegistrationService(new[] { lazyWorker }, GetListeners(workspace.ExportProvider));
@@ -934,6 +953,19 @@ End Class";
             }
         }
 
+        private static void SetOptions(Workspace workspace)
+        {
+            var optionService = workspace.Services.GetService<IOptionService>();
+
+            // override default timespan to make test run faster
+            optionService.SetOptions(optionService.GetOptions().WithChangedOption(InternalSolutionCrawlerOptions.ActiveFileWorkerBackOffTimeSpanInMS, 0)
+                                                               .WithChangedOption(InternalSolutionCrawlerOptions.AllFilesWorkerBackOffTimeSpanInMS, 0)
+                                                               .WithChangedOption(InternalSolutionCrawlerOptions.PreviewBackOffTimeSpanInMS, 0)
+                                                               .WithChangedOption(InternalSolutionCrawlerOptions.ProjectPropagationBackOffTimeSpanInMS, 0)
+                                                               .WithChangedOption(InternalSolutionCrawlerOptions.SemanticChangeBackOffTimeSpanInMS, 0)
+                                                               .WithChangedOption(InternalSolutionCrawlerOptions.EntireProjectWorkerBackOffTimeSpanInMS, 100));
+        }
+
         private class WorkCoordinatorWorkspace : TestWorkspace
         {
             private readonly IAsynchronousOperationWaiter _workspaceWaiter;
@@ -947,6 +979,8 @@ End Class";
 
                 Assert.False(_workspaceWaiter.HasPendingWork);
                 Assert.False(_solutionCrawlerWaiter.HasPendingWork);
+
+                SetOptions(this);
             }
 
             protected override void Dispose(bool finalize)

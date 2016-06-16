@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeActions;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateVariable;
 using Microsoft.CodeAnalysis.CSharp.CodeStyle;
@@ -19,6 +20,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateVar
         {
             return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(
                 null, new GenerateVariableCodeFixProvider());
+        }
+
+        protected override IList<CodeAction> MassageActions(IList<CodeAction> actions)
+        {
+            return FlattenActions(actions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
@@ -2849,6 +2855,74 @@ index: 2);
 @"using System ; public class Test { public static int Property1 { get { return [|_field|] ; } } } ",
 @"using System ; public class Test { public static int Property1 { get { int _field = 0 ; return _field ; } } } ",
 index: 3);
+        }
+
+        [WorkItem(8358, "https://github.com/dotnet/roslyn/issues/8358")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestSameNameAsInstanceVariableInContainingType()
+        {
+            await TestAsync(
+@"
+class Outer
+{
+    int _field;
+
+    class Inner
+    {
+        public Inner(int field)
+        {
+            [|_field|] = field;
+        }
+    }
+}",
+@"
+class Outer
+{
+    int _field;
+
+    class Inner
+    {
+        private int _field;
+
+        public Inner(int field)
+        {
+            _field = field;
+        }
+    }
+}
+");
+        }
+
+        [WorkItem(8358, "https://github.com/dotnet/roslyn/issues/8358")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestNotOnStaticWithExistingInstance1()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    int _field;
+    void M()
+    {
+        C.[|_field|] = 42;
+    }
+}");
+        }
+
+        [WorkItem(8358, "https://github.com/dotnet/roslyn/issues/8358")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateVariable)]
+        public async Task TestNotOnStaticWithExistingInstance2()
+        {
+            await TestMissingAsync(
+@"
+class C
+{
+    int _field;
+    static C()
+    {
+        [|_field|] = 42;
+    }
+}");
         }
     }
 }

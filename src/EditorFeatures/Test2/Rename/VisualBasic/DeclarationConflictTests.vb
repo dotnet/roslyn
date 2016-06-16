@@ -4,10 +4,16 @@ Imports Microsoft.CodeAnalysis.Rename.ConflictEngine
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.Rename.VisualBasic
     Public Class DeclarationConflictTests
+        Private ReadOnly _outputHelper As Abstractions.ITestOutputHelper
+
+        Public Sub New(outputHelper As Abstractions.ITestOutputHelper)
+            _outputHelper = outputHelper
+        End Sub
+
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenFields()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -27,7 +33,7 @@ End Module
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenFieldAndMethod()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -48,7 +54,7 @@ End Module
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenTwoMethodsWithSameSignature()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -71,7 +77,7 @@ End Module
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenTwoParameters()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -91,7 +97,7 @@ End Module
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub NoConflictBetweenMethodsWithDifferentSignatures()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -114,7 +120,7 @@ End Module
         <WorkItem(543245, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543245")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenTwoLocals()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -137,7 +143,7 @@ End Module
         <WorkItem(543245, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543245")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenLocalAndParameter()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -159,7 +165,7 @@ End Module
         <WorkItem(545859, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545859")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenQueryVariableAndParameter()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -181,7 +187,7 @@ End Module
         <WorkItem(545859, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/545859")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenTwoQueryVariables()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -204,7 +210,7 @@ End Module
         <WorkItem(543654, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543654")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenLambdaParametersInsideMethod()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -228,7 +234,7 @@ End Module
         <WorkItem(543654, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543654")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenLambdaParametersInFieldInitializer()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -250,7 +256,7 @@ End Module
         <WorkItem(543654, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543654")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub NoConflictBetweenLambdaParameterAndField()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -271,7 +277,7 @@ End Module
         <WorkItem(543407, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543407")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenLabels()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -298,7 +304,7 @@ End Class
         <WorkItem(543308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543308")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenMethodsDifferingByByRef()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -323,7 +329,7 @@ End Module
         <WorkItem(543308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543308")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenMethodsDifferingByOptional()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -348,7 +354,7 @@ End Module
         <WorkItem(543308, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/543308")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub NoConflictBetweenMethodsDifferingByArity()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -372,7 +378,7 @@ End Module
         <WorkItem(546902, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546902")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenImplicitlyDeclaredLocalAndNamespace()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -396,7 +402,7 @@ End Module
         <WorkItem(529556, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529556")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenImplicitlyDeclaredLocalAndAndGlobalFunction()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -425,7 +431,7 @@ End Module
         <WorkItem(542217, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/542217")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenAliases()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -452,7 +458,7 @@ End Namespace
         <WorkItem(530125, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530125")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenImplicitVariableAndClass()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -480,7 +486,7 @@ End Module
         <WorkItem(530038, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530038")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenEquallyNamedAlias()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -512,7 +518,7 @@ End Class
         <WorkItem(610120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/610120")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenEquallyNamedPropertyAndItsParameter_1()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -539,7 +545,7 @@ End Class
         <WorkItem(610120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/610120")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenEquallyNamedPropertyAndItsParameter_2()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -592,7 +598,7 @@ End Class
         <WorkItem(610120, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/610120")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictBetweenEquallyNamedPropertyAndItsParameter_3()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -619,7 +625,7 @@ End Class
         <WorkItem(608198, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/608198"), WorkItem(798375, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/798375")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictInFieldInitializerOfFieldAndModuleNameResolvedThroughFullQualification()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -640,7 +646,7 @@ End Module
         <WorkItem(528706, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/528706")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictForForEachLoopVariableNotBindingToTypeAnyMore()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -672,7 +678,7 @@ End Namespace
         <WorkItem(530476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530476")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictForForEachLoopVariableAndRangeVariable_1()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -705,7 +711,7 @@ End Namespace
         <WorkItem(530476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530476")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictForForEachLoopVariableAndRangeVariable_2()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -738,7 +744,7 @@ End Namespace
         <WorkItem(530476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530476")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictForForEachLoopVariableAndRangeVariable_3()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -773,7 +779,7 @@ End Namespace
         <WorkItem(530476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530476")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictForForEachLoopVariableAndRangeVariable_4()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -807,7 +813,7 @@ End Namespace
         <WorkItem(530476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530476")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictForUsingVariableAndRangeVariable_1()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -840,7 +846,7 @@ End Namespace
         <WorkItem(530476, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530476")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictForUsingVariableAndRangeVariable_2()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -871,7 +877,7 @@ End Namespace
         <WorkItem(653311, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/653311")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictForUsingVariableAndRangeVariable_3()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -900,7 +906,7 @@ End Namespace
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictForCatchVariable_1()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -929,7 +935,7 @@ End Namespace
         <WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictBetweenTypeParametersInTypeDeclaration()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -948,7 +954,7 @@ End Class
         <WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictBetweenTypeParametersInMethodDeclaration_1()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -969,7 +975,7 @@ End Class
         <WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictBetweenTypeParametersInMethodDeclaration_2()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -990,7 +996,7 @@ End Class
         <WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictBetweenTypeParameterAndMember_1()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -1011,7 +1017,7 @@ End Class
         <WorkItem(529986, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529986")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictBetweenTypeParameterAndMember_2()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -1031,7 +1037,7 @@ End Class
         <WorkItem(658437, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/658437")>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_ConflictBetweenEscapedForEachControlVariableAndQueryRangeVariable()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>
@@ -1062,7 +1068,7 @@ End Module
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_OverridingImplicitlyUsedMethod()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document><![CDATA[
@@ -1105,7 +1111,7 @@ End Class
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_OverridingImplicitlyUsedMethod_1()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document><![CDATA[
@@ -1148,7 +1154,7 @@ End Class
         <Fact>
         <Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub VB_OverridingImplicitlyUsedMethod_2()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document><![CDATA[
@@ -1188,7 +1194,7 @@ End Class
         <WorkItem(851604, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/851604")>
         <Fact, Trait(Traits.Feature, Traits.Features.Rename)>
         Public Sub ConflictInsideSimpleArgument()
-            Using result = RenameEngineResult.Create(
+            Using result = RenameEngineResult.Create(_outputHelper,
                 <Workspace>
                     <Project Language="Visual Basic" CommonReferences="true">
                         <Document>

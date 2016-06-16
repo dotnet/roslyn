@@ -7,13 +7,48 @@
     <OutputPath>$(OutDir)</OutputPath>
     <DocumentationFile Condition="'$(DocumentationFile)' == '' AND '$(NoDocumentationFile)' != 'true' AND '$(Nonshipping)' != 'true' AND '$(ProjectLanguage)' == 'VB' AND '$(AssemblyName)' != ''">$(AssemblyName).xml</DocumentationFile>
     <DocumentationFile Condition="'$(DocumentationFile)' == '' AND '$(NoDocumentationFile)' != 'true' AND '$(Nonshipping)' != 'true' AND '$(ProjectLanguage)' == 'CSharp' AND '$(AssemblyName)' != ''">$(OutputPath)$(AssemblyName).xml</DocumentationFile>
-
-    <CodeAnalysisRuleSet Condition="'$(CodeAnalysisRuleSet)' == '' AND '$(NonShipping)' == 'true'">$(VSLToolsPath)\Rulesets\NonShippingProjectRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRuleSet Condition="'$(CodeAnalysisRuleSet)' == '' AND '$(AnalyzerProject)' == 'true'">$(VSLToolsPath)\Rulesets\AnalyzerProjectRules.ruleset</CodeAnalysisRuleSet>
-    <CodeAnalysisRuleSet Condition="'$(CodeAnalysisRuleSet)' == ''">$(VSLToolsPath)\Rulesets\Roslyn.ruleset</CodeAnalysisRuleSet>
-
+    <RoslynPublicKey>0024000004800000940000000602000000240000525341310004000001000100b5fc90e7027f67871e773a8fde8938c81dd402ba65b9201d60593e96c492651e889cc13f1415ebb53fac1131ae0bd333c5ee6021672d9718ea31a8aebd0da0072f25d87dba6fc90ffd598ed4da35e44c398c454307e8e33b8426143daec9f596836f97c8f74750e5975c64e2189f45def46b2a2b1247adc3652bf5c308055da9</RoslynPublicKey>
     <RoslynInternalKey>002400000480000094000000060200000024000052534131000400000100010055e0217eb635f69281051f9a823e0c7edd90f28063eb6c7a742a19b4f6139778ee0af438f47aed3b6e9f99838aa8dba689c7a71ddb860c96d923830b57bbd5cd6119406ddb9b002cf1c723bf272d6acbb7129e9d6dd5a5309c94e0ff4b2c884d45a55f475cd7dba59198086f61f5a8c8b5e601c0edbf269733f6f578fc8579c2</RoslynInternalKey>
   </PropertyGroup>
+
+  <!-- If the project hasn't configured a ruleset, set a default ruleset. -->
+  <Choose>
+    <When Condition="'$(CodeAnalysisRuleSet)' == ''">
+      <Choose>
+        <!-- We have different default rulesets for Build versus Running Code Analysis. -->
+        <When Condition="'$(RunCodeAnalysis)'=='true' OR '$(RunCodeAnalysisOnce)'=='true'">
+          <PropertyGroup>
+            <DefaultRulesetSuffix>_RunCodeAnalysisRules</DefaultRulesetSuffix>
+          </PropertyGroup>
+        </When>
+        <Otherwise>
+          <PropertyGroup>
+            <DefaultRulesetSuffix>_BuildRules</DefaultRulesetSuffix>
+          </PropertyGroup>
+        </Otherwise>
+      </Choose>
+
+      <PropertyGroup>
+        <CodeAnalysisRuleSet Condition="'$(CodeAnalysisRuleSet)' == '' AND '$(NonShipping)' == 'true'">$(VSLToolsPath)\Rulesets\NonShippingProject$(DefaultRulesetSuffix).ruleset</CodeAnalysisRuleSet>
+        <CodeAnalysisRuleSet Condition="'$(CodeAnalysisRuleSet)' == '' AND '$(AnalyzerProject)' == 'true'">$(VSLToolsPath)\Rulesets\AnalyzerProject$(DefaultRulesetSuffix).ruleset</CodeAnalysisRuleSet>
+        <CodeAnalysisRuleSet Condition="'$(CodeAnalysisRuleSet)' == ''">$(VSLToolsPath)\Rulesets\Roslyn$(DefaultRulesetSuffix).ruleset</CodeAnalysisRuleSet>
+      </PropertyGroup>
+    </When>
+  </Choose>
+
+  <!-- Enable IOperation feature for IOperation based analyzers. -->
+  <Choose>
+    <When Condition="$(Features) == ''">
+      <PropertyGroup>
+        <Features>IOperation</Features>
+      </PropertyGroup>
+    </When>
+    <Otherwise>
+      <PropertyGroup>
+        <Features>IOperation,$(Features)</Features>
+  </PropertyGroup>
+    </Otherwise>
+  </Choose>
 
   <!-- settings for strong name signing -->
   <PropertyGroup>
@@ -43,7 +78,7 @@
 
           <PropertyGroup>
             <AssemblyOriginatorKeyFile>$(VSLToolsPath)\Strong Name Keys\35MSSharedLib1024.snk</AssemblyOriginatorKeyFile>
-            <PublicKey>0024000004800000940000000602000000240000525341310004000001000100b5fc90e7027f67871e773a8fde8938c81dd402ba65b9201d60593e96c492651e889cc13f1415ebb53fac1131ae0bd333c5ee6021672d9718ea31a8aebd0da0072f25d87dba6fc90ffd598ed4da35e44c398c454307e8e33b8426143daec9f596836f97c8f74750e5975c64e2189f45def46b2a2b1247adc3652bf5c308055da9</PublicKey>
+            <PublicKey>$(RoslynPublicKey)</PublicKey>
             <PublicKeyToken>31BF3856AD364E35</PublicKeyToken>
           </PropertyGroup>
         </When>
@@ -74,6 +109,38 @@
     </PropertyGroup>
   </Target>
 
+  <!-- ====================================================================================
+
+         Generation of binding redirects.
+
+       ==================================================================================== -->
+  <ItemGroup Condition="'$(GenerateMSBuildBindingRedirects)' == 'true'">
+      <SuggestedBindingRedirects Include="Microsoft.Build, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+        <MaxVersion>$(VisualStudioReferenceAssemblyVersion)</MaxVersion>
+      </SuggestedBindingRedirects>
+      <SuggestedBindingRedirects Include="Microsoft.Build.Framework, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+        <MaxVersion>$(VisualStudioReferenceAssemblyVersion)</MaxVersion>
+      </SuggestedBindingRedirects>
+      <SuggestedBindingRedirects Include="Microsoft.Build.Tasks.$(MSBuildAssemblyNameFragment), Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+        <MaxVersion>$(VisualStudioReferenceAssemblyVersion)</MaxVersion>
+      </SuggestedBindingRedirects>
+  </ItemGroup>
+  <PropertyGroup>
+    <ForceGenerationOfBindingRedirects Condition="'$(GenerateMSBuildBindingRedirects)' == 'true'">true</ForceGenerationOfBindingRedirects>
+    <AutoGenerateBindingRedirects Condition="'$(ForceGenerationOfBindingRedirects)' == 'true'">true</AutoGenerateBindingRedirects>
+  </PropertyGroup>
+
+  <Target Name="ForceGenerationOfBindingRedirects"
+          AfterTargets="ResolveAssemblyReferences"
+          BeforeTargets="GenerateBindingRedirects"
+          Condition="'$(ForceGenerationOfBindingRedirects)' == 'true'">
+
+    <PropertyGroup>
+      <!-- Needs to be set in a target because it has to be set after the initial evaluation in the common targets -->
+      <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
+    </PropertyGroup>
+  </Target>
+
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.VisualBasic.targets"
           Condition="'$(ProjectLanguage)' == 'VB' And '$(TargetFrameworkIdentifier)' == '.NETPortable'"/>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets"
@@ -90,13 +157,21 @@
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\NuGet\Microsoft.NuGet.targets"
           Condition="'$(OS)' != 'Windows_NT'" />
 
-  <PropertyGroup Condition="
-      '$(TargetFrameworkIdentifier)' == '.NETPortable' AND
-      '$(TargetFrameworkVersion)' == 'v5.0' AND
-      '$(OutputType)' == 'Exe'">
-    <NuGetTargetMoniker>DNXCore,Version=v5.0</NuGetTargetMoniker>
-    <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Windows_NT'">win7</BaseNuGetRuntimeIdentifier>
-  </PropertyGroup>
+  <Choose>
+    <When Condition="'$(TargetFrameworkIdentifier)' == '.NETPortable' AND
+                     '$(TargetFrameworkVersion)' == 'v5.0'">
+      <!-- Treat portable exes as CoreClr-targeting-exes -->
+      <PropertyGroup Condition="'$(OutputType)' == 'Exe'">
+        <NuGetTargetMoniker>.NETCoreApp,Version=v1.0</NuGetTargetMoniker>
+        <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Windows_NT'">win7</BaseNuGetRuntimeIdentifier>
+      </PropertyGroup>
+
+      <!-- Upgrade portable projects to .NETStandard 1.3 -->
+      <PropertyGroup Condition="'$(OutputType)' == 'Library'">
+        <NuGetTargetMoniker>.NETStandard,Version=v1.3</NuGetTargetMoniker>
+      </PropertyGroup>
+    </When>
+  </Choose>
 
   <!-- It looks like MSBuild has a bug on *nix where they aggressively
        directory separators from '\' to '/', even when the '\'
@@ -173,11 +248,16 @@
 
   <!-- ====================================================================================
 
-         Force-include our NuGet-consumed assets into VSIX projects
+         Include some of our NuGet-consumed assets into VSIX projects
 
-         NOTE: this is a very specialized behavior we need for producing the Roslyn VSIXes.
-           It should not be copied into other projects without careful thought and
-           understanding of the VSSDK VSIX targets.
+         This exists for two reasons:
+
+         1) In some cases, we need to include the contents of a NuGet package that is otherwise
+            contained within the SuppressFromVsix list, because we're actually the component
+            inside Visual Studio that ships that component
+         
+         2) The SDK targets don't currently look at the ReferenceCopyLocalPaths produced
+            by the NuGet build task.
 
        ==================================================================================== -->
 
@@ -185,15 +265,47 @@
     <GetVsixSourceItemsDependsOn>$(GetVsixSourceItemsDependsOn);IncludeNuGetResolvedAssets</GetVsixSourceItemsDependsOn>
   </PropertyGroup>
 
-  <Target Name="IncludeNuGetResolvedAssets" DependsOnTargets="ResolveNuGetPackageAssets">
-    <ItemGroup Condition="'$(IncludeCopyLocalReferencesInVSIXContainer)' == 'true'">
-      <VSIXCopyLocalReferenceSourceItem Include="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.NuGetPackageId)' != ''">
+  <Target Name="IncludeNuGetResolvedAssets" DependsOnTargets="ResolveNuGetPackageAssets" Condition="'@(NuGetPackageToIncludeInVsix)' != ''">
+    <ItemGroup>
+      <_ReferenceCopyLocalPathsWithPotentialInclusions Include="@(ReferenceCopyLocalPaths)">
+        <NuGetPackageToIncludeInVsix>%(NuGetPackageToIncludeInVsix.Identity)</NuGetPackageToIncludeInVsix>
+      </_ReferenceCopyLocalPathsWithPotentialInclusions>
+
+      <VSIXCopyLocalReferenceSourceItem Include="@(_ReferenceCopyLocalPathsWithPotentialInclusions)"
+        Condition="'%(_ReferenceCopyLocalPathsWithPotentialInclusions.NuGetPackageId)' == '%(_ReferenceCopyLocalPathsWithPotentialInclusions.NuGetPackageToIncludeInVsix)' and
+                   '%(_ReferenceCopyLocalPathsWithPotentialInclusions.Extension)' != '.pdb'">
         <ForceIncludeInVsix>true</ForceIncludeInVsix>
         <Private>true</Private>
       </VSIXCopyLocalReferenceSourceItem>
     </ItemGroup>
   </Target>
 
+  <ItemDefinitionGroup>
+    <NuGetPackageToIncludeInVsix>
+      <Visible>false</Visible>
+    </NuGetPackageToIncludeInVsix>
+  </ItemDefinitionGroup>
+
+  <!-- This is a copy of the Microsoft.VisualStudio.SDK.EmbedInteropTypes NuGet package, but only the list of
+       assemblies that we need. The package includes things like EnvDTE which are reasonable for consumers, but
+       strange since we actually _implement_ DTE and use it as an exchange type with generics in a few places. -->
+  <Target Name="LinkVSSDKEmbeddableAssemblies" DependsOnTargets="ResolveReferences" AfterTargets="ResolveReferences">
+    <ItemGroup>
+      <ReferencePath Condition="
+              '%(FileName)' == 'Microsoft.VisualStudio.Shell.Embeddable'
+           or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.12.0'
+           or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.12.1.DesignTime'
+           or '%(FileName)' == 'Microsoft.VisualStudio.Shell.Interop.14.0.DesignTime'
+           or '%(Filename)' == 'Microsoft.VisualStudio.Imaging.Interop.14.0.DesignTime'
+           or '%(FileName)' == 'Microsoft.VisualStudio.TextManager.Interop.12.1.DesignTime'
+           or '%(FileName)' == 'Microsoft.VisualStudio.ProjectSystem.Interop'
+           or '%(FileName)' == 'stdole'
+           or '%(FileName)' == 'Microsoft.VisualStudio.CommandBars'
+              ">
+        <EmbedInteropTypes>true</EmbedInteropTypes>
+      </ReferencePath>
+    </ItemGroup>
+  </Target>
 
   <!-- ====================================================================================
 
@@ -226,7 +338,8 @@
 
        ==================================================================================== -->
 
-  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(VSToolsPath)' != '' AND '$(ImportVSSDKTargets)' == 'true'" />
+  <Import Project="$(VisualStudioBuildToolsNuGetPackagePath)\build\Microsoft.VsSDK.BuildTools.targets" Condition="'$(ImportVSSDKTargets)' == 'true'" />
+  <Import Project="$(VSToolsPath)\VSSDK\Microsoft.VsSDK.targets" Condition="'$(ImportVSSDKTargets)' == 'true'" />
 
   <!-- ====================================================================================
 
@@ -311,7 +424,9 @@
     <MSBuild Projects="@(ProjectReferenceWithConfiguration)"
              Targets="GetTargetPathWithAuthenticodeCertificateName"
              BuildInParallel="$(BuildInParallel)"
-             Properties="%(ProjectReferenceWithConfiguration.SetConfiguration); %(ProjectReferenceWithConfiguration.SetPlatform)">
+             Properties="%(ProjectReferenceWithConfiguration.SetConfiguration); %(ProjectReferenceWithConfiguration.SetPlatform)"
+             Condition="'%(ProjectReferenceWithConfiguration.Private)' != 'false'"
+             >
 
       <Output TaskParameter="TargetOutputs" ItemName="VsixInputAssembliesToSign" />
     </MSBuild>

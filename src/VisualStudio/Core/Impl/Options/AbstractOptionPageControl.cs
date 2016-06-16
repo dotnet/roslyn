@@ -7,7 +7,7 @@ using System.Windows.Controls;
 using System.Windows.Data;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.VisualStudio.ComponentModelHost;
-using Roslyn.Utilities;
+using Microsoft.VisualStudio.LanguageServices.Implementation.TableDataSource;
 
 namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 {
@@ -32,8 +32,18 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
             var checkBoxStyle = new Style(typeof(CheckBox));
             checkBoxStyle.Setters.Add(new Setter(CheckBox.MarginProperty, new Thickness() { Bottom = 7 }));
-            groupBoxStyle.Setters.Add(new Setter(GroupBox.ForegroundProperty, new DynamicResourceExtension(SystemColors.WindowTextBrushKey)));
+            checkBoxStyle.Setters.Add(new Setter(CheckBox.ForegroundProperty, new DynamicResourceExtension(SystemColors.WindowTextBrushKey)));
             Resources.Add(typeof(CheckBox), checkBoxStyle);
+
+            var textBoxStyle = new Style(typeof(TextBox));
+            textBoxStyle.Setters.Add(new Setter(TextBox.MarginProperty, new Thickness() { Left = 7, Right = 7 }));
+            textBoxStyle.Setters.Add(new Setter(TextBox.ForegroundProperty, new DynamicResourceExtension(SystemColors.WindowTextBrushKey)));
+            Resources.Add(typeof(TextBox), textBoxStyle);
+        }
+
+        protected void AddBinding(BindingExpressionBase bindingExpression)
+        {
+            _bindingExpressions.Add(bindingExpression);
         }
 
         protected void BindToOption(CheckBox checkbox, Option<bool> optionKey)
@@ -90,6 +100,16 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Options
 
         protected void BindToFullSolutionAnalysisOption(CheckBox checkbox, string languageName)
         {
+            // Full solution analysis option has been moved to error list from Dev14 Update3.
+            // We only want to show the full solution analysis option in Tools Options, if we are running against prior VS bits.
+            if (VisualStudioDiagnosticListTable.ErrorListHasFullSolutionAnalysisButton())
+            {
+                checkbox.Visibility = Visibility.Collapsed;
+                return;
+            }
+
+            checkbox.Visibility = Visibility.Visible;
+                        
             Binding binding = new Binding()
             {
                 Source = new FullSolutionAnalysisOptionBinding(OptionService, languageName),

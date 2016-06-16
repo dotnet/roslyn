@@ -20,8 +20,6 @@ using Xunit;
 using TestBase = PortableTestUtils::Roslyn.Test.Utilities.TestBase;
 using AssertEx = PortableTestUtils::Roslyn.Test.Utilities.AssertEx;
 
-#pragma warning disable RS0003 // Do not directly await a Task
-
 namespace Microsoft.CodeAnalysis.CSharp.Scripting.Test
 {
     using static TestCompilationFactory;
@@ -169,7 +167,7 @@ var x = from a in new[] { 1, 2 ,3 } select a + 1;
             AssertEx.Equal(new[] { 2, 3, 4 }, state.ReturnValue);
         }
 
-        [Fact(Skip = "xunit2")]
+        [Fact]
         public async Task References1()
         {
             var options0 = ScriptOptions.Default.AddReferences(

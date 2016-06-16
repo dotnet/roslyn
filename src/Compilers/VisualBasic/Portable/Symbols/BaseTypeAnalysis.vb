@@ -187,10 +187,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         Private Function GetDependenceChain(visited As HashSet(Of Symbol),
                                                root As SourceNamedTypeSymbol,
                                                current As TypeSymbol) As ConsList(Of DependencyDesc)
-
             Debug.Assert(root.OriginalDefinition = root, "root must not be a substitution")
 
-            If current Is Nothing Then
+            If current Is Nothing OrElse current.Kind = SymbolKind.ErrorType Then
                 Return Nothing
             End If
 

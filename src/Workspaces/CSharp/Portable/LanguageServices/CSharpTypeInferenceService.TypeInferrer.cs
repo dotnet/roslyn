@@ -551,7 +551,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                 // If the method has already been constructed poorly (i.e. with error types for type 
                 // arguments), then unconstruct it.
-                if (method.TypeArguments.All(t => t.Kind == SymbolKind.ErrorType))
+                if (method.TypeArguments.Any(t => t.Kind == SymbolKind.ErrorType))
                 {
                     method = method.ConstructedFrom;
                 }
@@ -1465,9 +1465,20 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case SyntaxKind.PreIncrementExpression:
                     case SyntaxKind.UnaryPlusExpression:
                     case SyntaxKind.UnaryMinusExpression:
-                    case SyntaxKind.BitwiseNotExpression:
-                        // ++, --, +Foo(), -Foo(), ~Foo();
+                        // ++, --, +Foo(), -Foo();
                         return SpecializedCollections.SingletonEnumerable(this.Compilation.GetSpecialType(SpecialType.System_Int32));
+
+                    case SyntaxKind.BitwiseNotExpression:
+                        // ~Foo()
+                        var types = InferTypes(prefixUnaryExpression).WhereNotNull();
+                        if (!types.Any())
+                        {
+                            return SpecializedCollections.SingletonEnumerable(this.Compilation.GetSpecialType(SpecialType.System_Int32));
+                        }
+                        else
+                        {
+                            return types;
+                        }
 
                     case SyntaxKind.LogicalNotExpression:
                         // !Foo()

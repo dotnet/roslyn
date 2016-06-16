@@ -348,7 +348,7 @@ End Module
             Dim expected As String =
 "<?xml version=""1.0"" encoding=""utf-16""?>" & vbCrLf &
 "<VersionResource Size=""964"">" & vbCrLf &
-"  <VS_FIXEDFILEINFO FileVersionMS=""00050006"" FileVersionLS=""00070008"" ProductVersionMS=""00000000"" ProductVersionLS=""00000000"" />" & vbCrLf &
+"  <VS_FIXEDFILEINFO FileVersionMS=""00050006"" FileVersionLS=""00070008"" ProductVersionMS=""00010002"" ProductVersionLS=""00030000"" />" & vbCrLf &
 "  <KeyValuePair Key=""Comments"" Value=""A classic of magical realist literature"" />" & vbCrLf &
 "  <KeyValuePair Key=""CompanyName"" Value=""MossBrain"" />" & vbCrLf &
 "  <KeyValuePair Key=""FileDescription"" Value=""One Hundred Years of Solitude"" />" & vbCrLf &

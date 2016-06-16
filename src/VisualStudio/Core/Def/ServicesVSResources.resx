@@ -508,7 +508,7 @@ Use the dropdown to view and switch to other projects this file may belong to.</
     <value>Synchronizing with {0}...</value>
   </data>
   <data name="FullSolutionAnalysisOff" xml:space="preserve">
-    <value>Low memory detected. Full solution analysis disabled for this solution.</value>
+    <value>Visual Studio has suspended some advanced features to improve performance.</value>
   </data>
   <data name="Installing_0" xml:space="preserve">
     <value>Installing '{0}'</value>
@@ -566,5 +566,27 @@ Additional information: {1}</value>
     <value>Uninstalling '{0}' failed.
 
 Additional information: {1}</value>
+  </data>
+  <data name="MoveDownAutomationText" xml:space="preserve">
+    <value>Move {0} below {1}</value>
+    <comment>{0} and {1} are parameter descriptions</comment>
+  </data>
+  <data name="MoveUpAutomationText" xml:space="preserve">
+    <value>Move {0} above {1}</value>
+    <comment>{0} and {1} are parameter descriptions</comment>
+  </data>
+  <data name="RemoveAutomationText" xml:space="preserve">
+    <value>Remove {0}</value>
+    <comment>{0} is a parameter description</comment>
+  </data>
+  <data name="RestoreAutomationText" xml:space="preserve">
+    <value>Restore {0}</value>
+    <comment>{0} is a parameter description</comment>
+  </data>
+  <data name="Reenable" xml:space="preserve">
+    <value>Re-enable</value>
+  </data>
+  <data name="LearnMore" xml:space="preserve">
+    <value>Learn more</value>
   </data>
 </root>

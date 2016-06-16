@@ -1,11 +1,12 @@
 ﻿{
   "dependencies": {
+    "Microsoft.VisualStudio.Shell.14.0": "14.1.24720",
+    "Microsoft.VisualStudio.Shell.Interop.10.0" : "10.0.30319"
   },
   "frameworks": {
-    "net452": { }
+    "net46": { }
   },
   "runtimes": {
-    "win7": { },
-    "win7-anycpu": { }
+    "win7": { }
   }
 }

@@ -184,6 +184,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// <param name="cancellationToken"></param>
         /// <returns></returns>
         public abstract Task<IEnumerable<DiagnosticData>> GetDiagnosticsForSpanAsync(Document document, TextSpan range, bool includeSuppressedDiagnostics = false, CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// True if given project has any diagnostics
+        /// </summary>
+        public abstract bool ContainsDiagnostics(Workspace workspace, ProjectId projectId);
         #endregion
 
         #region build error synchronization
@@ -194,22 +199,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         /// It is up to each incremental analyzer how they will merge this information with live diagnostic info.
         /// 
         /// this API doesn't have cancellationToken since it can't be cancelled.
-        /// 
-        /// given diagnostics are project wide diagnostics that doesn't contain a source location.
         /// </summary>
-        public abstract Task SynchronizeWithBuildAsync(Project project, ImmutableArray<DiagnosticData> diagnostics);
-
-        /// <summary>
-        /// Callback from build listener.
-        /// 
-        /// Given diagnostics are errors host got from explicit build.
-        /// It is up to each incremental analyzer how they will merge this information with live diagnostic info
-        /// 
-        /// this API doesn't have cancellationToken since it can't be cancelled.
-        /// 
-        /// given diagnostics are ones that has a source location.
-        /// </summary>
-        public abstract Task SynchronizeWithBuildAsync(Document document, ImmutableArray<DiagnosticData> diagnostics);
+        public abstract Task SynchronizeWithBuildAsync(Workspace workspace, ImmutableDictionary<ProjectId, ImmutableArray<DiagnosticData>> diagnostics);
         #endregion
 
         internal DiagnosticAnalyzerService Owner { get; }
@@ -236,6 +227,30 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         internal Action<Exception, DiagnosticAnalyzer, Diagnostic> GetOnAnalyzerException(ProjectId projectId)
         {
             return Owner.GetOnAnalyzerException(projectId, DiagnosticLogAggregator);
+        }
+
+        protected static ReportDiagnostic GetEffectiveSeverity(DiagnosticDescriptor descriptor, CompilationOptions options)
+        {
+            return options == null
+                ? MapSeverityToReport(descriptor.DefaultSeverity)
+                : descriptor.GetEffectiveSeverity(options);
+        }
+
+        protected static ReportDiagnostic MapSeverityToReport(DiagnosticSeverity severity)
+        {
+            switch (severity)
+            {
+                case DiagnosticSeverity.Hidden:
+                    return ReportDiagnostic.Hidden;
+                case DiagnosticSeverity.Info:
+                    return ReportDiagnostic.Info;
+                case DiagnosticSeverity.Warning:
+                    return ReportDiagnostic.Warn;
+                case DiagnosticSeverity.Error:
+                    return ReportDiagnostic.Error;
+                default:
+                    throw ExceptionUtilities.Unreachable;
+            }
         }
     }
 }

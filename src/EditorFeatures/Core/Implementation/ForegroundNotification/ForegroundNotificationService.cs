@@ -77,22 +77,30 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
 
         private async Task ProcessAsync()
         {
-            try
+            var isFirst = true;
+            while (true)
             {
-                AssertIsBackground();
-
-                while (true)
+                try
                 {
+                    if (isFirst)
+                    {
+                        AssertIsBackground();
+                        isFirst = false;
+                    }
+
                     // wait until it is time to run next item
                     await WaitForPendingWorkAsync().ConfigureAwait(continueOnCapturedContext: false);
 
                     // run them in UI thread
                     await InvokeBelowInputPriority(NotifyOnForeground).ConfigureAwait(continueOnCapturedContext: false);
                 }
-            }
-            catch (Exception ex) when (FatalError.ReportWithoutCrash(ex))
-            {
-                System.Diagnostics.Debug.Assert(false, ex.Message);
+                catch (Exception ex) when (FatalError.ReportWithoutCrash(ex))
+                {
+                    // This is an error condition but we must continue to drain the work queue.  If we
+                    // do not then IAsyncToken values will remain uncomplete and the unit test code
+                    // will deadlock waiting for the values to complete.
+                    Debug.Assert(false, ex.Message);
+                }
             }
         }
 
@@ -138,6 +146,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification
                         catch (OperationCanceledException)
                         {
                             // eat up cancellation
+                        }
+                        catch (Exception ex) when (FatalError.ReportWithoutCrash(ex))
+                        {
+                            // The PendingWork callbacks should never throw.  In the case they do we
+                            // must ensure the IAsyncToken implementation is completed.  If it is not
+                            // then the unit test code will end up in a deadlock doing an 'await' 
+                            // on the token instance.
+                            Debug.Assert(false, ex.Message);
+                            done = true;
                         }
                     }
 

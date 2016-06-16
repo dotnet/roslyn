@@ -221,14 +221,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 return true;
             }
 
-            private void MarkDeclarationProcessed(ISymbol symbol, int declarationIndex)
-            {
-                lock (_gate)
-                {
-                    MarkDeclarationProcessed_NoLock(symbol, declarationIndex);
-                }
-            }
-
             private void MarkDeclarationProcessed_NoLock(ISymbol symbol, int declarationIndex)
             {
                 Dictionary<int, DeclarationAnalyzerStateData> declarationDataMap;
@@ -275,7 +267,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             private static void FreeState_NoLock<TAnalyzerStateData>(TAnalyzerStateData state, ObjectPool<TAnalyzerStateData> pool)
                 where TAnalyzerStateData : AnalyzerStateData
             {
-                if (state != null)
+                if (state != null && !ReferenceEquals(state, AnalyzerStateData.FullyProcessedInstance))
                 {
                     state.Free();
                     pool.Free(state);

@@ -4,8 +4,6 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using System.Windows;
-using System.Windows.Threading;
 using Microsoft.CodeAnalysis.Editor.Implementation.ForegroundNotification;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
@@ -68,20 +66,25 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Threading
         [WpfFact]
         public async Task Test_Delay()
         {
+            // NOTE: Don't be tempted to use DateTime or Stopwatch to measure this
+            // Switched to Environment.TickCount use the same clock as the notification
+            // service, see: https://github.com/dotnet/roslyn/issues/7512.
+
             var asyncToken = EmptyAsyncToken.Instance;
 
-            Stopwatch watch = Stopwatch.StartNew();
+            int startMilliseconds = Environment.TickCount;
+            int? elapsedMilliseconds = null;
 
             _service.RegisterNotification(() =>
             {
-                watch.Stop();
+                elapsedMilliseconds = Environment.TickCount - startMilliseconds;
+
                 _done = true;
             }, 50, asyncToken, CancellationToken.None);
 
             await PumpWait();
 
-            Assert.False(watch.IsRunning);
-            Assert.True(watch.ElapsedMilliseconds >= 50);
+            Assert.True(elapsedMilliseconds >= 50, $"Notification fired after {elapsedMilliseconds}, instead of 50.");
             Assert.True(_service.IsEmpty_TestOnly);
         }
 

@@ -317,8 +317,9 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
                 case Glyph.Label:
                     return KnownMonikers.Label;
 
+                case Glyph.Parameter:
                 case Glyph.Local:
-                    return KnownMonikers.FieldPublic;
+                    return KnownMonikers.LocalVariable;
 
                 case Glyph.Namespace:
                     return KnownMonikers.Namespace;
@@ -346,9 +347,6 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Extensions
 
                 case Glyph.Operator:
                     return KnownMonikers.Operator;
-
-                case Glyph.Parameter:
-                    return KnownMonikers.FieldPublic;
 
                 case Glyph.PropertyPublic:
                     return KnownMonikers.PropertyPublic;

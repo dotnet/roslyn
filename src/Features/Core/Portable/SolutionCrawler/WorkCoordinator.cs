@@ -330,9 +330,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
             private void OnSolutionAdded(Solution solution)
             {
-                // first make sure full solution analysis is on.
-                _optionService.SetOptions(solution.Workspace.Options.WithChangedOption(RuntimeOptions.FullSolutionAnalysis, true));
-
                 var asyncToken = _listener.BeginAsyncOperation("OnSolutionAdded");
                 _eventProcessingQueue.ScheduleTask(() =>
                 {
@@ -516,10 +513,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     projectConfigurationChange = projectConfigurationChange.With(InvocationReasons.ProjectParseOptionChanged);
                 }
 
-                if (projectChanges.GetAddedMetadataReferences().Any() || projectChanges.GetAddedProjectReferences().Any() || projectChanges.GetAddedAnalyzerReferences().Any() ||
-                    projectChanges.GetRemovedMetadataReferences().Any() || projectChanges.GetRemovedProjectReferences().Any() || projectChanges.GetRemovedAnalyzerReferences().Any() ||
+                if (projectChanges.GetAddedMetadataReferences().Any() || 
+                    projectChanges.GetAddedProjectReferences().Any() ||
+                    projectChanges.GetAddedAnalyzerReferences().Any() ||
+                    projectChanges.GetRemovedMetadataReferences().Any() ||
+                    projectChanges.GetRemovedProjectReferences().Any() ||
+                    projectChanges.GetRemovedAnalyzerReferences().Any() ||
                     !object.Equals(oldProject.CompilationOptions, newProject.CompilationOptions) ||
                     !object.Equals(oldProject.AssemblyName, newProject.AssemblyName) ||
+                    !object.Equals(oldProject.Name, newProject.Name) ||
                     !object.Equals(oldProject.AnalyzerOptions, newProject.AnalyzerOptions))
                 {
                     projectConfigurationChange = projectConfigurationChange.With(InvocationReasons.ProjectConfigurationChanged);

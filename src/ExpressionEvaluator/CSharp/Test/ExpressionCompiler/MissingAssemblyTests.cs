@@ -777,7 +777,7 @@ class UseLinq
         private static ImmutableArray<byte> GetMetadataBytes(Compilation comp)
         {
             var imageReference = (MetadataImageReference)comp.EmitToImageReference();
-            var assemblyMetadata = (AssemblyMetadata)imageReference.GetMetadata();
+            var assemblyMetadata = (AssemblyMetadata)imageReference.GetMetadataNoCopy();
             var moduleMetadata = assemblyMetadata.GetModules()[0];
             return moduleMetadata.Module.PEReaderOpt.GetMetadata().GetContent();
         }

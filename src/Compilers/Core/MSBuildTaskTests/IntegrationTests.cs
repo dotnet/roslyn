@@ -25,18 +25,8 @@ namespace Microsoft.CodeAnalysis.BuildTasks.UnitTests
 
         static IntegrationTests()
         {
-            using (var key = Registry.LocalMachine.OpenSubKey(@"SOFTWARE\Microsoft\MSBuild\ToolsVersions\14.0", writable: false))
-            {
-                if (key != null)
-                {
-                    var toolsPath = key.GetValue("MSBuildToolsPath");
-                    if (toolsPath != null)
-                    {
-                        s_msbuildDirectory = toolsPath.ToString();
-                        s_msbuildExecutable = Path.Combine(s_msbuildDirectory, "MSBuild.exe");
-                    }
-                }
-            }
+            s_msbuildDirectory = TestHelpers.GetMSBuildDirectory();
+            s_msbuildExecutable = Path.Combine(s_msbuildDirectory, "MSBuild.exe");
         }
 
         private readonly TempDirectory _tempDirectory;

@@ -24,6 +24,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                 }
             }
 
+            protected override int GetCount(Data data)
+            {
+                return 1;
+            }
+
             protected override Data TryGetExistingData(Stream stream, Document value, CancellationToken cancellationToken)
             {
                 try
@@ -31,7 +36,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.DesignerAttribu
                     using (var reader = new ObjectReader(stream))
                     {
                         var format = reader.ReadString();
-                        if (!string.Equals(format, FormatVersion))
+                        if (!string.Equals(format, FormatVersion, StringComparison.InvariantCulture))
                         {
                             return null;
                         }

@@ -95,7 +95,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new CSDiagnostic(info, location);
         }
 
-        public override string ConvertSymbolToString(int errorCode, ISymbol symbol)
+        public override string GetErrorDisplayString(ISymbol symbol)
         {
             // show extra info for assembly if possible such as version, public key token etc.
             if (symbol.Kind == SymbolKind.Assembly || symbol.Kind == SymbolKind.Namespace)
@@ -179,6 +179,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         // signing:
         public override int ERR_PublicKeyFileFailure { get { return (int)ErrorCode.ERR_PublicKeyFileFailure; } }
         public override int ERR_PublicKeyContainerFailure { get { return (int)ErrorCode.ERR_PublicKeyContainerFailure; } }
+        public override int ERR_OptionMustBeAbsolutePath { get { return (int)ErrorCode.ERR_OptionMustBeAbsolutePath; } }
 
         // resources:
         public override int ERR_CantReadResource { get { return (int)ErrorCode.ERR_CantReadResource; } }
@@ -205,6 +206,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         public override int ERR_TooManyUserStrings { get { return (int)ErrorCode.ERR_TooManyUserStrings; } }
         public override int ERR_PeWritingFailure { get { return (int)ErrorCode.ERR_PeWritingFailure; } }
         public override int ERR_ModuleEmitFailure { get { return (int)ErrorCode.ERR_ModuleEmitFailure; } }
+        public override int ERR_EncUpdateFailedMissingAttribute { get { return (int)ErrorCode.ERR_EncUpdateFailedMissingAttribute; } }
 
         public override void ReportInvalidAttributeArgument(DiagnosticBag diagnostics, SyntaxNode attributeSyntax, int parameterIndex, AttributeData attribute)
         {

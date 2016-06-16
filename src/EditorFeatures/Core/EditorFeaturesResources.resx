@@ -534,9 +534,6 @@
   <data name="FindingSpanOfPreviousSibling" xml:space="preserve">
     <value>Finding span of previous sibling...</value>
   </data>
-  <data name="VariadicSignaturehelpitemMustHaveOneParam" xml:space="preserve">
-    <value>Variadic SignatureHelpItem must have at least one parameter.</value>
-  </data>
   <data name="Rename1" xml:space="preserve">
     <value>Rename: {0}</value>
   </data>

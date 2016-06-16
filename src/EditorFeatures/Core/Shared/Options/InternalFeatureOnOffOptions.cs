@@ -65,5 +65,11 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Options
 
         [ExportOption]
         public static readonly Option<bool> EsentPerformanceMonitor = new Option<bool>(OptionName, "Esent PerfMon", defaultValue: false);
+
+        [ExportOption]
+        public static readonly Option<bool> FullSolutionAnalysisMemoryMonitor = new Option<bool>(OptionName, "Full Solution Analysis Memory Monitor", defaultValue: true);
+
+        [ExportOption]
+        public static readonly Option<bool> ProjectReferenceConversion = new Option<bool>(OptionName, "Project Reference Conversion", defaultValue: true);
     }
 }

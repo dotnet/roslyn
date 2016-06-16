@@ -101,18 +101,16 @@ namespace Microsoft.CodeAnalysis.CodeGen
 
         public ImmutableArray<byte> IL => _ilBits;
 
-        public ImmutableArray<Cci.SequencePoint> GetSequencePoints()
+        public void GetSequencePoints(ArrayBuilder<Cci.SequencePoint> builder)
         {
-            return HasAnySequencePoints ?
-                _sequencePoints.GetSequencePoints(_debugDocumentProvider) :
-                ImmutableArray<Cci.SequencePoint>.Empty;
+            if (HasAnySequencePoints)
+            {
+                _sequencePoints.GetSequencePoints(_debugDocumentProvider, builder);
+            }
         }
 
         public bool HasAnySequencePoints
             => _sequencePoints != null && !_sequencePoints.IsEmpty;
-
-        public ImmutableArray<Cci.SequencePoint> GetLocations()
-            => GetSequencePoints();
 
         ImmutableArray<Cci.LocalScope> Cci.IMethodBody.LocalScopes => _localScopes;
 

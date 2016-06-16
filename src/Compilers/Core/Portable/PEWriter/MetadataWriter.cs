@@ -661,25 +661,42 @@ namespace Microsoft.Cci
 
         private ImmutableArray<IParameterDefinition> GetParametersToEmitCore(IMethodDefinition methodDef)
         {
-            var builder = ArrayBuilder<IParameterDefinition>.GetInstance();
+            ArrayBuilder<IParameterDefinition> builder = null;
+            var parameters = methodDef.Parameters;
+
             if (methodDef.ReturnValueIsMarshalledExplicitly || IteratorHelper.EnumerableIsNotEmpty(methodDef.ReturnValueAttributes))
             {
+                builder = ArrayBuilder<IParameterDefinition>.GetInstance(parameters.Length + 1);
                 builder.Add(new ReturnValueParameter(methodDef));
             }
 
-            foreach (IParameterDefinition parDef in methodDef.Parameters)
+            for (int i = 0; i < parameters.Length; i++)
             {
+                IParameterDefinition parDef = parameters[i];
+
                 // No explicit param row is needed if param has no flags (other than optionally IN),
                 // no name and no references to the param row, such as CustomAttribute, Constant, or FieldMarshal
-                if (parDef.HasDefaultValue || parDef.IsOptional || parDef.IsOut || parDef.IsMarshalledExplicitly ||
-                    parDef.Name != String.Empty ||
+                if (parDef.Name != String.Empty || 
+                    parDef.HasDefaultValue || parDef.IsOptional || parDef.IsOut || parDef.IsMarshalledExplicitly ||                   
                     IteratorHelper.EnumerableIsNotEmpty(parDef.GetAttributes(Context)))
                 {
-                    builder.Add(parDef);
+                    if (builder != null)
+                    {
+                        builder.Add(parDef);
+                    }
+                }
+                else
+                {
+                    // we have a parameter that does not need to be emitted (not common)
+                    if (builder == null)
+                    {
+                        builder = ArrayBuilder<IParameterDefinition>.GetInstance(parameters.Length);
+                        builder.AddRange(parameters, i);
+                    }
                 }
             }
 
-            return builder.ToImmutableAndFree();
+            return builder?.ToImmutableAndFree() ?? parameters;
         }
 
         /// <summary>

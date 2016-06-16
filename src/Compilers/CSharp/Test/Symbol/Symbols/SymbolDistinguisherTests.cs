@@ -704,6 +704,41 @@ class C { }";
             return a.First.Equals(b.First) && a.Second.Equals(b.Second);
         }
 
+        [WorkItem(8588, "https://github.com/dotnet/roslyn/issues/8588")]
+        [Fact]
+        public void SameErrorTypeArgumentsDifferentSourceAssemblies()
+        {
+            var source0 =
+@"public class A
+{
+    public static void M(System.Collections.Generic.IEnumerable<E> e)
+    {
+    }
+}";
+            var source1 =
+@"class B
+{
+    static void M(System.Collections.Generic.IEnumerable<E> e)
+    {
+        A.M(e);
+    }
+}";
+            var comp0 = CreateCompilationWithMscorlib(source0);
+            comp0.VerifyDiagnostics(
+                // (3,65): error CS0246: The type or namespace name 'E' could not be found (are you missing a using directive or an assembly reference?)
+                //     public static void M(System.Collections.Generic.IEnumerable<E> e)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "E").WithArguments("E").WithLocation(3, 65));
+            var ref0 = new CSharpCompilationReference(comp0);
+            var comp1 = CreateCompilationWithMscorlib(Parse(source1), new[] { ref0 });
+            comp1.VerifyDiagnostics(
+                // (3,58): error CS0246: The type or namespace name 'E' could not be found (are you missing a using directive or an assembly reference?)
+                //     static void M(System.Collections.Generic.IEnumerable<E> e)
+                Diagnostic(ErrorCode.ERR_SingleTypeNameNotFound, "E").WithArguments("E").WithLocation(3, 58),
+                // (5,13): error CS1503: Argument 1: cannot convert from 'System.Collections.Generic.IEnumerable<E>' to 'System.Collections.Generic.IEnumerable<E>'
+                //         A.M(e);
+                Diagnostic(ErrorCode.ERR_BadArgType, "e").WithArguments("1", "System.Collections.Generic.IEnumerable<E>", "System.Collections.Generic.IEnumerable<E>").WithLocation(5, 13));
+        }
+
         [WorkItem(8470, "https://github.com/dotnet/roslyn/issues/8470")]
         [Fact]
         public void DescriptionNoCompilation()

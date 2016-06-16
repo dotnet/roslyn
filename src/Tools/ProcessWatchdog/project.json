@@ -1,0 +1,11 @@
+﻿{
+  "dependencies": {
+    "CommandLineParser": "2.0.273-beta"
+  },
+  "frameworks": {
+    "net45": {}
+  },
+  "runtimes": {
+    "win7": {}
+  }
+}

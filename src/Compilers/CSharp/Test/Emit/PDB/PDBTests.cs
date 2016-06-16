@@ -152,6 +152,70 @@ public class C
         }
 
         [Fact]
+        public void SymWriterErrors2()
+        {
+            var source0 =
+@"class C
+{
+}";
+            var compilation = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll);
+
+            // Verify full metadata contains expected rows.
+            using (MemoryStream peStream = new MemoryStream(), pdbStream = new MemoryStream())
+            {
+                var result = compilation.Emit(
+                    peStream: peStream,
+                    pdbStream: pdbStream,
+                    xmlDocumentationStream: null,
+                    cancellationToken: default(CancellationToken),
+                    win32Resources: null,
+                    manifestResources: null,
+                    options: null,
+                    debugEntryPoint: null,
+                    getHostDiagnostics: null,
+                    testData: new CompilationTestData() { SymWriterFactory = () => new object() });
+
+                result.Diagnostics.Verify(
+                    // error CS0041: Unexpected error writing debug information -- 'Windows PDB writer is not available -- could not find Microsoft.DiaSymReader.Native.{0}.dll'
+                    Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments(string.Format(CodeAnalysisResources.SymWriterNotAvailable, (IntPtr.Size == 4) ? "x86" : "amd64")));
+
+                Assert.False(result.Success);
+            }
+        }
+
+        [Fact]
+        public void SymWriterErrors3()
+        {
+            var source0 =
+@"class C
+{
+}";
+            var compilation = CreateCompilationWithMscorlib(source0, options: TestOptions.DebugDll.WithDeterministic(true));
+
+            // Verify full metadata contains expected rows.
+            using (MemoryStream peStream = new MemoryStream(), pdbStream = new MemoryStream())
+            {
+                var result = compilation.Emit(
+                    peStream: peStream,
+                    pdbStream: pdbStream,
+                    xmlDocumentationStream: null,
+                    cancellationToken: default(CancellationToken),
+                    win32Resources: null,
+                    manifestResources: null,
+                    options: null,
+                    debugEntryPoint: null,
+                    getHostDiagnostics: null,
+                    testData: new CompilationTestData() { SymWriterFactory = () => new MockSymUnmanagedWriter() });
+
+                result.Diagnostics.Verify(
+                    // error CS0041: Unexpected error writing debug information -- 'Windows PDB writer doesn't support deterministic compilation -- could not find Microsoft.DiaSymReader.Native.{0}.dll'
+                    Diagnostic(ErrorCode.FTL_DebugEmitFailure).WithArguments(string.Format(CodeAnalysisResources.SymWriterNotDeterministic, (IntPtr.Size == 4) ? "x86" : "amd64")));
+
+                Assert.False(result.Success);
+            }
+        }
+
+        [Fact]
         public void ExtendedCustomDebugInformation()
         {
             var source =
@@ -5116,5 +5180,66 @@ class C
         }
 
         #endregion
+
+        [Fact, WorkItem(4370, "https://github.com/dotnet/roslyn/issues/4370")]
+        public void HeadingHiddenSequencePointsPickUpDocumentFromVisibleSequencePoint()
+        {
+            var source = 
+@"#line 1 ""C:\Async.cs""
+#pragma checksum ""C:\Async.cs"" ""{ff1816ec-aa5e-4d10-87f7-6f4963833460}"" ""DBEB2A067B2F0E0D678A002C587A2806056C3DCE""
+
+using System.Threading.Tasks;
+
+public class C
+{
+    public async void M1()
+    {
+    }
+}
+";
+            
+            var tree = SyntaxFactory.ParseSyntaxTree(source, encoding: Encoding.UTF8, path: "HIDDEN.cs");
+            var c = CSharpCompilation.Create("Compilation", new[] { tree }, new[] { MscorlibRef_v46 }, options: TestOptions.DebugDll.WithDebugPlusMode(true));
+
+            c.VerifyPdb(
+@"<symbols>
+  <files>
+    <file id=""1"" name=""C:\Async.cs"" language=""3f5162f8-07c6-11d3-9053-00c04fa302a1"" languageVendor=""994b45c4-e6e9-11d2-903f-00c04fa302a1"" documentType=""5a869d0b-6611-11d3-bd2a-0000f80849bd"" checkSumAlgorithmId=""ff1816ec-aa5e-4d10-87f7-6f4963833460"" checkSum=""DB, EB, 2A,  6, 7B, 2F,  E,  D, 67, 8A,  0, 2C, 58, 7A, 28,  6,  5, 6C, 3D, CE, "" />
+  </files>
+  <methods>
+    <method containingType=""C"" name=""M1"">
+      <customDebugInfo>
+        <forwardIterator name=""&lt;M1&gt;d__0"" />
+      </customDebugInfo>
+    </method>
+    <method containingType=""C+&lt;M1&gt;d__0"" name=""MoveNext"">
+      <customDebugInfo>
+        <using>
+          <namespace usingCount=""1"" />
+        </using>
+        <encLocalSlotMap>
+          <slot kind=""27"" offset=""0"" />
+          <slot kind=""temp"" />
+        </encLocalSlotMap>
+      </customDebugInfo>
+      <sequencePoints>
+        <entry offset=""0x0"" hidden=""true"" document=""1"" />
+        <entry offset=""0x7"" startLine=""8"" startColumn=""5"" endLine=""8"" endColumn=""6"" document=""1"" />
+        <entry offset=""0xa"" hidden=""true"" document=""1"" />
+        <entry offset=""0x22"" startLine=""9"" startColumn=""5"" endLine=""9"" endColumn=""6"" document=""1"" />
+        <entry offset=""0x2a"" hidden=""true"" document=""1"" />
+      </sequencePoints>
+      <scope startOffset=""0x0"" endOffset=""0x37"">
+        <namespace name=""System.Threading.Tasks"" />
+      </scope>
+      <asyncInfo>
+        <catchHandler offset=""0xa"" />
+        <kickoffMethod declaringType=""C"" methodName=""M1"" />
+      </asyncInfo>
+    </method>
+  </methods>
+</symbols>
+");
+        }
     }
 }

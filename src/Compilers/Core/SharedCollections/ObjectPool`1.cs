@@ -261,6 +261,8 @@ namespace Roslyn.Utilities
         {
             Debug.Assert(obj != null, "freeing null?");
 
+            Debug.Assert(_firstItem != obj, "freeing twice?");
+
             var items = _items;
             for (int i = 0; i < items.Length; i++)
             {

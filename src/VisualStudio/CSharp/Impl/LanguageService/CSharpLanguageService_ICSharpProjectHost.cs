@@ -21,7 +21,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.LanguageService
                 projectName,
                 hierarchy,
                 this.SystemServiceProvider,
-                this.Package.ComponentModel.GetService<MiscellaneousFilesWorkspace>(),
                 this.Workspace,
                 this.HostDiagnosticUpdateSource);
 

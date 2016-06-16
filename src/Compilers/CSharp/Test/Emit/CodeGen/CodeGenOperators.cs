@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.CSharp.UnitTests.Emit;
 using Microsoft.CodeAnalysis.Test.Utilities;
 using Roslyn.Test.Utilities;
+using System.Collections.Immutable;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.CodeGen
@@ -3419,7 +3420,7 @@ False");
 
         [WorkItem(539398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539398")]
         [WorkItem(1043494, "DevDiv")]
-        [Fact(Skip = "1043494")]
+        [Fact]
         public void TestFloatNegativeZero()
         {
             var text = @"
@@ -3455,7 +3456,7 @@ Infinity");
 
         [WorkItem(539398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539398")]
         [WorkItem(1043494, "DevDiv")]
-        [Fact(Skip = "1043494")]
+        [Fact]
         public void TestDoubleNegativeZero()
         {
             var text = @"
@@ -3492,7 +3493,7 @@ Infinity");
         // NOTE: decimal doesn't have infinity, so we convert to double.
         [WorkItem(539398, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539398")]
         [WorkItem(1043494, "DevDiv")]
-        [Fact(Skip = "1043494")]
+        [Fact]
         public void TestDecimalNegativeZero()
         {
             var text = @"
@@ -4754,13 +4755,21 @@ class Test
             var result = CompileAndVerify(source, options: TestOptions.ReleaseExe, expectedOutput: "11461640193");
         }
 
-        [Fact(Skip = "https://github.com/dotnet/roslyn/issues/6077")]
+        [Fact]
         [WorkItem(6077, "https://github.com/dotnet/roslyn/issues/6077")]
         [WorkItem(5395, "https://github.com/dotnet/roslyn/issues/5395")]
         public void EmitSequenceOfBinaryExpressions_03()
         {
-            var source =
-@"
+            var diagnostics = ImmutableArray<Diagnostic>.Empty;
+
+            const int start = 8192;
+            const int step = 4096;
+            const int limit = start * 4;
+
+            for (int count = start; count <= limit && diagnostics.IsEmpty; count += step)
+            {
+                var source =
+    @"
 class Test
 { 
     static void Main()
@@ -4769,24 +4778,27 @@ class Test
 
     public static bool Calculate(bool[] a, bool[] f)
     {
-" + $"        return { BuildSequenceOfBinaryExpressions_03() };" + @"
+" + $"        return { BuildSequenceOfBinaryExpressions_03(count) };" + @"
     }
 }
 ";
 
-            var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
-            compilation.VerifyEmitDiagnostics(
+                var compilation = CreateCompilationWithMscorlib(source, options: TestOptions.ReleaseExe);
+                diagnostics = compilation.GetEmitDiagnostics();
+            }
+
+            diagnostics.Verify(
     // (10,16): error CS8078: An expression is too long or complex to compile
     //         return a[0] && f[0] || a[1] && f[1] || a[2] && f[2] || ...
     Diagnostic(ErrorCode.ERR_InsufficientStack, "a").WithLocation(10, 16)
                 );
         }
 
-        private static string BuildSequenceOfBinaryExpressions_03()
+        private static string BuildSequenceOfBinaryExpressions_03(int count = 8192)
         {
             var builder = new System.Text.StringBuilder();
             int i;
-            for (i = 0; i < 8192; i++)
+            for (i = 0; i < count; i++)
             {
                 builder.Append("a[");
                 builder.Append(i);

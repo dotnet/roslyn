@@ -63,6 +63,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV1
                 return project.Id;
             }
 
+            protected override int GetCount(AnalysisData data)
+            {
+                return data.Items.Length;
+            }
+
             protected override Solution GetSolution(object value)
             {
                 var document = value as Document;

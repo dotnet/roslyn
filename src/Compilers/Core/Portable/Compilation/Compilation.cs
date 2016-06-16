@@ -327,7 +327,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// The type object that represents the type of submission result the host requested.
         /// </summary>
-        internal Type SubmissionReturnType => ScriptCompilationInfo?.ReturnType;
+        internal Type SubmissionReturnType => ScriptCompilationInfo?.ReturnTypeOpt;
 
         internal static bool IsValidSubmissionReturnType(Type type)
         {
@@ -850,6 +850,29 @@ namespace Microsoft.CodeAnalysis
         /// <see cref="EmitResult"/>.
         /// </summary>
         public abstract ImmutableArray<Diagnostic> GetDiagnostics(CancellationToken cancellationToken = default(CancellationToken));
+
+        internal void EnsureCompilationEventQueueCompleted()
+        {
+            Debug.Assert(EventQueue != null);
+
+            lock (EventQueue)
+            {
+                if (!EventQueue.IsCompleted)
+                {
+                    CompleteCompilationEventQueue_NoLock();
+                }
+            }
+        }
+
+        internal void CompleteCompilationEventQueue_NoLock()
+        {
+            Debug.Assert(EventQueue != null);
+            
+            // Signal the end of compilation.
+            EventQueue.TryEnqueue(new CompilationCompletedEvent(this));
+            EventQueue.PromiseNotToEnqueue();
+            EventQueue.TryComplete();
+        }
 
         internal abstract CommonMessageProvider MessageProvider { get; }
 
@@ -1776,6 +1799,18 @@ namespace Microsoft.CodeAnalysis
             bool emitPortablePdb = moduleBeingBuilt.EmitOptions.DebugInformationFormat == DebugInformationFormat.PortablePdb;
             string pdbPath = (pdbStreamProvider != null) ? (moduleBeingBuilt.EmitOptions.PdbFilePath ?? FileNameUtilities.ChangeExtension(SourceModule.Name, "pdb")) : null;
 
+            // The PDB path is emitted in it's entirety into the PE.  This makes it impossible to have deterministic
+            // builds that occur in different source directories.  To enable this we shave all path information from
+            // the PDB when specified by the user.  
+            //
+            // This is a temporary work around to allow us to make progress with determinism.  The following issue 
+            // tracks getting an official solution here.
+            //
+            // https://github.com/dotnet/roslyn/issues/9813
+            string pePdbPath = Feature("pdb-path-determinism") != null && !string.IsNullOrEmpty(pdbPath)
+                ? Path.GetFileName(pdbPath)
+                : pdbPath;
+
             try
             {
                 metadataDiagnostics = DiagnosticBag.GetInstance();
@@ -1872,7 +1907,7 @@ namespace Microsoft.CodeAnalysis
                         getPeStream,
                         getPortablePdbStream,
                         nativePdbWriter,
-                        pdbPath,
+                        pePdbPath,
                         metadataOnly,
                         deterministic,
                         cancellationToken))
@@ -1908,7 +1943,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 catch (Cci.PeWritingException e)
                 {
-                    diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PeWritingFailure, Location.None, e.Message));
+                    diagnostics.Add(MessageProvider.CreateDiagnostic(MessageProvider.ERR_PeWritingFailure, Location.None, e.InnerException.ToString()));
                     return false;
                 }
                 catch (ResourceException e)
@@ -1935,6 +1970,12 @@ namespace Microsoft.CodeAnalysis
                     try
                     {
                         Options.StrongNameProvider.SignAssembly(StrongNameKeys, signingInputStream, peStream);
+                    }
+                    catch (DesktopStrongNameProvider.ClrStrongNameMissingException)
+                    {
+                        diagnostics.Add(StrongNameKeys.GetError(StrongNameKeys.KeyFilePath, StrongNameKeys.KeyContainer,
+                            new CodeAnalysisResourcesLocalizableErrorArgument(nameof(CodeAnalysisResources.AssemblySigningNotSupported)), MessageProvider));
+                        return false;
                     }
                     catch (IOException ex)
                     {

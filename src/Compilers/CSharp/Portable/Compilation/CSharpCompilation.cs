@@ -1709,9 +1709,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (_lazyCompilationUnitCompletedTrees.Count == this.SyntaxTrees.Length)
                     {
                         // if that was the last tree, signal the end of compilation
-                        EventQueue.TryEnqueue(new CompilationCompletedEvent(this));
-                        EventQueue.PromiseNotToEnqueue();
-                        EventQueue.TryComplete();
+                        CompleteCompilationEventQueue_NoLock();
                     }
                 }
             }
@@ -1869,6 +1867,14 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
+        internal MergedNamespaceDeclaration MergedRootDeclaration
+        {
+            get
+            {
+                return Declarations.GetMergedRoot(this);
+            }
+        }
+
         /// <summary>
         /// Gets the diagnostics produced during the parsing stage of a compilation. There are no diagnostics for declarations or accessor or
         /// method bodies, for example.
@@ -1950,6 +1956,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 cancellationToken.ThrowIfCancellationRequested();
 
                 builder.AddRange(GetSourceDeclarationDiagnostics(cancellationToken: cancellationToken));
+
+                if (EventQueue != null && SyntaxTrees.Length == 0)
+                {
+                    EnsureCompilationEventQueueCompleted();
+                }
             }
 
             cancellationToken.ThrowIfCancellationRequested();
@@ -2833,7 +2844,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 throw new ArgumentException(CSharpResources.NoNoneSearchCriteria, nameof(filter));
             }
 
-            return this.Declarations.ContainsName(predicate, filter, cancellationToken);
+            return DeclarationTable.ContainsName(this.MergedRootDeclaration, predicate, filter, cancellationToken);
         }
 
         /// <summary>
@@ -2866,6 +2877,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return
                 (object)GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctor) != null &&
                 (object)GetWellKnownTypeMember(WellKnownMember.System_Runtime_CompilerServices_DynamicAttribute__ctorTransformFlags) != null;
+        }
+
+        /// <summary>
+        /// Returns whether the compilation has the Boolean type and if it's good.
+        /// </summary>
+        /// <returns>Returns true if Boolean is present and healthy.</returns>
+        internal bool CanEmitBoolean()
+        {
+            var boolType = GetSpecialType(SpecialType.System_Boolean);
+            var diagnostic = boolType.GetUseSiteDiagnostic();
+            return (diagnostic == null) || (diagnostic.Severity != DiagnosticSeverity.Error);
         }
 
         internal override AnalyzerDriver AnalyzerForLanguage(ImmutableArray<DiagnosticAnalyzer> analyzers, AnalyzerManager analyzerManager)
@@ -2920,7 +2942,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = new HashSet<ISymbol>();
                 var spine = new List<MergedNamespaceOrTypeDeclaration>();
 
-                AppendSymbolsWithName(spine, _compilation.Declarations.MergedRoot, predicate, filter, result, cancellationToken);
+                AppendSymbolsWithName(spine, _compilation.MergedRootDeclaration, predicate, filter, result, cancellationToken);
 
                 return result;
             }

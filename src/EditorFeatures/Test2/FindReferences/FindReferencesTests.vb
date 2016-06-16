@@ -7,12 +7,21 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces
 Imports Microsoft.CodeAnalysis.FindSymbols
 Imports Roslyn.Utilities
+Imports Xunit.Abstractions
 
 Namespace Microsoft.CodeAnalysis.Editor.UnitTests.FindReferences
     Partial Public Class FindReferencesTests
+        Private ReadOnly _outputHelper As ITestOutputHelper
+
+        Public Sub New(outputHelper As ITestOutputHelper)
+            _outputHelper = outputHelper
+        End Sub
+
         Private Async Function TestAsync(definition As XElement, Optional searchSingleFileOnly As Boolean = False, Optional uiVisibleOnly As Boolean = False) As Task
 
             Using workspace = Await TestWorkspace.CreateAsync(definition)
+                workspace.SetTestLogger(AddressOf _outputHelper.WriteLine)
+
                 For Each cursorDocument In workspace.Documents.Where(Function(d) d.CursorPosition.HasValue)
                     Dim cursorPosition = cursorDocument.CursorPosition.Value
 

@@ -397,7 +397,7 @@ End Class
         Assert.True(other.Assembly.Identity.PublicKey.IsEmpty)
     End Sub
 
-    <ConditionalFact(GetType(IsEnglishLocal))>
+    <Fact>
     Public Sub PubKeyContainerBogusOptions()
         Dim other As VisualBasicCompilation = CreateCompilationWithMscorlib(
 <compilation>
@@ -419,7 +419,7 @@ End Class
         Assert.Equal(ERRID.ERR_PublicKeyContainerFailure, err.Code)
         Assert.Equal(2, err.Arguments.Count)
         Assert.Equal("foo", DirectCast(err.Arguments(0), String))
-        Assert.True(DirectCast(err.Arguments(1), String).EndsWith(" HRESULT: 0x80090016)", StringComparison.Ordinal))
+        Assert.True(DirectCast(err.Arguments(1), String).Contains("HRESULT: 0x80090016"))
 
         Assert.True(other.Assembly.Identity.PublicKey.IsEmpty)
     End Sub
@@ -540,7 +540,7 @@ End Class
         c2.VerifyDiagnostics()
     End Sub
 
-    <ConditionalFact(GetType(IsEnglishLocal))>
+    <Fact>
     Public Sub SignModuleKeyContainerBogus()
         Dim c1 As VisualBasicCompilation = CreateCompilationWithMscorlib(
 <compilation name="WantsIVTAccess">
@@ -564,13 +564,15 @@ End Class
      </file>
  </compilation>), {reference}, TestOptions.ReleaseDll.WithStrongNameProvider(s_defaultProvider))
 
+        'BC36981: Error extracting public key from container 'bogus': Keyset does not exist (Exception from HRESULT: 0x80090016)
         'c2.VerifyDiagnostics(Diagnostic(ERRID.ERR_PublicKeyContainerFailure).WithArguments("bogus", "Keyset does not exist (Exception from HRESULT: 0x80090016)"))
+
         Dim err = c2.GetDiagnostics(CompilationStage.Emit).Single()
 
         Assert.Equal(ERRID.ERR_PublicKeyContainerFailure, err.Code)
         Assert.Equal(2, err.Arguments.Count)
         Assert.Equal("bogus", DirectCast(err.Arguments(0), String))
-        Assert.True(DirectCast(err.Arguments(1), String).EndsWith(" HRESULT: 0x80090016)", StringComparison.Ordinal))
+        Assert.True(DirectCast(err.Arguments(1), String).Contains("HRESULT: 0x80090016"))
     End Sub
 
     <Fact>

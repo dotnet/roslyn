@@ -23,7 +23,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
             string projectSystemName,
             IVsHierarchy hierarchy,
             IServiceProvider serviceProvider,
-            MiscellaneousFilesWorkspace miscellaneousFilesWorkspaceOpt,
             VisualStudioWorkspaceImpl visualStudioWorkspaceOpt,
             HostDiagnosticUpdateSource hostDiagnosticUpdateSourceOpt)
             : base(
@@ -33,7 +32,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.ProjectSystemShim
                   projectSystemName,
                   hierarchy,
                   serviceProvider,
-                  miscellaneousFilesWorkspaceOpt,
                   visualStudioWorkspaceOpt,
                   hostDiagnosticUpdateSourceOpt)
         {

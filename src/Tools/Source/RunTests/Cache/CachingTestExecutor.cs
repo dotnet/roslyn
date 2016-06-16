@@ -14,21 +14,24 @@ namespace RunTests.Cache
         private readonly ContentUtil _contentUtil;
         private readonly IDataStorage _dataStorage;
 
-        internal CachingTestExecutor(Options options, ITestExecutor testExecutor, IDataStorage dataStorage)
+        public IDataStorage DataStorage => _dataStorage;
+
+        internal CachingTestExecutor(TestExecutionOptions options, ITestExecutor testExecutor, IDataStorage dataStorage)
         {
             _testExecutor = testExecutor;
             _dataStorage = dataStorage;
             _contentUtil = new ContentUtil(options);
         }
 
-        public string GetCommandLine(string assemblyPath)
+        public string GetCommandLine(AssemblyInfo assemblyInfo)
         {
-            return _testExecutor.GetCommandLine(assemblyPath);
+            return _testExecutor.GetCommandLine(assemblyInfo);
         }
 
-        public async Task<TestResult> RunTestAsync(string assemblyPath, CancellationToken cancellationToken)
+        public async Task<TestResult> RunTestAsync(AssemblyInfo assemblyInfo, CancellationToken cancellationToken)
         {
-            var contentFile = _contentUtil.GetTestResultContentFile(assemblyPath);
+            var contentFile = _contentUtil.GetTestResultContentFile(assemblyInfo);
+            var assemblyPath = assemblyInfo.AssemblyPath;
             var builder = new StringBuilder();
             builder.AppendLine($"{Path.GetFileName(assemblyPath)} - {contentFile.Checksum}");
             builder.AppendLine("===");
@@ -36,21 +39,23 @@ namespace RunTests.Cache
             builder.AppendLine("===");
             Logger.Log(builder.ToString());
 
-            TestResult testResult;
-            CachedTestResult cachedTestResult;
-            if (!_dataStorage.TryGetCachedTestResult(contentFile.Checksum, out cachedTestResult))
+            try
             {
-                Logger.Log($"{Path.GetFileName(assemblyPath)} - running");
-                testResult = await _testExecutor.RunTestAsync(assemblyPath, cancellationToken);
-                Logger.Log($"{Path.GetFileName(assemblyPath)} - caching");
-                CacheTestResult(contentFile, testResult);
+                var cachedTestResult = await _dataStorage.TryGetCachedTestResult(contentFile.Checksum);
+                if (cachedTestResult.HasValue)
+                {
+                    Logger.Log($"{Path.GetFileName(assemblyPath)} - cache hit");
+                    return Migrate(assemblyInfo, cachedTestResult.Value);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                testResult = Migrate(assemblyPath, cachedTestResult);
-                Logger.Log($"{Path.GetFileName(assemblyPath)} - cache hit");
+                Logger.Log($"Error reading cache {ex}");
             }
 
+            Logger.Log($"{Path.GetFileName(assemblyPath)} - running");
+            var testResult = await _testExecutor.RunTestAsync(assemblyInfo, cancellationToken);
+            await CacheTestResult(contentFile, testResult).ConfigureAwait(true);
             return testResult;
         }
 
@@ -58,26 +63,27 @@ namespace RunTests.Cache
         /// Recreate the on disk artifacts for the cached data and return the correct <see cref="TestResult"/>
         /// value.
         /// </summary>
-        private TestResult Migrate(string assemblyPath, CachedTestResult cachedTestResult)
+        private TestResult Migrate(AssemblyInfo assemblyInfo, CachedTestResult cachedTestResult)
         {
-            var resultsDir = Path.Combine(Path.GetDirectoryName(assemblyPath), Constants.ResultsDirectoryName);
+            var resultsDir = Path.Combine(Path.GetDirectoryName(assemblyInfo.AssemblyPath), Constants.ResultsDirectoryName);
             FileUtil.EnsureDirectory(resultsDir);
-            var resultsFilePath = Path.Combine(resultsDir, cachedTestResult.ResultsFileName);
+            var resultsFilePath = Path.Combine(resultsDir, assemblyInfo.ResultsFileName);
             File.WriteAllText(resultsFilePath, cachedTestResult.ResultsFileContent);
-            var commandLine = _testExecutor.GetCommandLine(assemblyPath);
+            var commandLine = _testExecutor.GetCommandLine(assemblyInfo);
 
             return new TestResult(
                 exitCode: cachedTestResult.ExitCode,
-                assemblyPath: assemblyPath,
+                assemblyInfo: assemblyInfo,
                 resultDir: resultsDir,
                 resultsFilePath: resultsFilePath,
                 commandLine: commandLine,
                 elapsed: TimeSpan.FromMilliseconds(0),
                 standardOutput: cachedTestResult.StandardOutput,
-                errorOutput: cachedTestResult.ErrorOutput);
+                errorOutput: cachedTestResult.ErrorOutput,
+                isResultFromCache: true);
         }
 
-        private void CacheTestResult(ContentFile contentFile, TestResult testResult)
+        private async Task CacheTestResult(ContentFile contentFile, TestResult testResult)
         {
             try
             {
@@ -86,9 +92,9 @@ namespace RunTests.Cache
                     exitCode: testResult.ExitCode,
                     standardOutput: testResult.StandardOutput,
                     errorOutput: testResult.ErrorOutput,
-                    resultsFileName: Path.GetFileName(testResult.ResultsFilePath),
-                    resultsFileContent: resultFileContent);
-                _dataStorage.AddCachedTestResult(contentFile, cachedTestResult);
+                    resultsFileContent: resultFileContent,
+                    elapsed: testResult.Elapsed);
+                await _dataStorage.AddCachedTestResult(testResult.AssemblyInfo, contentFile, cachedTestResult).ConfigureAwait(true);
             }
             catch (Exception ex)
             {

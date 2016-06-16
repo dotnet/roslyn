@@ -173,9 +173,11 @@ namespace Microsoft.Cci
                 return this.GetBlobIndex(str);
             }
 
-            var writer = new BlobBuilder();
+            var writer = PooledBlobBuilder.GetInstance();
             writer.WriteConstant(value);
-            return this.GetBlobIndex(writer);
+            var result = this.GetBlobIndex(writer);
+            writer.Free();
+            return result;
         }
 
         public BlobIdx GetBlobIndex(string str)

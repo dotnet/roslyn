@@ -64,17 +64,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                    originalDefinition: constructedFrom.OriginalDefinition,
                    constructedFrom: constructedFrom, unbound: unbound)
         {
-            bool hasTypeArgumentsCustomModifiers = false;
-            _typeArguments = typeArguments.SelectAsArray(a =>
-                                                            {
-                                                                if (!a.CustomModifiers.IsDefaultOrEmpty)
-                                                                {
-                                                                    hasTypeArgumentsCustomModifiers = true;
-                                                                }
-
-                                                                return a.Type;
-                                                            });
-            _hasTypeArgumentsCustomModifiers = hasTypeArgumentsCustomModifiers;
+            _typeArguments = typeArguments.ToTypes(out _hasTypeArgumentsCustomModifiers);
             _constructedFrom = constructedFrom;
 
             Debug.Assert(constructedFrom.Arity == typeArguments.Length);

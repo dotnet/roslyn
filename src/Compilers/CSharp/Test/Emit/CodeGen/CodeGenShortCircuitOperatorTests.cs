@@ -5866,7 +5866,7 @@ class C
 
         [WorkItem(825, "https://github.com/dotnet/roslyn/issues/825")]
         [WorkItem(5662, "https://github.com/dotnet/roslyn/issues/5662")]
-        [ConditionalFact(typeof(IsEnglishLocal))]
+        [Fact]
         public void ConditionalBoolExpr01b()
         {
             var source = @"
@@ -5881,7 +5881,7 @@ class C
         } 
         catch (System.Exception ex)
         {
-            System.Console.WriteLine(ex.Message);
+            System.Console.WriteLine(ex.GetType().Name);
         }        
     }
 
@@ -5901,7 +5901,7 @@ class C
 
 ";
             var verifier = CompileAndVerify(source, expectedOutput: @"False
-Arithmetic operation resulted in an overflow.");
+OverflowException");
 
             verifier.VerifyIL("C.HasLength", @"
 {

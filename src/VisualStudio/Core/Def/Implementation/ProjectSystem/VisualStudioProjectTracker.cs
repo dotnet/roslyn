@@ -139,7 +139,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
         {
             if (_workspaceHosts.Any(hostState => hostState.Host == host))
             {
-                throw new ArgumentException("The workspace host is already registered.", "host");
+                throw new ArgumentException("The workspace host is already registered.", nameof(host));
             }
 
             _workspaceHosts.Add(new WorkspaceHostState(this, host));
@@ -150,7 +150,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
             var hostData = _workspaceHosts.Find(s => s.Host == host);
             if (hostData == null)
             {
-                throw new ArgumentException("The workspace host not registered", "host");
+                throw new ArgumentException("The workspace host not registered", nameof(host));
             }
 
             // This method is idempotent.

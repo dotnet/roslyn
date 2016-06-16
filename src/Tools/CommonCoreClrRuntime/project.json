@@ -1,0 +1,12 @@
+﻿{
+  "dependencies": {
+    "Microsoft.NETCore.Runtime.CoreCLR": "1.0.2",
+    "Microsoft.NETCore.TestHost": "1.0.0",
+    "System.Runtime": "4.1.0"
+  },
+  "frameworks": {
+    "NETCoreApp1.0": {
+      "imports": "portable-net452"
+    }
+  }
+}

@@ -352,41 +352,44 @@ namespace Microsoft.CodeAnalysis
         {
             if (this.Count == 1)
             {
-                var dictionary = new Dictionary<K, ImmutableArray<T>>(1, comparer);
+                var dictionary1 = new Dictionary<K, ImmutableArray<T>>(1, comparer);
                 T value = this[0];
-                dictionary.Add(keySelector(value), ImmutableArray.Create(value));
-                return dictionary;
+                dictionary1.Add(keySelector(value), ImmutableArray.Create(value));
+                return dictionary1;
             }
-            else
+
+            if (this.Count == 0)
             {
-                // bucketize
-                // prevent reallocation. it may not have 'count' entries, but it won't have more. 
-                var accumulator = new Dictionary<K, ArrayBuilder<T>>(Count, comparer);
-                for (int i = 0; i < Count; i++)
-                {
-                    var item = this[i];
-                    var key = keySelector(item);
-
-                    ArrayBuilder<T> bucket;
-                    if (!accumulator.TryGetValue(key, out bucket))
-                    {
-                        bucket = ArrayBuilder<T>.GetInstance();
-                        accumulator.Add(key, bucket);
-                    }
-
-                    bucket.Add(item);
-                }
-
-                var dictionary = new Dictionary<K, ImmutableArray<T>>(accumulator.Count, comparer);
-
-                // freeze
-                foreach (var pair in accumulator)
-                {
-                    dictionary.Add(pair.Key, pair.Value.ToImmutableAndFree());
-                }
-
-                return dictionary;
+                return new Dictionary<K, ImmutableArray<T>>(comparer);
             }
+
+            // bucketize
+            // prevent reallocation. it may not have 'count' entries, but it won't have more. 
+            var accumulator = new Dictionary<K, ArrayBuilder<T>>(Count, comparer);
+            for (int i = 0; i < Count; i++)
+            {
+                var item = this[i];
+                var key = keySelector(item);
+
+                ArrayBuilder<T> bucket;
+                if (!accumulator.TryGetValue(key, out bucket))
+                {
+                    bucket = ArrayBuilder<T>.GetInstance();
+                    accumulator.Add(key, bucket);
+                }
+
+                bucket.Add(item);
+            }
+
+            var dictionary = new Dictionary<K, ImmutableArray<T>>(accumulator.Count, comparer);
+
+            // freeze
+            foreach (var pair in accumulator)
+            {
+                dictionary.Add(pair.Key, pair.Value.ToImmutableAndFree());
+            }
+
+            return dictionary;
         }
 
         public void AddRange(ArrayBuilder<T> items)

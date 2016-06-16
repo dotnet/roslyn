@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class CompilationAPITests : CSharpTestBase
     {
         [WorkItem(8360, "https://github.com/dotnet/roslyn/issues/8360")]
+        [WorkItem(9153, "https://github.com/dotnet/roslyn/issues/9153")]
         [Fact]
         public void PublicSignWithRelativeKeyPath()
         {
@@ -34,10 +35,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 .WithPublicSign(true).WithCryptoKeyFile("test.snk");
             var comp = CSharpCompilation.Create("test", options: options);
             comp.VerifyDiagnostics(
-    // error CS7088: Invalid 'CryptoKeyFile' value: 'test.snk'.
-    Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("CryptoKeyFile", "test.snk").WithLocation(1, 1),
-    // error CS8102: Public signing was specified and requires a public key, but no public key was specified.
-    Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1));
+                // error CS7104: Option 'CryptoKeyFile' must be an absolute path.
+                Diagnostic(ErrorCode.ERR_OptionMustBeAbsolutePath).WithArguments("CryptoKeyFile").WithLocation(1, 1),
+                // error CS8102: Public signing was specified and requires a public key, but no public key was specified.
+                Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1)
+            );
         }
 
         [Fact]
@@ -1405,6 +1407,33 @@ class A
             Assert.Equal("ModuleAssemblyName", compilation.AssemblyName);
             Assert.Equal("ModuleAssemblyName", compilation.Assembly.Name);
             Assert.Equal("ModuleAssemblyName", compilation.Assembly.Identity.Name);
+        }
+
+        [WorkItem(8506, "https://github.com/dotnet/roslyn/issues/8506")]
+        [Fact]
+        public void CrossCorlibSystemObjectReturnType_Script()
+        {
+            // MinAsyncCorlibRef corlib is used since it provides just enough corlib type definitions
+            // and Task APIs necessary for script hosting are provided by MinAsyncRef. This ensures that
+            // `System.Object, mscorlib, Version=4.0.0.0` will not be provided (since it's unversioned).
+            //
+            // In the original bug, Xamarin iOS, Android, and Mac Mobile profile corlibs were
+            // realistic cross-compilation targets.
+            var compilation = CSharpCompilation.CreateScriptCompilation(
+                "submission-assembly",
+                references: new [] { MinAsyncCorlibRef },
+                syntaxTree: Parse("true", options: TestOptions.Script)
+            ).VerifyDiagnostics();
+
+            Assert.True(compilation.IsSubmission);
+
+            var taskOfT = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
+            var taskOfObject = taskOfT.Construct(compilation.ObjectType);
+            var entryPoint = compilation.GetEntryPoint(default(CancellationToken));
+
+            Assert.Same(compilation.ObjectType.ContainingAssembly, taskOfT.ContainingAssembly);
+            Assert.Same(compilation.ObjectType.ContainingAssembly, taskOfObject.ContainingAssembly);
+            Assert.Equal(taskOfObject, entryPoint.ReturnType);
         }
 
         [WorkItem(3719, "https://github.com/dotnet/roslyn/issues/3719")]

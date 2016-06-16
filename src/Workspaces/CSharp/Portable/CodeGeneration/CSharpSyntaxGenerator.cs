@@ -1202,16 +1202,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode InsertNamespaceImports(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> imports)
         {
-            var usings = AsUsingDirectives(imports);
+            return PreserveTrivia(declaration, d => InsertNamespaceImportsInternal(d, index, imports));
+        }
+
+        private SyntaxNode InsertNamespaceImportsInternal(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> imports)
+        {
+            SyntaxList<UsingDirectiveSyntax> usingsToInsert = AsUsingDirectives(imports);
 
             switch (declaration.Kind())
             {
                 case SyntaxKind.CompilationUnit:
-                    var cu = ((CompilationUnitSyntax)declaration);
-                    return cu.WithUsings(cu.Usings.InsertRange(index, usings));
+                    var cu = (CompilationUnitSyntax)declaration;
+                    return cu.WithUsings(cu.Usings.InsertRange(index, usingsToInsert));
                 case SyntaxKind.NamespaceDeclaration:
-                    var nd = ((NamespaceDeclarationSyntax)declaration);
-                    return nd.WithUsings(nd.Usings.InsertRange(index, usings));
+                    var nd = (NamespaceDeclarationSyntax)declaration;
+                    return nd.WithUsings(nd.Usings.InsertRange(index, usingsToInsert));
                 default:
                     return declaration;
             }
@@ -3390,6 +3395,13 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
         public override SyntaxNode AwaitExpression(SyntaxNode expression)
         {
             return SyntaxFactory.AwaitExpression((ExpressionSyntax)expression);
+        }
+
+        public override SyntaxNode NameOfExpression(SyntaxNode expression)
+        {
+            return InvocationExpression(
+                IdentifierName(SyntaxFacts.GetText(SyntaxKind.NameOfKeyword)),
+                expression);
         }
 
         public override SyntaxNode ReturnStatement(SyntaxNode expressionOpt = null)

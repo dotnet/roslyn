@@ -400,7 +400,7 @@ End Class
             Await VerifyNoItemsExistAsync(markup)
         End Function
 
-        Friend Overrides Function CreateCompletionProvider() As CompletionListProvider
+        Friend Overrides Function CreateCompletionProvider() As CompletionProvider
             Return New CompletionListTagCompletionProvider()
         End Function
     End Class

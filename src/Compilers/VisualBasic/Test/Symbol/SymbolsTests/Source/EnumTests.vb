@@ -1232,7 +1232,9 @@ BC30500: Constant 'M0' cannot depend on its own value.
 </errors>)
         End Sub
 
-        <Fact(Skip:="886047"), WorkItem(886047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/886047")>
+        <Fact,
+         WorkItem(123937, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=123937"),
+         WorkItem(886047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/886047")>
         Public Sub CircularDefinitionManyMembers_Explicit()
             ' Enum E
             '     M0 = Mn + 1
@@ -1241,16 +1243,29 @@ BC30500: Constant 'M0' cannot depend on its own value.
             '     Mn = Mn-1 + 1
             ' End Enum
             ' Dev12 crashes at ~300 members.
-            Dim source = GenerateEnum(6000, Function(i, n) String.Format("M{0} + 1", If(i = 0, n - 1, i - 1)))
+            Const bug123937IsFixed = False
+            Dim count As Integer = 2
+            If bug123937IsFixed Then
+                count = 6000
+            End If
+
+            Dim source = GenerateEnum(count, Function(i, n) String.Format("M{0} + 1", If(i = 0, n - 1, i - 1)))
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(source)
+
+            ' Note, native compiler doesn't report BC30060, we should try to suppress it too.
             comp.AssertTheseDiagnostics(<errors>
 BC30500: Constant 'M0' cannot depend on its own value.
-    M0 = M5999 + 1
+    M0 = M1 + 1
     ~~
+BC30060: Conversion from 'E' to 'Integer' cannot occur in a constant expression.
+    M1 = M0 + 1
+         ~~
 </errors>)
         End Sub
 
-        <Fact(Skip:="886047"), WorkItem(886047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/886047")>
+        <Fact,
+          WorkItem(123937, "https://devdiv.visualstudio.com/defaultcollection/DevDiv/_workitems#_a=edit&id=123937"),
+         WorkItem(886047, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/886047")>
         Public Sub InvertedDefinitionManyMembers_Explicit()
             ' Enum E
             '     M0 = M1 - 1
@@ -1259,7 +1274,13 @@ BC30500: Constant 'M0' cannot depend on its own value.
             '     Mn = n
             ' End Enum
             ' Dev12 crashes at ~300 members.
-            Dim source = GenerateEnum(6000, Function(i, n) If(i < n - 1, String.Format("M{0} - 1", i + 1), i.ToString()))
+            Const bug123937IsFixed = False
+            Dim count As Integer = 20
+            If bug123937IsFixed Then
+                count = 6000
+            End If
+
+            Dim source = GenerateEnum(count, Function(i, n) If(i < n - 1, String.Format("M{0} - 1", i + 1), i.ToString()))
             Dim comp = CompilationUtils.CreateCompilationWithMscorlib(source)
             comp.AssertTheseDiagnostics(<errors/>)
         End Sub

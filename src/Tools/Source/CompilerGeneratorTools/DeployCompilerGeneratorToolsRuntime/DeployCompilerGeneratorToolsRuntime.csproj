@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!-- Copyright (c)  Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information. -->
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="Settings">
+    <Import Project="..\..\..\..\..\build\Targets\VSL.Settings.targets" />
+  </ImportGroup>
+  <PropertyGroup>
+    <MinimumVisualStudioVersion>14.0</MinimumVisualStudioVersion>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <PlatformTarget>x64</PlatformTarget>
+    <ProjectGuid>{6DA08F12-32F2-4DD9-BBAD-982EB71A2C9B}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>DeployCompilerGeneratorToolsRuntime</RootNamespace>
+    <AssemblyName>DeployCompilerGeneratorToolsRuntime_DoNotUse</AssemblyName>
+    <OutDir>$(OutDir)CompilerGeneratorTools\</OutDir>
+    <DefaultLanguage>en-US</DefaultLanguage>
+    <FileAlignment>512</FileAlignment>
+    <AutoGenerateBindingRedirects>True</AutoGenerateBindingRedirects>
+    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
+    <TargetFrameworkVersion>v5.0</TargetFrameworkVersion>
+    <NoStdLib>true</NoStdLib>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' " />
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' " />
+  <ItemGroup>
+    <None Include="project.json" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Class1.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\CommonCoreClrRuntime\CommonCoreClrRuntime.csproj">
+      <Project>{1b665337-9d6a-451a-aeac-f7bf1af95ffb}</Project>
+      <Name>CommonCoreClrRuntime</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Source\BoundTreeGenerator\CompilersBoundTreeGenerator.csproj">
+      <Project>{02459936-cd2c-4f61-b671-5c518f2a3ddc}</Project>
+      <Name>CompilersBoundTreeGenerator</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Source\CSharpErrorFactsGenerator\CSharpErrorFactsGenerator.csproj">
+      <Project>{288089c5-8721-458e-be3e-78990dab5e2e}</Project>
+      <Name>CSharpErrorFactsGenerator</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Source\CSharpSyntaxGenerator\CSharpSyntaxGenerator.csproj">
+      <Project>{288089c5-8721-458e-be3e-78990dab5e2d}</Project>
+      <Name>CSharpSyntaxGenerator</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Source\VisualBasicErrorFactsGenerator\VisualBasicErrorFactsGenerator.vbproj">
+      <Project>{909b656f-6095-4ac2-a5ab-c3f032315c45}</Project>
+      <Name>VisualBasicErrorFactsGenerator</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\Source\VisualBasicSyntaxGenerator\VisualBasicSyntaxGenerator.vbproj">
+      <Project>{6aa96934-d6b7-4cc8-990d-db6b9dd56e34}</Project>
+      <Name>VisualBasicSyntaxGenerator</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ImportGroup Label="Targets">
+    <Import Project="..\..\..\..\..\build\Targets\VSL.Imports.targets" />
+  </ImportGroup>
+</Project>

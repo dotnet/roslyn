@@ -79,7 +79,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
         private EmitBaseline _pendingBaseline;
         private Project _projectBeingEmitted;
 
-        private ImmutableArray<DocumentId> _documentsWithEmitError;
+        private ImmutableArray<DocumentId> _documentsWithEmitError = ImmutableArray<DocumentId>.Empty;
 
         /// <summary>
         /// Initialized when the project switches to debug state.
@@ -102,9 +102,9 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
         {
             _vsProject = project;
 
-            _encService = _vsProject.VisualStudioWorkspace.Services.GetService<IEditAndContinueWorkspaceService>();
-            _trackingService = _vsProject.VisualStudioWorkspace.Services.GetService<IActiveStatementTrackingService>();
-            _notifications = _vsProject.VisualStudioWorkspace.Services.GetService<INotificationService>();
+            _encService = _vsProject.Workspace.Services.GetService<IEditAndContinueWorkspaceService>();
+            _trackingService = _vsProject.Workspace.Services.GetService<IActiveStatementTrackingService>();
+            _notifications = _vsProject.Workspace.Services.GetService<INotificationService>();
 
             _debugEncNotify = (IDebugEncNotify)project.ServiceProvider.GetService(typeof(ShellInterop.SVsShellDebugger));
 
@@ -143,11 +143,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 return;
             }
 
-            var hostProject = _vsProject.VisualStudioWorkspace.GetHostProject(documentId.ProjectId) as AbstractRoslynProject;
+            var visualStudioWorkspace = _vsProject.Workspace as VisualStudioWorkspaceImpl;
+            var hostProject = visualStudioWorkspace?.GetHostProject(documentId.ProjectId) as AbstractRoslynProject;
             if (hostProject?.EditAndContinueImplOpt?._metadata != null)
             {
-                var projectHierarchy = _vsProject.VisualStudioWorkspace.GetHierarchy(documentId.ProjectId);
-                _debugEncNotify.NotifyEncEditDisallowedByProject(projectHierarchy);
+                _debugEncNotify.NotifyEncEditDisallowedByProject(hostProject.Hierarchy);
                 return;
             }
 
@@ -219,7 +219,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                     _encService.OnBeforeDebuggingStateChanged(DebuggingState.Design, DebuggingState.Run);
 
-                    _encService.StartDebuggingSession(_vsProject.VisualStudioWorkspace.CurrentSolution);
+                    _encService.StartDebuggingSession(_vsProject.Workspace.CurrentSolution);
                     s_encDebuggingSessionInfo = new EncDebuggingSessionInfo();
 
                     s_readOnlyDocumentTracker = new VsReadOnlyDocumentTracker(_encService, _editorAdaptersFactoryService, _vsProject);
@@ -251,11 +251,11 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
 
                         var descriptor = new DiagnosticDescriptor("Metadata", "Metadata", ServicesVSResources.ErrorWhileReading, DiagnosticCategory.EditAndContinue, DiagnosticSeverity.Error, isEnabledByDefault: true, customTags: DiagnosticCustomTags.EditAndContinue);
 
-                        _diagnosticProvider.ReportDiagnostics(_encService.DebuggingSession, EditAndContinueDiagnosticUpdateSource.DebuggerErrorId, _vsProject.Id, _encService.DebuggingSession.InitialSolution,
-                            new[]
-                            {
-                                Diagnostic.Create(descriptor, Location.None, outputPath, e.Message)
-                            });
+                        _diagnosticProvider.ReportDiagnostics(
+                            new EncErrorId(_encService.DebuggingSession, EditAndContinueDiagnosticUpdateSource.DebuggerErrorId),
+                            _encService.DebuggingSession.InitialSolution,
+                            _vsProject.Id,
+                            new[] { Diagnostic.Create(descriptor, Location.None, outputPath, e.Message) });
                     }
                 }
                 else
@@ -322,7 +322,8 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 else
                 {
                     // an error might have been reported:
-                    _diagnosticProvider.ClearDiagnostics(_encService.DebuggingSession, _vsProject.VisualStudioWorkspace, EditAndContinueDiagnosticUpdateSource.DebuggerErrorId, _vsProject.Id, documentId: null);
+                    var errorId = new EncErrorId(_encService.DebuggingSession, EditAndContinueDiagnosticUpdateSource.DebuggerErrorId);
+                    _diagnosticProvider.ClearDiagnostics(errorId, _vsProject.Workspace.CurrentSolution, _vsProject.Id, documentIdOpt: null);
                 }
 
                 _activeMethods = null;
@@ -436,7 +437,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     {
                         _encService.OnBeforeDebuggingStateChanged(DebuggingState.Run, DebuggingState.Break);
 
-                        s_breakStateEntrySolution = _vsProject.VisualStudioWorkspace.CurrentSolution;
+                        s_breakStateEntrySolution = _vsProject.Workspace.CurrentSolution;
 
                         // TODO: This is a workaround for a debugger bug in which not all projects exit the break state.
                         // Reset the project count.
@@ -730,7 +731,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                         return VSConstants.E_FAIL;
                     }
 
-                    Document document = _vsProject.VisualStudioWorkspace.CurrentSolution.GetDocument(id.DocumentId);
+                    Document document = _vsProject.Workspace.CurrentSolution.GetDocument(id.DocumentId);
                     SourceText text = document.GetTextAsync(default(CancellationToken)).Result;
 
                     // Try to get spans from the tracking service first.
@@ -801,7 +802,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     {
                         // Fetch the latest snapshot of the project and get an analysis summary for any changes 
                         // made since the break mode was entered.
-                        var currentProject = _vsProject.VisualStudioWorkspace.CurrentSolution.GetProject(_vsProject.Id);
+                        var currentProject = _vsProject.Workspace.CurrentSolution.GetProject(_vsProject.Id);
                         if (currentProject == null)
                         {
                             // If the project has yet to be loaded into the solution (which may be the case,
@@ -908,8 +909,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                     Debug.Assert(s_breakStateProjectCount >= 0);
 
                     _changesApplied = false;
-                    _diagnosticProvider.ClearDiagnostics(_encService.DebuggingSession, _vsProject.VisualStudioWorkspace, EditAndContinueDiagnosticUpdateSource.EmitErrorId, _vsProject.Id, _documentsWithEmitError);
-                    _documentsWithEmitError = default(ImmutableArray<DocumentId>);
+
+                    _diagnosticProvider.ClearDiagnostics(
+                        new EncErrorId(_encService.DebuggingSession, EditAndContinueDiagnosticUpdateSource.EmitErrorId), 
+                        _vsProject.Workspace.CurrentSolution,
+                        _vsProject.Id, 
+                        _documentsWithEmitError);
+
+                    _documentsWithEmitError = ImmutableArray<DocumentId>.Empty;
                 }
 
                 // HResult ignored by the debugger
@@ -969,27 +976,29 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
                 using (NonReentrantContext)
                 {
                     delta = emitTask.Result;
+
+                    if (delta == null)
+                    {
+                        // Non-fatal Watson has already been reported by the emit task
+                        return VSConstants.E_FAIL;
+                    }
                 }
 
+                var errorId = new EncErrorId(_encService.DebuggingSession, EditAndContinueDiagnosticUpdateSource.EmitErrorId);
+                
                 // Clear diagnostics, in case the project was built before and failed due to errors.
-                _diagnosticProvider.ClearDiagnostics(_encService.DebuggingSession, _vsProject.VisualStudioWorkspace, EditAndContinueDiagnosticUpdateSource.EmitErrorId, _vsProject.Id, _documentsWithEmitError);
+                _diagnosticProvider.ClearDiagnostics(errorId, _projectBeingEmitted.Solution, _vsProject.Id, _documentsWithEmitError);
 
                 if (!delta.EmitResult.Success)
                 {
                     var errors = delta.EmitResult.Diagnostics.Where(d => d.Severity == DiagnosticSeverity.Error);
-                    _documentsWithEmitError = _diagnosticProvider.ReportDiagnostics(
-                        _encService.DebuggingSession,
-                        EditAndContinueDiagnosticUpdateSource.EmitErrorId,
-                        _vsProject.Id,
-                        _projectBeingEmitted.Solution,
-                        errors);
-
+                    _documentsWithEmitError = _diagnosticProvider.ReportDiagnostics(errorId, _projectBeingEmitted.Solution, _vsProject.Id, errors);
                     _encService.EditSession.LogEmitProjectDeltaErrors(errors.Select(e => e.Id));
 
                     return VSConstants.E_FAIL;
                 }
 
-                _documentsWithEmitError = default(ImmutableArray<DocumentId>);
+                _documentsWithEmitError = ImmutableArray<DocumentId>.Empty;
                 SetFileUpdates(updater, delta.LineEdits);
 
                 updater.SetDeltaIL(delta.IL.Value, (uint)delta.IL.Value.Length);
@@ -1067,42 +1076,64 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.EditAndContinue
             return emitTask.Result;
         }
 
+        /// <summary>
+        /// Returns EnC debug information for initial version of the specified method.
+        /// </summary>
+        /// <exception cref="InvalidDataException">The debug information data is corrupt or can't be retrieved from the debugger.</exception>
         private EditAndContinueMethodDebugInformation GetBaselineEncDebugInfo(MethodDefinitionHandle methodHandle)
         {
             Debug.Assert(Thread.CurrentThread.GetApartmentState() == ApartmentState.MTA);
-
             if (_pdbReader == null)
             {
                 // Unmarshal the symbol reader (being marshalled cross thread from STA -> MTA).
                 Debug.Assert(_pdbReaderObjAsStream != IntPtr.Zero);
                 object pdbReaderObjMta;
-                int hr = NativeMethods.GetObjectForStream(_pdbReaderObjAsStream, out pdbReaderObjMta);
-                _pdbReaderObjAsStream = IntPtr.Zero;
-                if (hr != VSConstants.S_OK)
+
+                var exception = Marshal.GetExceptionForHR(NativeMethods.GetObjectForStream(_pdbReaderObjAsStream, out pdbReaderObjMta));
+                if (exception != null)
                 {
-                    log.Write("Error unmarshaling object from stream.");
-                    return default(EditAndContinueMethodDebugInformation);
+                    // likely a bug in the compiler/debugger
+                    FatalError.ReportWithoutCrash(exception); 
+
+                    throw new InvalidDataException(exception.Message, exception);
                 }
+
+                _pdbReaderObjAsStream = IntPtr.Zero;
                 _pdbReader = (ISymUnmanagedReader)pdbReaderObjMta;
             }
 
             int methodToken = MetadataTokens.GetToken(methodHandle);
-            byte[] debugInfo = _pdbReader.GetCustomDebugInfoBytes(methodToken, methodVersion: 1);
-            if (debugInfo != null)
+
+            byte[] debugInfo;
+            try
             {
-                try
-                {
-                    var localSlots = CustomDebugInfoReader.TryGetCustomDebugInfoRecord(debugInfo, CustomDebugInfoKind.EditAndContinueLocalSlotMap);
-                    var lambdaMap = CustomDebugInfoReader.TryGetCustomDebugInfoRecord(debugInfo, CustomDebugInfoKind.EditAndContinueLambdaMap);
-                    return EditAndContinueMethodDebugInformation.Create(localSlots, lambdaMap);
-                }
-                catch (Exception e) when (e is InvalidOperationException || e is InvalidDataException)
-                {
-                    log.Write($"Error reading CDI of method 0x{methodToken:X8}: {e.Message}");
-                }
+                debugInfo = _pdbReader.GetCustomDebugInfoBytes(methodToken, methodVersion: 1);
+            }
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e)) // likely a bug in the compiler/debugger
+            {
+                throw new InvalidDataException(e.Message, e);
             }
 
-            return default(EditAndContinueMethodDebugInformation);
+            try
+            {
+                ImmutableArray<byte> localSlots, lambdaMap;
+                if (debugInfo != null)
+                {
+                    localSlots = CustomDebugInfoReader.TryGetCustomDebugInfoRecord(debugInfo, CustomDebugInfoKind.EditAndContinueLocalSlotMap);
+                    lambdaMap = CustomDebugInfoReader.TryGetCustomDebugInfoRecord(debugInfo, CustomDebugInfoKind.EditAndContinueLambdaMap);
+                }
+                else
+                {
+                    localSlots = lambdaMap = default(ImmutableArray<byte>);
+                }
+
+                return EditAndContinueMethodDebugInformation.Create(localSlots, lambdaMap);
+            }
+            catch (InvalidOperationException e) when (FatalError.ReportWithoutCrash(e)) // likely a bug in the compiler/debugger
+            {
+                // TODO: CustomDebugInfoReader should throw InvalidDataException
+                throw new InvalidDataException(e.Message, e);
+            }
         }
 
         public int EncApplySucceeded(int hrApplyResult)

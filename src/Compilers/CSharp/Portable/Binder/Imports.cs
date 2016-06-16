@@ -16,6 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp
     /// <summary>
     /// Represents symbols imported to the binding scope via using namespace, using alias, and extern alias.
     /// </summary>
+    [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     internal sealed class Imports
     {
         internal static readonly Imports Empty = new Imports(
@@ -51,6 +52,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             this.Usings = usings;
             _diagnostics = diagnostics;
             this.ExternAliases = externs;
+        }
+
+        internal string GetDebuggerDisplay()
+        {
+            return string.Join("; ", 
+                UsingAliases.OrderBy(x => x.Value.UsingDirective.Location.SourceSpan.Start).Select(ua => $"{ua.Key} = {ua.Value.Alias.Target}").Concat(
+                Usings.Select(u => u.NamespaceOrType.ToString())).Concat(
+                ExternAliases.Select(ea => $"extern alias {ea.Alias.Name}")));
+
         }
 
         public static Imports FromSyntax(

@@ -131,15 +131,7 @@ namespace Microsoft.CodeAnalysis.Emit.NoPia
 
                 bool Cci.IMethodBody.HasAnySequencePoints => false;
 
-                ImmutableArray<Cci.SequencePoint> Cci.IMethodBody.GetSequencePoints()
-                {
-                    return ImmutableArray<Cci.SequencePoint>.Empty;
-                }
-
-                ImmutableArray<Cci.SequencePoint> Cci.IMethodBody.GetLocations()
-                {
-                    return ImmutableArray<Cci.SequencePoint>.Empty;
-                }
+                void Cci.IMethodBody.GetSequencePoints(ArrayBuilder<Cci.SequencePoint> builder) { }
 
                 bool Cci.IMethodBody.HasDynamicLocalVariables => false;
 

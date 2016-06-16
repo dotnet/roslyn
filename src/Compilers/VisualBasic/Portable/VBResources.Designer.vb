@@ -3297,6 +3297,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Cannot update &apos;{0}&apos;; attribute &apos;{1}&apos; is missing..
+        '''</summary>
+        Friend ReadOnly Property ERR_EncUpdateFailedMissingAttribute() As String
+            Get
+                Return ResourceManager.GetString("ERR_EncUpdateFailedMissingAttribute", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &apos;End Class&apos; must be preceded by a matching &apos;Class&apos;..
         '''</summary>
         Friend ReadOnly Property ERR_EndClassNoClass() As String
@@ -8548,6 +8557,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Option &apos;{0}&apos; must be an absolute path..
+        '''</summary>
+        Friend ReadOnly Property ERR_OptionMustBeAbsolutePath() As String
+            Get
+                Return ResourceManager.GetString("ERR_OptionMustBeAbsolutePath", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to &apos;Option&apos; statements must precede any declarations or &apos;Imports&apos; statements..
         '''</summary>
         Friend ReadOnly Property ERR_OptionStmtWrongOrder() As String
@@ -9006,6 +9024,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Friend ReadOnly Property ERR_PermissionSetAttributeInvalidFile() As String
             Get
                 Return ResourceManager.GetString("ERR_PermissionSetAttributeInvalidFile", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to An error occurred while writing the output file: {0}.
+        '''</summary>
+        Friend ReadOnly Property ERR_PeWritingFailure() As String
+            Get
+                Return ResourceManager.GetString("ERR_PeWritingFailure", resourceCulture)
             End Get
         End Property
         

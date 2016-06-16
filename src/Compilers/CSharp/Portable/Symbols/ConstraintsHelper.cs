@@ -8,6 +8,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Collections;
 
 namespace Microsoft.CodeAnalysis.CSharp.Symbols
 {
@@ -421,7 +422,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             diagnosticsBuilder.Free();
 
-            if (!InterfacesAreDistinct(type, basesBeingResolved))
+            if (HasDuplicateInterfaces(type, basesBeingResolved))
             {
                 result = false;
                 diagnostics.Add(ErrorCode.ERR_BogusType, typeSyntax.Location, type);
@@ -461,7 +462,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             // we only check for distinct interfaces when the type is not from source, as we
             // trust that types that are from source have already been checked by the compiler
             // to prevent this from happening in the first place.
-            if (!(currentCompilation != null && type.IsFromCompilation(currentCompilation)) && !InterfacesAreDistinct(type, null))
+            if (!(currentCompilation != null && type.IsFromCompilation(currentCompilation)) && HasDuplicateInterfaces(type, null))
             {
                 result = false;
                 diagnostics.Add(ErrorCode.ERR_BogusType, location, type);
@@ -473,9 +474,49 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         // C# does not let you declare a type in which it would be possible for distinct base interfaces
         // to unify under some instantiations.  But such ill-formed classes can come in through
         // metadata and be instantiated in C#.  We check to see if that's happened.
-        private static bool InterfacesAreDistinct(NamedTypeSymbol type, ConsList<Symbol> basesBeingResolved)
+        private static bool HasDuplicateInterfaces(NamedTypeSymbol type, ConsList<Symbol> basesBeingResolved)
         {
-            return !type.InterfacesNoUseSiteDiagnostics(basesBeingResolved).HasDuplicates(TypeSymbol.EqualsIgnoringDynamicComparer);
+            // PERF: avoid instantiating all interfaces here
+            //       Ex: if class implements just IEnumerable<> and IComparable<> it cannot have conflicting implementations
+            var array = type.OriginalDefinition.InterfacesNoUseSiteDiagnostics(basesBeingResolved);
+
+            switch (array.Length)
+            {
+                case 0:
+                case 1:
+                    // less than 2 interfaces
+                    return false;
+
+                case 2:
+                    if ((object)array[0].OriginalDefinition == array[1].OriginalDefinition)
+                    {
+                        break;
+                    }
+
+                    // two unrelated interfaces 
+                    return false;
+
+                default:
+                    var set = PooledHashSet<object>.GetInstance();
+                    foreach (var i in array)
+                    {
+                        if (!set.Add(i.OriginalDefinition))
+                        {
+                            set.Free();
+                            goto hasRelatedInterfaces;
+                        }
+                    }
+
+                    // all interfaces are unrelated
+                    set.Free();
+                    return false;
+            }
+            
+            // very rare case. 
+            // some implemented interfaces are related
+            // will have to instantiate interfaces and check
+            hasRelatedInterfaces:
+            return type.InterfacesNoUseSiteDiagnostics(basesBeingResolved).HasDuplicates(TypeSymbol.EqualsIgnoringDynamicComparer);
         }
 
         public static bool CheckConstraints(

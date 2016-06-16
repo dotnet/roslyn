@@ -18,6 +18,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
             Return SyntaxFactory.AwaitExpression(DirectCast(expression, ExpressionSyntax))
         End Function
 
+        Public Overrides Function NameOfExpression(expression As SyntaxNode) As SyntaxNode
+            Return SyntaxFactory.NameOfExpression(DirectCast(expression, ExpressionSyntax))
+        End Function
+
         Private Function Parenthesize(expression As SyntaxNode) As ParenthesizedExpressionSyntax
             Return DirectCast(expression, ExpressionSyntax).Parenthesize()
         End Function
@@ -384,8 +388,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.CodeGeneration
         End Function
 
         Public Overrides Function DefaultSwitchSection(statements As IEnumerable(Of SyntaxNode)) As SyntaxNode
-            Return SyntaxFactory.CaseBlock(
-                SyntaxFactory.CaseStatement(SyntaxFactory.ElseCaseClause()),
+            Return SyntaxFactory.CaseElseBlock(
+                SyntaxFactory.CaseElseStatement(SyntaxFactory.ElseCaseClause()),
                 GetStatementList(statements))
         End Function
 

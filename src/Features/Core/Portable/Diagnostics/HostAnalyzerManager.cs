@@ -5,12 +5,9 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
-using System.Reflection;
+using System.Runtime.CompilerServices;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Roslyn.Utilities;
-using System.Runtime.CompilerServices;
-using System.Reflection.Metadata;
-using System.Reflection.PortableExecutable;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -164,7 +161,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         public bool IsAnalyzerSuppressed(DiagnosticAnalyzer analyzer, Project project)
         {
             var options = project.CompilationOptions;
-            if (options == null || analyzer.IsCompilerAnalyzer())
+            if (options == null || IsCompilerDiagnosticAnalyzer(project.Language, analyzer))
             {
                 return false;
             }

@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Generic;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Internal.Log;
 using Roslyn.Utilities;
 
@@ -15,8 +16,8 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
             {
                 private readonly Dictionary<ProjectId, Dictionary<DocumentId, WorkItem>> _documentWorkQueue = new Dictionary<ProjectId, Dictionary<DocumentId, WorkItem>>();
 
-                public AsyncDocumentWorkItemQueue(SolutionCrawlerProgressReporter progressReporter) :
-                    base(progressReporter)
+                public AsyncDocumentWorkItemQueue(SolutionCrawlerProgressReporter progressReporter, Workspace workspace) :
+                    base(progressReporter, workspace)
                 {
                 }
 
@@ -50,7 +51,9 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return false;
                 }
 
-                protected override bool TryTakeAnyWork_NoLock(ProjectId preferableProjectId, ProjectDependencyGraph dependencyGraph, out WorkItem workItem)
+                protected override bool TryTakeAnyWork_NoLock(
+                    ProjectId preferableProjectId, ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService service,
+                    out WorkItem workItem)
                 {
                     // there must be at least one item in the map when this is called unless host is shutting down.
                     if (_documentWorkQueue.Count == 0)
@@ -59,7 +62,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                         return false;
                     }
 
-                    var documentId = GetBestDocumentId_NoLock(preferableProjectId, dependencyGraph);
+                    var documentId = GetBestDocumentId_NoLock(preferableProjectId, dependencyGraph, service);
                     if (TryTake_NoLock(documentId, out workItem))
                     {
                         return true;
@@ -68,9 +71,10 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                     return Contract.FailWithReturn<bool>("how?");
                 }
 
-                private DocumentId GetBestDocumentId_NoLock(ProjectId preferableProjectId, ProjectDependencyGraph dependencyGraph)
+                private DocumentId GetBestDocumentId_NoLock(
+                    ProjectId preferableProjectId, ProjectDependencyGraph dependencyGraph, IDiagnosticAnalyzerService analyzerService)
                 {
-                    var projectId = GetBestProjectId_NoLock(preferableProjectId, dependencyGraph);
+                    var projectId = GetBestProjectId_NoLock(_documentWorkQueue, preferableProjectId, dependencyGraph, analyzerService);
 
                     var documentMap = _documentWorkQueue[projectId];
 
@@ -93,35 +97,6 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
 
                     Contract.ThrowIfNull(lowPriorityDocumentId);
                     return lowPriorityDocumentId;
-                }
-
-                private ProjectId GetBestProjectId_NoLock(ProjectId projectId, ProjectDependencyGraph dependencyGraph)
-                {
-                    if (projectId != null)
-                    {
-                        if (_documentWorkQueue.ContainsKey(projectId))
-                        {
-                            return projectId;
-                        }
-
-                        // see if there is any project that depends on this project has work item queued. if there is any, use that project
-                        // as next project to process
-                        foreach (var dependingProjectId in dependencyGraph.GetProjectsThatDirectlyDependOnThisProject(projectId))
-                        {
-                            if (_documentWorkQueue.ContainsKey(dependingProjectId))
-                            {
-                                return dependingProjectId;
-                            }
-                        }
-                    }
-
-                    // explicitly iterate so that we can use struct enumerator
-                    foreach (var pair in _documentWorkQueue)
-                    {
-                        return pair.Key;
-                    }
-
-                    return Contract.FailWithReturn<ProjectId>("Shouldn't reach here");
                 }
 
                 protected override bool AddOrReplace_NoLock(WorkItem item)

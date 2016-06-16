@@ -141,8 +141,8 @@ namespace Microsoft.CodeAnalysis
                 var green = this.Green.GetSlot(slot);
                 if (green != null)
                 {
-                    result = green.CreateRed(this, this.GetChildPosition(slot));
-                    result = Interlocked.CompareExchange(ref field, result, null) ?? result;
+                    Interlocked.CompareExchange(ref field, green.CreateRed(this, this.GetChildPosition(slot)), null);
+                    result = field;
                 }
             }
 
@@ -159,8 +159,8 @@ namespace Microsoft.CodeAnalysis
                 var green = this.Green.GetSlot(0);
                 if (green != null)
                 {
-                    result = green.CreateRed(this, this.Position);
-                    result = Interlocked.CompareExchange(ref field, result, null) ?? result;
+                    Interlocked.CompareExchange(ref field, green.CreateRed(this, this.Position), null);
+                    result = field;
                 }
             }
 
@@ -176,8 +176,8 @@ namespace Microsoft.CodeAnalysis
                 var green = this.Green.GetSlot(slot);
                 if (green != null)
                 {
-                    result = (T)green.CreateRed(this, this.GetChildPosition(slot));
-                    result = Interlocked.CompareExchange(ref field, result, null) ?? result;
+                    Interlocked.CompareExchange(ref field, (T)green.CreateRed(this, this.GetChildPosition(slot)), null);
+                    result = field;
                 }
             }
 
@@ -194,8 +194,8 @@ namespace Microsoft.CodeAnalysis
                 var green = this.Green.GetSlot(0);
                 if (green != null)
                 {
-                    result = (T)green.CreateRed(this, this.Position);
-                    result = Interlocked.CompareExchange(ref field, result, null) ?? result;
+                    Interlocked.CompareExchange(ref field, (T)green.CreateRed(this, this.Position), null);
+                    result = field;
                 }
             }
 
@@ -216,11 +216,9 @@ namespace Microsoft.CodeAnalysis
             if (result == null)
             {
                 var green = this.Green.GetSlot(slot);
-                result = green.CreateRed(this.Parent, this.GetChildPosition(slot)); // <- passing list's parent
-                if (Interlocked.CompareExchange(ref element, result, null) != null)
-                {
-                    result = element;
-                }
+                // passing list's parent
+                Interlocked.CompareExchange(ref element, green.CreateRed(this.Parent, this.GetChildPosition(slot)), null);
+                result = element;
             }
 
             return result;
@@ -240,11 +238,9 @@ namespace Microsoft.CodeAnalysis
                 var green = this.Green.GetSlot(1);
                 if (!green.IsToken)
                 {
-                    result = green.CreateRed(this.Parent, this.GetChildPosition(1)); // <- passing list's parent
-                    if (Interlocked.CompareExchange(ref element, result, null) != null)
-                    {
-                        result = element;
-                    }
+                    // passing list's parent
+                    Interlocked.CompareExchange(ref element, green.CreateRed(this.Parent, this.GetChildPosition(1)), null);
+                    result = element;
                 }
             }
 
@@ -421,7 +417,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         public bool Contains(SyntaxNode node)
         {
-            if (node == null || !node.FullSpan.IntersectsWith(node.FullSpan))
+            if (node == null || !this.FullSpan.Contains(node.FullSpan))
             {
                 return false;
             }
@@ -923,6 +919,7 @@ namespace Microsoft.CodeAnalysis
 
         internal static SyntaxTrivia FindTriviaByOffset(SyntaxNode node, int textOffset, Func<SyntaxTrivia, bool> stepInto = null)
         {
+recurse:
             if (textOffset >= 0)
             {
                 foreach (var element in node.ChildNodesAndTokens())
@@ -932,7 +929,8 @@ namespace Microsoft.CodeAnalysis
                     {
                         if (element.IsNode)
                         {
-                            return FindTriviaByOffset(element.AsNode(), textOffset, stepInto);
+                            node = element.AsNode();
+                            goto recurse;
                         }
                         else if (element.IsToken)
                         {
@@ -946,7 +944,8 @@ namespace Microsoft.CodeAnalysis
                                     {
                                         if (trivia.HasStructure && stepInto != null && stepInto(trivia))
                                         {
-                                            return FindTriviaByOffset(trivia.GetStructure(), textOffset, stepInto);
+                                            node = trivia.GetStructure();
+                                            goto recurse;
                                         }
 
                                         return trivia;
@@ -964,7 +963,8 @@ namespace Microsoft.CodeAnalysis
                                     {
                                         if (trivia.HasStructure && stepInto != null && stepInto(trivia))
                                         {
-                                            return FindTriviaByOffset(trivia.GetStructure(), textOffset, stepInto);
+                                            node = trivia.GetStructure();
+                                            goto recurse;
                                         }
 
                                         return trivia;

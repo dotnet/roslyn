@@ -11,11 +11,12 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
 {
     internal abstract class AbstractAnalyzerState<TKey, TValue, TData>
     {
-        protected readonly ConcurrentDictionary<TKey, TData> DataCache = new ConcurrentDictionary<TKey, TData>(concurrencyLevel: 2, capacity: 10);
+        protected readonly ConcurrentDictionary<TKey, CacheEntry> DataCache = new ConcurrentDictionary<TKey, CacheEntry>(concurrencyLevel: 2, capacity: 10);
 
         protected abstract TKey GetCacheKey(TValue value);
         protected abstract Solution GetSolution(TValue value);
         protected abstract bool ShouldCache(TValue value);
+        protected abstract int GetCount(TData data);
 
         protected abstract Task<Stream> ReadStreamAsync(IPersistentStorage storage, TValue value, CancellationToken cancellationToken);
         protected abstract TData TryGetExistingData(Stream stream, TValue value, CancellationToken cancellationToken);
@@ -25,19 +26,30 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
 
         public int Count => this.DataCache.Count;
 
+        public int GetDataCount(TKey key)
+        {
+            CacheEntry entry;
+            if (!this.DataCache.TryGetValue(key, out entry))
+            {
+                return 0;
+            }
+
+            return entry.Count;
+        }
+
         public async Task<TData> TryGetExistingDataAsync(TValue value, CancellationToken cancellationToken)
         {
-            TData data;
-            if (!this.DataCache.TryGetValue(GetCacheKey(value), out data))
+            CacheEntry entry;
+            if (!this.DataCache.TryGetValue(GetCacheKey(value), out entry))
             {
                 // we don't have data
                 return default(TData);
             }
 
             // we have in memory cache for the document
-            if (!object.Equals(data, default(TData)))
+            if (entry.HasCachedData)
             {
-                return data;
+                return entry.Data;
             }
 
             // we have persisted data
@@ -64,15 +76,15 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
 
             // if data is for opened document or if persistence failed, 
             // we keep small cache so that we don't pay cost of deserialize/serializing data that keep changing
-            this.DataCache[id] = (!succeeded || ShouldCache(value)) ? data : default(TData);
+            this.DataCache[id] = (!succeeded || ShouldCache(value)) ? new CacheEntry(data, GetCount(data)) : new CacheEntry(default(TData), GetCount(data));
         }
 
         public bool Remove(TKey id)
         {
             // remove doesn't actually remove data from the persistent storage
             // that will be automatically managed by the service itself.
-            TData data;
-            return this.DataCache.TryRemove(id, out data);
+            CacheEntry entry;
+            return this.DataCache.TryRemove(id, out entry);
         }
 
         private async Task<bool> WriteToStreamAsync(TValue value, TData data, CancellationToken cancellationToken)
@@ -90,6 +102,20 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler.State
                     return await WriteStreamAsync(storage, value, stream, cancellationToken).ConfigureAwait(false);
                 }
             }
+        }
+
+        protected struct CacheEntry
+        {
+            public readonly TData Data;
+            public readonly int Count;
+
+            public CacheEntry(TData data, int count)
+            {
+                Data = data;
+                Count = count;
+            }
+
+            public bool HasCachedData => !object.Equals(Data, default(TData));
         }
     }
 }

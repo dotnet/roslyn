@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using Roslyn.Utilities;
@@ -99,23 +100,25 @@ namespace Microsoft.CodeAnalysis
             TypeSymbol type;
             HandleKind tokenType = token.Kind;
 
-            if (tokenType == HandleKind.TypeDefinition)
+            switch (tokenType)
             {
-                type = GetTypeOfTypeDef((TypeDefinitionHandle)token, out isNoPiaLocalType, isContainingType: false);
-            }
-            else if (tokenType == HandleKind.TypeSpecification)
-            {
-                isNoPiaLocalType = false;
-                type = GetTypeOfTypeSpec((TypeSpecificationHandle)token);
-            }
-            else if (tokenType == HandleKind.TypeReference)
-            {
-                type = GetTypeOfTypeRef((TypeReferenceHandle)token, out isNoPiaLocalType);
-            }
-            else
-            {
-                isNoPiaLocalType = false;
-                type = GetUnsupportedMetadataTypeSymbol();
+                case HandleKind.TypeDefinition:
+                    type = GetTypeOfTypeDef((TypeDefinitionHandle)token, out isNoPiaLocalType, isContainingType: false);
+                    break;
+
+                case HandleKind.TypeSpecification:
+                    isNoPiaLocalType = false;
+                    type = GetTypeOfTypeSpec((TypeSpecificationHandle)token);
+                    break;
+
+                case HandleKind.TypeReference:
+                    type = GetTypeOfTypeRef((TypeReferenceHandle)token, out isNoPiaLocalType);
+                    break;
+
+                default:
+                    isNoPiaLocalType = false;
+                    type = GetUnsupportedMetadataTypeSymbol();
+                    break;
             }
 
             Debug.Assert(type != null);
@@ -502,9 +505,13 @@ namespace Microsoft.CodeAnalysis
 
             if (tokenType == HandleKind.AssemblyReference)
             {
-                // TODO: Can refer to the containing assembly?
                 isNoPiaLocalType = false;
-                return LookupTopLevelTypeDefSymbol(Module.GetAssemblyReferenceIndexOrThrow((AssemblyReferenceHandle)tokenResolutionScope), ref fullName);
+                var assemblyRef = (AssemblyReferenceHandle)tokenResolutionScope;
+                if (assemblyRef.IsNil)
+                {
+                    throw new BadImageFormatException();
+                }
+                return LookupTopLevelTypeDefSymbol(Module.GetAssemblyReferenceIndexOrThrow(assemblyRef), ref fullName);
             }
 
             if (tokenType == HandleKind.ModuleReference)
@@ -1026,12 +1033,7 @@ namespace Microsoft.CodeAnalysis
                     localInfo = ImmutableArray<LocalInfo<TypeSymbol>>.Empty;
                 }
             }
-            catch (UnsupportedSignatureContent)
-            {
-                localInfo = ImmutableArray<LocalInfo<TypeSymbol>>.Empty;
-                return false;
-            }
-            catch (BadImageFormatException)
+            catch (Exception e) when (e is UnsupportedSignatureContent || e is BadImageFormatException || e is IOException)
             {
                 localInfo = ImmutableArray<LocalInfo<TypeSymbol>>.Empty;
                 return false;

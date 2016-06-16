@@ -227,6 +227,15 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Import Directives.
+        '''</summary>
+        Friend Shared ReadOnly Property Option_Import_Directives() As String
+            Get
+                Return ResourceManager.GetString("Option_Import_Directives", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to _Navigate to Object Browser for symbols defined in metadata.
         '''</summary>
         Friend Shared ReadOnly Property Option_NavigateToObjectBrowser() As String
@@ -290,11 +299,38 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to Show preview for _rename tracking.
+        '''  Looks up a localized string similar to _Place &apos;System&apos; directives first when sorting imports.
+        '''</summary>
+        Friend Shared ReadOnly Property Option_PlaceSystemNamespaceFirst() As String
+            Get
+                Return ResourceManager.GetString("Option_PlaceSystemNamespaceFirst", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Show preview for rename _tracking.
         '''</summary>
         Friend Shared ReadOnly Property Option_RenameTrackingPreview() As String
             Get
                 Return ResourceManager.GetString("Option_RenameTrackingPreview", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Suggest imports for types in _NuGet packages.
+        '''</summary>
+        Friend Shared ReadOnly Property Option_Suggest_imports_for_types_in_NuGet_packages() As String
+            Get
+                Return ResourceManager.GetString("Option_Suggest_imports_for_types_in_NuGet_packages", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Suggest imports for types in _reference assemblies.
+        '''</summary>
+        Friend Shared ReadOnly Property Option_Suggest_imports_for_types_in_reference_assemblies() As String
+            Get
+                Return ResourceManager.GetString("Option_Suggest_imports_for_types_in_reference_assemblies", resourceCulture)
             End Get
         End Property
         

@@ -6,6 +6,7 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.CSharp.Utilities;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Formatting.Rules;
 using Microsoft.CodeAnalysis.Shared.Utilities;
@@ -215,10 +216,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
             // consider it as being part of the closest construct and we can consider its placement
             // when deciding if the construct is on a single line.
 
-            var endBrace = bracePair.Item2;
+            var endToken = bracePair.Item2;
             if (lastToken.Kind() != SyntaxKind.CloseBraceToken &&
                 lastToken.Kind() != SyntaxKind.EndOfFileToken &&
-                !endBrace.IsMissing)
+                !endToken.IsMissing)
             {
                 // The user didn't just type the close brace.  So any close brace we have may 
                 // actually belong to a containing construct.  See if any containers are missing
@@ -226,14 +227,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Formatting
 
                 if (SomeParentHasMissingCloseBrace(node.Parent))
                 {
-                    endBrace = endBrace.GetPreviousToken();
+                    if (node.IsKind(SyntaxKind.Block) && ((BlockSyntax)node).Statements.Count >= 1)
+                    {
+                        // In the case of a block, see if the first statement is on the same line 
+                        // as the open curly.  If so then we'll want to consider the end of the
+                        // block as the end of the first statement.  i.e. if you have:
+                        //
+                        //  try { }
+                        //  catch { return;     // <-- the end of this block is the end of the return statement.
+                        //  Method();
+                        var firstStatement = ((BlockSyntax)node).Statements[0];
+                        if (FormattingRangeHelper.AreTwoTokensOnSameLine(firstTokenOfNode, firstStatement.GetFirstToken()))
+                        {
+                            endToken = firstStatement.GetLastToken();
+                        }
+                    }
+                    else
+                    {
+                        endToken = endToken.GetPreviousToken();
+                    }
                 }
             }
 
             // suppress wrapping on whole construct that owns braces and also brace pair itself if 
             // it is on same line
-            AddSuppressWrappingIfOnSingleLineOperation(list, firstTokenOfNode, endBrace);
-            AddSuppressWrappingIfOnSingleLineOperation(list, bracePair.Item1, endBrace);
+            AddSuppressWrappingIfOnSingleLineOperation(list, firstTokenOfNode, endToken);
+            AddSuppressWrappingIfOnSingleLineOperation(list, bracePair.Item1, endToken);
         }
 
         private bool SomeParentHasMissingCloseBrace(SyntaxNode node)

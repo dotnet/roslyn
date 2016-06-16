@@ -112,7 +112,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     else
                     {
-                        // The parameter might be a params array, in which case an empty array will be provided.
+                        // If the invocation is semantically valid, the parameter will be a params array and an empty array will be provided.
+                        // If the argument is otherwise omitted for a parameter with no default value, the invocation is not valid and a null argument will be provided.
                         arguments.Add(DeriveArgument(parameterIndex, boundArguments.Length, boundArguments, argumentNames, argumentRefKinds, parameters, invocationSyntax));
                     }
                 }

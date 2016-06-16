@@ -86,17 +86,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
             }
 
+            TypeSymbol originalEventType = _eventType;
             if ((object)_eventType == null)
             {
                 var metadataDecoder = new MetadataDecoder(moduleSymbol, containingType);
-                _eventType = metadataDecoder.GetTypeOfToken(eventType);
+                originalEventType = metadataDecoder.GetTypeOfToken(eventType);
+
+                const int targetSymbolCustomModifierCount = 0;
+                _eventType = DynamicTypeDecoder.TransformType(originalEventType, targetSymbolCustomModifierCount, handle, moduleSymbol);
             }
 
             // IsWindowsRuntimeEvent checks the signatures, so we just have to check the accessors.
             bool isWindowsRuntimeEvent = IsWindowsRuntimeEvent;
             bool callMethodsDirectly = isWindowsRuntimeEvent
                 ? !DoModifiersMatch(_addMethod, _removeMethod)
-                : !DoSignaturesMatch(moduleSymbol, _eventType, _addMethod, _removeMethod);
+                : !DoSignaturesMatch(moduleSymbol, originalEventType, _addMethod, _removeMethod);
 
             if (callMethodsDirectly)
             {

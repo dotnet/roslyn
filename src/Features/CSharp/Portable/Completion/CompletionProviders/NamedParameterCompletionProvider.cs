@@ -15,19 +15,20 @@ using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Completion.Providers;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
-    internal partial class NamedParameterCompletionProvider : CompletionListProvider, IEqualityComparer<IParameterSymbol>
+    internal partial class NamedParameterCompletionProvider : CommonCompletionProvider, IEqualityComparer<IParameterSymbol>
     {
         private const string ColonString = ":";
 
-        public override bool IsTriggerCharacter(SourceText text, int characterPosition, OptionSet options)
+        internal override bool IsInsertionTrigger(SourceText text, int characterPosition, OptionSet options)
         {
             return CompletionUtilities.IsTriggerCharacter(text, characterPosition, options);
         }
 
-        public override async Task ProduceCompletionListAsync(CompletionListContext context)
+        public override async Task ProvideCompletionsAsync(CompletionContext context)
         {
             var document = context.Document;
             var position = context.Position;
@@ -75,11 +76,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 
             if (token.IsMandatoryNamedParameterPosition())
             {
-                context.MakeExclusive(true);
+                context.IsExclusive = true;
             }
 
             var text = await document.GetTextAsync(cancellationToken).ConfigureAwait(false);
-            var filterSpan = CompletionUtilities.GetTextChangeSpan(text, position);
 
             var workspace = document.Project.Solution.Workspace;
 
@@ -90,16 +90,20 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 // exact match.
                 var escapedName = parameter.Name.ToIdentifierToken().ToString();
 
-                context.AddItem(new CompletionItem(
-                    this,
-                    escapedName + ColonString,
-                    filterSpan,
-                    CommonCompletionUtilities.CreateDescriptionFactory(workspace, semanticModel, token.SpanStart, parameter),
-                    parameter.GetGlyph(),
-                    sortText: parameter.Name,
+                context.AddItem(SymbolCompletionItem.Create(
+                    displayText: escapedName + ColonString,
+                    insertionText: null,
+                    span: context.DefaultItemSpan,
+                    symbol: parameter,
+                    descriptionPosition: token.SpanStart,
                     filterText: escapedName,
-                    rules: ItemRules.Instance));
+                    rules: CompletionItemRules.Default));
             }
+        }
+
+        public override Task<CompletionDescription> GetDescriptionAsync(Document document, CompletionItem item, CancellationToken cancellationToken)
+        {
+            return SymbolCompletionItem.GetDescriptionAsync(item, document, cancellationToken);
         }
 
         private bool IsValid(ImmutableArray<IParameterSymbol> parameterList, ISet<string> existingNamedParameters)
@@ -229,6 +233,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         int IEqualityComparer<IParameterSymbol>.GetHashCode(IParameterSymbol obj)
         {
             return obj.Name.GetHashCode();
+        }
+
+        public override Task<TextChange?> GetTextChangeAsync(Document document, CompletionItem selectedItem, char? ch, CancellationToken cancellationToken)
+        {
+            return Task.FromResult<TextChange?>(new TextChange(
+                selectedItem.Span,
+                selectedItem.DisplayText.Substring(0, selectedItem.DisplayText.Length - ColonString.Length)));
         }
     }
 }
