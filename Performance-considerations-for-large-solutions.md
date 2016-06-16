@@ -8,10 +8,9 @@ While we do our best to design Roslyn to work well for a wide range of solutions
 To change it, create a registry key at `HKEY_CURRENT_USER\SOFTWARE\Microsoft\VisualStudio\14.0\Roslyn\Internal\Performance\Cache` , and within that, create a DWORD value named `RecoverableTreeLengthThreshold` and set its value to the maximum file size (in bytes) for which syntax trees should be cached.  The default value (used if the key doesn't exist) is `4096`.
 
 4. **Disabling Solution Crawler** Even with Full Solution Analysis disabled, there are various operations that will cause Visual Studio to process all of the files in your solution.  This analysis powers features like:
-
   * Populating the task list with TODO comments
   * Populating a cache of information for Find All References and Navigate To
   * Determining whether files should be opened in the designer or code view,
   * etc.
 
-For our own debugging purposes, we have a registry key that can disable this.  It *may* help relieve some issues in *very* large solutions.  However, doing so is also likely to prevent the above features from working as designed, so this should be changed only as a last resort.  To change it, create a registry key at `HKEY_CURRENT_USER\SOFTWARE\Microsoft\VisualStudio\14.0\Roslyn\Internal\OnOff\Components`, and within that, create a DWORD value named `Solution Crawler` and set its value to 0.
+   For our own debugging purposes, we have a registry key that can disable this.  It *may* help relieve some issues in *very* large solutions.  However, doing so is also likely to prevent the above features from working as designed, so this should be changed only as a last resort.  To change it, create a registry key at `HKEY_CURRENT_USER\SOFTWARE\Microsoft\VisualStudio\14.0\Roslyn\Internal\OnOff\Components`, and within that, create a DWORD value named `Solution Crawler` and set its value to 0.
