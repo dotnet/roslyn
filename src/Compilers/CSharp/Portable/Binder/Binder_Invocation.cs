@@ -1075,14 +1075,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methods = constructedMethods.ToImmutableAndFree();
             }
 
-            if (methods.Length == 1 && methods[0].Arity == 0 && !extensionMethodsOfSameViabilityAreAvailable)
+            if (methods.Length == 1 && !extensionMethodsOfSameViabilityAreAvailable)
             {
                 // If there is only one non-generic method in the group and no additional extension methods with the same lookup viability,
                 // we should attempt to bind the argument list (particularly, lambdas appearing therein) to its parameter types.
-                // However, if it was generic we don't want to bind to its (possibly unsubstituted) parameters, and instead we rely on the
+                // However, if it was an unsubstituted generic we don't want to bind to its parameters, and instead we rely on the
                 // compiler's previous binding of any lambda arguments to parameters that occurred when identifying method candidates.
                 method = methods[0];
-                args = BuildArgumentsForErrorRecovery(analyzedArguments, method.Parameters);
+                var bindToParameters = (method.IsGenericMethod && method.ConstructedFrom() == method) ? ImmutableArray<ParameterSymbol>.Empty : method.Parameters;
+                args = BuildArgumentsForErrorRecovery(analyzedArguments, bindToParameters);
             }
             else
             {
@@ -1090,7 +1091,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var methodContainer = (object)receiver != null && (object)receiver.Type != null
                     ? receiver.Type
                     : this.ContainingType;
-                method = methods.Length == 1 ? methods[0] : new ErrorMethodSymbol(methodContainer, returnType, name);
+                method = new ErrorMethodSymbol(methodContainer, returnType, name);
                 args = BuildArgumentsForErrorRecovery(analyzedArguments);
             }
 
