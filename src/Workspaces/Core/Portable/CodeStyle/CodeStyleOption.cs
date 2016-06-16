@@ -12,7 +12,7 @@ namespace Microsoft.CodeAnalysis.CodeStyle
     {
         public static CodeStyleOption<T> Default => new CodeStyleOption<T>(default(T), NotificationOption.None);
 
-        private const int SerializationVersion = 2;
+        private const int SerializationVersion = 1;
 
         public CodeStyleOption(T value, NotificationOption notification)
         {
