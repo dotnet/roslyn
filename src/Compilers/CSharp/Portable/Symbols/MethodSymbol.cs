@@ -745,13 +745,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// <summary>
         /// If this method can be applied to an object, returns the type of object it is applied to.
         /// </summary>
-        public virtual TypeSymbol ReceiverType
-        {
-            get
-            {
-                return this.ContainingType;
-            }
-        }
+        public virtual TypeSymbol ReceiverType => this.ContainingType.ExtensionClassType ?? this.ContainingType;
 
         /// <summary>
         /// If this method is a reduced extension method, returns a type inferred during reduction process for the type parameter. 

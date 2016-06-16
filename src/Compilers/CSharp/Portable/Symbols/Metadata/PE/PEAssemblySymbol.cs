@@ -115,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         {
             if (_lazyCustomAttributes.IsDefault)
             {
-                if (this.MightContainExtensionMethods)
+                if (this.MightContainExtensionMembers)
                 {
                     this.PrimaryModule.LoadCustomAttributesFilterExtensions(_assembly.Handle,
                         ref _lazyCustomAttributes);
@@ -229,7 +229,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override bool MightContainExtensionMethods
+        public override bool MightContainExtensionMembers
         {
             get
             {
@@ -237,15 +237,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 // have the attribute if any type in the assembly has the attribute, some compilers do
                 // not properly follow that spec. Therefore we pessimistically assume every assembly
                 // may contain extension methods.
-                return true;
-            }
-        }
-
-        public override bool MightContainExtensionMembers
-        {
-            get
-            {
-                // See note in MightContainExtensionMethods
                 return true;
             }
         }

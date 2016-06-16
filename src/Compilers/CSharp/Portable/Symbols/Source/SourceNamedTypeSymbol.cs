@@ -1066,7 +1066,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
             CSharpCompilation compilation = this.DeclaringCompilation;
 
-            if (this.ContainsExtensionMethods)
+            // put [Extension] on both extension classes and classes containing methods with `this`-marked parameters.
+            if (this.ContainsExtensionMembers)
             {
                 // No need to check if [Extension] attribute was explicitly set since
                 // we'll issue CS1112 error in those cases and won't generate IL.

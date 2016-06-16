@@ -736,8 +736,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             return true;
         }
 
-        internal void LookupExtensionMethodsInUsings(
-            ArrayBuilder<MethodSymbol> methods,
+        internal void LookupExtensionMembersInUsings(
+            ArrayBuilder<Symbol> members,
             string name,
             int arity,
             LookupOptions options,
@@ -749,14 +749,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            Debug.Assert(methods.Count == 0);
+            Debug.Assert(members.Count == 0);
 
             bool callerIsSemanticModel = binderFlags.Includes(BinderFlags.SemanticModel);
 
-            // We need to avoid collecting multiple candidates for an extension method imported both through a namespace and a static class
+            // We need to avoid collecting multiple candidates for an extension member imported both through a namespace and a static class
             // We will look for duplicates only if both of the following flags are set to true
-            bool seenNamespaceWithExtensionMethods = false;
-            bool seenStaticClassWithExtensionMethods = false;
+            bool seenNamespaceWithExtensionMembers = false;
+            bool seenStaticClassWithExtensionMembers = false;
 
             foreach (var nsOrType in this.Usings)
             {
@@ -764,14 +764,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     case SymbolKind.Namespace:
                         {
-                            var count = methods.Count;
-                            ((NamespaceSymbol)nsOrType.NamespaceOrType).GetExtensionMethods(methods, name, arity, options);
+                            var count = members.Count;
+                            ((NamespaceSymbol)nsOrType.NamespaceOrType).GetExtensionMembers(members, name, arity, options);
 
-                            // If we found any extension methods, then consider this using as used.
-                            if (methods.Count != count)
+                            // If we found any extension members, then consider this using as used.
+                            if (members.Count != count)
                             {
                                 MarkImportDirective(nsOrType.UsingDirective, callerIsSemanticModel);
-                                seenNamespaceWithExtensionMethods = true;
+                                seenNamespaceWithExtensionMembers = true;
                             }
 
                             break;
@@ -779,14 +779,14 @@ namespace Microsoft.CodeAnalysis.CSharp
 
                     case SymbolKind.NamedType:
                         {
-                            var count = methods.Count;
-                            ((NamedTypeSymbol)nsOrType.NamespaceOrType).GetExtensionMethods(methods, name, arity, options);
+                            var count = members.Count;
+                            ((NamedTypeSymbol)nsOrType.NamespaceOrType).GetExtensionMembers(members, name, arity, options);
 
-                            // If we found any extension methods, then consider this using as used.
-                            if (methods.Count != count)
+                            // If we found any extension members, then consider this using as used.
+                            if (members.Count != count)
                             {
                                 MarkImportDirective(nsOrType.UsingDirective, callerIsSemanticModel);
-                                seenStaticClassWithExtensionMethods = true;
+                                seenStaticClassWithExtensionMembers = true;
                             }
 
                             break;
@@ -794,20 +794,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 }
             }
 
-            if (seenNamespaceWithExtensionMethods && seenStaticClassWithExtensionMethods)
+            if (seenNamespaceWithExtensionMembers && seenStaticClassWithExtensionMembers)
             {
-                methods.RemoveDuplicates();
+                members.RemoveDuplicates();
             }
-        }
-
-        internal void LookupExtensionMembersInUsings(
-            ArrayBuilder<Symbol> members,
-            string name,
-            int arity,
-            LookupOptions options,
-            Binder originalBinder)
-        {
-            // PROTOTYPE: implement this
         }
 
         // Note: we do not mark nodes when looking up arities or names.  This is because these two

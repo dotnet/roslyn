@@ -2391,7 +2391,7 @@ B");
                 var mscorlib = type.GetMember<FieldSymbol>("F").Type.ContainingAssembly;
                 Assert.Equal(mscorlib.Name, "mscorlib");
                 // We assume every PE assembly may contain extension methods.
-                Assert.True(mscorlib.MightContainExtensionMethods);
+                Assert.True(mscorlib.MightContainExtensionMembers);
 
                 // TODO: Original references are not included in symbol validator.
                 if (isFromSource)
@@ -2399,12 +2399,12 @@ B");
                     // System.Core.dll
                     var systemCore = type.GetMember<FieldSymbol>("G").Type.ContainingAssembly;
                     Assert.Equal(systemCore.Name, "System.Core");
-                    Assert.True(systemCore.MightContainExtensionMethods);
+                    Assert.True(systemCore.MightContainExtensionMembers);
                 }
 
                 // Local assembly.
                 var assembly = type.ContainingAssembly;
-                Assert.True(assembly.MightContainExtensionMethods);
+                Assert.True(assembly.MightContainExtensionMembers);
             };
 
             CompileAndVerify(
@@ -2432,10 +2432,10 @@ B");
             Func<bool, Action<ModuleSymbol>> validator = isFromSource => module =>
             {
                 var assembly = module.ContainingAssembly;
-                var mightContainExtensionMethods = assembly.MightContainExtensionMethods;
+                var mightContainExtensionMembers = assembly.MightContainExtensionMembers;
                 // Every PE assembly is assumed to be capable of having an extension method.
                 // The source assembly doesn't know (so reports "true") until all methods have been inspected.
-                Assert.True(mightContainExtensionMethods);
+                Assert.True(mightContainExtensionMembers);
                 if (isFromSource)
                 {
                     Assert.Null(sourceAssembly);
@@ -2444,7 +2444,7 @@ B");
             };
             CompileAndVerify(source, symbolValidator: validator(false), sourceSymbolValidator: validator(true));
             Assert.NotNull(sourceAssembly);
-            Assert.False(sourceAssembly.MightContainExtensionMethods);
+            Assert.False(sourceAssembly.MightContainExtensionMembers);
         }
 
         [ClrOnlyFact]

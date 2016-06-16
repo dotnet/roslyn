@@ -940,8 +940,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (methodGroup.IsExtensionMethodGroup)
             {
-                TypeSymbol receiverType = method.IsInExtensionClass ? method.ContainingType.ExtensionClassType : method.Parameters[0].Type;
-                if (!receiverType.IsReferenceType)
+                if (!method.ReceiverType.IsReferenceType)
                 {
                     return Conversion.NoConversion;
                 }
@@ -964,7 +963,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // NOTE: Delegate type compatibility is important, but is not part of the existence check.
 
-            Debug.Assert(method.ParameterCount == delegateType.DelegateInvokeMethod.ParameterCount + (methodGroup.IsExtensionMethodGroup && !method.IsInExtensionClass ? 1 : 0));
+            Debug.Assert(method.ParameterCount == delegateType.DelegateInvokeMethod.ParameterCount);
 
             return new Conversion(ConversionKind.MethodGroup, method, methodGroup.IsExtensionMethodGroup);
         }

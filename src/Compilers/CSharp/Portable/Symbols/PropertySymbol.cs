@@ -108,6 +108,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         }
 
         /// <summary>
+        /// If this property can be accessed through an object, returns the type of object it is accessed through.
+        /// </summary>
+        public virtual TypeSymbol ReceiverType => this.ContainingType.ExtensionClassType ?? this.ContainingType;
+
+        /// <summary>
         /// Returns whether the property is really an indexer.
         /// </summary>
         /// <remarks>

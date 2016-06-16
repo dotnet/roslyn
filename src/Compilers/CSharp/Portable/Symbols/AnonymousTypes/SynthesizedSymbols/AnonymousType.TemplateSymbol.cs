@@ -310,11 +310,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 get { return false; }
             }
 
-            public override bool MightContainExtensionMethods
-            {
-                get { return false; }
-            }
-
             public override bool MightContainExtensionMembers
             {
                 get { return false; }

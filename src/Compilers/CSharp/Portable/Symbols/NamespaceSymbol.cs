@@ -13,7 +13,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
     internal abstract partial class NamespaceSymbol : NamespaceOrTypeSymbol, INamespaceSymbol
     {
         // PERF: initialization of the following fields will allocate, so we make them lazy
-        private ImmutableArray<NamedTypeSymbol> _lazyTypesMightContainExtensionMethods;
         private ImmutableArray<NamedTypeSymbol> _lazyTypesMightContainExtensionMembers;
         private string _lazyQualifiedName;
         
@@ -316,21 +315,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return null;
         }
 
-        private ImmutableArray<NamedTypeSymbol> TypesMightContainExtensionMethods
-        {
-            get
-            {
-                var typesWithExtensionMethods = this._lazyTypesMightContainExtensionMethods;
-                if (typesWithExtensionMethods.IsDefault)
-                {
-                    this._lazyTypesMightContainExtensionMethods = this.GetTypeMembersUnordered().WhereAsArray(t => t.MightContainExtensionMethods);
-                    typesWithExtensionMethods = this._lazyTypesMightContainExtensionMethods;
-                }
-
-                return typesWithExtensionMethods;
-            }
-        }
-
         private ImmutableArray<NamedTypeSymbol> TypesMightContainExtensionMembers
         {
             get
@@ -338,7 +322,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 var typesWithExtensionMembers = this._lazyTypesMightContainExtensionMembers;
                 if (typesWithExtensionMembers.IsDefault)
                 {
-                    this._lazyTypesMightContainExtensionMembers = this.GetTypeMembersUnordered().WhereAsArray(t => t.IsExtensionClass);
+                    this._lazyTypesMightContainExtensionMembers = this.GetTypeMembersUnordered().WhereAsArray(t => t.MightContainExtensionMembers);
                     typesWithExtensionMembers = this._lazyTypesMightContainExtensionMembers;
                 }
 
@@ -346,36 +330,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-
         /// <summary>
-        /// Add all extension methods in this namespace to the given list. If name or arity
+        /// Add all extension members in this namespace to the given list. If name or arity
         /// or both are provided, only those extension methods that match are included.
         /// </summary>
-        /// <param name="methods">Methods list</param>
+        /// <param name="members">Members list</param>
         /// <param name="nameOpt">Optional method name</param>
         /// <param name="arity">Method arity</param>
         /// <param name="options">Lookup options</param>
-        internal virtual void GetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string nameOpt, int arity, LookupOptions options)
-        {
-            var assembly = this.ContainingAssembly;
-
-            // Only MergedAssemblySymbol should have a null ContainingAssembly
-            // and MergedAssemblySymbol overrides GetExtensionMethods.
-            Debug.Assert((object)assembly != null);
-
-            if (!assembly.MightContainExtensionMethods)
-            {
-                return;
-            }
-
-            var typesWithExtensionMethods = this.TypesMightContainExtensionMethods;
-
-            foreach (var type in typesWithExtensionMethods)
-            {
-                type.DoGetExtensionMethods(methods, nameOpt, arity, options);
-            }
-        }
-
         internal virtual void GetExtensionMembers(ArrayBuilder<Symbol> members, string nameOpt, int arity, LookupOptions options)
         {
             var assembly = this.ContainingAssembly;

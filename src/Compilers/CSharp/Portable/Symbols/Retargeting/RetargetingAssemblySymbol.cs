@@ -257,14 +257,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Retargeting
             }
         }
 
-        public override bool MightContainExtensionMethods
-        {
-            get
-            {
-                return _underlyingAssembly.MightContainExtensionMethods;
-            }
-        }
-
         public override bool MightContainExtensionMembers
         {
             get

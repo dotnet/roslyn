@@ -9,9 +9,11 @@ using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
+using Microsoft.CodeAnalysis.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
+    [CompilerTrait(CompilerFeature.ExtensionEverything)]
     public class ExtensionEverythingTests : CompilingTestBase
     {
         private static readonly CSharpParseOptions parseOptions = TestOptions.Regular.WithExtensionEverythingFeature();
@@ -22,6 +24,63 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         // PROTOTYPE: Call with receiver going through boxing as well as implicit reference conversion (and also reject invalid conversions)
         // PROTOTYPE: Overloaded (non-)ambiguous methods, properties, etc. - this is a working issue, lots of ambiguous cases to test.
         // PROTOTYPE: Generics - working issue, there's a lot of cases here.
+
+        [Fact]
+        public void Thing()
+        {
+            var text = @"
+delegate Del1 Del1();
+delegate Del2 Del2();
+
+class Program
+{
+    static void Method(Del1 del1) { }
+    static void Method(Del2 del2) { }
+    static void Main()
+    {
+        Method(() => null);
+    }
+}
+";
+            CompileAndVerify(
+                source: text,
+                additionalRefs: additionalRefs,
+                expectedOutput: "",
+                parseOptions: parseOptions);
+        }
+
+        [Fact]
+        public void TempTest()
+        {
+            var text = @"
+class BaseClass
+{
+}
+
+static class Thing
+{
+    public static void Ext(this BaseClass asdf)
+    {
+        System.Console.WriteLine(""Hello, world!"");
+    }
+}
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        System.Action x = new BaseClass().Ext;
+        x();
+    }
+}
+";
+
+            CompileAndVerify(
+                source: text,
+                additionalRefs: additionalRefs,
+                expectedOutput: "Hello, world!",
+                parseOptions: parseOptions);
+        }
 
         [Fact]
         public void BasicFunctionality()
@@ -537,9 +596,51 @@ class Program
             CompileAndVerify(
                 source: text,
                 additionalRefs: additionalRefs.Concat(new[] { MscorlibRef_v46 }),
-                expectedOutput: "12345",
+                expectedOutput: "123456",
                 parseOptions: parseOptions)
                 .VerifyIL("Program.Main", @"{
+  // Code size       67 (0x43)
+  .maxstack  5
+  .locals init (BaseClass V_0) //obj
+  IL_0000:  ldnull
+  IL_0001:  stloc.0
+  IL_0002:  ldloc.0
+  IL_0003:  ldc.i4.2
+  IL_0004:  newarr     ""int""
+  IL_0009:  dup
+  IL_000a:  ldc.i4.0
+  IL_000b:  ldc.i4.1
+  IL_000c:  stelem.i4
+  IL_000d:  dup
+  IL_000e:  ldc.i4.1
+  IL_000f:  ldc.i4.2
+  IL_0010:  stelem.i4
+  IL_0011:  call       ""void ExtClass.Method(BaseClass, params int[])""
+  IL_0016:  ldc.i4.2
+  IL_0017:  newarr     ""int""
+  IL_001c:  dup
+  IL_001d:  ldc.i4.0
+  IL_001e:  ldc.i4.3
+  IL_001f:  stelem.i4
+  IL_0020:  dup
+  IL_0021:  ldc.i4.1
+  IL_0022:  ldc.i4.4
+  IL_0023:  stelem.i4
+  IL_0024:  call       ""void ExtClass.StaticMethod(params int[])""
+  IL_0029:  ldloc.0
+  IL_002a:  ldc.i4.2
+  IL_002b:  newarr     ""int""
+  IL_0030:  dup
+  IL_0031:  ldc.i4.0
+  IL_0032:  ldc.i4.5
+  IL_0033:  stelem.i4
+  IL_0034:  dup
+  IL_0035:  ldc.i4.1
+  IL_0036:  ldc.i4.6
+  IL_0037:  stelem.i4
+  IL_0038:  call       ""string ExtClass.get_Item(BaseClass, params int[])""
+  IL_003d:  call       ""void System.Console.Write(string)""
+  IL_0042:  ret
 }");
         }
 

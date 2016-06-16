@@ -132,34 +132,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal override bool SupportsExtensionMethods
+        internal override bool SupportsExtensionMembers
         {
             get { return true; }
-        }
-
-        internal override void GetCandidateExtensionMethods(
-            bool searchUsingsNotNamespace,
-            ArrayBuilder<MethodSymbol> methods,
-            string name,
-            int arity,
-            LookupOptions options,
-            Binder originalBinder)
-        {
-            if (searchUsingsNotNamespace)
-            {
-                this.GetImports(basesBeingResolved: null).LookupExtensionMethodsInUsings(methods, name, arity, options, originalBinder);
-            }
-            else if (_container?.Kind == SymbolKind.Namespace)
-            {
-                ((NamespaceSymbol)_container).GetExtensionMethods(methods, name, arity, options);
-            }
-            else if (IsSubmissionClass)
-            {
-                for (var submission = this.Compilation; submission != null; submission = submission.PreviousSubmission)
-                {
-                    submission.ScriptClass?.GetExtensionMethods(methods, name, arity, options);
-                }
-            }
         }
 
         internal override void GetCandidateExtensionMembers(bool searchUsingsNotNamespace, ArrayBuilder<Symbol> members, string name, int arity, LookupOptions options, Binder originalBinder)

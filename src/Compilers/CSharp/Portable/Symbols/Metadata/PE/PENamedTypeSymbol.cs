@@ -570,7 +570,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             if (uncommon.lazyCustomAttributes.IsDefault)
             {
-                if (MightContainExtensionMethods)
+                if (MightContainExtensionMembers)
                 {
                     this.ContainingPEModule.LoadCustomAttributesFilterExtensions(
                         this.Handle,
@@ -1546,10 +1546,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             }
         }
 
-        public override bool MightContainExtensionMethods
+        public override bool MightContainExtensionMembers
         {
             get
             {
+                // PROTOTYPE: Implement extension classes (right now it's just `this`-marked methods).
                 var uncommon = GetUncommonProperties();
                 if (uncommon == s_noUncommonProperties)
                 {
@@ -1574,7 +1575,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                             if ((object)containingAssembly != null)
                             {
                                 contains = (moduleHasExtension
-                                    && containingAssembly.MightContainExtensionMethods).ToThreeState();
+                                    && containingAssembly.MightContainExtensionMembers).ToThreeState();
                             }
                             else
                             {
@@ -1587,15 +1588,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 }
 
                 return uncommon.lazyContainsExtensionMethods.Value();
-            }
-        }
-
-        public override bool MightContainExtensionMembers
-        {
-            get
-            {
-                // PROTOTYPE: Implement this.
-                return false;
             }
         }
 

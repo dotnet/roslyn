@@ -1456,7 +1456,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 options &= ~LookupOptions.MustBeInstance;
 
                 HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-                binder.LookupExtensionMethods(lookupResult, name, 0, options, ref useSiteDiagnostics);
+                binder.LookupExtensionMembers(lookupResult, name, 0, options, ref useSiteDiagnostics);
 
                 if (lookupResult.IsMultiViable)
                 {
@@ -4029,28 +4029,32 @@ namespace Microsoft.CodeAnalysis.CSharp
                 binder = binder.WithAdditionalFlags(BinderFlags.SemanticModel);
                 foreach (var scope in new ExtensionMethodScopes(binder))
                 {
-                    var extensionMethods = ArrayBuilder<MethodSymbol>.GetInstance();
+                    var extensionMembers = ArrayBuilder<Symbol>.GetInstance();
                     var otherBinder = scope.Binder;
-                    otherBinder.GetCandidateExtensionMethods(scope.SearchUsingsNotNamespace,
-                                                             extensionMethods,
+                    otherBinder.GetCandidateExtensionMembers(scope.SearchUsingsNotNamespace,
+                                                             extensionMembers,
                                                              name,
                                                              arity,
                                                              options,
                                                              originalBinder: binder);
 
-                    foreach (var method in extensionMethods)
+                    foreach (var member in extensionMembers)
                     {
+                        if (member.Kind != SymbolKind.Method)
+                        {
+                            continue;
+                        }
                         HashSet<DiagnosticInfo> useSiteDiagnostics = null;
                         MergeReducedAndFilteredMethodGroupSymbol(
                             methods,
                             filteredMethods,
-                            binder.CheckViability(method, arity, options, accessThroughType: null, diagnose: false, useSiteDiagnostics: ref useSiteDiagnostics),
+                            binder.CheckViability(member, arity, options, accessThroughType: null, diagnose: false, useSiteDiagnostics: ref useSiteDiagnostics),
                             typeArguments,
                             receiver.Type,
                             ref resultKind);
                     }
 
-                    extensionMethods.Free();
+                    extensionMembers.Free();
                 }
             }
 

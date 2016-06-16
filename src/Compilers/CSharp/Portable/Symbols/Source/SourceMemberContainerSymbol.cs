@@ -3250,7 +3250,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             get { return this.declaration.IsExtensionClass; }
         }
 
-        internal bool ContainsExtensionMethods
+        internal bool ContainsExtensionMembers
         {
             get
             {
@@ -3278,19 +3278,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        public override bool MightContainExtensionMethods
-        {
-            get
-            {
-                return this.ContainsExtensionMethods;
-            }
-        }
-
         public override bool MightContainExtensionMembers
         {
             get
             {
-                return this.IsExtensionClass;
+                return this.ContainsExtensionMembers;
             }
         }
 

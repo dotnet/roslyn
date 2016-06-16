@@ -451,22 +451,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public abstract ICollection<string> NamespaceNames { get; }
 
-        /// <summary>
-        /// Returns true if this assembly might contain extension methods. If this property
-        /// returns false, there are no extension methods in this assembly.
-        /// </summary>
-        /// <remarks>
-        /// This property allows the search for extension methods to be narrowed quickly.
-        /// </remarks>
-        public abstract bool MightContainExtensionMethods { get; }
+        bool IAssemblySymbol.MightContainExtensionMethods => MightContainExtensionMembers;
 
         /// <summary>
-        /// Returns true if this assembly might contain extension members (`extension class`).
+        /// Returns true if this assembly might contain extension members (`extension class`) or extension method (`this` parameter).
         /// If this property returns false, there are no extension members in this assembly.
         /// </summary>
         /// <remarks>
-        /// This property allows the search for extension methods to be narrowed quickly.
-        /// See also: <see cref="MightContainExtensionMethods"/>
+        /// This property allows the search for extension members to be narrowed quickly.
         /// </remarks>
         public abstract bool MightContainExtensionMembers { get; }
 

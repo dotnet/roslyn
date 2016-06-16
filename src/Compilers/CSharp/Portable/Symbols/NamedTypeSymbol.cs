@@ -392,63 +392,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             return builder.ToImmutableAndFree();
         }
 
-        /// <summary>
-        /// Returns true if this type might contain extension methods. If this property
-        /// returns false, there are no extension methods in this type.
-        /// </summary>
-        /// <remarks>
-        /// This property allows the search for extension methods to be narrowed quickly.
-        /// </remarks>
-        public abstract bool MightContainExtensionMethods { get; }
-
-        internal void GetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string nameOpt, int arity, LookupOptions options)
-        {
-            if (this.MightContainExtensionMethods)
-            {
-                DoGetExtensionMethods(methods, nameOpt, arity, options);
-            }
-        }
-
-        internal void DoGetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string nameOpt, int arity, LookupOptions options)
-        {
-            var members = nameOpt == null
-                ? this.GetMembersUnordered()
-                : this.GetSimpleNonTypeMembers(nameOpt);
-
-            var isExtensionClass = this.IsExtensionClass;
-            foreach (var member in members)
-            {
-                if (member.Kind == SymbolKind.Method)
-                {
-                    var method = (MethodSymbol)member;
-                    if ((options & LookupOptions.AllMethodsOnArityZero) != 0 || arity == method.Arity)
-                    {
-                        if (method.IsExtensionMethod)
-                        {
-                            Debug.Assert(method.MethodKind != MethodKind.ReducedExtension);
-                            methods.Add(method.ReduceExtensionMethod());
-                        }
-                        if (isExtensionClass)
-                        {
-                            Debug.Assert(method.MethodKind != MethodKind.ExpandedExtensionClass);
-                            // PROTOTYPE: This assumes source methods. What about loaded symbols from disk?
-                            var expanded = method.ExpandExtensionClassMethod();
-                            // PROTOTYPE: ExpandExtensionClassMethod should probably always return non-null,
-                            // but some method kinds aren't supported (yet?), e.g. constructors
-                            if ((object)expanded != null)
-                            {
-                                // PROTOTYPE: Same comments from DoGetExtensionMembers apply
-                                methods.Add(method);
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        bool INamedTypeSymbol.MightContainExtensionMethods => MightContainExtensionMembers;
 
         /// <summary>
-        /// Returns true if this type might contain extension methods. If this property
-        /// returns false, there are no extension methods in this type.
+        /// Returns true if this type might contain extension members, whether in the form of `this`-marked parameters or being an `extension class`.
+        /// If this property returns false, there are no extension members in this type.
         /// </summary>
         /// <remarks>
         /// This property allows the search for extension methods to be narrowed quickly.
@@ -457,6 +405,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal void GetExtensionMembers(ArrayBuilder<Symbol> members, string nameOpt, int arity, LookupOptions options)
         {
+            // PROTOTYPE: Find refs of these two props and make sure both are considered.
             if (this.MightContainExtensionMembers)
             {
                 DoGetExtensionMembers(members, nameOpt, arity, options);
@@ -465,24 +414,39 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal void DoGetExtensionMembers(ArrayBuilder<Symbol> members, string nameOpt, int arity, LookupOptions options)
         {
-            if (!this.IsExtensionClass)
-            {
-                return;
-            }
             var allMembers = nameOpt == null
                 ? this.GetMembersUnordered()
                 : this.GetSimpleNonTypeMembers(nameOpt);
 
+            var isExtensionClass = this.IsExtensionClass;
             foreach (var member in allMembers)
             {
-                // PROTOTYPE: `if member.Kind == memberTypeSearchingFor` ?
-                // PROTOTYPE: This assumes source methods. What about loaded symbols from disk?
-                var underlying = this.GetUnderlyingMember(member);
-                if ((object)underlying != null)
+                if (member.Kind == SymbolKind.Method && (options & LookupOptions.AllMethodsOnArityZero) == 0 && arity != ((MethodSymbol)member).Arity)
                 {
-                    // PROTOTYPE: return `underlying` instead?
-                    // PROTOTYPE: If `underlying` is never returned, we're constructing things never used (in topic of perf)
-                    members.Add(member);
+                    continue;
+                }
+                if (!isExtensionClass && member.Kind == SymbolKind.Method)
+                {
+                    var method = (MethodSymbol)member;
+                    if (method.IsExtensionMethod)
+                    {
+                        Debug.Assert(method.MethodKind != MethodKind.ReducedExtension);
+                        members.Add(method.ReduceExtensionMethod());
+                    }
+                }
+                else if (isExtensionClass)
+                {
+                    // Return all members even if MustBeInvocableIfMember is set - they will be trimmed later.
+                    // PROTOTYPE: `if member.Kind == memberTypeSearchingFor` ?
+                    // PROTOTYPE: This assumes source methods. What about loaded symbols from disk?
+                    var underlying = this.GetUnderlyingMember(member);
+                    // PROTOTYPE: ExpandExtensionClassMethod should probably always return non-null,
+                    // but some method kinds aren't supported (yet?), e.g. constructors
+                    if ((object)underlying != null)
+                    {
+                        // PROTOTYPE: If `underlying` is never returned, we're constructing things never used (in topic of perf)
+                        members.Add(member);
+                    }
                 }
             }
         }

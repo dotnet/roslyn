@@ -39,14 +39,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        internal void LookupExtensionMethods(LookupResult result, string name, int arity, LookupOptions options, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
-        {
-            foreach (var scope in new ExtensionMethodScopes(this))
-            {
-                this.LookupExtensionMethodsInSingleBinder(scope, result, name, arity, options, ref useSiteDiagnostics);
-            }
-        }
-
         /// <summary>
         /// Look for any symbols in scope with the given name and arity.
         /// </summary>
@@ -370,27 +362,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         /// <summary>
-        /// Lookup extension methods by name and arity in the given binder and
+        /// Lookup extension members by name and arity in the given binder and
         /// check viability in this binder. The lookup is performed on a single
         /// binder because extension method search stops at the first applicable
         /// method group from the nearest enclosing namespace.
         /// </summary>
-        private void LookupExtensionMethodsInSingleBinder(ExtensionMethodScope scope, LookupResult result, string name, int arity, LookupOptions options, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
-        {
-            var methods = ArrayBuilder<MethodSymbol>.GetInstance();
-            var binder = scope.Binder;
-            binder.GetCandidateExtensionMethods(scope.SearchUsingsNotNamespace, methods, name, arity, options, this);
-
-            // PROTOTYPE: This might have some behavior that needs to be changed for extension classes.
-            foreach (var method in methods)
-            {
-                SingleLookupResult resultOfThisMember = this.CheckViability(method, arity, options, null, diagnose: true, useSiteDiagnostics: ref useSiteDiagnostics);
-                result.MergeEqual(resultOfThisMember);
-            }
-
-            methods.Free();
-        }
-
         private void LookupExtensionMembersInSingleBinder(ExtensionMethodScope scope, LookupResult result, string name, int arity, LookupOptions options, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             var members = ArrayBuilder<Symbol>.GetInstance();
@@ -399,7 +375,6 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             foreach (var member in members)
             {
-                // PROTOTYPE: Put more thought into if members returned from this should be expanded or not
                 Debug.Assert(!member.IsExpandedExtensionClassMember);
                 var resultOfThisMember = this.CheckViability(member, arity, options, null, diagnose: true, useSiteDiagnostics: ref useSiteDiagnostics);
                 result.MergeEqual(resultOfThisMember);
@@ -653,28 +628,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         #endregion
 
-        internal virtual bool SupportsExtensionMethods
+        internal virtual bool SupportsExtensionMembers
         {
             get { return false; }
         }
 
         /// <summary>
-        /// Return the extension methods from this specific binding scope that match the name and optional
-        /// arity. Since the lookup of extension methods is iterative, proceeding one binding scope at a time,
-        /// GetCandidateExtensionMethods should not defer to the next binding scope. Instead, the caller is
+        /// Return the extension members from this specific binding scope that match the name and optional
+        /// arity. Since the lookup of extension members is iterative, proceeding one binding scope at a time,
+        /// GetCandidateExtensionMembers should not defer to the next binding scope. Instead, the caller is
         /// responsible for walking the nested binding scopes from innermost to outermost. This method is overridden
         /// to search the available members list in binding types that represent types, namespaces, and usings.
         /// </summary>
-        internal virtual void GetCandidateExtensionMethods(
-            bool searchUsingsNotNamespace,
-            ArrayBuilder<MethodSymbol> methods,
-            string name,
-            int arity,
-            LookupOptions options,
-            Binder originalBinder)
-        {
-        }
-
         internal virtual void GetCandidateExtensionMembers(
             bool searchUsingsNotNamespace,
             ArrayBuilder<Symbol> members,
@@ -776,7 +741,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     foreach (var extension in tempResult.Symbols)
                     {
-                        var conversion = Conversions.ClassifyImplicitConversion(type, extension.ContainingType.ExtensionClassType, ref useSiteDiagnostics);
+                        var method = extension as MethodSymbol;
+                        var receiverType = ((object)method != null && method.MethodKind == MethodKind.ReducedExtension) ? method.ReceiverType : extension.ContainingType.ExtensionClassType;
+                        var conversion = Conversions.ClassifyImplicitConversion(type, receiverType, ref useSiteDiagnostics);
                         if (ConversionsBase.IsValidExtensionMethodThisArgConversion(conversion))
                         {
                             result.MergeEqual(new SingleLookupResult(LookupResultKind.Viable, extension, null));
@@ -790,7 +757,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             tmp.Free();
         }
 
-        private void LookupExtensionMembers(
+        internal void LookupExtensionMembers(
             LookupResult result,
             string name,
             int arity,

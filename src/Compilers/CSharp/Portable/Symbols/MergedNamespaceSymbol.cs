@@ -279,14 +279,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        internal override void GetExtensionMethods(ArrayBuilder<MethodSymbol> methods, string name, int arity, LookupOptions options)
-        {
-            foreach (NamespaceSymbol namespaceSymbol in _namespacesToMerge)
-            {
-                namespaceSymbol.GetExtensionMethods(methods, name, arity, options);
-            }
-        }
-
         internal override void GetExtensionMembers(ArrayBuilder<Symbol> members, string name, int arity, LookupOptions options)
         {
             foreach (NamespaceSymbol namespaceSymbol in _namespacesToMerge)

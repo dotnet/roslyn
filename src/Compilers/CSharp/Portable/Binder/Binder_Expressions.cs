@@ -5537,7 +5537,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var lookupResult = LookupResult.GetInstance();
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            this.LookupExtensionMethodsInSingleBinder(scope, lookupResult, rightName, arity, options, ref useSiteDiagnostics);
+            this.LookupExtensionMembersInSingleBinder(scope, lookupResult, rightName, arity, options, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
 
             if (!lookupResult.IsClear)
@@ -5546,6 +5546,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var members = ArrayBuilder<Symbol>.GetInstance();
                 bool wasError;
                 Symbol symbol = GetSymbolOrMethodOrPropertyGroup(lookupResult, node, rightName, arity, members, diagnostics, out wasError);
+                // PROTOTYPE: This might not be true for extension classes - LookupExtensionMembers returns other kinds of members.
                 Debug.Assert((object)symbol == null);
                 Debug.Assert(members.Count > 0);
                 methodGroup.PopulateWithExtensionMethods(left, members.SelectAsArray(s_toMethodSymbolFunc), typeArguments, lookupResult.Kind);
