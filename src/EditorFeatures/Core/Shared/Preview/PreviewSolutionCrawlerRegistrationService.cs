@@ -12,7 +12,7 @@ using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
 {
-    [ExportWorkspaceService(typeof(ISolutionCrawlerRegistrationService), WorkspaceKind.Preview), Shared]
+    //[ExportWorkspaceService(typeof(ISolutionCrawlerRegistrationService), WorkspaceKind.Preview), Shared]
     internal class PreviewSolutionCrawlerRegistrationService : ISolutionCrawlerRegistrationService
     {
         private static readonly ConditionalWeakTable<Workspace, CancellationTokenSource> s_cancellationTokens =

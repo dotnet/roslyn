@@ -659,7 +659,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem
                 return !project.TransitivelyReferences(this.Id);
             }
 
-            return true;
+            return false;
         }
 
         private bool TransitivelyReferences(ProjectId projectId)
