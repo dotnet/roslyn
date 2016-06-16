@@ -1,0 +1,21 @@
+While we do our best to design Roslyn to work well for a wide range of solutions from small to very large, sometimes the defaults we choose in the balance between performance, memory usage, and useful information don't work in some solutions.  In those cases, there are a number of options and in some cases registry keys that can be used to adjust things that may improve the experience.
+
+1. **Disabling Full Solution Diagnostics** Visual Studio can analyze your entire solution in the background in order to populate the error list.  This can provide a rich experience where you learn about errors before invoking Build, however, it does require significant resources.  You can disable this analysis at Tools\Options\Text Editor\C#\Advanced (or Basic instead of C#).
+
+![Full Solution Diagnostics Option]()
+
+2. **Disabling CodeLens** In order to populate the Code Lens information, the IDE basically performs a Find All References operation for each method as it scrolls onto the screen.  This is done in a separate process (named Microsoft.Alm.Shared.Remoting.RemoteContainer.dll), so that it won't affect Visual Studio's address space.  This process also runs at Below Normal priority so as not to interfere with VS responsiveness.  However, on memory constrained systems, systems with slow disk access, or on single core machines, it can still have an impact.  CodeLens can be disabled to Tools\Options\Text Editor\All Languages\CodeLens
+
+![CodeLens Option]()
+
+3. **Adjusting File Caching Threshold** We cache the syntax trees for files that have been analyzed in memory.  We have the ability to serialize these files to disk to avoid running out of memory, however, there is an optimization in place to reduce disk utilization by keeping the entire contents of small files (under 4KB) in memory.  Unfortunately, we've found that in some solutions with a large number of small files this can cause Visual Studio to run out of memory, since it's a 32-bit process, and therefore is limited to 4GB of memory on a 64-bit OS.  The file size at which this optimization takes effect can be controlled by changing the registry.
+To change it, create a registry key at `HKEY_CURRENT_USER\SOFTWARE\Microsoft\VisualStudio\14.0\Roslyn\Internal\Performance\Cache` , and within that, create a DWORD value named `RecoverableTreeLengthThreshold` and set its value to the maximum file size (in bytes) for which syntax trees should be cached.  The default value (used if the key doesn't exist) is `4096`.
+
+4. **Disabling Solution Crawler** Even with Full Solution Analysis disabled, there are various operations that will cause Visual Studio to process all of the files in your solution.  This analysis powers features like:
+
+  * Populating the task list with TODO comments
+  * Populating a cache of information for Find All References and Navigate To
+  * Determining whether files should be opened in the designer or code view,
+  * etc.
+
+For our own debugging purposes, we have a registry key that can disable this.  It *may* help relieve some issues in *very* large solutions.  However, doing so is also likely to prevent the above features from working as designed, so this should be changed only as a last resort.  To change it, create a registry key at `HKEY_CURRENT_USER\SOFTWARE\Microsoft\VisualStudio\14.0\Roslyn\Internal\OnOff\Components`, and within that, create a DWORD value named `Solution Crawler` and set its value to 0.
