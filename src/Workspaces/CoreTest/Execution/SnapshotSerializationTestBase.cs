@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             {
                 await VerifyAssetSerializationAsync<AnalyzerReference>(
                     service, solution, analyzerReference, WellKnownChecksumObjects.AnalyzerReference,
-                    (v, k, s) => new Asset<AnalyzerReference>(v, k, s.Serialize));
+                    (v, k, s) => new AnalyzerReferenceAsset(s, v, s.HostSerializationService.CreateChecksum(v, CancellationToken.None), k));
             }
 
             foreach (var documentId in projectId.AdditionalDocuments.Objects)

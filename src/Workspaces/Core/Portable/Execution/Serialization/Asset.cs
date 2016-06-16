@@ -3,6 +3,7 @@
 using System;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Roslyn.Utilities;
 
@@ -66,7 +67,6 @@ namespace Microsoft.CodeAnalysis.Execution
 
     internal sealed class MetadataReferenceAsset : Asset
     {
-        // TODO: change this to recoverable text rather than document state
         private readonly Serializer _serializer;
         private readonly MetadataReference _reference;
 
@@ -82,7 +82,27 @@ namespace Microsoft.CodeAnalysis.Execution
         public override Task WriteToAsync(ObjectWriter writer, CancellationToken cancellationToken)
         {
             _serializer.Serialize(_reference, writer, cancellationToken);
+            return SpecializedTasks.EmptyTask;
+        }
+    }
 
+    internal sealed class AnalyzerReferenceAsset : Asset
+    {
+        private readonly Serializer _serializer;
+        private readonly AnalyzerReference _reference;
+
+        public AnalyzerReferenceAsset(Serializer serializer, AnalyzerReference reference, Checksum checksum, string kind) :
+            base(checksum, WellKnownChecksumObjects.AnalyzerReference)
+        {
+            Contract.Requires(kind == WellKnownChecksumObjects.AnalyzerReference);
+
+            _serializer = serializer;
+            _reference = reference;
+        }
+
+        public override Task WriteToAsync(ObjectWriter writer, CancellationToken cancellationToken)
+        {
+            _serializer.Serialize(_reference, writer, cancellationToken);
             return SpecializedTasks.EmptyTask;
         }
     }

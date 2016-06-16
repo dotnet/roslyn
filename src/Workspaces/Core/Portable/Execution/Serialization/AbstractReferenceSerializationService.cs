@@ -20,12 +20,15 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
     {
         private static readonly ConditionalWeakTable<Metadata, object> s_lifetimeMap = new ConditionalWeakTable<Metadata, object>();
 
-        private readonly ITemporaryStorageService _service;
+        private readonly ITemporaryStorageService _storageService;
 
-        protected AbstractReferenceSerializationService(ITemporaryStorageService service)
+        protected AbstractReferenceSerializationService(ITemporaryStorageService storageService)
         {
-            _service = service;
+            _storageService = storageService;
         }
+
+        protected abstract string GetAnalyzerAssemblyPath(string analyzerPath);
+        protected abstract AnalyzerReference GetAnalyzerReference(string displayPath, string assemblyPath);
 
         public Checksum CreateChecksum(MetadataReference reference, CancellationToken cancellationToken)
         {
@@ -40,7 +43,14 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
 
         public Checksum CreateChecksum(AnalyzerReference reference, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            using (var stream = SerializableBytes.CreateWritableStream())
+            using (var writer = new ObjectWriter(stream, cancellationToken: cancellationToken))
+            {
+                WriteTo(reference, writer, cancellationToken);
+
+                stream.Position = 0;
+                return Checksum.Create(stream);
+            }
         }
 
         public void WriteTo(MetadataReference reference, ObjectWriter writer, CancellationToken cancellationToken)
@@ -75,8 +85,60 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
             throw ExceptionUtilities.UnexpectedValue(type);
         }
 
-        public abstract void WriteTo(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken);
-        public abstract AnalyzerReference ReadAnalyzerReferenceFrom(ObjectReader reader, CancellationToken cancellationToken);
+        public void WriteTo(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+        {
+            var file = reference as AnalyzerFileReference;
+            if (file != null)
+            {
+                writer.WriteString(nameof(AnalyzerFileReference));
+                writer.WriteInt32((int)SerializationKinds.FilePath);
+
+                writer.WriteString(reference.FullPath);
+                writer.WriteString(GetAnalyzerAssemblyPath(reference.FullPath));
+                return;
+            }
+
+            var image = reference as AnalyzerImageReference;
+            if (image != null)
+            {
+                // TODO: think a way to support this or a way to deal with this kind of situation.
+                throw new NotSupportedException(nameof(AnalyzerImageReference));
+            }
+
+            var unresolved = reference as UnresolvedAnalyzerReference;
+            if (unresolved != null)
+            {
+                writer.WriteString(nameof(UnresolvedAnalyzerReference));
+                writer.WriteString(reference.FullPath);
+                return;
+            }
+
+            throw ExceptionUtilities.UnexpectedValue(reference.GetType());
+        }
+
+        public AnalyzerReference ReadAnalyzerReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
+        {
+            var type = reader.ReadString();
+            if (type == nameof(AnalyzerFileReference))
+            {
+                var kind = (SerializationKinds)reader.ReadInt32();
+                Contract.ThrowIfFalse(kind == SerializationKinds.FilePath);
+
+                // display path
+                var displayPath = reader.ReadString();
+                var assemblyPath = reader.ReadString();
+
+                return GetAnalyzerReference(displayPath, assemblyPath);
+            }
+
+            if (type == nameof(UnresolvedAnalyzerReference))
+            {
+                var fullPath = reader.ReadString();
+                return new UnresolvedAnalyzerReference(fullPath);
+            }
+
+            throw ExceptionUtilities.UnexpectedValue(type);
+        }
 
         protected void WritePortableExecutableReferenceHeaderTo(PortableExecutableReference reference, SerializationKinds kind, ObjectWriter writer, CancellationToken cancellationToken)
         {
@@ -263,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
         {
             if (kind == SerializationKinds.Bits)
             {
-                storage = _service.CreateTemporaryStreamStorage(cancellationToken);
+                storage = _storageService.CreateTemporaryStreamStorage(cancellationToken);
                 using (var stream = SerializableBytes.CreateWritableStream())
                 {
                     CopyByteArrayToStream(reader, stream, cancellationToken);
@@ -279,7 +341,7 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
 
             if (kind == SerializationKinds.MemoryMapFile)
             {
-                var service2 = _service as ITemporaryStorageService2;
+                var service2 = _storageService as ITemporaryStorageService2;
                 Contract.ThrowIfNull(service2);
 
                 var name = reader.ReadString();

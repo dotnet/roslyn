@@ -112,7 +112,9 @@ namespace Microsoft.CodeAnalysis.Execution
         private Task<Asset> CreateAnalyzerReferenceAsync(AnalyzerReference reference, string kind, CancellationToken cancellationToken)
         {
             cancellationToken.ThrowIfCancellationRequested();
-            return Task.FromResult<Asset>(new Asset<AnalyzerReference>(reference, kind, _serializer.Serialize));
+
+            var checksum = _serializer.HostSerializationService.CreateChecksum(reference, cancellationToken);
+            return Task.FromResult<Asset>(new AnalyzerReferenceAsset(_serializer, reference, checksum, kind));
         }
 
         private async Task<Asset> CreateSourceTextAsync(TextDocumentState state, string kind, CancellationToken cancellationToken)

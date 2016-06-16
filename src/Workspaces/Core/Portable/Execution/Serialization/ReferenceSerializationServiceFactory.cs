@@ -1,13 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Composition;
 using System.Reflection;
-using System.Threading;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.Execution.Serialization
 {
@@ -17,7 +14,7 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
     [ExportWorkspaceServiceFactory(typeof(IReferenceSerializationService), layer: ServiceLayer.Default), Shared]
     internal class ReferenceSerializationServiceFactory : IWorkspaceServiceFactory
     {
-        private static readonly IAnalyzerAssemblyLoader s_loader = new AssemblyLoader();
+        private static readonly IAnalyzerAssemblyLoader s_loader = new NullLoader();
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
@@ -30,59 +27,20 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
             {
             }
 
-            public override void WriteTo(AnalyzerReference reference, ObjectWriter writer, CancellationToken cancellationToken)
+            protected override string GetAnalyzerAssemblyPath(string analyzerPath)
             {
                 // default implementation doesn't do shadow copying and doesn't guarantee snapshot
-                writer.WriteString(reference.FullPath);
-
-                var file = reference as AnalyzerFileReference;
-                if (file != null)
-                {
-                    writer.WriteString(nameof(AnalyzerFileReference));
-                    writer.WriteInt32((int)SerializationKinds.FilePath);
-                    return;
-                }
-
-                var image = reference as AnalyzerImageReference;
-                if (image != null)
-                {
-                    // TODO: think a way to support this or a way to deal with this kind of situation.
-                    throw new NotSupportedException(nameof(AnalyzerImageReference));
-                }
-
-                var unresolved = reference as UnresolvedAnalyzerReference;
-                if (unresolved != null)
-                {
-                    writer.WriteString(nameof(UnresolvedAnalyzerReference));
-                    return;
-                }
-
-                throw ExceptionUtilities.UnexpectedValue(reference.GetType());
+                return analyzerPath;
             }
 
-            public override AnalyzerReference ReadAnalyzerReferenceFrom(ObjectReader reader, CancellationToken cancellationToken)
+            protected override AnalyzerReference GetAnalyzerReference(string displayPath, string assemblyPath)
             {
-                var fullPath = reader.ReadString();
-
-                var type = reader.ReadString();
-                if (type == nameof(AnalyzerFileReference))
-                {
-                    var kind = (SerializationKinds)reader.ReadInt32();
-                    Contract.ThrowIfFalse(kind == SerializationKinds.FilePath);
-
-                    return new AnalyzerFileReference(fullPath, s_loader);
-                }
-
-                if (type == nameof(UnresolvedAnalyzerReference))
-                {
-                    return new UnresolvedAnalyzerReference(fullPath);
-                }
-
-                throw ExceptionUtilities.UnexpectedValue(type);
+                // default implementation doesn't do shadow copying and doesn't guarantee snapshot
+                return new AnalyzerFileReference(assemblyPath, s_loader);
             }
         }
 
-        private class AssemblyLoader : IAnalyzerAssemblyLoader
+        public sealed class NullLoader : IAnalyzerAssemblyLoader
         {
             public void AddDependencyLocation(string fullPath)
             {
@@ -90,7 +48,10 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
 
             public Assembly LoadFromPath(string fullPath)
             {
-                return Assembly.Load(new AssemblyName(fullPath));
+                // TODO: can we make workspace to support analyzer?
+                //       workspace is in a layer where we can't load analyzer assembly from file. 
+                //       can we use CoreClr analyzer loader here?
+                return null;
             }
         }
     }

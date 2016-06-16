@@ -68,6 +68,8 @@
     <Compile Include="..\..\..\Compilers\Shared\SimpleAnalyzerAssemblyLoader.cs">
       <Link>InternalUtilities\SimpleAnalyzerAssemblyLoader.cs</Link>
     </Compile>
+    <Compile Include="Execution\DesktopReferenceSerializationServiceFactory.cs" />
+    <Compile Include="Execution\SerializationAnalyzerAssemblyLoader.cs" />
     <Compile Include="Options\ExportOptionAttribute.cs" />
     <Compile Include="InternalUtilities\FilePathUtilities.cs" />
     <Compile Include="Log\EtwLogger.cs" />
