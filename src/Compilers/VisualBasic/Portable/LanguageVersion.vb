@@ -28,8 +28,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                      LanguageVersion.VisualBasic11,
                      LanguageVersion.VisualBasic12,
                      LanguageVersion.VisualBasic14,
-                    LanguageVersion.VBNext
-                    'LanguageVersion.VisualBasic15,
+                     LanguageVersion.VisualBasic15,
+                     LanguageVersion.VBNext
                     Return True
             End Select
 
@@ -50,8 +50,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return "12.0"
                 Case LanguageVersion.VisualBasic14
                     Return "14.0"
-                'Case LanguageVersion.VisualBasic15
-                '    Return "15.0"
+                Case LanguageVersion.VisualBasic15
+                    Return "15.0"
                 Case LanguageVersion.VBNext
                     Return "VBNext"
                 Case Else

@@ -1421,13 +1421,13 @@ ResolutionComplete:
         '''      7.	Otherwise, given any two members of the set, M and N, apply the following tie-breaking rules, in order.
         ''' </summary>
         Private Shared Function ApplyTieBreakingRules(
-            candidates As ArrayBuilder(Of CandidateAnalysisResult),
-            bucket As ArrayBuilder(Of Integer),
-            arguments As ImmutableArray(Of BoundExpression),
-            delegateReturnType As TypeSymbol,
-            binder As Binder,
-            <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
-        ) As Integer
+                                                       candidates As ArrayBuilder(Of CandidateAnalysisResult),
+                                                       bucket As ArrayBuilder(Of Integer),
+                                                       arguments As ImmutableArray(Of BoundExpression),
+                                                       delegateReturnType As TypeSymbol,
+                                                       binder As Binder,
+                                     <[In], Out> ByRef useSiteDiagnostics As HashSet(Of DiagnosticInfo)
+                                                     ) As Integer
             Dim leftWins As Boolean
             Dim rightWins As Boolean
             Dim applicableCandidates As Integer = bucket.Count

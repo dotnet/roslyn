@@ -136,7 +136,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Debug.Assert(initializer IsNot Nothing)
                     If initializer.Kind = SyntaxKind.EqualsValue Then
                         Dim parameterSymbol = DirectCast(Me.RootBinder.ContainingMember, SourceComplexParameterSymbol)
-                        boundInitializer = binder.BindParameterDefaultValue(parameterSymbol.Type, DirectCast(initializer, EqualsValueSyntax), diagnostics, constValue:=Nothing)
+                        boundInitializer = binder.BindParameterDefaultValue(
+                                                                             parameterSymbol.Type,
+                                                                             DirectCast(initializer, EqualsValueSyntax),
+                                                                             diagnostics,
+                                                                             constValue:=Nothing
+                                                                           )
 
                         Dim expressionInitializer = TryCast(boundInitializer, BoundExpression)
                         If expressionInitializer IsNot Nothing Then

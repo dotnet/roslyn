@@ -4382,7 +4382,7 @@ BC35000: Requested operation is not available because the runtime library functi
 ]]></file>
                            </compilation>
             Dim reference1 = CompileIL(sources1, appendDefaultHeader:=False, embedInteropTypes:=True)
-            CompileAndVerify(sources2, additionalRefs:={reference1}, symbolValidator:=
+            CompileAndVerify(sources2, additionalRefs:={reference1}, parseOptions:=MyParseOptions, symbolValidator:=
                                                 Sub([module] As ModuleSymbol)
                                                     DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
                                                     Dim ia = [module].GlobalNamespace.GetMember(Of NamedTypeSymbol)("IA")

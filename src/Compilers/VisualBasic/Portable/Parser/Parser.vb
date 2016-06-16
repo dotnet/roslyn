@@ -4626,16 +4626,16 @@ checkNullable:
             End If
 
             Dim initializer As EqualsValueSyntax = Nothing
-            If equals IsNot Nothing Then
-                If value IsNot Nothing Then
 
-                    If value.ContainsDiagnostics Then
-                        value = ResyncAt(value, SyntaxKind.CommaToken, SyntaxKind.CloseParenToken)
-                    End If
+            If value IsNot Nothing AndAlso (Not value.IsMissing AndAlso Not equals.IsMissing) Then
 
-                    initializer = SyntaxFactory.EqualsValue(equals, value)
+                If value.ContainsDiagnostics Then
+                    value = ResyncAt(value, SyntaxKind.CommaToken, SyntaxKind.CloseParenToken)
                 End If
+                initializer = SyntaxFactory.EqualsValue(equals, value)
+
             End If
+            'End If
 
             Return SyntaxFactory.Parameter(attributes, modifiers, paramName, optionalAsClause, initializer)
         End Function
