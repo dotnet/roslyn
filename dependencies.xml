@@ -4,7 +4,7 @@
 -->
 <dependencies>
   <repo name="corefx" channel="master" commonVersionSuffix="CoreFXVersionSuffix"/>
-  <repo name="coreclr" channel="master" commonVersionSuffix="CoreClrVersionSuffix" />
+  <repo name="coreclr" channel="release/1.0.0" commonVersionSuffix="CoreClrVersionSuffix" />
   <repo name="projectk-tfs" channel="master" />
   <repo name="symreader" channel="master" />
 </dependencies>
