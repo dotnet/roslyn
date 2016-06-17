@@ -9,36 +9,37 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Microsoft.VisualStudio.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
+namespace Microsoft.CodeAnalysis.Editor.Implementation.Diagnostics
 {
     /// <summary>
-    /// This factory is called to create the view service that will manage line separators.
+    /// This factory is called to create the view service that will manage suggestion adornments.
     /// </summary>
     [Export(typeof(IWpfTextViewCreationListener))]
     [ContentType(ContentTypeNames.RoslynContentType)]
     [TextViewRole(PredefinedTextViewRoles.Document)]
-    internal class LineSeparatorAdornmentManagerProvider :
-        AbstractAdornmentManagerProvider<LineSeparatorTag>
+    internal class SuggestionAdornmentManagerProvider :
+        AbstractAdornmentManagerProvider<SuggestionTag>
     {
-        private const string LayerName = "RoslynLineSeparator";
+        private const string LayerName = "RoslynSuggestions";
 
         [Export]
         [Name(LayerName)]
         [ContentType(ContentTypeNames.RoslynContentType)]
-        [Order(After = PredefinedAdornmentLayers.Selection, Before = PredefinedAdornmentLayers.Squiggle)]
+        [Order(After = PredefinedAdornmentLayers.Selection)]
+        [Order(After = PredefinedAdornmentLayers.Squiggle)]
 #pragma warning disable 0169
         private readonly AdornmentLayerDefinition _lineSeparatorLayer;
 #pragma warning restore 0169
 
         [ImportingConstructor]
-        public LineSeparatorAdornmentManagerProvider(
+        public SuggestionAdornmentManagerProvider(
             IViewTagAggregatorFactoryService tagAggregatorFactoryService,
             [ImportMany] IEnumerable<Lazy<IAsynchronousOperationListener, FeatureMetadata>> asyncListeners)
             : base(tagAggregatorFactoryService, asyncListeners)
         {
         }
 
-        protected override string FeatureAttributeName => FeatureAttribute.LineSeparators;
+        protected override string FeatureAttributeName => FeatureAttribute.ErrorSquiggles;
         protected override string AdornmentLayerName => LayerName;
     }
 }
