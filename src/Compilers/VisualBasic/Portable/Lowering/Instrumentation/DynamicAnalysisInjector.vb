@@ -635,67 +635,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             return statementFactory.Block(ImmutableArray.Create(AddAnalysisPoint(SyntaxForSpan(original), statementFactory), rewritten));
         }
 
-        private BoundStatement AddAnalysisPoint(CSharpSyntaxNode syntaxForSpan, SyntheticBoundNodeFactory statementFactory)
-        {
-            // Add an entry in the spans array.
+        
 
-            Location location = syntaxForSpan.GetLocation();
-            FileLinePositionSpan spanPosition = location.GetMappedLineSpan();
-            string path = spanPosition.Path;
-            if (path.Length == 0)
-            {
-                path = syntaxForSpan.SyntaxTree.FilePath;
-            }
-
-            int spansIndex = _spansBuilder.Count;
-            _spansBuilder.Add(new SourceSpan(_debugDocumentProvider.Invoke(path, ""), spanPosition.StartLinePosition.Line, spanPosition.StartLinePosition.Character, spanPosition.EndLinePosition.Line, spanPosition.EndLinePosition.Character));
-
-            // Generate "_payload[pointIndex] = true".
-
-            BoundArrayAccess payloadCell = statementFactory.ArrayAccess(statementFactory.Local(_methodPayload), statementFactory.Literal(spansIndex));
-            return statementFactory.Assignment(payloadCell, statementFactory.Literal(true));
-        }
-
-        private static CSharpSyntaxNode SyntaxForSpan(BoundStatement statement)
-        {
-            CSharpSyntaxNode syntaxForSpan;
-
-            switch (statement.Kind)
-            {
-                case BoundKind.IfStatement:
-                    syntaxForSpan = ((BoundIfStatement)statement).Condition.Syntax;
-                    break;
-                case BoundKind.WhileStatement:
-                    syntaxForSpan = ((BoundWhileStatement)statement).Condition.Syntax;
-                    break;
-                case BoundKind.ForEachStatement:
-                    syntaxForSpan = ((BoundForEachStatement)statement).Expression.Syntax;
-                    break;
-                case BoundKind.DoStatement:
-                    syntaxForSpan = ((BoundDoStatement)statement).Condition.Syntax;
-                    break;
-                case BoundKind.UsingStatement:
-                    {
-                        BoundUsingStatement usingStatement = (BoundUsingStatement)statement;
-                        syntaxForSpan = ((BoundNode)usingStatement.ExpressionOpt ?? usingStatement.DeclarationsOpt).Syntax;
-                        break;
-                    }
-                case BoundKind.FixedStatement:
-                    syntaxForSpan = ((BoundFixedStatement)statement).Declarations.Syntax;
-                    break;
-                case BoundKind.LockStatement:
-                    syntaxForSpan = ((BoundLockStatement)statement).Argument.Syntax;
-                    break;
-                case BoundKind.SwitchStatement:
-                    syntaxForSpan = ((BoundSwitchStatement)statement).Expression.Syntax;
-                    break;
-                default:
-                    syntaxForSpan = statement.Syntax;
-                    break;
-            }
-
-            return syntaxForSpan;
-        }
+        
         
        
 
@@ -704,6 +646,51 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     }
 }
 #End If
+        Private Function AddAnalysisPoint(syntaxForSpan As VisualBasicSyntaxNode, statementFactory As SyntheticBoundNodeFactory) As BoundStatement
+            ' Add an entry in the spans array.
+
+            Dim location As Location = syntaxForSpan.GetLocation()
+            Dim spanPosition As FileLinePositionSpan = location.GetMappedLineSpan()
+            Dim path As String = spanPosition.Path
+            If path.Length = 0 Then
+                path = syntaxForSpan.SyntaxTree.FilePath
+            End If
+
+            Dim spansIndex As Integer = _spansBuilder.Count
+            _spansBuilder.Add(New SourceSpan(_debugDocumentProvider.Invoke(path, ""), spanPosition.StartLinePosition.Line, spanPosition.StartLinePosition.Character, spanPosition.EndLinePosition.Line, spanPosition.EndLinePosition.Character))
+
+            ' Generate "_payload(pointIndex) = True".
+
+            Dim payloadCell As BoundArrayAccess = statementFactory.ArrayAccess(statementFactory.Local(_methodPayload, False), True, statementFactory.Literal(spansIndex))
+            Return statementFactory.Assignment(payloadCell, statementFactory.Literal(True))
+        End Function
+
+        Private Shared Function SyntaxForSpan(statement As BoundStatement) As VisualBasicSyntaxNode
+            SyntaxForSpan = statement.Syntax
+
+            Select Case statement.Kind
+                Case BoundKind.IfStatement
+                    SyntaxForSpan = DirectCast(statement, BoundIfStatement).Condition.Syntax
+                Case BoundKind.WhileStatement
+                    SyntaxForSpan = DirectCast(statement, BoundWhileStatement).Condition.Syntax
+                Case BoundKind.ForEachStatement
+                    SyntaxForSpan = DirectCast(statement, BoundForEachStatement).Collection.Syntax
+                Case BoundKind.DoLoopStatement
+                    Dim condition As BoundExpression = DirectCast(statement, BoundDoLoopStatement).ConditionOpt
+                    If condition IsNot Nothing Then
+                        SyntaxForSpan = condition.Syntax
+                    End If
+                Case BoundKind.UsingStatement
+                    Dim usingStatement As BoundUsingStatement = DirectCast(statement, BoundUsingStatement)
+                    SyntaxForSpan = If(usingStatement.ResourceExpressionOpt IsNot Nothing, DirectCast(usingStatement.ResourceExpressionOpt, BoundNode), usingStatement).Syntax
+                Case BoundKind.SyncLockStatement
+                    SyntaxForSpan = DirectCast(statement, BoundSyncLockStatement).LockExpression.Syntax
+                Case BoundKind.SelectStatement
+                    SyntaxForSpan = DirectCast(statement, BoundSelectStatement).ExpressionStatement.Expression.Syntax
+                Case Else
+                    SyntaxForSpan = statement.Syntax
+            End Select
+        End Function
 
         Private Shared Function MethodHasExplicitBlock(method As MethodSymbol) As Boolean
             Dim asSourceMethod As SourceMethodSymbol = TryCast(method.OriginalDefinition, SourceMethodSymbol)
