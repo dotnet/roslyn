@@ -2839,7 +2839,7 @@ namespace Microsoft.CodeAnalysis
 
                 // System_Text_Utf8_Utf8String__ctor
                 (byte)MemberFlags.Constructor,                                                                              // Flags
-                (byte)WellKnownType.System_Text_Utf8_Utf8String,                                                                      // DeclaringTypeId
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Text_Utf8_Utf8String - WellKnownType.ExtSentinel),// DeclaringTypeId
                 0,                                                                                                          // Arity
                     1,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
@@ -2847,7 +2847,7 @@ namespace Microsoft.CodeAnalysis
 
                 // System_Text_Utf8_Utf8String__ctor2
                 (byte)MemberFlags.Constructor,                                                                              // Flags
-                (byte)WellKnownType.System_Text_Utf8_Utf8String,                                                                      // DeclaringTypeId
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Text_Utf8_Utf8String - WellKnownType.ExtSentinel),// DeclaringTypeId
                 0,                                                                                                          // Arity
                     2,                                                                                                      // Method Signature
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,

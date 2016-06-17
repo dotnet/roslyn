@@ -260,7 +260,7 @@ namespace Microsoft.CodeAnalysis
         System_ValueTuple_T7,
         System_ValueTuple_TRest,
 
-        System_UTF8String,
+        System_Text_Utf8_Utf8String,
 
         Available,
         Last = Available - 1,
@@ -514,9 +514,8 @@ namespace Microsoft.CodeAnalysis
 
             "System.ValueTuple`7",
             "System.ValueTuple`8",
-            "System.IFormatProvider",
 
-            "System.UTF8String"
+            "System.Text.Utf8.Utf8String"
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);
