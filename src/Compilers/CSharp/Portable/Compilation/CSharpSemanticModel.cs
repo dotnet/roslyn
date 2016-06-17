@@ -873,7 +873,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         public Conversion GetSpeculativeConversion(int position, ExpressionSyntax expression, SpeculativeBindingOption bindingOption)
         {
-            var csnode = (CSharpSyntaxNode)expression;
             var info = this.GetSpeculativeTypeInfoWorker(position, expression, bindingOption);
             return info.ImplicitConversion;
         }
@@ -1850,7 +1849,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     convertedType = convertedLiteral.Type;
                     conversion = convertedType.Equals(type, ignoreDynamic: true) ?
                                         Conversion.Identity :
-                                        Conversion.ImplicitTuple;
+                                        Conversion.ImplicitTupleLiteral;
                 }
                 else if (highestBoundExpr != null && highestBoundExpr != boundExpr && highestBoundExpr.HasExpressionType())
                 {

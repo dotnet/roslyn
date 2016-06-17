@@ -1,3 +1,4 @@
+*REMOVED*abstract Microsoft.CodeAnalysis.Editing.SyntaxGenerator.MemberAccessExpression(Microsoft.CodeAnalysis.SyntaxNode expression, Microsoft.CodeAnalysis.SyntaxNode memberName) -> Microsoft.CodeAnalysis.SyntaxNode
 Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>
 Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.CodeStyleOption(T value, Microsoft.CodeAnalysis.CodeStyle.NotificationOption notification) -> void
 Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.Notification.get -> Microsoft.CodeAnalysis.CodeStyle.NotificationOption
@@ -29,9 +30,9 @@ override Microsoft.CodeAnalysis.Options.DocumentOptionSet.GetOption<T>(Microsoft
 override Microsoft.CodeAnalysis.Options.DocumentOptionSet.WithChangedOption(Microsoft.CodeAnalysis.Options.OptionKey optionAndLanguage, object value) -> Microsoft.CodeAnalysis.Options.OptionSet
 override Microsoft.CodeAnalysis.Options.DocumentOptionSet.WithChangedOption<T>(Microsoft.CodeAnalysis.Options.Option<T> option, T value) -> Microsoft.CodeAnalysis.Options.OptionSet
 override Microsoft.CodeAnalysis.Options.DocumentOptionSet.WithChangedOption<T>(Microsoft.CodeAnalysis.Options.PerLanguageOption<T> option, string language, T value) -> Microsoft.CodeAnalysis.Options.OptionSet
-static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.TryParse(string value, out Microsoft.CodeAnalysis.Editing.DeclarationModifiers modifiers) -> bool
 static Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.Default.get -> Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>
 static Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>.FromXElement(System.Xml.Linq.XElement element) -> Microsoft.CodeAnalysis.CodeStyle.CodeStyleOption<T>
+static Microsoft.CodeAnalysis.Editing.DeclarationModifiers.TryParse(string value, out Microsoft.CodeAnalysis.Editing.DeclarationModifiers modifiers) -> bool
 static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.NamingPreferences.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<string>
 static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.QualifyEventAccess.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>
 static Microsoft.CodeAnalysis.Simplification.SimplificationOptions.QualifyFieldAccess.get -> Microsoft.CodeAnalysis.Options.PerLanguageOption<bool>
@@ -45,4 +46,5 @@ static readonly Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Error -> Mic
 static readonly Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Info -> Microsoft.CodeAnalysis.CodeStyle.NotificationOption
 static readonly Microsoft.CodeAnalysis.CodeStyle.NotificationOption.None -> Microsoft.CodeAnalysis.CodeStyle.NotificationOption
 static readonly Microsoft.CodeAnalysis.CodeStyle.NotificationOption.Warning -> Microsoft.CodeAnalysis.CodeStyle.NotificationOption
+virtual Microsoft.CodeAnalysis.Editing.SyntaxGenerator.MemberAccessExpression(Microsoft.CodeAnalysis.SyntaxNode expression, Microsoft.CodeAnalysis.SyntaxNode memberName) -> Microsoft.CodeAnalysis.SyntaxNode
 virtual Microsoft.CodeAnalysis.Workspace.UpdateGeneratedDocuments(Microsoft.CodeAnalysis.ProjectId projectId, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentInfo> documentsRemoved, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.DocumentInfo> documentsAdded) -> void

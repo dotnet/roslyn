@@ -124,6 +124,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Enter key behavior:.
+        /// </summary>
+        internal static string Enter_key_behavior_Title {
+            get {
+                return ResourceManager.GetString("Enter_key_behavior_Title", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Place &quot;finally&quot; on new line.
         /// </summary>
         internal static string FinallyOnNewLine {
@@ -385,6 +394,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to _Always add new line on enter.
+        /// </summary>
+        internal static string Option_Always_add_new_line_on_enter {
+            get {
+                return ResourceManager.GetString("Option_Always_add_new_line_on_enter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to _Show completion list after a character is typed.
         /// </summary>
         internal static string Option_BringUpOnIdentifier {
@@ -484,6 +502,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to _Highlight matching portions of completion list items.
+        /// </summary>
+        internal static string Option_Highlight_matching_portions_of_completion_list_items {
+            get {
+                return ResourceManager.GetString("Option_Highlight_matching_portions_of_completion_list_items", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Highlighting.
         /// </summary>
         internal static string Option_Highlighting {
@@ -502,11 +529,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to _Add new line on enter after end of fully typed word.
+        ///   Looks up a localized string similar to _Never add new line on enter.
         /// </summary>
-        internal static string Option_InsertNewlineOnEnterWithWholeWord {
+        internal static string Option_Never_add_new_line_on_enter {
             get {
-                return ResourceManager.GetString("Option_InsertNewlineOnEnterWithWholeWord", resourceCulture);
+                return ResourceManager.GetString("Option_Never_add_new_line_on_enter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Only add new line on enter after end of fully typed word.
+        /// </summary>
+        internal static string Option_Only_add_new_line_on_enter_with_whole_word {
+            get {
+                return ResourceManager.GetString("Option_Only_add_new_line_on_enter_with_whole_word", resourceCulture);
             }
         }
         
@@ -588,6 +624,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Option_SelectionInCompletionList {
             get {
                 return ResourceManager.GetString("Option_SelectionInCompletionList", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show completion item _filters.
+        /// </summary>
+        internal static string Option_Show_completion_item_filters {
+            get {
+                return ResourceManager.GetString("Option_Show_completion_item_filters", resourceCulture);
             }
         }
         

@@ -381,9 +381,6 @@
   <data name="Option_BringUpOnIdentifier" xml:space="preserve">
     <value>_Show completion list after a character is typed</value>
   </data>
-  <data name="Option_InsertNewlineOnEnterWithWholeWord" xml:space="preserve">
-    <value>_Add new line on enter after end of fully typed word</value>
-  </data>
   <data name="Option_ShowKeywords" xml:space="preserve">
     <value>Place _keywords in completion lists</value>
   </data>
@@ -458,5 +455,23 @@
   </data>
   <data name="Option_Split_string_literals_on_enter" xml:space="preserve">
     <value>Split string literals on _enter</value>
+  </data>
+  <data name="Option_Highlight_matching_portions_of_completion_list_items" xml:space="preserve">
+    <value>_Highlight matching portions of completion list items</value>
+  </data>
+  <data name="Option_Show_completion_item_filters" xml:space="preserve">
+    <value>Show completion item _filters</value>
+  </data>
+  <data name="Enter_key_behavior_Title" xml:space="preserve">
+    <value>Enter key behavior:</value>
+  </data>
+  <data name="Option_Only_add_new_line_on_enter_with_whole_word" xml:space="preserve">
+    <value>_Only add new line on enter after end of fully typed word</value>
+  </data>
+    <data name="Option_Always_add_new_line_on_enter" xml:space="preserve">
+    <value>_Always add new line on enter</value>
+  </data>
+    <data name="Option_Never_add_new_line_on_enter" xml:space="preserve">
+    <value>_Never add new line on enter</value>
   </data>
 </root>

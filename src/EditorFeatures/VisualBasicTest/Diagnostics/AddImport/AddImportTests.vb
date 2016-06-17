@@ -3,6 +3,7 @@
 Option Strict Off
 
 Imports System.Threading.Tasks
+Imports Microsoft.CodeAnalysis.CodeActions
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics
@@ -24,6 +25,33 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.CodeActions.AddImp
             Await TestAsync(
 NewLines("Class Class1 \n Dim v As [|SomeClass1|] \n End Class \n Namespace SomeNamespace \n Public Class SomeClass1 \n End Class \n End Namespace"),
 NewLines("Imports SomeNamespace \n Class Class1 \n Dim v As SomeClass1 \n End Class \n Namespace SomeNamespace \n Public Class SomeClass1 \n End Class \n End Namespace"))
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>
+        <WorkItem(11241, "https://github.com/dotnet/roslyn/issues/11241")>
+        Public Async Function TestAddImportWithCaseChange() As Task
+            Await TestAsync(
+"Namespace N1
+    Public Class TextBox
+    End Class
+End Namespace
+
+Class Class1
+    Inherits [|Textbox|]
+
+End Class",
+"
+Imports N1
+
+Namespace N1
+    Public Class TextBox
+    End Class
+End Namespace
+
+Class Class1
+    Inherits TextBox
+
+End Class", priority:=CodeActionPriority.Medium)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsAddImport)>

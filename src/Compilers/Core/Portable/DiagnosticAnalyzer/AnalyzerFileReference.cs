@@ -185,7 +185,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
                 catch (Exception e)
                 {
-                    this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer, e.Message, e, typeName));
+                    AnalyzerLoadFailed?.Invoke(this, CreateAnalyzerFailedArgs(e, typeName));
                     reportedError = true;
                     continue;
                 }
@@ -199,7 +199,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
                 catch (Exception e)
                 {
-                    this.AnalyzerLoadFailed?.Invoke(this, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer, e.Message, e, typeName));
+                    AnalyzerLoadFailed?.Invoke(this, CreateAnalyzerFailedArgs(e, typeName));
                     reportedError = true;
                     continue;
                 }
@@ -211,6 +211,21 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
 
             return analyzers.ToImmutable();
+        }
+
+        private static AnalyzerLoadFailureEventArgs CreateAnalyzerFailedArgs(Exception e, string typeNameOpt = null)
+        {
+            // unwrap:
+            e = (e as TargetInvocationException) ?? e;
+
+            // remove all line breaks from the exception message
+            string message = e.Message.Replace("\r", "").Replace("\n", "");
+
+            var errorCode = (typeNameOpt != null) ?
+                AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer : 
+                AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer; 
+
+            return new AnalyzerLoadFailureEventArgs(errorCode, message, e, typeNameOpt);
         }
 
         internal void AddGenerators(ImmutableArray<SourceGenerator>.Builder builder, string language)
@@ -403,7 +418,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
                 catch (Exception e)
                 {
-                    _reference.AnalyzerLoadFailed?.Invoke(_reference, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer, e.Message, e));
+                    _reference.AnalyzerLoadFailed?.Invoke(_reference, CreateAnalyzerFailedArgs(e));
                     return;
                 }
 
@@ -454,7 +469,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                 }
                 catch (Exception e)
                 {
-                    _reference.AnalyzerLoadFailed?.Invoke(_reference, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToLoadAnalyzer, e.Message));
+                    _reference.AnalyzerLoadFailed?.Invoke(_reference, CreateAnalyzerFailedArgs(e));
                     return;
                 }
 
@@ -501,7 +516,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
                     catch (Exception e)
                     {
-                        _reference.AnalyzerLoadFailed?.Invoke(_reference, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer, e.Message, e, typeName));
+                        _reference.AnalyzerLoadFailed?.Invoke(_reference, CreateAnalyzerFailedArgs(e, typeName));
                         reportedError = true;
                         continue;
                     }
@@ -515,7 +530,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics
                     }
                     catch (Exception e)
                     {
-                        _reference.AnalyzerLoadFailed?.Invoke(_reference, new AnalyzerLoadFailureEventArgs(AnalyzerLoadFailureEventArgs.FailureErrorCode.UnableToCreateAnalyzer, e.Message, e, typeName));
+                        _reference.AnalyzerLoadFailed?.Invoke(_reference, CreateAnalyzerFailedArgs(e, typeName));
                         reportedError = true;
                         continue;
                     }

@@ -12,6 +12,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         VisualBasic11 = 11
         VisualBasic12 = 12
         VisualBasic14 = 14
+        VisualBasic15 = 15
     End Enum
 
     Friend Module LanguageVersionEnumBounds
@@ -23,7 +24,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     LanguageVersion.VisualBasic10,
                     LanguageVersion.VisualBasic11,
                     LanguageVersion.VisualBasic12,
-                    LanguageVersion.VisualBasic14
+                    LanguageVersion.VisualBasic14,
+                    LanguageVersion.VisualBasic15
 
                     Return True
             End Select
@@ -45,6 +47,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Return "12.0"
                 Case LanguageVersion.VisualBasic14
                     Return "14.0"
+                Case LanguageVersion.VisualBasic15
+                    Return "15.0"
                 Case Else
                     Throw ExceptionUtilities.UnexpectedValue(value)
             End Select

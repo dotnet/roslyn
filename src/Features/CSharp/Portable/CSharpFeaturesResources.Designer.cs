@@ -80,6 +80,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Autoselect disabled due to namespace declaration..
+        /// </summary>
+        internal static string AutoselectDisabledDueToNamespaceDeclaration {
+            get {
+                return ResourceManager.GetString("AutoselectDisabledDueToNamespaceDeclaration", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Autoselect disabled due to possible explicitly named anonymous type member creation..
         /// </summary>
         internal static string AutoselectDisabledDueToPossibleExplicitlyNamesAnonTypeMemCreation {
@@ -562,6 +571,15 @@ namespace Microsoft.CodeAnalysis.CSharp {
         internal static string NameCanBeSimplified {
             get {
                 return ResourceManager.GetString("NameCanBeSimplified", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &lt;namespace name&gt;.
+        /// </summary>
+        internal static string NamespaceName {
+            get {
+                return ResourceManager.GetString("NamespaceName", resourceCulture);
             }
         }
         

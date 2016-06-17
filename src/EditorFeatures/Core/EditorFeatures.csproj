@@ -93,9 +93,9 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.VisualBasic.Repl" />
+    <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Editor.UI.Wpf" />
-    <InternalsVisibleToTest Include="Roslyn.Hosting.Diagnostics" />
-    <InternalsVisibleToTest Include="Roslyn.VisualStudio.DiagnosticsWindow" />
+    <InternalsVisibleTo Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleToTest Include="Roslyn.InteractiveWindow.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
@@ -274,9 +274,11 @@
     <Compile Include="Implementation\Intellisense\Completion\OptionSetExtensions.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\ClassificationTags.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\ImageMonikers.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\Presentation\IVisualStudioCompletionSet.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\Presentation\Roslyn14CompletionSet.cs" />
+    <Compile Include="Implementation\Intellisense\Completion\Presentation\VisualStudio14CompletionSet.cs" />
     <Compile Include="Implementation\Intellisense\Completion\SimplePresentationItem.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\ICompletionSetFactory.cs" />
-    <Compile Include="Implementation\Intellisense\Completion\Presentation\RoslynCompletionSet.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\ICompletionSet.cs" />
     <Compile Include="Implementation\Intellisense\Completion\Presentation\VisualStudio14CompletionSetFactory.cs" />
     <Compile Include="Implementation\Interactive\IAbstractResetInteractiveCommand.cs" />

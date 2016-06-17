@@ -1,10 +1,8 @@
 ﻿{
-  "dependencies": { 
-    "System.AppContext": "4.1.0-rc3-24102-00"
-  },
+  "dependencies": {},
   "frameworks": {
-    "dnxcore50": {
-      "imports": "portable-net452"
+    "NETCoreApp1.0": {
+      "imports": ["portable-net452", "dotnet"]
     }
   },
   "runtimes": {

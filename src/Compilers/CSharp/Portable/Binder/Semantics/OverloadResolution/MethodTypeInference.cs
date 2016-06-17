@@ -97,6 +97,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         private Dependency[,] _dependencies; // Initialized lazily
         private bool _dependenciesDirty;
 
+        /// <summary>
+        /// For error recovery, we allow a mismatch between the number of arguments and parameters
+        /// during type inference. This sometimes enables inferring the type for a lambda parameter.
+        /// </summary>
+        private int NumberArgumentsToProcess => System.Math.Min(_arguments.Length, _formalParameterTypes.Length);
+
         public static MethodTypeInferenceResult Infer(
             Binder binder,
             ImmutableArray<TypeParameterSymbol> methodTypeParameters,
@@ -524,14 +530,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             Debug.Assert(!_formalParameterTypes.IsDefault);
             Debug.Assert(!_arguments.IsDefault);
-            Debug.Assert(_arguments.Length == _formalParameterTypes.Length);
 
             // We expect that we have been handed a list of arguments and a list of the 
             // formal parameter types they correspond to; all the details about named and 
             // optional parameters have already been dealt with.
 
             // SPEC: For each of the method arguments Ei:
-            for (int arg = 0; arg < _arguments.Length; arg++)
+            for (int arg = 0, length = this.NumberArgumentsToProcess; arg < length; arg++)
             {
                 var argument = _arguments[arg];
 
@@ -645,7 +650,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //      then T becomes int and U becomes string
             if (target.Kind != SymbolKind.NamedType)
             {
-                // tuples can only cast to tuples or tuple underlying types.
+                // tuples can only match to tuples or tuple underlying types.
                 return;
             }
 
@@ -659,30 +664,18 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var destTypes = ArrayBuilder<TypeSymbol>.GetInstance(sourceArguments.Length);
-            TupleTypeSymbol.AddElementTypes(destination, destTypes);
+            var destTypes = destination.GetElementTypesOfTupleOrCompatible();
+            Debug.Assert(sourceArguments.Length == destTypes.Length);
 
-            try
+            // NOTE: we are losing tuple element names when recursing into argument expressions.
+            //       that is ok, because we are inferring type parameters used in the matching elements, 
+            //       This is not the situation where entire tuple literal is used to infer a single type param
+
+            for (int i = 0; i < sourceArguments.Length; i++)
             {
-                if (sourceArguments.Length != destTypes.Count)
-                {
-                    return;
-                }
-
-                // NOTE: we are losing tuple element names when recursing into argument expressions.
-                //       that is ok, because we are inferring type parameters used in the matching elements, 
-                //       This is not the situation where entire tuple literal is used to infer a single type param
-
-                for (int i = 0; i < sourceArguments.Length; i++)
-                {
-                    var sourceArgument = sourceArguments[i];
-                    var destType = destTypes[i];
-                    MakeExplicitParameterTypeInferences(binder, sourceArgument, destType, isExactInference, ref useSiteDiagnostics);
-                }
-            }
-            finally
-            {
-                destTypes.Free();
+                var sourceArgument = sourceArguments[i];
+                var destType = destTypes[i];
+                MakeExplicitParameterTypeInferences(binder, sourceArgument, destType, isExactInference, ref useSiteDiagnostics);
             }
         }
 
@@ -795,7 +788,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: where the output types contain unfixed type parameters but the input
             // SPEC: types do not, an output type inference is made from Ei to Ti.
 
-            for (int arg = 0; arg < _arguments.Length; arg++)
+            for (int arg = 0, length = this.NumberArgumentsToProcess; arg < length; arg++)
             {
                 var formalType = _formalParameterTypes[arg];
                 var argument = _arguments[arg];
@@ -827,7 +820,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             if (formalType.Kind != SymbolKind.NamedType)
             {
-                // tuples can only cast to tuples or tuple underlying types.
+                // tuples can only match to tuples or tuple underlying types.
                 return;
             }
 
@@ -842,26 +835,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
-            var destTypes = ArrayBuilder<TypeSymbol>.GetInstance(sourceArguments.Length);
-            TupleTypeSymbol.AddElementTypes(destination, destTypes);
+            var destTypes = destination.GetElementTypesOfTupleOrCompatible();
+            Debug.Assert(sourceArguments.Length == destTypes.Length);
 
-            try
+            for (int i = 0; i < sourceArguments.Length; i++)
             {
-                if (sourceArguments.Length != destTypes.Count)
-                {
-                    return;
-                }
-
-                for (int i = 0; i < sourceArguments.Length; i++)
-                {
-                    var sourceArgument = sourceArguments[i];
-                    var destType = destTypes[i];
-                    MakeOutputTypeInferences(binder, sourceArgument, destType, ref useSiteDiagnostics);
-                }
-            }
-            finally
-            {
-                destTypes.Free();
+                var sourceArgument = sourceArguments[i];
+                var destType = destTypes[i];
+                MakeOutputTypeInferences(binder, sourceArgument, destType, ref useSiteDiagnostics);
             }
         }
 
@@ -1067,7 +1048,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(IsUnfixed(iParam));
             Debug.Assert(IsUnfixed(jParam));
 
-            for (int iArg = 0; iArg < _arguments.Length; iArg++)
+            for (int iArg = 0, length = this.NumberArgumentsToProcess; iArg < length; iArg++)
             {
                 var formalParameterType = _formalParameterTypes[iArg];
                 var argument = _arguments[iArg];
@@ -1604,26 +1585,21 @@ namespace Microsoft.CodeAnalysis.CSharp
             //       that is ok, because we are inferring type parameters used in the matching elements, 
             //       This is not the situation where entire tuple type used to infer a single type param
 
-            bool hasTuples = false;
-            if (source.IsTupleType)
-            {
-                source = source.TupleUnderlyingType;
-                hasTuples = true;
-            }
+            ImmutableArray<TypeSymbol> sourceTypes;
+            ImmutableArray<TypeSymbol> targetTypes;
 
-            if (target.IsTupleType)
-            {
-                target = target.TupleUnderlyingType;
-                hasTuples = true;
-            }
-
-            if (!hasTuples || (object)source.OriginalDefinition != target.OriginalDefinition)
+            if (!source.TryGetElementTypesIfTupleOrCompatible(out sourceTypes) ||
+                !target.TryGetElementTypesIfTupleOrCompatible(out targetTypes) ||
+                sourceTypes.Length != targetTypes.Length)
             {
                 return false;
             }
 
-            // NOTE: inference from tuple type is exact since tuples are non-variant.
-            ExactTypeArgumentInference((NamedTypeSymbol)source, (NamedTypeSymbol)target, ref useSiteDiagnostics);
+            for (int i = 0; i < sourceTypes.Length; i++)
+            {
+                ExactInference(sourceTypes[i], targetTypes[i], ref useSiteDiagnostics);
+            }
+
             return true;
         }
 
@@ -1752,7 +1728,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             //     return;
             // }
 
-            if (ExactTupleInference(source, target, ref useSiteDiagnostics))
+            if (LowerBoundTupleInference(source, target, ref useSiteDiagnostics))
             {
                 return;
             }
@@ -1865,6 +1841,33 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             LowerBoundInference(source.GetNullableUnderlyingType(), target.GetNullableUnderlyingType(), ref useSiteDiagnostics);
+            return true;
+        }
+
+        private bool LowerBoundTupleInference(TypeSymbol source, TypeSymbol target, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            Debug.Assert((object)source != null);
+            Debug.Assert((object)target != null);
+
+            // NOTE: we are losing tuple element names when unwrapping tuple types to underlying types.
+            //       that is ok, because we are inferring type parameters used in the matching elements, 
+            //       This is not the situation where entire tuple type used to infer a single type param
+
+            ImmutableArray<TypeSymbol> sourceTypes;
+            ImmutableArray<TypeSymbol> targetTypes;
+
+            if (!source.TryGetElementTypesIfTupleOrCompatible(out sourceTypes) ||
+                !target.TryGetElementTypesIfTupleOrCompatible(out targetTypes) ||
+                sourceTypes.Length != targetTypes.Length)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < sourceTypes.Length; i++)
+            {
+                LowerBoundInference(sourceTypes[i], targetTypes[i], ref useSiteDiagnostics);
+            }
+
             return true;
         }
 
@@ -2110,15 +2113,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: * Otherwise, if V is nullable type V1? and U is nullable type U1?
             // SPEC:   then an exact inference is made from U1 to V1.
 
-            if (ExactNullableInference(source, target, ref useSiteDiagnostics))
-            {
-                return;
-            }
+            Debug.Assert(source.IsReferenceType);
 
-            if (ExactTupleInference(source, target, ref useSiteDiagnostics))
-            {
-                return;
-            }
+            // NOTE: spec would ask us to do the following checks, but since the value types
+            //       are trivially handled as exact inference in the callers, we do not have to.
+
+            //if (ExactNullableInference(source, target, ref useSiteDiagnostics))
+            //{
+            //    return;
+            //}
+
+            //if (ExactTupleInference(source, target, ref useSiteDiagnostics))
+            //{
+            //    return;
+            //}
 
             // SPEC: * Otherwise... cases for constructed types
 

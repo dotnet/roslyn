@@ -284,12 +284,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Extensions
         End Function
 
         <Extension()>
-        Public Function ConvertToSingleLine(Of TNode As SyntaxNode)(node As TNode) As TNode
+        Public Function ConvertToSingleLine(Of TNode As SyntaxNode)(node As TNode, Optional useElasticTrivia As Boolean = False) As TNode
             If node Is Nothing Then
                 Return node
             End If
 
-            Dim rewriter = New SingleLineRewriter()
+            Dim rewriter = New SingleLineRewriter(useElasticTrivia)
             Return DirectCast(rewriter.Visit(node), TNode)
         End Function
 

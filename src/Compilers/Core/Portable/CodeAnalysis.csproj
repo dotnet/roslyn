@@ -18,6 +18,7 @@
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <RestorePackages>true</RestorePackages>
+    <ServiceablePackage>true</ServiceablePackage>
     <DefineConstants>$(DefineConstants);COMPILERCORE</DefineConstants>
     <CodeAnalysisRuleSet>..\CodeAnalysisRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
@@ -28,7 +29,6 @@
     <OutDir>..\..\..\..\Binaries\Debug\amd64</OutDir>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
-    <NoWarn>1591</NoWarn>
     <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
@@ -36,7 +36,6 @@
     <OutDir>..\..\..\..\Binaries\Release\amd64</OutDir>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Optimize>true</Optimize>
-    <NoWarn>1591</NoWarn>
     <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
@@ -95,6 +94,9 @@
     <Compile Include="CaseInsensitiveComparison.cs" />
     <Compile Include="CodeGen\ILEmitStyle.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalysisResult.cs" />
+    <Compile Include="DiagnosticAnalyzer\AnalyzerAssemblyLoader.cs" />
+    <Compile Include="FileSystem\CompilerPathUtilities.cs" />
+    <Compile Include="InternalUtilities\AssemblyIdentityUtils.cs" />
     <Compile Include="InternalUtilities\EmptyComparer.cs" />
     <Compile Include="InternalUtilities\StringOrdinalComparer.cs" />
     <Compile Include="MetadataReference\AssemblyIdentityMap.cs" />
@@ -212,7 +214,6 @@
     <Compile Include="Compilation\LoadDirective.cs" />
     <Compile Include="Compilation\CommonSyntaxAndDeclarationManager.cs" />
     <Compile Include="Compilation\SymbolFilter.cs" />
-    <Compile Include="CompilerPathUtilities.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalysisResultBuilder.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalysisScope.cs" />
     <Compile Include="DiagnosticAnalyzer\AnalysisState.AnalyzerStateData.cs" />

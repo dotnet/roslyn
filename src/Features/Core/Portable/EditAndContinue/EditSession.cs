@@ -388,9 +388,10 @@ namespace Microsoft.CodeAnalysis.EditAndContinue
                     return new Deltas(ilStream.ToArray(), metadataStream.ToArray(), updateMethodTokens, pdbStream, changes.LineChanges, result);
                 }
             }
-            catch (Exception e) when (FatalError.ReportUnlessCanceled(e))
+            catch (Exception e) when (FatalError.ReportWithoutCrash(e))
             {
-                throw ExceptionUtilities.Unreachable;
+                // recover (cancel EnC)
+                return null;
             }
         }
 

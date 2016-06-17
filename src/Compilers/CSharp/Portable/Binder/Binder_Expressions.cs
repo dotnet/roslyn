@@ -112,7 +112,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// <summary>
         /// Generates a new <see cref="BoundBadExpression"/> with no known type, and the given bound children.
         /// </summary>
-        private BoundBadExpression BadExpression(CSharpSyntaxNode syntax, params BoundNode[] childNodes)
+        private BoundBadExpression BadExpression(CSharpSyntaxNode syntax, ImmutableArray<BoundNode> childNodes)
         {
             return BadExpression(syntax, LookupResultKind.Empty, ImmutableArray<Symbol>.Empty, childNodes);
         }
@@ -131,14 +131,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         protected BoundBadExpression BadExpression(CSharpSyntaxNode syntax, LookupResultKind lookupResultKind, BoundNode childNode)
         {
             return BadExpression(syntax, lookupResultKind, ImmutableArray<Symbol>.Empty, childNode);
-        }
-
-        /// <summary>
-        /// Generates a new <see cref="BoundBadExpression"/> with no known type, given lookup resultKind and the given bound children.
-        /// </summary>
-        protected BoundBadExpression BadExpression(CSharpSyntaxNode syntax, LookupResultKind lookupResultKind, params BoundNode[] childNodes)
-        {
-            return BadExpression(syntax, lookupResultKind, ImmutableArray<Symbol>.Empty, childNodes);
         }
 
         /// <summary>
@@ -170,12 +162,12 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// Generates a new <see cref="BoundBadExpression"/> with no known type, given lookupResultKind and given symbols for GetSemanticInfo API,
         /// and the given bound children.
         /// </summary>
-        private BoundBadExpression BadExpression(CSharpSyntaxNode syntax, LookupResultKind resultKind, ImmutableArray<Symbol> symbols, params BoundNode[] childNodes)
+        private BoundBadExpression BadExpression(CSharpSyntaxNode syntax, LookupResultKind resultKind, ImmutableArray<Symbol> symbols, ImmutableArray<BoundNode> childNodes)
         {
             return new BoundBadExpression(syntax,
                 resultKind,
                 symbols,
-                ImmutableArray.Create(childNodes),
+                childNodes,
                 CreateErrorType());
         }
 
@@ -338,7 +330,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(initializerBinder != null);
 
             BindValueKind valueKind;
-            initializerBinder.IsInitializerRefKindValid(initializerOpt, initializerOpt, refKind, diagnostics, out valueKind);
+            IsInitializerRefKindValid(initializerOpt, initializerOpt, refKind, diagnostics, out valueKind);
             var initializer = initializerBinder.BindPossibleArrayInitializer(initializerOpt.Value, varType, valueKind, diagnostics);
             initializer = initializerBinder.GenerateConversionForAssignment(varType, initializer, diagnostics);
 
@@ -655,8 +647,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // this should be a parse error already.
                 var args = numElements == 1 ?
-                    new BoundExpression[] { BindValue(arguments[0].Expression, diagnostics, BindValueKind.RValue) } :
-                    SpecializedCollections.EmptyArray<BoundExpression>();
+                    ImmutableArray.Create<BoundNode>(BindValue(arguments[0].Expression, diagnostics, BindValueKind.RValue)) :
+                    ImmutableArray<BoundNode>.Empty;
 
                 return BadExpression(node, args);
             }
@@ -674,7 +666,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             int countOfExplicitNames = 0;
 
             // prepare and check element names and types
-            for (int i = 0, l = numElements; i < l; i++)
+            for (int i = 0; i < numElements; i++)
             {
                 ArgumentSyntax argumentSyntax = arguments[i];
                 string name = null;
@@ -3610,7 +3602,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 hasErrors);
         }
 
-        private bool CheckNestedObjectInitializerPropertySymbol(
+        private static bool CheckNestedObjectInitializerPropertySymbol(
             PropertySymbol propertySymbol,
             ExpressionSyntax memberNameSyntax,
             DiagnosticBag diagnostics,
@@ -4015,7 +4007,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             else
             {
                 Debug.Assert((object)this.Compilation.Assembly != null);
-                return this.IsSymbolAccessibleConditional(constructor, this.Compilation.Assembly, ref useSiteDiagnostics);
+                return IsSymbolAccessibleConditional(constructor, this.Compilation.Assembly, ref useSiteDiagnostics);
             }
         }
 
@@ -6156,7 +6148,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     Error(diagnostics, ErrorCode.ERR_PtrIndexSingle, node);
                 }
-                return new BoundPointerElementAccess(node, expr, BadExpression(node, BuildArgumentsForErrorRecovery(analyzedArguments).ToArray()), CheckOverflowAtRuntime, pointedAtType, hasErrors: true);
+                return new BoundPointerElementAccess(node, expr, BadExpression(node, StaticCast<BoundNode>.From(BuildArgumentsForErrorRecovery(analyzedArguments))), CheckOverflowAtRuntime, pointedAtType, hasErrors: true);
             }
 
             if (pointedAtType.SpecialType == SpecialType.System_Void)
@@ -6333,9 +6325,13 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (analyzedArguments.HasDynamicArgument && overloadResolutionResult.HasAnyApplicableMember)
             {
-                var result = BindDynamicIndexer(syntax, receiverOpt, analyzedArguments, overloadResolutionResult.GetAllApplicableMembers(), diagnostics);
+                // Note that the runtime binder may consider candidates that haven't passed compile-time final validation 
+                // and an ambiguity error may be reported. Also additional checks are performed in runtime final validation 
+                // that are not performed at compile-time.
+                // Only if the set of final applicable candidates is empty we know for sure the call will fail at runtime.
+                var finalApplicableCandidates = GetCandidatesPassingFinalValidation(syntax, overloadResolutionResult, receiverOpt, default(ImmutableArray<TypeSymbol>), diagnostics);
                 overloadResolutionResult.Free();
-                return result;
+                return BindDynamicIndexer(syntax, receiverOpt, analyzedArguments, finalApplicableCandidates, diagnostics);
             }
 
             if (!overloadResolutionResult.Succeeded)
@@ -6779,7 +6775,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return memberAccess;
         }
 
-        private CSharpSyntaxNode GetConditionalReceiverSyntax(ConditionalAccessExpressionSyntax node)
+        private static CSharpSyntaxNode GetConditionalReceiverSyntax(ConditionalAccessExpressionSyntax node)
         {
             Debug.Assert(node != null);
             Debug.Assert(node.Expression != null);

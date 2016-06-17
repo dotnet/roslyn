@@ -17,6 +17,7 @@
     <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <ServiceablePackage>true</ServiceablePackage>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -50,8 +51,14 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\CorLightup.cs">
       <Link>InternalUtilities\CorLightup.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\AnalyzerAssemblyLoader.cs">
+      <Link>InternalUtilities\AnalyzerAssemblyLoader.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\RelativePathResolver.cs">
       <Link>InternalUtilities\RelativePathResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\AssemblyIdentityUtils.cs">
+      <Link>InternalUtilities\AssemblyIdentityUtils.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\BitArithmeticUtilities.cs">
       <Link>InternalUtilities\BitArithmeticUtilities.cs</Link>
@@ -268,8 +275,9 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.VisualBasic.Repl" />
+    <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Editor.UI.Wpf" />
-    <InternalsVisibleToTest Include="Roslyn.Hosting.Diagnostics" />
+    <InternalsVisibleTo Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
@@ -281,7 +289,6 @@
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Desktop" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Closed.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.VisualStudio.DiagnosticsWindow" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Setup" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
@@ -425,14 +432,34 @@
     <Compile Include="Options\OptionSet.cs" />
     <Compile Include="Packaging\IPackageInstallerService.cs" />
     <Compile Include="SolutionCrawler\PredefinedInvocationReasons.cs" />
+    <Compile Include="SymbolId\SymbolKey.ComparisonOptions.cs" />
+    <Compile Include="SymbolId\SymbolKey.SymbolKeyComparer.cs" />
+    <Compile Include="SymbolId\SymbolKey.PropertySymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.TypeParameterOrdinalSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.TypeParameterSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.ErrorTypeSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.MethodSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.TupleTypeSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.BodyLevelSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.NamedTypeSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.AliasSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.EventSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.NamespaceSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.PointerTypeSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.ParameterSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.ModuleSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.AssemblySymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.FieldSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.DynamicTypeSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.ArrayTypeSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.SymbolKeyWriter.cs" />
+    <Compile Include="SymbolId\SymbolKey.cs" />
     <Compile Include="SymbolSearch\ISymbolSearchService.cs" />
     <Compile Include="FindSymbols\SymbolTree\ISymbolTreeInfoCacheService.cs" />
     <Compile Include="FindSymbols\FindReferences\MetadataUnifyingEquivalenceComparer.cs" />
-    <Compile Include="SymbolId\SymbolId.cs" />
     <Compile Include="Shared\Utilities\IProgressTracker.cs" />
     <Compile Include="SolutionCrawler\NullSolutionCrawlerRegisterationService.cs" />
     <Compile Include="SolutionCrawler\WellKnownSolutionCrawlerAnalyzers.cs" />
-    <Compile Include="SymbolId\SymbolKey.TupleTypeSymbolKey.cs" />
     <Compile Include="Utilities\ArraySlice.cs" />
     <Compile Include="Utilities\BKTree.cs" />
     <Compile Include="FindSymbols\SyntaxTree\AbstractSyntaxTreeInfo.cs" />
@@ -470,9 +497,11 @@
     <Compile Include="Utilities\BKTree.Edge.cs" />
     <Compile Include="Utilities\BKTree.Node.cs" />
     <Compile Include="Utilities\BKTree.Serialization.cs" />
+    <Compile Include="Utilities\CompilerUtilities\CompilerPathUtilities.cs" />
     <Compile Include="Utilities\ForegroundThreadDataKind.cs" />
     <Compile Include="Utilities\IReadOnlyDictionaryExtensions.cs" />
     <Compile Include="Utilities\IReadOnlyListExtensions.cs" />
+    <Compile Include="Utilities\ParameterName.cs" />
     <Compile Include="Utilities\SpellChecker.cs" />
     <Compile Include="Utilities\StringEscapeEncoder.cs" />
     <Compile Include="Utilities\ValuesSources\CachedWeakValueSource.cs" />
@@ -824,28 +853,6 @@
     <Compile Include="Simplification\Simplifier.cs" />
     <Compile Include="Simplification\SpecialTypeAnnotation.cs" />
     <Compile Include="Simplification\SymbolAnnotation.cs" />
-    <Compile Include="SymbolId\SymbolKey.AbstractSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.ArrayTypeSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.AssemblySymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.BodyLevelSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.ComparisonOptions.cs" />
-    <Compile Include="SymbolId\SymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.DynamicTypeSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.ErrorTypeSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.EventSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.FieldSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.MethodSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.MethodTypeParameterSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.ModuleSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.NamedTypeSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.NamespaceSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.NullSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.ParameterSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.PointerTypeSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.PropertySymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.SymbolKeyComparer.cs" />
-    <Compile Include="SymbolId\SymbolKey.TypeParameterSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.Visitor.cs" />
     <Compile Include="SymbolId\SymbolKeyExtensions.cs" />
     <Compile Include="SymbolId\SymbolKeyResolution.cs" />
     <Compile Include="SymbolId\SymbolKeyResolutionExtensions.cs" />
@@ -1008,6 +1015,7 @@
       </SubType>
     </None>
     <Compile Include="Utilities\BKTree.Builder.cs" />
+    <Compile Include="SymbolId\SymbolKey.SymbolKeyReader.cs" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>

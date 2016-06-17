@@ -60,6 +60,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             return semanticModel.SyntaxTree.IsNamespaceContext(position, cancellationToken, semanticModel);
         }
 
+        public bool IsNamespaceDeclarationNameContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
+        {
+            return semanticModel.SyntaxTree.IsNamespaceDeclarationNameContext(position, cancellationToken);
+        }
+
         public bool IsTypeDeclarationContext(SemanticModel semanticModel, int position, CancellationToken cancellationToken)
         {
             return semanticModel.SyntaxTree.IsTypeDeclarationContext(

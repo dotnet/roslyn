@@ -60,8 +60,7 @@
 
   <!-- settings for strong name signing -->
   <PropertyGroup>
-    <RunningInMicroBuild Condition="Exists('$(TF_BUILD_BUILDDIRECTORY)\MicroBuild\MicroBuild.Signing.dll')">true</RunningInMicroBuild>
-    <ShouldSignBuild Condition="'$(RealSignBuild)' == 'true' OR ('$(RunningInMicroBuild)' == 'true' AND '$(SignType)' == 'real')">true</ShouldSignBuild>
+    <ShouldSignBuild Condition="'$(RealSignBuild)' == 'true' OR '$(SignType)' == 'real'">true</ShouldSignBuild>
   </PropertyGroup>
 
   <Choose>
@@ -191,7 +190,7 @@
                      '$(TargetFrameworkVersion)' == 'v5.0'">
       <!-- Treat portable exes as CoreClr-targeting-exes -->
       <PropertyGroup Condition="'$(OutputType)' == 'Exe'">
-        <NuGetTargetMoniker>DNXCore,Version=v5.0</NuGetTargetMoniker>
+        <NuGetTargetMoniker>.NETCoreApp,Version=v1.0</NuGetTargetMoniker>
         <BaseNuGetRuntimeIdentifier Condition="'$(OS)' == 'Windows_NT'">win7</BaseNuGetRuntimeIdentifier>
       </PropertyGroup>
 
@@ -427,75 +426,13 @@
 
        ==================================================================================== -->
 
-  <UsingTask TaskName="SignFiles" AssemblyFile="$(TF_BUILD_BUILDDIRECTORY)\MicroBuild\MicroBuild.Signing.dll" Condition="'$(RunningInMicroBuild)' == 'true'" />
 
   <PropertyGroup>
-    <CreateVsixContainerDependsOn>$(CreateVsixContainerDependsOn);SignVsixInputs</CreateVsixContainerDependsOn>
-    <PrepareForRunDependsOn>$(PrepareForRunDependsOn);SignVsix</PrepareForRunDependsOn>
-    <ProducingSignedVsix Condition="'$(ShouldSignBuild)' == 'true' AND '$(NonShipping)' != 'true' AND '$(CreateVsixContainer)' == 'true'">true</ProducingSignedVsix>
+	<ProducingSignedVsix Condition="'$(ShouldSignBuild)' == 'true' AND '$(NonShipping)' != 'true' AND '$(CreateVsixContainer)' == 'true'">true</ProducingSignedVsix>
   </PropertyGroup>
 
-  <!-- GetTargetPath returns the path under $(OutDir) for each project.
-       This target adds the $(AuthenticodeCertificateName) as metadata. -->
-  <Target Name="GetTargetPathWithAuthenticodeCertificateName" DependsOnTargets="GetTargetPath" Returns="@(TargetPathWithAuthenticodeCertificateName)">
-    <ItemGroup>
-      <TargetPathWithAuthenticodeCertificateName Include="$(TargetPath)">
-        <AuthenticodeCertificateName>$(AuthenticodeCertificateName)</AuthenticodeCertificateName>
-      </TargetPathWithAuthenticodeCertificateName>
-    </ItemGroup>
-  </Target>
-
-  <Target Name="SignVsixInputs" Condition="'$(ProducingSignedVsix)' == 'true'" DependsOnTargets="GetVsixSourceItems" BeforeTargets="AfterCompile">
-    <!-- Ensure the build tasks project is already built -->
-    <MSBuild Projects="$(MSBuildThisFileDirectory)..\..\..\Closed\Setup\BuildTasks\BuildTasks.vbproj" Condition="!Exists('$(OutDir)\Roslyn.Setup.BuildTasks.dll') AND '$(RunningInMicroBuild)' != 'true'" />
-
-    <!-- Collect the paths of all dependent projects. GetTargetPath returns the path under $(OutDir) for each project. -->
-    <MSBuild Projects="@(ProjectReferenceWithConfiguration)"
-             Targets="GetTargetPathWithAuthenticodeCertificateName"
-             BuildInParallel="$(BuildInParallel)"
-             Properties="%(ProjectReferenceWithConfiguration.SetConfiguration); %(ProjectReferenceWithConfiguration.SetPlatform)"
-             Condition="'%(ProjectReferenceWithConfiguration.Private)' != 'false'"
-             >
-
-      <Output TaskParameter="TargetOutputs" ItemName="VsixInputAssembliesToSign" />
-    </MSBuild>
-
-    <!-- Include the assembly we just built if we're also including it in the VSIX-->
-    <ItemGroup>
-      <VsixInputAssembliesToSign Include="@(IntermediateAssembly)" Condition="'$(IncludeAssemblyInVSIXContainer)' == 'true'">
-        <AuthenticodeCertificateName>$(AuthenticodeCertificateName)</AuthenticodeCertificateName>
-      </VsixInputAssembliesToSign>
-    </ItemGroup>
-
-    <Message Text="Signing VSIX inputs: using authenticode certificate '%(VsixInputAssembliesToSign.AuthenticodeCertificateName)' for @(VsixInputAssembliesToSign)"/>
-
-    <ItemGroup Condition="'$(RunningInMicroBuild)' == 'true'">
-        <VsixInputAssembliesToSign>
-            <Authenticode>%(VsixInputAssembliesToSign.AuthenticodeCertificateName)</Authenticode>
-            <StrongName>72</StrongName>
-        </VsixInputAssembliesToSign>
-    </ItemGroup>
-
-    <SignFiles Condition="'$(RunningInMicroBuild)' == 'true'"
-               Files="@(VsixInputAssembliesToSign)"
-               BinariesDirectory="$(OutDir)"
-               IntermediatesDirectory="$(IntermediateOutputPath)"
-               Type="$(SignType)" />
-  </Target>
-
-  <Target Name="SignVsix"  Condition="'$(ProducingSignedVsix)' == 'true'" DependsOnTargets="CreateVsixContainer">
-    <Message Text="Signing VSIX: $(TargetVsixContainer)"/>
-
-    <ItemGroup Condition="'$(RunningInMicroBuild)' == 'true'">
-        <VsixToSign Include="$(TargetVsixContainer)">
-            <Authenticode>VsixSHA2</Authenticode>
-        </VsixToSign>
-    </ItemGroup>
-
-    <SignFiles Condition="'$(RunningInMicroBuild)' == 'true'"
-               Files="@(VsixToSign)"
-               BinariesDirectory="$(OutDir)"
-               IntermediatesDirectory="$(IntermediateOutputPath)"
-               Type="$(SignType)" />
-  </Target>
+  <Import Project="$(MSBuildThisFileDirectory)Signing.targets"
+          Condition="'$(NonShipping)' != 'true' and
+                     '$(ShouldSignBuild)' == 'true' and
+                     '$(RunningInMicroBuild)' == 'true'" />
  </Project>

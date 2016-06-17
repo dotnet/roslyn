@@ -362,7 +362,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
             foreach (var documentId in newAnalysisResult.DocumentIds)
             {
                 var document = project.GetDocument(documentId);
-                Contract.ThrowIfNull(document);
+                if (document == null)
+                {
+                    // it can happen with build synchronization since, in build case, 
+                    // we don't have actual snapshot (we have no idea what sources out of proc build has picked up)
+                    // so we might be out of sync.
+                    // example of such cases will be changing anything about solution while building is going on.
+                    // it can be user explict actions such as unloading project, deleting a file, but also it can be 
+                    // something project system or roslyn workspace does such as populating workspace right after
+                    // solution is loaded.
+                    continue;
+                }
 
                 RaiseDocumentDiagnosticsIfNeeded(document, stateSet, AnalysisKind.NonLocal, oldAnalysisResult, newAnalysisResult, raiseEvents);
 

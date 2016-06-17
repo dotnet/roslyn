@@ -4,10 +4,8 @@ using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Globalization;
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
@@ -15,20 +13,18 @@ namespace Microsoft.CodeAnalysis.Editor
 {
     internal class CompletionHelper
     {
-        private readonly CompletionRules _rules;
-        private readonly string _language;
-        
-        public CompletionService CompletionService { get; }
+        private readonly object _gate = new object();
+        private readonly Dictionary<string, PatternMatcher> _patternMatcherMap = new Dictionary<string, PatternMatcher>();
+        private readonly Dictionary<string, PatternMatcher> _fallbackPatternMatcherMap = new Dictionary<string, PatternMatcher>();
+        private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
+        private readonly bool _isCaseSensitive;
 
-        protected CompletionHelper(CompletionService completionService)
+        protected CompletionHelper(bool isCaseSensitive)
         {
-            CompletionService = completionService;
-            _language = CompletionService.Language;
-            _rules = CompletionService.GetRules();
+            _isCaseSensitive = isCaseSensitive;
         }
 
-        public static CompletionHelper GetHelper(
-            Workspace workspace, string language, CompletionService completionService)
+        public static CompletionHelper GetHelper(Workspace workspace, string language)
         {
             var ls = workspace.Services.GetLanguageServices(language);
             if (ls != null)
@@ -36,21 +32,19 @@ namespace Microsoft.CodeAnalysis.Editor
                 var factory = ls.GetService<CompletionHelperFactory>();
                 if (factory != null)
                 {
-                    return factory.CreateCompletionHelper(completionService);
+                    return factory.CreateCompletionHelper();
                 }
 
-                if (completionService != null)
-                {
-                    return new CompletionHelper(completionService);
-                }
+                var syntaxFacts = ls.GetService<ISyntaxFactsService>();
+                return new CompletionHelper(syntaxFacts?.IsCaseSensitive ?? true);
             }
 
             return null;
         }
 
-        public static CompletionHelper GetHelper(Document document, CompletionService service)
+        public static CompletionHelper GetHelper(Document document)
         {
-            return GetHelper(document.Project.Solution.Workspace, document.Project.Language, service);
+            return GetHelper(document.Project.Solution.Workspace, document.Project.Language);
         }
 
         public IReadOnlyList<TextSpan> GetHighlightedSpans(CompletionItem completionItem, string filterText)
@@ -75,7 +69,7 @@ namespace Microsoft.CodeAnalysis.Editor
             // MRU list, then we definitely want to include it.
             if (filterText.Length == 0)
             {
-                if (item.Rules.Preselect || (!recentItems.IsDefault && GetRecentItemIndex(recentItems, item) < 0))
+                if (item.Rules.MatchPriority > MatchPriority.Default || (!recentItems.IsDefault && GetRecentItemIndex(recentItems, item) < 0))
                 {
                     return true;
                 }
@@ -117,8 +111,8 @@ namespace Microsoft.CodeAnalysis.Editor
 
         protected PatternMatch? GetMatch(CompletionItem item, string filterText, bool includeMatchSpans)
         {
-            var patternMatcher = this.GetPatternMatcher(GetCultureSpecificQuirks(filterText), CultureInfo.CurrentCulture);
-            var match = patternMatcher.GetFirstMatch(GetCultureSpecificQuirks(item.FilterText), includeMatchSpans);
+            var patternMatcher = this.GetPatternMatcher(filterText, CultureInfo.CurrentCulture);
+            var match = patternMatcher.GetFirstMatch(item.FilterText, includeMatchSpans);
 
             if (match != null)
             {
@@ -128,8 +122,8 @@ namespace Microsoft.CodeAnalysis.Editor
             // Start with the culture-specific comparison, and fall back to en-US.
             if (!CultureInfo.CurrentCulture.Equals(EnUSCultureInfo))
             {
-                patternMatcher = this.GetFallbackPatternMatcher(GetCultureSpecificQuirks(filterText));
-                match = patternMatcher.GetFirstMatch(GetCultureSpecificQuirks(item.FilterText));
+                patternMatcher = this.GetEnUSPatternMatcher(filterText);
+                match = patternMatcher.GetFirstMatch(item.FilterText);
                 if (match != null)
                 {
                     return match;
@@ -139,52 +133,32 @@ namespace Microsoft.CodeAnalysis.Editor
             return null;
         }
 
-        /// <summary>
-        /// Apply any culture-specific quirks to the given text for the purposes of pattern matching.
-        /// For example, in the Turkish locale, capital 'i's should be treated specially in Visual Basic.
-        /// </summary>
-        protected virtual string GetCultureSpecificQuirks(string candidate)
+        private PatternMatcher GetPatternMatcher(
+            string value, CultureInfo culture, Dictionary<string, PatternMatcher> map)
         {
-            return candidate;
-        }
+            lock (_gate)
+            {
+                PatternMatcher patternMatcher;
+                if (!map.TryGetValue(value, out patternMatcher))
+                {
+                    patternMatcher = new PatternMatcher(value, culture,
+                        verbatimIdentifierPrefixIsWordCharacter: true,
+                        allowFuzzyMatching: false);
+                    map.Add(value, patternMatcher);
+                }
 
-        private readonly object _gate = new object();
-        private readonly Dictionary<string, PatternMatcher> _patternMatcherMap = new Dictionary<string, PatternMatcher>();
-        private readonly Dictionary<string, PatternMatcher> _fallbackPatternMatcherMap = new Dictionary<string, PatternMatcher>();
-        internal static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
+                return patternMatcher;
+            }
+        }
 
         protected PatternMatcher GetPatternMatcher(string value, CultureInfo culture)
         {
-            lock (_gate)
-            {
-                PatternMatcher patternMatcher;
-                if (!_patternMatcherMap.TryGetValue(value, out patternMatcher))
-                {
-                    patternMatcher = new PatternMatcher(value, culture, 
-                        verbatimIdentifierPrefixIsWordCharacter: true, 
-                        allowFuzzyMatching: false);
-                    _patternMatcherMap.Add(value, patternMatcher);
-                }
-
-                return patternMatcher;
-            }
+            return GetPatternMatcher(value, culture, _patternMatcherMap);
         }
 
-        private PatternMatcher GetFallbackPatternMatcher(string value)
+        private PatternMatcher GetEnUSPatternMatcher(string value)
         {
-            lock (_gate)
-            {
-                PatternMatcher patternMatcher;
-                if (!_fallbackPatternMatcherMap.TryGetValue(value, out patternMatcher))
-                {
-                    patternMatcher = new PatternMatcher(
-                        value, EnUSCultureInfo, verbatimIdentifierPrefixIsWordCharacter: true,
-                        allowFuzzyMatching: false);
-                    _fallbackPatternMatcherMap.Add(value, patternMatcher);
-                }
-
-                return patternMatcher;
-            }
+            return GetPatternMatcher(value, EnUSCultureInfo, _fallbackPatternMatcherMap);
         }
 
         /// <summary>
@@ -193,8 +167,8 @@ namespace Microsoft.CodeAnalysis.Editor
         /// </summary>
         public virtual bool IsBetterFilterMatch(CompletionItem item1, CompletionItem item2, string filterText, CompletionTrigger trigger, CompletionFilterReason filterReason, ImmutableArray<string> recentItems = default(ImmutableArray<string>))
         {
-            var match1 = GetMatch(item1, GetCultureSpecificQuirks(filterText));
-            var match2 = GetMatch(item2, GetCultureSpecificQuirks(filterText));
+            var match1 = GetMatch(item1, filterText);
+            var match2 = GetMatch(item2, filterText);
 
             if (match1 != null && match2 != null)
             {
@@ -215,9 +189,9 @@ namespace Microsoft.CodeAnalysis.Editor
 
             // If they both seemed just as good, but they differ on preselection, then
             // item1 is better if it is preselected, otherwise it is worse.
-            if (item1.Rules.Preselect != item2.Rules.Preselect)
+            if (item1.Rules.MatchPriority != item2.Rules.MatchPriority)
             {
-                return item1.Rules.Preselect;
+                return item1.Rules.MatchPriority > item2.Rules.MatchPriority;
             }
 
             // Prefer things with a keyword tag, if the filter texts are the same.
@@ -274,47 +248,47 @@ namespace Microsoft.CodeAnalysis.Editor
 
         protected int CompareMatches(PatternMatch match1, PatternMatch match2, CompletionItem item1, CompletionItem item2)
         {
-            int diff;
-
-            diff = PatternMatch.CompareType(match1, match2);
+            // First see how the two items compare in a case insensitive fashion.  Matches that 
+            // are strictly better (ignoring case) should prioritize the item.  i.e. if we have
+            // a prefix match, that should always be better than a substring match.
+            //
+            // The reason we ignore case is that it's very common for people to type expecting
+            // completion to fix up their casing.  i.e. 'false' will be written with the 
+            // expectation that it will get fixed by the completion list to 'False'.  
+            var diff = match1.CompareTo(match2, ignoreCase: true);
             if (diff != 0)
             {
                 return diff;
             }
 
-            diff = PatternMatch.CompareCamelCase(match1, match2);
+            // Now, after comparing matches, check if an item wants to be preselected.  If so,
+            // we prefer that.  i.e. say the user has typed 'f' and we have the items 'foo' 
+            // and 'False' (with the latter being 'Preselected').  Both will be a prefix match.
+            // And because we are ignoring case, neither will be seen as better.  Now, because
+            // 'False' is preselected we pick it even though 'foo' matches 'f' case sensitively.
+            diff = item2.Rules.MatchPriority - item1.Rules.MatchPriority;
             if (diff != 0)
             {
                 return diff;
             }
 
-            // argument names are not prefered
-            if (IsArgumentName(item1) && !IsArgumentName(item2))
-            {
-                return 1;
-            }
-            else if (IsArgumentName(item2) && !IsArgumentName(item1))
+            // At this point we have two items which we're matching in a rather similar fasion.
+            // If one is a prefix of the other, prefer the prefix.  i.e. if we have 
+            // "Table" and "table:=" and the user types 't' and we are in a case insensitive 
+            // language, then we prefer the former.
+            var comparison = _isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+            if (item2.DisplayText.StartsWith(item1.DisplayText, comparison))
             {
                 return -1;
             }
-
-            // preselected items are prefered
-            if (item1.Rules.Preselect && !item2.Rules.Preselect)
-            {
-                return -1;
-            }
-            else if (item2.Rules.Preselect && !item1.Rules.Preselect)
+            else if (item1.DisplayText.StartsWith(item2.DisplayText, comparison))
             {
                 return 1;
             }
 
-            diff = PatternMatch.CompareCase(match1, match2);
-            if (diff != 0)
-            {
-                return diff;
-            }
-
-            diff = PatternMatch.ComparePunctuation(match1, match2);
+            // Now compare the matches again in a case sensitive manner.  If everything was
+            // equal up to this point, we prefer the item that better matches based on case.
+            diff = match1.CompareTo(match2, ignoreCase: false);
             if (diff != 0)
             {
                 return diff;
@@ -323,115 +297,16 @@ namespace Microsoft.CodeAnalysis.Editor
             return 0;
         }
 
-        protected bool IsArgumentName(CompletionItem item)
+        private static bool TextTypedSoFarMatchesItem(CompletionItem item, char ch, string textTypedSoFar)
         {
-            return item.Tags.Contains(CompletionTags.ArgumentName);
-        }
-
-        /// <summary>
-        /// Returns true if the character is one that can commit the specified completion item. A
-        /// character will be checked to see if it should filter an item.  If not, it will be checked
-        /// to see if it should commit that item.  If it does neither, then completion will be
-        /// dismissed.
-        /// </summary>
-        public virtual bool IsCommitCharacter(CompletionItem item, char ch, string textTypedSoFar, string textTypedWithChar = null)
-        {
-            // general rule: if the filtering text exactly matches the start of the item then it must be a filter character
-            textTypedWithChar = textTypedWithChar ?? textTypedSoFar + ch;
-            if (item.DisplayText.StartsWith(textTypedWithChar, StringComparison.CurrentCultureIgnoreCase)
-                || item.FilterText.StartsWith(textTypedWithChar, StringComparison.CurrentCultureIgnoreCase))
-            {
-                return false;
-            }
-
-            foreach (var rule in item.Rules.CommitCharacterRules)
-            {
-                switch (rule.Kind)
-                {
-                    case CharacterSetModificationKind.Add:
-                        if (rule.Characters.IndexOf(ch) >= 0)
-                            return true;
-                        break;
-
-                    case CharacterSetModificationKind.Remove:
-                        if (rule.Characters.IndexOf(ch) >= 0)
-                            return false;
-                        break;
-
-                    case CharacterSetModificationKind.Replace:
-                        return rule.Characters.IndexOf(ch) >= 0;
-                }
-            }
-
-            return _rules.DefaultCommitCharacters.IndexOf(ch) >= 0;
-        }
-
-        /// <summary>
-        /// Returns true if the character typed should be used to filter the specified completion
-        /// item.  A character will be checked to see if it should filter an item.  If not, it will be
-        /// checked to see if it should commit that item.  If it does neither, then completion will
-        /// be dismissed.
-        /// </summary>
-        public virtual bool IsFilterCharacter(CompletionItem item, char ch, string textTypedSoFar, string textTypedWithChar = null)
-        {
-            // general rule: if the filtering text exactly matches the start of the item then it must be a filter character
-            textTypedWithChar = textTypedWithChar ?? textTypedSoFar + ch;
-            if (item.DisplayText.StartsWith(textTypedWithChar, StringComparison.CurrentCultureIgnoreCase)
-                || item.FilterText.StartsWith(textTypedWithChar, StringComparison.CurrentCultureIgnoreCase))
-            {
-                return false;
-            }
-
-            foreach (var rule in item.Rules.FilterCharacterRules)
-            {
-                switch (rule.Kind)
-                {
-                    case CharacterSetModificationKind.Add:
-                        if (rule.Characters.IndexOf(ch) >= 0)
-                            return true;
-                        break;
-
-                    case CharacterSetModificationKind.Remove:
-                        if (rule.Characters.IndexOf(ch) >= 0)
-                            return false;
-                        break;
-
-                    case CharacterSetModificationKind.Replace:
-                        return rule.Characters.IndexOf(ch) >= 0;
-                }
-            }
-
-            return false;
+            var textTypedWithChar = textTypedSoFar + ch;
+            return item.DisplayText.StartsWith(textTypedWithChar, StringComparison.CurrentCultureIgnoreCase) ||
+                item.FilterText.StartsWith(textTypedWithChar, StringComparison.CurrentCultureIgnoreCase);
         }
 
         private static StringComparison GetComparision(bool isCaseSensitive)
         {
-            return isCaseSensitive? StringComparison.CurrentCulture: StringComparison.CurrentCultureIgnoreCase;
-        }
-
-        /// <summary>
-        /// Returns true if the enter key that was typed should also be sent through to the editor
-        /// after committing the provided completion item.
-        /// </summary>
-        public virtual bool SendEnterThroughToEditor(CompletionItem item, string textTypedSoFar, OptionSet options)
-        {
-            var rule = item.Rules.EnterKeyRule;
-            if (rule == EnterKeyRule.Default)
-            {
-                rule = _rules.DefaultEnterKeyRule;
-            }
-
-            switch (rule)
-            {
-                default:
-                case EnterKeyRule.Default:
-                case EnterKeyRule.Never:
-                    return false;
-                case EnterKeyRule.Always:
-                    return true;
-                case EnterKeyRule.AfterFullyTypedWord:
-                    return item.DisplayText == textTypedSoFar;
-            }
+            return isCaseSensitive ? StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase;
         }
 
         /// <summary>
@@ -440,29 +315,12 @@ namespace Microsoft.CodeAnalysis.Editor
         /// </summary>
         public virtual bool ShouldSoftSelectItem(CompletionItem item, string filterText, CompletionTrigger trigger)
         {
-            return filterText.Length == 0 && !item.Rules.Preselect;
+            return filterText.Length == 0 && item.Rules.MatchPriority == MatchPriority.Default;
         }
 
         protected bool IsObjectCreationItem(CompletionItem item)
         {
             return item.Tags.Contains(CompletionTags.ObjectCreation);
-        }
-
-        public static async Task<TextChange> GetTextChangeAsync(
-            CompletionService service, Document document, CompletionItem item, 
-            char? commitKey = null, CancellationToken cancellationToken = default(CancellationToken))
-        {
-            var change = await service.GetChangeAsync(document, item, commitKey, cancellationToken).ConfigureAwait(false);
-
-            // normally the items that produce multiple changes are not expecting to trigger the behaviors that rely on looking at the text
-            if (change.TextChanges.Length == 1)
-            {
-                return change.TextChanges[0];
-            }
-            else
-            {
-                return new TextChange(item.Span, item.DisplayText);
-            }
         }
     }
 }

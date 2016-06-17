@@ -10,12 +10,12 @@ using Microsoft.CodeAnalysis.Completion.Providers;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
+using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
-using Microsoft.CodeAnalysis.LanguageServices;
 
 namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
 {
@@ -94,11 +94,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
             return base.GetDisplayAndInsertionText(symbol, context);
         }
 
-        private static readonly CompletionItemRules s_objectRules = 
-            CompletionItemRules.Create(commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[')));
+        private static readonly CompletionItemRules s_objectRules =
+            CompletionItemRules.Create(
+                commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[')),
+                matchPriority: MatchPriority.Preselect);
 
-        private static readonly CompletionItemRules s_defaultRules = 
-            CompletionItemRules.Create(commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[', '{')));
+        private static readonly CompletionItemRules s_defaultRules =
+            CompletionItemRules.Create(
+                commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[', '{')),
+                matchPriority: MatchPriority.Preselect);
 
         protected override CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols, AbstractSyntaxContext context)
         {

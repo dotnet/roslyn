@@ -4329,6 +4329,9 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   <data name="ERR_FeatureNotAvailableInVersion6" xml:space="preserve">
     <value>Feature '{0}' is not available in C# 6.  Please use language version {1} or greater.</value>
   </data>
+  <data name="ERR_FeatureNotAvailableInVersion7" xml:space="preserve">
+    <value>Feature '{0}' is not available in C# 7.  Please use language version {1} or greater.</value>
+  </data>
   <data name="ERR_FeatureIsExperimental" xml:space="preserve">
     <value>Feature '{0}' is experimental and unsupported; use '/features:{1}' to enable.</value>
   </data>
@@ -4883,5 +4886,8 @@ To remove the warning, you can use /reference instead (set the Embed Interop Typ
   </data>
   <data name="ERR_OptionMustBeAbsolutePath" xml:space="preserve">
     <value>Option '{0}' must be an absolute path.</value>
+  </data>
+  <data name="ERR_ConversionNotTupleCompatible" xml:space="preserve">
+    <value>Tuple with {0} elements cannot be converted to type '{1}'.</value>
   </data>
 </root>

@@ -22,8 +22,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion
             Public Sub New()
             End Sub
 
-            Public Overrides Function CreateCompletionHelper(service As CompletionService) As CompletionHelper
-                Return New VisualBasicCompletionHelper(service)
+            Public Overrides Function CreateCompletionHelper() As CompletionHelper
+                Return New VisualBasicCompletionHelper()
             End Function
         End Class
     End Class
@@ -31,8 +31,8 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion
     Friend Class VisualBasicCompletionHelper
         Inherits CompletionHelper
 
-        Public Sub New(completionService As CompletionService)
-            MyBase.New(completionService)
+        Public Sub New()
+            MyBase.New(isCaseSensitive:=False)
         End Sub
 
         Public Overrides ReadOnly Property QuestionTabInvokesSnippetCompletion As Boolean
@@ -52,21 +52,12 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion
             Return MyBase.MatchesFilterText(item, filterText, trigger, filterReason, recentItems)
         End Function
 
-        Protected Overrides Function GetCultureSpecificQuirks(candidate As String) As String
-            ' TODO: define way to identify this case w/o language specific check
-            If CultureInfo.CurrentCulture.Name = "tr-TR" Then
-                Return candidate.Replace("I"c, "İ"c)
-            End If
-
-            Return candidate
-        End Function
-
         Public Overrides Function IsBetterFilterMatch(item1 As CompletionItem, item2 As CompletionItem, filterText As String, trigger As CompletionTrigger, filterReason As CompletionFilterReason, Optional recentItems As ImmutableArray(Of String) = Nothing) As Boolean
 
             If filterReason = CompletionFilterReason.BackspaceOrDelete Then
                 Dim prefixLength1 = GetPrefixLength(item1.FilterText, filterText)
                 Dim prefixLength2 = GetPrefixLength(item2.FilterText, filterText)
-                Return prefixLength1 > prefixLength2 OrElse ((item1.Rules.Preselect AndAlso Not item2.Rules.Preselect) AndAlso Not IsEnumMemberItem(item1))
+                Return prefixLength1 > prefixLength2 OrElse ((item1.Rules.MatchPriority > MatchPriority.Default AndAlso Not item2.Rules.MatchPriority > MatchPriority.Default) AndAlso Not IsEnumMemberItem(item1))
             End If
 
             If IsEnumMemberItem(item2) Then

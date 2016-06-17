@@ -344,7 +344,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundThrowStatement(node, boundExpr, hasErrors);
         }
 
-        private BoundStatement BindEmpty(EmptyStatementSyntax node)
+        private static BoundStatement BindEmpty(EmptyStatementSyntax node)
         {
             return new BoundNoOpStatement(node, NoOpStatementFlavor.Default);
         }
@@ -494,7 +494,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundLocalFunctionStatement(node, localSymbol, block, hasErrors);
         }
 
-        private bool ImplicitReturnIsOkay(MethodSymbol method)
+        private static bool ImplicitReturnIsOkay(MethodSymbol method)
         {
             return method.ReturnsVoid || method.IsIterator ||
                 (method.IsAsync && method.DeclaringCompilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task) == method.ReturnType);
@@ -703,7 +703,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return expression;
         }
 
-        protected bool IsInitializerRefKindValid(
+        protected static bool IsInitializerRefKindValid(
             EqualsValueClauseSyntax initializer,
             CSharpSyntaxNode node,
             RefKind variableRefKind,
@@ -847,8 +847,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     if (kind != LocalDeclarationKind.FixedVariable)
                     {
                         // If this is for a fixed statement, we'll do our own conversion since there are some special cases.
-                        initializerOpt = GenerateConversionForAssignment(declTypeOpt, initializerOpt, diagnostics, refKind: localSymbol.RefKind);
-                        initializerOpt = GenerateConversionForAssignment(declTypeOpt, initializerOpt, localDiagnostics);
+                        initializerOpt = GenerateConversionForAssignment(declTypeOpt, initializerOpt, localDiagnostics, refKind: localSymbol.RefKind);
                     }
                 }
             }
@@ -1747,32 +1746,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return new BoundAssignmentOperator(node, op1, op2, type, hasErrors: hasErrors);
-        }
-
-        private bool CheckIsRefAssignable(CSharpSyntaxNode node, BoundExpression expr, DiagnosticBag diagnostics)
-        {
-            Debug.Assert(expr != null);
-
-            if (expr.HasAnyErrors)
-            {
-                return false;
-            }
-
-            var boundLocal = expr as BoundLocal;
-            if (boundLocal != null)
-            {
-                if (boundLocal.LocalSymbol.RefKind != RefKind.None)
-                {
-                    return true;
-                }
-                Error(diagnostics, ErrorCode.ERR_MustBeRefAssignable, node, boundLocal.LocalSymbol);
-            }
-            else
-            {
-                Error(diagnostics, ErrorCode.ERR_MustBeRefAssignableLocal, node);
-            }
-
-            return false;
         }
 
         private static PropertySymbol GetPropertySymbol(BoundExpression expr, out BoundExpression receiver, out CSharpSyntaxNode propertySyntax)
@@ -2695,13 +2668,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return;
             }
 
+            if (expression.Kind == BoundKind.TupleLiteral)
+            {
+                var tuple = (BoundTupleLiteral)expression;
+                var targetElementTypes = default(ImmutableArray<TypeSymbol>);
+
+                // If target is a tuple or compatible type with the same number of elements,
+                // report errors for tuple arguments that failed to convert, which would be more useful.
+                if (targetType.TryGetElementTypesIfTupleOrCompatible(out targetElementTypes) && 
+                    targetElementTypes.Length == tuple.Arguments.Length)
+                {
+                    GenerateImplicitConversionErrorsForTupleLiteralArguments(diagnostics, syntax, tuple.Arguments, targetElementTypes);
+                    return;
+                }
+
+                // target is not compatible with source and source does not have a type
+                if ((object)tuple.Type == null)
+                {
+                    Error(diagnostics, ErrorCode.ERR_ConversionNotTupleCompatible, syntax, tuple.Arguments.Length, targetType);
+                    return;
+                }
+
+                // Otherwise it is just a regular conversion failure from T1 to T2.
+            }
+
             var sourceType = expression.Type;
             if ((object)sourceType != null)
             {
                 GenerateImplicitConversionError(diagnostics, this.Compilation, syntax, conversion, sourceType, targetType, expression.ConstantValue);
                 return;
             }
-
+            
             if (expression.IsLiteralNull())
             {
                 if (targetType.TypeKind == TypeKind.TypeParameter)
@@ -2748,6 +2745,34 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             Debug.Assert(expression.HasAnyErrors && expression.Kind != BoundKind.UnboundLambda, "Missing a case in implicit conversion error reporting");
+        }
+
+        private void GenerateImplicitConversionErrorsForTupleLiteralArguments(
+            DiagnosticBag diagnostics, 
+            CSharpSyntaxNode syntax,
+            ImmutableArray<BoundExpression> tupleArguments, 
+            ImmutableArray<TypeSymbol> targetElementTypes)
+        {
+            var argLength = tupleArguments.Length;
+
+            // report all leaf elements of the tuple literal that failed to convert
+            // NOTE: we are not responsible for reporting use site errors here, just the failed leaf conversions.
+            // By the time we get here we have done analysis and know we have failed the cast in general, and diagnostics collected in the process is already in the bag. 
+            // The only thing left is to form a diagnostics about the actually failing conversion(s).
+            // This whole method does not itself collect any usesite diagnostics. Its only purpose is to produce an error better than "conversion failed here"           
+            HashSet <DiagnosticInfo> usDiagsUnused = null;
+
+            for (int i = 0; i < targetElementTypes.Length; i++)
+            {
+                var argument = tupleArguments[i];
+                var targetElementType = targetElementTypes[i];
+
+                var elementConversion = Conversions.ClassifyImplicitConversionFromExpression(argument, targetElementType, ref usDiagsUnused);
+                if (!elementConversion.IsValid)
+                {
+                    GenerateImplicitConversionError(diagnostics, argument.Syntax, elementConversion, argument, targetElementType);
+                }
+            }
         }
 
         private BoundStatement BindIfStatement(IfStatementSyntax node, DiagnosticBag diagnostics)

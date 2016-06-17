@@ -8,10 +8,46 @@
     <SystemReflectionMetadataVersion>1.3.0-rc3-24102-00</SystemReflectionMetadataVersion>
     <SystemCollectionsImmutableVersion>1.2.0-rc3-24102-00</SystemCollectionsImmutableVersion>
     <MicrosoftDiaSymReaderVersion>1.0.8-rc3-60429-03</MicrosoftDiaSymReaderVersion>
-    <MicrosoftDiaSymReaderNativeVersion>1.4.0-rc</MicrosoftDiaSymReaderNativeVersion>
+    <MicrosoftDiaSymReaderNativeVersion>1.4.0-rc2</MicrosoftDiaSymReaderNativeVersion>
     <MicrosoftCodeAnalysisElfieVersion>0.10.6-rc2</MicrosoftCodeAnalysisElfieVersion>
     <ManagedEsentVersion>1.9.2</ManagedEsentVersion>
     <CodeAnalysisAnalyzersVersion>1.1.0</CodeAnalysisAnalyzersVersion>
+    <!-- Pre-release version of CoreFX dependencies (empty for release). Used e.g. in used in .nuspec files. -->
+    <CoreFXVersionSuffix>-rc3-24128-00</CoreFXVersionSuffix>
+    <!-- Pre-release version of CoreCLR dependencies (empty for release). Used e.g. to find crossgen. -->
+    <CoreClrVersionSuffix>-rc3-24128-00</CoreClrVersionSuffix>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- We cannot sign an unofficial build, so fail if 'OfficialBuild' is not 'true' but 'SignedBuild' is -->
+    <SignedBuild Condition="'$(RealSignBuild)' == 'true' OR '$(SignType)' == 'real'">true</SignedBuild>
+    <Error Condition="'$(OfficialBuild)' != 'true' AND '$(SignedBuild)' == 'true'">Cannot sign an unofficial build.</Error>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- We should not be signing a build anywhere except for in MicroBuild, which will always specify 'BUILD_BUILDNUMBER' -->
+    <BuildNumber Condition="'$(BuildNumber)' == ''">$(BUILD_BUILDNUMBER)</BuildNumber>
+    <Error Condition="'$(BuildNumber)' == '' AND '$(SignedBuild)' == 'true'">A build number must be specified for a signed build.</Error>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- When a build number is not specified, then we should default back to '00000000.0', which is a build number in the
+         same format as provided by MicroBuild v2, but with all digits set to zero. -->
+    <BuildNumber Condition="'$(BuildNumber)' == ''">00000000.0</BuildNumber>
+    <!-- When a build number is specified, it needs to be in the format of 'x.y' -->
+    <Error Condition="$(BuildNumber.Split('.').Length) != 2">BuildNumber should have two parts (in the form of 'x.y')</Error>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <!-- Split the build parts out from the BuildNumber which is given to us by MicroBuild in the format of yyyymmdd.nn
+         where BuildNumberPart1 is yyyymmdd (such as 20160615) and BuildNumberPart2 is nn (which represents the nth build 
+         started that day). So the first build of the day, 20160615.1, will produce something similar to BuildNumberPart1: 20160615,
+         BuildNumberPart2: 01; and the 12th build of the day, 20160615.12, will produce BuildNumberPart1: 20160615, BuildNumberPart2: 12 -->
+    <!-- Additionally, in order to match the MicroBuild v1 behavior, we will only take the last five digits of the BuildNumber, so
+         in the case of 20160615, we will set BuildNumberPart1 to 60615. This will begin failing in the 2017 as the BuildVersion only allows
+         each part to be in the range of 0 through 65535. Issue #12038 tracks the fix that needs to happen. -->
+    <BuildNumberPart1>$(BuildNumber.Split('.')[0].Substring(3))</BuildNumberPart1>
+    <BuildNumberPart2>$(BuildNumber.Split('.')[1].PadLeft(2,'0'))</BuildNumberPart2>
   </PropertyGroup>
   
   <Choose>
@@ -24,17 +60,7 @@
       </PropertyGroup>
     </When>
 
-    <When Condition="('$(BuildNumber)' != '') and ($(BuildNumber.Split('.').Length) == 2)">
-      <!-- The user specified a build number, so we should use that. -->
-      <PropertyGroup>
-        <AssemblyVersion>$(RoslynSemanticVersion).0</AssemblyVersion>
-        <BuildVersion>$(RoslynSemanticVersion).$(BuildNumber.Split('.')[0])</BuildVersion>
-      </PropertyGroup>
-    </When>
-
-    <When Condition="'$(OfficialBuild)' == 'true' OR '$(RealSignBuild)' == 'true' OR '$(SignType)' == 'real'">
-      <!-- We're creating an official or real-signed build, but don't have a build number. Just use the RoslynSemanticVersion.
-          This happens if the build template does not pass BuildNumber down to MSBuild. -->
+    <When Condition="'$(OfficialBuild)' == 'true' OR '$(SignedBuild)' == 'true'">
       <PropertyGroup>
         <AssemblyVersion>$(RoslynSemanticVersion).0</AssemblyVersion>
         <BuildVersion>$(RoslynSemanticVersion).0</BuildVersion>
@@ -47,35 +73,24 @@
           have a build with an actual number installed, but then build and F5 a build with
           this number.  -->
       <PropertyGroup>
-        <BuildVersion>42.42.42.42</BuildVersion>
         <AssemblyVersion>42.42.42.42</AssemblyVersion>
+        <BuildVersion>42.42.42.42</BuildVersion>
       </PropertyGroup>
     </Otherwise>
   </Choose>
 
   <!-- Returns the current build version. Used in .vsixmanifests to substitute our build version into them -->
-  <Target Name="GetBuildVersion" Outputs="$(BuildVersion)" />
+  <Target Name="GetBuildVersion" Outputs="$(RoslynSemanticVersion).$(BuildNumberPart1.Trim())$(BuildNumberPart2.Trim())" />
 
   <!-- NuGet version -->
   <PropertyGroup>
-    <BuildNumberSuffix Condition="('$(TF_BUILD_BUILDNUMBER)' != '')
-                     and ($(TF_BUILD_BUILDNUMBER.Split('_').Length) == 2)">$(TF_BUILD_BUILDNUMBER.Split('_')[1])</BuildNumberSuffix>
-    <BuildNumberPart1 Condition="'$(BuildNumberSuffix)' != ''">
-      $(BuildNumberSuffix.Split('.')[0])
-    </BuildNumberPart1>
-    <BuildNumberPart2 Condition="'$(BuildNumberSuffix)' != ''">
-      $(BuildNumberSuffix.Split('.')[1].PadLeft(2,'0'))
-    </BuildNumberPart2>
-
-    <!-- Only set when building RTM with no dependencies on pre-release packages
     <NuGetReleaseVersion>$(RoslynSemanticVersion)</NuGetReleaseVersion>
-    -->
-    <NuGetPreReleaseVersion>$(RoslynSemanticVersion)-beta1</NuGetPreReleaseVersion>
-    <NuGetPerBuildPreReleaseVersion Condition="'$(BuildNumberSuffix)' != ''">$(NuGetPreReleaseVersion)-$(BuildNumberPart1.Trim())-$(BuildNumberPart2.Trim())</NuGetPerBuildPreReleaseVersion>
+    <NuGetPreReleaseVersion>$(RoslynSemanticVersion)-beta3</NuGetPreReleaseVersion>
+    <NuGetPerBuildPreReleaseVersion>$(NuGetPreReleaseVersion)-$(BuildNumberPart1.Trim())-$(BuildNumberPart2.Trim())</NuGetPerBuildPreReleaseVersion>
 
     <!-- TODO: change to a fixed version once we move this component to a separate repo -->
     <MicrosoftDiaSymReaderPortablePdbVersion>1.1.0-beta1</MicrosoftDiaSymReaderPortablePdbVersion>
     <MicrosoftDiaSymReaderPortablePdbVersion Condition="'$(BuildNumber)' != ''">$(MicrosoftDiaSymReaderPortablePdbVersion)-$(BuildNumber.Split('.')[0])-$(BuildNumber.Split('.')[1].PadLeft(2,'0'))</MicrosoftDiaSymReaderPortablePdbVersion>
   </PropertyGroup>
-  
+
 </Project>

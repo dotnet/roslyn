@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -89,10 +90,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return CreateAnonymousFunctionConversion(syntax, source, conversion, isCast, destination, diagnostics);
             }
 
-            if (conversion.IsTuple || 
+            if (conversion.IsTupleLiteral || 
                 (conversion.Kind == ConversionKind.ImplicitNullable && source.Kind == BoundKind.TupleLiteral))
             {
-                return CreateTupleConversion(syntax, (BoundTupleLiteral)source, conversion, isCast, destination, diagnostics);
+                return CreateTupleLiteralConversion(syntax, (BoundTupleLiteral)source, conversion, isCast, destination, diagnostics);
             }
 
             if (conversion.IsUserDefined)
@@ -330,12 +331,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundConversion(syntax, group, conversion, @checked: false, explicitCastInCode: isCast, constantValueOpt: ConstantValue.NotAvailable, type: destination, hasErrors: hasErrors) { WasCompilerGenerated = source.WasCompilerGenerated };
         }
 
-        private BoundExpression CreateTupleConversion(CSharpSyntaxNode syntax, BoundTupleLiteral sourceTuple, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
+        private BoundExpression CreateTupleLiteralConversion(CSharpSyntaxNode syntax, BoundTupleLiteral sourceTuple, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
         {
             // We have a successful tuple conversion; rather than producing a separate conversion node 
             // which is a conversion on top of a tuple literal, tuple conversion is an element-wise conversion of arguments.
 
-            Debug.Assert(conversion.Kind == ConversionKind.ImplicitTuple || conversion.Kind == ConversionKind.ImplicitNullable);
+            Debug.Assert(conversion.Kind == ConversionKind.ImplicitTupleLiteral || conversion.Kind == ConversionKind.ImplicitNullable);
             Debug.Assert((conversion.Kind == ConversionKind.ImplicitNullable) == destination.IsNullableType());
 
             TypeSymbol destinationWithoutNullable = conversion.Kind == ConversionKind.ImplicitNullable ?
@@ -355,10 +356,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             var arguments = sourceTuple.Arguments;
             var convertedArguments = ArrayBuilder<BoundExpression>.GetInstance(arguments.Length);
-            var targetElementTypes = ArrayBuilder<TypeSymbol>.GetInstance(arguments.Length);
 
-            TupleTypeSymbol.AddElementTypes(targetType, targetElementTypes);
-            Debug.Assert(targetElementTypes.Count == arguments.Length, "converting a tuple literal to incompatible type?");
+            ImmutableArray<TypeSymbol> targetElementTypes = targetType.GetElementTypesOfTupleOrCompatible();
+            Debug.Assert(targetElementTypes.Length == arguments.Length, "converting a tuple literal to incompatible type?");
 
             for (int i = 0; i < arguments.Length; i++)
             {
@@ -366,8 +366,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var destType = targetElementTypes[i];
                 convertedArguments.Add(CreateConversion(argument, destType, diagnostics));
             }
-
-            targetElementTypes.Free();
 
             BoundExpression result = new BoundConvertedTupleLiteral(
                 sourceTuple.Syntax,
@@ -545,7 +543,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (memberSymbol.IsStatic)
             {
                 Debug.Assert(!invokedAsExtensionMethod || (receiverOpt != null));
-                if (!invokedAsExtensionMethod && !WasImplicitReceiver(receiverOpt) && IsMemberAccessedThroughVariableOrValue(receiverOpt))
+
+                if (invokedAsExtensionMethod)
+                {
+                    if (receiverOpt?.Kind == BoundKind.QueryClause && IsMemberAccessedThroughType(receiverOpt))
+                    {
+                        // Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.
+                        diagnostics.Add(ErrorCode.ERR_QueryNoProvider, node.Location, receiverOpt.Type, memberSymbol.Name);
+                        return true;
+                    }
+                }
+                else if (!WasImplicitReceiver(receiverOpt) && IsMemberAccessedThroughVariableOrValue(receiverOpt))
                 {
                     if (this.Flags.Includes(BinderFlags.CollectionInitializerAddMethod))
                     {
