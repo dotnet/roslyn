@@ -902,7 +902,7 @@ namespace Microsoft.CodeAnalysis
             using (_serializationLock.DisposableWait())
             {
                 var oldSolution = this.CurrentSolution;
-                var newSolution = this.UpdateReferencesAfterAdd(oldSolution);
+                var newSolution = UpdateReferencesAfterAdd(oldSolution);
 
                 if (newSolution != oldSolution)
                 {
@@ -912,7 +912,8 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private Solution UpdateReferencesAfterAdd(Solution solution)
+        [System.Diagnostics.Contracts.Pure]
+        private static Solution UpdateReferencesAfterAdd(Solution solution)
         {
             // Build map from output assembly path to ProjectId
             // Use explicit loop instead of ToDictionary so we don't throw if multiple projects have same output assembly path.
