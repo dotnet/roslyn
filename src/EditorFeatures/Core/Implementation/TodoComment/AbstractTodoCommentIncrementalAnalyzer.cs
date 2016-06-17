@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             return _state.PersistAsync(document, new Data(VersionStamp.Default, VersionStamp.Default, ImmutableArray<TodoItem>.Empty), cancellationToken);
         }
 
-        public async Task AnalyzeSyntaxAsync(Document document, InvocationReasons reasons, CancellationToken cancellationToken)
+        public async Task AnalyzeSyntaxAsync(Document document, CancellationToken cancellationToken)
         {
             // it has an assumption that this will not be called concurrently for same document.
             // in fact, in current design, it won't be even called concurrently for different documents.
@@ -220,12 +220,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.TodoComments
             return SpecializedTasks.EmptyTask;
         }
 
-        public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, InvocationReasons reasons, CancellationToken cancellationToken)
+        public Task AnalyzeDocumentAsync(Document document, SyntaxNode bodyOpt, CancellationToken cancellationToken)
         {
             return SpecializedTasks.EmptyTask;
         }
 
-        public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, InvocationReasons reasons, CancellationToken cancellationToken)
+        public Task AnalyzeProjectAsync(Project project, bool semanticsChanged, CancellationToken cancellationToken)
         {
             return SpecializedTasks.EmptyTask;
         }
