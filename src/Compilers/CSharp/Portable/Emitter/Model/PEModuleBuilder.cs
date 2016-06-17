@@ -407,7 +407,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             return ImmutableArray<NamedTypeSymbol>.Empty;
         }
 
-        private void GetExportedTypes(NamespaceOrTypeSymbol symbol, int parentIndex, ArrayBuilder<Cci.ExportedType> builder)
+        private static void GetExportedTypes(NamespaceOrTypeSymbol symbol, int parentIndex, ArrayBuilder<Cci.ExportedType> builder)
         {
             int index;
             if (symbol.Kind == SymbolKind.NamedType)
@@ -493,63 +493,57 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
 
                 Debug.Assert(type.IsDefinition);
 
-                if (type.IsTopLevelType())
+                if (!type.IsTopLevelType())
                 {
-                    string fullEmittedName = MetadataHelpers.BuildQualifiedName(
-                        ((Cci.INamespaceTypeReference)type).NamespaceName,
-                        Cci.MetadataWriter.GetMangledName(type));
-
-                    // First check against types declared in the primary module
-                    if (ContainsTopLevelType(fullEmittedName))
-                    {
-                        if (type.ContainingAssembly == sourceAssembly)
-                        {
-                            diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(
-                                ErrorCode.ERR_ExportedTypeConflictsWithDeclaration, type, type.ContainingModule), NoLocation.Singleton));
-                        }
-                        else
-                        {
-                            diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(
-                                ErrorCode.ERR_ForwardedTypeConflictsWithDeclaration, type), NoLocation.Singleton));
-                        }
-
-                        continue;
-                    }
-
-                    NamedTypeSymbol contender;
-
-                    // Now check against other exported types
-                    if (exportedNamesMap.TryGetValue(fullEmittedName, out contender))
-                    {
-                        if (type.ContainingAssembly == sourceAssembly)
-                        {
-                            // all exported types precede forwarded types, therefore contender cannot be a forwarded type.
-                            Debug.Assert(contender.ContainingAssembly == sourceAssembly);
-
-                            diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(
-                                ErrorCode.ERR_ExportedTypesConflict, type, type.ContainingModule, contender, contender.ContainingModule), NoLocation.Singleton));
-                        }
-                        else
-                        {
-                            if (contender.ContainingAssembly == sourceAssembly)
-                            {
-                                // Forwarded type conflicts with exported type
-                                diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(
-                                    ErrorCode.ERR_ForwardedTypeConflictsWithExportedType, type, type.ContainingAssembly, contender, contender.ContainingModule), NoLocation.Singleton));
-                            }
-                            else
-                            {
-                                // Forwarded type conflicts with another forwarded type
-                                diagnostics.Add(new CSDiagnostic(new CSDiagnosticInfo(
-                                    ErrorCode.ERR_ForwardedTypesConflict, type, type.ContainingAssembly, contender, contender.ContainingAssembly), NoLocation.Singleton));
-                            }
-                        }
-
-                        continue;
-                    }
-
-                    exportedNamesMap.Add(fullEmittedName, type);
+                    continue;
                 }
+
+                string fullEmittedName = MetadataHelpers.BuildQualifiedName(
+                    ((Cci.INamespaceTypeReference)type).NamespaceName,
+                    Cci.MetadataWriter.GetMangledName(type));
+
+                // First check against types declared in the primary module
+                if (ContainsTopLevelType(fullEmittedName))
+                {
+                    if ((object)type.ContainingAssembly == sourceAssembly)
+                    {
+                        diagnostics.Add(ErrorCode.ERR_ExportedTypeConflictsWithDeclaration, NoLocation.Singleton, type, type.ContainingModule);
+                    }
+                    else
+                    {
+                        diagnostics.Add(ErrorCode.ERR_ForwardedTypeConflictsWithDeclaration, NoLocation.Singleton, type);
+                    }
+
+                    continue;
+                }
+
+                NamedTypeSymbol contender;
+
+                // Now check against other exported types
+                if (exportedNamesMap.TryGetValue(fullEmittedName, out contender))
+                {
+                    if ((object)type.ContainingAssembly == sourceAssembly)
+                    {
+                        // all exported types precede forwarded types, therefore contender cannot be a forwarded type.
+                        Debug.Assert(contender.ContainingAssembly == sourceAssembly);
+
+                        diagnostics.Add(ErrorCode.ERR_ExportedTypesConflict, NoLocation.Singleton, type, type.ContainingModule, contender, contender.ContainingModule);
+                    }
+                    else if ((object)contender.ContainingAssembly == sourceAssembly)
+                    {
+                        // Forwarded type conflicts with exported type
+                        diagnostics.Add(ErrorCode.ERR_ForwardedTypeConflictsWithExportedType, NoLocation.Singleton, type, type.ContainingAssembly, contender, contender.ContainingModule);
+                    }
+                    else
+                    {
+                        // Forwarded type conflicts with another forwarded type
+                        diagnostics.Add(ErrorCode.ERR_ForwardedTypesConflict, NoLocation.Singleton, type, type.ContainingAssembly, contender, contender.ContainingAssembly);
+                    }
+
+                    continue;
+                }
+
+                exportedNamesMap.Add(fullEmittedName, type);
             }
         }
 
@@ -561,7 +555,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
             if (wellKnownAttributeData?.ForwardedTypes?.Count > 0)
             {
                 // (type, index of the parent exported type in builder, or -1 if the type is a top-level type)
-                var stack = new Stack<ValueTuple<NamedTypeSymbol, int>>();
+                var stack = ArrayBuilder<ValueTuple<NamedTypeSymbol, int>>.GetInstance();
 
                 foreach (NamedTypeSymbol forwardedType in wellKnownAttributeData.ForwardedTypes)
                 {
@@ -605,6 +599,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Emit
                         }
                     }
                 }
+
+                stack.Free();
             }
         }
 

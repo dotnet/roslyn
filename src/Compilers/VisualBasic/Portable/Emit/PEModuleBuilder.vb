@@ -428,76 +428,59 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
                 Debug.Assert(type.IsDefinition)
 
-                If type.ContainingType Is Nothing Then
-                    Dim fullEmittedName As String = MetadataHelpers.BuildQualifiedName(
-                        DirectCast(type, Cci.INamespaceTypeReference).NamespaceName, Cci.MetadataWriter.GetMangledName(type))
-
-                    ' First check against types declared in the primary module
-                    If ContainsTopLevelType(fullEmittedName) Then
-                        If type.ContainingAssembly Is sourceAssembly Then
-                            diagnostics.Add(New VBDiagnostic(
-                                ErrorFactory.ErrorInfo(
-                                    ERRID.ERR_ExportedTypeConflictsWithDeclaration,
-                                    type,
-                                    type.ContainingModule),
-                                NoLocation.Singleton))
-                        Else
-                            diagnostics.Add(New VBDiagnostic(
-                                ErrorFactory.ErrorInfo(
-                                    ERRID.ERR_ForwardedTypeConflictsWithDeclaration,
-                                    CustomSymbolDisplayFormatter.DefaultErrorFormat(type)),
-                                NoLocation.Singleton))
-                        End If
-
-                        Continue For
-                    End If
-
-                    Dim contender As NamedTypeSymbol = Nothing
-
-                    ' Now check against other exported types
-                    If exportedNamesMap.TryGetValue(fullEmittedName, contender) Then
-
-                        If type.ContainingAssembly Is sourceAssembly Then
-                            ' all exported types precede forwarded types, therefore contender cannot be a forwarded type.
-                            Debug.Assert(contender.ContainingAssembly Is sourceAssembly)
-
-                            diagnostics.Add(New VBDiagnostic(
-                                ErrorFactory.ErrorInfo(
-                                    ERRID.ERR_ExportedTypesConflict,
-                                    CustomSymbolDisplayFormatter.DefaultErrorFormat(type),
-                                    CustomSymbolDisplayFormatter.DefaultErrorFormat(type.ContainingModule),
-                                    CustomSymbolDisplayFormatter.DefaultErrorFormat(contender),
-                                    CustomSymbolDisplayFormatter.DefaultErrorFormat(contender.ContainingModule)),
-                                NoLocation.Singleton))
-                        Else
-                            If contender.ContainingAssembly Is sourceAssembly Then
-                                ' Forwarded type conflicts with exported type
-                                diagnostics.Add(New VBDiagnostic(
-                                    ErrorFactory.ErrorInfo(
-                                        ERRID.ERR_ForwardedTypeConflictsWithExportedType,
-                                        CustomSymbolDisplayFormatter.DefaultErrorFormat(type),
-                                        type.ContainingAssembly,
-                                        CustomSymbolDisplayFormatter.DefaultErrorFormat(contender),
-                                        CustomSymbolDisplayFormatter.DefaultErrorFormat(contender.ContainingModule)),
-                                    NoLocation.Singleton))
-                            Else
-                                ' Forwarded type conflicts with another forwarded type
-                                diagnostics.Add(New VBDiagnostic(
-                                    ErrorFactory.ErrorInfo(
-                                        ERRID.ERR_ForwardedTypesConflict,
-                                        CustomSymbolDisplayFormatter.DefaultErrorFormat(type),
-                                        type.ContainingAssembly,
-                                        CustomSymbolDisplayFormatter.DefaultErrorFormat(contender),
-                                        contender.ContainingAssembly),
-                                    NoLocation.Singleton))
-                            End If
-                        End If
-
-                        Continue For
-                    End If
-
-                    exportedNamesMap.Add(fullEmittedName, type)
+                If type.ContainingType IsNot Nothing Then
+                    Continue For
                 End If
+
+                Dim fullEmittedName As String = MetadataHelpers.BuildQualifiedName(
+                    DirectCast(type, Cci.INamespaceTypeReference).NamespaceName,
+                    Cci.MetadataWriter.GetMangledName(type))
+
+                ' First check against types declared in the primary module
+                If ContainsTopLevelType(fullEmittedName) Then
+                    If type.ContainingAssembly Is sourceAssembly Then
+                        diagnostics.Add(ERRID.ERR_ExportedTypeConflictsWithDeclaration, NoLocation.Singleton, type, type.ContainingModule)
+                    Else
+                        diagnostics.Add(ERRID.ERR_ForwardedTypeConflictsWithDeclaration, NoLocation.Singleton, CustomSymbolDisplayFormatter.DefaultErrorFormat(type))
+                    End If
+
+                    Continue For
+                End If
+
+                Dim contender As NamedTypeSymbol = Nothing
+
+                ' Now check against other exported types
+                If exportedNamesMap.TryGetValue(fullEmittedName, contender) Then
+
+                    If type.ContainingAssembly Is sourceAssembly Then
+                        ' all exported types precede forwarded types, therefore contender cannot be a forwarded type.
+                        Debug.Assert(contender.ContainingAssembly Is sourceAssembly)
+
+                        diagnostics.Add(ERRID.ERR_ExportedTypesConflict, NoLocation.Singleton,
+                            CustomSymbolDisplayFormatter.DefaultErrorFormat(type),
+                            CustomSymbolDisplayFormatter.DefaultErrorFormat(type.ContainingModule),
+                            CustomSymbolDisplayFormatter.DefaultErrorFormat(contender),
+                            CustomSymbolDisplayFormatter.DefaultErrorFormat(contender.ContainingModule))
+                    ElseIf contender.ContainingAssembly Is sourceAssembly Then
+                        ' Forwarded type conflicts with exported type
+                        diagnostics.Add(ERRID.ERR_ForwardedTypeConflictsWithExportedType, NoLocation.Singleton,
+                            CustomSymbolDisplayFormatter.DefaultErrorFormat(type),
+                            type.ContainingAssembly,
+                            CustomSymbolDisplayFormatter.DefaultErrorFormat(contender),
+                            CustomSymbolDisplayFormatter.DefaultErrorFormat(contender.ContainingModule))
+                    Else
+                        ' Forwarded type conflicts with another forwarded type
+                        diagnostics.Add(ERRID.ERR_ForwardedTypesConflict, NoLocation.Singleton,
+                            CustomSymbolDisplayFormatter.DefaultErrorFormat(type),
+                            type.ContainingAssembly,
+                            CustomSymbolDisplayFormatter.DefaultErrorFormat(contender),
+                            contender.ContainingAssembly)
+                    End If
+
+                    Continue For
+                End If
+
+                exportedNamesMap.Add(fullEmittedName, type)
             Next
         End Sub
 
@@ -532,7 +515,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
 
             If wellKnownAttributeData?.ForwardedTypes?.Count > 0 Then
                 ' (type, index of the parent exported type in builder, or -1 if the type is a top-level type)
-                Dim stack = New Stack(Of ValueTuple(Of NamedTypeSymbol, Integer))()
+                Dim stack = ArrayBuilder(Of ValueTuple(Of NamedTypeSymbol, Integer)).GetInstance()
 
                 For Each forwardedType As NamedTypeSymbol In wellKnownAttributeData.ForwardedTypes
                     Dim originalDefinition As NamedTypeSymbol = forwardedType.OriginalDefinition
@@ -571,6 +554,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Emit
                         Next
                     End While
                 Next
+
+                stack.Free()
             End If
         End Sub
 
