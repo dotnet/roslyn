@@ -12,7 +12,7 @@
     "Microsoft.Build.Targets": "0.1.0-preview-00023-160527",
     "Microsoft.Build": "0.1.0-preview-00023-160527",
     "MSBuild": "0.1.0-preview-00023-160527",
-    "Microsoft.NETCore.TestHost": "1.0.0-rc3-24128-00",
+    "Microsoft.NETCore.TestHost": "1.0.0",
     "Microsoft.NETCore.App": "1.0.0-rc3-004338",
     "Newtonsoft.Json": "7.0.1"
   },
