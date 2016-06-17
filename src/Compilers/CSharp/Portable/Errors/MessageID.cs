@@ -161,6 +161,11 @@ namespace Microsoft.CodeAnalysis.CSharp
         //   (hence the above rule - RequiredVersion throws when RequiredFeature returns non-null)
         internal static string RequiredFeature(this MessageID feature)
         {
+            return null;
+        }
+
+        internal static string RequiredFeatureLegacy(this MessageID feature)
+        {
             switch (feature)
             {
                 case MessageID.IDS_FeatureBinaryLiteral:
@@ -188,6 +193,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             // Checks are in the LanguageParser unless otherwise noted.
             switch (feature)
             {
+                // C# 7 features.
+                case MessageID.IDS_FeatureBinaryLiteral:
+                case MessageID.IDS_FeatureDigitSeparator:
+                case MessageID.IDS_FeatureLocalFunctions:
+                case MessageID.IDS_FeatureRefLocalsReturns:
+                case MessageID.IDS_FeaturePatternMatching:
+                case MessageID.IDS_FeatureTuples:
+                case MessageID.IDS_FeatureReplace:
+                    return LanguageVersion.CSharp7;
+
                 // C# 6 features.
                 case MessageID.IDS_FeatureExceptionFilter:
                 case MessageID.IDS_FeatureAutoPropertyInitializer:

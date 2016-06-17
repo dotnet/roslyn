@@ -8505,7 +8505,7 @@ public class Test
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<ParenthesizedLambdaExpressionSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<ParenthesizedLambdaExpressionSyntax>(sourceCode, parseOptions: TestOptions.Regular6);
 
             Assert.Null(semanticInfo.Type);
             Assert.Equal("?", semanticInfo.ConvertedType.ToTestDisplayString());
@@ -8545,7 +8545,7 @@ public class Test
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode, parseOptions: TestOptions.Regular6);
 
             Assert.Null(semanticInfo.Type);
             Assert.Equal("?", semanticInfo.ConvertedType.ToTestDisplayString());
@@ -8586,7 +8586,7 @@ public class Test
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<LiteralExpressionSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<LiteralExpressionSyntax>(sourceCode, parseOptions: TestOptions.Regular6);
 
             Assert.Equal("System.Double", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
@@ -10897,7 +10897,7 @@ class Program
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<LiteralExpressionSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<LiteralExpressionSyntax>(sourceCode, parseOptions: TestOptions.Regular6);
 
             Assert.Equal("System.Int32", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
@@ -12442,7 +12442,7 @@ struct Conv
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode, parseOptions: TestOptions.Regular6);
 
             Assert.Equal("Conv", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
@@ -12476,7 +12476,7 @@ struct Conv
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode, parseOptions: TestOptions.Regular6);
 
             Assert.Equal("Conv", semanticInfo.Type.ToTestDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);

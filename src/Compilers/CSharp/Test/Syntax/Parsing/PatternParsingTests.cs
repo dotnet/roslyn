@@ -33,7 +33,7 @@ class C
     }
 }
 ";
-            CreateCompilationWithMscorlib(test).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(test, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (9,13): error CS8058: Feature 'pattern matching' is experimental and unsupported; use '/features:patterns' to enable.
                 //             case 2 when args.Length == 2:
                 Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "case 2 when args.Length == 2:").WithArguments("pattern matching", "patterns").WithLocation(9, 13),

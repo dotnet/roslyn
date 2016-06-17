@@ -14,9 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class PatternMatchingTests : CSharpTestBase
     {
-        private static CSharpParseOptions patternParseOptions =
-            TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)
-                    .WithFeature(MessageID.IDS_FeaturePatternMatching.RequiredFeature(), "true");
+        private static CSharpParseOptions patternParseOptions = TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7);
 
         [Fact]
         public void DemoModes()
@@ -45,7 +43,7 @@ public class Vec
     public Vec(int x) {}
 }
 ";
-            var regularParseOptions = TestOptions.Regular;
+            var regularParseOptions = TestOptions.Regular6;
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: regularParseOptions).VerifyDiagnostics(
                 // (7,18): error CS8058: Feature 'binary literals' is experimental and unsupported; use '/features:binaryLiterals' to enable.
                 //         int i1 = 0b001010; // binary literals
@@ -71,8 +69,7 @@ public class Vec
                 );
 
             // enables binary literals, digit separators, local functions, ref locals, pattern matching
-            var demoParseOptions = regularParseOptions
-                .WithPreprocessorSymbols(new[] { "__DEMO__" });
+            var demoParseOptions = regularParseOptions.WithLanguageVersion(LanguageVersion.CSharp7);
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: demoParseOptions).VerifyDiagnostics(
                 // (8,13): warning CS0219: The variable 'i2' is assigned but its value is never used
                 //         int i2 = 23_554; // digit separators
@@ -382,7 +379,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions.WithFeature(MessageID.IDS_FeatureLocalFunctions.RequiredFeature(), "true"));
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions);
             compilation.VerifyDiagnostics();
             var expectedOutput =
 @"False for 1

@@ -13,10 +13,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
         public static readonly CSharpParseOptions Script = new CSharpParseOptions(kind: SourceCodeKind.Script, documentationMode: DocumentationMode.None);
         public static readonly CSharpParseOptions Regular = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None);
         public static readonly CSharpParseOptions RegularWithDocumentationComments = new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.Diagnose);
+        public static readonly CSharpParseOptions Regular6 = Regular.WithLanguageVersion(LanguageVersion.CSharp6);
 
-        private static readonly SmallDictionary<string, string> s_experimentalFeatures = new SmallDictionary<string, string> { { MessageID.IDS_FeatureLocalFunctions.RequiredFeature(), "true" }, { MessageID.IDS_FeatureRefLocalsReturns.RequiredFeature(), "true" } };
+        private static readonly SmallDictionary<string, string> s_experimentalFeatures = new SmallDictionary<string, string> { };
         public static readonly CSharpParseOptions ExperimentalParseOptions =
-            new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None, languageVersion: LanguageVersion.CSharp6).WithFeatures(s_experimentalFeatures);
+            new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None, languageVersion: LanguageVersion.CSharp7).WithFeatures(s_experimentalFeatures);
 
         public static readonly CSharpCompilationOptions ReleaseDll = new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary, optimizationLevel: OptimizationLevel.Release).WithExtendedCustomDebugInformation(true);
         public static readonly CSharpCompilationOptions ReleaseExe = new CSharpCompilationOptions(OutputKind.ConsoleApplication, optimizationLevel: OptimizationLevel.Release).WithExtendedCustomDebugInformation(true);
@@ -56,22 +57,22 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
 
         public static CSharpParseOptions WithLocalFunctionsFeature(this CSharpParseOptions options)
         {
-            return options.WithFeature(MessageID.IDS_FeatureLocalFunctions.RequiredFeature(), "true");
+            return options;
         }
 
         public static CSharpParseOptions WithRefsFeature(this CSharpParseOptions options)
         {
-            return options.WithFeature(MessageID.IDS_FeatureRefLocalsReturns.RequiredFeature(), "true");
+            return options;
         }
 
         public static CSharpParseOptions WithTuplesFeature(this CSharpParseOptions options)
         {
-            return options.WithFeature("tuples", "true");
+            return options;
         }
 
         public static CSharpParseOptions WithReplaceFeature(this CSharpParseOptions options)
         {
-            return options.WithFeature("replace", "true");
+            return options;
         }
     }
 }

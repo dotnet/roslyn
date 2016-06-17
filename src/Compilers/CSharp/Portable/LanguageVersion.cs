@@ -90,9 +90,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                 case LanguageVersion.CSharp5:
                     return ErrorCode.ERR_FeatureNotAvailableInVersion5;
                 case LanguageVersion.CSharp6:
-                    return ErrorCode.ERR_FeatureNotAvailableInVersion6;
                 case LanguageVersion.CSharp7:
-                    return ErrorCode.ERR_FeatureNotAvailableInVersion7;
+                    // This is done for preview 3 only to reduce churn in the test suites.  Real error will be used 
+                    // in the main branch.
+                    return ErrorCode.ERR_FeatureIsExperimental;
                 default:
                     throw ExceptionUtilities.UnexpectedValue(version);
             }
