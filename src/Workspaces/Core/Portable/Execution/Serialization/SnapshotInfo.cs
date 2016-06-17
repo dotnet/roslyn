@@ -54,11 +54,11 @@ namespace Microsoft.CodeAnalysis.Execution
         public readonly DocumentId Id;
         public readonly string Name;
         public readonly IReadOnlyList<string> Folders;
-        public readonly int SourceCodeKind;
+        public readonly SourceCodeKind SourceCodeKind;
         public readonly string FilePath;
         public readonly bool IsGenerated;
 
-        public DocumentSnapshotInfo(DocumentId id, string name, IReadOnlyList<string> folders, int sourceCodeKind, string filePath, bool isGenerated)
+        public DocumentSnapshotInfo(DocumentId id, string name, IReadOnlyList<string> folders, SourceCodeKind sourceCodeKind, string filePath, bool isGenerated)
         {
             Id = id;
             Name = name;

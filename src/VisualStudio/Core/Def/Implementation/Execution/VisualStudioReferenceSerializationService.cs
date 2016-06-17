@@ -20,27 +20,21 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.Execution
 
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
-            return new Service(
-                workspaceServices.GetService<ITemporaryStorageService>(),
-                workspaceServices.GetService<IAnalyzerService>());
+            return new Service(workspaceServices.GetService<ITemporaryStorageService>());
         }
 
         private class Service : AbstractReferenceSerializationService
         {
-            private readonly ShadowCopyAnalyzerAssemblyLoader _hostLoader;
-
-            public Service(ITemporaryStorageService storageService, IAnalyzerService analyzerService) : base(storageService)
+            public Service(ITemporaryStorageService storageService) : base(storageService)
             {
-                _hostLoader = (ShadowCopyAnalyzerAssemblyLoader)analyzerService.GetLoader();
             }
 
-            protected override string GetAnalyzerAssemblyPath(string analyzerPath)
+            protected override string GetAnalyzerAssemblyPath(AnalyzerFileReference reference)
             {
                 // TODO: find out a way to get shadow copied version of analyzer assembly location
                 //       without actually loading analyzer in memory
-                var assembly = _hostLoader.LoadFromPath(analyzerPath);
-
-                return assembly.Location;
+                var assembly = reference.GetAssembly();
+                return assembly?.Location;
             }
 
             protected override AnalyzerReference GetAnalyzerReference(string displayPath, string assemblyPath)

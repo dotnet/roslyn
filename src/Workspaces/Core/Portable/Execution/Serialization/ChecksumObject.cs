@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.Execution
         public abstract Task WriteToAsync(ObjectWriter writer, CancellationToken cancellationToken);
     }
 
+    // TODO: Kind might not actually needed. see whether we can get rid of this
     internal static class WellKnownChecksumObjects
     {
         public const string Projects = nameof(Projects);

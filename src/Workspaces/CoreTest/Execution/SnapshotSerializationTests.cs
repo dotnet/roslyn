@@ -1,10 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Execution;
-using Microsoft.CodeAnalysis.Host;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
@@ -19,7 +20,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var solution = new AdhocWorkspace().CurrentSolution;
 
-            var snapshotService = (new SolutionSnapshotService()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
+            var snapshotService = (new SolutionSnapshotServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
             using (var snapshot = await snapshotService.CreateSnapshotAsync(solution, CancellationToken.None).ConfigureAwait(false))
             {
                 var solutionId = snapshot.Id;
@@ -36,7 +37,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var solution = new AdhocWorkspace().CurrentSolution;
 
-            var snapshotService = (new SolutionSnapshotService()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
+            var snapshotService = (new SolutionSnapshotServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
             using (var snapshot = await snapshotService.CreateSnapshotAsync(solution, CancellationToken.None).ConfigureAwait(false))
             {
                 await VerifySnapshotSerializationAsync(solution, snapshot.Id).ConfigureAwait(false);
@@ -49,7 +50,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var solution = new AdhocWorkspace().CurrentSolution;
             var project = solution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
 
-            var snapshotService = (new SolutionSnapshotService()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
+            var snapshotService = (new SolutionSnapshotServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
             using (var snapshot = await snapshotService.CreateSnapshotAsync(project.Solution, CancellationToken.None).ConfigureAwait(false))
             {
                 var solutionId = snapshot.Id;
@@ -68,7 +69,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var solution = new AdhocWorkspace().CurrentSolution;
             var project = solution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
 
-            var snapshotService = (new SolutionSnapshotService()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
+            var snapshotService = (new SolutionSnapshotServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
             using (var snapshot = await snapshotService.CreateSnapshotAsync(project.Solution, CancellationToken.None).ConfigureAwait(false))
             {
                 await VerifySnapshotSerializationAsync(solution, snapshot.Id).ConfigureAwait(false);
@@ -84,7 +85,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var project = solution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
             var document = project.AddDocument("Document", SourceText.From(code));
 
-            var snapshotService = (new SolutionSnapshotService()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
+            var snapshotService = (new SolutionSnapshotServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
             using (var snapshot = await snapshotService.CreateSnapshotAsync(document.Project.Solution, CancellationToken.None).ConfigureAwait(false))
             {
                 var solutionId = snapshot.Id;
@@ -106,7 +107,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var project = solution.AddProject("Project", "Project.dll", LanguageNames.CSharp);
             var document = project.AddDocument("Document", SourceText.From(code));
 
-            var snapshotService = (new SolutionSnapshotService()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
+            var snapshotService = (new SolutionSnapshotServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
             using (var snapshot = await snapshotService.CreateSnapshotAsync(document.Project.Solution, CancellationToken.None).ConfigureAwait(false))
             {
                 await VerifySnapshotSerializationAsync(solution, snapshot.Id).ConfigureAwait(false);
@@ -118,7 +119,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var solution = CreateFullSolution();
 
-            var snapshotService = (new SolutionSnapshotService()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
+            var snapshotService = (new SolutionSnapshotServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
             using (var snapshot = await snapshotService.CreateSnapshotAsync(solution, CancellationToken.None).ConfigureAwait(false))
             {
                 var solutionId = snapshot.Id;
@@ -139,7 +140,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var solution = CreateFullSolution();
 
-            var snapshotService = (new SolutionSnapshotService()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
+            var snapshotService = (new SolutionSnapshotServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
             using (var snapshot = await snapshotService.CreateSnapshotAsync(solution, CancellationToken.None).ConfigureAwait(false))
             {
                 await VerifySnapshotSerializationAsync(solution, snapshot.Id).ConfigureAwait(false);
@@ -151,7 +152,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var solution = CreateFullSolution();
 
-            var snapshotService = (new SolutionSnapshotService()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
+            var snapshotService = (new SolutionSnapshotServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
             using (var snapshot = await snapshotService.CreateSnapshotAsync(solution, CancellationToken.None).ConfigureAwait(false))
             {
                 await VerifyAssetAsync(snapshotService, solution, snapshot.Id).ConfigureAwait(false);
@@ -166,7 +167,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
             var solution = CreateFullSolution(hostServices);
 
-            var snapshotService = (new SolutionSnapshotService()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
+            var snapshotService = (new SolutionSnapshotServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
             using (var snapshot = await snapshotService.CreateSnapshotAsync(solution, CancellationToken.None).ConfigureAwait(false))
             {
                 await VerifyAssetAsync(snapshotService, solution, snapshot.Id).ConfigureAwait(false);
@@ -183,7 +184,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
             SolutionSnapshotId solutionId1;
             SolutionSnapshotId solutionId2;
 
-            var snapshotService = (new SolutionSnapshotService()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
+            var snapshotService = (new SolutionSnapshotServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
             using (var snapshot1 = await snapshotService.CreateSnapshotAsync(solution, CancellationToken.None).ConfigureAwait(false))
             {
                 solutionId1 = snapshot1.Id;
@@ -202,7 +203,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var solution = CreateFullSolution();
 
-            var snapshotService = (new SolutionSnapshotService()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
+            var snapshotService = (new SolutionSnapshotServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
             using (var snapshot1 = await snapshotService.CreateSnapshotAsync(solution, CancellationToken.None).ConfigureAwait(false))
             using (var snapshot2 = await snapshotService.CreateSnapshotAsync(solution, CancellationToken.None).ConfigureAwait(false))
             {
@@ -218,7 +219,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var solution = CreateFullSolution();
 
-            var snapshotService = (new SolutionSnapshotService()).CreateService(solution.Workspace.Services) as SolutionSnapshotService.Service;
+            var snapshotService = (new SolutionSnapshotServiceFactory()).CreateService(solution.Workspace.Services) as SolutionSnapshotServiceFactory.Service;
 
             // builds snapshot graph
             using (var snapshot = await snapshotService.CreateSnapshotAsync(solution, CancellationToken.None).ConfigureAwait(false))
@@ -244,7 +245,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
         {
             var solution = CreateFullSolution();
 
-            var snapshotService = (new SolutionSnapshotService()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
+            var snapshotService = (new SolutionSnapshotServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
 
             // snapshot1 builds graph
             using (var snapshot1 = await snapshotService.CreateSnapshotAsync(solution, CancellationToken.None).ConfigureAwait(false))
@@ -332,6 +333,161 @@ namespace Microsoft.CodeAnalysis.UnitTests
             var assetFromFile = await assetBuilder.BuildAsync(reference, CancellationToken.None).ConfigureAwait(false);
             var assetFromStorage = await CloneAssetAsync(serializer, assetBuilder, assetFromFile).ConfigureAwait(false);
             var assetFromStorage2 = await CloneAssetAsync(serializer, assetBuilder, assetFromStorage).ConfigureAwait(false);
+        }
+
+        [Fact]
+        public async Task Workspace_RoundTrip_Test()
+        {
+            var solution = CreateFullSolution();
+
+            var snapshotService = (new SolutionSnapshotServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
+            using (var snapshot1 = await snapshotService.CreateSnapshotAsync(solution, CancellationToken.None).ConfigureAwait(false))
+            {
+                // recover solution from given snapshot
+                var recovered = await GetSolutionAsync(snapshotService, snapshot1).ConfigureAwait(false);
+
+                // create new snapshot from recovered solution
+                using (var snapshot2 = await snapshotService.CreateSnapshotAsync(recovered, CancellationToken.None).ConfigureAwait(false))
+                {
+                    // verify asset created by recovered solution is good
+                    await VerifyAssetAsync(snapshotService, recovered, snapshot2.Id).ConfigureAwait(false);
+
+                    // verify snapshots created from original solution and recovered solution are same
+                    SnapshotEqual(snapshot1.Id, snapshot2.Id);
+
+                    // recover new solution from recovered solution
+                    var roundtrip = await GetSolutionAsync(snapshotService, snapshot2).ConfigureAwait(false);
+
+                    // create new snapshot from round tripped solution
+                    using (var snapshot3 = await snapshotService.CreateSnapshotAsync(roundtrip, CancellationToken.None).ConfigureAwait(false))
+                    {
+                        // verify asset created by rount trip solution is good
+                        await VerifyAssetAsync(snapshotService, recovered, snapshot2.Id).ConfigureAwait(false);
+
+                        // verify snapshots created from original solution and round trip solution are same.
+                        SnapshotEqual(snapshot1.Id, snapshot3.Id);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public async Task Workspace_RoundTrip_Test_Desktop()
+        {
+            var hostServices = MefHostServices.Create(
+                MefHostServices.DefaultAssemblies.Add(typeof(Host.TemporaryStorageServiceFactory.TemporaryStorageService).Assembly));
+
+            var solution = CreateFullSolution(hostServices);
+
+            var snapshotService = (new SolutionSnapshotServiceFactory()).CreateService(solution.Workspace.Services) as ISolutionSnapshotService;
+            using (var snapshot1 = await snapshotService.CreateSnapshotAsync(solution, CancellationToken.None).ConfigureAwait(false))
+            {
+                // recover solution from given snapshot
+                var recovered = await GetSolutionAsync(snapshotService, snapshot1).ConfigureAwait(false);
+
+                // create new snapshot from recovered solution
+                using (var snapshot2 = await snapshotService.CreateSnapshotAsync(recovered, CancellationToken.None).ConfigureAwait(false))
+                {
+                    // verify asset created by recovered solution is good
+                    await VerifyAssetAsync(snapshotService, recovered, snapshot2.Id).ConfigureAwait(false);
+
+                    // verify snapshots created from original solution and recovered solution are same
+                    SnapshotEqual(snapshot1.Id, snapshot2.Id);
+
+                    // recover new solution from recovered solution
+                    var roundtrip = await GetSolutionAsync(snapshotService, snapshot2).ConfigureAwait(false);
+
+                    // create new snapshot from round tripped solution
+                    using (var snapshot3 = await snapshotService.CreateSnapshotAsync(roundtrip, CancellationToken.None).ConfigureAwait(false))
+                    {
+                        // verify asset created by rount trip solution is good
+                        await VerifyAssetAsync(snapshotService, recovered, snapshot2.Id).ConfigureAwait(false);
+
+                        // verify snapshots created from original solution and round trip solution are same.
+                        SnapshotEqual(snapshot1.Id, snapshot3.Id);
+                    }
+                }
+            }
+        }
+
+        private async Task<Solution> GetSolutionAsync(ISolutionSnapshotService service, SolutionSnapshot snapshot)
+        {
+            var workspace = new AdhocWorkspace();
+
+            var solutionInfo = await GetValueAsync<SolutionSnapshotInfo>(service, snapshot.Id.Info, WellKnownChecksumObjects.SolutionSnapshotInfo).ConfigureAwait(false);
+
+            var projects = new List<ProjectInfo>();
+            foreach (var projectSnapshot in snapshot.Id.Projects.Objects)
+            {
+                var documents = new List<DocumentInfo>();
+                foreach (var documentSnapshot in projectSnapshot.Documents.Objects)
+                {
+                    var documentInfo = await GetValueAsync<DocumentSnapshotInfo>(service, documentSnapshot.Info, WellKnownChecksumObjects.DocumentSnapshotInfo).ConfigureAwait(false);
+                    var text = await GetValueAsync<SourceText>(service, documentSnapshot.Text, WellKnownChecksumObjects.SourceText).ConfigureAwait(false);
+
+                    // TODO: do we need version?
+                    documents.Add(
+                        DocumentInfo.Create(
+                            documentInfo.Id,
+                            documentInfo.Name,
+                            documentInfo.Folders,
+                            documentInfo.SourceCodeKind,
+                            TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create())),
+                            documentInfo.FilePath,
+                            documentInfo.IsGenerated));
+                }
+
+                var p2p = new List<ProjectReference>();
+                foreach (var checksum in projectSnapshot.ProjectReferences.Objects)
+                {
+                    var reference = await GetValueAsync<ProjectReference>(service, checksum, WellKnownChecksumObjects.ProjectReference).ConfigureAwait(false);
+                    p2p.Add(reference);
+                }
+                var metadata = new List<MetadataReference>();
+                foreach (var checksum in projectSnapshot.MetadataReferences.Objects)
+                {
+                    var reference = await GetValueAsync<MetadataReference>(service, checksum, WellKnownChecksumObjects.MetadataReference).ConfigureAwait(false);
+                    metadata.Add(reference);
+                }
+
+                var analyzers = new List<AnalyzerReference>();
+                foreach (var checksum in projectSnapshot.AnalyzerReferences.Objects)
+                {
+                    var reference = await GetValueAsync<AnalyzerReference>(service, checksum, WellKnownChecksumObjects.AnalyzerReference).ConfigureAwait(false);
+                    analyzers.Add(reference);
+                }
+
+                var additionals = new List<DocumentInfo>();
+                foreach (var documentSnapshot in projectSnapshot.AdditionalDocuments.Objects)
+                {
+                    var documentInfo = await GetValueAsync<DocumentSnapshotInfo>(service, documentSnapshot.Info, WellKnownChecksumObjects.DocumentSnapshotInfo).ConfigureAwait(false);
+                    var text = await GetValueAsync<SourceText>(service, documentSnapshot.Text, WellKnownChecksumObjects.SourceText).ConfigureAwait(false);
+
+                    // TODO: do we need version?
+                    additionals.Add(
+                        DocumentInfo.Create(
+                            documentInfo.Id,
+                            documentInfo.Name,
+                            documentInfo.Folders,
+                            documentInfo.SourceCodeKind,
+                            TextLoader.From(TextAndVersion.Create(text, VersionStamp.Create())),
+                            documentInfo.FilePath,
+                            documentInfo.IsGenerated));
+                }
+
+                var projectInfo = await GetValueAsync<ProjectSnapshotInfo>(service, projectSnapshot.Info, WellKnownChecksumObjects.ProjectSnapshotInfo).ConfigureAwait(false);
+                var compilationOptions = await GetValueAsync<CompilationOptions>(service, projectSnapshot.CompilationOptions, WellKnownChecksumObjects.CompilationOptions).ConfigureAwait(false);
+                var parseOptions = await GetValueAsync<ParseOptions>(service, projectSnapshot.ParseOptions, WellKnownChecksumObjects.ParseOptions).ConfigureAwait(false);
+
+                projects.Add(
+                    ProjectInfo.Create(
+                        projectInfo.Id, projectInfo.Version, projectInfo.Name, projectInfo.AssemblyName,
+                        projectInfo.Language, projectInfo.FilePath, projectInfo.OutputFilePath,
+                        compilationOptions, parseOptions,
+                        documents, p2p, metadata, analyzers, additionals));
+            }
+
+            return workspace.AddSolution(SolutionInfo.Create(solutionInfo.Id, solutionInfo.Version, solutionInfo.FilePath, projects));
         }
 
         private static async Task<Asset> CloneAssetAsync(Serializer serializer, AssetBuilder assetBuilder, Asset asset)

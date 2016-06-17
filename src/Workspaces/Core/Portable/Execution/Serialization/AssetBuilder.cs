@@ -30,7 +30,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
         public Task<Asset> BuildAsync(TextDocument document, CancellationToken cancellationToken)
         {
-            return _storage.GetOrCreateAssetAsync(document.GetTextOrDocumentState(), GetInfo(document), WellKnownChecksumObjects.DocumentSnapshotInfo, CreateDocumentSnapshotInfoAsync, cancellationToken);
+            return _storage.GetOrCreateAssetAsync(document.State, GetInfo(document), WellKnownChecksumObjects.DocumentSnapshotInfo, CreateDocumentSnapshotInfoAsync, cancellationToken);
         }
 
         public Task<Asset> BuildAsync(Project project, CompilationOptions compilationOptions, CancellationToken cancellationToken)
@@ -145,26 +145,26 @@ namespace Microsoft.CodeAnalysis.Execution
 
         private bool IsGenerated(TextDocument document)
         {
-            var source = document as Document;
+            var source = document.State as DocumentState;
             if (source != null)
             {
-                return source.State.IsGenerated;
+                return source.IsGenerated;
             }
 
             // no source
             return false;
         }
 
-        private int GetSourceCodeKind(TextDocument document)
+        private SourceCodeKind GetSourceCodeKind(TextDocument document)
         {
             var source = document as Document;
             if (source != null)
             {
-                return (int)source.SourceCodeKind;
+                return source.SourceCodeKind;
             }
 
             // no source
-            return int.MaxValue;
+            return SourceCodeKind.Regular;
         }
     }
 }

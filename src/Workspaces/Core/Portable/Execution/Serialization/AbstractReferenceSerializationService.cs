@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
             _storageService = storageService;
         }
 
-        protected abstract string GetAnalyzerAssemblyPath(string analyzerPath);
+        protected abstract string GetAnalyzerAssemblyPath(AnalyzerFileReference reference);
         protected abstract AnalyzerReference GetAnalyzerReference(string displayPath, string assemblyPath);
 
         public Checksum CreateChecksum(MetadataReference reference, CancellationToken cancellationToken)
@@ -93,8 +93,16 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
                 writer.WriteString(nameof(AnalyzerFileReference));
                 writer.WriteInt32((int)SerializationKinds.FilePath);
 
-                writer.WriteString(reference.FullPath);
-                writer.WriteString(GetAnalyzerAssemblyPath(reference.FullPath));
+                writer.WriteString(file.FullPath);
+
+                // TODO: remove this kind of host specific knowledge from common layer.
+                //       but think moving it to host layer where this implementation detail actually exist.
+                //
+                // analyzer assembly path to load analyzer acts like
+                // snapshot version for analyzer (since it is based on shadow copy)
+                // we can't send over bits and load analyer from memory (image) due to CLR not being able
+                // to find satellite dlls for analyzers.
+                writer.WriteString(GetAnalyzerAssemblyPath(file));
                 return;
             }
 

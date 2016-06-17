@@ -24,7 +24,9 @@ namespace Microsoft.CodeAnalysis.Execution
 
             Serialize(info.Id, writer, cancellationToken);
 
-            info.Version.WriteTo(writer);
+            // TODO: figure out a way to send version info over as well.
+            //       right now, version get updated automatically, so 2 can't be exactly match
+            // info.Version.WriteTo(writer);
             writer.WriteString(info.FilePath);
         }
 
@@ -33,10 +35,10 @@ namespace Microsoft.CodeAnalysis.Execution
             cancellationToken.ThrowIfCancellationRequested();
 
             var solutionId = DeserializeSolutionId(reader, cancellationToken);
-            var version = VersionStamp.ReadFrom(reader);
+            // var version = VersionStamp.ReadFrom(reader);
             var filePath = reader.ReadString();
 
-            return new SolutionSnapshotInfo(solutionId, version, filePath);
+            return new SolutionSnapshotInfo(solutionId, VersionStamp.Create(), filePath);
         }
 
         public void Serialize(ProjectSnapshotInfo info, ObjectWriter writer, CancellationToken cancellationToken)
@@ -45,7 +47,9 @@ namespace Microsoft.CodeAnalysis.Execution
 
             Serialize(info.Id, writer, cancellationToken);
 
-            info.Version.WriteTo(writer);
+            // TODO: figure out a way to send version info over as well
+            // info.Version.WriteTo(writer);
+
             writer.WriteString(info.Name);
             writer.WriteString(info.AssemblyName);
             writer.WriteString(info.Language);
@@ -59,14 +63,14 @@ namespace Microsoft.CodeAnalysis.Execution
 
             var projectId = DeserializeProjectId(reader, cancellationToken);
 
-            var version = VersionStamp.ReadFrom(reader);
+            // var version = VersionStamp.ReadFrom(reader);
             var name = reader.ReadString();
             var assemblyName = reader.ReadString();
             var language = reader.ReadString();
             var filePath = reader.ReadString();
             var outputFilePath = reader.ReadString();
 
-            return new ProjectSnapshotInfo(projectId, version, name, assemblyName, language, filePath, outputFilePath);
+            return new ProjectSnapshotInfo(projectId, VersionStamp.Create(), name, assemblyName, language, filePath, outputFilePath);
         }
 
         public void Serialize(DocumentSnapshotInfo info, ObjectWriter writer, CancellationToken cancellationToken)
@@ -77,7 +81,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
             writer.WriteString(info.Name);
             writer.WriteArray(info.Folders.ToArray());
-            writer.WriteInt32(info.SourceCodeKind);
+            writer.WriteInt32((int)info.SourceCodeKind);
             writer.WriteString(info.FilePath);
             writer.WriteBoolean(info.IsGenerated);
         }
@@ -94,7 +98,7 @@ namespace Microsoft.CodeAnalysis.Execution
             var filePath = reader.ReadString();
             var isGenerated = reader.ReadBoolean();
 
-            return new DocumentSnapshotInfo(documentId, name, folders, sourceCodeKind, filePath, isGenerated);
+            return new DocumentSnapshotInfo(documentId, name, folders, (SourceCodeKind)sourceCodeKind, filePath, isGenerated);
         }
 
         public void Serialize(ITemporaryTextStorage2 storage, SourceText text, ObjectWriter writer, CancellationToken cancellationToken)
@@ -138,6 +142,8 @@ namespace Microsoft.CodeAnalysis.Execution
 
                 return storage.ReadText(cancellationToken);
             }
+
+            // TODO: should include version info here as well?
 
             var textService = _workspaceServices.GetService<ITextFactoryService>();
             using (var textReader = new StringReader(reader.ReadString()))

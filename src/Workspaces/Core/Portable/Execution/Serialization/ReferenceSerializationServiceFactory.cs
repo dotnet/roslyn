@@ -27,10 +27,10 @@ namespace Microsoft.CodeAnalysis.Execution.Serialization
             {
             }
 
-            protected override string GetAnalyzerAssemblyPath(string analyzerPath)
+            protected override string GetAnalyzerAssemblyPath(AnalyzerFileReference reference)
             {
                 // default implementation doesn't do shadow copying and doesn't guarantee snapshot
-                return analyzerPath;
+                return reference.FullPath;
             }
 
             protected override AnalyzerReference GetAnalyzerReference(string displayPath, string assemblyPath)

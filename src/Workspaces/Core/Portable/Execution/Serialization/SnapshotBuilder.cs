@@ -34,7 +34,7 @@ namespace Microsoft.CodeAnalysis.Execution
 
         private Task<DocumentSnapshotId> BuildAsync(TextDocument document, CancellationToken cancellationToken)
         {
-            return _storage.GetOrCreateHierarchicalChecksumObjectAsync(document.GetTextOrDocumentState(), document, DocumentSnapshotId.Name, CreateDocumentSnapshotIdAsync, _rebuild, cancellationToken);
+            return _storage.GetOrCreateHierarchicalChecksumObjectAsync(document.State, document, DocumentSnapshotId.Name, CreateDocumentSnapshotIdAsync, _rebuild, cancellationToken);
         }
 
         private Task<SnapshotIdCollection<ProjectSnapshotId>> BuildAsync(Solution solution, IEnumerable<Project> projects, CancellationToken cancellationToken)
@@ -96,7 +96,7 @@ namespace Microsoft.CodeAnalysis.Execution
         {
             var info = await assetBuilder.BuildAsync(document, cancellationToken).ConfigureAwait(false);
 
-            var state = document.GetTextOrDocumentState();
+            var state = document.State;
             var sourceText = await state.GetTextAsync(cancellationToken).ConfigureAwait(false);
             var text = await assetBuilder.BuildAsync(state, sourceText, cancellationToken).ConfigureAwait(false);
 

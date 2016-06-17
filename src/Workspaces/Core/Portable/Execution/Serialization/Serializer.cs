@@ -11,6 +11,9 @@ namespace Microsoft.CodeAnalysis.Execution
     /// <summary>
     /// serialize and deserialize objects to straem.
     /// some of these could be moved into actual object, but putting everything here is a bit easier to find I believe.
+    /// 
+    /// also, consider moving this serializer to use C# BOND serializer 
+    /// https://github.com/Microsoft/bond
     /// </summary>
     internal partial class Serializer
     {

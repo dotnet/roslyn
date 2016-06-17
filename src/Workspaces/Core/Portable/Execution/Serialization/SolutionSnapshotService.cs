@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Host.Mef;
 namespace Microsoft.CodeAnalysis.Execution
 {
     [ExportWorkspaceServiceFactory(typeof(ISolutionSnapshotService)), Shared]
-    internal class SolutionSnapshotService : IWorkspaceServiceFactory
+    internal class SolutionSnapshotServiceFactory : IWorkspaceServiceFactory
     {
         public IWorkspaceService CreateService(HostWorkspaceServices workspaceServices)
         {
@@ -29,6 +29,8 @@ namespace Microsoft.CodeAnalysis.Execution
                 _serializer = new Serializer(workspaceServices);
                 _storages = new SnapshotStorages(_serializer);
             }
+
+            public Serializer Serializer => _serializer;
 
             public async Task<SolutionSnapshot> CreateSnapshotAsync(Solution solution, CancellationToken cancellationToken)
             {

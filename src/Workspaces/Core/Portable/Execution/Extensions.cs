@@ -47,17 +47,6 @@ namespace Microsoft.CodeAnalysis.Execution
             return hostServices.GetRequiredService<IExecutionHostingService>().GetService(host);
         }
 
-        public static TextDocumentState GetTextOrDocumentState(this TextDocument textDocument)
-        {
-            var document = textDocument as Document;
-            if (document != null)
-            {
-                return textDocument.Project.GetDocumentState(textDocument.Id);
-            }
-
-            return textDocument.Project.GetAdditionalDocumentState(textDocument.Id);
-        }
-
         public static void WriteArray<T>(this ObjectWriter writer, T[] array)
         {
             // this could be moved into ObjectWriter itself.

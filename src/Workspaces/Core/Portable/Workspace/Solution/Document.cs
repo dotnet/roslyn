@@ -21,32 +21,15 @@ namespace Microsoft.CodeAnalysis
     [DebuggerDisplay("{GetDebuggerDisplay(),nq}")]
     public partial class Document : TextDocument
     {
-        private readonly DocumentState _state;
-
         private WeakReference<SemanticModel> _model;
         private Task<SyntaxTree> _syntaxTreeResultTask;
 
-        internal Document(Project project, DocumentState state)
+        internal Document(Project project, DocumentState state) :
+            base(project, state)
         {
-            Contract.ThrowIfNull(project);
-            Contract.ThrowIfNull(state);
-
-            this.Project = project;
-            _state = state;
         }
 
-        internal DocumentState State
-        {
-            get
-            {
-                return _state;
-            }
-        }
-
-        internal override TextDocumentState GetDocumentState()
-        {
-            return _state;
-        }
+        private DocumentState DocumentState => (DocumentState)State;
 
         /// <summary>
         /// The kind of source code this document contains.
@@ -55,7 +38,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return _state.SourceCodeKind;
+                return DocumentState.SourceCodeKind;
             }
         }
 
@@ -72,7 +55,7 @@ namespace Microsoft.CodeAnalysis
                 syntaxTree = _syntaxTreeResultTask.Result;
             }
 
-            if (!_state.TryGetSyntaxTree(out syntaxTree))
+            if (!DocumentState.TryGetSyntaxTree(out syntaxTree))
             {
                 return false;
             }
@@ -112,7 +95,7 @@ namespace Microsoft.CodeAnalysis
         /// </summary>
         internal bool TryGetTopLevelChangeTextVersion(out VersionStamp version)
         {
-            return _state.TryGetTopLevelChangeTextVersion(out version);
+            return DocumentState.TryGetTopLevelChangeTextVersion(out version);
         }
 
         /// <summary>
@@ -136,7 +119,7 @@ namespace Microsoft.CodeAnalysis
         {
             get
             {
-                return this.State.SupportsSyntaxTree;
+                return DocumentState.SupportsSyntaxTree;
             }
         }
 
@@ -197,7 +180,7 @@ namespace Microsoft.CodeAnalysis
 
             // we can't cache this result, since internally it uses AsyncLazy which
             // care about cancellation token
-            return _state.GetSyntaxTreeAsync(cancellationToken);
+            return DocumentState.GetSyntaxTreeAsync(cancellationToken);
         }
 
         /// <summary>

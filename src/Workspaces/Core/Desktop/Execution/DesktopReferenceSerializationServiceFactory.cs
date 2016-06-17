@@ -27,10 +27,13 @@ namespace Microsoft.CodeAnalysis.Execution
             {
             }
 
-            protected override string GetAnalyzerAssemblyPath(string analyzerPath)
+            protected override string GetAnalyzerAssemblyPath(AnalyzerFileReference reference)
             {
-                // desktop implementation doesn't do shadow copying and doesn't guarantee snapshot
-                return analyzerPath;
+                // TODO: find out a way to get analyzer assembly location
+                //       without actually loading analyzer in memory
+                //       desktop implementation doesn't do shadow copying and doesn't guarantee snapshot
+                var assembly = reference.GetAssembly();
+                return assembly?.Location;
             }
 
             protected override AnalyzerReference GetAnalyzerReference(string displayPath, string assemblyPath)

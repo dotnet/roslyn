@@ -35,10 +35,31 @@ namespace Microsoft.CodeAnalysis.UnitTests
             return textDocument1.Project.Solution;
         }
 
+        internal static async Task<T> GetValueAsync<T>(ISolutionSnapshotService service, Checksum checksum, string kind)
+        {
+            var snapshotService = (SolutionSnapshotServiceFactory.Service)service;
+            var checksumObject = await service.GetChecksumObjectAsync(checksum, CancellationToken.None).ConfigureAwait(false);
+
+            using (var stream = SerializableBytes.CreateWritableStream())
+            using (var writer = new ObjectWriter(stream))
+            {
+                // serialize asset to bits
+                await checksumObject.WriteToAsync(writer, CancellationToken.None).ConfigureAwait(false);
+
+                stream.Position = 0;
+                using (var reader = new ObjectReader(stream))
+                {
+                    // deserialize bits to object
+                    var serializer = snapshotService.Serializer;
+                    return serializer.Deserialize<T>(kind, reader, CancellationToken.None);
+                }
+            }
+        }
+
         internal static async Task VerifyAssetAsync(ISolutionSnapshotService service, Solution solution, SolutionSnapshotId solutionId)
         {
             await VerifyAssetSerializationAsync<SolutionSnapshotInfo>(
-                service, solution, solutionId.Info, WellKnownChecksumObjects.SolutionSnapshotInfo,
+                service, solutionId.Info, WellKnownChecksumObjects.SolutionSnapshotInfo,
                 (v, k, s) => new Asset<SolutionSnapshotInfo>(v, k, s.Serialize)).ConfigureAwait(false);
 
             foreach (var projectId in solutionId.Projects.Objects)
@@ -53,17 +74,17 @@ namespace Microsoft.CodeAnalysis.UnitTests
             ProjectSnapshotId projectId)
         {
             var info = await VerifyAssetSerializationAsync<ProjectSnapshotInfo>(
-                service, solution, projectId.Info, WellKnownChecksumObjects.ProjectSnapshotInfo,
+                service, projectId.Info, WellKnownChecksumObjects.ProjectSnapshotInfo,
                 (v, k, s) => new Asset<ProjectSnapshotInfo>(v, k, s.Serialize)).ConfigureAwait(false);
 
             var project = solution.GetProject(info.Id);
 
             await VerifyAssetSerializationAsync<CompilationOptions>(
-                service, solution, projectId.CompilationOptions, WellKnownChecksumObjects.CompilationOptions,
+                service, projectId.CompilationOptions, WellKnownChecksumObjects.CompilationOptions,
                 (v, k, s) => new Asset<string, CompilationOptions>(project.Language, v, k, s.Serialize));
 
             await VerifyAssetSerializationAsync<ParseOptions>(
-                service, solution, projectId.ParseOptions, WellKnownChecksumObjects.ParseOptions,
+                service, projectId.ParseOptions, WellKnownChecksumObjects.ParseOptions,
                 (v, k, s) => new Asset<string, ParseOptions>(project.Language, v, k, s.Serialize));
 
             foreach (var documentId in projectId.Documents.Objects)
@@ -74,21 +95,21 @@ namespace Microsoft.CodeAnalysis.UnitTests
             foreach (var projectReference in projectId.ProjectReferences.Objects)
             {
                 await VerifyAssetSerializationAsync<ProjectReference>(
-                    service, solution, projectReference, WellKnownChecksumObjects.ProjectReference,
+                    service, projectReference, WellKnownChecksumObjects.ProjectReference,
                     (v, k, s) => new Asset<ProjectReference>(v, k, s.Serialize));
             }
 
             foreach (var metadataReference in projectId.MetadataReferences.Objects)
             {
                 await VerifyAssetSerializationAsync<MetadataReference>(
-                    service, solution, metadataReference, WellKnownChecksumObjects.MetadataReference,
+                    service, metadataReference, WellKnownChecksumObjects.MetadataReference,
                     (v, k, s) => new MetadataReferenceAsset(s, v, s.HostSerializationService.CreateChecksum(v, CancellationToken.None), k));
             }
 
             foreach (var analyzerReference in projectId.AnalyzerReferences.Objects)
             {
                 await VerifyAssetSerializationAsync<AnalyzerReference>(
-                    service, solution, analyzerReference, WellKnownChecksumObjects.AnalyzerReference,
+                    service, analyzerReference, WellKnownChecksumObjects.AnalyzerReference,
                     (v, k, s) => new AnalyzerReferenceAsset(s, v, s.HostSerializationService.CreateChecksum(v, CancellationToken.None), k));
             }
 
@@ -104,11 +125,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
             DocumentSnapshotId documentId)
         {
             var info = await VerifyAssetSerializationAsync<DocumentSnapshotInfo>(
-                service, solution, documentId.Info, WellKnownChecksumObjects.DocumentSnapshotInfo,
+                service, documentId.Info, WellKnownChecksumObjects.DocumentSnapshotInfo,
                 (v, k, s) => new Asset<DocumentSnapshotInfo>(v, k, s.Serialize)).ConfigureAwait(false);
 
             await VerifyAssetSerializationAsync<SourceText>(
-                service, solution, documentId.Text, WellKnownChecksumObjects.SourceText,
+                service, documentId.Text, WellKnownChecksumObjects.SourceText,
                 (v, k, s) => new SourceTextAsset(s, CreateTextState(solution, v), new Checksum(v.GetChecksum(useDefaultEncodingIfNull: true)), k));
         }
 
@@ -123,11 +144,11 @@ namespace Microsoft.CodeAnalysis.UnitTests
 
         internal static async Task<T> VerifyAssetSerializationAsync<T>(
             ISolutionSnapshotService service,
-            Solution solution,
             Checksum checksum,
             string kind,
             Func<T, string, Serializer, Asset> assetGetter)
         {
+            var snapshotService = (SolutionSnapshotServiceFactory.Service)service;
             var originalChecksumObject = await service.GetChecksumObjectAsync(checksum, CancellationToken.None).ConfigureAwait(false);
 
             using (var stream = SerializableBytes.CreateWritableStream())
@@ -140,7 +161,7 @@ namespace Microsoft.CodeAnalysis.UnitTests
                 using (var reader = new ObjectReader(stream))
                 {
                     // deserialize bits to object
-                    var serializer = new Serializer(solution.Workspace.Services);
+                    var serializer = snapshotService.Serializer;
                     var recoveredValue = serializer.Deserialize<T>(kind, reader, CancellationToken.None);
 
                     // re-create asset from object

@@ -137,7 +137,7 @@ class C
                 var newSln = workspace.CurrentSolution.AddAdditionalDocument(additionalDocId, "add.config", SourceText.From("random text"));
                 currentProject = newSln.Projects.Single();
                 var additionalDocument = currentProject.GetAdditionalDocument(additionalDocId);
-                AdditionalText additionalStream = new AdditionalTextDocument(additionalDocument.GetDocumentState());
+                AdditionalText additionalStream = new AdditionalTextDocument(additionalDocument.State);
                 AnalyzerOptions options = new AnalyzerOptions(ImmutableArray.Create(additionalStream));
                 var analyzer = new OptionsDiagnosticAnalyzer<SyntaxKind>(expectedOptions: options);
 
