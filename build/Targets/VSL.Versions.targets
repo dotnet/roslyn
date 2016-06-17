@@ -85,7 +85,7 @@
   <!-- NuGet version -->
   <PropertyGroup>
     <NuGetReleaseVersion>$(RoslynSemanticVersion)</NuGetReleaseVersion>
-    <NuGetPreReleaseVersion>$(RoslynSemanticVersion)-beta3</NuGetPreReleaseVersion>
+    <NuGetPreReleaseVersion>$(RoslynSemanticVersion)-beta4</NuGetPreReleaseVersion>
     <NuGetPerBuildPreReleaseVersion>$(NuGetPreReleaseVersion)-$(BuildNumberPart1.Trim())-$(BuildNumberPart2.Trim())</NuGetPerBuildPreReleaseVersion>
 
     <!-- TODO: change to a fixed version once we move this component to a separate repo -->
