@@ -22,9 +22,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ParseExpression(text, options: options);
         }
 
-        private ExpressionSyntax ParseExpressionExperimental(string text)
+        private ExpressionSyntax ParseExpressionExperimental(string text, MessageID feature)
         {
-            return SyntaxFactory.ParseExpression(text, options: TestOptions.ExperimentalParseOptions);
+            return SyntaxFactory.ParseExpression(text, options: TestOptions.Regular.WithExperimental(feature));
         }
 
         [Fact]
@@ -1181,7 +1181,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestSimpleLambdaWithRefReturn()
         {
             var text = "a => ref b";
-            var expr = this.ParseExpressionExperimental(text);
+            var expr = this.ParseExpressionExperimental(text, MessageID.IDS_FeatureRefLocalsReturns);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.SimpleLambdaExpression, expr.Kind());
@@ -1240,7 +1240,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestLambdaWithNoParametersAndRefReturn()
         {
             var text = "() => ref b";
-            var expr = this.ParseExpressionExperimental(text);
+            var expr = this.ParseExpressionExperimental(text, MessageID.IDS_FeatureRefLocalsReturns);
 
             Assert.NotNull(expr);
             Assert.Equal(SyntaxKind.ParenthesizedLambdaExpression, expr.Kind());

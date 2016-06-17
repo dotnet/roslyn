@@ -16,9 +16,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return SyntaxFactory.ParseStatement(text, offset, options);
         }
 
-        private StatementSyntax ParseStatementExperimental(string text)
+        private StatementSyntax ParseStatementExperimental(string text, MessageID feature)
         {
-            return ParseStatement(text, offset: 0, options: TestOptions.ExperimentalParseOptions);
+            return ParseStatement(text, offset: 0, options: TestOptions.Regular.WithExperimental(feature));
         }
 
         [Fact]
@@ -738,7 +738,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestRefLocalDeclarationStatement()
         {
             var text = "ref T a;";
-            var statement = this.ParseStatementExperimental(text);
+            var statement = this.ParseStatementExperimental(text, MessageID.IDS_FeatureRefLocalsReturns);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -765,7 +765,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestRefLocalDeclarationStatementWithInitializer()
         {
             var text = "ref T a = ref b;";
-            var statement = this.ParseStatementExperimental(text);
+            var statement = this.ParseStatementExperimental(text, MessageID.IDS_FeatureRefLocalsReturns);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -798,7 +798,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestRefLocalDeclarationStatementWithMultipleInitializers()
         {
             var text = "ref T a = ref b, c = ref d;";
-            var statement = this.ParseStatementExperimental(text);
+            var statement = this.ParseStatementExperimental(text, MessageID.IDS_FeatureRefLocalsReturns);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.LocalDeclarationStatement, statement.Kind());
@@ -1639,7 +1639,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestForWithRefVariableDeclaration()
         {
             var text = "for(ref T a = ref b, c = ref d;;) { }";
-            var statement = this.ParseStatementExperimental(text);
+            var statement = this.ParseStatementExperimental(text, MessageID.IDS_FeatureRefLocalsReturns);
 
             Assert.NotNull(statement);
             Assert.Equal(SyntaxKind.ForStatement, statement.Kind());

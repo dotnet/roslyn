@@ -893,7 +893,7 @@ class C
         Console.Write(c.R);
         Console.Write(C.S);
     }
-}", parseOptions: TestOptions.ExperimentalParseOptions,
+}", parseOptions: TestOptions.Regular,
     options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.Internal));
             Action<ModuleSymbol> validator = module =>
             {
@@ -963,7 +963,7 @@ struct S
         Console.Write(s.R);
         Console.Write(S.T);
     }
-}", parseOptions: TestOptions.ExperimentalParseOptions,
+}", parseOptions: TestOptions.Regular,
     options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
             Action<ModuleSymbol> validator = module =>

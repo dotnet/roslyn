@@ -70,7 +70,8 @@ class c
             return 0;
         }
     }
-}");
+}", MessageID.IDS_FeatureLocalFunctions);
+
             Assert.NotNull(file);
             Assert.False(file.HasErrors);
             Assert.Equal(0, file.SyntaxTree.Options.Features.Count);
@@ -108,7 +109,7 @@ class c
     void m2() { await () => new await(); }
     async void m3() { await () => new await(); }
     void m4() { async await() => new await(); }
-}");
+}", MessageID.IDS_FeatureLocalFunctions);
 
             Assert.NotNull(file);
             var c = (ClassDeclarationSyntax)file.Members.Single();
