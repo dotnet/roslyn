@@ -1,6 +1,6 @@
 While we do our best to design Roslyn to work well for a wide range of solutions from small to very large, sometimes the defaults we choose in the balance between performance, memory usage, and useful information don't work in some solutions.  In those cases, there are a number of options and in some cases registry keys that can be used to adjust things that may improve the experience.
 
-1. **Disabling Full Solution Diagnostics** Visual Studio can analyze your entire solution in the background in order to populate the error list.  This can provide a rich experience where you learn about errors before invoking Build, however, it does require significant resources.  You can disable this analysis at Tools\Options\Text Editor\C#\Advanced (or Basic instead of C#). This option is available in VS 2015 RTM and later.
+1. **Disabling Full Solution Diagnostics** Visual Studio can analyze your entire solution in the background in order to populate the error list.  This can provide a rich experience where you learn about errors before invoking Build, however, it does require significant resources.  You can disable this analysis at Tools\Options\Text Editor\C#\Advanced (or Basic instead of C#). This option is available in VS 2015 RTM and later, but if you are running VS2015 Update 3 RC, the option is in the toolbar of the error list window, instead of below.
 
   ![Disable full solution analysis](https://cloud.githubusercontent.com/assets/20570/16105887/1f8fbb18-3344-11e6-86e7-4af324ab312e.png)
 
