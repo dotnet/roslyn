@@ -948,10 +948,10 @@ namespace Microsoft.CodeAnalysis
 
                             if (!project.ProjectReferences.Contains(newProjRef))
                             {
-                                project = project.WithProjectReferences(project.ProjectReferences.Concat(newProjRef));
+                                project = project.AddProjectReference(newProjRef);
                             }
 
-                            project = project.WithMetadataReferences(project.MetadataReferences.Where(mr => mr != meta));
+                            project = project.RemoveMetadataReference(meta);
                         }
                     }
                 }
