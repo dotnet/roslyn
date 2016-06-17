@@ -530,7 +530,7 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                                 _currentSnapshotVersionTrackingSet.Clear();
 
                                 _processingSolution = currentSolution;
-
+                                
                                 await RunAnalyzersAsync(this.Analyzers, currentSolution, (a, s, c) => a.NewSolutionSnapshotAsync(s, c), this.CancellationToken).ConfigureAwait(false);
 
                                 foreach (var id in this.Processor.GetOpenDocumentIds())
