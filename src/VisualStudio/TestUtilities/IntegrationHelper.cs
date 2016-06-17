@@ -23,6 +23,40 @@ namespace Roslyn.VisualStudio.Test.Utilities
     /// <summary>Provides some helper functions used by the other classes in the project.</summary>
     internal static class IntegrationHelper
     {
+        public static bool AttachThreadInput(uint idAttach, uint idAttachTo)
+        {
+            var success = User32.AttachThreadInput(idAttach, idAttachTo, true);
+
+            if (!success)
+            {
+                var hresult = Marshal.GetHRForLastWin32Error();
+                Marshal.ThrowExceptionForHR(hresult);
+            }
+
+            return success;
+        }
+
+        public static bool BlockInput()
+        {
+            var success = User32.BlockInput(true);
+
+            if (!success)
+            {
+                var hresult = Marshal.GetHRForLastWin32Error();
+
+                if (hresult == VSConstants.E_ACCESSDENIED)
+                {
+                    Debug.WriteLine("Input cannot be blocked because the system requires Administrative privileges.");
+                }
+                else
+                {
+                    Debug.WriteLine("Input cannot be blocked because another thread has blocked the input.");
+                }
+            }
+
+            return success;
+        }
+
         public static void CreateDirectory(string path, bool deleteExisting = false)
         {
             if (deleteExisting)
@@ -41,6 +75,19 @@ namespace Roslyn.VisualStudio.Test.Utilities
             }
         }
 
+        public static bool DetachThreadInput(uint idAttach, uint idAttachTo)
+        {
+            var success = User32.AttachThreadInput(idAttach, idAttachTo, false);
+
+            if (!success)
+            {
+                var hresult = Marshal.GetHRForLastWin32Error();
+                Marshal.ThrowExceptionForHR(hresult);
+            }
+
+            return success;
+        }
+
         public static async Task DownloadFileAsync(string downloadUrl, string fileName)
         {
             using (var webClient = new WebClient())
@@ -49,12 +96,33 @@ namespace Roslyn.VisualStudio.Test.Utilities
             }
         }
 
+        public static IntPtr GetForegroundWindow()
+        {
+            // Attempt to get the foreground window in a loop, as the User32 function can return IntPtr.Zero
+            // in certain circumstances, such as when a window is losing activation.
+
+            var foregroundWindow = IntPtr.Zero;
+
+            do
+            {
+                foregroundWindow = User32.GetForegroundWindow();
+            }
+            while (foregroundWindow == IntPtr.Zero);
+
+            return foregroundWindow;
+        }
+
         /// <summary>Gets the Modal Window that is currently blocking interaction with the specified window or <see cref="IntPtr.Zero"/> if none exists.</summary>
         public static IntPtr GetModalWindowFromParentWindow(IntPtr parentWindow)
         {
             foreach (var topLevelWindow in GetTopLevelWindows())
             {
-                // Windows has several concepts of 'Parent Window', make sure we cover all ones for 'Modal Dialogs'
+                // GetParent will return the parent or owner of the specified window, unless:
+                //  * The window is a top-level window that is unowned
+                //  * The window is a top-level does not have the WS_POPUP style
+                //  * The owner window has the WS_POPUP style
+                // GetWindow with GW_OWNER specified will return the owner window, but not the parent window
+                // GetAncestor with GA_PARENT specified will return the parent window, but not the owner window
                 if ((User32.GetParent(topLevelWindow) == parentWindow) ||
                     (User32.GetWindow(topLevelWindow, User32.GW_OWNER) == parentWindow) ||
                     (User32.GetAncestor(topLevelWindow, User32.GA_PARENT) == parentWindow))
@@ -64,6 +132,19 @@ namespace Roslyn.VisualStudio.Test.Utilities
             }
 
             return IntPtr.Zero;
+        }
+
+        public static object GetRegistryKeyValue(RegistryKey baseKey, string subKeyName, string valueName)
+        {
+            using (var registryKey = baseKey.OpenSubKey(subKeyName))
+            {
+                if (registryKey == null)
+                {
+                    throw new Exception($@"The specified registry key could not be found. Registry Key: '{baseKey}\{subKeyName}'");
+                }
+
+                return registryKey.GetValue(valueName);
+            }
         }
 
         /// <summary>Gets the title text for the specified window.</summary>
@@ -91,7 +172,14 @@ namespace Roslyn.VisualStudio.Test.Utilities
                 topLevelWindows.Add(hWnd);
                 return true;
             });
-            User32.EnumWindows(enumFunc, IntPtr.Zero);
+
+            var success = User32.EnumWindows(enumFunc, IntPtr.Zero);
+
+            if (!success)
+            {
+                var hresult = Marshal.GetHRForLastWin32Error();
+                Marshal.ThrowExceptionForHR(hresult);
+            }
 
             return topLevelWindows;
         }
@@ -111,6 +199,108 @@ namespace Roslyn.VisualStudio.Test.Utilities
             foreach (var process in Process.GetProcessesByName(processName))
             {
                 KillProcess(processName);
+            }
+        }
+
+        public static void RetryRpcCall(Action action)
+        {
+            do
+            {
+                try
+                {
+                    action();
+                    return;
+                }
+                catch (COMException exception) when ((exception.HResult == VSConstants.RPC_E_CALL_REJECTED) ||
+                                                     (exception.HResult == VSConstants.RPC_E_SERVERCALL_RETRYLATER))
+                {
+                    // We'll just try again in this case
+                }
+            }
+            while (true);
+        }
+
+        public static T RetryRpcCall<T>(Func<T> action)
+        {
+            T returnValue = default(T);
+            RetryRpcCall(() => {
+                returnValue = action();
+            });
+            return returnValue;
+        }
+
+        public static void SetForegroundWindow(IntPtr window)
+        {
+            var foregroundWindow = GetForegroundWindow();
+
+            if (window == foregroundWindow)
+            {
+                return;
+            }
+
+            var activeThreadId = User32.GetWindowThreadProcessId(foregroundWindow, IntPtr.Zero);
+            var currentThreadId = Kernel32.GetCurrentThreadId();
+
+            bool threadInputsAttached = false;
+
+            try
+            {
+                // Attach the thread inputs so that 'SetActiveWindow' and 'SetFocus' work
+                threadInputsAttached = AttachThreadInput(currentThreadId, activeThreadId);
+
+                // Make the window a top-most window so it will appear above any existing top-most windows
+                User32.SetWindowPos(window, (IntPtr)(User32.HWND_TOPMOST), 0, 0, 0, 0, (User32.SWP_NOSIZE | User32.SWP_NOMOVE));
+
+                // Move the window into the foreground as it may not have been achieved by the 'SetWindowPos' call
+                var success = User32.SetForegroundWindow(window);
+
+                if (!success)
+                {
+                    throw new InvalidOperationException("Setting the foreground window failed.");
+                }
+
+                // Ensure the window is 'Active' as it may not have been achieved by 'SetForegroundWindow'
+                User32.SetActiveWindow(window);
+
+                // Give the window the keyboard focus as it may not have been achieved by 'SetActiveWindow'
+                User32.SetFocus(window);
+
+                // Remove the 'Top-Most' qualification from the window
+                User32.SetWindowPos(window, (IntPtr)(User32.HWND_NOTOPMOST), 0, 0, 0, 0, (User32.SWP_NOSIZE | User32.SWP_NOMOVE));
+            }
+            finally
+            {
+                if (threadInputsAttached)
+                {
+                    // Finally, detach the thread inputs from eachother
+                    DetachThreadInput(currentThreadId, activeThreadId);
+                }
+            }
+        }
+
+        public static void SendInput(User32.INPUT[] input)
+        {
+            var eventsInserted = User32.SendInput((uint)(input.Length), input, User32.SizeOf_INPUT);
+
+            if (eventsInserted == 0)
+            {
+                var hresult = Marshal.GetHRForLastWin32Error();
+                throw new ExternalException("Sending input failed because input was blocked by another thread.", hresult);
+            }
+        }
+
+        public static bool TryDeleteDirectoryRecursively(string path)
+        {
+            try
+            {
+                DeleteDirectoryRecursively(path);
+                return true;
+            }
+            catch (Exception e)
+            {
+                Debug.WriteLine($"Warning: Failed to recursively delete the specified directory. (Name: '{path}')");
+                Debug.WriteLine($"\t{e}");
+                return false;
             }
         }
 
@@ -172,31 +362,14 @@ namespace Roslyn.VisualStudio.Test.Utilities
             return (DTE)(dte);
         }
 
-        public static object GetRegistryKeyValue(RegistryKey baseKey, string subKeyName, string valueName)
+        public static void UnblockInput()
         {
-            using (var registryKey = baseKey.OpenSubKey(subKeyName))
-            {
-                if (registryKey == null)
-                {
-                    throw new Exception($"The specified registry key could not be found. Registry Key: '{registryKey}'");
-                }
+            var success = User32.BlockInput(false);
 
-                return registryKey.GetValue(valueName);
-            }
-        }
-
-        public static bool TryDeleteDirectoryRecursively(string path)
-        {
-            try
+            if (!success)
             {
-                DeleteDirectoryRecursively(path);
-                return true;
-            }
-            catch (Exception e)
-            {
-                Debug.WriteLine($"Warning: Failed to recursively delete the specified directory. (Name: '{path}')");
-                Debug.WriteLine($"\t{e}");
-                return false;
+                var hresult = Marshal.GetHRForLastWin32Error();
+                throw new ExternalException("Input cannot be unblocked because it was blocked by another thread.", hresult);
             }
         }
 
@@ -206,29 +379,6 @@ namespace Roslyn.VisualStudio.Test.Utilities
             {
                 await Task.Yield();
             }
-        }
-
-        public static void RetryDteCall(Action action)
-        {
-            while (true)
-            {
-                try
-                {
-                    action();
-                    return;
-                }
-                catch (COMException exception) when (exception.HResult == VSConstants.RPC_E_CALL_REJECTED)
-                {
-                    // We'll just try again in this case
-                }
-            }
-        }
-
-        public static T RetryDteCall<T>(Func<T> action)
-        {
-            T returnValue = default(T);
-            RetryDteCall(() => { returnValue = action(); });
-            return returnValue;
         }
 
         public static async Task<T> WaitForNotNullAsync<T>(Func<T> action) where T : class

@@ -461,8 +461,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
         Friend Function GetAttributeDeclarations() As ImmutableArray(Of SyntaxList(Of AttributeListSyntax))
             Dim attributeBlocks = ArrayBuilder(Of SyntaxList(Of AttributeListSyntax)).GetInstance()
+            Dim declarations = DeclaringCompilation.MergedRootDeclaration.Declarations
 
-            For Each rootNs In DeclaringCompilation.Declarations.AllRootNamespaces
+            For Each rootNs As RootSingleNamespaceDeclaration In declarations
                 If rootNs.HasAssemblyAttributes Then
                     Dim compilationUnitSyntax = DirectCast(rootNs.Location.SourceTree.GetRoot(), CompilationUnitSyntax)
                     Dim attributeStatements = compilationUnitSyntax.Attributes
@@ -665,10 +666,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
         ''' This represents what the user claimed in source through the AssemblyFlagsAttribute.
         ''' It may be modified as emitted due to presence or absence of the public key.
         ''' </summary>
-        Friend ReadOnly Property Flags As AssemblyNameFlags
+        Friend ReadOnly Property Flags As AssemblyFlags
             Get
-                Dim defaultValue As AssemblyNameFlags = AssemblyNameFlags.None
-                Dim fieldValue = defaultValue
+                Dim fieldValue As AssemblyFlags = Nothing
 
                 Dim data = GetSourceDecodedWellKnownAttributeData()
                 If data IsNot Nothing Then
@@ -729,10 +729,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
-        ''' <summary>
-        ''' Raw assembly version as specified in the AssemblyVersionAttribute, or Nothing if none specified.
-        ''' If the string passed to AssemblyVersionAttribute contains * the version build and/or revision numbers are set to <see cref="UShort.MaxValue"/>.
-        ''' </summary>
         Private ReadOnly Property AssemblyVersionAttributeSetting As Version
             Get
                 Dim defaultValue As Version = Nothing
@@ -1022,13 +1018,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblyFileVersionAttributeSetting = verString
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.AssemblyInformationalVersionAttribute) Then
-                Dim dummy As Version = Nothing
-                Dim verString = DirectCast(attrData.CommonConstructorArguments(0).Value, String)
-                If Not VersionHelper.TryParse(verString, version:=dummy) Then
-                    arguments.Diagnostics.Add(ERRID.WRN_InvalidVersionFormat, GetAssemblyAttributeFirstArgumentLocation(arguments.AttributeSyntaxOpt))
-                End If
-
-                arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblyInformationalVersionAttributeSetting = verString
+                arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblyInformationalVersionAttributeSetting = DirectCast(attrData.CommonConstructorArguments(0).Value, String)
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.AssemblyTitleAttribute) Then
                 arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblyTitleAttributeSetting = DirectCast(attrData.CommonConstructorArguments(0).Value, String)
             ElseIf attrData.IsTargetAttribute(Me, AttributeDescription.AssemblyDescriptionAttribute) Then
@@ -1098,12 +1088,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
 
                     If signature <> -1 Then
                         Dim value As Object = attrData.CommonConstructorArguments(0).Value
-                        Dim nameFlags As AssemblyNameFlags
+                        Dim nameFlags As AssemblyFlags
 
                         If signature = 0 OrElse signature = 1 Then
-                            nameFlags = CType(value, AssemblyNameFlags)
+                            nameFlags = CType(CType(value, AssemblyNameFlags), AssemblyFlags)
                         Else
-                            nameFlags = CType(CUInt(value), AssemblyNameFlags)
+                            nameFlags = CType(CUInt(value), AssemblyFlags)
                         End If
 
                         arguments.GetOrCreateData(Of CommonAssemblyWellKnownAttributeData)().AssemblyFlagsAttributeSetting = nameFlags
@@ -1650,8 +1640,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 End If
             End If
 
-            keys = StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance)
-            Interlocked.CompareExchange(_lazyStrongNameKeys, keys, Nothing)
+                    keys = StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance)
+                Interlocked.CompareExchange(_lazyStrongNameKeys, keys, Nothing)
         End Sub
 
         Private Function ComputeIdentity() As AssemblyIdentity

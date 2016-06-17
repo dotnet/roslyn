@@ -14,7 +14,7 @@
     <AssemblyName>Roslyn.Compilers.CSharp.CommandLine.UnitTests</AssemblyName>
     <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
     <PlatformTarget>x86</PlatformTarget>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\..\Dependencies\xUnit.net\xUnit.net.csproj">
@@ -57,14 +57,12 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
     <OutputPath>bin\Debug\</OutputPath>
-    <NoWarn>1591</NoWarn>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
     <OutputPath>bin\Release\</OutputPath>
     <Optimize>true</Optimize>
-    <NoWarn>1591</NoWarn>
     <PlatformTarget>AnyCPU</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
   </PropertyGroup>
@@ -85,6 +83,7 @@
     </Compile>
     <Compile Include="ErrorLoggerTests.cs" />
     <Compile Include="MiscTests.cs" />
+    <Compile Include="SourceGeneratorTests.cs" />
     <Compile Include="TouchedFileLoggingTests.cs" />
   </ItemGroup>
   <ItemGroup>

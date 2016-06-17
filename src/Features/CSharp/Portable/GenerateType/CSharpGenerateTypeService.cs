@@ -22,6 +22,7 @@ using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.GenerateType
 {
@@ -31,13 +32,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
     {
         private static readonly SyntaxAnnotation s_annotation = new SyntaxAnnotation();
 
-        protected override string DefaultFileExtension
-        {
-            get
-            {
-                return ".cs";
-            }
-        }
+        protected override string DefaultFileExtension => ".cs";
 
         protected override ExpressionSyntax GetLeftSideOfDot(SimpleNameSyntax simpleName)
         {
@@ -528,7 +523,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             return false;
         }
 
-        protected override IList<string> GenerateParameterNames(
+        protected override IList<ParameterName> GenerateParameterNames(
             SemanticModel semanticModel, IList<ArgumentSyntax> arguments)
         {
             return semanticModel.GenerateParameterNames(arguments);
@@ -826,8 +821,6 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                 return updatedSolution;
             }
 
-            var placeSystemNamespaceFirst = document.Project.Solution.Workspace.Options.GetOption(OrganizerOptions.PlaceSystemNamespaceFirst, document.Project.Language);
-
             SyntaxNode root = null;
             if (modifiedRoot == null)
             {
@@ -857,6 +850,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
                     return updatedSolution;
                 }
 
+                var placeSystemNamespaceFirst = document.Options.GetOption(OrganizerOptions.PlaceSystemNamespaceFirst);
                 var addedCompilationRoot = compilationRoot.AddUsingDirectives(new[] { usingDirective }, placeSystemNamespaceFirst, Formatter.Annotation);
                 updatedSolution = updatedSolution.WithDocumentSyntaxRoot(document.Id, addedCompilationRoot, PreservationMode.PreserveIdentity);
             }
@@ -865,28 +859,37 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
         }
 
         private ITypeSymbol GetPropertyType(
-            SimpleNameSyntax property,
+            SimpleNameSyntax propertyName,
             SemanticModel semanticModel,
             ITypeInferenceService typeInference,
             CancellationToken cancellationToken)
         {
-            var parent = property.Parent as AssignmentExpressionSyntax;
-            if (parent != null)
+            var parentAssignment = propertyName.Parent as AssignmentExpressionSyntax;
+            if (parentAssignment != null)
             {
-                return typeInference.InferType(semanticModel, parent.Left, true, cancellationToken);
+                return typeInference.InferType(
+                    semanticModel, parentAssignment.Left, objectAsDefault: true, cancellationToken: cancellationToken);
+            }
+
+            var isPatternExpression = propertyName.Parent as IsPatternExpressionSyntax;
+            if (isPatternExpression != null)
+            {
+                return typeInference.InferType(
+                    semanticModel, isPatternExpression.Expression, objectAsDefault: true, cancellationToken: cancellationToken);
             }
 
             return null;
         }
 
-        private IPropertySymbol CreatePropertySymbol(SimpleNameSyntax propertyName, ITypeSymbol propertyType)
+        private IPropertySymbol CreatePropertySymbol(
+            SimpleNameSyntax propertyName, ITypeSymbol propertyType)
         {
             return CodeGenerationSymbolFactory.CreatePropertySymbol(
                 attributes: SpecializedCollections.EmptyList<AttributeData>(),
                 accessibility: Accessibility.Public,
                 modifiers: new DeclarationModifiers(),
                 explicitInterfaceSymbol: null,
-                name: propertyName.ToString(),
+                name: propertyName.Identifier.ValueText,
                 type: propertyType,
                 parameters: null,
                 getMethod: s_accessor,
@@ -911,11 +914,11 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateType
             if (propertyType == null || propertyType is IErrorTypeSymbol)
             {
                 property = CreatePropertySymbol(propertyName, semanticModel.Compilation.ObjectType);
-                return true;
+                return property != null;
             }
 
             property = CreatePropertySymbol(propertyName, propertyType);
-            return true;
+            return property != null;
         }
 
         internal override IMethodSymbol GetDelegatingConstructor(

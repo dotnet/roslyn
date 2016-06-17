@@ -3,23 +3,25 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
+using System.Composition;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Editor.Shared.Utilities;
 using Microsoft.CodeAnalysis.Elfie.Model;
 using Microsoft.CodeAnalysis.Elfie.Model.Structures;
 using Microsoft.CodeAnalysis.Elfie.Model.Tree;
 using Microsoft.CodeAnalysis.ErrorReporting;
-using Microsoft.CodeAnalysis.Options;
+using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.Packaging;
+using Microsoft.CodeAnalysis.Shared.Options;
 using Microsoft.CodeAnalysis.SymbolSearch;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
+using Microsoft.VisualStudio.LanguageServices.Implementation.ProjectSystem;
 using Microsoft.VisualStudio.Settings;
 using Microsoft.VisualStudio.Shell.Interop;
 using Microsoft.VisualStudio.Shell.Settings;
-using static System.FormattableString;
+using Roslyn.Utilities;
 using VSShell = Microsoft.VisualStudio.Shell;
 
 namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
@@ -31,19 +33,20 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
     /// This implementation also spawns a task which will attempt to keep that database up to
     /// date by downloading patches on a daily basis.
     /// </summary>
-    internal partial class SymbolSearchService :
-        ForegroundThreadAffinitizedObject,
-        ISymbolSearchService,
-        IDisposable
+    [ExportWorkspaceService(typeof(ISymbolSearchService)), Shared]
+    internal partial class SymbolSearchService : AbstractDelayStartedService, ISymbolSearchService
     {
-        private ConcurrentDictionary<string, AddReferenceDatabase> _sourceToDatabase = new ConcurrentDictionary<string, AddReferenceDatabase>();
+        private readonly Workspace _workspace;
 
+        private ConcurrentDictionary<string, IAddReferenceDatabaseWrapper> _sourceToDatabase = 
+            new ConcurrentDictionary<string, IAddReferenceDatabaseWrapper>();
+
+        [ImportingConstructor]
         public SymbolSearchService(
-            VSShell.SVsServiceProvider serviceProvider,
-            Workspace workspace,
-            IPackageInstallerService installerService)
-            : this(workspace, 
-                   installerService, 
+            VisualStudioWorkspaceImpl workspace,
+            VSShell.SVsServiceProvider serviceProvider)
+            : this(workspace,
+                   workspace.Services.GetService<IPackageInstallerService>(), 
                    CreateRemoteControlService(serviceProvider),
                    new LogService((IVsActivityLog)serviceProvider.GetService(typeof(SVsActivityLog))),
                    new DelayService(),
@@ -55,11 +58,6 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                    FatalError.ReportWithoutCrash,
                    new CancellationTokenSource())
         {
-            installerService.PackageSourcesChanged += OnOptionChanged;
-            var optionsService = workspace.Services.GetService<IOptionService>();
-            optionsService.OptionChanged += OnOptionChanged;
-
-            OnOptionChanged(this, EventArgs.Empty);
         }
 
         private static IRemoteControlService CreateRemoteControlService(VSShell.SVsServiceProvider serviceProvider)
@@ -88,7 +86,10 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             IDatabaseFactoryService databaseFactoryService,
             string localSettingsDirectory,
             Func<Exception, bool> reportAndSwallowException,
-            CancellationTokenSource cancellationTokenSource)
+            CancellationTokenSource cancellationTokenSource) 
+            : base(workspace, ServiceComponentOnOffOptions.SymbolSearch,
+                              AddImportOptions.SuggestForTypesInReferenceAssemblies,
+                              AddImportOptions.SuggestForTypesInNuGetPackages)
         {
             if (remoteControlService == null)
             {
@@ -104,26 +105,58 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             _remoteControlService = remoteControlService;
             _patchService = patchService;
             _databaseFactoryService = databaseFactoryService;
+            _localSettingsDirectory = localSettingsDirectory;
             _reportAndSwallowException = reportAndSwallowException;
-
-            _cacheDirectoryInfo = new DirectoryInfo(Path.Combine(
-                localSettingsDirectory, "PackageCache", string.Format(Invariant($"Format{_dataFormatVersion}"))));
-            // _databaseFileInfo = new FileInfo(Path.Combine(_cacheDirectoryInfo.FullName, "NuGetCache.txt"));
 
             _cancellationTokenSource = cancellationTokenSource;
             _cancellationToken = _cancellationTokenSource.Token;
         }
 
+        protected override void EnableService()
+        {
+            // When our service is enabled hook up to package source changes.
+            // We need to know when the list of sources have changed so we can
+            // kick off the work to process them.
+            _installerService.PackageSourcesChanged += OnPackageSourcesChanged;
+        }
+
+        private void OnPackageSourcesChanged(object sender, EventArgs e)
+        {
+            StartWorking();
+        }
+
+        protected override void StartWorking()
+        {
+            // Kick off a database update.  Wait a few seconds before starting so we don't
+            // interfere too much with solution loading.
+            var sources = _installerService.PackageSources;
+
+            // Always pull down the nuget.org index.  It contains the MS reference assembly index
+            // inside of it.
+            var allSources = sources.Concat(new PackageSource(NugetOrgSource, source: null));
+            foreach (var source in allSources)
+            {
+                Task.Run(() => UpdateSourceInBackgroundAsync(source.Name));
+            }
+        }
+
+        protected override void StopWorking()
+        {
+            _installerService.PackageSourcesChanged -= OnPackageSourcesChanged;
+            _cancellationTokenSource.Cancel();
+        }
+
         public IEnumerable<PackageWithTypeResult> FindPackagesWithType(
             string source, string name, int arity, CancellationToken cancellationToken)
         {
-            AddReferenceDatabase database;
-            if (!_sourceToDatabase.TryGetValue(source, out database))
+            IAddReferenceDatabaseWrapper databaseWrapper;
+            if (!_sourceToDatabase.TryGetValue(source, out databaseWrapper))
             {
                 // Don't have a database to search.  
                 yield break;
             }
 
+            var database = databaseWrapper.Database;
             if (name == "var")
             {
                 // never find anything named 'var'.
@@ -190,13 +223,14 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             string name, int arity, CancellationToken cancellationToken)
         {
             // Our reference assembly data is stored in the nuget.org DB.
-            AddReferenceDatabase database;
-            if (!_sourceToDatabase.TryGetValue(NugetOrgSource, out database))
+            IAddReferenceDatabaseWrapper databaseWrapper;
+            if (!_sourceToDatabase.TryGetValue(NugetOrgSource, out databaseWrapper))
             {
                 // Don't have a database to search.  
                 yield break;
             }
 
+            var database = databaseWrapper.Database;
             if (name == "var")
             {
                 // never find anything named 'var'.

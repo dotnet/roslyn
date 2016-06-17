@@ -7,6 +7,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Documents;
 using System.Windows.Navigation;
+using EnvDTE;
 using Microsoft.CodeAnalysis.Diagnostics.Log;
 using Microsoft.VisualStudio.LanguageServices.Implementation.Utilities;
 using Microsoft.VisualStudio.Text.Differencing;
@@ -23,6 +24,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
         private readonly string _id;
         private readonly bool _logIdVerbatimInTelemetry;
+        private readonly DTE _dte;
 
         private bool _isExpanded;
         private double _heightForThreeLineTitle;
@@ -36,12 +38,15 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
             Uri helpLink,
             string helpLinkToolTipText,
             IReadOnlyList<object> previewContent,
-            bool logIdVerbatimInTelemetry)
+            bool logIdVerbatimInTelemetry,
+            DTE dte,
+            Guid optionPageGuid = default(Guid))
         {
             InitializeComponent();
 
             _id = id;
             _logIdVerbatimInTelemetry = logIdVerbatimInTelemetry;
+            _dte = dte;
 
             // Initialize header portion.
             if ((severityIcon != null) && !string.IsNullOrWhiteSpace(id) && !string.IsNullOrWhiteSpace(title))
@@ -65,6 +70,13 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                 {
                     DescriptionParagraph.Inlines.Add(description);
                 }
+            }
+
+            _optionPageGuid = optionPageGuid;
+
+            if (optionPageGuid == default(Guid))
+            {
+                OptionsButton.Visibility = Visibility.Collapsed;
             }
 
             // Initialize preview (i.e. diff view) portion.
@@ -237,6 +249,7 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
 
         #region IDisposable Implementation
         private bool _disposedValue = false;
+        private readonly Guid _optionPageGuid;
 
         // VS editor will call Dispose at which point we should Close() the embedded IWpfDifferenceViewer.
         protected virtual void Dispose(bool disposing)
@@ -305,6 +318,14 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.PreviewPane
                 DescriptionDockPanel.Visibility = Visibility.Collapsed;
 
                 _isExpanded = false;
+            }
+        }
+
+        private void OptionsButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (_optionPageGuid != default(Guid))
+            {
+                _dte.ExecuteCommand("Tools.Options", _optionPageGuid.ToString());
             }
         }
     }

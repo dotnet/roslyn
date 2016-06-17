@@ -1,10 +1,15 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Immutable;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Editing;
 using Microsoft.CodeAnalysis.Formatting;
 using Microsoft.CodeAnalysis.Options;
 using Microsoft.CodeAnalysis.Simplification;
+using Roslyn.Test.Utilities;
 using Xunit;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
@@ -34,7 +39,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Editing
         private async Task TestAsync(string initialText, string importsAddedText, string simplifiedText, OptionSet options = null)
         {
             var doc = GetDocument(initialText);
-            options = options ?? doc.Project.Solution.Workspace.Options;
+            options = options ?? doc.Options;
 
             var imported = await ImportAdder.AddImportsAsync(doc, options);
 
@@ -337,7 +342,15 @@ namespace N
             // to Simplifier not reducing the namespace reference because it would 
             // become ambiguous, thus leaving an unused using directive
             await TestAsync(
-    @"
+@"namespace N { class C { } }
+
+class C 
+{
+   public N.C F;
+}",
+
+@"using N;
+
 namespace N { class C { } }
 
 class C 
@@ -345,23 +358,203 @@ class C
    public N.C F;
 }",
 
-    @"using N;
-
-namespace N { class C { } }
-
-class C 
-{
-   public N.C F;
-}",
-
-    @"
-namespace N { class C { } }
+@"namespace N { class C { } }
 
 class C 
 {
    public N.C F;
 }");
         }
+
+        [Fact]
+        [WorkItem(8797, "https://github.com/dotnet/roslyn/issues/8797")]
+        public async Task TestBannerTextRemainsAtTopOfDocumentWithoutExistingImports()
+        {
+            await TestAsync(
+@"// --------------------------------------------------------------------------------------------------------------------
+// <copyright file=""File.cs"" company=""MyOrgnaization"">
+// Copyright (C) MyOrgnaization 2016
+// </copyright>
+// --------------------------------------------------------------------------------------------------------------------
+class C 
+{
+   public System.Collections.Generic.List<int> F;
+}",
+
+@"// --------------------------------------------------------------------------------------------------------------------
+// <copyright file=""File.cs"" company=""MyOrgnaization"">
+// Copyright (C) MyOrgnaization 2016
+// </copyright>
+// --------------------------------------------------------------------------------------------------------------------
+using System.Collections.Generic;
+
+class C 
+{
+   public System.Collections.Generic.List<int> F;
+}",
+
+@"// --------------------------------------------------------------------------------------------------------------------
+// <copyright file=""File.cs"" company=""MyOrgnaization"">
+// Copyright (C) MyOrgnaization 2016
+// </copyright>
+// --------------------------------------------------------------------------------------------------------------------
+using System.Collections.Generic;
+
+class C 
+{
+   public List<int> F;
+}");
+        }
+
+        [Fact]
+        [WorkItem(8797, "https://github.com/dotnet/roslyn/issues/8797")]
+        public async Task TestBannerTextRemainsAtTopOfDocumentWithExistingImports()
+        {
+            await TestAsync(
+@"// --------------------------------------------------------------------------------------------------------------------
+// <copyright file=""File.cs"" company=""MyOrgnaization"">
+// Copyright (C) MyOrgnaization 2016
+// </copyright>
+// --------------------------------------------------------------------------------------------------------------------
+using ZZZ;
+
+class C 
+{
+   public System.Collections.Generic.List<int> F;
+}",
+
+@"// --------------------------------------------------------------------------------------------------------------------
+// <copyright file=""File.cs"" company=""MyOrgnaization"">
+// Copyright (C) MyOrgnaization 2016
+// </copyright>
+// --------------------------------------------------------------------------------------------------------------------
+using System.Collections.Generic;
+using ZZZ;
+
+class C 
+{
+   public System.Collections.Generic.List<int> F;
+}",
+
+@"// --------------------------------------------------------------------------------------------------------------------
+// <copyright file=""File.cs"" company=""MyOrgnaization"">
+// Copyright (C) MyOrgnaization 2016
+// </copyright>
+// --------------------------------------------------------------------------------------------------------------------
+using System.Collections.Generic;
+using ZZZ;
+
+class C 
+{
+   public List<int> F;
+}");
+        }
+
+        [Fact]
+        [WorkItem(8797, "https://github.com/dotnet/roslyn/issues/8797")]
+        public async Task TestLeadingWhitespaceLinesArePreserved()
+        {
+            await TestAsync(
+@"
+
+class C 
+{
+   public System.Collections.Generic.List<int> F;
+}",
+
+@"
+
+using System.Collections.Generic;
+
+class C 
+{
+   public System.Collections.Generic.List<int> F;
+}",
+
+@"
+
+using System.Collections.Generic;
+
+class C 
+{
+   public List<int> F;
+}");
+        }
+
+        [Fact]
+        [WorkItem(9228, "https://github.com/dotnet/roslyn/issues/9228")]
+        public async Task TestDoNotAddDuplicateImportIfNamespaceIsDefinedInSourceAndExternalAssembly()
+        {
+            var externalCode = 
+@"namespace N.M { public class A : System.Attribute { } }";
+
+            var code = 
+@"using System;
+using N.M;
+
+class C
+{
+    public void M1(String p1) { }
+
+    public void M2([A] String p2) { }
+}";
+
+            var otherAssemblyReference = GetInMemoryAssemblyReferenceForCode(externalCode);
+
+            var project = _emptyProject
+                .AddMetadataReferences(new[] { otherAssemblyReference })
+                .WithCompilationOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary));
+
+            project = project.AddDocument("duplicate.cs", externalCode).Project;
+            var document = project.AddDocument("test.cs", code);
+
+            var options = document.Project.Solution.Workspace.Options;
+
+            var compilation = await document.Project.Solution.GetCompilationAsync(document.Project, CancellationToken.None);
+            ImmutableArray<Diagnostic> compilerDiagnostics = compilation.GetDiagnostics(CancellationToken.None);
+            Assert.Empty(compilerDiagnostics.Where(d => d.Severity == DiagnosticSeverity.Error));
+
+            var attribute = compilation.GetTypeByMetadataName("N.M.A");
+
+            var syntaxRoot = await document.GetSyntaxRootAsync(CancellationToken.None).ConfigureAwait(false);
+            SyntaxNode p1SyntaxNode = syntaxRoot.DescendantNodes().OfType<ParameterSyntax>().FirstOrDefault();
+
+            // Add N.M.A attribute to p1.
+            var editor = await DocumentEditor.CreateAsync(document, CancellationToken.None).ConfigureAwait(false);
+            SyntaxNode attributeSyntax = editor.Generator.Attribute(editor.Generator.TypeExpression(attribute));
+
+            editor.AddAttribute(p1SyntaxNode, attributeSyntax);
+            Document documentWithAttribute = editor.GetChangedDocument();
+
+            // Add namespace import.
+            Document imported = await ImportAdder.AddImportsAsync(documentWithAttribute, null,
+                CancellationToken.None).ConfigureAwait(false);
+
+            var formatted = await Formatter.FormatAsync(imported, options);
+            var actualText = (await formatted.GetTextAsync()).ToString();
+
+            Assert.Equal(actualText,
+@"using System;
+using N.M;
+
+class C
+{
+    public void M1([global::N.M.A] String p1) { }
+
+    public void M2([A] String p2) { }
+}");
+        }
+
+        private static MetadataReference GetInMemoryAssemblyReferenceForCode(string code)
+        {
+            SyntaxTree tree = CSharpSyntaxTree.ParseText(code);
+
+            CSharpCompilation compilation = CSharpCompilation
+                .Create("test.dll", new[] { tree })
+                .WithOptions(new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary))
+                .AddReferences(TestReferences.NetFx.v4_0_30319.mscorlib);
+
+            return compilation.ToMetadataReference();
+        }
     }
 }
-

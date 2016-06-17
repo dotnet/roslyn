@@ -77,7 +77,6 @@ Microsoft.CodeAnalysis.CSharp.CSharpDiagnosticFormatter
 Microsoft.CodeAnalysis.CSharp.CSharpExtensions
 Microsoft.CodeAnalysis.CSharp.CSharpFileSystemExtensions
 Microsoft.CodeAnalysis.CSharp.CSharpParseOptions
-Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.CSharpParseOptions(Microsoft.CodeAnalysis.CSharp.LanguageVersion languageVersion = Microsoft.CodeAnalysis.CSharp.LanguageVersion.CSharp6, Microsoft.CodeAnalysis.DocumentationMode documentationMode = Microsoft.CodeAnalysis.DocumentationMode.Parse, Microsoft.CodeAnalysis.SourceCodeKind kind = Microsoft.CodeAnalysis.SourceCodeKind.Regular, System.Collections.Generic.IEnumerable<string> preprocessorSymbols = null) -> void
 Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.Equals(Microsoft.CodeAnalysis.CSharp.CSharpParseOptions other) -> bool
 Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.LanguageVersion.get -> Microsoft.CodeAnalysis.CSharp.LanguageVersion
 Microsoft.CodeAnalysis.CSharp.CSharpParseOptions.WithDocumentationMode(Microsoft.CodeAnalysis.DocumentationMode documentationMode) -> Microsoft.CodeAnalysis.CSharp.CSharpParseOptions
@@ -106,10 +105,13 @@ Microsoft.CodeAnalysis.CSharp.CSharpSyntaxNode.Kind() -> Microsoft.CodeAnalysis.
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxRewriter.CSharpSyntaxRewriter(bool visitIntoStructuredTrivia = false) -> void
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree
+Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.CSharpSyntaxTree() -> void
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.CloneNodeAsRoot<T>(T node) -> T
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxTree.GetCompilationUnitRoot(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken)) -> Microsoft.CodeAnalysis.CSharp.Syntax.CompilationUnitSyntax
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor
+Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor.CSharpSyntaxVisitor() -> void
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>
+Microsoft.CodeAnalysis.CSharp.CSharpSyntaxVisitor<TResult>.CSharpSyntaxVisitor() -> void
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxWalker
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxWalker.CSharpSyntaxWalker(Microsoft.CodeAnalysis.SyntaxWalkerDepth depth = Microsoft.CodeAnalysis.SyntaxWalkerDepth.Node) -> void
 Microsoft.CodeAnalysis.CSharp.CSharpSyntaxWalker.Depth.get -> Microsoft.CodeAnalysis.SyntaxWalkerDepth

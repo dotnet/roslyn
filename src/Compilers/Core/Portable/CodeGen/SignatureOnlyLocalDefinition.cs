@@ -2,6 +2,7 @@
 
 using System;
 using System.Collections.Immutable;
+using System.Reflection.Metadata;
 using Microsoft.CodeAnalysis.Symbols;
 using Roslyn.Utilities;
 
@@ -43,7 +44,7 @@ namespace Microsoft.CodeAnalysis.CodeGen
         /// This temp is not interesting to the expression compiler.  However, it 
         /// may be replaced by an interesting local in a later stage.
         /// </remarks>
-        public uint PdbAttributes => Cci.PdbWriter.HiddenLocalAttributesValue;
+        public LocalVariableAttributes PdbAttributes => LocalVariableAttributes.DebuggerHidden;
 
         public bool IsDynamic => false;
 

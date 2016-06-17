@@ -1,7 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.ExtractMethod;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -9,7 +11,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Extrac
 {
     public class ExtractMethodTests : AbstractCSharpCodeActionTest
     {
-        protected override object CreateCodeRefactoringProvider(Workspace workspace)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
         {
             return new ExtractMethodCodeRefactoringProvider();
         }
@@ -432,6 +434,91 @@ compareTokens: false);
 }",
 
 compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")]
+        public async Task TestTuple()
+        {
+            await TestAsync(
+@"class Program { static void Main ( string [ ] args ) { [| (int, int) x = (1, 2); |]  System . Console . WriteLine ( x.Item1 ); } } " + TestResources.NetFX.ValueTuple.tuplelib_cs,
+@"class Program { static void Main ( string [ ] args ) { (int, int) x = {|Rename:NewMethod|}(); System.Console.WriteLine(x.Item1); } private static (int, int) NewMethod() { return (1, 2); } }" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+index: 0,
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")]
+        public async Task TestTupleDeclarationWithNames()
+        {
+            await TestAsync(
+@"class Program { static void Main ( string [ ] args ) { [| (int a, int b) x = (1, 2); |]  System . Console . WriteLine ( x.a ); } } " + TestResources.NetFX.ValueTuple.tuplelib_cs,
+@"class Program { static void Main ( string [ ] args ) { (int a, int b) x = {|Rename:NewMethod|}(); System.Console.WriteLine(x.a); } private static (int a, int b) NewMethod() { return (1, 2); } }" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+index: 0,
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")]
+        public async Task TestTupleLiteralWithNames()
+        {
+            await TestAsync(
+@"class Program { static void Main ( string [ ] args ) { [| (int, int) x = (a: 1, b: 2); |]  System . Console . WriteLine ( x.Item1 ); } } " + TestResources.NetFX.ValueTuple.tuplelib_cs,
+@"class Program { static void Main ( string [ ] args ) { (int, int) x = {|Rename:NewMethod|}(); System.Console.WriteLine(x.Item1); } private static (int, int) NewMethod() { return (a: 1, b: 2); } }" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+index: 0,
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")]
+        public async Task TestTupleDeclarationAndLiteralWithNames()
+        {
+            await TestAsync(
+@"class Program { static void Main ( string [ ] args ) { [| (int a, int b) x = (c: 1, d: 2); |]  System . Console . WriteLine ( x.a ); } } " + TestResources.NetFX.ValueTuple.tuplelib_cs,
+@"class Program { static void Main ( string [ ] args ) { (int a, int b) x = {|Rename:NewMethod|}(); System.Console.WriteLine(x.a); } private static (int a, int b) NewMethod() { return (c: 1, d: 2); } }" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+index: 0,
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")]
+        public async Task TestTupleIntoVar()
+        {
+            await TestAsync(
+@"class Program { static void Main ( string [ ] args ) { [| var x = (c: 1, d: 2); |]  System . Console . WriteLine ( x.c ); } } " + TestResources.NetFX.ValueTuple.tuplelib_cs,
+@"class Program { static void Main ( string [ ] args ) { (int c, int d) x = {|Rename:NewMethod|}(); System.Console.WriteLine(x.c); } private static (int c, int d) NewMethod() { return (c: 1, d: 2); } }" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+index: 0,
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")]
+        public async Task RefactorWithoutSystemValueTuple()
+        {
+            await TestAsync(
+@"class Program { static void Main ( string [ ] args ) { [| var x = (c: 1, d: 2); |]  System . Console . WriteLine ( x.c ); } } ",
+@"class Program { static void Main ( string [ ] args ) { object x = {|Rename:NewMethod|}(); System.Console.WriteLine(x.c); } private static object NewMethod() { return (c: 1, d: 2); } }",
+index: 0,
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsExtractMethod), Test.Utilities.CompilerTrait(Test.Utilities.CompilerFeature.Tuples)]
+        [WorkItem(11196, "https://github.com/dotnet/roslyn/issues/11196")]
+        public async Task TestTupleWithNestedNamedTuple()
+        {
+            // This is not the best refactoring, but this is an edge case
+            await TestAsync(
+@"class Program { static void Main ( string [ ] args ) { [| var x = new System.ValueTuple<int, int, int, int, int, int, int, (string a, string b)>(1, 2, 3, 4, 5, 6, 7, (a: ""hello"", b: ""world"")); |]  System . Console . WriteLine ( x.c ); } } " + TestResources.NetFX.ValueTuple.tuplelib_cs,
+@"class Program { static void Main ( string [ ] args ) { (int, int, int, int, int, int, int, string, string) x = {|Rename:NewMethod|}(); System . Console . WriteLine ( x.c ); } private static (int, int, int, int, int, int, int, string, string) NewMethod() { return new System.ValueTuple<int, int, int, int, int, int, int, (string a, string b)>(1, 2, 3, 4, 5, 6, 7, (a: ""hello"", b: ""world"")); } }" + TestResources.NetFX.ValueTuple.tuplelib_cs,
+index: 0,
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
         }
     }
 }

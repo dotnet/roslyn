@@ -19,7 +19,6 @@ namespace Microsoft.CodeAnalysis.Simplification
                 SimplificationOptions.PreferImplicitTypeInLocalDeclaration,
                 SimplificationOptions.AllowSimplificationToGenericType,
                 SimplificationOptions.AllowSimplificationToBaseType,
-                SimplificationOptions.QualifyMemberAccessWithThisOrMe,
                 SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInDeclaration,
                 SimplificationOptions.PreferIntrinsicPredefinedTypeKeywordInMemberAccess
             }.ToImmutableArray();

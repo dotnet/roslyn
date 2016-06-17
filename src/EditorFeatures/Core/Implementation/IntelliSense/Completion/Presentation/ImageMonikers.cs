@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.VisualStudio.Imaging;
@@ -28,74 +27,69 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                     case CompletionTags.Class:
                         switch (GetAccessibility(tags))
                         {
-                            case Accessibility.Public:
-                                return KnownMonikers.ClassPublic;
                             case Accessibility.Protected:
                                 return KnownMonikers.ClassProtected;
                             case Accessibility.Private:
                                 return KnownMonikers.ClassPrivate;
                             case Accessibility.Internal:
                                 return KnownMonikers.ClassInternal;
+                            case Accessibility.Public:
                             default:
-                                return KnownMonikers.Class;
+                                return KnownMonikers.ClassPublic;
                         }
 
                     case CompletionTags.Constant:
                         switch (GetAccessibility(tags))
                         {
-                            case Accessibility.Public:
-                                return KnownMonikers.ConstantPublic;
                             case Accessibility.Protected:
                                 return KnownMonikers.ConstantProtected;
                             case Accessibility.Private:
                                 return KnownMonikers.ConstantPrivate;
                             case Accessibility.Internal:
                                 return KnownMonikers.ConstantInternal;
+                            case Accessibility.Public:
                             default:
-                                return KnownMonikers.Constant;
+                                return KnownMonikers.ConstantPublic;
                         }
 
                     case CompletionTags.Delegate:
                         switch (GetAccessibility(tags))
                         {
-                            case Accessibility.Public:
-                                return KnownMonikers.DelegatePublic;
                             case Accessibility.Protected:
                                 return KnownMonikers.DelegateProtected;
                             case Accessibility.Private:
                                 return KnownMonikers.DelegatePrivate;
                             case Accessibility.Internal:
                                 return KnownMonikers.DelegateInternal;
+                            case Accessibility.Public:
                             default:
-                                return KnownMonikers.Delegate;
+                                return KnownMonikers.DelegatePublic;
                         }
 
                     case CompletionTags.Enum:
                         switch (GetAccessibility(tags))
                         {
-                            case Accessibility.Public:
-                                return KnownMonikers.EnumerationPublic;
                             case Accessibility.Protected:
                                 return KnownMonikers.EnumerationProtected;
                             case Accessibility.Private:
                                 return KnownMonikers.EnumerationPrivate;
                             case Accessibility.Internal:
                                 return KnownMonikers.EnumerationInternal;
+                            case Accessibility.Public:
                             default:
-                                return KnownMonikers.Enumeration;
+                                return KnownMonikers.EnumerationPublic;
                         }
 
                     case CompletionTags.EnumMember:
                         switch (GetAccessibility(tags))
                         {
-                            case Accessibility.Public:
-                                return KnownMonikers.EnumerationItemPublic;
                             case Accessibility.Protected:
                                 return KnownMonikers.EnumerationItemProtected;
                             case Accessibility.Private:
                                 return KnownMonikers.EnumerationItemPrivate;
                             case Accessibility.Internal:
                                 return KnownMonikers.EnumerationItemInternal;
+                            case Accessibility.Public:
                             default:
                                 return KnownMonikers.EnumerationItemPublic;
                         }
@@ -106,16 +100,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                     case CompletionTags.Event:
                         switch (GetAccessibility(tags))
                         {
-                            case Accessibility.Public:
-                                return KnownMonikers.EventPublic;
                             case Accessibility.Protected:
                                 return KnownMonikers.EventProtected;
                             case Accessibility.Private:
                                 return KnownMonikers.EventPrivate;
                             case Accessibility.Internal:
                                 return KnownMonikers.EventInternal;
+                            case Accessibility.Public:
                             default:
-                                return KnownMonikers.Event;
+                                return KnownMonikers.EventPublic;
                         }
 
                     case CompletionTags.ExtensionMethod:
@@ -125,31 +118,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                     case CompletionTags.Field:
                         switch (GetAccessibility(tags))
                         {
-                            case Accessibility.Public:
-                                return KnownMonikers.FieldPublic;
                             case Accessibility.Protected:
                                 return KnownMonikers.FieldProtected;
                             case Accessibility.Private:
                                 return KnownMonikers.FieldPrivate;
                             case Accessibility.Internal:
                                 return KnownMonikers.FieldInternal;
+                            case Accessibility.Public:
                             default:
-                                return KnownMonikers.Field;
+                                return KnownMonikers.FieldPublic;
                         }
 
                     case CompletionTags.Interface:
                         switch (GetAccessibility(tags))
                         {
-                            case Accessibility.Public:
-                                return KnownMonikers.InterfacePublic;
                             case Accessibility.Protected:
                                 return KnownMonikers.InterfaceProtected;
                             case Accessibility.Private:
                                 return KnownMonikers.InterfacePrivate;
                             case Accessibility.Internal:
                                 return KnownMonikers.InterfaceInternal;
+                            case Accessibility.Public:
                             default:
-                                return KnownMonikers.Interface;
+                                return KnownMonikers.InterfacePublic;
                         }
 
                     // TODO: Figure out the right thing to return here.
@@ -163,7 +154,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                         return KnownMonikers.Label;
 
                     case CompletionTags.Local:
-                        return KnownMonikers.FieldPublic;
+                        return KnownMonikers.LocalVariable;
 
                     case CompletionTags.Namespace:
                         return KnownMonikers.Namespace;
@@ -171,31 +162,29 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                     case CompletionTags.Method:
                         switch (GetAccessibility(tags))
                         {
-                            case Accessibility.Public:
-                                return KnownMonikers.MethodPublic;
                             case Accessibility.Protected:
                                 return KnownMonikers.MethodProtected;
                             case Accessibility.Private:
                                 return KnownMonikers.MethodPrivate;
                             case Accessibility.Internal:
                                 return KnownMonikers.MethodInternal;
+                            case Accessibility.Public:
                             default:
-                                return KnownMonikers.Method;
+                                return KnownMonikers.MethodPublic;
                         }
 
                     case CompletionTags.Module:
                         switch (GetAccessibility(tags))
                         {
-                            case Accessibility.Public:
-                                return KnownMonikers.ModulePublic;
                             case Accessibility.Protected:
                                 return KnownMonikers.ModulePublic;
                             case Accessibility.Private:
                                 return KnownMonikers.ModulePrivate;
                             case Accessibility.Internal:
                                 return KnownMonikers.ModuleInternal;
+                            case Accessibility.Public:
                             default:
-                                return KnownMonikers.Module;
+                                return KnownMonikers.ModulePublic;
                         }
 
                     case CompletionTags.Folder:
@@ -205,25 +194,24 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                         return KnownMonikers.Operator;
 
                     case CompletionTags.Parameter:
-                        return KnownMonikers.FieldPublic;
+                        return KnownMonikers.LocalVariable;
 
                     case CompletionTags.Property:
                         switch (GetAccessibility(tags))
                         {
-                            case Accessibility.Public:
-                                return KnownMonikers.PropertyPublic;
                             case Accessibility.Protected:
                                 return KnownMonikers.PropertyProtected;
                             case Accessibility.Private:
                                 return KnownMonikers.PropertyPrivate;
                             case Accessibility.Internal:
                                 return KnownMonikers.PropertyInternal;
+                            case Accessibility.Public:
                             default:
-                                return KnownMonikers.Property;
+                                return KnownMonikers.PropertyPublic;
                         }
 
                     case CompletionTags.RangeVariable:
-                        return KnownMonikers.FieldPublic;
+                        return KnownMonikers.LocalVariable;
 
                     case CompletionTags.Reference:
                         return KnownMonikers.Reference;
@@ -231,16 +219,15 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion.P
                     case CompletionTags.Structure:
                         switch (GetAccessibility(tags))
                         {
-                            case Accessibility.Public:
-                                return KnownMonikers.StructurePublic;
                             case Accessibility.Protected:
                                 return KnownMonikers.StructureProtected;
                             case Accessibility.Private:
                                 return KnownMonikers.StructurePrivate;
                             case Accessibility.Internal:
                                 return KnownMonikers.StructureInternal;
+                            case Accessibility.Public:
                             default:
-                                return KnownMonikers.Structure;
+                                return KnownMonikers.StructurePublic;
                         }
 
                     case CompletionTags.TypeParameter:

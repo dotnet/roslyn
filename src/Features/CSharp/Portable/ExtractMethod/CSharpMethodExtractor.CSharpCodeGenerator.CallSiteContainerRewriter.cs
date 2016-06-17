@@ -119,6 +119,7 @@ namespace Microsoft.CodeAnalysis.CSharp.ExtractMethod
                     return
                         SyntaxFactory.LocalDeclarationStatement(
                             node.Modifiers,
+                            node.RefKeyword,
                                 SyntaxFactory.VariableDeclaration(
                                     node.Declaration.Type,
                                     SyntaxFactory.SeparatedList(list)),

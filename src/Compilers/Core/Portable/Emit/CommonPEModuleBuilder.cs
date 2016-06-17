@@ -85,6 +85,25 @@ namespace Microsoft.CodeAnalysis.Emit
 
         private ImmutableArray<Cci.AssemblyReferenceAlias> _lazyAssemblyReferenceAliases;
 
+        // Only set when running tests to allow realized IL for a given method to be looked up by method.
+        internal ConcurrentDictionary<IMethodSymbol, CompilationTestData.MethodData> TestData { get; private set; }
+
+        internal bool SaveTestData
+        {
+            get { return TestData != null; }
+        }
+
+        internal void SetMethodTestData(IMethodSymbol method, ILBuilder builder)
+        {
+            TestData.Add(method, new CompilationTestData.MethodData(builder, method));
+        }
+
+        internal void SetMethodTestData(ConcurrentDictionary<IMethodSymbol, CompilationTestData.MethodData> methods)
+        {
+            Debug.Assert(TestData == null);
+            TestData = methods;
+        }
+
         protected PEModuleBuilder(
             TCompilation compilation,
             TSourceModuleSymbol sourceModule,
@@ -104,15 +123,10 @@ namespace Microsoft.CodeAnalysis.Emit
             _outputKind = outputKind;
             _emitOptions = emitOptions;
             this.CompilationState = compilationState;
-
-            if (compilation.IsCaseSensitive)
-            {
-                _debugDocuments = new ConcurrentDictionary<string, Cci.DebugSourceDocument>(StringComparer.Ordinal);
-            }
-            else
-            {
-                _debugDocuments = new ConcurrentDictionary<string, Cci.DebugSourceDocument>(StringComparer.OrdinalIgnoreCase);
-            }
+            _debugDocuments = new ConcurrentDictionary<string, Cci.DebugSourceDocument>(
+                compilation.IsCaseSensitive ?
+                StringComparer.Ordinal :
+                StringComparer.OrdinalIgnoreCase);
         }
 
         internal sealed override void CompilationFinished()
@@ -765,11 +779,11 @@ namespace Microsoft.CodeAnalysis.Emit
 
         protected abstract IEnumerable<Cci.IAssemblyReference> GetAssemblyReferencesFromAddedModules(DiagnosticBag diagnostics);
 
-        private IEnumerable<Cci.ManagedResource> _lazyManagedResources;
+        private ImmutableArray<Cci.ManagedResource> _lazyManagedResources;
 
-        IEnumerable<Cci.ManagedResource> Cci.IModule.GetResources(EmitContext context)
+        ImmutableArray<Cci.ManagedResource> Cci.IModule.GetResources(EmitContext context)
         {
-            if (_lazyManagedResources == null)
+            if (_lazyManagedResources.IsDefault)
             {
                 var builder = ArrayBuilder<Cci.ManagedResource>.GetInstance();
 

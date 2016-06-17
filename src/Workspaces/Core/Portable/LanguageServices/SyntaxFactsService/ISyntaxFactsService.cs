@@ -27,7 +27,9 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsPreprocessorKeyword(SyntaxToken token);
         bool IsHashToken(SyntaxToken token);
         bool IsLiteral(SyntaxToken token);
+        bool IsStringLiteralOrInterpolatedStringLiteral(SyntaxToken token);
         bool IsStringLiteral(SyntaxToken token);
+        bool IsNumericLiteralExpression(SyntaxNode node);
         bool IsTypeNamedVarInVariableOrFieldDeclaration(SyntaxToken token, SyntaxNode parent);
         bool IsTypeNamedDynamic(SyntaxToken token, SyntaxNode parent);
 
@@ -45,6 +47,20 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         bool IsObjectCreationExpression(SyntaxNode node);
         bool IsInvocationExpression(SyntaxNode node);
 
+        // Left side of = assignment.
+        bool IsLeftSideOfAssignment(SyntaxNode node);
+
+        // Left side of any assignment (for example  *=  or += )
+        bool IsLeftSideOfAnyAssignment(SyntaxNode node);
+        SyntaxNode GetRightHandSideOfAssignment(SyntaxNode node);
+
+        bool IsInferredAnonymousObjectMemberDeclarator(SyntaxNode node);
+        bool IsOperandOfIncrementExpression(SyntaxNode node);
+        bool IsOperandOfIncrementOrDecrementExpression(SyntaxNode node);
+
+        bool IsLeftSideOfDot(SyntaxNode node);
+        SyntaxNode GetRightSideOfDot(SyntaxNode node);
+
         bool IsRightSideOfQualifiedName(SyntaxNode node);
         bool IsMemberAccessExpressionName(SyntaxNode node);
 
@@ -57,12 +73,14 @@ namespace Microsoft.CodeAnalysis.LanguageServices
         SyntaxNode GetExpressionOfMemberAccessExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfConditionalMemberAccessExpression(SyntaxNode node);
         SyntaxNode GetExpressionOfArgument(SyntaxNode node);
+        SyntaxNode GetExpressionOfInterpolation(SyntaxNode node);
         bool IsConditionalMemberAccessExpression(SyntaxNode node);
         SyntaxNode GetNameOfAttribute(SyntaxNode node);
         SyntaxToken GetIdentifierOfGenericName(SyntaxNode node);
         RefKind GetRefKindOfArgument(SyntaxNode node);
         void GetNameAndArityOfSimpleName(SyntaxNode node, out string name, out int arity);
-
+        SyntaxList<SyntaxNode> GetContentsOfInterpolatedString(SyntaxNode interpolatedString);
+        SeparatedSyntaxList<SyntaxNode> GetArgumentsForInvocationExpression(SyntaxNode invocationExpression);
         bool IsUsingDirectiveName(SyntaxNode node);
         bool IsGenericName(SyntaxNode node);
 
@@ -125,7 +143,7 @@ namespace Microsoft.CodeAnalysis.LanguageServices
 
         SyntaxNode Parenthesize(SyntaxNode expression, bool includeElasticTrivia = true);
 
-        SyntaxNode ConvertToSingleLine(SyntaxNode node);
+        SyntaxNode ConvertToSingleLine(SyntaxNode node, bool useElasticTrivia = false);
 
         SyntaxToken ToIdentifierToken(string name);
 

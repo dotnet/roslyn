@@ -6,7 +6,7 @@
             CoreCLR-compatible version of csi.exe.
 
             Supported Platforms:
-            - .NET Core (dnxcore50)
+            - .NET Core (NETCoreApp1.0)
         </description>
         <language>en-US</language>
         <requireLicenseAcceptance>true</requireLicenseAcceptance>
@@ -16,10 +16,10 @@
         <projectUrl>$projectUrl$</projectUrl>
         <tags>$tags$</tags>
         <dependencies>
-            <group targetFramework="dnxcore50">
+            <group targetFramework="NETCoreApp1.0">
                 <dependency id="Microsoft.CodeAnalysis.Compilers" version="$version$" />
                 <dependency id="Microsoft.CodeAnalysis.Scripting" version="$version$" />
-                <dependency id="NETStandard.Library" version="1.5.0-rc2-24027" />
+                <dependency id="NETStandard.Library" version="1.6.0$coreFXVersionSuffix$" />
             </group>
         </dependencies>
     </metadata>

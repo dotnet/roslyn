@@ -48,7 +48,7 @@ namespace Microsoft.CodeAnalysis.Simplification
                     return document;
                 }
 
-                optionSet = optionSet ?? document.Project.Solution.Workspace.Options;
+                optionSet = optionSet ?? document.Options;
 
                 var semanticModel = await document.GetSemanticModelAsync(cancellationToken).ConfigureAwait(false);
 

@@ -1,7 +1,9 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Runtime.InteropServices
+Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CodeStyle
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.Options
@@ -11,10 +13,10 @@ Imports Microsoft.CodeAnalysis.Simplification
 Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     <ComVisible(True)>
     Public Class AutomationObject
-        Private ReadOnly _optionService As IOptionService
+        Private ReadOnly _workspace As Workspace
 
-        Friend Sub New(optionService As IOptionService)
-            _optionService = optionService
+        Friend Sub New(workspace As Workspace)
+            _workspace = workspace
         End Sub
 
         Public Property AutoComment As Boolean
@@ -47,7 +49,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         <Obsolete("This SettingStore option has now been deprecated in favor of BasicClosedFileDiagnostics")>
         Public Property ClosedFileDiagnostics As Boolean
             Get
-                Return ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(_optionService, LanguageNames.VisualBasic)
+                Return ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(_workspace.Options, LanguageNames.VisualBasic)
             End Get
             Set(value As Boolean)
                 ' Even though this option has been deprecated, we want to respect the setting if the user has explicitly turned off closed file diagnostics (which is the non-default value for 'ClosedFileDiagnostics').
@@ -157,12 +159,39 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
-        Public Property Style_QualifyMemberAccessWithThisOrMe As Boolean
+        Public Property Style_QualifyFieldAccess As String
             Get
-                Return GetBooleanOption(SimplificationOptions.QualifyMemberAccessWithThisOrMe)
+                Return GetXmlOption(CodeStyleOptions.QualifyFieldAccess)
             End Get
-            Set(value As Boolean)
-                SetBooleanOption(SimplificationOptions.QualifyMemberAccessWithThisOrMe, value)
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions.QualifyFieldAccess, value)
+            End Set
+        End Property
+
+        Public Property Style_QualifyPropertyAccess As String
+            Get
+                Return GetXmlOption(CodeStyleOptions.QualifyPropertyAccess)
+            End Get
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions.QualifyPropertyAccess, value)
+            End Set
+        End Property
+
+        Public Property Style_QualifyMethodAccess As String
+            Get
+                Return GetXmlOption(CodeStyleOptions.QualifyMethodAccess)
+            End Get
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions.QualifyMethodAccess, value)
+            End Set
+        End Property
+
+        Public Property Style_QualifyEventAccess As String
+            Get
+                Return GetXmlOption(CodeStyleOptions.QualifyEventAccess)
+            End Get
+            Set(value As String)
+                SetXmlOption(CodeStyleOptions.QualifyEventAccess, value)
             End Set
         End Property
 
@@ -175,7 +204,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
-        Public Property Option_Suggest_imports_for_types_in_reference_assemblies As Boolean
+        Public Property Option_SuggestImportsForTypesInReferenceAssemblies As Boolean
             Get
                 Return GetBooleanOption(AddImportOptions.SuggestForTypesInReferenceAssemblies)
             End Get
@@ -184,7 +213,7 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
-        Public Property Option_Suggest_imports_for_types_in_NuGet_packages As Boolean
+        Public Property Option_SuggestImportsForTypesInNuGetPackages As Boolean
             Get
                 Return GetBooleanOption(AddImportOptions.SuggestForTypesInNuGetPackages)
             End Get
@@ -193,28 +222,20 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
             End Set
         End Property
 
-        Private Function GetBooleanOption(key As [Option](Of Boolean)) As Boolean
-            Return _optionService.GetOption(key)
+        Private Function GetBooleanOption(key As [PerLanguageOption](Of Boolean)) As Boolean
+            Return _workspace.Options.GetOption(key, LanguageNames.VisualBasic)
         End Function
 
-        Private Sub SetBooleanOption(key As [Option](Of Boolean), value As Boolean)
-            Dim optionSet = _optionService.GetOptions()
-            optionSet = optionSet.WithChangedOption(key, value)
-            _optionService.SetOptions(optionSet)
-        End Sub
-
-        Private Function GetBooleanOption(key As [PerLanguageOption](Of Boolean)) As Boolean
-            Return _optionService.GetOption(key, LanguageNames.VisualBasic)
+        Private Function GetXmlOption(key As PerLanguageOption(Of CodeStyleOption(Of Boolean))) As String
+            Return _workspace.Options.GetOption(key, LanguageNames.VisualBasic).ToXElement().ToString()
         End Function
 
         Private Sub SetBooleanOption(key As [PerLanguageOption](Of Boolean), value As Boolean)
-            Dim optionSet = _optionService.GetOptions()
-            optionSet = optionSet.WithChangedOption(key, LanguageNames.VisualBasic, value)
-            _optionService.SetOptions(optionSet)
+            _workspace.Options = _workspace.Options.WithChangedOption(key, LanguageNames.VisualBasic, value)
         End Sub
 
         Private Function GetBooleanOption(key As PerLanguageOption(Of Boolean?)) As Integer
-            Dim [option] = _optionService.GetOption(key, LanguageNames.VisualBasic)
+            Dim [option] = _workspace.Options.GetOption(key, LanguageNames.VisualBasic)
             If Not [option].HasValue Then
                 Return -1
             End If
@@ -224,9 +245,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Private Sub SetBooleanOption(key As PerLanguageOption(Of Boolean?), value As Integer)
             Dim boolValue As Boolean? = If(value < 0, Nothing, value > 0)
-            Dim optionSet = _optionService.GetOptions()
-            optionSet = optionSet.WithChangedOption(key, LanguageNames.VisualBasic, boolValue)
-            _optionService.SetOptions(optionSet)
+            _workspace.Options = _workspace.Options.WithChangedOption(key, LanguageNames.VisualBasic, boolValue)
         End Sub
+
+        Private Sub SetXmlOption(key As PerLanguageOption(Of CodeStyleOption(Of Boolean)), value As String)
+            Dim convertedValue = CodeStyleOption(Of Boolean).FromXElement(XElement.Parse(value))
+            _workspace.Options = _workspace.Options.WithChangedOption(key, LanguageNames.VisualBasic, convertedValue)
+        End Sub
+
     End Class
 End Namespace

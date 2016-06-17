@@ -1,8 +1,11 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.InlineTemporary;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Roslyn.Test.Utilities;
 using Xunit;
 
@@ -10,7 +13,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
 {
     public class InlineTemporaryTests : AbstractCSharpCodeActionTest
     {
-        protected override object CreateCodeRefactoringProvider(Workspace workspace)
+        private static readonly Dictionary<string, string> s_experimentalFeatures = new Dictionary<string, string> { { MessageID.IDS_FeatureLocalFunctions.RequiredFeature(), "true" }, { MessageID.IDS_FeatureRefLocalsReturns.RequiredFeature(), "true" } };
+        public static readonly CSharpParseOptions ExperimentalParseOptions =
+            new CSharpParseOptions(kind: SourceCodeKind.Regular, documentationMode: DocumentationMode.None, languageVersion: LanguageVersion.CSharp6).WithFeatures(s_experimentalFeatures);
+
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
         {
             return new InlineTemporaryCodeRefactoringProvider();
         }
@@ -60,6 +67,23 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.Inline
         public async Task NotOnField()
         {
             await TestMissingAsync(@"class C { int [||]x = 42; void M() { System.Console.WriteLine(x); } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task WithRefInitializer1()
+        {
+            await TestMissingAsync(@"
+class C
+{
+    ref int M()
+    {
+        int[] arr = new[] { 1, 2, 3 };
+        ref int [||]x = ref arr[2];
+        return ref x;
+    }
+}",
+                // TODO: propagating features to the project is currently NYI
+                parseOptions: ExperimentalParseOptions);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
@@ -3927,6 +3951,103 @@ class C
 }";
 
             await TestAsync(initial, expected, compareTokens: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task Tuples_Disabled()
+        {
+            var code = @"
+using System;
+class C
+{
+    public void M()
+    {
+        (int, string) [||]x = (1, ""hello"");
+        x.ToString();
+    }
+}";
+
+            await TestMissingAsync(code, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task Tuples()
+        {
+            var code = @"
+using System;
+class C
+{
+    public void M()
+    {
+        (int, string) [||]x = (1, ""hello"");
+        x.ToString();
+    }
+}";
+
+            var expected = @"
+using System;
+class C
+{
+    public void M()
+    {
+        ((1, ""hello"")).ToString();
+    }
+}";
+
+            await TestAsync(code, expected, index: 0, compareTokens: false, parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        public async Task TuplesWithNames()
+        {
+            var code = @"
+using System;
+class C
+{
+    public void M()
+    {
+        (int a, string b) [||]x = (a: 1, b: ""hello"");
+        x.ToString();
+    }
+}";
+
+            var expected = @"
+using System;
+class C
+{
+    public void M()
+    {
+        ((a: 1, b: ""hello"")).ToString();
+    }
+}";
+
+            await TestAsync(code, expected, index: 0, compareTokens: false, parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsInlineTemporary)]
+        [WorkItem(11028, "https://github.com/dotnet/roslyn/issues/11028")]
+        public async Task TuplesWithDifferentNames()
+        {
+            var code = @"
+class C
+{
+    public void M()
+    {
+        (int a, string b) [||]x = (c: 1, d: ""hello"");
+        x.a.ToString();
+    }
+}";
+
+            var expected = @"
+class C
+{
+    public void M()
+    {
+        (((int a, string b))((c: 1, d: ""hello""))).a.ToString();
+    }
+}";
+
+            await TestAsync(code, expected, index: 0, compareTokens: false, parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
         }
     }
 }

@@ -15,6 +15,7 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CSharp\CSharpAutomaticBraceCompletion.cs" />
     <Compile Include="CSharp\CSharpBuild.cs" />
     <Compile Include="CSharp\CSharpInteractiveDemo.cs" />
     <Compile Include="SharedIntegrationHostFixture.cs" />
@@ -30,6 +31,10 @@
     <ProjectReference Include="..\..\Dependencies\xUnit.net\xUnit.net.csproj">
       <Project>{8635cb8f-d210-41ed-b4ff-71502cdb475c}</Project>
       <Name>xUnit.net</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\..\Test\Utilities\Desktop\TestUtilities.Desktop.csproj">
+      <Project>{76c6f005-c89d-4348-bb4a-391898dbeb52}</Project>
+      <Name>TestUtilities.Desktop</Name>
     </ProjectReference>
     <ProjectReference Include="..\TestUtilities\VisualStudioTestUtilities.csproj">
       <Project>{3BED15FD-D608-4573-B432-1569C1026F6D}</Project>

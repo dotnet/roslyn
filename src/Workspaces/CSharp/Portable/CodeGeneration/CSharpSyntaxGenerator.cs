@@ -701,7 +701,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
                 : default(SyntaxList<MemberDeclarationSyntax>);
         }
 
-        private SyntaxNode AsInterfaceMember(SyntaxNode m)
+        internal override SyntaxNode AsInterfaceMember(SyntaxNode m)
         {
             return Isolate(m, member =>
             {
@@ -1202,16 +1202,21 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode InsertNamespaceImports(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> imports)
         {
-            var usings = AsUsingDirectives(imports);
+            return PreserveTrivia(declaration, d => InsertNamespaceImportsInternal(d, index, imports));
+        }
+
+        private SyntaxNode InsertNamespaceImportsInternal(SyntaxNode declaration, int index, IEnumerable<SyntaxNode> imports)
+        {
+            SyntaxList<UsingDirectiveSyntax> usingsToInsert = AsUsingDirectives(imports);
 
             switch (declaration.Kind())
             {
                 case SyntaxKind.CompilationUnit:
-                    var cu = ((CompilationUnitSyntax)declaration);
-                    return cu.WithUsings(cu.Usings.InsertRange(index, usings));
+                    var cu = (CompilationUnitSyntax)declaration;
+                    return cu.WithUsings(cu.Usings.InsertRange(index, usingsToInsert));
                 case SyntaxKind.NamespaceDeclaration:
-                    var nd = ((NamespaceDeclarationSyntax)declaration);
-                    return nd.WithUsings(nd.Usings.InsertRange(index, usings));
+                    var nd = (NamespaceDeclarationSyntax)declaration;
+                    return nd.WithUsings(nd.Usings.InsertRange(index, usingsToInsert));
                 default:
                     return declaration;
             }
@@ -2351,32 +2356,35 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         private SyntaxNode AsIsolatedDeclaration(SyntaxNode declaration)
         {
-            switch (declaration.Kind())
+            if (declaration != null)
             {
-                case SyntaxKind.VariableDeclaration:
-                    var vd = (VariableDeclarationSyntax)declaration;
-                    if (vd.Parent != null && vd.Variables.Count == 1)
-                    {
-                        return AsIsolatedDeclaration(vd.Parent);
-                    }
-                    break;
+                switch (declaration.Kind())
+                {
+                    case SyntaxKind.VariableDeclaration:
+                        var vd = (VariableDeclarationSyntax)declaration;
+                        if (vd.Parent != null && vd.Variables.Count == 1)
+                        {
+                            return AsIsolatedDeclaration(vd.Parent);
+                        }
+                        break;
 
-                case SyntaxKind.VariableDeclarator:
-                    var v = (VariableDeclaratorSyntax)declaration;
-                    if (v.Parent != null && v.Parent.Parent != null)
-                    {
-                        return this.ClearTrivia(this.WithVariable(v.Parent.Parent, v));
-                    }
-                    break;
+                    case SyntaxKind.VariableDeclarator:
+                        var v = (VariableDeclaratorSyntax)declaration;
+                        if (v.Parent != null && v.Parent.Parent != null)
+                        {
+                            return this.ClearTrivia(this.WithVariable(v.Parent.Parent, v));
+                        }
+                        break;
 
-                case SyntaxKind.Attribute:
-                    var attr = (AttributeSyntax)declaration;
-                    if (attr.Parent != null)
-                    {
-                        var attrList = (AttributeListSyntax)attr.Parent;
-                        return attrList.WithAttributes(SyntaxFactory.SingletonSeparatedList(attr)).WithTarget(null);
-                    }
-                    break;
+                    case SyntaxKind.Attribute:
+                        var attr = (AttributeSyntax)declaration;
+                        if (attr.Parent != null)
+                        {
+                            var attrList = (AttributeListSyntax)attr.Parent;
+                            return attrList.WithAttributes(SyntaxFactory.SingletonSeparatedList(attr)).WithTarget(null);
+                        }
+                        break;
+                }
             }
 
             return declaration;
@@ -2508,6 +2516,66 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             var newList = currentList.WithParameters(currentList.Parameters.InsertRange(index, newParameters.Parameters));
             return this.WithParameterList(declaration, newList);
+        }
+
+        public override IReadOnlyList<SyntaxNode> GetSwitchSections(SyntaxNode switchStatement)
+        {
+            var statement = switchStatement as SwitchStatementSyntax;
+            return statement == null
+                ? SpecializedCollections.EmptyReadOnlyList<SyntaxNode>()
+                : statement.Sections;
+        }
+
+        public override SyntaxNode InsertSwitchSections(SyntaxNode switchStatement, int index, IEnumerable<SyntaxNode> switchSections)
+        {
+            var statement = switchStatement as SwitchStatementSyntax;
+            if (statement == null)
+            {
+                return switchStatement;
+            }
+
+            var newSections = statement.Sections.InsertRange(index, switchSections.Cast<SwitchSectionSyntax>());
+            return AddMissingTokens(statement, recurse: false).WithSections(newSections);
+        }
+
+        private static TNode AddMissingTokens<TNode>(TNode node, bool recurse)
+            where TNode : CSharpSyntaxNode
+        {
+            var rewriter = new AddMissingTokensRewriter(recurse);
+            return (TNode)rewriter.Visit(node);
+        }
+
+        private class AddMissingTokensRewriter : CSharpSyntaxRewriter
+        {
+            private readonly bool _recurse;
+            private bool firstVisit = true;
+
+            public AddMissingTokensRewriter(bool recurse)
+            {
+                _recurse = recurse;
+            }
+
+            public override SyntaxNode Visit(SyntaxNode node)
+            {
+                if (!_recurse && !firstVisit)
+                {
+                    return node;
+                }
+
+                firstVisit = false;
+                return base.Visit(node);
+            }
+
+            public override SyntaxToken VisitToken(SyntaxToken token)
+            {
+                var rewrittenToken = base.VisitToken(token);
+                if (!rewrittenToken.IsMissing || !SyntaxFacts.IsPunctuationOrKeyword(token.Kind()))
+                {
+                    return rewrittenToken;
+                }
+
+                return SyntaxFactory.Token(token.Kind()).WithTriviaFrom(rewrittenToken);
+            }
         }
 
         private BaseParameterListSyntax GetParameterList(SyntaxNode declaration)
@@ -3463,7 +3531,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
             return SyntaxFactory.ExpressionStatement((ExpressionSyntax)expression);
         }
 
-        public override SyntaxNode MemberAccessExpression(SyntaxNode expression, SyntaxNode simpleName)
+        internal override SyntaxNode MemberAccessExpressionWorker(SyntaxNode expression, SyntaxNode simpleName)
         {
             return SyntaxFactory.MemberAccessExpression(
                 SyntaxKind.SimpleMemberAccessExpression,
@@ -4012,6 +4080,24 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
             return list;
         }
+
+        internal override SyntaxNode IdentifierName(SyntaxToken identifier)
+        {
+            return SyntaxFactory.IdentifierName(identifier);
+        }
+
+        internal override SyntaxToken Identifier(string identifier)
+        {
+            return SyntaxFactory.Identifier(identifier);
+        }
+
+        internal override SyntaxNode NamedAnonymousObjectMemberDeclarator(SyntaxNode identifier, SyntaxNode expression)
+        {
+            return SyntaxFactory.AnonymousObjectMemberDeclarator(
+                SyntaxFactory.NameEquals((IdentifierNameSyntax)identifier),
+                (ExpressionSyntax)expression);
+        }
+
         #endregion
     }
 }

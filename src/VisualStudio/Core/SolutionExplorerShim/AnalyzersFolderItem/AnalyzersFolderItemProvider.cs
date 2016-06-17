@@ -19,13 +19,6 @@ namespace Microsoft.VisualStudio.LanguageServices.Implementation.SolutionExplore
     [Order(Before = HierarchyItemsProviderNames.Contains)]
     internal class AnalyzersFolderItemProvider : AttachedCollectionSourceProvider<IVsHierarchyItem>
     {
-        // We could get these from the Guids class in Microsoft.VisualStudio.LanguageServices.dll, but
-        // we need to avoid loading any other assemblies until we actually create the Analyzers node.
-        private const string CSharpProjectIdString = "fae04ec0-301f-11d3-bf4b-00c04f79efbc";
-        private static readonly Guid s_CSharpProjectId = new Guid(CSharpProjectIdString);
-        private const string VisualBasicProjectIdString = "F184B08F-C81C-45F6-A57F-5ABD9991F28F";
-        private static readonly Guid s_visualBasicProjectId = new Guid(VisualBasicProjectIdString);
-
         private readonly IComponentModel _componentModel;
         private readonly IAnalyzersCommandHandler _commandHandler;
         private IHierarchyItemToProjectIdMap _projectMap;

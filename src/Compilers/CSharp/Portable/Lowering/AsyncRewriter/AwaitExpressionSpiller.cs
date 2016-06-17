@@ -166,14 +166,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 _statements.Add(statement);
             }
 
-            internal void AddStatements(ImmutableArray<BoundStatement> statements)
-            {
-                foreach (var statement in statements)
-                {
-                    AddStatement(statement);
-                }
-            }
-
             internal void AddExpressions(ImmutableArray<BoundExpression> expressions)
             {
                 foreach (var expression in expressions)
@@ -402,6 +394,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                         }
                         goto default;
 
+                    case BoundKind.Call:
+                        var call = (BoundCall)expression;
+                        if (refKind != RefKind.None)
+                        {
+                            Debug.Assert(call.Method.RefKind != RefKind.None);
+                            _F.Diagnostics.Add(ErrorCode.ERR_RefReturningCallAndAwait, _F.Syntax.Location, call.Method);
+                            refKind = RefKind.None; // Switch the RefKind to avoid asserting later in the pipeline
+                        }
+                        goto default;
+
                     case BoundKind.Literal:
                     case BoundKind.TypeExpression:
                         return expression;
@@ -509,9 +511,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundSpillSequenceBuilder builder = null;
             var preambleOpt = (BoundStatement)this.Visit(node.LoweredPreambleOpt);
-            var boundExpression = VisitExpression(ref builder, node.BoundExpression);
+            var boundExpression = VisitExpression(ref builder, node.Expression);
             var switchSections = this.VisitList(node.SwitchSections);
-            return UpdateStatement(builder, node.Update(preambleOpt, boundExpression, node.ConstantTargetOpt, node.InnerLocals, switchSections, node.BreakLabel, node.StringEquality), substituteTemps: true);
+            return UpdateStatement(builder, node.Update(preambleOpt, boundExpression, node.ConstantTargetOpt, node.InnerLocals, node.InnerLocalFunctions, switchSections, node.BreakLabel, node.StringEquality), substituteTemps: true);
         }
 
         public override BoundNode VisitThrowStatement(BoundThrowStatement node)
@@ -562,7 +564,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             BoundSpillSequenceBuilder builder = null;
             var expression = VisitExpression(ref builder, node.ExpressionOpt);
-            return UpdateStatement(builder, node.Update(expression), substituteTemps: true);
+            return UpdateStatement(builder, node.Update(node.RefKind, expression), substituteTemps: true);
         }
 
 #if DEBUG
@@ -783,6 +785,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case BoundKind.RefValueOperator:
                     case BoundKind.FieldAccess:
                         return RefKind.Ref;
+
+                    case BoundKind.Call:
+                        return ((BoundCall)receiver).Method.RefKind;
                 }
             }
 

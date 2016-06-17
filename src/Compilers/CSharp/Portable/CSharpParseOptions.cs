@@ -36,7 +36,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         }
 
         public CSharpParseOptions(
-            LanguageVersion languageVersion = LanguageVersion.CSharp6,
+            LanguageVersion languageVersion = LanguageVersion.CSharp7,
             DocumentationMode documentationMode = DocumentationMode.Parse,
             SourceCodeKind kind = SourceCodeKind.Regular,
             IEnumerable<string> preprocessorSymbols = null)
@@ -84,7 +84,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             languageVersion: other.LanguageVersion,
             documentationMode: other.DocumentationMode,
             kind: other.Kind,
-            preprocessorSymbols: other.PreprocessorSymbols)
+            preprocessorSymbols: other.PreprocessorSymbols,
+            features: other.Features.ToImmutableDictionary())
         {
         }
 
@@ -210,6 +211,25 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         internal bool IsFeatureEnabled(MessageID feature)
         {
+            switch (feature)
+            {
+                case MessageID.IDS_FeatureBinaryLiteral:
+                case MessageID.IDS_FeatureDigitSeparator:
+                case MessageID.IDS_FeatureLocalFunctions:
+                case MessageID.IDS_FeatureRefLocalsReturns:
+                case MessageID.IDS_FeaturePatternMatching:
+                case MessageID.IDS_FeatureTuples:
+                case MessageID.IDS_FeatureReplace:
+                    // in "demo" mode enable proposed new C# 7 language features.
+                    if (PreprocessorSymbols.Contains("__DEMO__"))
+                    {
+                        return true;
+                    }
+                    break;
+                default:
+                    break;
+            }
+
             string featureFlag = feature.RequiredFeature();
             if (featureFlag != null)
             {

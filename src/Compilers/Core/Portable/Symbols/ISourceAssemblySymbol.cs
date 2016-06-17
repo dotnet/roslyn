@@ -16,7 +16,6 @@ namespace Microsoft.CodeAnalysis
     /// This interface is reserved for implementation by its associated APIs. We reserve the right to
     /// change it in the future.
     /// </remarks>
-    [InternalImplementationOnly]
     public interface ISourceAssemblySymbol : IAssemblySymbol
     {
         Compilation Compilation { get; }

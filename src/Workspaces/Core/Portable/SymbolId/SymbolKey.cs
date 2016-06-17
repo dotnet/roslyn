@@ -6,173 +6,144 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
     /// <summary>
     /// <para>
-    /// A SymbolKey is a lightweight identifier for a symbol that can be used to resolve the "same"
-    /// symbol across compilations.  Different symbols have different concepts of "same-ness".
-    /// Same-ness is recursively defined as follows:
+    /// A <see cref="SymbolKey"/> is a lightweight identifier for a symbol that can be used to 
+    /// resolve the "same" symbol across compilations.  Different symbols have different concepts 
+    /// of "same-ness". Same-ness is recursively defined as follows:
     /// <list type="number">
-    ///   <item>Two IArraySymbol's are the "same" if they have the "same" element type and the same rank.</item>
-    ///   <item>Two IAssemblySymbol's are the "same" if they have the same <see cref="ISymbol.Name"/>.</item>
-    ///   <item>Two IEventSymbol's are the "same" if they have the "same" containing type and the same <see cref="ISymbol.MetadataName"/>.</item>
-    ///   <item>Two IMethodSymbol's are the "same" if they have the "same" containing type, the same
-    ///     <see cref="ISymbol.MetadataName"/>, the same <see cref="IMethodSymbol.Arity"/>, the "same"
-    ///     <see cref="IMethodSymbol.TypeArguments"/>, and have same parameter types and 
-    ///     <see cref="IParameterSymbol.RefKind"/>.</item>
-    ///   <item>IModuleSymbol's are the "same" if they have the same containing assembly.
-    ///     <see cref="ISymbol.MetadataName"/> is not used because module identity is not important in practice.</item>
-    ///   <item>Two INamedTypeSymbol's are the "same" if they have "same" containing symbol, the same
-    ///     <see cref="ISymbol.MetadataName"/>, the same <see cref="INamedTypeSymbol.Arity"/> and the "same"
-    ///     <see cref="INamedTypeSymbol.TypeArguments"/>.</item>
-    ///   <item>Two INamespaceSymbol's are the "same" if they have the "same" containing symbol and the
-    ///     same <see cref="ISymbol.MetadataName"/>.  If the INamespaceSymbol is the global namespace for a
+    ///   <item>Two <see cref="IArrayTypeSymbol"/>s are the "same" if they have 
+    ///         the "same" <see cref="IArrayTypeSymbol.ElementType"/> and 
+    ///         equal <see cref="IArrayTypeSymbol.Rank"/>.</item>
+    ///   <item>Two <see cref="IAssemblySymbol"/>s are the "same" if 
+    ///         they have equal <see cref="IAssemblySymbol.Identity"/>.Name</item>
+    ///   <item>Two <see cref="IEventSymbol"/>s are the "same" if they have 
+    ///         the "same" <see cref="ISymbol.ContainingType"/> and 
+    ///         equal <see cref="ISymbol.MetadataName"/>.</item>
+    ///   <item>Two <see cref="IMethodSymbol"/>s are the "same" if they have 
+    ///         the "same" <see cref="ISymbol.ContainingType"/>,
+    ///         equal <see cref="ISymbol.MetadataName"/>,
+    ///         equal <see cref="IMethodSymbol.Arity"/>, 
+    ///         the "same" <see cref="IMethodSymbol.TypeArguments"/>, and have
+    ///         the "same" <see cref="IParameterSymbol.Type"/>s and  
+    ///         equal <see cref="IParameterSymbol.RefKind"/>s.</item>
+    ///   <item>Two <see cref="IModuleSymbol"/>s are the "same" if they have
+    ///         the "same" <see cref="ISymbol.ContainingAssembly"/>.
+    ///         <see cref="ISymbol.MetadataName"/> is not used because module identity is not important in practice.</item>
+    ///   <item>Two <see cref="INamedTypeSymbol"/>s are the "same" if they have 
+    ///         the "same" <see cref="ISymbol.ContainingSymbol"/>,
+    ///         equal <see cref="ISymbol.MetadataName"/>,
+    ///         equal <see cref="INamedTypeSymbol.Arity"/> and 
+    ///         the "same" <see cref="INamedTypeSymbol.TypeArguments"/>.</item>
+    ///   <item>Two <see cref="INamespaceSymbol"/>s are the "same" if they have 
+    ///         the "same" <see cref="ISymbol.ContainingSymbol"/> and
+    ///         equal <see cref="ISymbol.MetadataName"/>.
+    ///     If the <see cref="INamespaceSymbol"/> is the global namespace for a
     ///     compilation (and thus does not have a containing symbol) then it will only match another
     ///     global namespace of another compilation.</item>
-    ///   <item>Two IParameterSymbol's are the "same" if they have the "same" containing symbol and the <see cref="ISymbol.MetadataName"/>.</item>
-    ///   <item>Two IPointerTypeSymbol's are the "same" if they have the "same" <see cref="IPointerTypeSymbol.PointedAtType"/>.</item>
-    ///   <item>Two IPropertySymbol's are the "same" if they have the "same" containing type, the same
-    ///     <see cref="ISymbol.MetadataName"/>,  and have same parameter types and <see cref="IParameterSymbol.RefKind"/>.</item>
-    ///   <item>Two ITypeParameterSymbol's are the "same" if they have the "same" containing symbol and the <see cref="ISymbol.MetadataName"/>.</item>
-    ///   <item>Two IFieldSymbol's are the "same" if they have the "same" containing symbol and the <see cref="ISymbol.MetadataName"/>.</item>
+    ///   <item>Two <see cref="IParameterSymbol"/>s are the "same" if they have
+    ///         the "same" <see cref="ISymbol.ContainingSymbol"/> and 
+    ///         equal <see cref="ISymbol.MetadataName"/>.</item>
+    ///   <item>Two <see cref="IPointerTypeSymbol"/>s are the "same" if they have 
+    ///         the "same" <see cref="IPointerTypeSymbol.PointedAtType"/>.</item>
+    ///   <item>Two <see cref="IPropertySymbol"/>s are the "same" if they have 
+    ///         the "same" the "same" <see cref="ISymbol.ContainingType"/>, 
+    ///         the "same" <see cref="ISymbol.MetadataName"/>, and have 
+    ///         the "same" <see cref="IParameterSymbol.Type"/>s and  
+    ///         the "same" <see cref="IParameterSymbol.RefKind"/>s.</item>
+    ///   <item>Two <see cref="ITypeParameterSymbol"/> are the "same" if they have
+    ///         the "same" <see cref="ISymbol.ContainingSymbol"/> and 
+    ///         the "same" <see cref="ISymbol.MetadataName"/>.</item>
+    ///   <item>Two <see cref="IFieldSymbol"/>s are the "same" if they have
+    ///         the "same" <see cref="ISymbol.ContainingSymbol"/> and 
+    ///         the "same" <see cref="ISymbol.MetadataName"/>.</item>
     /// </list>    
-    /// A SymbolID for an IAliasSymbol will <see cref="SymbolKey.Resolve"/> back to the ISymbol for
-    /// the <see cref="IAliasSymbol.Target"/>.
-    /// </para>
     /// <para>
-    /// Due to issues arising from errors and ambiguity, it's possible for a SymbolKey to resolve to
-    /// multiple symbols. For example, in the following type:
-    ///  <code>
-    /// class C
-    /// {
-    ///    int Foo();
-    ///    bool Foo();
-    /// }
-    /// </code>
-    /// The SymbolKey for both Foo methods will be the same.  The SymbolId will then resolve to both methods.
+    ///     Due to issues arising from errors and ambiguity, it's possible for a SymbolKey to resolve to
+    ///     multiple symbols. For example, in the following type:
+    ///     <code>
+    ///     class C
+    ///     {
+    ///        int M();
+    ///        bool M();
+    ///     }
+    ///     </code>
+    ///     The SymbolKey for both 'M' methods will be the same.  The SymbolKey will then resolve to both methods.
+    /// </para>
     /// </para>
     /// </summary>
-    internal abstract partial class SymbolKey
+    internal partial struct SymbolKey
     {
-        private static readonly SymbolKey s_null = new NullSymbolKey();
+        private readonly static Func<ITypeSymbol, bool> s_typeIsNull = t => t == null;
 
-        public abstract SymbolKeyResolution Resolve(Compilation compilation, bool ignoreAssemblyKey = false, CancellationToken cancellationToken = default(CancellationToken));
+        private readonly string _symbolKeyData;
+        private readonly int _hashCode;
+
+        public SymbolKey(string symbolKeyData)
+        {
+            if (symbolKeyData == null)
+            {
+                throw new ArgumentNullException();
+            }
+
+            _symbolKeyData = symbolKeyData;
+
+            using (var reader = GetHashCodeReader.GetReader(_symbolKeyData))
+            {
+                _hashCode = reader.ReadFirstSymbolKey();
+            }
+        }
 
         public static IEqualityComparer<SymbolKey> GetComparer(bool ignoreCase, bool ignoreAssemblyKeys)
         {
-            return SymbolKeyComparer.GetComparer(ignoreCase, ignoreAssemblyKeys, compareMethodTypeParametersByName: false);
+            return SymbolKeyComparer.GetComparer(ignoreCase, ignoreAssemblyKeys);
         }
 
-        /// <summary>
-        /// <para>
-        /// This entry point should only be called from the actual Symbol classes. It should not be
-        /// used internally inside this type.  Instead, any time we need to get the <see cref="SymbolKey"/> for a
-        /// related symbol (i.e. the containing namespace of a namespace) we should call
-        /// <see cref="GetOrCreate"/>.  The benefit of this is twofold.  First of all, it keeps the size of the
-        /// <see cref="SymbolKey"/> small by allowing up to reuse parts we've already created.  For example, if we
-        /// have the <see cref="SymbolKey"/> for <c>Foo(int, int)</c>, then we will reuse the <see cref="SymbolKey"/>s for both <c>int</c>s.
-        /// Second, this allows us to deal with the recursive nature of MethodSymbols and
-        /// TypeParameterSymbols.  Specifically, a MethodSymbol is defined by its signature.  However,
-        /// it's signature may refer to type parameters of that method.  Unfortunately, the type
-        /// parameters depend on their containing method.
-        /// </para>
-        /// <para>
-        /// For example, if there is <c><![CDATA[Foo<T>(T t)]]></c>, then we must avoid the situation where we:
-        /// <list type="number">
-        /// <item>try to get the symbol ID for the type parameter <c>T</c>, which in turn</item>
-        /// <item>tries to get the symbol ID for the method <c>T</c>, which in turn</item>
-        /// <item>tries to get the symbol IDs for the parameter types, which in turn</item>
-        /// <item>tries to get the symbol ID for the type parameter <c>T</c>, which leads back to 1 and infinitely loops.</item>
-        /// </list>
-        /// </para>
-        /// <para>
-        /// In order to break this circularity we do not create the SymbolIDs for a method's type
-        /// parameters directly in the visitor.  Instead, we create the SymbolID for the method
-        /// itself.  When the MethodSymbolId is created it will directly instantiate the SymbolIDs
-        /// for the type parameters, and directly assign the type parameter's method ID to itself.
-        /// It will also then directly store the mapping from the type parameter to its SymbolID in
-        /// the visitor cache.  Then when we try to create the symbol IDs for the parameter types,
-        /// any reference to the type parameters can be found in the cache.
-        /// </para>
-        /// <para>
-        /// It is for this reason that it is essential that all calls to get related symbol IDs goes
-        /// through GetOrCreate and not Create.
-        /// </para>
-        /// </summary>
-        internal static SymbolKey Create(ISymbol symbol, Compilation compilation = null, CancellationToken cancellationToken = default(CancellationToken))
+        private static readonly Func<string, string> s_removeAssemblyKeys = (string data) =>
         {
-            return GetOrCreate(symbol, new Visitor(compilation, cancellationToken));
-        }
+            var reader = new RemoveAssemblySymbolKeysReader();
+            reader.Initialize(data);
+            return reader.RemoveAssemblySymbolKeys();
+        };
 
-        private static SymbolKey GetOrCreate(ISymbol symbol, Visitor visitor)
+        public static SymbolKeyResolution Resolve(
+            string symbolKey, Compilation compilation,
+            bool ignoreAssemblyKey = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (symbol == null)
+            using (var reader = SymbolKeyReader.GetReader(symbolKey, compilation, ignoreAssemblyKey, cancellationToken))
             {
-                return s_null;
+                return reader.ReadFirstSymbolKey();
             }
+        }
 
-            SymbolKey result;
-            if (!visitor.SymbolCache.TryGetValue(symbol, out result))
+        public static SymbolKey Create(ISymbol symbol, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return new SymbolKey(ToString(symbol, cancellationToken));
+        }
+
+        public static string ToString(ISymbol symbol, CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var compilation = (symbol.ContainingAssembly as ISourceAssemblySymbol)?.Compilation;
+
+            using (var writer = SymbolKeyWriter.GetWriter(compilation, cancellationToken))
             {
-                result = symbol.Accept(visitor);
-                visitor.SymbolCache[symbol] = result;
+                writer.WriteFirstSymbolKey(symbol);
+                return writer.CreateKey();
             }
-
-            return result;
         }
 
-        /// <summary>
-        /// <para>
-        /// When comparing symbols we need to handle recursion between method type parameters and
-        /// methods.  For example, if we have two methods with the signature <c><![CDATA[Foo<T>(T t)]]></c> and we
-        /// try to test for equality we must avoid the situation where we:
-        /// <list type="number">
-        ///   <item>First test if the methods are the same, which will in turn</item>
-        ///   <item>test if the method's parameter types are the same, which will in turn</item>
-        ///   <item>test if the type parameters are the same, which will in turn</item>
-        ///   <item>test if the methods are the same, which causes infinite recursion.</item>
-        /// </list>
-        /// To avoid this we distinguish the cases where we're testing if two type parameters
-        /// actually refer to the same thing, versus type parameters being referenced by parameters.
-        /// For example, if we have:
-        /// <code><![CDATA[ 
-        /// Foo<T>(T t) 
-        /// Bar<T>(T t) 
-        /// ]]></code>
-        /// then clearly the type parameter <c>T</c> in <c><![CDATA[Foo<T>]]></c> is different from the type parameter <c>T</c>
-        /// in <c><![CDATA[Bar<T>]]></c>. When testing these type parameters for equality we *will* test to see
-        /// if they have the same parent. This will end up returning false, and so we will consider
-        /// them different.
-        /// </para>
-        /// <para>
-        /// However, when we are testing if two signatures are the same, if we hit a method type
-        /// parameter then we only need to compare by metadataName.  That's because we know we'll
-        /// already have checked if the method and it's parents are the same, so we don't need to
-        /// recurse through them again.
-        /// </para>
-        /// </summary>
-        internal abstract bool Equals(SymbolKey other, ComparisonOptions options);
-        internal abstract int GetHashCode(ComparisonOptions options);
-
-        private static bool Equals(Compilation compilation, string name1, string name2)
+        public SymbolKeyResolution Resolve(Compilation compilation, bool ignoreAssemblyKey = false, CancellationToken cancellationToken = default(CancellationToken))
         {
-            return Equals(compilation.IsCaseSensitive, name1, name2);
+            return Resolve(_symbolKeyData, compilation, ignoreAssemblyKey, cancellationToken);
         }
 
-        private static bool Equals(bool isCaseSensitive, string name1, string name2)
+        public override string ToString()
         {
-            return string.Equals(name1, name2, isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
-        }
-
-        private static int GetHashCode(bool isCaseSensitive, string metadataName)
-        {
-            return isCaseSensitive
-                ? metadataName.GetHashCode()
-                : StringComparer.OrdinalIgnoreCase.GetHashCode(metadataName);
+            return _symbolKeyData;
         }
 
         private static IEnumerable<ISymbol> GetAllSymbols(SymbolKeyResolution info)
@@ -211,13 +182,54 @@ namespace Microsoft.CodeAnalysis
                     : new SymbolKeyResolution(ImmutableArray.Create<ISymbol>(symbols), CandidateReason.Ambiguous);
         }
 
-        private static bool ParametersMatch(
-            ComparisonOptions options,
+        private static bool Equals(Compilation compilation, string name1, string name2)
+        {
+            return Equals(compilation.IsCaseSensitive, name1, name2);
+        }
+
+        private static bool Equals(bool isCaseSensitive, string name1, string name2)
+        {
+            return string.Equals(name1, name2, isCaseSensitive ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string GetName(string metadataName)
+        {
+            var index = metadataName.IndexOf('`');
+            return index > 0
+                ? metadataName.Substring(0, index)
+                : metadataName;
+        }
+
+        private static IEnumerable<INamedTypeSymbol> InstantiateTypes(
             Compilation compilation,
+            bool ignoreAssemblyKey,
+            IEnumerable<INamedTypeSymbol> types,
+            int arity,
+            ImmutableArray<SymbolKeyResolution> typeArgumentKeys)
+        {
+            if (arity == 0 || typeArgumentKeys.IsDefault || typeArgumentKeys.IsEmpty)
+            {
+                return types;
+            }
+
+            // TODO(cyrusn): We're only accepting a type argument if it resolves unambiguously.
+            // However, we could consider the case where they resolve ambiguously and return
+            // different named type instances when that happens.
+            var typeArguments = typeArgumentKeys.Select(a => GetFirstSymbol<ITypeSymbol>(a)).ToArray();
+            return typeArguments.Any(s_typeIsNull)
+                ? SpecializedCollections.EmptyEnumerable<INamedTypeSymbol>()
+                : types.Select(t => t.Construct(typeArguments));
+        }
+
+        private static TSymbol GetFirstSymbol<TSymbol>(SymbolKeyResolution resolution)
+            where TSymbol : ISymbol
+        {
+            return resolution.GetAllSymbols().OfType<TSymbol>().FirstOrDefault();
+        }
+
+        private static bool ParameterRefKindsMatch(
             ImmutableArray<IParameterSymbol> parameters,
-            RefKind[] refKinds,
-            SymbolKey[] typeKeys,
-            CancellationToken cancellationToken)
+            ImmutableArray<RefKind> refKinds)
         {
             if (parameters.Length != refKinds.Length)
             {
@@ -228,22 +240,8 @@ namespace Microsoft.CodeAnalysis
             {
                 // The ref-out distinction is not interesting for SymbolKey because you can't overload
                 // based on the difference.
-                var parameter = parameters[i];
-                if (!SymbolEquivalenceComparer.AreRefKindsEquivalent(refKinds[i], parameter.RefKind, distinguishRefFromOut: false))
-                {
-                    return false;
-                }
-
-                // We are checking parameters for equality, if they refer to method type parameters,
-                // then we don't want to recurse through the method (which would then recurse right
-                // back into the parameters).  So we ask that type parameters only be checked by
-                // metadataName to prevent that.
-                var newOptions = new ComparisonOptions(
-                    options.IgnoreCase,
-                    options.IgnoreAssemblyKey,
-                    compareMethodTypeParametersByName: true);
-
-                if (!typeKeys[i].Equals(SymbolKey.Create(parameter.Type, compilation, cancellationToken), newOptions))
+                if (!SymbolEquivalenceComparer.AreRefKindsEquivalent(
+                        refKinds[i], parameters[i].RefKind, distinguishRefFromOut: false))
                 {
                     return false;
                 }
@@ -252,42 +250,9 @@ namespace Microsoft.CodeAnalysis
             return true;
         }
 
-        private static bool SequenceEquals<T>(T[] array1, T[] array2, IEqualityComparer<T> comparer)
+        public override int GetHashCode()
         {
-            if (array1 == array2)
-            {
-                return true;
-            }
-
-            if (array1 == null || array2 == null)
-            {
-                return false;
-            }
-
-            return array1.SequenceEqual(array2, comparer);
-        }
-
-        private static bool SequenceEquals<T>(ImmutableArray<T> array1, ImmutableArray<T> array2, IEqualityComparer<T> comparer)
-        {
-            if (array1 == array2)
-            {
-                return true;
-            }
-
-            if (array1.IsDefault || array2.IsDefault)
-            {
-                return false;
-            }
-
-            return array1.SequenceEqual(array2, comparer);
-        }
-
-        private static string GetName(string metadataName)
-        {
-            var index = metadataName.IndexOf('`');
-            return index > 0
-                ? metadataName.Substring(0, index)
-                : metadataName;
+            return _hashCode;
         }
     }
 }

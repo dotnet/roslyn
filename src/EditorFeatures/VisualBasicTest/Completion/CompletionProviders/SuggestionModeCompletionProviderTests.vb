@@ -1,5 +1,6 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Threading
 Imports System.Threading.Tasks
 Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis.Completion
@@ -302,6 +303,26 @@ End Class
             Await VerifyBuilderAsync(markup, CompletionTrigger.Default, useDebuggerOptions:=True)
         End Function
 
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceDeclarationName_Unqualified() As Task
+            Dim markup = <a> 
+Namespace $$
+End Class
+</a>
+            Await VerifyBuilderAsync(markup, CompletionTrigger.Default)
+        End Function
+
+        <WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")>
+        <Fact, Trait(Traits.Feature, Traits.Features.Completion)>
+        Public Async Function NamespaceDeclarationName_Qualified() As Task
+            Dim markup = <a> 
+Namespace A.$$
+End Class
+</a>
+            Await VerifyBuilderAsync(markup, CompletionTrigger.Default)
+        End Function
+
         Private Function VerifyNotBuilderAsync(markup As XElement, Optional triggerInfo As CompletionTrigger? = Nothing, Optional useDebuggerOptions As Boolean = False) As Task
             Return VerifySuggestionModeWorkerAsync(markup, isBuilder:=False, triggerInfo:=triggerInfo, useDebuggerOptions:=useDebuggerOptions)
         End Function
@@ -328,20 +349,21 @@ End Class
                     Await CheckResultsAsync(document2, position, isBuilder, triggerInfo, options)
                 End If
             End Using
-
         End Function
 
         Private Async Function CheckResultsAsync(document As Document, position As Integer, isBuilder As Boolean, triggerInfo As CompletionTrigger?, options As OptionSet) As Task
             triggerInfo = If(triggerInfo, CompletionTrigger.CreateInsertionTrigger("a"c))
 
-            Dim completionList = Await GetCompletionListAsync(document, position, triggerInfo.Value, options)
+            Dim service = GetCompletionService(document.Project.Solution.Workspace)
+            Dim context = Await service.GetContextAsync(
+                service.ExclusiveProviders?(0), document, position, triggerInfo.Value, options, CancellationToken.None)
 
             If isBuilder Then
-                Assert.NotNull(completionList)
-                Assert.NotNull(completionList.SuggestionModeItem)
+                Assert.NotNull(context)
+                Assert.NotNull(context.SuggestionModeItem)
             Else
-                If completionList IsNot Nothing Then
-                    Assert.True(completionList.SuggestionModeItem Is Nothing, "group.Builder = " & If(completionList.SuggestionModeItem IsNot Nothing, completionList.SuggestionModeItem.DisplayText, "null"))
+                If context IsNot Nothing Then
+                    Assert.True(context.SuggestionModeItem Is Nothing, "group.Builder = " & If(context.SuggestionModeItem IsNot Nothing, context.SuggestionModeItem.DisplayText, "null"))
                 End If
             End If
         End Function

@@ -270,13 +270,12 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
                     declarationBody = constructor.Initializer;
                     partnerDeclarationBodyOpt = partnerConstructor?.Initializer;
                 }
-                else
-                {
-                    Debug.Assert(!(declarationBody is BlockSyntax));
+            }
 
-                    // let's find a labeled node that encompasses the body:
-                    position = declarationBody.SpanStart;
-                }
+            if (!declarationBody.FullSpan.Contains(position))
+            {
+                // invalid position, let's find a labeled node that encompasses the body:
+                position = declarationBody.SpanStart;
             }
 
             SyntaxNode node;
@@ -284,7 +283,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
             {
                 SyntaxUtilities.FindLeafNodeAndPartner(declarationBody, position, partnerDeclarationBodyOpt, out node, out partnerOpt);
             }
-            else
+            else 
             {
                 node = declarationBody.FindToken(position).Parent;
                 partnerOpt = null;
@@ -453,7 +452,7 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
         {
             SyntaxNode root = GetEncompassingAncestor(containerOpt);
 
-            while (node != root)
+            while (node != root && node != null)
             {
                 SyntaxNode body;
                 if (LambdaUtilities.IsLambdaBodyStatementOrExpression(node, out body))
@@ -1274,6 +1273,10 @@ namespace Microsoft.CodeAnalysis.CSharp.EditAndContinue
 
                 case SyntaxKind.UnsafeStatement:
                     return ((UnsafeStatementSyntax)node).UnsafeKeyword.Span;
+
+                case SyntaxKind.LocalFunctionStatement:
+                    var lfd = (LocalFunctionStatementSyntax)node;
+                    return lfd.Identifier.Span;
 
                 case SyntaxKind.YieldBreakStatement:
                 case SyntaxKind.YieldReturnStatement:

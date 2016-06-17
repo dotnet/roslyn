@@ -41,7 +41,6 @@
     <OutDir>..\..\..\Binaries\Debug\amd64</OutDir>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <CheckForOverflowUnderflow>true</CheckForOverflowUnderflow>
-    <NoWarn>1591</NoWarn>
     <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
@@ -50,7 +49,6 @@
     <OutDir>..\..\..\Binaries\Release\amd64</OutDir>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <Optimize>true</Optimize>
-    <NoWarn>1591</NoWarn>
     <PlatformTarget>x64</PlatformTarget>
     <ErrorReport>prompt</ErrorReport>
     <CodeAnalysisRuleSet>MinimumRecommendedRules.ruleset</CodeAnalysisRuleSet>
@@ -61,9 +59,6 @@
     </Compile>
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ExceptionUtilities.cs">
       <Link>InternalUtilities\ExceptionUtilities.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\ComStreamWrapper.cs">
-      <Link>InternalUtilities\ComStreamWrapper.cs</Link>
     </Compile>
     <Compile Include="..\..\Compilers\Core\Portable\InternalUtilities\Hash.cs">
       <Link>InternalUtilities\Hash.cs</Link>
@@ -76,39 +71,6 @@
     </Compile>
     <Compile Include="..\..\Compilers\Core\Portable\PEWriter\CustomDebugInfoConstants.cs">
       <Link>Shared\CustomDebugInfoConstants.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\ArrayShape.cs">
-      <Link>Roslyn.Reflection.Metadata.Decoding\ArrayShape.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\IConstructedTypeProvider.cs">
-      <Link>Roslyn.Reflection.Metadata.Decoding\IConstructedTypeProvider.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\IPrimitiveTypeProvider.cs">
-      <Link>Roslyn.Reflection.Metadata.Decoding\IPrimitiveTypeProvider.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\ISignatureTypeProvider.cs">
-      <Link>Roslyn.Reflection.Metadata.Decoding\ISignatureTypeProvider.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\ISZArrayTypeProvider.cs">
-      <Link>Roslyn.Reflection.Metadata.Decoding\ISZArrayTypeProvider.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\ITypeProvider.cs">
-      <Link>Roslyn.Reflection.Metadata.Decoding\ITypeProvider.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\MethodSignature.cs">
-      <Link>Roslyn.Reflection.Metadata.Decoding\MethodSignature.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\PrimitiveTypeCode.cs">
-      <Link>Roslyn.Reflection.Metadata.Decoding\PrimitiveTypeCode.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\SignatureDecoder.cs">
-      <Link>Roslyn.Reflection.Metadata.Decoding\SignatureDecoder.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\SignatureDecoderOptions.cs">
-      <Link>Roslyn.Reflection.Metadata.Decoding\SignatureDecoderOptions.cs</Link>
-    </Compile>
-    <Compile Include="..\..\Debugging\Roslyn.Reflection.Metadata.Decoding\SignatureTypeHandleCode.cs">
-      <Link>Roslyn.Reflection.Metadata.Decoding\SignatureTypeHandleCode.cs</Link>
     </Compile>
     <Compile Include="Metadata\AggregatedMetadataReader.cs" />
     <Compile Include="Metadata\ILVisualizer.cs" />
@@ -124,7 +86,6 @@
     <Compile Include="Shared\DateTimeUtilities.cs" />
     <Compile Include="Shared\DummyMetadataImport.cs" />
     <Compile Include="Shared\StringUtilities.cs" />
-    <Compile Include="Shared\SymUnmanagedReaderTestExtensions.cs" />
     <Compile Include="Shared\SymUnmanagedReaderExtensions.cs" />
   </ItemGroup>
   <ItemGroup>

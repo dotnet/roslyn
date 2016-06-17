@@ -472,15 +472,16 @@ namespace Microsoft.CodeAnalysis.SolutionCrawler
                             await RunAnalyzersAsync(reanalyzers, document, (a, d, c) => a.DocumentResetAsync(d, c), cancellationToken).ConfigureAwait(false);
 
                             // no request to re-run syntax change analysis. run it here
-                            if (!workItem.InvocationReasons.Contains(PredefinedInvocationReasons.SyntaxChanged))
+                            var reasons = workItem.InvocationReasons;
+                            if (!reasons.Contains(PredefinedInvocationReasons.SyntaxChanged))
                             {
-                                await RunAnalyzersAsync(reanalyzers, document, (a, d, c) => a.AnalyzeSyntaxAsync(d, c), cancellationToken).ConfigureAwait(false);
+                                await RunAnalyzersAsync(reanalyzers, document, (a, d, c) => a.AnalyzeSyntaxAsync(d, reasons, c), cancellationToken).ConfigureAwait(false);
                             }
 
                             // no request to re-run semantic change analysis. run it here
                             if (!workItem.InvocationReasons.Contains(PredefinedInvocationReasons.SemanticChanged))
                             {
-                                await RunAnalyzersAsync(reanalyzers, document, (a, d, c) => a.AnalyzeDocumentAsync(d, null, c), cancellationToken).ConfigureAwait(false);
+                                await RunAnalyzersAsync(reanalyzers, document, (a, d, c) => a.AnalyzeDocumentAsync(d, null, reasons, c), cancellationToken).ConfigureAwait(false);
                             }
                         }
                         catch (Exception e) when (FatalError.ReportUnlessCanceled(e))

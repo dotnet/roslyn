@@ -26,6 +26,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Compilation\CompilationOutputFiles.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Compilation\CompilationTestDataExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Compilation\IRuntimeEnvironment.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Compilation\OperationTreeVerifier.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Compilation\TestOperationWalker.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Compilation\VersionTestHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\DescriptorFactory.cs" />
@@ -37,6 +38,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\ThrowingDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Diagnostics\TrackingDiagnosticAnalyzer.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)ExceptionHelper.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Extensions\SymbolExtensions.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FX\ConsoleOutput.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FX\CultureHelpers.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)FX\DirectoryHelper.cs" />
@@ -85,5 +87,7 @@
     <Compile Include="$(MSBuildThisFileDirectory)Mocks\TestReferences.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)Mocks\TestStream.cs" />
     <Compile Include="$(MSBuildThisFileDirectory)TestBase.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Traits\ComilerTraitDiscoverer.cs" />
+    <Compile Include="$(MSBuildThisFileDirectory)Traits\CompilerFeature.cs" />
   </ItemGroup>
 </Project>

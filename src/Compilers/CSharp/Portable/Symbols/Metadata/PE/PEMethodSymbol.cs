@@ -354,7 +354,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         return Accessibility.Protected;
 
                     default:
-                        throw ExceptionUtilities.UnexpectedValue(_flags);
+                        return Accessibility.Private;
                 }
             }
         }
@@ -495,6 +495,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
         internal PEParameterSymbol ReturnTypeParameter => Signature.ReturnParam;
 
+        internal override RefKind RefKind => Signature.ReturnParam.RefKind;
+
         public override TypeSymbol ReturnType => Signature.ReturnParam.Type;
 
         public override ImmutableArray<CustomModifier> ReturnTypeCustomModifiers => Signature.ReturnParam.CustomModifiers;
@@ -551,7 +553,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 
             SignatureHeader signatureHeader;
             BadImageFormatException mrEx;
-            ParamInfo<TypeSymbol>[] paramInfo = new MetadataDecoder(moduleSymbol, this).GetSignatureForMethod(_handle, out signatureHeader, out mrEx);
+            ParamInfo<TypeSymbol>[] paramInfo = new MetadataDecoder(moduleSymbol, this).GetSignatureForMethod(_handle, out signatureHeader, out mrEx, allowByRefReturn: true);
             bool makeBad = (mrEx != null);
 
             // If method is not generic, let's assign empty list for type parameters
@@ -584,9 +586,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
             {
                 @params = ImmutableArray<ParameterSymbol>.Empty;
             }
-
-            // paramInfo[0] contains information about return "parameter"
-            Debug.Assert(!paramInfo[0].IsByRef);
 
             // Dynamify object type if necessary
             paramInfo[0].Type = paramInfo[0].Type.AsDynamicIfNoPia(_containingType);
@@ -789,6 +788,24 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                 this.ParameterRefKinds.IsDefault && // No 'ref' or 'out'
                 !this.IsParams();
 
+        private bool IsValidUserDefinedOperatorIs()
+        {
+            foreach (var parameter in this.Parameters)
+            {
+                if (parameter.RefKind != ((parameter.Ordinal == 0) ? RefKind.None : RefKind.Out))
+                {
+                    return false;
+                }
+            }
+
+            return
+                (this.ReturnsVoid || this.ReturnType.SpecialType == SpecialType.System_Boolean) &&
+                !this.IsGenericMethod &&
+                !this.IsVararg &&
+                this.ParameterCount > 0 &&
+                !this.IsParams();
+        }
+
         private MethodKind ComputeMethodKind()
         {
             if (this.HasSpecialName)
@@ -858,10 +875,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
                         case WellKnownMemberNames.ImplicitConversionName:
                         case WellKnownMemberNames.ExplicitConversionName:
                             return IsValidUserDefinedOperatorSignature(1) ? MethodKind.Conversion : MethodKind.Ordinary;
-                            // UNDONE: Non-C#-supported overloaded operator case WellKnownMemberNames.ConcatenateOperatorName:
-                            // UNDONE: Non-C#-supported overloaded operator case WellKnownMemberNames.ExponentOperatorName:
-                            // UNDONE: Non-C#-supported overloaded operator case WellKnownMemberNames.IntegerDivisionOperatorName:
-                            // UNDONE: Non-C#-supported overloaded operator case WellKnownMemberNames.LikeOperatorName:
+
+                        //case WellKnownMemberNames.ConcatenateOperatorName:
+                        //case WellKnownMemberNames.ExponentOperatorName:
+                        //case WellKnownMemberNames.IntegerDivisionOperatorName:
+                        //case WellKnownMemberNames.LikeOperatorName:
+                            //// Non-C#-supported overloaded operator
+                            //return MethodKind.Ordinary;
                     }
 
                     return MethodKind.Ordinary;

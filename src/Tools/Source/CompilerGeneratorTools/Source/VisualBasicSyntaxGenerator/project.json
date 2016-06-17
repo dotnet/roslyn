@@ -1,11 +1,16 @@
 {
   "dependencies": {
-    "Microsoft.NETCore.Portable.Compatibility": "1.0.0",
-    "NETStandard.Library": "1.5.0-rc2-23931",
-    "System.Console": "4.0.0-rc2-23931",
-    "System.Security.Cryptography.Algorithms": "4.1.0-rc2-23931"
+    "Microsoft.NETCore.Portable.Compatibility": "1.0.1-rc3-24128-00",
+    "NETStandard.Library": "1.6.0-rc3-24128-00",
+    "System.Console": "4.0.0-rc3-24128-00",
+    "System.Security.Cryptography.Algorithms": "4.2.0-rc3-24128-00"
   },
   "frameworks": {
-    "dnxcore50": {}
+    "NETCoreApp1.0": { }
+  },
+  "runtimes": {
+    "win7-x64": {},
+    "ubuntu.14.04-x64": {},
+    "osx.10.10-x64": {}
   }
 }

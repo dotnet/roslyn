@@ -46,6 +46,11 @@ namespace Microsoft.CodeAnalysis.Text
             return t == null ? null : t.EditorSnapshot;
         }
 
+        internal static TextLine AsTextLine(this ITextSnapshotLine line)
+        {
+            return line.Snapshot.AsText().Lines[line.LineNumber];
+        }
+
         public static SourceText AsText(this ITextSnapshot textSnapshot)
         {
             return SnapshotSourceText.From(textSnapshot);

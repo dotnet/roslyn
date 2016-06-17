@@ -192,6 +192,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
+        Friend ReadOnly Property MergedRootDeclaration As MergedNamespaceDeclaration
+            Get
+                Return Declarations.GetMergedRoot(Me)
+            End Get
+        End Property
+
         Public Shadows ReadOnly Property Options As VisualBasicCompilationOptions
             Get
                 Return _options
@@ -1561,7 +1567,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End Get
         End Property
 
-        Friend Sub ReportUnusedImports(filterTree As SyntaxTree, diagnostics As DiagnosticBag, cancellationToken As CancellationToken)
+        Friend Overrides Sub ReportUnusedImports(filterTree As SyntaxTree, diagnostics As DiagnosticBag, cancellationToken As CancellationToken)
             If _lazyImportInfos IsNot Nothing Then
                 Dim unusedBuilder As ArrayBuilder(Of TextSpan) = Nothing
 
@@ -1610,6 +1616,10 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 End If
             End If
 
+            CompleteTrees(filterTree)
+        End Sub
+
+        Friend Overrides Sub CompleteTrees(filterTree As SyntaxTree)
             ' By definition, a tree Is complete when all of its compiler diagnostics have been reported.
             ' Since unused imports are the last thing we compute And report, a tree Is complete when
             ' the unused imports have been reported.
@@ -2048,35 +2058,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
         End Sub
 
-        Friend Overrides Function FilterAndAppendAndFreeDiagnostics(accumulator As DiagnosticBag, ByRef incoming As DiagnosticBag) As Boolean
-            Dim result As Boolean = FilterAndAppendDiagnostics(accumulator, incoming.AsEnumerableWithoutResolution())
-            incoming.Free()
-            incoming = Nothing
-            Return result
-        End Function
-
-        ' Filter out some warnings based on the compiler options (/nowarn and /warnaserror).
-        Friend Overloads Function FilterAndAppendDiagnostics(accumulator As DiagnosticBag, ByRef incoming As IEnumerable(Of Diagnostic)) As Boolean
-            Dim hasError As Boolean = False
-            Dim reportSuppressedDiagnostics = Options.ReportSuppressedDiagnostics
-
-            For Each diagnostic As Diagnostic In incoming
-                Dim filtered = Me._options.FilterDiagnostic(diagnostic)
-                If filtered Is Nothing OrElse
-                    (Not reportSuppressedDiagnostics AndAlso filtered.IsSuppressed) Then
-                    Continue For
-                End If
-
-                If filtered.Severity = DiagnosticSeverity.Error Then
-                    hasError = True
-                End If
-
-                accumulator.Add(filtered)
-            Next
-
-            Return Not hasError
-        End Function
-
         Friend Overrides Function AnalyzerForLanguage(analyzers As ImmutableArray(Of DiagnosticAnalyzer), analyzerManager As AnalyzerManager) As AnalyzerDriver
             Dim getKind As Func(Of SyntaxNode, SyntaxKind) = Function(node As SyntaxNode) node.Kind
             Dim isComment As Func(Of SyntaxTrivia, Boolean) = Function(trivia As SyntaxTrivia) trivia.Kind() = SyntaxKind.CommentTrivia
@@ -2197,10 +2178,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return moduleBeingBuilt
         End Function
 
-        Friend Overrides Function CompileImpl(
+        Friend Overrides Function CompileMethods(
             moduleBuilder As CommonPEModuleBuilder,
-            win32Resources As Stream,
-            xmlDocStream As Stream,
             emittingPdb As Boolean,
             diagnostics As DiagnosticBag,
             filterOpt As Predicate(Of ISymbol),
@@ -2254,22 +2233,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     methodBodyDiagnosticBag,
                     cancellationToken)
 
-                Dim assemblyName = FileNameUtilities.ChangeExtension(moduleBeingBuilt.EmitOptions.OutputNameOverride, extension:=Nothing)
-
-                DocumentationCommentCompiler.WriteDocumentationCommentXml(Me, assemblyName, xmlDocStream, methodBodyDiagnosticBag, cancellationToken)
-                Me.ReportUnusedImports(Nothing, methodBodyDiagnosticBag, cancellationToken)
-
-                SetupWin32Resources(moduleBeingBuilt, win32Resources, methodBodyDiagnosticBag)
-
-                ' give the name of any added modules, but not the name of the primary module.
-                ReportManifestResourceDuplicates(
-                    moduleBeingBuilt.ManifestResources,
-                    SourceAssembly.Modules.Skip(1).Select(Function(x) x.Name),
-                    AddedModulesResourceNames(methodBodyDiagnosticBag),
-                    methodBodyDiagnosticBag)
-
                 Dim hasMethodBodyErrors As Boolean = Not FilterAndAppendAndFreeDiagnostics(diagnostics, methodBodyDiagnosticBag)
-
                 If hasDeclarationErrors OrElse hasMethodBodyErrors Then
                     Return False
                 End If
@@ -2279,6 +2243,36 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
             ' TODO (tomat): XML doc comments diagnostics
             Return True
+        End Function
+
+        Friend Overrides Function GenerateResourcesAndDocumentationComments(
+            moduleBuilder As CommonPEModuleBuilder,
+            xmlDocStream As Stream,
+            win32Resources As Stream,
+            diagnostics As DiagnosticBag,
+            cancellationToken As CancellationToken) As Boolean
+
+            Debug.Assert(Not moduleBuilder.EmitOptions.EmitMetadataOnly)
+
+            Dim moduleBeingBuilt = DirectCast(moduleBuilder, PEModuleBuilder)
+
+            ' Use a temporary bag so we don't have to refilter pre-existing diagnostics.
+            Dim methodBodyDiagnosticBag = DiagnosticBag.GetInstance()
+
+            Dim assemblyName = FileNameUtilities.ChangeExtension(moduleBeingBuilt.EmitOptions.OutputNameOverride, extension:=Nothing)
+
+            DocumentationCommentCompiler.WriteDocumentationCommentXml(Me, assemblyName, xmlDocStream, methodBodyDiagnosticBag, cancellationToken)
+
+            SetupWin32Resources(moduleBeingBuilt, win32Resources, methodBodyDiagnosticBag)
+
+            ' give the name of any added modules, but not the name of the primary module.
+            ReportManifestResourceDuplicates(
+                    moduleBeingBuilt.ManifestResources,
+                    SourceAssembly.Modules.Skip(1).Select(Function(x) x.Name),
+                    AddedModulesResourceNames(methodBodyDiagnosticBag),
+                    methodBodyDiagnosticBag)
+
+            Return FilterAndAppendAndFreeDiagnostics(diagnostics, methodBodyDiagnosticBag)
         End Function
 
         Private Function StartSourceChecksumCalculation(moduleBeingBuilt As PEModuleBuilder, diagnostics As DiagnosticBag) As Boolean
@@ -2599,6 +2593,14 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return CreateArrayTypeSymbol(elementType.EnsureVbSymbolOrNothing(Of TypeSymbol)(NameOf(elementType)), rank)
         End Function
 
+        Protected Overrides Function CommonCreateTupleTypeSymbol(elementTypes As ImmutableArray(Of ITypeSymbol), elementNames As ImmutableArray(Of String)) As INamedTypeSymbol
+            Throw New NotSupportedException(VBResources.TuplesNotSupported)
+        End Function
+
+        Protected Overrides Function CommonCreateTupleTypeSymbol(underlyingType As INamedTypeSymbol, elementNames As ImmutableArray(Of String)) As INamedTypeSymbol
+            Throw New NotSupportedException(VBResources.TuplesNotSupported)
+        End Function
+
         Protected Overrides Function CommonCreatePointerTypeSymbol(elementType As ITypeSymbol) As IPointerTypeSymbol
             Throw New NotSupportedException(VBResources.ThereAreNoPointerTypesInVB)
         End Function
@@ -2631,7 +2633,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Throw New ArgumentException(VBResources.NoNoneSearchCriteria, NameOf(filter))
             End If
 
-            Return Me.Declarations.ContainsName(predicate, filter, cancellationToken)
+            Return DeclarationTable.ContainsName(MergedRootDeclaration, predicate, filter, cancellationToken)
         End Function
 
         ''' <summary>
@@ -2647,15 +2649,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             Return New SymbolSearcher(Me).GetSymbolsWithName(predicate, filter, cancellationToken)
-        End Function
-
-        Friend Overrides Function IsIOperationFeatureEnabled() As Boolean
-            Dim options = DirectCast(Me.SyntaxTrees.First().Options, VisualBasicParseOptions)
-            Dim IOperationFeatureFlag = InternalSyntax.FeatureExtensions.GetFeatureFlag(InternalSyntax.Feature.IOperation)
-            If IOperationFeatureFlag IsNot Nothing Then
-                Return options.Features.ContainsKey(IOperationFeatureFlag)
-            End If
-            Return False
         End Function
 #End Region
 
@@ -2673,7 +2666,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Dim result = New HashSet(Of ISymbol)()
                 Dim spine = New List(Of MergedNamespaceOrTypeDeclaration)()
 
-                AppendSymbolsWithName(spine, Me._compilation.Declarations.MergedRoot, predicate, filter, result, cancellationToken)
+                AppendSymbolsWithName(spine, _compilation.MergedRootDeclaration, predicate, filter, result, cancellationToken)
 
                 Return result
             End Function

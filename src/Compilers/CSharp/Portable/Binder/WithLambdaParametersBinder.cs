@@ -45,8 +45,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        protected override TypeSymbol GetCurrentReturnType()
+        protected override TypeSymbol GetCurrentReturnType(out RefKind refKind)
         {
+            refKind = lambdaSymbol.RefKind;
             return lambdaSymbol.ReturnType;
         }
 
@@ -107,7 +108,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
         }
 
-        private bool ReportConflictWithParameter(ParameterSymbol parameter, Symbol newSymbol, string name, Location newLocation, DiagnosticBag diagnostics)
+        private static bool ReportConflictWithParameter(ParameterSymbol parameter, Symbol newSymbol, string name, Location newLocation, DiagnosticBag diagnostics)
         {
             if (parameter.Locations[0] == newLocation)
             {
@@ -157,6 +158,16 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return false;
+        }
+
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode scopeDesignator)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
+        {
+            throw ExceptionUtilities.Unreachable;
         }
     }
 }

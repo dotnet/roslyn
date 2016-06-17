@@ -189,7 +189,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsLeftSideOfDot(this ExpressionSyntax expression)
         {
-            return
+            if (expression == null)
+            {
+                return false;
+            }
+
+            return 
                 IsLeftSideOfQualifiedName(expression) ||
                 (expression.IsParentKind(SyntaxKind.SimpleMemberAccessExpression) && ((MemberAccessExpressionSyntax)expression.Parent).Expression == expression);
         }
@@ -312,7 +317,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
 
         public static bool IsInRefContext(this ExpressionSyntax expression)
         {
-            var argument = expression.Parent as ArgumentSyntax;
+            var argument = expression?.Parent as ArgumentSyntax;
             return
                 argument != null &&
                 argument.Expression == expression &&
@@ -340,8 +345,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                         return true;
                     }
 
-                    var nameEquals = expression.Parent as NameEqualsSyntax;
-                    if (nameEquals != null && nameEquals.IsParentKind(SyntaxKind.AttributeArgument))
+                    if (expression.IsAttributeNamedArgumentIdentifier())
                     {
                         return true;
                     }
@@ -349,6 +353,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             }
 
             return false;
+        }
+
+        public static bool IsAttributeNamedArgumentIdentifier(this ExpressionSyntax expression)
+        {
+            var nameEquals = expression?.Parent as NameEqualsSyntax;
+            return nameEquals.IsParentKind(SyntaxKind.AttributeArgument);
         }
 
         public static bool IsWrittenTo(this ExpressionSyntax expression)
@@ -363,29 +373,36 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 expression = expression.Parent as ExpressionSyntax;
             }
 
+            if (expression.IsInRefContext())
+            {
+                return true;
+            }
+
+            // We're written if we're used in a ++, or -- expression.
+            if (expression.IsOperandOfIncrementOrDecrementExpression())
+            {
+                return true;
+            }
+
+            if (expression.IsLeftSideOfAnyAssignExpression())
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        public static bool IsOperandOfIncrementOrDecrementExpression(this ExpressionSyntax expression)
+        {
             if (expression != null)
             {
-                if (expression.IsInRefContext())
+                switch (expression.Parent.Kind())
                 {
-                    return true;
-                }
-
-                // We're written if we're used in a ++, or -- expression.
-                if (expression.Parent != null)
-                {
-                    switch (expression.Parent.Kind())
-                    {
-                        case SyntaxKind.PostIncrementExpression:
-                        case SyntaxKind.PreIncrementExpression:
-                        case SyntaxKind.PostDecrementExpression:
-                        case SyntaxKind.PreDecrementExpression:
-                            return true;
-                    }
-
-                    if (expression.IsLeftSideOfAnyAssignExpression())
-                    {
+                    case SyntaxKind.PostIncrementExpression:
+                    case SyntaxKind.PreIncrementExpression:
+                    case SyntaxKind.PostDecrementExpression:
+                    case SyntaxKind.PreDecrementExpression:
                         return true;
-                    }
                 }
             }
 
@@ -699,8 +716,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
                 return false;
             }
 
-            if (optionSet.GetOption(SimplificationOptions.QualifyMemberAccessWithThisOrMe, semanticModel.Language) &&
-                memberAccess.Expression.Kind() == SyntaxKind.ThisExpression)
+            if (memberAccess.Expression.IsKind(SyntaxKind.ThisExpression) &&
+                !SimplificationHelpers.ShouldSimplifyMemberAccessExpression(semanticModel, memberAccess.Name, optionSet))
             {
                 return false;
             }
@@ -2313,6 +2330,12 @@ namespace Microsoft.CodeAnalysis.CSharp.Extensions
             if (conditional != null)
             {
                 return conditional.WhenNotNull.GetRightmostName();
+            }
+
+            var memberBinding = node as MemberBindingExpressionSyntax;
+            if (memberBinding != null)
+            {
+                return memberBinding.Name;
             }
 
             return null;

@@ -2,7 +2,6 @@
 
 Imports System.Collections.Immutable
 Imports System.IO
-Imports System.Reflection
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.VisualStudio.Shell.Interop
@@ -22,7 +21,7 @@ Friend Class MockVisualBasicCompiler
     End Sub
 
     Public Sub New(responseFile As String, baseDirectory As String, args As String(), analyzers As ImmutableArray(Of DiagnosticAnalyzer))
-        MyBase.New(VisualBasicCommandLineParser.Default, responseFile, args, Path.GetDirectoryName(GetType(VisualBasicCompiler).Assembly.Location), baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Environment.GetEnvironmentVariable("LIB"), New SimpleAnalyzerAssemblyLoader())
+        MyBase.New(VisualBasicCommandLineParser.Default, responseFile, args, Path.GetDirectoryName(GetType(VisualBasicCompiler).Assembly.Location), baseDirectory, RuntimeEnvironment.GetRuntimeDirectory(), Environment.GetEnvironmentVariable("LIB"), New DesktopAnalyzerAssemblyLoader())
 
         _analyzers = analyzers
     End Sub
@@ -35,15 +34,17 @@ Friend Class MockVisualBasicCompiler
         Throw New NotImplementedException
     End Sub
 
-    Protected Overrides Function ResolveAnalyzersFromArguments(diagnostics As List(Of DiagnosticInfo), messageProvider As CommonMessageProvider, touchedFiles As TouchedFileLogger) As ImmutableArray(Of DiagnosticAnalyzer)
-        Dim analyzers = MyBase.ResolveAnalyzersFromArguments(diagnostics, messageProvider, touchedFiles)
+    Protected Overrides Sub ResolveAnalyzersAndGeneratorsFromArguments(
+        diagnostics As List(Of DiagnosticInfo),
+        messageProvider As CommonMessageProvider,
+        ByRef analyzers As ImmutableArray(Of DiagnosticAnalyzer),
+        ByRef generators As ImmutableArray(Of SourceGenerator))
 
+        MyBase.ResolveAnalyzersAndGeneratorsFromArguments(diagnostics, messageProvider, analyzers, generators)
         If Not _analyzers.IsDefaultOrEmpty Then
             analyzers = analyzers.InsertRange(0, _analyzers)
         End If
-
-        Return analyzers
-    End Function
+    End Sub
 
     Public Overrides Function CreateCompilation(consoleOutput As TextWriter, touchedFilesLogger As TouchedFileLogger, errorLogger As ErrorLogger) As Compilation
         Compilation = MyBase.CreateCompilation(consoleOutput, touchedFilesLogger, errorLogger)

@@ -22,6 +22,33 @@ NewLines("Imports System \n Class C \n Sub M() \n Foo() \n End Sub \n Private Su
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        <WorkItem(11518, "https://github.com/dotnet/roslyn/issues/11518")>
+        Public Async Function TestNameMatchesNamespaceName() As Task
+            Await TestAsync(
+"Namespace N
+    Module Module1
+        Sub Main()
+            [|N|]()
+        End Sub
+    End Module
+End Namespace",
+"
+Imports System
+
+Namespace N
+    Module Module1
+        Sub Main()
+            N()
+        End Sub
+
+        Private Sub N()
+            Throw New NotImplementedException()
+        End Sub
+    End Module
+End Namespace")
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestSimpleInvocationOffOfMe() As Task
             Await TestAsync(
 NewLines("Class C \n Sub M() \n Me.[|Foo|]() \n End Sub \n End Class"),
@@ -1337,7 +1364,7 @@ Class M1
         sub1(Of Integer, String)(New Integer() {1, 2, 3}, New String() {"a", "b"})
     End Sub
 
-    Private Sub sub1(Of T1, T2)(v1() As Integer, v2() As String)
+    Private Sub sub1(Of T1, T2)(v1() As T1, v2() As T2)
         Throw New NotImplementedException()
     End Sub
 End Class
@@ -2200,6 +2227,84 @@ NewLines("Imports System \n Imports System.Collections.Generic \n Module Program
 NewLines("Imports System \n Imports System.Collections.Generic \n Module Program \n Sub M() \n Dim x = New Dictionary ( Of Integer , Boolean ) From { { 1, T() } } \n End Sub \n Private Function T() As Boolean \n Throw New NotImplementedException() \n End Function \n End Module"))
         End Function
 
+        <WorkItem(10004, "https://github.com/dotnet/roslyn/issues/10004")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestGenerateMethodWithMultipleOfSameGenericType() As Task
+            Await TestAsync(
+<text>
+Namespace TestClasses
+    Public Class C
+    End Class
+
+    Module Ex
+        Public Function M(Of T As C)(a As T) As T
+            Return [|a.Test(Of T, T)()|]
+        End Function
+    End Module
+End Namespace
+</text>.Value.Replace(vbLf, vbCrLf),
+<text>
+Namespace TestClasses
+    Public Class C
+        Friend Function Test(Of T1 As C, T2 As C)() As T2
+        End Function
+    End Class
+
+    Module Ex
+        Public Function M(Of T As C)(a As T) As T
+            Return a.Test(Of T, T)()
+        End Function
+    End Module
+End Namespace
+</text>.Value.Replace(vbLf, vbCrLf))
+        End Function
+
+        <WorkItem(11461, "https://github.com/dotnet/roslyn/issues/11461")>
+        <Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
+        Public Async Function TestGenerateMethodOffOfExistingProperty() As Task
+            Await TestAsync(
+<text>
+Imports System
+
+Public NotInheritable Class Repository
+    Shared ReadOnly Property agreementtype As AgreementType
+        Get
+        End Get
+    End Property
+End Class
+
+Public Class Agreementtype
+End Class
+
+Class C
+    Shared Sub TestError()
+        [|Repository.AgreementType.NewFunction|]("", "")
+    End Sub
+End Class
+</text>.Value.Replace(vbLf, vbCrLf),
+<text>
+Imports System
+
+Public NotInheritable Class Repository
+    Shared ReadOnly Property agreementtype As AgreementType
+        Get
+        End Get
+    End Property
+End Class
+
+Public Class Agreementtype
+    Friend Sub NewFunction(v1 As String, v2 As String)
+        Throw New NotImplementedException()
+    End Sub
+End Class
+
+Class C
+    Shared Sub TestError()
+        Repository.AgreementType.NewFunction("", "")
+    End Sub
+End Class</text>.Value.Replace(vbLf, vbCrLf))
+        End Function
+
         Public Class GenerateConversionTests
             Inherits AbstractVisualBasicDiagnosticProviderBasedUserDiagnosticTest
 
@@ -2484,7 +2589,6 @@ Class Digit
 End Class
 </text>.Value.Replace(vbLf, vbCrLf), compareTokens:=False)
             End Function
-
         End Class
     End Class
 End Namespace

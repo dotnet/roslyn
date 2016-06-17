@@ -1201,6 +1201,24 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
             End Get
         End Property
 
+        Public ReadOnly Property TupleElementTypes As ImmutableArray(Of ITypeSymbol) Implements INamedTypeSymbol.TupleElementTypes
+            Get
+                Return Nothing
+            End Get
+        End Property
+
+        Public ReadOnly Property TupleElementNames As ImmutableArray(Of String) Implements INamedTypeSymbol.TupleElementNames
+            Get
+                Return Nothing
+            End Get
+        End Property
+
+        Public ReadOnly Property TupleUnderlyingType As INamedTypeSymbol Implements INamedTypeSymbol.TupleUnderlyingType
+            Get
+                Return Nothing
+            End Get
+        End Property
+
         Public Overrides Sub Accept(visitor As SymbolVisitor)
             visitor.VisitNamedType(Me)
         End Sub

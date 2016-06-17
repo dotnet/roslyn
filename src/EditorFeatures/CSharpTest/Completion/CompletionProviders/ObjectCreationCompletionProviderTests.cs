@@ -143,8 +143,9 @@ class Program
     }
 }";
 
-            await VerifySendEnterThroughToEnterAsync(markup, "D", sendThroughEnterEnabled: false, expected: false);
-            await VerifySendEnterThroughToEnterAsync(markup, "D", sendThroughEnterEnabled: true, expected: true);
+            await VerifySendEnterThroughToEnterAsync(markup, "D", sendThroughEnterOption: EnterKeyRule.Never, expected: false);
+            await VerifySendEnterThroughToEnterAsync(markup, "D", sendThroughEnterOption: EnterKeyRule.AfterFullyTypedWord, expected: true);
+            await VerifySendEnterThroughToEnterAsync(markup, "D", sendThroughEnterOption: EnterKeyRule.Always, expected: true);
         }
 
         [WorkItem(828196, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/828196")]

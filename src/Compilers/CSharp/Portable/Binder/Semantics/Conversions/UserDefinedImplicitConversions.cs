@@ -596,7 +596,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // Added to spec in Roslyn timeframe.
                 case ConversionKind.NullLiteral:
                 case ConversionKind.NullToPointer:
+
+                // Added for C# 7.
+                case ConversionKind.ImplicitTupleLiteral:
+                case ConversionKind.ImplicitTuple:
                     return true;
+
+                case ConversionKind.ExplicitTuple:
+                    return false;
 
                 default:
                     throw ExceptionUtilities.UnexpectedValue(kind);

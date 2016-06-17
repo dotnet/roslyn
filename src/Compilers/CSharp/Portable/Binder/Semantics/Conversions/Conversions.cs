@@ -20,7 +20,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return ClassifyConversionFromExpression(sourceExpression, sourceExpression.Type, destination, ref useSiteDiagnostics);
         }
 
-        public Conversion ClassifyConversionFromExpression(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        public Conversion ClassifyConversionFromType(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
@@ -148,6 +148,14 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                case BoundKind.TupleLiteral:
+                    kind = ClassifyImplicitTupleLiteralConversion(sourceExpression, destination, ref useSiteDiagnostics);
+                    if (kind != ConversionKind.NoConversion)
+                    {
+                        return new Conversion(kind);
+                    }
+                    break;
+
                 case BoundKind.UnboundLambda:
                     if (HasAnonymousFunctionConversion(sourceExpression, destination))
                     {
@@ -181,14 +189,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert((object)destination != null);
 
             return ClassifyImplicitConversionFromExpression(sourceExpression, sourceExpression.Type, destination, ref useSiteDiagnostics);
-        }
-
-        public Conversion ClassifyImplicitConversionFromExpression(TypeSymbol sourceExpressionType, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
-        {
-            Debug.Assert((object)sourceExpressionType != null);
-            Debug.Assert((object)destination != null);
-
-            return ClassifyImplicitConversionFromExpression(null, sourceExpressionType, destination, ref useSiteDiagnostics);
         }
 
         /// <summary>
@@ -280,11 +280,39 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return ConversionKind.ImplicitConstant;
             }
 
+            // strip nullable from the destination
+            //
+            // the following should work and it is an ImplicitNullable conversion
+            //    int? x = 1;
             if (destination.Kind == SymbolKind.NamedType)
             {
                 var nt = (NamedTypeSymbol)destination;
                 if (nt.OriginalDefinition.GetSpecialTypeSafe() == SpecialType.System_Nullable_T &&
                     HasImplicitConstantExpressionConversion(source, nt.TypeArgumentsNoUseSiteDiagnostics[0]))
+                {
+                    return ConversionKind.ImplicitNullable;
+                }
+            }
+
+            return ConversionKind.NoConversion;
+        }
+
+        private ConversionKind ClassifyImplicitTupleLiteralConversion(BoundExpression source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            if (HasImplicitTupleLiteralConversion(source, destination, ref useSiteDiagnostics))
+            {
+                return ConversionKind.ImplicitTupleLiteral;
+            }
+
+            // strip nullable from the destination
+            //
+            // the following should work and it is an ImplicitNullable conversion
+            //    (int, double)? x = (1,2);
+            if (destination.Kind == SymbolKind.NamedType)
+            {
+                var nt = (NamedTypeSymbol)destination;
+                if (nt.OriginalDefinition.GetSpecialTypeSafe() == SpecialType.System_Nullable_T &&
+                    HasImplicitTupleLiteralConversion(source, nt.TypeArgumentsNoUseSiteDiagnostics[0], ref useSiteDiagnostics))
                 {
                     return ConversionKind.ImplicitNullable;
                 }
@@ -550,7 +578,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return LambdaConversionResult.BadTargetType;
         }
 
-        private bool HasAnonymousFunctionConversion(BoundExpression source, TypeSymbol destination)
+        private static bool HasAnonymousFunctionConversion(BoundExpression source, TypeSymbol destination)
         {
             Debug.Assert(source != null);
             Debug.Assert((object)destination != null);
@@ -660,6 +688,40 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ToConversion(resolution.OverloadResolutionResult, resolution.MethodGroup, (NamedTypeSymbol)destination);
             resolution.Free();
             return conversion;
+        }
+
+        protected override bool HasImplicitTupleLiteralConversion(BoundExpression source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            if (source.Kind != BoundKind.TupleLiteral)
+            {
+                // source must be a tuple literal with no conversions
+                return false;
+            }
+
+            var tupleExpression = (BoundTupleLiteral)source;
+            var arguments = tupleExpression.Arguments;
+
+            // check if the type is actually compatible type for a tuple of given cardinality
+            if (!destination.IsTupleOrCompatibleWithTupleOfCardinality(arguments.Length))
+            {
+                return false;
+            }
+
+            ImmutableArray<TypeSymbol> targetElementTypes = destination.GetElementTypesOfTupleOrCompatible();
+            Debug.Assert(arguments.Length == targetElementTypes.Length);
+
+            // check arguments against flattened list of target element types 
+            for (int i = 0; i < arguments.Length; i++)
+            {
+                var argument = arguments[i];
+                var result = ClassifyImplicitConversionFromExpression(argument, targetElementTypes[i], ref useSiteDiagnostics);
+                if (!result.Exists)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         protected override Conversion GetInterpolatedStringConversion(BoundInterpolatedString source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)

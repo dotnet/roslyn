@@ -1,7 +1,9 @@
 // Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis.CodeRefactorings;
 using Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearReference;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Text;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -10,7 +12,7 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.CodeRefactorings.MoveDe
 {
     public class MoveDeclarationNearReferenceTests : AbstractCSharpCodeActionTest
     {
-        protected override object CreateCodeRefactoringProvider(Workspace workspace)
+        protected override CodeRefactoringProvider CreateCodeRefactoringProvider(Workspace workspace)
         {
             return new MoveDeclarationNearReferenceCodeRefactoringProvider();
         }
@@ -365,6 +367,28 @@ class Program
         Console.WriteLine(foo);
     }
 }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task Tuple()
+        {
+            await TestAsync(
+@"class C { void M() { (int, string) [||]x; { Console.WriteLine(x); } } }",
+@"class C { void M() { { (int, string) x; Console.WriteLine(x); } } }",
+index: 0,
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsMoveDeclarationNearReference)]
+        public async Task TupleWithNames()
+        {
+            await TestAsync(
+@"class C { void M() { (int a, string b) [||]x; { Console.WriteLine(x); } } }",
+@"class C { void M() { { (int a, string b) x; Console.WriteLine(x); } } }",
+index: 0,
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
         }
     }
 }

@@ -126,9 +126,6 @@
   <data name="Intellisense" xml:space="preserve">
     <value>IntelliSense</value>
   </data>
-  <data name="QualifyMemberAccessWithMe" xml:space="preserve">
-    <value>Qualify member access with 'Me'</value>
-  </data>
   <data name="PreferIntrinsicPredefinedTypeKeywordInDeclaration" xml:space="preserve">
     <value>Prefer intrinsic predefined type keyword when declaring locals, parameters and members</value>
   </data>
@@ -215,5 +212,50 @@
   </data>
   <data name="Option_PlaceSystemNamespaceFirst" xml:space="preserve">
     <value>_Place 'System' directives first when sorting imports</value>
+  </data>
+  <data name="QualifyEventAccessWithMe" xml:space="preserve">
+    <value>Qualify event access with 'Me'</value>
+  </data>
+  <data name="QualifyFieldAccessWithMe" xml:space="preserve">
+    <value>Qualify field access with 'Me'</value>
+  </data>
+  <data name="QualifyMethodAccessWithMe" xml:space="preserve">
+    <value>Qualify method access with 'Me'</value>
+  </data>
+  <data name="QualifyPropertyAccessWithMe" xml:space="preserve">
+    <value>Qualify property access with 'Me'</value>
+  </data>
+  <data name="DoNotPreferMe" xml:space="preserve">
+    <value>Do not prefer 'Me.'</value>
+  </data>
+  <data name="PreferMe" xml:space="preserve">
+    <value>Prefer 'Me.'</value>
+  </data>
+  <data name="QualifyGroupTitle" xml:space="preserve">
+    <value>'Me.' preferences</value>
+  </data>
+  <data name="PredefinedTypesGroupTitle" xml:space="preserve">
+    <value>predefined type preferences:</value>
+  </data>
+  <data name="Option_Highlight_matching_portions_of_completion_list_items" xml:space="preserve">
+    <value>_Highlight matching portions of completion list items</value>
+  </data>
+  <data name="Option_Show_completion_item_filters" xml:space="preserve">
+    <value>Show completion item _filters</value>
+  </data>
+  <data name="Option_CompletionLists" xml:space="preserve">
+    <value>Completion Lists</value>
+  </data>
+  <data name="Enter_key_behavior_Title" xml:space="preserve">
+    <value>Enter key behavior:</value>
+  </data>
+  <data name="Option_Only_add_new_line_on_enter_with_whole_word" xml:space="preserve">
+    <value>_Only add new line on enter after end of fully typed word</value>
+  </data>
+  <data name="Option_Always_add_new_line_on_enter" xml:space="preserve">
+    <value>_Always add new line on enter</value>
+  </data>
+  <data name="Option_Never_add_new_line_on_enter" xml:space="preserve">
+    <value>_Never add new line on enter</value>
   </data>
 </root>

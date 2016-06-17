@@ -1,14 +1,11 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using System.Reflection;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
@@ -270,11 +267,13 @@ namespace Microsoft.CodeAnalysis.CSharp
                             break;
 
                         case BoundKind.ThisReference:
-                            if (InConstructorInitializer && receiver.WasCompilerGenerated)
+                            // Can't call the HasThis method due to EE doing odd things with containing member and its containing type.
+                            if ((InConstructorInitializer || InFieldInitializer) && receiver.WasCompilerGenerated)
                             {
                                 // Only a static method can be called in a constructor initializer. If we were not in a ctor initializer
                                 // the runtime binder would ignore the receiver, but in a ctor initializer we can't read "this" before 
                                 // the base constructor is called. We need to handle this as a type qualified static method call.
+                                // Also applicable to things like field initializers, which run before the ctor initializer.
                                 expression = methodGroup.Update(
                                     methodGroup.TypeArgumentsOpt,
                                     methodGroup.Name,
@@ -324,11 +323,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 arguments.GetNames(),
                 arguments.RefKinds.ToImmutableOrNull(),
                 applicableMethods,
-                Compilation.DynamicType,
-                hasErrors);
+                type: Compilation.DynamicType,
+                hasErrors: hasErrors);
         }
 
-        private ImmutableArray<BoundExpression> BuildArgumentsForDynamicInvocation(AnalyzedArguments arguments, DiagnosticBag diagnostics)
+        private static ImmutableArray<BoundExpression> BuildArgumentsForDynamicInvocation(AnalyzedArguments arguments, DiagnosticBag diagnostics)
         {
             return arguments.Arguments.ToImmutable();
         }
@@ -511,9 +510,16 @@ namespace Microsoft.CodeAnalysis.CSharp
                 {
                     // If overload resolution found one or more applicable methods and at least one argument
                     // was dynamic then treat this as a dynamic call.
-                    if (resolution.AnalyzedArguments.HasDynamicArgument && resolution.OverloadResolutionResult.HasAnyApplicableMember)
+                    if (resolution.AnalyzedArguments.HasDynamicArgument &&
+                        resolution.OverloadResolutionResult.HasAnyApplicableMember)
                     {
-                        if (resolution.IsExtensionMethodGroup)
+                        if (resolution.IsLocalFunctionInvocation)
+                        {
+                            result = BindLocalFunctionInvocationWithDynamicArgument(
+                                syntax, expression, methodName, methodGroup,
+                                diagnostics, queryClause, resolution);
+                        }
+                        else if (resolution.IsExtensionMethodGroup)
                         {
                             // error CS1973: 'T' has no applicable method named 'M' but appears to have an
                             // extension method by that name. Extension methods cannot be dynamically dispatched. Consider
@@ -540,7 +546,10 @@ namespace Microsoft.CodeAnalysis.CSharp
                             // and an ambiguity error may be reported. Also additional checks are performed in runtime final validation 
                             // that are not performed at compile-time.
                             // Only if the set of final applicable candidates is empty we know for sure the call will fail at runtime.
-                            var finalApplicableCandidates = GetCandidatesPassingFinalValidation(syntax, resolution.OverloadResolutionResult, methodGroup, diagnostics);
+                            var finalApplicableCandidates = GetCandidatesPassingFinalValidation(syntax, resolution.OverloadResolutionResult, 
+                                                                                                methodGroup.ReceiverOpt, 
+                                                                                                methodGroup.TypeArgumentsOpt,
+                                                                                                diagnostics);
                             if (finalApplicableCandidates.Length > 0)
                             {
                                 result = BindDynamicInvocation(syntax, methodGroup, resolution.AnalyzedArguments, finalApplicableCandidates, diagnostics, queryClause);
@@ -567,11 +576,91 @@ namespace Microsoft.CodeAnalysis.CSharp
             return result;
         }
 
-        private ImmutableArray<MethodSymbol> GetCandidatesPassingFinalValidation(CSharpSyntaxNode syntax, OverloadResolutionResult<MethodSymbol> overloadResolutionResult, BoundMethodGroup methodGroup, DiagnosticBag diagnostics)
+        private BoundExpression BindLocalFunctionInvocationWithDynamicArgument(
+            CSharpSyntaxNode syntax,
+            CSharpSyntaxNode expression,
+            string methodName,
+            BoundMethodGroup boundMethodGroup,
+            DiagnosticBag diagnostics,
+            CSharpSyntaxNode queryClause,
+            MethodGroupResolution resolution)
+        {
+            // Invocations of local functions with dynamic arguments
+            // don't need to be dispatched as dynamic invocations
+            // since they cannot be overloaded.  Instead, we'll just
+            // emit a standard call with dynamic implicit conversions
+            // for any dynamic arguments. The one exception is params
+            // arguments which cannot be targeted by dynamic arguments
+            // because there is an ambiguity between an array target
+            // and the params element target. See
+            // https://github.com/dotnet/roslyn/issues/10708
+
+            Debug.Assert(resolution.IsLocalFunctionInvocation);
+            Debug.Assert(resolution.OverloadResolutionResult.Succeeded);
+            Debug.Assert(queryClause == null);
+
+            var validResult = resolution.OverloadResolutionResult.ValidResult;
+
+            var args = resolution.AnalyzedArguments.Arguments;
+            var localFunction = validResult.Member;
+            var methodResult = validResult.Result;
+
+            // We're only in trouble if a dynamic argument is passed to the
+            // params parameter and is ambiguous at compile time between
+            // normal and expanded form i.e., there is exactly one dynamic
+            // argument to a params parameter
+            if (OverloadResolution.IsValidParams(localFunction) &&
+                methodResult.Kind == MemberResolutionKind.ApplicableInNormalForm)
+            {
+                var parameters = localFunction.Parameters;
+
+                Debug.Assert(parameters.Last().IsParams);
+
+                var lastParamIndex = parameters.Length - 1;
+
+                for (int i = 0; i < args.Count; ++i)
+                {
+                    var arg = args[i];
+                    if (arg.HasDynamicType() &&
+                        methodResult.ParameterFromArgument(i) == lastParamIndex)
+                    {
+                        Error(diagnostics,
+                            ErrorCode.ERR_DynamicLocalFunctionParamsParameter,
+                            syntax, parameters.Last().Name, localFunction.Name);
+                        return BindDynamicInvocation(
+                            syntax,
+                            boundMethodGroup,
+                            resolution.AnalyzedArguments,
+                            resolution.OverloadResolutionResult.GetAllApplicableMembers(),
+                            diagnostics,
+                            queryClause);
+                    }
+                }
+            }
+
+            return BindInvocationExpressionContinued(
+                node: syntax,
+                expression: expression,
+                methodName: methodName,
+                result: resolution.OverloadResolutionResult,
+                analyzedArguments: resolution.AnalyzedArguments,
+                methodGroup: resolution.MethodGroup,
+                delegateTypeOpt: null,
+                diagnostics: diagnostics,
+                extensionMethodsOfSameViabilityAreAvailable: resolution.ExtensionMethodsOfSameViabilityAreAvailable,
+                queryClause: queryClause);
+        }
+
+        private ImmutableArray<TMethodOrPropertySymbol> GetCandidatesPassingFinalValidation<TMethodOrPropertySymbol>(
+            CSharpSyntaxNode syntax, 
+            OverloadResolutionResult<TMethodOrPropertySymbol> overloadResolutionResult,
+            BoundExpression receiverOpt,
+            ImmutableArray<TypeSymbol> typeArgumentsOpt,
+            DiagnosticBag diagnostics) where TMethodOrPropertySymbol : Symbol
         {
             Debug.Assert(overloadResolutionResult.HasAnyApplicableMember);
 
-            var finalCandidates = ArrayBuilder<MethodSymbol>.GetInstance();
+            var finalCandidates = ArrayBuilder<TMethodOrPropertySymbol>.GetInstance();
             DiagnosticBag firstFailed = null;
             DiagnosticBag candidateDiagnostics = DiagnosticBag.GetInstance();
 
@@ -588,8 +677,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                     // * If F is an instance method, the method group must have resulted from a simple-name, a member-access through a variable or value, 
                     //   or a member-access whose receiver can't be classified as a type or value until after overload resolution (see §7.6.4.1).
 
-                    if (!MemberGroupFinalValidationAccessibilityChecks(methodGroup.ReceiverOpt, result.Member, syntax, candidateDiagnostics, invokedAsExtensionMethod: false) &&
-                        (methodGroup.TypeArgumentsOpt.IsDefault || result.Member.CheckConstraints(this.Conversions, syntax, this.Compilation, candidateDiagnostics)))
+                    if (!MemberGroupFinalValidationAccessibilityChecks(receiverOpt, result.Member, syntax, candidateDiagnostics, invokedAsExtensionMethod: false) &&
+                        (typeArgumentsOpt.IsDefault || ((MethodSymbol)(object)result.Member).CheckConstraints(this.Conversions, syntax, this.Compilation, candidateDiagnostics)))
                     {
                         finalCandidates.Add(result.Member);
                         continue;
@@ -886,7 +975,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         /// <param name="node">Invocation syntax node.</param>
         /// <param name="expression">The syntax for the invoked method, including receiver.</param>
-        private Location GetLocationForOverloadResolutionDiagnostic(CSharpSyntaxNode node, CSharpSyntaxNode expression)
+        private static Location GetLocationForOverloadResolutionDiagnostic(CSharpSyntaxNode node, CSharpSyntaxNode expression)
         {
             if (node != expression)
             {
@@ -1009,7 +1098,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return BoundCall.ErrorCall(node, receiver, method, args, argNames, argRefKinds, isDelegate, invokedAsExtensionMethod: invokedAsExtensionMethod, originalMethods: methods, resultKind: resultKind);
         }
 
-        private ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments, ImmutableArray<ParameterSymbol> parameters)
+        private static ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments, ImmutableArray<ParameterSymbol> parameters)
         {
             ArrayBuilder<BoundExpression> oldArguments = analyzedArguments.Arguments;
             int argumentCount = oldArguments.Count;
@@ -1053,7 +1142,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return oldArguments.ToImmutable();
         }
 
-        private ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments)
+        private static ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments)
         {
             return BuildArgumentsForErrorRecovery(analyzedArguments, ImmutableArray<ParameterSymbol>.Empty);
         }

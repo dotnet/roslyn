@@ -1,9 +1,7 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.Editor.Commands;
 using Microsoft.CodeAnalysis.Editor.Shared.Extensions;
@@ -13,6 +11,7 @@ using Microsoft.CodeAnalysis.Text;
 using Microsoft.VisualStudio.Text;
 using Roslyn.Utilities;
 using System.Threading;
+using Microsoft.CodeAnalysis.Shared.Extensions;
 
 namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 {
@@ -311,14 +310,49 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return char.IsLetterOrDigit(ch);
             }
 
-            var helper = GetCompletionHelper();
-            if (helper != null)
+            var completionService = GetCompletionService();
+            var filterText = GetCurrentFilterText(model, model.SelectedItem.Item);
+            return IsCommitCharacter(
+                completionService.GetRules(), model.SelectedItem.Item, ch, filterText);
+        }
+
+        /// <summary>
+        /// Internal for testing purposes only.
+        /// </summary>
+        internal static bool IsCommitCharacter(
+            CompletionRules completionRules, CompletionItem item, char ch, string filterText)
+        {
+            // general rule: if the filtering text exactly matches the start of the item then it must be a filter character
+            if (TextTypedSoFarMatchesItem(item, ch, textTypedSoFar: filterText))
             {
-                var filterText = GetCurrentFilterText(model, model.SelectedItem.Item);
-                return helper.IsCommitCharacter(model.SelectedItem.Item, ch, filterText);
+                return false;
             }
 
-            return false;
+            foreach (var rule in item.Rules.CommitCharacterRules)
+            {
+                switch (rule.Kind)
+                {
+                    case CharacterSetModificationKind.Add:
+                        if (rule.Characters.Contains(ch))
+                        {
+                            return true;
+                        }
+                        continue;
+
+                    case CharacterSetModificationKind.Remove:
+                        if (rule.Characters.Contains(ch))
+                        {
+                            return false;
+                        }
+                        continue;
+
+                    case CharacterSetModificationKind.Replace:
+                        return rule.Characters.Contains(ch);
+                }
+            }
+
+            // Fall back to the default rules for this language's completion service.
+            return completionRules.DefaultCommitCharacters.IndexOf(ch) >= 0;
         }
 
         private bool IsFilterCharacter(char ch)
@@ -337,11 +371,49 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return char.IsLetterOrDigit(ch);
             }
 
-            var helper = GetCompletionHelper();
-            if (helper != null)
+            var filterText = GetCurrentFilterText(model, model.SelectedItem.Item);
+            return IsFilterCharacter(model.SelectedItem.Item, ch, filterText);
+        }
+
+        private static bool TextTypedSoFarMatchesItem(CompletionItem item, char ch, string textTypedSoFar)
+        {
+            var textTypedWithChar = textTypedSoFar + ch;
+            return item.DisplayText.StartsWith(textTypedWithChar, StringComparison.CurrentCultureIgnoreCase) ||
+                item.FilterText.StartsWith(textTypedWithChar, StringComparison.CurrentCultureIgnoreCase);
+        }
+
+        /// <summary>
+        /// Internal for testing purposes only.
+        /// </summary>
+        internal static bool IsFilterCharacter(CompletionItem item, char ch, string filterText)
+        {
+            // general rule: if the filtering text exactly matches the start of the item then it must be a filter character
+            if (TextTypedSoFarMatchesItem(item, ch, textTypedSoFar: filterText))
             {
-                var filterText = GetCurrentFilterText(model, model.SelectedItem.Item);
-                return helper.IsFilterCharacter(model.SelectedItem.Item, ch, filterText);
+                return false;
+            }
+
+            foreach (var rule in item.Rules.FilterCharacterRules)
+            {
+                switch (rule.Kind)
+                {
+                    case CharacterSetModificationKind.Add:
+                        if (rule.Characters.Contains(ch))
+                        {
+                            return true;
+                        }
+                        continue;
+
+                    case CharacterSetModificationKind.Remove:
+                        if (rule.Characters.Contains(ch))
+                        {
+                            return false;
+                        }
+                        continue;
+
+                    case CharacterSetModificationKind.Replace:
+                        return rule.Characters.Contains(ch);
+                }
             }
 
             return false;

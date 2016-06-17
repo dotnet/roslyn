@@ -1,38 +1,30 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Linq;
-using System.Threading;
-using Microsoft.CodeAnalysis.Text;
 using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis
 {
-    internal abstract partial class SymbolKey
+    internal partial struct SymbolKey
     {
-        private class PointerTypeSymbolKey : AbstractSymbolKey<PointerTypeSymbolKey>
+        private static class PointerTypeSymbolKey
         {
-            private readonly SymbolKey _pointedAtKey;
-
-            public PointerTypeSymbolKey(IPointerTypeSymbol symbol, Visitor visitor)
+            public static void Create(IPointerTypeSymbol symbol, SymbolKeyWriter visitor)
             {
-                _pointedAtKey = GetOrCreate(symbol.PointedAtType, visitor);
+                visitor.WriteSymbolKey(symbol.PointedAtType);
             }
 
-            public override SymbolKeyResolution Resolve(Compilation compilation, bool ignoreAssemblyKey, CancellationToken cancellationToken)
+            public static int GetHashCode(GetHashCodeReader reader)
             {
-                var elementInfo = _pointedAtKey.Resolve(compilation, ignoreAssemblyKey, cancellationToken);
-                return CreateSymbolInfo(GetAllSymbols<ITypeSymbol>(elementInfo).Select(compilation.CreatePointerTypeSymbol));
+                return Hash.Combine(1, reader.ReadSymbolKey());
             }
 
-            internal override bool Equals(PointerTypeSymbolKey other, ComparisonOptions options)
+            public static SymbolKeyResolution Resolve(SymbolKeyReader reader)
             {
-                return other._pointedAtKey.Equals(_pointedAtKey, options);
-            }
+                var pointedAtTypeResolution = reader.ReadSymbolKey();
 
-            internal override int GetHashCode(ComparisonOptions options)
-            {
-                return Hash.Combine(1, _pointedAtKey.GetHashCode(options));
+                return CreateSymbolInfo(GetAllSymbols<ITypeSymbol>(pointedAtTypeResolution)
+                    .Select(reader.Compilation.CreatePointerTypeSymbol));
             }
         }
     }

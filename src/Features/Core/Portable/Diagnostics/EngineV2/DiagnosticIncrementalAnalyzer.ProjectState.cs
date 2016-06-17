@@ -99,7 +99,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 if (!await TryDeserializeAsync(serializer, project, project.Id, _owner.NonLocalStateName, builder.AddOthers, cancellationToken).ConfigureAwait(false))
                 {
-                    Contract.Requires(false, "How this can happen?");
+                    // this can happen if SaveAsync is not yet called but active file merge happened. one of case is if user did build before the very first
+                    // analysis happened.
                 }
 
                 return builder.ToResult();
@@ -178,7 +179,8 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 
                 if (!await TryDeserializeAsync(serializer, project, project.Id, _owner.NonLocalStateName, builder.AddOthers, cancellationToken).ConfigureAwait(false))
                 {
-                    Contract.Requires(false, "How this can happen?");
+                    // this can happen if SaveAsync is not yet called but active file merge happened. one of case is if user did build before the very first
+                    // analysis happened.
                 }
 
                 return builder.ToResult();
@@ -198,7 +200,17 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 foreach (var documentId in result.DocumentIds)
                 {
                     var document = project.GetDocument(documentId);
-                    Contract.ThrowIfNull(document);
+                    if (document == null)
+                    {
+                        // it can happen with build synchronization since, in build case, 
+                        // we don't have actual snapshot (we have no idea what sources out of proc build has picked up)
+                        // so we might be out of sync.
+                        // example of such cases will be changing anything about solution while building is going on.
+                        // it can be user explict actions such as unloading project, deleting a file, but also it can be 
+                        // something project system or roslyn workspace does such as populating workspace right after
+                        // solution is loaded.
+                        continue;
+                    }
 
                     await SerializeAsync(serializer, document, document.Id, _owner.SyntaxStateName, GetResult(result, AnalysisKind.Syntax, document.Id)).ConfigureAwait(false);
                     await SerializeAsync(serializer, document, document.Id, _owner.SemanticStateName, GetResult(result, AnalysisKind.Semantic, document.Id)).ConfigureAwait(false);
@@ -225,7 +237,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 var semantic = state.GetAnalysisData(AnalysisKind.Semantic);
 
                 var project = document.Project;
-                var fullAnalysis = ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(project.Solution.Workspace, project.Language);
+                var fullAnalysis = ServiceFeatureOnOffOptions.IsClosedFileDiagnosticsEnabled(project);
 
                 // keep from build flag if full analysis is off
                 var fromBuild = fullAnalysis ? false : lastResult.FromBuild;

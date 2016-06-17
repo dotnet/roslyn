@@ -4,12 +4,13 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Roslyn.Utilities;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
     internal partial class Binder
     {
-        protected BoundExpression CreateConversion(
+        internal BoundExpression CreateConversion(
             BoundExpression source,
             TypeSymbol destination,
             DiagnosticBag diagnostics)
@@ -21,7 +22,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CreateConversion(source.Syntax, source, conversion, isCast: false, destination: destination, diagnostics: diagnostics);
         }
 
-        protected BoundExpression CreateConversion(
+        internal BoundExpression CreateConversion(
             BoundExpression source,
             Conversion conversion,
             TypeSymbol destination,
@@ -30,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             return CreateConversion(source.Syntax, source, conversion, isCast: false, destination: destination, diagnostics: diagnostics);
         }
 
-        protected BoundExpression CreateConversion(
+        internal BoundExpression CreateConversion(
             CSharpSyntaxNode syntax,
             BoundExpression source,
             Conversion conversion,
@@ -53,11 +54,28 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(source != null);
             Debug.Assert((object)destination != null);
 
-            // We need to preserve any conversion that changes the type (even identity conversions, like object->dynamic),
-            // or that was explicitly written in code (so that GetSemanticInfo can find the syntax in the bound tree).
-            if (conversion.Kind == ConversionKind.Identity && !isCast && source.Type == destination)
+            if (conversion.IsIdentity)
             {
-                return source;
+                // identity tuple conversions result in a converted tuple
+                // to indicate that tuple conversions are no longer applicable.
+                // nothing else changes
+                if (source.Kind == BoundKind.TupleLiteral)
+                {
+                    var sourceTuple = (BoundTupleLiteral)source;
+                    source = new BoundConvertedTupleLiteral(
+                        sourceTuple.Syntax,
+                        sourceTuple.Type, 
+                        sourceTuple.Arguments, 
+                        sourceTuple.Type, // same type to keep original element names 
+                        sourceTuple.HasErrors);
+                }
+
+                // We need to preserve any conversion that changes the type (even identity conversions, like object->dynamic),
+                // or that was explicitly written in code (so that GetSemanticInfo can find the syntax in the bound tree).
+                if (!isCast && source.Type == destination)
+                {
+                    return source;
+                }
             }
 
             ReportDiagnosticsIfObsolete(diagnostics, conversion, syntax, hasBaseReceiver: false);
@@ -70,6 +88,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (conversion.IsAnonymousFunction && source.Kind == BoundKind.UnboundLambda)
             {
                 return CreateAnonymousFunctionConversion(syntax, source, conversion, isCast, destination, diagnostics);
+            }
+
+            if (conversion.IsTupleLiteral || 
+                (conversion.Kind == ConversionKind.ImplicitNullable && source.Kind == BoundKind.TupleLiteral))
+            {
+                return CreateTupleLiteralConversion(syntax, (BoundTupleLiteral)source, conversion, isCast, destination, diagnostics);
             }
 
             if (conversion.IsUserDefined)
@@ -307,6 +331,84 @@ namespace Microsoft.CodeAnalysis.CSharp
             return new BoundConversion(syntax, group, conversion, @checked: false, explicitCastInCode: isCast, constantValueOpt: ConstantValue.NotAvailable, type: destination, hasErrors: hasErrors) { WasCompilerGenerated = source.WasCompilerGenerated };
         }
 
+        private BoundExpression CreateTupleLiteralConversion(CSharpSyntaxNode syntax, BoundTupleLiteral sourceTuple, Conversion conversion, bool isCast, TypeSymbol destination, DiagnosticBag diagnostics)
+        {
+            // We have a successful tuple conversion; rather than producing a separate conversion node 
+            // which is a conversion on top of a tuple literal, tuple conversion is an element-wise conversion of arguments.
+
+            Debug.Assert(conversion.Kind == ConversionKind.ImplicitTupleLiteral || conversion.Kind == ConversionKind.ImplicitNullable);
+            Debug.Assert((conversion.Kind == ConversionKind.ImplicitNullable) == destination.IsNullableType());
+
+            TypeSymbol destinationWithoutNullable = conversion.Kind == ConversionKind.ImplicitNullable ?
+                                                                           destinationWithoutNullable = destination.GetNullableUnderlyingType() :
+                                                                           destination;
+
+            NamedTypeSymbol targetType = (NamedTypeSymbol)destinationWithoutNullable;
+
+            if (targetType.IsTupleType)
+            {
+                var destTupleType = (TupleTypeSymbol)targetType;
+                // do not lose the original element names in the literal if different from names in the target
+
+                // Come back to this, what about locations? (https://github.com/dotnet/roslyn/issues/11013)
+                targetType = destTupleType.WithElementNames(sourceTuple.ArgumentNamesOpt);
+            }
+
+            var arguments = sourceTuple.Arguments;
+            var convertedArguments = ArrayBuilder<BoundExpression>.GetInstance(arguments.Length);
+
+            ImmutableArray<TypeSymbol> targetElementTypes = targetType.GetElementTypesOfTupleOrCompatible();
+            Debug.Assert(targetElementTypes.Length == arguments.Length, "converting a tuple literal to incompatible type?");
+
+            for (int i = 0; i < arguments.Length; i++)
+            {
+                var argument = arguments[i];
+                var destType = targetElementTypes[i];
+                convertedArguments.Add(CreateConversion(argument, destType, diagnostics));
+            }
+
+            BoundExpression result = new BoundConvertedTupleLiteral(
+                sourceTuple.Syntax,
+                sourceTuple.Type,
+                convertedArguments.ToImmutableAndFree(), 
+                targetType);
+
+            // We need to preserve any conversion that changes the type (even identity conversions),
+            // or that was explicitly written in code (so that GetSemanticInfo can find the syntax in the bound tree).
+            if (!isCast && targetType == destination)
+            {
+                return result;
+            }
+
+            // if we have a nullable cast combined with a name/dynamic cast
+            // name/dynamic cast must happen before converting to nullable
+            if (conversion.Kind == ConversionKind.ImplicitNullable &&
+                destinationWithoutNullable != targetType)
+            {
+                Debug.Assert(destinationWithoutNullable.Equals(targetType, ignoreDynamic: true));
+
+                result = new BoundConversion(
+                    syntax,
+                    result,
+                    Conversion.Identity,
+                    @checked: false,
+                    explicitCastInCode: isCast,
+                    constantValueOpt: ConstantValue.NotAvailable,
+                    type: destinationWithoutNullable)
+                { WasCompilerGenerated = sourceTuple.WasCompilerGenerated };
+            }
+                                  
+            return new BoundConversion(
+                syntax,
+                result,
+                conversion,
+                @checked: false,
+                explicitCastInCode: isCast,
+                constantValueOpt: ConstantValue.NotAvailable,
+                type: destination)
+            { WasCompilerGenerated = sourceTuple.WasCompilerGenerated };
+        }
+
         private static bool IsMethodGroupWithTypeOrValueReceiver(BoundNode node)
         {
             if (node.Kind != BoundKind.MethodGroup)
@@ -317,7 +419,6 @@ namespace Microsoft.CodeAnalysis.CSharp
             BoundNode receiverOpt = ((BoundMethodGroup)node).ReceiverOpt;
             return receiverOpt != null && receiverOpt.Kind == BoundKind.TypeOrValueExpression;
         }
-
 
         private BoundMethodGroup FixMethodGroupWithTypeOrValue(BoundMethodGroup group, Conversion conversion, DiagnosticBag diagnostics)
         {
@@ -427,7 +528,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // Perform final validation of the method to be invoked.
 
-            Debug.Assert(memberSymbol.Kind != SymbolKind.Method || memberSymbol.CanBeReferencedByName); //should be true since the caller has LookupOptions.MustBeReferenceableByName set
+            Debug.Assert(memberSymbol.Kind != SymbolKind.Method ||
+                memberSymbol.CanBeReferencedByName || //should be true since the caller has LookupOptions.MustBeReferenceableByName set
+                (object)memberSymbol.ReplacedBy != null);
             //note that the same assert does not hold for all properties. Some properties and (all indexers) are not referenceable by name, yet
             //their binding brings them through here, perhaps needlessly.
 
@@ -440,7 +543,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             else if (memberSymbol.IsStatic)
             {
                 Debug.Assert(!invokedAsExtensionMethod || (receiverOpt != null));
-                if (!invokedAsExtensionMethod && !WasImplicitReceiver(receiverOpt) && IsMemberAccessedThroughVariableOrValue(receiverOpt))
+
+                if (invokedAsExtensionMethod)
+                {
+                    if (receiverOpt?.Kind == BoundKind.QueryClause && IsMemberAccessedThroughType(receiverOpt))
+                    {
+                        // Could not find an implementation of the query pattern for source type '{0}'.  '{1}' not found.
+                        diagnostics.Add(ErrorCode.ERR_QueryNoProvider, node.Location, receiverOpt.Type, memberSymbol.Name);
+                        return true;
+                    }
+                }
+                else if (!WasImplicitReceiver(receiverOpt) && IsMemberAccessedThroughVariableOrValue(receiverOpt))
                 {
                     if (this.Flags.Includes(BinderFlags.CollectionInitializerAddMethod))
                     {

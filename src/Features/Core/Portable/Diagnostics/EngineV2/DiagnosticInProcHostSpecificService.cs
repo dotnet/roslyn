@@ -13,7 +13,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
     [ExportHostSpecificService(typeof(ICompilerDiagnosticExecutor), HostKinds.InProc), Shared]
     internal class DiagnosticIncProcHostSpecificService : ICompilerDiagnosticExecutor
     {
-        public async Task<ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult>> AnalyzeAsync(CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
+        public async Task<CompilerAnalysisResult> AnalyzeAsync(CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken)
         {
             var version = await DiagnosticIncrementalAnalyzer.GetDiagnosticVersionAsync(project, cancellationToken).ConfigureAwait(false);
 
@@ -56,7 +56,7 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
                 builder.Add(analyzer, result.ToResult());
             }
 
-            return builder.ToImmutable();
+            return new CompilerAnalysisResult(builder.ToImmutable(), analysisResult.AnalyzerTelemetryInfo);
         }
     }
 }

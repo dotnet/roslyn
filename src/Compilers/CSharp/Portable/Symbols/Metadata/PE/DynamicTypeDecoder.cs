@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.CSharp.Symbols;
 namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
 {
     /// <summary>
-    /// Decodes <see cref="System.Runtime.CompilerServices.DynamicAttribute"/> applied to a specified metadata symbol and
+    /// Decodes System.Runtime.CompilerServices.DynamicAttribute applied to a specified metadata symbol and
     /// transforms the specified metadata type, using the decoded dynamic transforms attribute argument,
     /// by replacing each occurrence of <see cref="System.Object"/> type with dynamic type.
     /// </summary>
@@ -48,10 +48,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols.Metadata.PE
         }
 
         /// <summary>
-        /// Decodes the attributes applied to the given <see paramref="targetSymbol"/> from metadata and checks if <see cref="System.Runtime.CompilerServices.DynamicAttribute"/> is applied.
+        /// Decodes the attributes applied to the given <see paramref="targetSymbol"/> from metadata and checks if System.Runtime.CompilerServices.DynamicAttribute is applied.
         /// If so, it transforms the given <see paramref="metadataType"/>, using the decoded dynamic transforms attribute argument,
         /// by replacing each occurrence of <see cref="System.Object"/> type with dynamic type.
-        /// If no <see cref="System.Runtime.CompilerServices.DynamicAttribute"/> is applied or the decoded dynamic transforms attribute argument is erroneous,
+        /// If no System.Runtime.CompilerServices.DynamicAttribute is applied or the decoded dynamic transforms attribute argument is erroneous,
         /// returns the unchanged <see paramref="metadataType"/>.
         /// </summary>
         /// <remarks>This method is a port of TypeManager::ImportDynamicTransformType from the native compiler.</remarks>

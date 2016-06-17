@@ -9,6 +9,6 @@ namespace Microsoft.CodeAnalysis.Diagnostics.EngineV2
 {
     internal interface ICompilerDiagnosticExecutor : IHostSpecificService
     {
-        Task<ImmutableDictionary<DiagnosticAnalyzer, AnalysisResult>> AnalyzeAsync(CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken);
+        Task<CompilerAnalysisResult> AnalyzeAsync(CompilationWithAnalyzers analyzerDriver, Project project, CancellationToken cancellationToken);
     }
 }

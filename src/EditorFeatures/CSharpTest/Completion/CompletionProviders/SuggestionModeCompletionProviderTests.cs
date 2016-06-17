@@ -391,8 +391,50 @@ class Program
         Console.CancelKeyPress += new ConsoleCancelEventHandler(((a$$
     }
 }";
-            await VerifyNotBuilderAsync(markup);
+            await VerifyBuilderAsync(markup);
         }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task ParenthesizedExpression()
+        {
+            var markup = @"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        var x = (a$$
+    }
+}";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task TupleExpressionAfterParen()
+        {
+            var markup = @"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        var x = (a$$, b)
+    }
+}";
+            await VerifyBuilderAsync(markup);
+        }
+
+        public async Task TupleExpressionAfterComma()
+        {
+            var markup = @"using System;
+class Program
+{
+    static void Main(string[] args)
+    {
+        var x = (a, b$$)
+    }
+}";
+            await VerifyBuilderAsync(markup);
+        }
+
 
         [WorkItem(546363, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/546363")]
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -548,6 +590,22 @@ class a
             await VerifyBuilderAsync(markup);
         }
 
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NamespaceDeclaration_Unqualified()
+        {
+            var markup = @"namespace $$";
+            await VerifyBuilderAsync(markup);
+        }
+
+        [WorkItem(7213, "https://github.com/dotnet/roslyn/issues/7213")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task NamespaceDeclaration_Qualified()
+        {
+            var markup = @"namespace A.$$";
+            await VerifyBuilderAsync(markup);
+        }
+
         private async Task VerifyNotBuilderAsync(string markup)
         {
             await VerifyWorkerAsync(markup, isBuilder: false);
@@ -580,7 +638,10 @@ class a
         private async Task CheckResultsAsync(Document document, int position, bool isBuilder)
         {
             var triggerInfo = CompletionTrigger.CreateInsertionTrigger('a');
-            var completionList = await GetCompletionListAsync(document, position, triggerInfo);
+            var service = GetCompletionService(document.Project.Solution.Workspace);
+            var completionList = await service.GetContextAsync(
+                service.ExclusiveProviders?[0], document, position, triggerInfo,
+                options: null, cancellationToken: CancellationToken.None);
 
             if (isBuilder)
             {

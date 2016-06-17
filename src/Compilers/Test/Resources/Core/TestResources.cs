@@ -165,6 +165,18 @@ namespace TestResources.NetFX
 
         private static byte[] s_minasync;
         public static byte[] minasync => ResourceLoader.GetOrCreateResource(ref s_minasync, "NetFX.Minimal.minasync.dll");
+
+        private static byte [] s_minasynccorlib;
+        public static byte [] minasynccorlib => ResourceLoader.GetOrCreateResource(ref s_minasynccorlib, "NetFX.Minimal.minasynccorlib.dll");
+    }
+
+    public static class ValueTuple
+    {
+        private static byte[] s_tuplelib;
+        public static byte[] tuplelib => ResourceLoader.GetOrCreateResource(ref s_tuplelib, "NetFX.ValueTuple.System.ValueTuple.dll");
+
+        private static string s_tuplelib_cs;
+        public static string tuplelib_cs => ResourceLoader.GetOrCreateResource(ref s_tuplelib_cs, "NetFX.ValueTuple.ValueTuple.cs");
     }
 }
 
@@ -405,6 +417,9 @@ namespace TestResources.SymbolsTests
 
         private static byte[] s_mscorlibNamespacesAndTypes;
         public static byte[] MscorlibNamespacesAndTypes => ResourceLoader.GetOrCreateResource(ref s_mscorlibNamespacesAndTypes, "SymbolsTests.Metadata.MscorlibNamespacesAndTypes.bsl");
+
+        private static byte[] s_publicAndPrivateFlags;
+        public static byte[] PublicAndPrivateFlags => ResourceLoader.GetOrCreateResource(ref s_publicAndPrivateFlags, "SymbolsTests.Metadata.public-and-private.dll");
     }
 
     public static class Methods

@@ -1035,20 +1035,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
             }
 
             var featureName = feature.Localize();
-            var requiredVersion = feature.RequiredVersion();
-
-            if (feature.RequiredFeature() != null)
+            var requiredFeature = feature.RequiredFeature();
+            if (requiredFeature != null)
             {
                 if (forceWarning)
                 {
-                    SyntaxDiagnosticInfo rawInfo = new SyntaxDiagnosticInfo(ErrorCode.ERR_FeatureIsExperimental, featureName);
+                    SyntaxDiagnosticInfo rawInfo = new SyntaxDiagnosticInfo(ErrorCode.ERR_FeatureIsExperimental, featureName, requiredFeature);
                     return this.AddError(node, ErrorCode.WRN_ErrorOverride, rawInfo, rawInfo.Code);
                 }
 
-                return this.AddError(node, ErrorCode.ERR_FeatureIsExperimental, featureName);
+                return this.AddError(node, ErrorCode.ERR_FeatureIsExperimental, featureName, requiredFeature);
             }
             else
             {
+                var requiredVersion = feature.RequiredVersion();
+
                 if (forceWarning)
                 {
                     SyntaxDiagnosticInfo rawInfo = new SyntaxDiagnosticInfo(availableVersion.GetErrorCode(), featureName, requiredVersion.Localize());

@@ -1,10 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.CSharp.Completion.Providers;
+using Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -576,12 +576,11 @@ class d
                 var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
                 var triggerInfo = CompletionTrigger.CreateInsertionTrigger('a');
 
-                var completionList = await GetCompletionListAsync(document, position, triggerInfo);
+                var service = GetCompletionService(workspace);
+                var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
                 var item = completionList.Items.First();
 
-                var completionRules = CompletionHelper.GetHelper(document);
-
-                Assert.False(completionRules.SendEnterThroughToEditor(item, string.Empty, workspace.Options), "Expected false from SendEnterThroughToEditor()");
+                Assert.False(Controller.SendEnterThroughToEditor(service.GetRules(), item, string.Empty), "Expected false from SendEnterThroughToEditor()");
             }
         }
 
@@ -777,7 +776,8 @@ class Program
                 var document = workspace.CurrentSolution.GetDocument(hostDocument.Id);
                 var triggerInfo = CompletionTrigger.CreateInsertionTrigger('a');
 
-                var completionList = await GetCompletionListContextAsync(document, position, triggerInfo);
+                var service = GetCompletionService(workspace);
+                var completionList = await GetCompletionListAsync(service, document, position, triggerInfo);
 
                 if (completionList != null)
                 {

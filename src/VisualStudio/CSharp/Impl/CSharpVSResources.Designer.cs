@@ -106,11 +106,29 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Do not prefer &apos;this.&apos;.
+        /// </summary>
+        internal static string DoNotPreferThis {
+            get {
+                return ResourceManager.GetString("DoNotPreferThis", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Place &quot;else&quot; on new line.
         /// </summary>
         internal static string ElseOnNewLine {
             get {
                 return ResourceManager.GetString("ElseOnNewLine", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Enter key behavior:.
+        /// </summary>
+        internal static string Enter_key_behavior_Title {
+            get {
+                return ResourceManager.GetString("Enter_key_behavior_Title", resourceCulture);
             }
         }
         
@@ -376,6 +394,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to _Always add new line on enter.
+        /// </summary>
+        internal static string Option_Always_add_new_line_on_enter {
+            get {
+                return ResourceManager.GetString("Option_Always_add_new_line_on_enter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to _Show completion list after a character is typed.
         /// </summary>
         internal static string Option_BringUpOnIdentifier {
@@ -475,6 +502,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to _Highlight matching portions of completion list items.
+        /// </summary>
+        internal static string Option_Highlight_matching_portions_of_completion_list_items {
+            get {
+                return ResourceManager.GetString("Option_Highlight_matching_portions_of_completion_list_items", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Highlighting.
         /// </summary>
         internal static string Option_Highlighting {
@@ -493,11 +529,20 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to _Add new line on enter after end of fully typed word.
+        ///   Looks up a localized string similar to _Never add new line on enter.
         /// </summary>
-        internal static string Option_InsertNewlineOnEnterWithWholeWord {
+        internal static string Option_Never_add_new_line_on_enter {
             get {
-                return ResourceManager.GetString("Option_InsertNewlineOnEnterWithWholeWord", resourceCulture);
+                return ResourceManager.GetString("Option_Never_add_new_line_on_enter", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Only add new line on enter after end of fully typed word.
+        /// </summary>
+        internal static string Option_Only_add_new_line_on_enter_with_whole_word {
+            get {
+                return ResourceManager.GetString("Option_Only_add_new_line_on_enter_with_whole_word", resourceCulture);
             }
         }
         
@@ -583,6 +628,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Show completion item _filters.
+        /// </summary>
+        internal static string Option_Show_completion_item_filters {
+            get {
+                return ResourceManager.GetString("Option_Show_completion_item_filters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Place _keywords in completion lists.
         /// </summary>
         internal static string Option_ShowKeywords {
@@ -597,6 +651,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Option_ShowSnippets {
             get {
                 return ResourceManager.GetString("Option_ShowSnippets", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Split string literals on _enter.
+        /// </summary>
+        internal static string Option_Split_string_literals_on_enter {
+            get {
+                return ResourceManager.GetString("Option_Split_string_literals_on_enter", resourceCulture);
             }
         }
         
@@ -628,7 +691,25 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Prefer intrinsic predefined type keyword when declaring locals, parameters and members.
+        ///   Looks up a localized string similar to predefined type preferences:.
+        /// </summary>
+        internal static string PredefinedTypesGroupTitle {
+            get {
+                return ResourceManager.GetString("PredefinedTypesGroupTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer explicit type.
+        /// </summary>
+        internal static string PreferExplicitType {
+            get {
+                return ResourceManager.GetString("PreferExplicitType", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to For locals, parameters and members.
         /// </summary>
         internal static string PreferIntrinsicPredefinedTypeKeywordInDeclaration {
             get {
@@ -637,7 +718,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Prefer intrinsic predefined type keyword in member access expressions.
+        ///   Looks up a localized string similar to For member access expressions.
         /// </summary>
         internal static string PreferIntrinsicPredefinedTypeKeywordInMemberAccess {
             get {
@@ -646,11 +727,65 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to Qualify member access with &apos;this&apos;.
+        ///   Looks up a localized string similar to Prefer &apos;this.&apos;.
         /// </summary>
-        internal static string QualifyMemberAccessWithThis {
+        internal static string PreferThis {
             get {
-                return ResourceManager.GetString("QualifyMemberAccessWithThis", resourceCulture);
+                return ResourceManager.GetString("PreferThis", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Prefer &apos;var&apos;.
+        /// </summary>
+        internal static string PreferVar {
+            get {
+                return ResourceManager.GetString("PreferVar", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Qualify event access with &apos;this&apos;.
+        /// </summary>
+        internal static string QualifyEventAccessWithThis {
+            get {
+                return ResourceManager.GetString("QualifyEventAccessWithThis", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Qualify field access with &apos;this&apos;.
+        /// </summary>
+        internal static string QualifyFieldAccessWithThis {
+            get {
+                return ResourceManager.GetString("QualifyFieldAccessWithThis", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;this.&apos; preferences:.
+        /// </summary>
+        internal static string QualifyGroupTitle {
+            get {
+                return ResourceManager.GetString("QualifyGroupTitle", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Qualify method access with &apos;this&apos;.
+        /// </summary>
+        internal static string QualifyMethodAccessWithThis {
+            get {
+                return ResourceManager.GetString("QualifyMethodAccessWithThis", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Qualify property access with &apos;this&apos;.
+        /// </summary>
+        internal static string QualifyPropertyAccessWithThis {
+            get {
+                return ResourceManager.GetString("QualifyPropertyAccessWithThis", resourceCulture);
             }
         }
         
@@ -705,6 +840,15 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string SetSpacingForOperators {
             get {
                 return ResourceManager.GetString("SetSpacingForOperators", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Type Inference preferences:.
+        /// </summary>
+        internal static string SetTypeInferencePreferences {
+            get {
+                return ResourceManager.GetString("SetTypeInferencePreferences", resourceCulture);
             }
         }
         
@@ -925,11 +1069,47 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to For built-in types.
+        /// </summary>
+        internal static string UseImplicitTypeForIntrinsicTypes {
+            get {
+                return ResourceManager.GetString("UseImplicitTypeForIntrinsicTypes", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Elsewhere.
+        /// </summary>
+        internal static string UseImplicitTypeWhenPossible {
+            get {
+                return ResourceManager.GetString("UseImplicitTypeWhenPossible", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to When variable type is apparent.
+        /// </summary>
+        internal static string UseImplicitTypeWhenTypeIsApparent {
+            get {
+                return ResourceManager.GetString("UseImplicitTypeWhenTypeIsApparent", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Use &apos;var&apos; when generating locals.
         /// </summary>
         internal static string UseVarWhenGeneratingLocals {
             get {
                 return ResourceManager.GetString("UseVarWhenGeneratingLocals", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &apos;var&apos; preferences:.
+        /// </summary>
+        internal static string VarGroupTitle {
+            get {
+                return ResourceManager.GetString("VarGroupTitle", resourceCulture);
             }
         }
         

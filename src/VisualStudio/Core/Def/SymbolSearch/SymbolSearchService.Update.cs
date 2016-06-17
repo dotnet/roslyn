@@ -17,10 +17,6 @@ using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.Internal.VisualStudio.Shell.Interop;
 using Roslyn.Utilities;
 using static System.FormattableString;
-using Microsoft.CodeAnalysis;
-using Microsoft.CodeAnalysis.Shared.Options;
-using System.Linq;
-using System.Collections.Immutable;
 
 namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 {
@@ -44,8 +40,6 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         private const string MicrosoftAssemblyReferencesName = "MicrosoftAssemblyReferences";
         private static readonly LinkedList<string> s_log = new LinkedList<string>();
 
-        private readonly int _dataFormatVersion = AddReferenceDatabase.TextFileFormatVersion;
-
         /// <summary>
         /// Cancellation support for the task we use to keep the local database up to date.
         /// When VS shuts down it will dispose us.  We'll cancel the task at that point.
@@ -53,13 +47,8 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly CancellationToken _cancellationToken;
 
-        private readonly Workspace _workspace;
-
         private readonly ConcurrentDictionary<string, object> _sourceToUpdateSentinel =
             new ConcurrentDictionary<string, object>();
-
-        private readonly DirectoryInfo _cacheDirectoryInfo;
-        //private readonly FileInfo _databaseFileInfo;
 
         // Interfaces that abstract out the external functionality we need.  Used so we can easily
         // mock behavior during tests.
@@ -70,44 +59,13 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
         private readonly IRemoteControlService _remoteControlService;
         private readonly IPatchService _patchService;
         private readonly IDatabaseFactoryService _databaseFactoryService;
+        private readonly string _localSettingsDirectory;
         private readonly Func<Exception, bool> _reportAndSwallowException;
-
-        public void Dispose()
-        {
-            // Cancel any existing work.
-            _cancellationTokenSource.Cancel();
-        }
 
         private void LogInfo(string text) => _logService.LogInfo(text);
 
         private void LogException(Exception e, string text) => _logService.LogException(e, text);
 
-        private void OnOptionChanged(object sender, EventArgs e)
-        {
-            var options = _workspace.Options;
-            if (!options.GetOption(AddImportOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.CSharp) &&
-                !options.GetOption(AddImportOptions.SuggestForTypesInReferenceAssemblies, LanguageNames.VisualBasic) &&
-                !options.GetOption(AddImportOptions.SuggestForTypesInNuGetPackages, LanguageNames.CSharp) &&
-                !options.GetOption(AddImportOptions.SuggestForTypesInNuGetPackages, LanguageNames.VisualBasic))
-            {
-                // If we don't have any add-import features that would use these indices, then
-                // don't bother creating them.
-                return;
-            }
-
-            // Kick off a database update.  Wait a few seconds before starting so we don't
-            // interfere too much with solution loading.
-            var sources = _installerService.PackageSources;
-
-            // Always pull down the nuget.org index.  It contains the MS reference assembly index
-            // inside of it.
-            var allSources = sources.Concat(new PackageSource(NugetOrgSource, source: null));
-            foreach (var source in allSources)
-            {
-                Task.Delay(TimeSpan.FromSeconds(10)).ContinueWith(_ =>
-                    UpdateSourceInBackgroundAsync(source.Name), TaskScheduler.Default);
-            }
-        }
 
         // internal for testing purposes.
         internal Task UpdateSourceInBackgroundAsync(string source)
@@ -125,23 +83,26 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
             // We were the first ones to try to update this source.  Spawn off a task to do
             // the updating.
-            return new Updater(this, source).UpdateInBackgroundAsync();
+            return new Updater(this, source, _localSettingsDirectory).UpdateInBackgroundAsync();
         }
 
         private class Updater
         {
             private readonly SymbolSearchService _service;
             private readonly string _source;
+            private readonly DirectoryInfo _cacheDirectoryInfo;
             private readonly FileInfo _databaseFileInfo;
 
-            public Updater(SymbolSearchService service, string source)
+            public Updater(SymbolSearchService service, string source, string localSettingsDirectory)
             {
                 _service = service;
                 _source = source;
 
-                var fileName = ConvertToFileName(source);
+                _cacheDirectoryInfo = new DirectoryInfo(Path.Combine(
+                    localSettingsDirectory, "PackageCache", string.Format(Invariant($"Format{AddReferenceDatabase.TextFileFormatVersion}"))));
+
                 _databaseFileInfo = new FileInfo(
-                    Path.Combine(_service._cacheDirectoryInfo.FullName, fileName + ".txt"));
+                    Path.Combine(_cacheDirectoryInfo.FullName, ConvertToFileName(source) + ".txt"));
             }
 
             /// <summary>
@@ -254,12 +215,12 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 _service.LogInfo("Cleaning cache directory");
 
                 // (intentionally not wrapped in IOUtilities.  If this throws we want to restart).
-                if (!_service._ioService.Exists(_service._cacheDirectoryInfo))
+                if (!_service._ioService.Exists(_cacheDirectoryInfo))
                 {
                     _service.LogInfo("Creating cache directory");
 
                     // (intentionally not wrapped in IOUtilities.  If this throws we want to restart).
-                    _service._ioService.Create(_service._cacheDirectoryInfo);
+                    _service._ioService.Create(_cacheDirectoryInfo);
                     _service.LogInfo("Cache directory created");
                 }
 
@@ -268,7 +229,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
 
             private async Task<TimeSpan> DownloadFullDatabaseAsync()
             {
-                var serverPath = Invariant($"Elfie_V{_service._dataFormatVersion}/Latest.xml");
+                var serverPath = Invariant($"Elfie_V{AddReferenceDatabase.TextFileFormatVersion}/Latest.xml");
 
                 _service.LogInfo($"Downloading and processing full database: {serverPath}");
 
@@ -332,7 +293,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                     () =>
                     {
                         var guidString = Guid.NewGuid().ToString();
-                        var tempFilePath = Path.Combine(_service._cacheDirectoryInfo.FullName, guidString + ".tmp");
+                        var tempFilePath = Path.Combine(_cacheDirectoryInfo.FullName, guidString + ".tmp");
 
                         _service.LogInfo($"Temp file path: {tempFilePath}");
 
@@ -402,7 +363,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
                 var databaseVersion = database.DatabaseVersion;
 
                 // Now attempt to download and apply patch file.
-                var serverPath = Invariant($"Elfie_V{_service._dataFormatVersion}/{database.DatabaseVersion}_Patch.xml");
+                var serverPath = Invariant($"Elfie_V{AddReferenceDatabase.TextFileFormatVersion}/{database.DatabaseVersion}_Patch.xml");
 
                 _service.LogInfo("Downloading and processing patch file: " + serverPath);
 
@@ -424,7 +385,7 @@ namespace Microsoft.VisualStudio.LanguageServices.SymbolSearch
             private AddReferenceDatabase CreateAndSetInMemoryDatabase(byte[] bytes)
             {
                 var database = CreateDatabaseFromBytes(bytes);
-                _service._sourceToDatabase[_source] = database;
+                _service._sourceToDatabase[_source] = new AddReferenceDatabaseWrapper(database);
                 return database;
             }
 

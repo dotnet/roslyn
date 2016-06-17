@@ -45,10 +45,15 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
+        protected override LocalFunctionSymbol LookupLocalFunction(SyntaxToken nameToken)
+        {
+            return null;
+        }
+
         internal override bool IsAccessibleHelper(Symbol symbol, TypeSymbol accessThroughType, out bool failedThroughTypeCheck, ref HashSet<DiagnosticInfo> useSiteDiagnostics, ConsList<Symbol> basesBeingResolved)
         {
             failedThroughTypeCheck = false;
-            return this.IsSymbolAccessibleConditional(symbol, Compilation.Assembly, ref useSiteDiagnostics);
+            return IsSymbolAccessibleConditional(symbol, Compilation.Assembly, ref useSiteDiagnostics);
         }
 
         internal override ConstantFieldsInProgress ConstantFieldsInProgress
@@ -149,12 +154,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             return null;
         }
 
-        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode node)
+        internal override ImmutableArray<LocalSymbol> GetDeclaredLocalsForScope(CSharpSyntaxNode scopeDesignator)
         {
             throw ExceptionUtilities.Unreachable;
         }
 
-        internal override BoundSwitchStatement BindSwitchExpressionAndSections(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
+        internal override ImmutableArray<LocalFunctionSymbol> GetDeclaredLocalFunctionsForScope(CSharpSyntaxNode scopeDesignator)
+        {
+            throw ExceptionUtilities.Unreachable;
+        }
+
+        internal override BoundStatement BindSwitchExpressionAndSections(SwitchStatementSyntax node, Binder originalBinder, DiagnosticBag diagnostics)
         {
             // There's supposed to be a SwitchBinder (or other overrider of this method) in the chain.
             throw ExceptionUtilities.Unreachable;
@@ -194,24 +204,6 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             // There's supposed to be a LockBinder (or other overrider of this method) in the chain.
             throw ExceptionUtilities.Unreachable;
-        }
-
-        internal override ImmutableArray<LocalSymbol> Locals
-        {
-            get
-            {
-                // There's supposed to be a LocalScopeBinder (or other overrider of this method) in the chain.
-                throw ExceptionUtilities.Unreachable;
-            }
-        }
-
-        internal override ImmutableArray<LabelSymbol> Labels
-        {
-            get
-            {
-                // There's supposed to be a LocalScopeBinder (or other overrider of this method) in the chain.
-                throw ExceptionUtilities.Unreachable;
-            }
         }
 
         internal override ImmutableHashSet<Symbol> LockedOrDisposedVariables

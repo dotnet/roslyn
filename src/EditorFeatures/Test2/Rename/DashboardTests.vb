@@ -579,7 +579,7 @@ class D : B
                     Next
                 End If
 
-                workspace.Services.GetService(Of IOptionService)().SetOptions(optionSet)
+                workspace.Options = optionSet
 
                 Dim sessionInfo = renameService.StartInlineSession(
                     document, document.GetSyntaxTreeAsync().Result.GetRoot().FindToken(cursorPosition).Span, CancellationToken.None)

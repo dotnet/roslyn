@@ -131,6 +131,8 @@
     <Compile Include="ObjectBrowser\VisualBasicSyncClassViewCommandHandler.vb" />
     <Compile Include="Options\AdvancedOptionPageStrings.vb" />
     <Compile Include="Options\AutomationObject.vb" />
+    <Compile Include="Options\Formatting\CodeStylePage.vb" />
+    <Compile Include="Options\NamingStylesOptionPage.vb" />
     <Compile Include="Options\VisualBasicLanguageSettingsSerializer.vb" />
     <Compile Include="Options\VisualBasicSettingsManagerOptionSerializer.vb" />
     <Compile Include="Options\StyleOptionPage.vb" />
@@ -188,7 +190,6 @@
     <Reference Include="Microsoft.VisualStudio.ComponentModelHost, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>false</Private>
     </Reference>
-    <Reference Include="Microsoft.VisualStudio.GraphModel, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
@@ -226,6 +227,10 @@
       <SubType>Designer</SubType>
       <Generator>MSBuild:Compile</Generator>
     </Page>
+    <Page Include="Options\IntelliSenseOptionPageControl.xaml">
+      <Generator>MSBuild:Compile</Generator>
+      <SubType>Designer</SubType>
+    </Page>
   </ItemGroup>
   <ItemGroup>
     <Folder Include="My Project\" />
@@ -234,6 +239,11 @@
     <None Include="project.json" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Options\IntelliSenseOptionPage.vb" />
+    <Compile Include="Options\IntelliSenseOptionPageControl.xaml.vb">
+      <DependentUpon>IntelliSenseOptionPageControl.xaml</DependentUpon>
+    </Compile>
+    <Compile Include="Options\IntelliSenseOptionPageStrings.vb" />
     <Content Include="VisualBasicPackageRegistration.pkgdef" />
   </ItemGroup>
   <ImportGroup Label="Targets">

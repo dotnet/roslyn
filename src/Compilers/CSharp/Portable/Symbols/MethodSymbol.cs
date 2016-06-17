@@ -163,6 +163,16 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public abstract bool IsAsync { get; }
 
         /// <summary>
+        /// Indicates whether or not the method returns by reference
+        /// </summary>
+        public bool ReturnsByRef { get { return this.RefKind != RefKind.None; } }
+
+        /// <summary>
+        /// Gets the ref kind of the method's return value
+        /// </summary>
+        internal abstract RefKind RefKind { get; }
+
+        /// <summary>
         /// Gets the return type of the method
         /// </summary>
         public abstract TypeSymbol ReturnType { get; }
@@ -475,6 +485,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 case MethodKind.DelegateInvoke:
                 case MethodKind.EventAdd:
                 case MethodKind.EventRemove:
+                case MethodKind.LocalFunction:
                 case MethodKind.UserDefinedOperator:
                 case MethodKind.Ordinary:
                 case MethodKind.PropertyGet:
@@ -996,6 +1007,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         return MethodKind.ReducedExtension;
                     case MethodKind.StaticConstructor:
                         return MethodKind.StaticConstructor;
+                    case MethodKind.LocalFunction:
+                        return MethodKind.LocalFunction;
                     default:
                         throw ExceptionUtilities.UnexpectedValue(this.MethodKind);
                 }
@@ -1180,12 +1193,34 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         #endregion
 
+        /// <summary>
+        /// Is this a method of a tuple type?
+        /// </summary>
+        public virtual bool IsTupleMethod
+        {
+            get
+            {
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// If this is a method of a tuple type, return corresponding underlying method from the
+        /// tuple underlying type. Otherwise, null. 
+        /// </summary>
+        public virtual MethodSymbol TupleUnderlyingMethod
+        {
+            get
+            {
+                return null;
+            }
+        }
+
         #region IMethodSymbolInternal
 
-        int IMethodSymbolInternal.CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree)
-        {
-            return CalculateLocalSyntaxOffset(localPosition, localTree);
-        }
+        bool IMethodSymbolInternal.IsIterator => IsIterator;
+
+        int IMethodSymbolInternal.CalculateLocalSyntaxOffset(int localPosition, SyntaxTree localTree) => CalculateLocalSyntaxOffset(localPosition, localTree);
 
         #endregion
 

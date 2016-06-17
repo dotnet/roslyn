@@ -17,6 +17,7 @@
     <TargetFrameworkProfile>Profile7</TargetFrameworkProfile>
     <TargetFrameworkIdentifier>.NETPortable</TargetFrameworkIdentifier>
     <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <ServiceablePackage>true</ServiceablePackage>
   </PropertyGroup>
   <ItemGroup Label="Project References">
     <ProjectReference Include="..\..\..\Compilers\Core\Portable\CodeAnalysis.csproj">
@@ -41,14 +42,23 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\Collections\ImmutableArrayExtensions.cs">
       <Link>InternalUtilities\ImmutableArrayExtensions.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\Collections\OrderPreservingMultiDictionary.cs">
+      <Link>Utilities\CompilerUtilities\OrderPreservingMultiDictionary.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\Collections\PooledStringBuilder.cs">
       <Link>Collections\PooledStringBuilder.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\CorLightup.cs">
       <Link>InternalUtilities\CorLightup.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\AnalyzerAssemblyLoader.cs">
+      <Link>InternalUtilities\AnalyzerAssemblyLoader.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\RelativePathResolver.cs">
       <Link>InternalUtilities\RelativePathResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\AssemblyIdentityUtils.cs">
+      <Link>InternalUtilities\AssemblyIdentityUtils.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\BitArithmeticUtilities.cs">
       <Link>InternalUtilities\BitArithmeticUtilities.cs</Link>
@@ -265,8 +275,9 @@
     <InternalsVisibleTo Include="Microsoft.VisualStudio.InteractiveServices" />
     <InternalsVisibleTo Include="Roslyn.VisualStudio.Setup" />
     <InternalsVisibleTo Include="Microsoft.VisualStudio.VisualBasic.Repl" />
+    <InternalsVisibleTo Include="Roslyn.VisualStudio.DiagnosticsWindow" />
     <InternalsVisibleToTest Include="Microsoft.CodeAnalysis.Editor.UI.Wpf" />
-    <InternalsVisibleToTest Include="Roslyn.Hosting.Diagnostics" />
+    <InternalsVisibleTo Include="Roslyn.Hosting.Diagnostics" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.Services.Editor.UnitTests2" />
@@ -278,14 +289,20 @@
     <InternalsVisibleToTest Include="Roslyn.Test.Utilities.Desktop" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.CSharp.UnitTests" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Closed.UnitTests" />
-    <InternalsVisibleToTest Include="Roslyn.VisualStudio.DiagnosticsWindow" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Setup" />
+    <InternalsVisibleToTest Include="Roslyn.VisualStudio.Test.Utilities" />
     <InternalsVisibleToTest Include="Roslyn.VisualStudio.Services.UnitTests" />
     <InternalsVisibleToTest Include="RoslynETAHost" />
     <InternalsVisibleToTest Include="RoslynTaoActions" />
+    <InternalsVisibleToTypeScript Include="Microsoft.CodeAnalysis.TypeScript.EditorFeatures" />
+    <InternalsVisibleToTypeScript Include="Microsoft.VisualStudio.LanguageServices.TypeScript" />
+    <InternalsVisibleToTypeScript Include="Roslyn.Services.Editor.TypeScript.UnitTests" />
     <InternalsVisibleToMoq Include="DynamicProxyGenAssembly2" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\..\..\Compilers\Core\Portable\UnicodeCharacterUtilities.cs">
+      <Link>Shared\UnicodeCharacterUtilities.cs</Link>
+    </Compile>
     <Compile Include="CaseCorrection\AbstractCaseCorrectionService.cs" />
     <Compile Include="CaseCorrection\CaseCorrector.cs" />
     <Compile Include="CaseCorrection\ICaseCorrectionService.cs" />
@@ -334,50 +351,57 @@
     <Compile Include="CodeGeneration\CodeGenerationOptions.cs" />
     <Compile Include="CodeGeneration\CodeGenerationSymbolFactory.cs" />
     <Compile Include="CodeGeneration\CodeGenerator.cs" />
+    <Compile Include="CodeStyle\CodeStyleOptions.cs" />
+    <Compile Include="CodeStyle\NotificationOption.cs" />
+    <Compile Include="CodeStyle\CodeStyleOption.cs" />
     <Compile Include="Diagnostics\DiagnosticData.cs" />
     <Compile Include="Diagnostics\DiagnosticProvider.cs" />
     <Compile Include="Diagnostics\Extensions.cs" />
     <Compile Include="Diagnostics\InternalDiagnosticsOptions.cs" />
     <Compile Include="Diagnostics\InternalRuntimeDiagnosticOptions.cs" />
     <Compile Include="Execution\ExecutionHostingService.cs" />
-    <Compile Include="Execution\ExportHostSpecificServiceFactoryAttribute.cs" />
     <Compile Include="Execution\ExportHostSpecificServiceAttribute.cs" />
+    <Compile Include="Execution\ExportHostSpecificServiceFactoryAttribute.cs" />
     <Compile Include="Execution\Extensions.cs" />
+    <Compile Include="Execution\HostKinds.cs" />
     <Compile Include="Execution\HostSpecificServiceMetadata.cs" />
     <Compile Include="Execution\HostSpecificServices.cs" />
     <Compile Include="Execution\IExecutionHostingService.cs" />
     <Compile Include="Execution\IHostSpecificService.cs" />
     <Compile Include="Execution\IHostSpecificServiceFactory.cs" />
     <Compile Include="Execution\MefHostSpecificServices.cs" />
+    <Compile Include="Execution\Serialization\AbstractReferenceSerializationService.cs" />
+    <Compile Include="Execution\Serialization\Asset.cs" />
     <Compile Include="Execution\Serialization\AssetBuilder.cs" />
     <Compile Include="Execution\Serialization\Checksum.cs" />
+    <Compile Include="Execution\Serialization\ChecksumObject.cs" />
     <Compile Include="Execution\Serialization\Checksum_Factory.cs" />
     <Compile Include="Execution\Serialization\HierarchicalChecksumObject.cs" />
-    <Compile Include="Execution\Serialization\AbstractReferenceSerializationService.cs" />
-    <Compile Include="Execution\Serialization\ReferenceSerializationServiceFactory.cs" />
-    <Compile Include="Execution\Serialization\IReferenceSerializationService.cs" />
     <Compile Include="Execution\Serialization\ILanguageSpecificSerializationService.cs" />
+    <Compile Include="Execution\Serialization\IReferenceSerializationService.cs" />
+    <Compile Include="Execution\Serialization\ISolutionSnapshotService.cs" />
     <Compile Include="Execution\Serialization\LanguageSpecificSerializationService.cs" />
     <Compile Include="Execution\Serialization\PooledList.cs" />
+    <Compile Include="Execution\Serialization\ReferenceSerializationServiceFactory.cs" />
+    <Compile Include="Execution\Serialization\Serializer.cs" />
     <Compile Include="Execution\Serialization\Serializer_Asset.cs" />
     <Compile Include="Execution\Serialization\Serializer_HierarchicalChecksumObject.cs" />
     <Compile Include="Execution\Serialization\SnapshotBuilder.cs" />
-    <Compile Include="Execution\Serialization\Serializer.cs" />
-    <Compile Include="Execution\Serialization\Asset.cs" />
-    <Compile Include="Execution\Serialization\ChecksumObject.cs" />
-    <Compile Include="Execution\Serialization\ISolutionSnapshotService.cs" />
+    <Compile Include="Execution\Serialization\SnapshotIds.cs" />
     <Compile Include="Execution\Serialization\SnapshotInfo.cs" />
     <Compile Include="Execution\Serialization\SnapshotStorage.cs" />
     <Compile Include="Execution\Serialization\SnapshotStream.cs" />
     <Compile Include="Execution\Serialization\SolutionSnapshotService.cs" />
-    <Compile Include="Execution\Serialization\SnapshotIds.cs" />
-    <Compile Include="Execution\HostKinds.cs" />
+    <Compile Include="FindSymbols\SyntaxTree\IDeclarationInfo.cs" />
+    <Compile Include="LanguageServices\SyntaxFactsService\AbstractSyntaxFactsService.cs" />
     <Compile Include="Remote\CompilationFactoryService.cs" />
     <Compile Include="Remote\ICompilationFactoryService.cs" />
     <Compile Include="SolutionCrawler\ExportIncrementalAnalyzerProviderAttribute.cs" />
     <Compile Include="SolutionCrawler\IIncrementalAnalyzer.cs" />
     <Compile Include="SolutionCrawler\IIncrementalAnalyzerProvider.cs" />
     <Compile Include="SolutionCrawler\IncrementalAnalyzerProviderMetadata.cs" />
+    <Compile Include="SolutionCrawler\InvocationReasons.cs" />
+    <Compile Include="SolutionCrawler\InvocationReasons_Constants.cs" />
     <Compile Include="SolutionCrawler\ISolutionCrawlerRegistrationService.cs" />
     <Compile Include="Diagnostics\IWorkspaceVenusSpanMappingService.cs" />
     <Compile Include="Diagnostics\WellKnownDiagnosticPropertyNames.cs" />
@@ -436,12 +460,38 @@
     <Compile Include="ExtensionManager\IErrorReportingService.cs" />
     <Compile Include="FindSymbols\DeclaredSymbolInfo.cs" />
     <Compile Include="FindSymbols\FindReferences\Finders\ILanguageServiceReferenceFinder.cs" />
+    <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo_Metadata.cs" />
+    <Compile Include="FindSymbols\SymbolTree\SymbolTreeInfo_Source.cs" />
     <Compile Include="LinkedFileDiffMerging\LinkedFileDiffMergingLogger.cs" />
+    <Compile Include="Options\DocumentOptionSet.cs" />
+    <Compile Include="Options\OptionSet.cs" />
     <Compile Include="Packaging\IPackageInstallerService.cs" />
+    <Compile Include="SolutionCrawler\PredefinedInvocationReasons.cs" />
+    <Compile Include="SymbolId\SymbolKey.ComparisonOptions.cs" />
+    <Compile Include="SymbolId\SymbolKey.SymbolKeyComparer.cs" />
+    <Compile Include="SymbolId\SymbolKey.PropertySymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.TypeParameterOrdinalSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.TypeParameterSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.ErrorTypeSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.MethodSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.TupleTypeSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.BodyLevelSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.NamedTypeSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.AliasSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.EventSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.NamespaceSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.PointerTypeSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.ParameterSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.ModuleSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.AssemblySymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.FieldSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.DynamicTypeSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.ArrayTypeSymbolKey.cs" />
+    <Compile Include="SymbolId\SymbolKey.SymbolKeyWriter.cs" />
+    <Compile Include="SymbolId\SymbolKey.cs" />
     <Compile Include="SymbolSearch\ISymbolSearchService.cs" />
     <Compile Include="FindSymbols\SymbolTree\ISymbolTreeInfoCacheService.cs" />
     <Compile Include="FindSymbols\FindReferences\MetadataUnifyingEquivalenceComparer.cs" />
-    <Compile Include="SymbolId\SymbolId.cs" />
     <Compile Include="Shared\Utilities\IProgressTracker.cs" />
     <Compile Include="SolutionCrawler\NullSolutionCrawlerRegisterationService.cs" />
     <Compile Include="SolutionCrawler\WellKnownSolutionCrawlerAnalyzers.cs" />
@@ -482,8 +532,11 @@
     <Compile Include="Utilities\BKTree.Edge.cs" />
     <Compile Include="Utilities\BKTree.Node.cs" />
     <Compile Include="Utilities\BKTree.Serialization.cs" />
+    <Compile Include="Utilities\CompilerUtilities\CompilerPathUtilities.cs" />
     <Compile Include="Utilities\ForegroundThreadDataKind.cs" />
     <Compile Include="Utilities\IReadOnlyDictionaryExtensions.cs" />
+    <Compile Include="Utilities\IReadOnlyListExtensions.cs" />
+    <Compile Include="Utilities\ParameterName.cs" />
     <Compile Include="Utilities\SpellChecker.cs" />
     <Compile Include="Utilities\StringEscapeEncoder.cs" />
     <Compile Include="Utilities\ValuesSources\CachedWeakValueSource.cs" />
@@ -695,7 +748,7 @@
     <Compile Include="Options\OptionChangedEventArgs.cs" />
     <Compile Include="Options\OptionKey.cs" />
     <Compile Include="Options\OptionService.cs" />
-    <Compile Include="Options\OptionSet.cs" />
+    <Compile Include="Options\WorkspaceOptionSet.cs" />
     <Compile Include="Options\OptionsServiceFactory.cs" />
     <Compile Include="Options\PerLanguageOption.cs" />
     <Compile Include="Options\Providers\ExportOptionProviderAttribute.cs" />
@@ -831,32 +884,10 @@
     <Compile Include="Simplification\AliasAnnotation.cs" />
     <Compile Include="Simplification\ISimplificationService.cs" />
     <Compile Include="Simplification\SimplificationHelpers.cs" />
-    <Compile Include="Simplification\SimplificationOption.cs" />
+    <Compile Include="Simplification\SimplificationOptions.cs" />
     <Compile Include="Simplification\Simplifier.cs" />
     <Compile Include="Simplification\SpecialTypeAnnotation.cs" />
     <Compile Include="Simplification\SymbolAnnotation.cs" />
-    <Compile Include="SymbolId\SymbolKey.AbstractSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.ArrayTypeSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.AssemblySymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.BodyLevelSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.ComparisonOptions.cs" />
-    <Compile Include="SymbolId\SymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.DynamicTypeSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.ErrorTypeSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.EventSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.FieldSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.MethodSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.MethodTypeParameterSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.ModuleSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.NamedTypeSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.NamespaceSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.NullSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.ParameterSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.PointerTypeSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.PropertySymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.SymbolKeyComparer.cs" />
-    <Compile Include="SymbolId\SymbolKey.TypeParameterSymbolKey.cs" />
-    <Compile Include="SymbolId\SymbolKey.Visitor.cs" />
     <Compile Include="SymbolId\SymbolKeyExtensions.cs" />
     <Compile Include="SymbolId\SymbolKeyResolution.cs" />
     <Compile Include="SymbolId\SymbolKeyResolutionExtensions.cs" />
@@ -912,11 +943,11 @@
     <Compile Include="Workspace\Host\TaskScheduler\WorkspaceTaskSchedulerFactory.cs" />
     <Compile Include="Workspace\Host\TaskScheduler\WorkspaceTaskSchedulerFactory.WorkspaceTaskQueue.cs" />
     <Compile Include="Workspace\Host\TaskScheduler\WorkspaceTaskSchedulerFactoryFactory.cs" />
-    <Compile Include="Workspace\Host\TemporaryStorage\ITemporaryStorageService2.cs" />
     <Compile Include="Workspace\Host\TemporaryStorage\ISupportDirectMemoryAccess.cs" />
     <Compile Include="Workspace\Host\TemporaryStorage\ITemporaryStorage.cs" />
     <Compile Include="Workspace\Host\TemporaryStorage\ITemporaryStorage2.cs" />
     <Compile Include="Workspace\Host\TemporaryStorage\ITemporaryStorageService.cs" />
+    <Compile Include="Workspace\Host\TemporaryStorage\ITemporaryStorageService2.cs" />
     <Compile Include="Workspace\Host\TemporaryStorage\TrivialTemporaryStorageService.cs" />
     <Compile Include="Workspace\Host\TextFactory\ITextFactoryService.cs" />
     <Compile Include="Workspace\Host\HostWorkspaceServices.cs" />
@@ -1021,6 +1052,7 @@
       </SubType>
     </None>
     <Compile Include="Utilities\BKTree.Builder.cs" />
+    <Compile Include="SymbolId\SymbolKey.SymbolKeyReader.cs" />
     <PublicAPI Include="PublicAPI.Shipped.txt" />
     <PublicAPI Include="PublicAPI.Unshipped.txt" />
   </ItemGroup>

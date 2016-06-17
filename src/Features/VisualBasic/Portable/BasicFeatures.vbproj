@@ -114,8 +114,10 @@
     <Compile Include="CodeFixes\IncorrectFunctionReturnType\IncorrectFunctionReturnTypeCodeFixProvider.vb" />
     <Compile Include="CodeFixes\MoveToTopOfFile\MoveToTopOfFileCodeFixProvider.MoveToLineCodeAction.vb" />
     <Compile Include="CodeFixes\MoveToTopOfFile\MoveToTopOfFileCodeFixProvider.vb" />
+    <Compile Include="CodeFixes\NamingStyles\VisualBasicNamingStyleCodeFixProvider.vb" />
     <Compile Include="CodeFixes\OverloadBase\OverloadBaseCodeFixProvider.AddOverloads.vb" />
     <Compile Include="CodeFixes\OverloadBase\OverloadBaseCodeFixProvider.vb" />
+    <Compile Include="CodeFixes\QualifyMemberAccess\VisualBasicQualifyMemberAccessCodeFixProvider.vb" />
     <Compile Include="CodeFixes\RemoveUnnecessaryCast\RemoveUnnecessaryCastCodeFixProvider.RemoveUnnecessaryCastFixAllProvider.vb" />
     <Compile Include="CodeFixes\RemoveUnnecessaryCast\RemoveUnnecessaryCastCodeFixProvider.Rewriter.vb" />
     <Compile Include="CodeFixes\RemoveUnnecessaryCast\RemoveUnnecessaryCastCodeFixProvider.vb" />
@@ -124,12 +126,13 @@
     <Compile Include="CodeFixes\SimplifyTypeNames\SimplifyTypeNamesCodeFixProvider.vb" />
     <Compile Include="CodeFixes\Spellcheck\VisualBasicSpellCheckCodeFixProvider.vb" />
     <Compile Include="CodeFixes\Suppression\VisualBasicSuppressionCodeFixProvider.vb" />
+    <Compile Include="CodeRefactorings\ConvertToInterpolatedString\ConvertToInterpolatedStringRefactoringProvider.vb" />
     <Compile Include="CodeRefactorings\EncapsulateField\EncapsulateFieldRefactoringProvider.vb" />
     <Compile Include="CodeRefactorings\ExtractInterface\ExtractInterfaceCodeRefactoringProvider.vb" />
     <Compile Include="CodeRefactorings\ExtractMethod\ExtractMethodCodeActionProvider.vb" />
     <Compile Include="CodeRefactorings\GenerateDefaultConstructors\GenerateDefaultConstructorsCodeActionProvider.vb" />
     <Compile Include="CodeRefactorings\GenerateFromMembers\AddConstructorParameters\AddConstructorParametersCodeRefactoringProvider.vb" />
-    <Compile Include="CodeRefactorings\GenerateFromMembers\GenerateConstructor\GenerateConstructorCodeRefactoringProvider.vb" />
+    <Compile Include="CodeRefactorings\GenerateFromMembers\GenerateConstructorFromMembers\GenerateConstructorFromMembersCodeRefactoringProvider.vb" />
     <Compile Include="CodeRefactorings\GenerateFromMembers\GenerateEqualsAndGetHashCode\GenerateEqualsAndGetHashCodeCodeRefactoringProvider.vb" />
     <Compile Include="CodeRefactorings\InlineTemporary\InlineTemporaryCodeRefactoringProvider.ReferenceRewriter.vb" />
     <Compile Include="CodeRefactorings\InlineTemporary\InlineTemporaryCodeRefactoringProvider.vb" />
@@ -295,6 +298,8 @@
     <Compile Include="Completion\KeywordRecommenders\Statements\YieldKeywordRecommender.vb" />
     <Compile Include="Completion\KeywordRecommenders\Types\BuiltInTypesKeywordRecommender.vb" />
     <Compile Include="Completion\VisualBasicCompletionService.vb" />
+    <Compile Include="Diagnostics\Analyzers\VisualBasicQualifyMemberAccessDiagnosticAnalyzer.vb" />
+    <Compile Include="Diagnostics\Analyzers\VisualBasicNamingStyleDiagnosticAnalyzer.vb" />
     <Compile Include="Diagnostics\Analyzers\VisualBasicUnboundIdentifiersDiagnosticAnalyzer.vb" />
     <Compile Include="Diagnostics\Analyzers\VisualBasicRemoveUnnecessaryCastDiagnosticAnalyzer.vb" />
     <Compile Include="Diagnostics\Analyzers\VisualBasicRemoveUnnecessaryImportsDiagnosticAnalyzer.vb" />
@@ -327,7 +332,7 @@
     <Compile Include="ExtractMethod\VisualBasicSyntaxTriviaService.vb" />
     <Compile Include="ExtractMethod\VisualBasicSyntaxTriviaServiceFactory.vb" />
     <Compile Include="GenerateFromMembers\AddConstructorParameters\VisualBasicAddConstructorParametersService.vb" />
-    <Compile Include="GenerateFromMembers\GenerateConstructor\VisualBasicGenerateConstructorService.vb" />
+    <Compile Include="GenerateFromMembers\GenerateConstructorFromMembers\VisualBasicGenerateConstructorFromMembersService.vb" />
     <Compile Include="GenerateFromMembers\GenerateEqualsAndGetHashCode\VisualBasicGenerateEqualsAndGetHashCodeService.vb" />
     <Compile Include="GenerateFromMembers\GenerateFromMembersHelpers.vb" />
     <Compile Include="GenerateMember\GenerateConstructor\VisualBasicGenerateConstructorService.vb" />
@@ -363,6 +368,7 @@
     <Compile Include="RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsService.Rewriter.vb" />
     <Compile Include="RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsService.vb" />
     <Compile Include="RemoveUnnecessaryImports\VisualBasicRemoveUnnecessaryImportsService.Visitor.vb" />
+    <Compile Include="ReplacePropertyWithMethods\VisualBasicReplacePropertyWithMethods.vb" />
     <Compile Include="SignatureHelp\AbstractIntrinsicOperatorSignatureHelpProvider.vb" />
     <Compile Include="SignatureHelp\AbstractSignatureHelpProvider.vb" />
     <Compile Include="SignatureHelp\AddRemoveHandlerSignatureHelpProvider.vb" />

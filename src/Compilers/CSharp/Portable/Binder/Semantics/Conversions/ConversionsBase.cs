@@ -7,6 +7,7 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Text;
 using System.Collections.Generic;
 using Roslyn.Utilities;
+using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -29,6 +30,8 @@ namespace Microsoft.CodeAnalysis.CSharp
         public abstract Conversion GetMethodGroupConversion(BoundMethodGroup source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
 
         protected abstract Conversion GetInterpolatedStringConversion(BoundInterpolatedString source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
+
+        protected abstract bool HasImplicitTupleLiteralConversion(BoundExpression source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics);
 
         /// <summary>
         /// Attempt a quick classification of builtin conversions.  As result of "no conversion"
@@ -281,6 +284,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                     case ConversionKind.PointerToVoid:
                         return Conversion.PointerToPointer;
 
+                    case ConversionKind.ImplicitTuple:
+                        // only implicit tuple conversions are standard conversions, 
+                        // having implicit conversion in the other direction does not help here.
+                        return Conversion.NoConversion;
+
                     default:
                         throw ExceptionUtilities.UnexpectedValue(conversion.Kind);
                 }
@@ -351,7 +359,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return Conversion.ImplicitNumeric;
             }
 
-            if (HasImplicitNullableConversion(source, destination))
+            if (HasImplicitNullableConversion(source, destination, ref useSiteDiagnostics))
             {
                 return Conversion.ImplicitNullable;
             }
@@ -369,6 +377,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (HasImplicitPointerConversion(source, destination))
             {
                 return Conversion.PointerToVoid;
+            }
+
+            if (HasImplicitTupleConversion(source, destination, ref useSiteDiagnostics))
+            {
+                return Conversion.ImplicitTuple;
             }
 
             return Conversion.NoConversion;
@@ -867,13 +880,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             return false;
         }
 
-        private static bool HasImplicitNullableConversion(TypeSymbol source, TypeSymbol destination)
+        private bool HasImplicitNullableConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             Debug.Assert((object)source != null);
             Debug.Assert((object)destination != null);
 
             // SPEC: Predefined implicit conversions that operate on non-nullable value types can also be used with 
-            // SPEC: nullable forms of those types. For each of the predefined implicit identity and numeric conversions
+            // SPEC: nullable forms of those types. For each of the predefined implicit identity, numeric and tuple conversions
             // SPEC: that convert from a non-nullable value type S to a non-nullable value type T, the following implicit 
             // SPEC: nullable conversions exist:
             // SPEC: * An implicit conversion from S? to T?.
@@ -901,7 +914,36 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return true;
             }
 
+            if (HasImplicitTupleConversion(unwrappedSource, unwrappedDestination, ref useSiteDiagnostics))
+            {
+                return true;
+            }
+
             return false;
+        }
+
+        private bool HasImplicitTupleConversion(TypeSymbol source, TypeSymbol destination, ref HashSet<DiagnosticInfo> useSiteDiagnostics)
+        {
+            ImmutableArray<TypeSymbol> sourceTypes;
+            ImmutableArray<TypeSymbol> destTypes;
+
+            if (!source.TryGetElementTypesIfTupleOrCompatible(out sourceTypes) ||
+                !destination.TryGetElementTypesIfTupleOrCompatible(out destTypes) ||
+                sourceTypes.Length != destTypes.Length)
+            {
+                return false;
+            }
+
+            for (int i = 0; i < sourceTypes.Length; i++)
+            {
+                var conversion = ClassifyImplicitConversion(sourceTypes[i], destTypes[i], ref useSiteDiagnostics);
+                if (!conversion.Exists)
+                {
+                    return false;
+                }
+            }
+
+            return true;
         }
 
         private static bool HasExplicitNullableConversion(TypeSymbol source, TypeSymbol destination)

@@ -3,13 +3,17 @@
 Imports System.Collections.Immutable
 Imports System.Composition
 Imports System.Reflection
+Imports System.Xml.Linq
 Imports Microsoft.CodeAnalysis
+Imports Microsoft.CodeAnalysis.CodeStyle
+Imports Microsoft.CodeAnalysis.Completion
 Imports Microsoft.CodeAnalysis.Editor.Shared.Options
 Imports Microsoft.CodeAnalysis.ExtractMethod
 Imports Microsoft.CodeAnalysis.Formatting
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Shared.Options
 Imports Microsoft.CodeAnalysis.Simplification
+Imports Microsoft.CodeAnalysis.VisualBasic.Completion
 Imports Microsoft.VisualStudio.LanguageServices.Implementation
 Imports Microsoft.VisualStudio.LanguageServices.Implementation.Options
 Imports Microsoft.VisualStudio.Shell
@@ -18,11 +22,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
     <ExportLanguageSpecificOptionSerializer(
         LanguageNames.VisualBasic,
         AddImportOptions.FeatureName,
-        SimplificationOptions.PerLanguageFeatureName,
+        CodeStyleOptions.PerLanguageCodeStyleOption,
+        CompletionOptions.FeatureName,
         ExtractMethodOptions.FeatureName,
         FeatureOnOffOptions.OptionName,
-        ServiceFeatureOnOffOptions.OptionName,
         FormattingOptions.InternalTabFeatureName,
+        ServiceFeatureOnOffOptions.OptionName,
+        SimplificationOptions.PerLanguageFeatureName,
         VisualStudioNavigationOptions.FeatureName), [Shared]>
     Friend NotInheritable Class VisualBasicSettingsManagerOptionSerializer
         Inherits AbstractSettingsManagerOptionSerializer
@@ -31,6 +37,11 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public Sub New(serviceProvider As SVsServiceProvider, importedOptionService As IOptionService)
             MyBase.New(serviceProvider, importedOptionService)
         End Sub
+
+        Private Const Style_QualifyFieldAccess As String = NameOf(AutomationObject.Style_QualifyFieldAccess)
+        Private Const Style_QualifyPropertyAccess As String = NameOf(AutomationObject.Style_QualifyPropertyAccess)
+        Private Const Style_QualifyMethodAccess As String = NameOf(AutomationObject.Style_QualifyMethodAccess)
+        Private Const Style_QualifyEventAccess As String = NameOf(AutomationObject.Style_QualifyEventAccess)
 
         Protected Overrides Function CreateStorageKeyToOptionMap() As ImmutableDictionary(Of String, IOption)
             Dim Result As ImmutableDictionary(Of String, IOption).Builder = ImmutableDictionary.Create(Of String, IOption)(StringComparer.OrdinalIgnoreCase).ToBuilder()
@@ -48,11 +59,13 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             Dim Types As Type() = {
                 GetType(AddImportOptions),
+                GetType(CompletionOptions),
                 GetType(FormattingOptions),
                 GetType(ExtractMethodOptions),
                 GetType(SimplificationOptions),
                 GetType(ServiceFeatureOnOffOptions),
-                GetType(VisualStudioNavigationOptions)}
+                GetType(VisualStudioNavigationOptions),
+                GetType(CodeStyleOptions)}
 
             Dim Flags As BindingFlags = BindingFlags.Public Or BindingFlags.Static
             Result.AddRange(AbstractSettingsManagerOptionSerializer.GetOptionInfoFromTypeFields(Types, Flags, AddressOf GetOptionInfo))
@@ -73,24 +86,29 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         End Property
 
         Protected Overrides Function SupportsOption([option] As IOption, languageName As String) As Boolean
-            If languageName = LanguageNames.VisualBasic Then
+            If [option].Name = CompletionOptions.EnterKeyBehavior.Name Then
+                Return True
+
+            ElseIf languageName = LanguageNames.VisualBasic Then
                 If [option].Feature = FeatureOnOffOptions.OptionName Then
-                    Return [option].Name = FeatureOnOffOptions.PrettyListing.Name Or
-                           [option].Name = FeatureOnOffOptions.LineSeparator.Name Or
-                           [option].Name = FeatureOnOffOptions.Outlining.Name Or
-                           [option].Name = FeatureOnOffOptions.ReferenceHighlighting.Name Or
-                           [option].Name = FeatureOnOffOptions.KeywordHighlighting.Name Or
-                           [option].Name = FeatureOnOffOptions.RenameTrackingPreview.Name Or
-                           [option].Name = FeatureOnOffOptions.EndConstruct.Name Or
-                           [option].Name = FeatureOnOffOptions.AutoXmlDocCommentGeneration.Name Or
+                    Return [option].Name = FeatureOnOffOptions.PrettyListing.Name OrElse
+                           [option].Name = FeatureOnOffOptions.LineSeparator.Name OrElse
+                           [option].Name = FeatureOnOffOptions.Outlining.Name OrElse
+                           [option].Name = FeatureOnOffOptions.ReferenceHighlighting.Name OrElse
+                           [option].Name = FeatureOnOffOptions.KeywordHighlighting.Name OrElse
+                           [option].Name = FeatureOnOffOptions.RenameTrackingPreview.Name OrElse
+                           [option].Name = FeatureOnOffOptions.EndConstruct.Name OrElse
+                           [option].Name = FeatureOnOffOptions.AutoXmlDocCommentGeneration.Name OrElse
                            [option].Name = FeatureOnOffOptions.AutomaticInsertionOfAbstractOrInterfaceMembers.Name
                 End If
 
-                Return [option].Feature = FormattingOptions.InternalTabFeatureName Or
-                       [option].Feature = AddImportOptions.FeatureName Or
-                       [option].Feature = ExtractMethodOptions.FeatureName Or
-                       [option].Feature = SimplificationOptions.PerLanguageFeatureName Or
-                       [option].Feature = ServiceFeatureOnOffOptions.OptionName Or
+                Return [option].Feature = FormattingOptions.InternalTabFeatureName OrElse
+                       [option].Feature = AddImportOptions.FeatureName OrElse
+                       [option].Feature = CodeStyleOptions.PerLanguageCodeStyleOption OrElse
+                       [option].Feature = CompletionOptions.FeatureName OrElse
+                       [option].Feature = ExtractMethodOptions.FeatureName OrElse
+                       [option].Feature = SimplificationOptions.PerLanguageFeatureName OrElse
+                       [option].Feature = ServiceFeatureOnOffOptions.OptionName OrElse
                        [option].Feature = VisualStudioNavigationOptions.FeatureName
             End If
 
@@ -125,5 +143,83 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
             Return MyBase.GetStorageKeyForOption(key)
         End Function
+
+        Public Overrides Function TryFetch(optionKey As OptionKey, ByRef value As Object) As Boolean
+            If Me.Manager Is Nothing Then
+                Debug.Fail("Manager is unexpectedly Nothing")
+                Return False
+            End If
+
+            ' code style use Me.
+            If optionKey.Option Is CodeStyleOptions.QualifyFieldAccess Then
+                Return FetchStyleBool(Style_QualifyFieldAccess, value)
+            ElseIf optionKey.Option Is CodeStyleOptions.QualifyPropertyAccess Then
+                Return FetchStyleBool(Style_QualifyPropertyAccess, value)
+            ElseIf optionKey.Option Is CodeStyleOptions.QualifyMethodAccess Then
+                Return FetchStyleBool(Style_QualifyMethodAccess, value)
+            ElseIf optionKey.Option Is CodeStyleOptions.QualifyEventAccess Then
+                Return FetchStyleBool(Style_QualifyEventAccess, value)
+            End If
+
+            If optionKey.Option Is CompletionOptions.EnterKeyBehavior Then
+                Return FetchEnterKeyBehavior(optionKey, value)
+            End If
+
+            Return MyBase.TryFetch(optionKey, value)
+        End Function
+
+        Private Function FetchEnterKeyBehavior(optionKey As OptionKey, ByRef value As Object) As Boolean
+            If MyBase.TryFetch(optionKey, value) Then
+                If value.Equals(EnterKeyRule.Default) Then
+                    value = EnterKeyRule.Always
+                End If
+
+                Return True
+            End If
+
+            Return False
+        End Function
+
+        Public Overrides Function TryPersist(optionKey As OptionKey, value As Object) As Boolean
+            If Me.Manager Is Nothing Then
+                Debug.Fail("Manager is unexpectedly Nothing")
+                Return False
+            End If
+
+            ' code style use Me.
+            If optionKey.Option Is CodeStyleOptions.QualifyFieldAccess Then
+                Return PersistStyleOption(Of Boolean)(Style_QualifyFieldAccess, value)
+            ElseIf optionKey.Option Is CodeStyleOptions.QualifyPropertyAccess Then
+                Return PersistStyleOption(Of Boolean)(Style_QualifyPropertyAccess, value)
+            ElseIf optionKey.Option Is CodeStyleOptions.QualifyMethodAccess Then
+                Return PersistStyleOption(Of Boolean)(Style_QualifyMethodAccess, value)
+            ElseIf optionKey.Option Is CodeStyleOptions.QualifyEventAccess Then
+                Return PersistStyleOption(Of Boolean)(Style_QualifyEventAccess, value)
+            End If
+
+            Return MyBase.TryPersist(optionKey, value)
+        End Function
+
+        Private Function FetchStyleBool(settingName As String, ByRef value As Object) As Boolean
+            Dim typeStyleValue = Manager.GetValueOrDefault(Of String)(settingName)
+            Return FetchStyleOption(Of Boolean)(typeStyleValue, value)
+        End Function
+
+        Private Shared Function FetchStyleOption(Of T)(typeStyleOptionValue As String, ByRef value As Object) As Boolean
+            If String.IsNullOrEmpty(typeStyleOptionValue) Then
+                value = CodeStyleOption(Of T).Default
+            Else
+                value = CodeStyleOption(Of T).FromXElement(XElement.Parse(typeStyleOptionValue))
+            End If
+
+            Return True
+        End Function
+
+        Private Function PersistStyleOption(Of T)([option] As String, value As Object) As Boolean
+            Dim serializedValue = CType(value, CodeStyleOption(Of T)).ToXElement().ToString()
+            Me.Manager.SetValueAsync([option], value:=serializedValue, isMachineLocal:=False)
+            Return True
+        End Function
+
     End Class
 End Namespace

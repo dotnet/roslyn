@@ -4,6 +4,7 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.CodeFixes.GenerateMethod;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Roslyn.Test.Utilities;
 using Xunit;
@@ -23,6 +24,34 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.GenerateMet
             await TestAsync(
 @"class Class { void Method() { [|Foo|](); } }",
 @"using System; class Class { void Method() { Foo(); } private void Foo() { throw new NotImplementedException(); } }");
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        [WorkItem(11518, "https://github.com/dotnet/roslyn/issues/11518")]
+        public async Task NameMatchesNamespaceName()
+        {
+            await TestAsync(
+@"namespace N {
+    class Class {
+        void Method() {
+            [|N|]();
+        }
+    }
+}",
+@"
+using System;
+
+namespace N {
+    class Class {
+        void Method() {
+            N();
+        }
+
+        private void N() {
+            throw new NotImplementedException();
+        }
+    }
+}");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
@@ -867,8 +896,25 @@ index: 0);
         public async Task TestUnmentionableTypeParameter7()
         {
             await TestAsync(
-@"class H < T > { void A ( T t1 ) { t1 = [|Foo < T >|] ( t1 ) ; } } ",
-@"using System; class H < T > { void A ( T t1 ) { t1 = Foo < T > ( t1 ) ; } private T Foo < T1 > ( T t1 ) { throw new NotImplementedException ( ) ; } } ");
+@"class H < T >
+{
+    void A ( T t1 )
+    {
+        t1 = [|Foo < T >|] ( t1 ) ;
+    }
+} ",
+@"using System;
+class H < T >
+{
+    void A ( T t1 )
+    {
+        t1 = Foo < T > ( t1 ) ;
+    }
+    private T1 Foo < T1 > ( T1 t1 )
+    {
+        throw new NotImplementedException ( ) ;
+    }
+} ");
         }
 
         [WorkItem(539593, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/539593")]
@@ -1006,8 +1052,19 @@ parseOptions: GetScriptOptions());
         public async Task TestLambdaReturnType()
         {
             await TestAsync(
-@"using System ; class C < T , R > { private static Func < T , R > g = null ; private static Func < T , R > f = ( T ) => { return [|Foo < T , R >|] ( g ) ; } ; } ",
-@"using System ; class C < T , R > { private static Func < T , R > g = null ; private static Func < T , R > f = ( T ) => { return Foo < T , R > ( g ) ; } ; private static R Foo < T1 , T2 > ( Func < T , R > g ) { throw new NotImplementedException ( ) ; } } ");
+@"using System ;
+class C < T , R > 
+{
+    private static Func < T , R > g = null ;
+    private static Func < T , R > f = ( T ) => { return [|Foo < T , R >|] ( g ) ; } ;
+} ",
+@"using System ;
+class C < T , R >
+{
+    private static Func < T , R > g = null ;
+    private static Func < T , R > f = ( T ) => { return Foo < T , R > ( g ) ; } ;
+    private static T2 Foo < T1 , T2 > ( Func < T1 , T2 > g ) { throw new NotImplementedException ( ) ; }
+} ");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
@@ -2879,84 +2936,106 @@ class Program
 }");
         }
 
-        public class GenerateConversionTest : AbstractCSharpDiagnosticProviderBasedUserDiagnosticTest
+        [WorkItem(10004, "https://github.com/dotnet/roslyn/issues/10004")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task TestGenerateMethodWithMultipleOfSameGenericType()
         {
-            internal override Tuple<DiagnosticAnalyzer, CodeFixProvider> CreateDiagnosticProviderAndFixer(Workspace workspace)
-            {
-                return new Tuple<DiagnosticAnalyzer, CodeFixProvider>(null, new GenerateConversionCodeFixProvider());
-            }
+            await TestAsync(
+@"using System;
 
-            [WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
+public class C
+{
+}
+
+public static class Ex
+{
+    public static T M1<T>(this T t) where T : C
+    {
+        return [|t.M<T, T>()|];
+    }
+}
+",
+@"using System;
+
+public class C
+{
+    internal T2 M<T1, T2>()
+        where T1 : C
+        where T2 : C
+    {
+    }
+}
+
+public static class Ex
+{
+    public static T M1<T>(this T t) where T : C
+    {
+        return t.M<T, T>();
+    }
+}
+");
+        }
+
+        [WorkItem(11141, "https://github.com/dotnet/roslyn/issues/11141")]
+        [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
+        public async Task InferTypeParameters1()
+        {
+            await TestAsync(
+@"using System;
+
+class C
+{
+    void M()
+    {
+        List<int> list = null;
+        int i = [|First<int>(list)|];
+    }
+}",
+@"using System;
+
+class C
+{
+    void M()
+    {
+        List<int> list = null;
+        int i = First<int>(list);
+    }
+
+    private T First<T>(List<T> list)
+    {
+        throw new NotImplementedException();
+    }
+}");
+        }
+
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-            public async Task TestGenerateImplicitConversionGenericClass()
+            public async Task MethodWithTuple()
             {
                 await TestAsync(
-    @"class Program { void Test ( int [ ] a ) { C < int > x1 = [|1|] ; } } class C < T > { } ",
-    @"using System ; class Program { void Test ( int [ ] a ) { C < int > x1 = 1 ; } } class C < T > { public static implicit operator C < T > ( int v ) { throw new NotImplementedException ( ) ; } } ");
+@"class Class { void Method() { (int, string) d = [|NewMethod|]((1, ""hello"")); } }",
+@"using System; class Class { void Method() { (int, string) d = NewMethod((1, ""hello"")); } private (int, string) NewMethod((int, string) p) { throw new NotImplementedException(); } }",
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
             }
 
-            [WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-            public async Task TestGenerateImplicitConversionClass()
+        public async Task MethodWithTupleWithNames()
             {
                 await TestAsync(
-    @"class Program { void Test ( int [ ] a ) { C x1 = [|1|] ; } } class C { } ",
-    @"using System ; class Program { void Test ( int [ ] a ) { C x1 = 1 ; } } class C { public static implicit operator C ( int v ) { throw new NotImplementedException ( ) ; } } ");
+@"class Class { void Method() { (int a, string b) d = [|NewMethod|]((c: 1, d: ""hello"")); } }",
+@"using System; class Class { void Method() { (int a, string b) d = NewMethod((c: 1, d: ""hello"")); } private (int a, string b) NewMethod((int c, string d) p) { throw new NotImplementedException(); } }",
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
             }
 
-            [WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
             [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-            public async Task TestGenerateImplicitConversionAwaitExpression()
+        public async Task MethodWithTupleWithOneName()
             {
                 await TestAsync(
-    @"using System ; using System . Threading . Tasks ; class Program { async void Test ( ) { var a = Task . FromResult ( 1 ) ; Program x1 = [|await a|] ; } } ",
-    @"using System ; using System . Threading . Tasks ; class Program { async void Test ( ) { var a = Task . FromResult ( 1 ) ; Program x1 = await a ; } public static implicit operator Program ( int v ) { throw new NotImplementedException ( ) ; } } ");
-            }
-
-            [WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-            public async Task TestGenerateImplicitConversionTargetTypeNotInSource()
-            {
-                await TestAsync(
-    @"class Digit { public Digit ( double d ) { val = d ; } public double val ; } class Program { static void Main ( string [ ] args ) { Digit dig = new Digit ( 7 ) ; double num = [|dig|] ; } } ",
-    @"using System ; class Digit { public Digit ( double d ) { val = d ; } public double val ; public static implicit operator double ( Digit v ) { throw new NotImplementedException ( ) ; } } class Program { static void Main ( string [ ] args ) { Digit dig = new Digit ( 7 ) ; double num = dig ; } } ");
-            }
-
-            [WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-            public async Task TestGenerateExplicitConversionGenericClass()
-            {
-                await TestAsync(
-    @"class Program { void Test ( int [ ] a ) { C < int > x1 = [|( C < int > ) 1|] ; } } class C < T > { } ",
-    @"using System ; class Program { void Test ( int [ ] a ) { C < int > x1 = ( C < int > ) 1 ; } } class C < T > { public static explicit operator C < T > ( int v ) { throw new NotImplementedException ( ) ; } } ");
-            }
-
-            [WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-            public async Task TestGenerateExplicitConversionClass()
-            {
-                await TestAsync(
-    @"class Program { void Test ( int [ ] a ) { C x1 = [|( C ) 1|] ; } } class C { } ",
-    @"using System ; class Program { void Test ( int [ ] a ) { C x1 = ( C ) 1 ; } } class C { public static explicit operator C ( int v ) { throw new NotImplementedException ( ) ; } } ");
-            }
-
-            [WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-            public async Task TestGenerateExplicitConversionAwaitExpression()
-            {
-                await TestAsync(
-    @"using System ; using System . Threading . Tasks ; class Program { async void Test ( ) { var a = Task . FromResult ( 1 ) ; Program x1 = [|( Program ) await a|] ; } } ",
-    @"using System ; using System . Threading . Tasks ; class Program { async void Test ( ) { var a = Task . FromResult ( 1 ) ; Program x1 = ( Program ) await a ; } public static explicit operator Program ( int v ) { throw new NotImplementedException ( ) ; } } ");
-            }
-
-            [WorkItem(774321, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/774321")]
-            [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)]
-            public async Task TestGenerateExplicitConversionTargetTypeNotInSource()
-            {
-                await TestAsync(
-    @"class Digit { public Digit ( double d ) { val = d ; } public double val ; } class Program { static void Main ( string [ ] args ) { Digit dig = new Digit ( 7 ) ; double num = [|( double ) dig|] ; } } ",
-    @"using System ; class Digit { public Digit ( double d ) { val = d ; } public double val ; public static explicit operator double ( Digit v ) { throw new NotImplementedException ( ) ; } } class Program { static void Main ( string [ ] args ) { Digit dig = new Digit ( 7 ) ; double num = ( double ) dig ; } } ");
-            }
+@"class Class { void Method() { (int a, string) d = [|NewMethod|]((c: 1, ""hello"")); } }",
+@"using System; class Class { void Method() { (int a, string) d = NewMethod((c: 1, ""hello"")); } private (int a, string Item2) NewMethod((int c, string Item2) p) { throw new NotImplementedException(); } }",
+parseOptions: TestOptions.Regular.WithTuplesFeature(),
+withScriptOption: true);
         }
     }
 }

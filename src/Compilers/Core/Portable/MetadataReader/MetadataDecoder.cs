@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection.Metadata;
 using System.Runtime.InteropServices;
 using Roslyn.Utilities;
@@ -504,9 +505,13 @@ namespace Microsoft.CodeAnalysis
 
             if (tokenType == HandleKind.AssemblyReference)
             {
-                // TODO: Can refer to the containing assembly?
                 isNoPiaLocalType = false;
-                return LookupTopLevelTypeDefSymbol(Module.GetAssemblyReferenceIndexOrThrow((AssemblyReferenceHandle)tokenResolutionScope), ref fullName);
+                var assemblyRef = (AssemblyReferenceHandle)tokenResolutionScope;
+                if (assemblyRef.IsNil)
+                {
+                    throw new BadImageFormatException();
+                }
+                return LookupTopLevelTypeDefSymbol(Module.GetAssemblyReferenceIndexOrThrow(assemblyRef), ref fullName);
             }
 
             if (tokenType == HandleKind.ModuleReference)
@@ -928,7 +933,7 @@ namespace Microsoft.CodeAnalysis
             }
         }
 
-        private ConstantValue DecodePrimitiveConstantValue(ref BlobReader sigReader, SignatureTypeCode typeCode, out bool isEnumTypeCode)
+        private static ConstantValue DecodePrimitiveConstantValue(ref BlobReader sigReader, SignatureTypeCode typeCode, out bool isEnumTypeCode)
         {
             switch (typeCode)
             {
@@ -1028,12 +1033,7 @@ namespace Microsoft.CodeAnalysis
                     localInfo = ImmutableArray<LocalInfo<TypeSymbol>>.Empty;
                 }
             }
-            catch (UnsupportedSignatureContent)
-            {
-                localInfo = ImmutableArray<LocalInfo<TypeSymbol>>.Empty;
-                return false;
-            }
-            catch (BadImageFormatException)
+            catch (Exception e) when (e is UnsupportedSignatureContent || e is BadImageFormatException || e is IOException)
             {
                 localInfo = ImmutableArray<LocalInfo<TypeSymbol>>.Empty;
                 return false;
@@ -1052,7 +1052,7 @@ namespace Microsoft.CodeAnalysis
                 throw new UnsupportedSignatureContent();
             }
 
-            fixed (byte* ptr = ImmutableArrayInterop.DangerousGetUnderlyingArray(signature))
+            fixed (byte* ptr = ImmutableByteArrayInterop.DangerousGetUnderlyingArray(signature))
             {
                 var blobReader = new BlobReader(ptr, signature.Length);
                 var info = DecodeLocalVariableOrThrow(ref blobReader);
@@ -1122,7 +1122,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         // MetaImport::DecodeMethodSignature
-        internal ParamInfo<TypeSymbol>[] GetSignatureForMethod(MethodDefinitionHandle methodDef, out SignatureHeader signatureHeader, out BadImageFormatException metadataException, bool setParamHandles = true)
+        internal ParamInfo<TypeSymbol>[] GetSignatureForMethod(MethodDefinitionHandle methodDef, out SignatureHeader signatureHeader, out BadImageFormatException metadataException, bool allowByRefReturn, bool setParamHandles = true)
         {
             ParamInfo<TypeSymbol>[] paramInfo = null;
             signatureHeader = default(SignatureHeader);
@@ -1133,7 +1133,7 @@ namespace Microsoft.CodeAnalysis
                 BlobReader signatureReader = DecodeSignatureHeaderOrThrow(signature, out signatureHeader);
 
                 int typeParameterCount; //CONSIDER: expose to caller?
-                paramInfo = DecodeSignatureParametersOrThrow(ref signatureReader, signatureHeader, out typeParameterCount);
+                paramInfo = DecodeSignatureParametersOrThrow(ref signatureReader, signatureHeader, out typeParameterCount, allowByRefReturn);
 
                 if (setParamHandles)
                 {
@@ -1180,7 +1180,7 @@ namespace Microsoft.CodeAnalysis
             GetSignatureCountsOrThrow(ref signatureReader, signatureHeader, out parameterCount, out typeParameterCount);
         }
 
-        internal ParamInfo<TypeSymbol>[] GetSignatureForProperty(PropertyDefinitionHandle handle, out SignatureHeader signatureHeader, out BadImageFormatException BadImageFormatException)
+        internal ParamInfo<TypeSymbol>[] GetSignatureForProperty(PropertyDefinitionHandle handle, out SignatureHeader signatureHeader, out BadImageFormatException BadImageFormatException, bool allowByRefReturn)
         {
             ParamInfo<TypeSymbol>[] paramInfo = null;
             signatureHeader = default(SignatureHeader);
@@ -1191,7 +1191,7 @@ namespace Microsoft.CodeAnalysis
                 BlobReader signatureReader = DecodeSignatureHeaderOrThrow(signature, out signatureHeader);
 
                 int typeParameterCount; //CONSIDER: expose to caller?
-                paramInfo = DecodeSignatureParametersOrThrow(ref signatureReader, signatureHeader, out typeParameterCount);
+                paramInfo = DecodeSignatureParametersOrThrow(ref signatureReader, signatureHeader, out typeParameterCount, allowByRefReturn);
                 BadImageFormatException = null;
             }
             catch (BadImageFormatException mrEx)
@@ -1776,7 +1776,7 @@ namespace Microsoft.CodeAnalysis
         }
 
         /// <exception cref="BadImageFormatException">An exception from metadata reader.</exception>
-        protected ParamInfo<TypeSymbol>[] DecodeSignatureParametersOrThrow(ref BlobReader signatureReader, SignatureHeader signatureHeader, out int typeParameterCount)
+        protected ParamInfo<TypeSymbol>[] DecodeSignatureParametersOrThrow(ref BlobReader signatureReader, SignatureHeader signatureHeader, out int typeParameterCount, bool allowByRefReturn)
         {
             int paramCount;
             GetSignatureCountsOrThrow(ref signatureReader, signatureHeader, out paramCount, out typeParameterCount);
@@ -1810,7 +1810,7 @@ namespace Microsoft.CodeAnalysis
                 }
             }
 
-            if (paramInfo[0].IsByRef)
+            if (paramInfo[0].IsByRef && !allowByRefReturn)
             {
                 paramInfo[0].IsByRef = false; // Info reflected in the error type.
                 paramInfo[0].Type = GetByRefReturnTypeSymbol(paramInfo[0].Type, paramInfo[0].CountOfCustomModifiersPrecedingByRef);

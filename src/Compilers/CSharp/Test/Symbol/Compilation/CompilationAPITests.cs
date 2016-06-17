@@ -27,6 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class CompilationAPITests : CSharpTestBase
     {
         [WorkItem(8360, "https://github.com/dotnet/roslyn/issues/8360")]
+        [WorkItem(9153, "https://github.com/dotnet/roslyn/issues/9153")]
         [Fact]
         public void PublicSignWithRelativeKeyPath()
         {
@@ -34,10 +35,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
                 .WithPublicSign(true).WithCryptoKeyFile("test.snk");
             var comp = CSharpCompilation.Create("test", options: options);
             comp.VerifyDiagnostics(
-    // error CS7088: Invalid 'CryptoKeyFile' value: 'test.snk'.
-    Diagnostic(ErrorCode.ERR_BadCompilationOptionValue).WithArguments("CryptoKeyFile", "test.snk").WithLocation(1, 1),
-    // error CS8102: Public signing was specified and requires a public key, but no public key was specified.
-    Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1));
+                // error CS7104: Option 'CryptoKeyFile' must be an absolute path.
+                Diagnostic(ErrorCode.ERR_OptionMustBeAbsolutePath).WithArguments("CryptoKeyFile").WithLocation(1, 1),
+                // error CS8102: Public signing was specified and requires a public key, but no public key was specified.
+                Diagnostic(ErrorCode.ERR_PublicSignButNoKey).WithLocation(1, 1)
+            );
         }
 
         [Fact]
@@ -432,24 +434,99 @@ namespace A.B {
             comp = CSharpCompilation.Create("APP2",
              options: TestOptions.ReleaseDll,
              syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(
-                    "extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}"
-                    ) },
+                    "extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}",
+                    options: TestOptions.Regular.WithTuplesFeature()) },
+             references: new MetadataReference[] { MscorlibRef, mtref }
+             );
+
+            comp.VerifyDiagnostics(
+    // (1,19): error CS1002: ; expected
+    // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+    Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(1, 19),
+    // (1,20): error CS1031: Type expected
+    // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+    Diagnostic(ErrorCode.ERR_TypeExpected, "*").WithLocation(1, 20),
+    // (1,21): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
+    // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+    Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 21),
+    // (1,61): error CS1026: ) expected
+    // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+    Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 61),
+    // (1,14): error CS0430: The extern alias 'Alias' was not specified in a /reference option
+    // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+    Diagnostic(ErrorCode.ERR_BadExternAlias, "Alias").WithArguments("Alias").WithLocation(1, 14),
+    // (1,1): hidden CS8020: Unused extern alias.
+    // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+    Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias Alias").WithLocation(1, 1)
+
+                );
+        }
+
+        [Fact, WorkItem(530131, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/530131")]
+        public void MetadataReferenceWithInvalidAliasWithCSharp6()
+        {
+            var refcomp = CSharpCompilation.Create("DLL",
+                options: TestOptions.ReleaseDll,
+                syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree("public class C {}", options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)) },
+                references: new MetadataReference[] { MscorlibRef });
+
+            var mtref = refcomp.EmitToImageReference(aliases: ImmutableArray.Create("a", "Alias(*#$@^%*&)"));
+
+            // not use exported type
+            var comp = CSharpCompilation.Create("APP",
+                options: TestOptions.ReleaseDll,
+                syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(
+                    @"class D {}",
+                    options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)) },
+                references: new MetadataReference[] { MscorlibRef, mtref }
+                );
+
+            Assert.Empty(comp.GetDiagnostics());
+
+            // use exported type with partial alias
+            comp = CSharpCompilation.Create("APP1",
+             options: TestOptions.ReleaseDll,
+             syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(
+                    @"extern alias Alias; class D : Alias::C {}",
+                    options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)) },
+             references: new MetadataReference[] { MscorlibRef, mtref }
+             );
+
+            var errs = comp.GetDiagnostics();
+            //  error CS0430: The extern alias 'Alias' was not specified in a /reference option
+            Assert.Equal(430, errs.FirstOrDefault().Code);
+
+            // use exported type with invalid alias
+            comp = CSharpCompilation.Create("APP2",
+             options: TestOptions.ReleaseDll,
+             syntaxTrees: new SyntaxTree[] { SyntaxFactory.ParseSyntaxTree(
+                    "extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}",
+                    options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)) },
              references: new MetadataReference[] { MscorlibRef, mtref }
              );
 
             comp.VerifyDiagnostics(
                 // (1,19): error CS1002: ; expected
-                Diagnostic(ErrorCode.ERR_SemicolonExpected, "("),
-                // (1,19): error CS1022: Type or namespace definition, or end-of-file expected
-                Diagnostic(ErrorCode.ERR_EOFExpected, "("),
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_SemicolonExpected, "(").WithLocation(1, 19),
+                // (1,19): error CS8058: Feature 'tuples' is experimental and unsupported; use '/features:tuples' to enable.
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(*#$@^%*&); class D : Alias(*#$@^%*&).C {}").WithArguments("tuples", "tuples").WithLocation(1, 19),
                 // (1,20): error CS1031: Type expected
-                Diagnostic(ErrorCode.ERR_TypeExpected, "*"),
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_TypeExpected, "*").WithLocation(1, 20),
                 // (1,21): error CS1040: Preprocessor directives must appear as the first non-whitespace character on a line
-                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#"),
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_BadDirectivePlacement, "#").WithLocation(1, 21),
+                // (1,61): error CS1026: ) expected
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_CloseParenExpected, "").WithLocation(1, 61),
                 // (1,14): error CS0430: The extern alias 'Alias' was not specified in a /reference option
-                Diagnostic(ErrorCode.ERR_BadExternAlias, "Alias").WithArguments("Alias"),
-                // (1,1): info CS8020: Unused extern alias.
-                Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias Alias")
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.ERR_BadExternAlias, "Alias").WithArguments("Alias").WithLocation(1, 14),
+                // (1,1): hidden CS8020: Unused extern alias.
+                // extern alias Alias(*#$@^%*&); class D : Alias(*#$@^%*&).C {}
+                Diagnostic(ErrorCode.HDN_UnusedExternAlias, "extern alias Alias").WithLocation(1, 1)
                 );
         }
 
@@ -1405,6 +1482,33 @@ class A
             Assert.Equal("ModuleAssemblyName", compilation.AssemblyName);
             Assert.Equal("ModuleAssemblyName", compilation.Assembly.Name);
             Assert.Equal("ModuleAssemblyName", compilation.Assembly.Identity.Name);
+        }
+
+        [WorkItem(8506, "https://github.com/dotnet/roslyn/issues/8506")]
+        [Fact]
+        public void CrossCorlibSystemObjectReturnType_Script()
+        {
+            // MinAsyncCorlibRef corlib is used since it provides just enough corlib type definitions
+            // and Task APIs necessary for script hosting are provided by MinAsyncRef. This ensures that
+            // `System.Object, mscorlib, Version=4.0.0.0` will not be provided (since it's unversioned).
+            //
+            // In the original bug, Xamarin iOS, Android, and Mac Mobile profile corlibs were
+            // realistic cross-compilation targets.
+            var compilation = CSharpCompilation.CreateScriptCompilation(
+                "submission-assembly",
+                references: new [] { MinAsyncCorlibRef },
+                syntaxTree: Parse("true", options: TestOptions.Script)
+            ).VerifyDiagnostics();
+
+            Assert.True(compilation.IsSubmission);
+
+            var taskOfT = compilation.GetWellKnownType(WellKnownType.System_Threading_Tasks_Task_T);
+            var taskOfObject = taskOfT.Construct(compilation.ObjectType);
+            var entryPoint = compilation.GetEntryPoint(default(CancellationToken));
+
+            Assert.Same(compilation.ObjectType.ContainingAssembly, taskOfT.ContainingAssembly);
+            Assert.Same(compilation.ObjectType.ContainingAssembly, taskOfObject.ContainingAssembly);
+            Assert.Equal(taskOfObject, entryPoint.ReturnType);
         }
 
         [WorkItem(3719, "https://github.com/dotnet/roslyn/issues/3719")]

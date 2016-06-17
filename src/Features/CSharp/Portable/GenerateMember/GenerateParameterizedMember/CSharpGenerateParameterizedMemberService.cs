@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeGeneration;
-using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Symbols;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
@@ -14,7 +13,7 @@ using Microsoft.CodeAnalysis.GenerateMember.GenerateParameterizedMember;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Extensions;
 using Microsoft.CodeAnalysis.Shared.Utilities;
-using Roslyn.Utilities;
+using Microsoft.CodeAnalysis.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
 {
@@ -25,15 +24,13 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
         {
             private readonly InvocationExpressionSyntax _invocationExpression;
 
-            public InvocationExpressionInfo(
-                SemanticDocument document,
-                AbstractGenerateParameterizedMemberService<TService, SimpleNameSyntax, ExpressionSyntax, InvocationExpressionSyntax>.State state)
+            public InvocationExpressionInfo(SemanticDocument document, State state)
                 : base(document, state)
             {
                 _invocationExpression = state.InvocationExpressionOpt;
             }
 
-            protected override IList<string> DetermineParameterNames(CancellationToken cancellationToken)
+            protected override IList<ParameterName> DetermineParameterNames(CancellationToken cancellationToken)
             {
                 return this.Document.SemanticModel.GenerateParameterNames(
                     _invocationExpression.ArgumentList);
@@ -168,6 +165,22 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateMethod
             {
                 var conversion = compilation.ClassifyConversion(sourceType, targetType);
                 return conversion.IsImplicit && conversion.IsReference;
+            }
+
+            protected override IList<ITypeSymbol> DetermineTypeArguments(CancellationToken cancellationToken)
+            {
+                var result = new List<ITypeSymbol>();
+
+                if (State.SimpleNameOpt is GenericNameSyntax)
+                {
+                    foreach (var typeArgument in ((GenericNameSyntax)State.SimpleNameOpt).TypeArgumentList.Arguments)
+                    {
+                        var type = this.Document.SemanticModel.GetTypeInfo(typeArgument, cancellationToken).Type;
+                        result.Add(type);
+                    }
+                }
+
+                return result;
             }
         }
     }

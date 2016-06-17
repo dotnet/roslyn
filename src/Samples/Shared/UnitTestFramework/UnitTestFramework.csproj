@@ -15,7 +15,7 @@
     <RootNamespace>Roslyn.UnitTestFramework</RootNamespace>
     <AssemblyName>Roslyn.UnitTestFramework</AssemblyName>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\</SolutionDir>
-    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
   </PropertyGroup>
   <ItemGroup Label="File References">
     <ProjectReference Include="..\..\..\..\src\Compilers\Core\Portable\CodeAnalysis.csproj">

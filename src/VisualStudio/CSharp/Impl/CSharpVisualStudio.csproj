@@ -93,12 +93,12 @@
     <Reference Include="Microsoft.VisualStudio.ComponentModelHost, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
       <Private>false</Private>
     </Reference>
-    <Reference Include="Microsoft.VisualStudio.GraphModel, Version=$(VisualStudioReferenceAssemblyVersion), Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a" />
     <Reference Include="PresentationCore" />
     <Reference Include="PresentationFramework" />
     <Reference Include="System" />
     <Reference Include="System.ComponentModel.Composition" />
     <Reference Include="System.Core" />
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xaml" />
     <Reference Include="System.Xml" />
@@ -145,6 +145,7 @@
     <Compile Include="ObjectBrowser\CSharpLibraryService.cs" />
     <Compile Include="ObjectBrowser\CSharpSyncClassViewCommandHandler.cs" />
     <Compile Include="ObjectBrowser\ListItemFactory.cs" />
+    <Compile Include="Options\NamingStylesOptionPage.cs" />
     <Compile Include="Options\AdvancedOptionPageStrings.cs" />
     <Compile Include="Options\IntelliSenseOptionPageStrings.cs" />
     <Compile Include="Venus\CSharpAdditionalFormattingRuleLanguageService.cs" />
@@ -183,7 +184,7 @@
     <Compile Include="Options\Formatting\FormattingSpacingPage.cs" />
     <Compile Include="Options\Formatting\StyleViewModel.cs" />
     <Compile Include="Options\Formatting\WrappingViewModel.cs" />
-    <Compile Include="Options\Formatting\FormattingStylePage.cs" />
+    <Compile Include="Options\Formatting\CodeStylePage.cs" />
     <Compile Include="Options\Formatting\FormattingWrappingPage.cs" />
     <Compile Include="Options\IntelliSenseOptionPage.cs" />
     <Compile Include="Options\IntelliSenseOptionPageControl.xaml.cs">

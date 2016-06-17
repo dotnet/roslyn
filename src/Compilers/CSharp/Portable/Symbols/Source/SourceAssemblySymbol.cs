@@ -352,10 +352,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
         }
 
-        /// <summary>
-        /// Raw assembly version as specified in the AssemblyVersionAttribute, or null if none specified.
-        /// If the string passed to AssemblyVersionAttribute contains * the version build and/or revision numbers are set to <see cref="ushort.MaxValue"/>.
-        /// </summary>
         private Version AssemblyVersionAttributeSetting
         {
             get
@@ -428,11 +424,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// This represents what the user claimed in source through the AssemblyFlagsAttribute.
         /// It may be modified as emitted due to presence or absence of the public key.
         /// </summary>
-        internal AssemblyNameFlags Flags
+        internal AssemblyFlags Flags
         {
             get
             {
-                var defaultValue = default(AssemblyNameFlags);
+                var defaultValue = default(AssemblyFlags);
                 var fieldValue = defaultValue;
 
                 var data = GetSourceDecodedWellKnownAttributeData();
@@ -504,8 +500,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
-            return StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance);
-        }
+                return StrongNameKeys.Create(DeclaringCompilation.Options.StrongNameProvider, keyFile, keyContainer, MessageProvider.Instance);
+            }
 
         // A collection of assemblies to which we were granted internals access by only checking matches for assembly name
         // and ignoring public key. This just acts as a set. The bool is ignored.
@@ -795,6 +791,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                 }
             }
 
+            if (_compilation.Options.PublicSign && (object)this.AssemblyKeyContainerAttributeSetting != (object)CommonAssemblyWellKnownAttributeData.StringMissingValue)
+            {
+                diagnostics.Add(ErrorCode.WRN_AttributeIgnoredWhenPublicSigning, NoLocation.Singleton, AttributeDescription.AssemblyKeyNameAttribute.FullName);
+            }
+
             if (!String.IsNullOrEmpty(_compilation.Options.CryptoKeyFile))
             {
                 string assemblyKeyFileAttributeSetting = this.AssemblyKeyFileAttributeSetting;
@@ -823,6 +824,11 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                         diagnostics.Add(ErrorCode.WRN_CmdOptionConflictsSource, NoLocation.Singleton, "CryptoKeyFile", AttributeDescription.AssemblyKeyFileAttribute.FullName);
                     }
                 }
+            }
+
+            if (_compilation.Options.PublicSign && (object)this.AssemblyKeyFileAttributeSetting != (object)CommonAssemblyWellKnownAttributeData.StringMissingValue)
+            {
+                diagnostics.Add(ErrorCode.WRN_AttributeIgnoredWhenPublicSigning, NoLocation.Singleton, AttributeDescription.AssemblyKeyFileAttribute.FullName);
             }
         }
 
@@ -1433,13 +1439,18 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
 
         internal ImmutableArray<SyntaxList<AttributeListSyntax>> GetAttributeDeclarations()
         {
-            var attrList =
-                from rootNs in DeclaringCompilation.Declarations.AllRootNamespacesUnordered()
-                where rootNs.HasAssemblyAttributes
-                select rootNs.Location.SourceTree into tree
-                orderby _compilation.GetSyntaxTreeOrdinal(tree)
-                select ((CompilationUnitSyntax)tree.GetRoot()).AttributeLists;
-            return attrList.ToImmutableArray();
+            var builder = ArrayBuilder<SyntaxList<AttributeListSyntax>>.GetInstance();
+            var declarations = DeclaringCompilation.MergedRootDeclaration.Declarations;
+            foreach (RootSingleNamespaceDeclaration rootNs in declarations)
+            {
+                if (rootNs.HasAssemblyAttributes)
+                {
+                    var tree = rootNs.Location.SourceTree;
+                    var root = (CompilationUnitSyntax)tree.GetRoot();
+                    builder.Add(root.AttributeLists);
+                }
+            }
+            return builder.ToImmutableAndFree();
         }
 
         private void EnsureAttributesAreBound()
@@ -2181,13 +2192,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.AssemblyInformationalVersionAttribute))
             {
-                Version dummy;
-                string verString = (string)attribute.CommonConstructorArguments[0].Value;
-                if (!VersionHelper.TryParse(verString, version: out dummy))
-                {
-                    Location attributeArgumentSyntaxLocation = attribute.GetAttributeArgumentSyntaxLocation(0, arguments.AttributeSyntaxOpt);
-                    arguments.Diagnostics.Add(ErrorCode.WRN_InvalidVersionFormat, attributeArgumentSyntaxLocation);
-                }
                 arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().AssemblyInformationalVersionAttributeSetting = (string)attribute.CommonConstructorArguments[0].Value;
             }
             else if (attribute.IsTargetAttribute(this, AttributeDescription.SatelliteContractVersionAttribute))
@@ -2213,15 +2217,15 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             else if ((signature = attribute.GetTargetAttributeSignatureIndex(this, AttributeDescription.AssemblyFlagsAttribute)) != -1)
             {
                 object value = attribute.CommonConstructorArguments[0].Value;
-                System.Reflection.AssemblyNameFlags nameFlags;
+                AssemblyFlags nameFlags;
 
                 if (signature == 0 || signature == 1)
                 {
-                    nameFlags = (System.Reflection.AssemblyNameFlags)value;
+                    nameFlags = (AssemblyFlags)(AssemblyNameFlags)value;
                 }
                 else
                 {
-                    nameFlags = (System.Reflection.AssemblyNameFlags)(uint)value;
+                    nameFlags = (AssemblyFlags)(uint)value;
                 }
 
                 arguments.GetOrCreateData<CommonAssemblyWellKnownAttributeData>().AssemblyFlagsAttributeSetting = nameFlags;

@@ -818,6 +818,9 @@
   <data name="ERR_ModuleEmitFailure" xml:space="preserve">
     <value>Failed to emit module '{0}'.</value>
   </data>
+  <data name="ERR_EncUpdateFailedMissingAttribute" xml:space="preserve">
+    <value>Cannot update '{0}'; attribute '{1}' is missing.</value>
+  </data>
   <data name="ERR_OverrideNotNeeded3" xml:space="preserve">
     <value>{0} '{1}' cannot be declared 'Overrides' because it does not override a {0} in a base class.</value>
   </data>
@@ -5337,6 +5340,12 @@
   <data name="FEATURE_ImplementingReadonlyOrWriteonlyPropertyWithReadwrite" xml:space="preserve">
     <value>implementing read-only or write-only property with read-write property</value>
   </data>
+  <data name="FEATURE_DigitSeparators" xml:space="preserve">
+    <value>digit separators</value>
+  </data>
+  <data name="FEATURE_BinaryLiterals" xml:space="preserve">
+    <value>binary literals</value>
+  </data>
   <data name="ERR_DebugEntryPointNotSourceMethodDefinition" xml:space="preserve">
     <value>Debug entry point must be a definition of a method declared in the current compilation.</value>
   </data>
@@ -5351,5 +5360,11 @@
   </data>
   <data name="ERR_PeWritingFailure" xml:space="preserve">
     <value>An error occurred while writing the output file: {0}</value>
+  </data>
+  <data name="TuplesNotSupported" xml:space="preserve">
+    <value>Tuples are not supported in VB.</value>
+  </data>
+  <data name="ERR_OptionMustBeAbsolutePath" xml:space="preserve">
+    <value>Option '{0}' must be an absolute path.</value>
   </data>
 </root>

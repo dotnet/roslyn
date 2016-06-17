@@ -63,7 +63,7 @@ End Class
 
             root = FormatResult("M(a, b), raw", value) ' non - specifier comma
             Assert.Equal("M(a, b), raw", root.FullName)
-            Assert.Equal("(M(a, b)).F", GetChildren(root).Single().FullName) ' parens not required
+            Assert.Equal("M(a, b).F", GetChildren(root).Single().FullName)
 
             root = FormatResult("a, raw1", value) ' alpha - numeric
             Assert.Equal("a, raw1", root.FullName)
@@ -169,8 +169,6 @@ End Class
             Verify(root,
                 EvalResult("Namespace", "{Object}", "Object", "Namespace"))
         End Sub
-
-
 
         <Fact>
         Public Sub MangledNames_CastRequired()

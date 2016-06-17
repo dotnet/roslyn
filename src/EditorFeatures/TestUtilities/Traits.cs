@@ -30,17 +30,20 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsAddConstructorParameters = "CodeActions.AddConstructorParameters";
             public const string CodeActionsAddAsync = "CodeActions.AddAsync";
             public const string CodeActionsAddAwait = "CodeActions.AddAwait";
+            public const string CodeActionsAddBraces = "CodeActions.AddBraces";
             public const string CodeActionsAddImport = "CodeActions.AddImport";
             public const string CodeActionsAddMissingReference = "CodeActions.AddMissingReference";
             public const string CodeActionsAddUsing = "CodeActions.AddUsing";
             public const string CodeActionsChangeToAsync = "CodeActions.ChangeToAsync";
             public const string CodeActionsChangeToIEnumerable = "CodeActions.ChangeToIEnumerable";
             public const string CodeActionsChangeToYield = "CodeActions.ChangeToYield";
+            public const string CodeActionsConvertToInterpolatedString = "CodeActions.ConvertToInterpolatedString";
             public const string CodeActionsConvertToIterator = "CodeActions.CodeActionsConvertToIterator";
             public const string CodeActionsCorrectExitContinue = "CodeActions.CorrectExitContinue";
             public const string CodeActionsCorrectFunctionReturnType = "CodeActions.CorrectFunctionReturnType";
             public const string CodeActionsCorrectNextControlVariable = "CodeActions.CorrectNextControlVariable";
             public const string CodeActionsGenerateConstructor = "CodeActions.GenerateConstructor";
+            public const string CodeActionsGenerateConstructorFromMembers = "CodeActions.GenerateConstructorFromMembers";
             public const string CodeActionsGenerateDefaultConstructors = "CodeActions.GenerateDefaultConstructors";
             public const string CodeActionsGenerateEndConstruct = "CodeActions.GenerateEndConstruct";
             public const string CodeActionsGenerateEnumMember = "CodeActions.GenerateEnumMember";
@@ -66,7 +69,9 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsMoveDeclarationNearReference = "CodeActions.MoveDeclarationNearReference";
             public const string CodeActionsMoveToTopOfFile = "CodeActions.MoveToTopOfFile";
             public const string CodeActionsPopulateSwitch = "CodeActions.PopulateSwitch";
+            public const string CodeActionsQualifyMemberAccess = "CodeActions.QualifyMemberAccess";
             public const string CodeActionsReplaceMethodWithProperty = "CodeActions.ReplaceMethodWithProperty";
+            public const string CodeActionsReplacePropertyWithMethods = "CodeActions.ReplacePropertyWithMethods";
             public const string CodeActionsRemoveByVal = "CodeActions.RemoveByVal";
             public const string CodeActionsRemoveUnnecessaryCast = "CodeActions.RemoveUnnecessaryCast";
             public const string CodeActionsRemoveUnnecessaryImports = "CodeActions.RemoveUnnecessaryImports";
@@ -74,6 +79,8 @@ namespace Roslyn.Test.Utilities
             public const string CodeActionsSpellcheck = "CodeActions.Spellcheck";
             public const string CodeActionsSuppression = "CodeActions.Suppression";
             public const string CodeActionsUseAutoProperty = "CodeActions.UseAutoProperty";
+            public const string CodeActionsUseImplicitType = "CodeActions.UseImplicitType";
+            public const string CodeActionsUseExplicitType = "CodeActions.UseExplicitType";
             public const string CodeGeneration = nameof(CodeGeneration);
             public const string CodeGenerationSortDeclarations = "CodeGeneration.SortDeclarations";
             public const string CodeModel = nameof(CodeModel);
@@ -110,6 +117,7 @@ namespace Roslyn.Test.Utilities
             public const string LineCommit = nameof(LineCommit);
             public const string LineSeparators = nameof(LineSeparators);
             public const string MetadataAsSource = nameof(MetadataAsSource);
+            public const string NamingStyle = nameof(NamingStyle);
             public const string NavigateTo = nameof(NavigateTo);
             public const string NavigationBar = nameof(NavigationBar);
             public const string ObjectBrowser = nameof(ObjectBrowser);
@@ -130,6 +138,7 @@ namespace Roslyn.Test.Utilities
             public const string SmartIndent = nameof(SmartIndent);
             public const string SmartTokenFormatting = nameof(SmartTokenFormatting);
             public const string Snippets = nameof(Snippets);
+            public const string SplitStringLiteral = nameof(SplitStringLiteral);
             public const string TextStructureNavigator = nameof(TextStructureNavigator);
             public const string TodoComments = nameof(TodoComments);
             public const string TypeInferenceService = nameof(TypeInferenceService);

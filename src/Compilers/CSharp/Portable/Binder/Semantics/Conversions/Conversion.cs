@@ -22,6 +22,9 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static readonly Conversion ImplicitNullable = new Conversion(ConversionKind.ImplicitNullable);
         internal static readonly Conversion ImplicitReference = new Conversion(ConversionKind.ImplicitReference);
         internal static readonly Conversion ImplicitEnumeration = new Conversion(ConversionKind.ImplicitEnumeration);
+        internal static readonly Conversion ImplicitTupleLiteral = new Conversion(ConversionKind.ImplicitTupleLiteral);
+        internal static readonly Conversion ImplicitTuple = new Conversion(ConversionKind.ImplicitTuple);
+        internal static readonly Conversion ExplicitTuple = new Conversion(ConversionKind.ExplicitTuple);
         internal static readonly Conversion AnonymousFunction = new Conversion(ConversionKind.AnonymousFunction);
         internal static readonly Conversion Boxing = new Conversion(ConversionKind.Boxing);
         internal static readonly Conversion NullLiteral = new Conversion(ConversionKind.NullLiteral);
@@ -41,9 +44,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal static readonly Conversion InterpolatedString = new Conversion(ConversionKind.InterpolatedString);
 
         private readonly MethodSymbol _methodGroupConversionMethod;
+
         private readonly UserDefinedConversionResult _conversionResult; //no effect on Equals/GetHashCode
 
-        internal readonly ConversionKind Kind;
+        private readonly ConversionKind _kind;
         private readonly byte _flags;
 
         private const byte IsExtensionMethodMask = 1 << 0;
@@ -51,7 +55,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private Conversion(ConversionKind kind, bool isExtensionMethod, bool isArrayIndex, UserDefinedConversionResult conversionResult, MethodSymbol methodGroupConversionMethod)
         {
-            this.Kind = kind;
+            _kind = kind;
             _conversionResult = conversionResult;
             _methodGroupConversionMethod = methodGroupConversionMethod;
 
@@ -65,7 +69,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal Conversion(UserDefinedConversionResult conversionResult, bool isImplicit)
             : this()
         {
-            this.Kind = conversionResult.Kind == UserDefinedConversionResultKind.NoApplicableOperators
+            this._kind = conversionResult.Kind == UserDefinedConversionResultKind.NoApplicableOperators
                 ? ConversionKind.NoConversion
                 : isImplicit ? ConversionKind.ImplicitUserDefined : ConversionKind.ExplicitUserDefined;
             _conversionResult = conversionResult;
@@ -74,7 +78,15 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal Conversion(ConversionKind kind)
             : this()
         {
-            this.Kind = kind;
+            this._kind = kind;
+        }
+
+        internal ConversionKind Kind
+        {
+            get
+            {
+                return _kind;
+            }
         }
 
         internal bool IsExtensionMethod
@@ -103,7 +115,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         internal Conversion(ConversionKind kind, MethodSymbol methodGroupConversionMethod, bool isExtensionMethod)
             : this()
         {
-            this.Kind = kind;
+            this._kind = kind;
             _methodGroupConversionMethod = methodGroupConversionMethod;
             if (isExtensionMethod)
             {
@@ -358,6 +370,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             get
             {
                 return Kind == ConversionKind.MethodGroup;
+            }
+        }
+
+        /// <summary>
+        /// Returns true if the conversion is an implicit tuple conversion.
+        /// </summary>
+        public bool IsTupleLiteral
+        {
+            get
+            {
+                return Kind == ConversionKind.ImplicitTupleLiteral;
             }
         }
 

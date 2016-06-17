@@ -45,8 +45,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
 
         Private ReadOnly _workspace As Workspace
 
-        Public Sub New(workspace As Workspace)
-            MyBase.New(workspace)
+        Public Sub New(workspace As Workspace,
+                       Optional exclusiveProviders As ImmutableArray(Of CompletionProvider) ? = Nothing)
+            MyBase.New(workspace, exclusiveProviders)
             _workspace = workspace
         End Sub
 
@@ -56,16 +57,30 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             End Get
         End Property
 
-        Private Shared s_defaultCompletionRules As CompletionRules =
-            CompletionRules.Create(
-                dismissIfEmpty:=True,
-                dismissIfLastCharacterDeleted:=True,
-                defaultCommitCharacters:=CompletionRules.Default.DefaultCommitCharacters,
-                defaultEnterKeyRule:=EnterKeyRule.Always)
+        Private _latestRules As CompletionRules = CompletionRules.Create(
+                                                      dismissIfEmpty:=True,
+                                                      dismissIfLastCharacterDeleted:=True,
+                                                      defaultCommitCharacters:=CompletionRules.Default.DefaultCommitCharacters,
+                                                      defaultEnterKeyRule:=EnterKeyRule.Always)
 
         Public Overrides Function GetRules() As CompletionRules
-            Return s_defaultCompletionRules
+            Dim options = _workspace.Options
+
+            ' Although EnterKeyBehavior is a per-language setting, the meaning of an unset setting (Default) differs between C# And VB
+            ' In VB the default means Always to maintain previous behavior
+            Dim rule = options.GetOption(CompletionOptions.EnterKeyBehavior, LanguageNames.VisualBasic)
+
+            If rule = EnterKeyRule.Default Then
+                rule = EnterKeyRule.Always
+            End If
+
+            Dim newRules = _latestRules.WithDefaultEnterKeyRule(rule)
+
+            Interlocked.Exchange(_latestRules, newRules)
+
+            Return newRules
         End Function
+
 
         Protected Overrides Function GetBuiltInProviders() As ImmutableArray(Of CompletionProvider)
             Return _completionProviders

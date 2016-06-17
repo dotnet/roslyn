@@ -133,7 +133,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            return document.WithSyntaxRoot(await FormatAsync(root, spans, document.Project.Solution.Workspace, options, rules, cancellationToken).ConfigureAwait(false));
+            return document.WithSyntaxRoot(await FormatAsync(root, spans, document.Project.Solution.Workspace, options ?? document.Options, rules, cancellationToken).ConfigureAwait(false));
         }
 
         /// <summary>
@@ -162,7 +162,7 @@ namespace Microsoft.CodeAnalysis.Formatting
             }
 
             var root = await document.GetSyntaxRootAsync(cancellationToken).ConfigureAwait(false);
-            return document.WithSyntaxRoot(await FormatAsync(root, annotation, document.Project.Solution.Workspace, options, rules, cancellationToken).ConfigureAwait(false));
+            return document.WithSyntaxRoot(await FormatAsync(root, annotation, document.Project.Solution.Workspace, options ?? document.Options, rules, cancellationToken).ConfigureAwait(false));
         }
 
         /// <summary>

@@ -1030,8 +1030,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.UnitTests
                 Return 0
             End Function
 
-            Public Overrides Function ConvertSymbolToString(errorCode As Integer, symbol As ISymbol) As String
-                Return MessageProvider.Instance.ConvertSymbolToString(errorCode, symbol)
+            Public Overrides Function GetErrorDisplayString(symbol As ISymbol) As String
+                Return MessageProvider.Instance.GetErrorDisplayString(symbol)
             End Function
         End Class
 

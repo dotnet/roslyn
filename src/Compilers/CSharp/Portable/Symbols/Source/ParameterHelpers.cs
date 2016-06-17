@@ -18,7 +18,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             BaseParameterListSyntax syntax,
             bool allowRefOrOut,
             out SyntaxToken arglistToken,
-            DiagnosticBag diagnostics)
+            DiagnosticBag diagnostics,
+            bool beStrict)
         {
             arglistToken = default(SyntaxToken);
 
@@ -77,7 +78,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     parameterIndex,
                     (paramsKeyword.Kind() != SyntaxKind.None),
                     parameterIndex == 0 && thisKeyword.Kind() != SyntaxKind.None,
-                    diagnostics);
+                    diagnostics,
+                    beStrict);
 
                 ReportParameterErrors(owner, parameterSyntax, parameter, firstDefault, diagnostics);
 
@@ -176,25 +178,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             Conversion conversion = binder.Conversions.ClassifyImplicitConversionFromExpression(defaultExpression, parameterType, ref useSiteDiagnostics);
             diagnostics.Add(defaultExpression.Syntax, useSiteDiagnostics);
 
-            // SPEC VIOLATION: 
-            // By the spec an optional parameter initializer is required to be either:
-            // * a constant,
-            // * new S() where S is a value type
-            // * default(S) where S is a value type.
-            // 
-            // The native compiler considers default(T) to be a valid
-            // initializer regardless of whether T is a value type
-            // reference type, type parameter type, and so on.
-            // We should consider simply allowing this in the spec.
-            //
-            // Also when valuetype S has a parameterless constructor, 
-            // new S() is clearly not a constant expression and should produce an error
-
-            bool isValidDefaultValue = (defaultExpression.ConstantValue != null) ||
-                                        (defaultExpression.Kind == BoundKind.DefaultOperator) ||
-                                        (defaultExpression.Kind == BoundKind.ObjectCreationExpression &&
-                                                ((BoundObjectCreationExpression)defaultExpression).Constructor.IsDefaultValueTypeConstructor());
-
             SyntaxToken outKeyword;
             SyntaxToken refKeyword;
             SyntaxToken paramsKeyword;
@@ -234,7 +217,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
                     hasErrors = true;
                 }
             }
-            else if (!defaultExpression.HasAnyErrors && !isValidDefaultValue)
+            else if (!defaultExpression.HasAnyErrors && !IsValidDefaultValue(defaultExpression))
             {
                 // error CS1736: Default parameter value for '{0}' must be a compile-time constant
                 diagnostics.Add(ErrorCode.ERR_DefaultValueMustBeConstant, parameterSyntax.Default.Value.Location, parameterSyntax.Identifier.ValueText);
@@ -317,6 +300,32 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
             }
 
             return hasErrors;
+        }
+
+        private static bool IsValidDefaultValue(BoundExpression expression)
+        {
+            // SPEC VIOLATION: 
+            // By the spec an optional parameter initializer is required to be either:
+            // * a constant,
+            // * new S() where S is a value type
+            // * default(S) where S is a value type.
+            // 
+            // The native compiler considers default(T) to be a valid
+            // initializer regardless of whether T is a value type
+            // reference type, type parameter type, and so on.
+            // We should consider simply allowing this in the spec.
+            //
+            // Also when valuetype S has a parameterless constructor, 
+            // new S() is clearly not a constant expression and should produce an error
+            return (expression.ConstantValue != null) ||
+                   (expression.Kind == BoundKind.DefaultOperator) ||
+                   (expression.Kind == BoundKind.ObjectCreationExpression &&
+                       IsValidDefaultValue((BoundObjectCreationExpression)expression));
+        }
+
+        private static bool IsValidDefaultValue(BoundObjectCreationExpression expression)
+        {
+            return expression.Constructor.IsDefaultValueTypeConstructor() && expression.InitializerExpressionOpt == null;
         }
 
         internal static MethodSymbol FindContainingGenericMethod(Symbol symbol)

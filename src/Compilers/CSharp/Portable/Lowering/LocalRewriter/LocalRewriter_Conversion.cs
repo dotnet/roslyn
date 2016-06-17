@@ -28,7 +28,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 node.ExplicitCastInCode, node.IsExtensionMethod, node.IsArrayIndex, node.ConstantValue, rewrittenType);
 
             var toType = node.Type;
-            Debug.Assert(result.Type == toType);
+            Debug.Assert(result.Type.Equals(toType, ignoreDynamic: true));
 
             // 4.1.6 C# spec: To force a value of a floating point type to the exact precision of its type, an explicit cast can be used.
             // It means that explicit casts to (double) or (float) should be preserved on the node.
@@ -224,6 +224,17 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                     break;
 
+                case ConversionKind.ImplicitTupleLiteral:
+                    {
+                        // we keep ImplicitTuple conversions in the tree
+                        // for the purpose of semantic model (for example when they are casts in the source)
+                        // for the purpose of lowering/codegeneration thay are identity conversions.
+
+                        Debug.Assert(rewrittenOperand.Type.Equals(rewrittenType, ignoreDynamic: true));
+                        conversionKind = ConversionKind.Identity;
+                        break;
+                    }
+
                 case ConversionKind.ImplicitEnumeration:
                     // A conversion from constant zero to nullable is actually classified as an 
                     // implicit enumeration conversion, not an implicit nullable conversion. 
@@ -313,6 +324,15 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(!isExtensionMethod);
                     Debug.Assert(constantValueOpt == null);
                     return _dynamicFactory.MakeDynamicConversion(rewrittenOperand, explicitCastInCode || conversionKind == ConversionKind.ExplicitDynamic, isArrayIndex, @checked, rewrittenType).ToExpression();
+
+                case ConversionKind.ImplicitTuple:
+                    return RewriteTupleConversion(
+                        syntax: syntax,
+                        rewrittenOperand: rewrittenOperand,
+                        conversionKind: conversionKind,
+                        @checked: @checked,
+                        explicitCastInCode: explicitCastInCode,
+                        rewrittenType: (NamedTypeSymbol)rewrittenType);
 
                 default:
                     break;
@@ -606,6 +626,59 @@ namespace Microsoft.CodeAnalysis.CSharp
                 isArrayIndex: false,
                 constantValueOpt: constantValueOpt,
                 rewrittenType: rewrittenType);
+        }
+
+        private BoundExpression RewriteTupleConversion(
+            CSharpSyntaxNode syntax,
+            BoundExpression rewrittenOperand,
+            ConversionKind conversionKind,
+            bool @checked,
+            bool explicitCastInCode,
+            NamedTypeSymbol rewrittenType)
+        {
+            var destElementTypes = rewrittenType.GetElementTypesOfTupleOrCompatible();
+            var numElements = destElementTypes.Length;
+
+            ImmutableArray<FieldSymbol> srcElementFields;
+            TypeSymbol srcType = rewrittenOperand.Type;
+
+            if (srcType.IsTupleType)
+            {
+                srcElementFields = ((TupleTypeSymbol)srcType).TupleElementFields;
+            }
+            else
+            {
+                // The following codepath should be very uncommon (if reachable at all)
+                // we should generally not see tuple compatible types in bound trees and 
+                // see actual tuple types instead.
+                Debug.Assert(srcType.IsTupleCompatible());
+
+                // PERF: if allocations here become nuisance, consider caching the TupleTypeSymbol
+                //       in the type symbols that can actually be tuple compatible
+                srcElementFields = TupleTypeSymbol.Create((NamedTypeSymbol)srcType).TupleElementFields;
+            }
+
+            var fieldAccessorsBuilder = ArrayBuilder<BoundExpression>.GetInstance(numElements);
+
+            BoundAssignmentOperator assignmentToTemp;
+            var savedTuple = _factory.StoreToTemp(rewrittenOperand, out assignmentToTemp);
+
+            for (int i = 0; i < numElements; i++)
+            {
+                var field = srcElementFields[i];
+
+                DiagnosticInfo useSiteInfo = field.GetUseSiteDiagnostic();
+                if ((object)useSiteInfo != null && useSiteInfo.Severity == DiagnosticSeverity.Error)
+                {
+                    Symbol.ReportUseSiteDiagnostic(useSiteInfo, _diagnostics, syntax.Location);
+                }
+                var fieldAccess = MakeTupleFieldAccess(syntax, field, savedTuple, null, LookupResultKind.Empty);
+                var convertedFieldAccess = MakeConversion(fieldAccess, destElementTypes[i], @checked);
+                fieldAccessorsBuilder.Add(convertedFieldAccess);
+            }
+
+            var result = MakeTupleCreationExpression(syntax, rewrittenType, fieldAccessorsBuilder.ToImmutableAndFree());
+            return _factory.Sequence(savedTuple.LocalSymbol, assignmentToTemp, result);
         }
 
         private BoundExpression RewriteNullableConversion(CSharpSyntaxNode syntaxNode, BoundExpression rewrittenOperand, TypeSymbol rewrittenType)

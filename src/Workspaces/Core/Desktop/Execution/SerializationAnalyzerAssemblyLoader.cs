@@ -6,7 +6,7 @@ using System.Reflection;
 
 namespace Microsoft.CodeAnalysis.Execution
 {
-    internal class SerializationAnalyzerAssemblyLoader : AbstractAnalyzerAssemblyLoader
+    internal class SerializationAnalyzerAssemblyLoader : DesktopAnalyzerAssemblyLoader
     {
         // this information never get deleted since assembly once loaded can't be unloaded
         private readonly ConcurrentDictionary<string, string> _map =
@@ -21,10 +21,9 @@ namespace Microsoft.CodeAnalysis.Execution
             _map[displayPath] = assemblyPath;
         }
 
-        protected override Assembly LoadCore(string fullPath)
+        protected override Assembly LoadImpl(string fullPath)
         {
-            // Use the fallback loader if we fail to load the assembly in the default context.
-            return Assembly.LoadFrom(GetAssemblyPath(fullPath));
+            return base.LoadImpl(GetAssemblyPath(fullPath));
         }
 
         private string GetAssemblyPath(string fullPath)
