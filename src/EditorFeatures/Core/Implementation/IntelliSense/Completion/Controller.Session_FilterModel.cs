@@ -152,7 +152,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     }
 
                     var filterText = model.GetCurrentTextInSnapshot(currentItem.Item.Span, textSnapshot, textSpanToText);
-                    var matchesFilterText = helper.MatchesFilterText(currentItem.Item, filterText, model.Trigger, filterReason, recentItems);
+                    var matchesFilterText = MatchesFilterText(helper, currentItem.Item, filterText, model.Trigger, filterReason, recentItems);
                     itemToFilterText[currentItem.Item] = filterText;
 
                     if (matchesFilterText)
@@ -256,6 +256,25 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return result;
             }
 
+            private static bool MatchesFilterText(
+                CompletionHelper helper, CompletionItem item, string filterText, CompletionTrigger trigger, CompletionFilterReason filterReason, ImmutableArray<string> recentItems)
+            {
+                // For the deletion we bake in the core logic for how matching should work.
+                // This way deletion feels the same across all languages that opt into deletion 
+                // as a completion trigger.
+
+                // Specifically, to avoid being too aggressive when matching an item during 
+                // completion, we require that the current filter text be a prefix of the 
+                // item in the list.
+                if (filterReason == CompletionFilterReason.BackspaceOrDelete &&
+                    trigger.Kind == CompletionTriggerKind.Deletion)
+                {
+                    return item.FilterText.GetCaseInsensitivePrefixLength(filterText) > 0;
+                }
+
+                return helper.MatchesFilterText(item, filterText, trigger, filterReason, recentItems);
+            }
+
             private bool ItemIsFilteredOut(
                 CompletionItem item,
                 ImmutableDictionary<CompletionItemFilter, bool> filterState)
@@ -325,7 +344,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 // If the user moved the caret left after they started typing, the 'best' match may not match at all
                 // against the full text span that this item would be replacing.
-                if (!completionHelper.MatchesFilterText(bestFilterMatch.Item, fullFilterText, trigger, reason, this.Controller.GetRecentItems()))
+                if (!MatchesFilterText(completionHelper, bestFilterMatch.Item, fullFilterText, trigger, reason, this.Controller.GetRecentItems()))
                 {
                     return false;
                 }

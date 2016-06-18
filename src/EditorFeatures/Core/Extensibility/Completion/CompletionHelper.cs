@@ -235,17 +235,6 @@ namespace Microsoft.CodeAnalysis.Editor
             return item.Tags.Contains(CompletionTags.EnumMember);
         }
 
-        protected int GetPrefixLength(string text, string pattern)
-        {
-            int x = 0;
-            while (x < text.Length && x < pattern.Length && char.ToUpper(text[x]) == char.ToUpper(pattern[x]))
-            {
-                x++;
-            }
-
-            return x;
-        }
-
         protected int CompareMatches(PatternMatch match1, PatternMatch match2, CompletionItem item1, CompletionItem item2)
         {
             // First see how the two items compare in a case insensitive fashion.  Matches that 
