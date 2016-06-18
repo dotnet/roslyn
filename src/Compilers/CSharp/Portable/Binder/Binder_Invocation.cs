@@ -1,5 +1,6 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
@@ -1075,15 +1076,9 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methods = constructedMethods.ToImmutableAndFree();
             }
 
-            if (methods.Length == 1 && !extensionMethodsOfSameViabilityAreAvailable)
+            if (methods.Length == 1 && !extensionMethodsOfSameViabilityAreAvailable && !IsUnboundGeneric(methods[0]))
             {
-                // If there is only one non-generic method in the group and no additional extension methods with the same lookup viability,
-                // we should attempt to bind the argument list (particularly, lambdas appearing therein) to its parameter types.
-                // However, if it was an unsubstituted generic we don't want to bind to its parameters, and instead we rely on the
-                // compiler's previous binding of any lambda arguments to parameters that occurred when identifying method candidates.
                 method = methods[0];
-                var bindToParameters = (method.IsGenericMethod && method.ConstructedFrom() == method) ? ImmutableArray<ParameterSymbol>.Empty : method.Parameters;
-                args = BuildArgumentsForErrorRecovery(analyzedArguments, bindToParameters);
             }
             else
             {
@@ -1092,61 +1087,117 @@ namespace Microsoft.CodeAnalysis.CSharp
                     ? receiver.Type
                     : this.ContainingType;
                 method = new ErrorMethodSymbol(methodContainer, returnType, name);
-                args = BuildArgumentsForErrorRecovery(analyzedArguments);
             }
+
+            // until we've considered the extension methods, we don't rewrite the arguments.
+            args = extensionMethodsOfSameViabilityAreAvailable
+                ? analyzedArguments.Arguments.ToImmutable()
+                : BuildArgumentsForErrorRecovery(analyzedArguments, methods);
 
             var argNames = analyzedArguments.GetNames();
             var argRefKinds = analyzedArguments.RefKinds.ToImmutableOrNull();
             return BoundCall.ErrorCall(node, receiver, method, args, argNames, argRefKinds, isDelegate, invokedAsExtensionMethod: invokedAsExtensionMethod, originalMethods: methods, resultKind: resultKind);
         }
 
-        private static ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments, ImmutableArray<ParameterSymbol> parameters)
+        private bool IsUnboundGeneric(MethodSymbol method)
         {
-            ArrayBuilder<BoundExpression> oldArguments = analyzedArguments.Arguments;
-            int argumentCount = oldArguments.Count;
-            int parameterCount = parameters.Length;
+            return method.IsGenericMethod && method.ConstructedFrom() == method;
+        }
 
+        private ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments, ImmutableArray<MethodSymbol> methods)
+        {
+            var parameterListList = ArrayBuilder<ImmutableArray<ParameterSymbol>>.GetInstance();
+            foreach (var m in methods)
+            {
+                if (!IsUnboundGeneric(m) && m.ParameterCount > 0) parameterListList.Add(m.Parameters);
+            }
+
+            var result = BuildArgumentsForErrorRecovery(analyzedArguments, parameterListList);
+            parameterListList.Free();
+            return result;
+        }
+
+        private ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments, ImmutableArray<PropertySymbol> properties)
+        {
+            var parameterListList = ArrayBuilder<ImmutableArray<ParameterSymbol>>.GetInstance();
+            foreach (var m in properties)
+            {
+                if (m.ParameterCount > 0) parameterListList.Add(m.Parameters);
+            }
+
+            var result = BuildArgumentsForErrorRecovery(analyzedArguments, parameterListList);
+            parameterListList.Free();
+            return result;
+        }
+
+        private static ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments, IEnumerable<ImmutableArray<ParameterSymbol>> parameterListList)
+        {
+            // Since the purpose is to bind any unbound lambdas, we return early if there are none.
+            if (!analyzedArguments.Arguments.Any(e => e.Kind == BoundKind.UnboundLambda))
+            {
+                return analyzedArguments.Arguments.ToImmutable();
+            }
+
+            int argumentCount = analyzedArguments.Arguments.Count;
+            ArrayBuilder<BoundExpression> newArguments = ArrayBuilder<BoundExpression>.GetInstance(argumentCount);
+            newArguments.AddRange(analyzedArguments.Arguments);
             for (int i = 0; i < argumentCount; i++)
             {
-                BoundKind argumentKind = oldArguments[i].Kind;
-
-                if (argumentKind == BoundKind.UnboundLambda && i < parameterCount)
+                var argument = newArguments[i];
+                if (argument.Kind == BoundKind.UnboundLambda)
                 {
-                    ArrayBuilder<BoundExpression> newArguments = ArrayBuilder<BoundExpression>.GetInstance(argumentCount);
-                    newArguments.AddRange(oldArguments);
-
-                    do
+                    // bind the argument against each applicable parameter
+                    var unboundArgument = (UnboundLambda)argument;
+                    foreach (var parameterList in parameterListList)
                     {
-                        BoundExpression oldArgument = newArguments[i];
-
-                        if (i < parameterCount)
+                        var parameterType = GetCorrespondingParameterType(analyzedArguments, i, parameterList);
+                        if (parameterType?.TypeKind == TypeKind.Delegate)
                         {
-                            switch (oldArgument.Kind)
-                            {
-                                case BoundKind.UnboundLambda:
-                                    NamedTypeSymbol parameterType = parameters[i].Type as NamedTypeSymbol;
-                                    if ((object)parameterType != null)
-                                    {
-                                        newArguments[i] = ((UnboundLambda)oldArgument).Bind(parameterType);
-                                    }
-                                    break;
-                            }
+                            var discarded = unboundArgument.Bind((NamedTypeSymbol)parameterType);
                         }
-
-                        i++;
                     }
-                    while (i < argumentCount);
 
-                    return newArguments.ToImmutableAndFree();
+                    // replace the unbound lambda with its best inferred bound version
+                    newArguments[i] = unboundArgument.BindForErrorRecovery();
                 }
             }
 
-            return oldArguments.ToImmutable();
+            return newArguments.ToImmutableAndFree();
         }
 
+        /// <summary>
+        /// Compute the type of the corresponding parameter, if any. This is used to improve error recovery,
+        /// for bad invocations, not for semantic analysis of correct invocations, so it is a heuristic.
+        /// If no parameter appears to correspond to the given argument, we return null.
+        /// </summary>
+        /// <param name="analyzedArguments">The analyzed argument list</param>
+        /// <param name="i">The index of the argument</param>
+        /// <param name="parameterList">The parameter list to match against</param>
+        /// <returns>The type of the corresponding parameter.</returns>
+        private static TypeSymbol GetCorrespondingParameterType(AnalyzedArguments analyzedArguments, int i, ImmutableArray<ParameterSymbol> parameterList)
+        {
+            string name = analyzedArguments.Name(i);
+            if (name != null)
+            {
+                // look for a parameter by that name
+                foreach (var parameter in parameterList)
+                {
+                    if (parameter.Name == name) return parameter.Type;
+                }
+
+                return null;
+            }
+
+            return (i < parameterList.Length) ? parameterList[i].Type : null;
+            // CONSIDER: should we handle variable argument lists?
+        }
+
+        /// <summary>
+        /// Absent parameter types to bind the arguments, we simply use the arguments provided for error recovery.
+        /// </summary>
         private static ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments)
         {
-            return BuildArgumentsForErrorRecovery(analyzedArguments, ImmutableArray<ParameterSymbol>.Empty);
+            return analyzedArguments.Arguments.ToImmutable();
         }
 
         private BoundCall CreateBadCall(

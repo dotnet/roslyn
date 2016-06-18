@@ -4150,17 +4150,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // NOTE: The use site diagnostics of the candidate constructors have already been reported (in PerformConstructorOverloadResolution).
 
             ArrayBuilder<BoundNode> childNodes = ArrayBuilder<BoundNode>.GetInstance();
-
-            if (candidateConstructors.Length == 1)
-            {
-                ImmutableArray<BoundExpression> args = BuildArgumentsForErrorRecovery(analyzedArguments, candidateConstructors[0].Parameters);
-                childNodes.AddRange(args);
-            }
-            else
-            {
-                childNodes.AddRange(BuildArgumentsForErrorRecovery(analyzedArguments));
-            }
-
+            childNodes.AddRange(BuildArgumentsForErrorRecovery(analyzedArguments, candidateConstructors));
             if (boundInitializerOpt != null)
             {
                 childNodes.Add(boundInitializerOpt);
@@ -6359,20 +6349,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                         delegateTypeBeingInvoked: null);
                 }
 
-                PropertySymbol property;
-                ImmutableArray<BoundExpression> arguments;
-                if (candidates.Length == 1)
-                {
-                    property = candidates[0];
-                    arguments = BuildArgumentsForErrorRecovery(analyzedArguments, property.Parameters);
-                }
-                else
-                {
-                    // A bad BoundIndexerAccess containing an ErrorPropertySymbol will produce better flow analysis results than
-                    // a BoundBadExpression containing the candidate indexers.
-                    property = CreateErrorPropertySymbol(candidates);
-                    arguments = BuildArgumentsForErrorRecovery(analyzedArguments);
-                }
+                ImmutableArray<BoundExpression> arguments = BuildArgumentsForErrorRecovery(analyzedArguments, candidates);
+
+                // A bad BoundIndexerAccess containing an ErrorPropertySymbol will produce better flow analysis results than
+                // a BoundBadExpression containing the candidate indexers.
+                PropertySymbol property = (candidates.Length == 1) ? candidates[0] : CreateErrorPropertySymbol(candidates);
 
                 propertyAccess = BoundIndexerAccess.ErrorAccess(
                     syntax,

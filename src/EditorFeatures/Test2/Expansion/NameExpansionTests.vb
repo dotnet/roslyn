@@ -185,7 +185,7 @@ class C
             Await TestAsync(input, expected)
         End Function
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/11979"), Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Async Function TestCSharp_LambdaParameter_DontExpandAnonymousTypes1() As Task
             Dim input =
 <Workspace>
@@ -222,7 +222,7 @@ class C
             Await TestAsync(input, expected, expandParameter:=True)
         End Function
 
-        <Fact(Skip:="https://github.com/dotnet/roslyn/issues/11979"), Trait(Traits.Feature, Traits.Features.Expansion)>
+        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
         Public Async Function TestCSharp_LambdaParameter_DontExpandAnonymousTypes2() As Task
             Dim input =
 <Workspace>
@@ -248,6 +248,46 @@ using System;
 class C
 {
     static void Mumble&lt;T&gt;(T anonymousType, Action&lt;T, int, int&gt; lambda) { }
+
+    static void M()
+    {
+        Mumble(new { x = 42 }, (a, y) => a.x);
+    }
+}
+</code>
+
+            Await TestAsync(input, expected, expandParameter:=True)
+        End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.Expansion)>
+        <WorkItem(11979, "https://github.com/dotnet/roslyn/issues/11979")>
+        Public Async Function TestCSharp_LambdaParameter_DontExpandAnonymousTypes2_variation() As Task
+            Dim input =
+<Workspace>
+    <Project Language="C#" CommonReferences="true">
+        <Document>
+using System;
+class C
+{
+    static void Mumble&lt;T&gt;(T anonymousType, Action&lt;T, int, int&gt; lambda) { }
+    static void Mumble() { } // added to the test
+
+    static void M()
+    {
+        Mumble(new { x = 42 }, {|Expand:(a, y) => a.x|});
+    }
+}
+        </Document>
+    </Project>
+</Workspace>
+
+            Dim expected =
+<code>
+using System;
+class C
+{
+    static void Mumble&lt;T&gt;(T anonymousType, Action&lt;T, int, int&gt; lambda) { }
+    static void Mumble() { } // added to the test
 
     static void M()
     {
