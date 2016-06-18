@@ -289,7 +289,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 Model model,
                 PresentationItem bestFilterMatch,
                 ITextSnapshot textSnapshot,
-                CompletionHelper completionRules,
+                CompletionHelper completionHelper,
                 CompletionTrigger trigger,
                 CompletionFilterReason reason)
             {
@@ -317,7 +317,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var viewSpan = model.GetViewBufferSpan(bestFilterMatch.Item.Span);
                 var fullFilterText = model.GetCurrentTextInSnapshot(viewSpan, textSnapshot, endPoint: null);
 
-                var shouldSoftSelect = completionRules.ShouldSoftSelectItem(bestFilterMatch.Item, fullFilterText, trigger);
+                var shouldSoftSelect = completionHelper.ShouldSoftSelectItem(bestFilterMatch.Item, fullFilterText, trigger);
                 if (shouldSoftSelect)
                 {
                     return false;
@@ -325,7 +325,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 // If the user moved the caret left after they started typing, the 'best' match may not match at all
                 // against the full text span that this item would be replacing.
-                if (!completionRules.MatchesFilterText(bestFilterMatch.Item, fullFilterText, trigger, reason, this.Controller.GetRecentItems()))
+                if (!completionHelper.MatchesFilterText(bestFilterMatch.Item, fullFilterText, trigger, reason, this.Controller.GetRecentItems()))
                 {
                     return false;
                 }
