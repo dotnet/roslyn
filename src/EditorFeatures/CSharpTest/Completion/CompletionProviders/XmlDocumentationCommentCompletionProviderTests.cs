@@ -1083,5 +1083,17 @@ static void Main(string[] args)
 }
 ", "args");
         }
+
+        [WorkItem(8822, "https://github.com/dotnet/roslyn/issues/8322")]
+        [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
+        public async Task PartialTagCompletion()
+        {
+            await VerifyItemsExistAsync(@"
+public class foo
+{
+    /// <r$$
+    public void bar() { }
+}", "completionlist");
+        }
     }
 }
