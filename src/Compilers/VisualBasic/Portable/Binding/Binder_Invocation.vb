@@ -3118,15 +3118,17 @@ ProduceBoundNode:
             Dim defaultConstantValue As ConstantValue = Nothing
             If param.IsOptional Then
                 defaultConstantValue = param.ExplicitDefaultConstantValue(DefaultParametersInProgress)
-                If (defaultConstantValue Is Nothing) Then
-                    Dim opts = param.OriginalDefinition.DeclaringCompilation.Options.ParseOptions
-                    If opts IsNot Nothing Then
-                        If InternalSyntax.Parser.CheckFeatureAvailability(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, opts) Then
-                            defaultConstantValue = ConstantValue.Nothing
+                'If (defaultConstantValue Is Nothing) Then
+                '    Dim opts = param.OriginalDefinition.DeclaringCompilation.Options.ParseOptions
+                '    If opts IsNot Nothing Then
+                '        If InternalSyntax.Parser.CheckFeatureAvailability(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, opts) Then
+                '            defaultConstantValue = ConstantValue.Nothing
 
-                        End If
-                    End If
-                End If
+                '        End If
+                '    End If
+                'End If
+            Else
+                defaultConstantValue = ConstantValue.Nothing
             End If
             ' Do we have default constant value?
             If (defaultConstantValue IsNot Nothing) Then
@@ -3210,6 +3212,7 @@ ProduceBoundNode:
                 Else
                     defaultArgument = New BoundLiteral(syntax, ConstantValue.Null, Nothing)
                 End If
+                defaultConstantValue = CheckForCallerInfoAttributes(param, syntax, callerInfoOpt, defaultConstantValue)
 
             End If
 

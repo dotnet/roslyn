@@ -4185,7 +4185,6 @@ BC35000: Requested operation is not available because the runtime library functi
         End Sub
 
         <Requires.Language.Feature(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)>
-        <Fact>
         Public Sub DefaultValueWithoutOptional_01b()
             Assert.True(InternalSyntax.Parser.CheckFeatureAvailability(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, MyParseOptions), "Language Feature Unavailable.")
             Dim sources1 = <![CDATA[
@@ -4331,7 +4330,6 @@ BC35000: Requested operation is not available because the runtime library functi
 
 
         <Requires.Language.Feature(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)>
-        <Fact>
         Public Sub DefaultValueWithoutOptional_02b()
             Assert.True(InternalSyntax.Parser.CheckFeatureAvailability(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter, MyParseOptions), "Language Feature Unavailable.")
 
