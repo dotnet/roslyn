@@ -408,6 +408,8 @@ namespace Microsoft.CodeAnalysis
         System_ValueTuple_TRest__ctor,
 
         System_String__Format_IFormatProvider,
+        System_Text_Utf8_Utf8String__ctor,
+        System_Text_Utf8_Utf8String__ctor2,
         Count
     }
 }

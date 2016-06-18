@@ -503,6 +503,9 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory
                         ' Not available on all platforms.
                         Continue For
+                    Case WellKnownType.System_Text_Utf8_Utf8String
+                        ' Not available yet
+                        Continue For
                     Case WellKnownType.ExtSentinel
                         ' Not a real type
                         Continue For
@@ -535,6 +538,10 @@ End Namespace
                          WellKnownType.System_Runtime_CompilerServices_FormattableStringFactory
                         ' Not available on all platforms.
                         Continue For
+                    Case WellKnownType.System_Text_Utf8_Utf8String
+                        ' Not available yet.
+                        Continue For
+
                     Case WellKnownType.ExtSentinel
                         ' Not a real type
                         Continue For
@@ -572,6 +579,10 @@ End Namespace
                         Continue For
                     Case WellKnownMember.System_Array__Empty
                         ' Not available yet, but will be in upcoming release.
+                        Continue For
+                    Case WellKnownMember.System_Text_Utf8_Utf8String__ctor,
+                         WellKnownMember.System_Text_Utf8_Utf8String__ctor2
+                        ' Not available yet
                         Continue For
                 End Select
 
@@ -650,6 +661,12 @@ End Namespace
                     Case WellKnownMember.System_Array__Empty
                         ' Not available yet, but will be in upcoming release.
                         Continue For
+
+                    Case WellKnownMember.System_Text_Utf8_Utf8String__ctor,
+                         WellKnownMember.System_Text_Utf8_Utf8String__ctor2
+                        ' Not available yet
+                        Continue For
+
                 End Select
 
                 Dim symbol = comp.GetWellKnownTypeMember(wkm)

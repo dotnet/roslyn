@@ -368,6 +368,9 @@ namespace Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax
                     case SyntaxKind.StringLiteralToken:
                         token = SyntaxFactory.Literal(leadingNode, info.Text, info.Kind, info.StringValue, trailingNode);
                         break;
+                    case SyntaxKind.Utf8StringToken:
+                        token = SyntaxFactory.Literal(leadingNode, info.Text, info.Kind, info.StringValue, trailingNode);
+                        break;
                     case SyntaxKind.CharacterLiteralToken:
                         token = SyntaxFactory.Literal(leadingNode, info.Text, info.CharValue, trailingNode);
                         break;

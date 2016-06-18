@@ -6308,6 +6308,7 @@ tryAgain:
                 case SyntaxKind.NumericLiteralToken:
                 case SyntaxKind.StringKeyword:
                 case SyntaxKind.StringLiteralToken:
+                case SyntaxKind.Utf8StringToken:
                 case SyntaxKind.CharacterLiteralToken:
                 case SyntaxKind.OpenParenToken:
                 case SyntaxKind.EqualsGreaterThanToken:
@@ -8589,6 +8590,7 @@ tryAgain:
                 case SyntaxKind.OpenParenToken:
                 case SyntaxKind.NumericLiteralToken:
                 case SyntaxKind.StringLiteralToken:
+                case SyntaxKind.Utf8StringToken:
                 case SyntaxKind.InterpolatedStringStartToken:
                 case SyntaxKind.InterpolatedStringToken:
                 case SyntaxKind.CharacterLiteralToken:
@@ -8809,6 +8811,7 @@ tryAgain:
                     case SyntaxKind.TrueKeyword:
                     case SyntaxKind.FalseKeyword:
                     case SyntaxKind.StringLiteralToken:
+                    case SyntaxKind.Utf8StringToken:
                     case SyntaxKind.InterpolatedStringStartToken:
                     case SyntaxKind.InterpolatedStringToken:
                     case SyntaxKind.NumericLiteralToken:
@@ -9101,6 +9104,9 @@ tryAgain:
                 case SyntaxKind.StringLiteralToken:
                 case SyntaxKind.CharacterLiteralToken:
                     expr = _syntaxFactory.LiteralExpression(SyntaxFacts.GetLiteralExpression(tk), this.EatToken());
+                    break;
+                case SyntaxKind.Utf8StringToken:
+                    expr = _syntaxFactory.Utf8StringExpression(this.EatToken());
                     break;
                 case SyntaxKind.InterpolatedStringStartToken:
                     throw new NotImplementedException(); // this should not occur because these tokens are produced and parsed immediately

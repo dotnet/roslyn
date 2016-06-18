@@ -260,6 +260,8 @@ namespace Microsoft.CodeAnalysis
         System_ValueTuple_T7,
         System_ValueTuple_TRest,
 
+        System_Text_Utf8_Utf8String,
+
         Available,
         Last = Available - 1,
     }
@@ -512,6 +514,8 @@ namespace Microsoft.CodeAnalysis
 
             "System.ValueTuple`7",
             "System.ValueTuple`8",
+
+            "System.Text.Utf8.Utf8String"
         };
 
         private readonly static Dictionary<string, WellKnownType> s_nameToTypeIdMap = new Dictionary<string, WellKnownType>((int)Count);
@@ -543,7 +547,7 @@ namespace Microsoft.CodeAnalysis
                 }
                 else if (typeId == WellKnownType.Last)
                 {
-                    typeIdName = "System.ValueTuple`8";
+                    typeIdName = "System.Text.Utf8.Utf8String";
                 }
                 else if (typeId == WellKnownType.ExtSentinel)
                 {

@@ -2836,6 +2836,23 @@ namespace Microsoft.CodeAnalysis
                     (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_IFormatProvider,
                     (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_String,
                     (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Object,
+
+                // System_Text_Utf8_Utf8String__ctor
+                (byte)MemberFlags.Constructor,                                                                              // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Text_Utf8_Utf8String - WellKnownType.ExtSentinel),// DeclaringTypeId
+                0,                                                                                                          // Arity
+                    1,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
+                    (byte)SignatureTypeCode.SZArray, (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Byte,
+
+                // System_Text_Utf8_Utf8String__ctor2
+                (byte)MemberFlags.Constructor,                                                                              // Flags
+                (byte)WellKnownType.ExtSentinel, (byte)(WellKnownType.System_Text_Utf8_Utf8String - WellKnownType.ExtSentinel),// DeclaringTypeId
+                0,                                                                                                          // Arity
+                    2,                                                                                                      // Method Signature
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Void,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)WellKnownType.System_RuntimeFieldHandle,
+                    (byte)SignatureTypeCode.TypeHandle, (byte)SpecialType.System_Int32,
             };
 
             string[] allNames = new string[(int)WellKnownMember.Count]
@@ -3188,6 +3205,8 @@ namespace Microsoft.CodeAnalysis
                 ".ctor",                                    // System_ValueTuple_TRest__ctor
 
                 "Format",                                   // System_String__Format_IFormatProvider
+                ".ctor",                                    // System_Text_Utf8_Utf8String__ctor
+                ".ctor",                                    // System_Text_Utf8_Utf8String__ctor2
             };
 
             s_descriptors = MemberDescriptor.InitializeFromStream(new System.IO.MemoryStream(initializationBytes, writable: false), allNames);
