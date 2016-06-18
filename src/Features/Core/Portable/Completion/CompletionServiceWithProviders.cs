@@ -401,7 +401,8 @@ namespace Microsoft.CodeAnalysis.Completion
             }
         }
 
-        public override bool ShouldTriggerCompletion(SourceText text, int caretPosition, CompletionTrigger trigger, ImmutableHashSet<string> roles = null, OptionSet options = null)
+        public override bool ShouldTriggerCompletion(
+            SourceText text, int caretPosition, CompletionTrigger trigger, ImmutableHashSet<string> roles = null, OptionSet options = null)
         {
             options = options ?? _workspace.Options;
             if (!options.GetOption(CompletionOptions.TriggerOnTyping, this.Language))
@@ -409,8 +410,19 @@ namespace Microsoft.CodeAnalysis.Completion
                 return false;
             }
 
+            if (trigger.Kind == CompletionTriggerKind.Deletion && this.SupportsTriggerOnDeletion(options))
+            {
+                return Char.IsLetterOrDigit(trigger.Character) || trigger.Character == '.';
+            }
+
             var providers = this.GetProviders(roles, CompletionTrigger.Default);
             return providers.Any(p => p.ShouldTriggerCompletion(text, caretPosition, trigger, options));
+        }
+
+        internal virtual bool SupportsTriggerOnDeletion(OptionSet options)
+        {
+            var opt = options.GetOption(CompletionOptions.TriggerOnDeletion, this.Language);
+            return opt == true;
         }
 
         public override async Task<CompletionChange> GetChangeAsync(
