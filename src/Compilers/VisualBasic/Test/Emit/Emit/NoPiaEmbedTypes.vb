@@ -2708,7 +2708,7 @@ End Structure
         End Sub
 
         <Fact()>
-        Public Sub DateTimeConstantAttribute()
+        Public Sub DateTimeConstantAttribute_a()
             Dim sources0 = <compilation name="0">
                                <file name="a.vb"><![CDATA[
 Imports System
@@ -2758,8 +2758,55 @@ BC30455: Argument not specified for parameter 'x' of 'Sub M(x As Date)'.
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
 
+        <Requires.Language.Feature(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)>
+        Public Sub DateTimeConstantAttribute_b()
+            Dim sources0 = <compilation name="0">
+                               <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+Imports System.Runtime.InteropServices
+<Assembly: ImportedFromTypeLib("_.dll")>
+<Assembly: Guid("f9c2d51d-4f44-45f0-9eda-c9d599b58257")>
+<ComImport()>
+<Guid("f9c2d51d-4f44-45f0-9eda-c9d599b58271")>
+Public Interface I
+    Sub M(<[Optional](), DateTimeConstant(987654321)> x As DateTime)
+End Interface
+]]></file>
+                           </compilation>
+            Dim sources1 = <compilation name="1">
+                               <file name="a.vb"><![CDATA[
+Structure S
+    Sub M(x As I)
+        x.M()
+    End Sub
+End Structure
+]]></file>
+                           </compilation>
+            Dim compilation0 = CreateCompilationWithMscorlib(sources0)
+            Dim verifier = CompileAndVerify(compilation0)
+            AssertTheseDiagnostics(verifier, (<errors/>))
+            Dim validator As Action(Of ModuleSymbol) = Sub([module])
+                                                           DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
+                                                           Dim references = [module].GetReferencedAssemblySymbols()
+                                                           Assert.Equal(1, references.Length)
+                                                           Dim type = [module].GlobalNamespace.GetMember(Of PENamedTypeSymbol)("I")
+                                                           Dim method = type.GetMember(Of PEMethodSymbol)("M")
+                                                           Assert.Equal(New Date(987654321), method.Parameters(0).ExplicitDefaultValue)
+                                                       End Sub
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+                sources1,
+                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
+            compilation1.AssertNoErrors()
+            compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+                sources1,
+                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
+            AssertTheseDiagnostics(verifier, (<errors/>))
+        End Sub
+
         <Fact()>
-        Public Sub DecimalConstantAttribute()
+        Public Sub DecimalConstantAttribute_a()
             Dim sources0 = <compilation name="0">
                                <file name="a.vb"><![CDATA[
 Imports System
@@ -2815,9 +2862,59 @@ BC30455: Argument not specified for parameter 'x' of 'Sub M2(x As Decimal)'.
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
+        <Fact()>
+        Public Sub DecimalConstantAttribute_b()
+            Dim sources0 = <compilation name="0">
+                               <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+Imports System.Runtime.InteropServices
+<Assembly: ImportedFromTypeLib("_.dll")>
+<Assembly: Guid("f9c2d51d-4f44-45f0-9eda-c9d599b58257")>
+<ComImport()>
+<Guid("f9c2d51d-4f44-45f0-9eda-c9d599b58271")>
+Public Interface I
+    Sub M1(<[Optional](), DecimalConstant(0, 0, Integer.MinValue, -2, -3)> x As Decimal)
+    Sub M2(<[Optional](), DecimalConstant(0, 0, UInteger.MaxValue, 2, 3)> x As Decimal)
+End Interface
+]]></file>
+                           </compilation>
+            Dim sources1 = <compilation name="1">
+                               <file name="a.vb"><![CDATA[
+Structure S
+    Sub M(x As I)
+        x.M1()
+        x.M2()
+    End Sub
+End Structure
+]]></file>
+                           </compilation>
+            Dim compilation0 = CreateCompilationWithMscorlib(sources0)
+            Dim verifier = CompileAndVerify(compilation0)
+            AssertTheseDiagnostics(verifier, (<errors/>))
+            Dim validator As Action(Of ModuleSymbol) = Sub([module])
+                                                           DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
+                                                           Dim references = [module].GetReferencedAssemblySymbols()
+                                                           Assert.Equal(1, references.Length)
+                                                           Dim type = [module].GlobalNamespace.GetMember(Of PENamedTypeSymbol)("I")
+                                                           Dim method = type.GetMember(Of PEMethodSymbol)("M1")
+                                                           Assert.Equal(39614081275578912866186559485D, method.Parameters(0).ExplicitDefaultValue)
+                                                           method = type.GetMember(Of PEMethodSymbol)("M2")
+                                                           Assert.Equal(79228162495817593528424333315D, method.Parameters(0).ExplicitDefaultValue)
+                                                       End Sub
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+                sources1,
+                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
+            compilation1.AssertNoErrors()
+            compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+                sources1,
+                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
+            AssertTheseDiagnostics(verifier, (<errors/>))
+        End Sub
 
         <Fact()>
-        Public Sub DefaultParameterValueAttribute()
+        Public Sub DefaultParameterValueAttribute_a()
             Dim sources0 = <compilation name="0">
                                <file name="a.vb"><![CDATA[
 Imports System
@@ -2869,6 +2966,61 @@ BC30455: Argument not specified for parameter 'x' of 'Sub M(x As Decimal)'.
             verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
             AssertTheseDiagnostics(verifier, (<errors/>))
         End Sub
+
+        <Requires.Language.Feature(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter)>
+        Public Sub DefaultParameterValueAttribute_b()
+            Dim sources0 = <compilation name="0">
+                               <file name="a.vb"><![CDATA[
+Imports System
+Imports System.Runtime.CompilerServices
+Imports System.Runtime.InteropServices
+<Assembly: ImportedFromTypeLib("_.dll")>
+<Assembly: Guid("f9c2d51d-4f44-45f0-9eda-c9d599b58257")>
+<ComImport()>
+<Guid("f9c2d51d-4f44-45f0-9eda-c9d599b58271")>
+Public Interface I
+    Sub M(<[Optional](), DefaultParameterValue(123.456)> x As Decimal)
+End Interface
+]]></file>
+                           </compilation>
+            Dim sources1 = <compilation name="1">
+                               <file name="a.vb"><![CDATA[
+Structure S
+    Sub M(x As I)
+        x.M()
+    End Sub
+End Structure
+]]></file>
+                           </compilation>
+            Dim compilation0 = CreateCompilationWithMscorlibAndReferences(
+                sources0,
+                references:={SystemRef})
+            Dim verifier = CompileAndVerify(compilation0)
+            AssertTheseDiagnostics(verifier, (<errors/>))
+            Dim validator As Action(Of ModuleSymbol) = Sub([module])
+                                                           DirectCast([module], PEModuleSymbol).Module.PretendThereArentNoPiaLocalTypes()
+                                                           Dim references = [module].GetReferencedAssemblySymbols()
+                                                           Assert.Equal(2, references.Length)
+                                                           Dim type = [module].GlobalNamespace.GetMember(Of PENamedTypeSymbol)("I")
+                                                           Dim method = type.GetMember(Of PEMethodSymbol)("M")
+                                                           Dim attr = method.Parameters(0).GetAttributes("System.Runtime.InteropServices", "DefaultParameterValueAttribute").Single()
+                                                           Assert.Equal("System.Runtime.InteropServices.DefaultParameterValueAttribute(123.456)", attr.ToString())
+                                                       End Sub
+            Dim compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+                sources1,
+                additionalRefs:={New VisualBasicCompilationReference(compilation0, embedInteropTypes:=True)})
+            compilation1.AssertTheseDiagnostics(<errors>
+BC30455: Argument not specified for parameter 'x' of 'Sub M(x As Decimal)'.
+        x.M()
+          ~
+                                                    </errors>)
+            compilation1 = CreateCompilationWithMscorlibAndVBRuntimeAndReferences(
+                sources1,
+                additionalRefs:={compilation0.EmitToImageReference(embedInteropTypes:=True)})
+            verifier = CompileAndVerify(compilation1, symbolValidator:=validator)
+            AssertTheseDiagnostics(verifier, (<errors/>))
+        End Sub
+
 
         <Fact()>
         Public Sub UnmanagedFunctionPointerAttribute()
