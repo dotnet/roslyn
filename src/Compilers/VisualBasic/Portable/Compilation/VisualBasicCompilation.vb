@@ -29,7 +29,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
     ''' compilation from scratch, as the new compilation can share information from the old
     ''' compilation.
     ''' </summary>
-    Public NotInheritable Class VisualBasicCompilation
+    Partial Public NotInheritable Class VisualBasicCompilation
         Inherits Compilation
 
         ' !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!

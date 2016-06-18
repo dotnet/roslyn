@@ -1,5 +1,6 @@
 Microsoft.CodeAnalysis.Compilation.CreateTupleTypeSymbol(Microsoft.CodeAnalysis.INamedTypeSymbol underlyingType, System.Collections.Immutable.ImmutableArray<string> elementNames = default(System.Collections.Immutable.ImmutableArray<string>)) -> Microsoft.CodeAnalysis.INamedTypeSymbol
 Microsoft.CodeAnalysis.Compilation.CreateTupleTypeSymbol(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ITypeSymbol> elementTypes, System.Collections.Immutable.ImmutableArray<string> elementNames = default(System.Collections.Immutable.ImmutableArray<string>)) -> Microsoft.CodeAnalysis.INamedTypeSymbol
+Microsoft.CodeAnalysis.Compilation.GenerateSource(System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.ITypeBasedSourceGenerator> generators, string attributeName, string path, bool writeToDisk) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.SyntaxTree>
 Microsoft.CodeAnalysis.Diagnostics.AnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, params Microsoft.CodeAnalysis.OperationKind[] operationKinds) -> void
 Microsoft.CodeAnalysis.Diagnostics.AnalysisResult
 Microsoft.CodeAnalysis.Diagnostics.AnalysisResult.AnalyzerTelemetryInfo.get -> System.Collections.Immutable.ImmutableDictionary<Microsoft.CodeAnalysis.Diagnostics.DiagnosticAnalyzer, Microsoft.CodeAnalysis.Diagnostics.Telemetry.AnalyzerTelemetryInfo>
@@ -55,6 +56,8 @@ Microsoft.CodeAnalysis.IOperation.Type.get -> Microsoft.CodeAnalysis.ITypeSymbol
 Microsoft.CodeAnalysis.IPropertySymbol.ReturnsByRef.get -> bool
 Microsoft.CodeAnalysis.ISourceAssemblySymbol
 Microsoft.CodeAnalysis.ISourceAssemblySymbol.Compilation.get -> Microsoft.CodeAnalysis.Compilation
+Microsoft.CodeAnalysis.ITypeBasedSourceGenerator
+Microsoft.CodeAnalysis.ITypeBasedSourceGenerator.Execute(Microsoft.CodeAnalysis.SourceGeneratorTypeContext context) -> void
 Microsoft.CodeAnalysis.ITypeSymbol.IsTupleType.get -> bool
 Microsoft.CodeAnalysis.MethodKind.LocalFunction = 17 -> Microsoft.CodeAnalysis.MethodKind
 Microsoft.CodeAnalysis.ModuleMetadata.GetMetadataReader() -> System.Reflection.Metadata.MetadataReader
@@ -679,6 +682,11 @@ Microsoft.CodeAnalysis.SourceGeneratorAttribute.SourceGeneratorAttribute(string 
 Microsoft.CodeAnalysis.SourceGeneratorContext
 Microsoft.CodeAnalysis.SourceGeneratorContext.SourceGeneratorContext() -> void
 Microsoft.CodeAnalysis.SourceGeneratorExtensions
+Microsoft.CodeAnalysis.SourceGeneratorTypeContext
+Microsoft.CodeAnalysis.SourceGeneratorTypeContext.AddCompilationUnit(string name, string source) -> void
+Microsoft.CodeAnalysis.SourceGeneratorTypeContext.Compilation.get -> Microsoft.CodeAnalysis.Compilation
+Microsoft.CodeAnalysis.SourceGeneratorTypeContext.MatchingTypes.get -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.SyntaxNode>
+Microsoft.CodeAnalysis.SourceGeneratorTypeContext.ReportDiagnostic(Microsoft.CodeAnalysis.Diagnostic diagnostic) -> void
 abstract Microsoft.CodeAnalysis.Diagnostics.AnalyzerReference.GetSourceGenerators(string language) -> System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.SourceGenerator>
 abstract Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.RegisterOperationAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationAnalysisContext> action, System.Collections.Immutable.ImmutableArray<Microsoft.CodeAnalysis.OperationKind> operationKinds) -> void
 abstract Microsoft.CodeAnalysis.Diagnostics.OperationBlockStartAnalysisContext.RegisterOperationBlockEndAction(System.Action<Microsoft.CodeAnalysis.Diagnostics.OperationBlockAnalysisContext> action) -> void
