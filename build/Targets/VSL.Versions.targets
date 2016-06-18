@@ -57,6 +57,7 @@
           day-to-day upgrades don't break assembly references to other installed apps. -->
       <PropertyGroup>
         <AssemblyVersion>$(RoslynSemanticVersion).0</AssemblyVersion>
+        <VsixVersion>$(RoslynSemanticVersion).$(BuildNumberPart1.Trim())$(BuildNumberPart2.Trim())</VsixVersion>
       </PropertyGroup>
     </When>
 
@@ -64,6 +65,7 @@
       <PropertyGroup>
         <AssemblyVersion>$(RoslynSemanticVersion).0</AssemblyVersion>
         <BuildVersion>$(RoslynSemanticVersion).0</BuildVersion>
+        <VsixVersion>$(RoslynSemanticVersion).$(BuildNumberPart1.Trim())$(BuildNumberPart2.Trim())</VsixVersion>
       </PropertyGroup>
     </When>
 
@@ -75,12 +77,13 @@
       <PropertyGroup>
         <AssemblyVersion>42.42.42.42</AssemblyVersion>
         <BuildVersion>42.42.42.42</BuildVersion>
+        <VsixVersion>42.42.42.42</VsixVersion>
       </PropertyGroup>
     </Otherwise>
   </Choose>
 
   <!-- Returns the current build version. Used in .vsixmanifests to substitute our build version into them -->
-  <Target Name="GetBuildVersion" Outputs="$(RoslynSemanticVersion).$(BuildNumberPart1.Trim())$(BuildNumberPart2.Trim())" />
+  <Target Name="GetBuildVersion" Outputs="$(VsixVersion)" />
 
   <!-- NuGet version -->
   <PropertyGroup>
