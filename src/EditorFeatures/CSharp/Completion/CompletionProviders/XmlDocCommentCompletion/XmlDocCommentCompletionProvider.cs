@@ -97,7 +97,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.Completion.CompletionProviders.Xm
                     items.AddRange(GetListHeaderItems(span));
                 }
 
-                if (token.Parent.Parent is DocumentationCommentTriviaSyntax)
+                if (token.Parent.Parent is DocumentationCommentTriviaSyntax 
+                    || (token.Parent.Parent.IsKind(SyntaxKind.XmlEmptyElement) && token.Parent.Parent.Parent is DocumentationCommentTriviaSyntax))
                 {
                     items.AddRange(GetTopLevelSingleUseNames(parentTrivia, span));
                     items.AddRange(GetTopLevelRepeatableItems(span));
