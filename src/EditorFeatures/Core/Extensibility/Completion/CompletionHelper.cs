@@ -73,7 +73,7 @@ namespace Microsoft.CodeAnalysis.Editor
                 }
             }
 
-            if (IsAllDigits(filterText))
+            if (filterText.Length > 0 && IsAllDigits(filterText))
             {
                 // The user is just typing a number.  We never want this to match against
                 // anything we would put in a completion list.
@@ -89,7 +89,7 @@ namespace Microsoft.CodeAnalysis.Editor
             return -index;
         }
 
-        protected static bool IsAllDigits(string filterText)
+        private static bool IsAllDigits(string filterText)
         {
             for (int i = 0; i < filterText.Length; i++)
             {
