@@ -300,6 +300,7 @@ public class MyAttribute : Attribute { public int Value {get; set;} }",
         {
             VerifySyntax<BinaryExpressionSyntax>(_g.CoalesceExpression(_g.IdentifierName("x"), _g.IdentifierName("y")), "(x) ?? (y)");
             VerifySyntax<ConditionalExpressionSyntax>(_g.ConditionalExpression(_g.IdentifierName("x"), _g.IdentifierName("y"), _g.IdentifierName("z")), "(x) ? (y) : (z)");
+            VerifySyntax<ConditionalAccessExpressionSyntax>(_g.ConditionalAccessExpression(_g.IdentifierName("x"), _g.IdentifierName("y")), "(x)?.y");
         }
 
         [Fact]
