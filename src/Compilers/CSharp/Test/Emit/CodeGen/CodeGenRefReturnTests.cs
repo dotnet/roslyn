@@ -14,6 +14,20 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
     public class RefReturnTests : CompilingTestBase
     {
+        private CompilationVerifier CompileAndVerifyRef(
+            string source,
+            string expectedOutput = null,
+            CSharpCompilationOptions options = null,
+            bool verify = true)
+        {
+            return CompileAndVerifyExperimental(
+                source,
+                MessageID.IDS_FeatureRefLocalsReturns,
+                expectedOutput: expectedOutput,
+                options: options,
+                verify: verify);
+        }
+
         [Fact]
         public void RefReturnArrayAccess()
         {
@@ -27,7 +41,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text).VerifyIL("Program.M()", @"
+            CompileAndVerifyRef(text).VerifyIL("Program.M()", @"
 {
   // Code size       13 (0xd)
   .maxstack  2
@@ -52,7 +66,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text, verify: false).VerifyIL("Program.M(ref int)", @"
+            CompileAndVerifyRef(text, verify: false).VerifyIL("Program.M(ref int)", @"
 {
   // Code size        2 (0x2)
   .maxstack  1
@@ -75,7 +89,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text, verify: false).VerifyIL("Program.M(out int)", @"
+            CompileAndVerifyRef(text, verify: false).VerifyIL("Program.M(out int)", @"
 {
   // Code size        5 (0x5)
   .maxstack  2
@@ -102,7 +116,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text, verify: false).VerifyIL("Program.M(ref int)", @"
+            CompileAndVerifyRef(text, verify: false).VerifyIL("Program.M(ref int)", @"
 {
   // Code size        5 (0x5)
   .maxstack  3
@@ -130,7 +144,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text).VerifyIL("Program.M()", @"
+            CompileAndVerifyRef(text).VerifyIL("Program.M()", @"
 {
   // Code size        6 (0x6)
   .maxstack  1
@@ -160,7 +174,7 @@ class Program
 }
 ";
 
-            var compilation = CompileAndVerifyExperimental(text);
+            var compilation = CompileAndVerifyRef(text);
             compilation.VerifyIL("Program.M()", @"
 {
   // Code size        7 (0x7)
@@ -224,7 +238,7 @@ class Program3
 }
 ";
 
-            var compilation = CompileAndVerifyExperimental(text, verify: false);
+            var compilation = CompileAndVerifyRef(text, verify: false);
             compilation.VerifyIL("Program.M()", @"
 {
   // Code size        7 (0x7)
@@ -302,7 +316,7 @@ class Program3<T>
 }
 ";
 
-            var compilation = CompileAndVerifyExperimental(text);
+            var compilation = CompileAndVerifyRef(text);
             compilation.VerifyIL("Program<T>.M()", @"
 {
   // Code size       18 (0x12)
@@ -355,7 +369,7 @@ class Program
 }
 ";
 
-            var compilation = CompileAndVerifyExperimental(text);
+            var compilation = CompileAndVerifyRef(text);
             compilation.VerifyIL("Program.M()", @"
 {
   // Code size        8 (0x8)
@@ -416,7 +430,7 @@ class Program3
 }
 ";
 
-            var compilation = CompileAndVerifyExperimental(text, verify: false);
+            var compilation = CompileAndVerifyRef(text, verify: false);
             compilation.VerifyIL("Program.M()", @"
 {
   // Code size        8 (0x8)
@@ -489,7 +503,7 @@ class Program3<T>
 }
 ";
 
-            var compilation = CompileAndVerifyExperimental(text);
+            var compilation = CompileAndVerifyRef(text);
             compilation.VerifyIL("Program<T>.M()", @"
 {
   // Code size       19 (0x13)
@@ -541,7 +555,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text).VerifyIL("Program.M()", @"
+            CompileAndVerifyRef(text).VerifyIL("Program.M()", @"
 {
   // Code size        6 (0x6)
   .maxstack  1
@@ -572,7 +586,7 @@ class Program
 }
 ";
 
-            var compilation = CompileAndVerifyExperimental(text);
+            var compilation = CompileAndVerifyRef(text);
             compilation.VerifyIL("Program.M()", @"
 {
   // Code size        7 (0x7)
@@ -606,7 +620,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text).VerifyIL("Program.M()", @"
+            CompileAndVerifyRef(text).VerifyIL("Program.M()", @"
 {
   // Code size        6 (0x6)
   .maxstack  1
@@ -635,7 +649,7 @@ class Program
 }
 ";
 
-            var compilation = CompileAndVerifyExperimental(text);
+            var compilation = CompileAndVerifyRef(text);
             compilation.VerifyIL("Program.M()", @"
 {
   // Code size        7 (0x7)
@@ -679,7 +693,7 @@ class Program2
 }
 ";
 
-            var compilation = CompileAndVerifyExperimental(text, verify: false);
+            var compilation = CompileAndVerifyRef(text, verify: false);
             compilation.VerifyIL("Program2.M(ref Program)", @"
 {
   // Code size        7 (0x7)
@@ -712,7 +726,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text).VerifyIL("Program.M()", @"
+            CompileAndVerifyRef(text).VerifyIL("Program.M()", @"
 {
   // Code size        6 (0x6)
   .maxstack  1
@@ -739,7 +753,7 @@ class Program
 }
 ";
 
-            var compilation = CompileAndVerifyExperimental(text);
+            var compilation = CompileAndVerifyRef(text);
             compilation.VerifyIL("Program.M()", @"
 {
   // Code size        7 (0x7)
@@ -791,7 +805,7 @@ class Program3
 }
 ";
 
-            var compilation = CompileAndVerifyExperimental(text);
+            var compilation = CompileAndVerifyRef(text);
             compilation.VerifyIL("Program.M()", @"
 {
   // Code size        7 (0x7)
@@ -861,7 +875,7 @@ class Program3<T>
 }
 ";
 
-            var compilation = CompileAndVerifyExperimental(text);
+            var compilation = CompileAndVerifyRef(text);
             compilation.VerifyIL("Program<T>.M()", @"
 {
   // Code size       18 (0x12)
@@ -906,7 +920,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text).VerifyIL("Program.M(ref int, ref int, object)", @"
+            CompileAndVerifyRef(text).VerifyIL("Program.M(ref int, ref int, object)", @"
 {
   // Code size        9 (0x9)
   .maxstack  3
@@ -936,7 +950,7 @@ class Program
 }
 ";
 
-            var compilation = CompileAndVerifyExperimental(text);
+            var compilation = CompileAndVerifyRef(text);
             compilation.VerifyIL("Program.M(ref int, ref int, object)", @"
 {
   // Code size       10 (0xa)
@@ -994,7 +1008,7 @@ class Program3
 }
 ";
 
-            var compilation = CompileAndVerifyExperimental(text);
+            var compilation = CompileAndVerifyRef(text);
             compilation.VerifyIL("Program.M(ref int, ref int, object)", @"
 {
   // Code size       10 (0xa)
@@ -1073,7 +1087,7 @@ class Program3<T>
 }
 ";
 
-            var compilation = CompileAndVerifyExperimental(text);
+            var compilation = CompileAndVerifyRef(text);
             compilation.VerifyIL("Program<T>.M(ref int, ref int, object)", @"
 {
   // Code size       21 (0x15)
@@ -1129,7 +1143,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text).VerifyIL("Program.M(D)", @"
+            CompileAndVerifyRef(text).VerifyIL("Program.M(D)", @"
 {
   // Code size        7 (0x7)
   .maxstack  1
@@ -1154,7 +1168,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text).VerifyIL("Program.M(D, ref int, ref int, object)", @"
+            CompileAndVerifyRef(text).VerifyIL("Program.M(D, ref int, ref int, object)", @"
 {
   // Code size       10 (0xa)
   .maxstack  4
@@ -1217,7 +1231,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text, options: TestOptions.UnsafeReleaseDll).VerifyIL("Program.Main()", @"
+            CompileAndVerifyRef(text, options: TestOptions.UnsafeReleaseDll).VerifyIL("Program.Main()", @"
 {
   // Code size      285 (0x11d)
   .maxstack  4
@@ -1402,7 +1416,7 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text, options: TestOptions.UnsafeReleaseDll).VerifyIL("Program.Main()", @"
+            CompileAndVerifyRef(text, options: TestOptions.UnsafeReleaseDll).VerifyIL("Program.Main()", @"
 {
   // Code size      168 (0xa8)
   .maxstack  4
@@ -1505,7 +1519,8 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text).VerifyIL("Program.M()", @"
+            var options = TestOptions.Regular.WithRefsFeature().WithLocalFunctionsFeature();
+            CompileAndVerify(text, parseOptions: options).VerifyIL("Program.M()", @"
 {
   // Code size        6 (0x6)
   .maxstack  1
@@ -1553,7 +1568,8 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text, expectedOutput: "42", verify: false).VerifyIL("Program.M()", @"
+            var options = TestOptions.Regular.WithRefsFeature().WithLocalFunctionsFeature();
+            CompileAndVerify(text, parseOptions: options, expectedOutput: "42", verify: false).VerifyIL("Program.M()", @"
 {
   // Code size       34 (0x22)
   .maxstack  5
@@ -1628,7 +1644,8 @@ class Program
 }
 ";
 
-            CompileAndVerifyExperimental(text, expectedOutput: "42", verify: false).VerifyIL("Program.M()", @"
+            var options = TestOptions.Regular.WithRefsFeature().WithLocalFunctionsFeature();
+            CompileAndVerify(text, parseOptions: options, expectedOutput: "42", verify: false).VerifyIL("Program.M()", @"
 {
   // Code size       36 (0x24)
   .maxstack  5
@@ -1722,7 +1739,7 @@ class Program
     }
 ";
 
-            CompileAndVerifyExperimental(text, expectedOutput: "12")
+            CompileAndVerifyRef(text, expectedOutput: "12")
                 .VerifyIL("Program.C1<T>.Test()", @"
 {
   // Code size      114 (0x72)
@@ -1814,7 +1831,7 @@ struct Mutable : IDisposable
 }
 ";
 
-            CompileAndVerifyExperimental(text, expectedOutput: "12", verify: false)
+            CompileAndVerifyRef(text, expectedOutput: "12", verify: false)
                 .VerifyIL("Program.C1<T>.Test()", @"
 {
   // Code size      115 (0x73)
@@ -1912,7 +1929,7 @@ struct Mutable : IDisposable
 }
 ";
 
-            CompileAndVerifyExperimental(text, expectedOutput: "1234", verify: false)
+            CompileAndVerifyRef(text, expectedOutput: "1234", verify: false)
                 .VerifyIL("Program.C1<T>.Test()", @"
 {
   // Code size      129 (0x81)
@@ -2017,7 +2034,7 @@ class Foo : IFoo<Foo>
 }
 ";
 
-            CompileAndVerifyExperimental(text, expectedOutput: "1True", verify: false)
+            CompileAndVerifyRef(text, expectedOutput: "1True", verify: false)
                 .VerifyIL("Program.C1<T>.Test()", @"
 {
   // Code size       84 (0x54)
@@ -2115,7 +2132,7 @@ class Foo : IFoo<Foo>
 }
 ";
 
-            CompileAndVerifyExperimental(text, expectedOutput: "1TrueTrue1TrueTrueTrueTrue1TrueTrue", verify: false)
+            CompileAndVerifyRef(text, expectedOutput: "1TrueTrue1TrueTrueTrueTrue1TrueTrue", verify: false)
                 .VerifyIL("Program.C1<T>.Test()", @"
 {
   // Code size      215 (0xd7)

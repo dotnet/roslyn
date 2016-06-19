@@ -70,9 +70,10 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 (token.Parent.IsKind(SyntaxKind.XmlElementEndTag) && token.IsKind(SyntaxKind.GreaterThanToken)) ||
                 (token.Parent.IsKind(SyntaxKind.XmlName) && token.Parent.IsParentKind(SyntaxKind.XmlEmptyElement)))
             {
+                // The user is typing inside an XmlElement
                 if (token.Parent.Parent.Kind() == SyntaxKind.XmlElement)
                 {
-                    items.AddRange(GetNestedTags(span));
+                    items.AddRange(GetNestedTags(span, declaredSymbol));
                 }
 
                 if (token.Parent.Parent.Kind() == SyntaxKind.XmlElement && ((XmlElementSyntax)token.Parent.Parent).StartTag.Name.LocalName.ValueText == ListTagName)
@@ -265,10 +266,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                 return items;
             }
 
-            var returns = true;
-
             RemoveExistingTags(trivia, parameters, x => AttributeSelector(x, ParamTagName));
             RemoveExistingTags(trivia, typeParameters, x => AttributeSelector(x, TypeParamTagName));
+
+            items.AddRange(parameters.Select(p => CreateCompletionItem(itemSpan, FormatParameter(ParamTagName, p))));
+            items.AddRange(typeParameters.Select(t => CreateCompletionItem(itemSpan, FormatParameter(TypeParamTagName, t))));
+
+            // Provide a return completion item in case the function returns something
+            var returns = true;
 
             foreach (var node in trivia.Content)
             {
@@ -284,9 +289,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
                     }
                 }
             }
-
-            items.AddRange(parameters.Select(p => CreateCompletionItem(itemSpan, FormatParameter(ParamTagName, p))));
-            items.AddRange(typeParameters.Select(t => CreateCompletionItem(itemSpan, FormatParameter(TypeParamTagName, t))));
 
             if (returns && !symbol.ReturnsVoid)
             {

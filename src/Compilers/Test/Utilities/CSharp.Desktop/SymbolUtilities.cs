@@ -87,9 +87,11 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return text;
         }
 
+        // TODO: Remove this method and fix callsites to directly invoke Microsoft.CodeAnalysis.Test.Extensions.SymbolExtensions.ToTestDisplayString().
+        //       https://github.com/dotnet/roslyn/issues/11915
         public static string ToTestDisplayString(this ISymbol symbol)
         {
-            return symbol.ToDisplayString(SymbolDisplayFormat.TestFormat);
+            return CodeAnalysis.Test.Extensions.SymbolExtensions.ToTestDisplayString(symbol);
         }
     }
 }

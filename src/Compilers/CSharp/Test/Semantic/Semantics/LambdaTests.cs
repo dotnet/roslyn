@@ -1119,7 +1119,7 @@ class C
 }
 ";
 
-            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics();
+            CreateExperimentalCompilationWithMscorlib45(text, MessageID.IDS_FeatureRefLocalsReturns).VerifyDiagnostics();
         }
 
 
@@ -1141,7 +1141,7 @@ class C
 }
 ";
 
-            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics();
+            CreateExperimentalCompilationWithMscorlib45(text, MessageID.IDS_FeatureRefLocalsReturns).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1169,7 +1169,7 @@ class C
 }
 ";
 
-            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics();
+            CreateExperimentalCompilationWithMscorlib45(text, MessageID.IDS_FeatureRefLocalsReturns).VerifyDiagnostics();
         }
 
         [Fact]
@@ -1192,7 +1192,7 @@ class C
 }
 ";
 
-            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateExperimentalCompilationWithMscorlib45(text, MessageID.IDS_FeatureRefLocalsReturns).VerifyDiagnostics(
                 // (11,22): error CS8083: By-reference returns may only be used in by-reference returning methods.
                 //         ME(() => ref i);
                 Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "i").WithLocation(11, 22),
@@ -1222,7 +1222,7 @@ class C
 }
 ";
 
-            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateExperimentalCompilationWithMscorlib45(text, MessageID.IDS_FeatureRefLocalsReturns).VerifyDiagnostics(
                 // (9,33): error CS8083: By-reference returns may only be used in by-reference returning methods.
                 //         var e = new E(() => ref i);
                 Diagnostic(ErrorCode.ERR_MustNotHaveRefReturn, "i").WithLocation(9, 33),
@@ -1267,7 +1267,7 @@ class C
 }
 ";
 
-            CreateExperimentalCompilationWithMscorlib45(text).VerifyDiagnostics(
+            CreateExperimentalCompilationWithMscorlib45(text, MessageID.IDS_FeatureRefLocalsReturns).VerifyDiagnostics(
                 // (18,13): error CS8084: By-value returns may only be used in by-value returning methods.
                 //             return i;
                 Diagnostic(ErrorCode.ERR_MustHaveRefReturn, "return").WithLocation(18, 13),
@@ -1962,6 +1962,119 @@ public class MyList<TSource>
             Assert.Equal(TypeKind.Class, typeInfo.Type.TypeKind);
             Assert.Equal("String", typeInfo.Type.Name);
             Assert.NotEmpty(typeInfo.Type.GetMembers("Replace"));
+        }
+
+        [Fact]
+        [WorkItem(557, "https://github.com/dotnet/roslyn/issues/557")]
+        public void TestLambdaWithError11()
+        {
+            var source =
+@"using System.Linq;
+
+public static class Program
+{
+    public static void Main()
+    {
+        var x = new {
+            X = """".Select(c => c.
+            Y = 0,
+        };
+    }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var tree = compilation.SyntaxTrees[0];
+            var sm = compilation.GetSemanticModel(tree);
+            var lambda = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var eReference = lambda.Body.DescendantNodes().OfType<IdentifierNameSyntax>().First();
+            Assert.Equal("c", eReference.ToString());
+            var typeInfo = sm.GetTypeInfo(eReference);
+            Assert.Equal(TypeKind.Struct, typeInfo.Type.TypeKind);
+            Assert.Equal("Char", typeInfo.Type.Name);
+            Assert.NotEmpty(typeInfo.Type.GetMembers("IsHighSurrogate")); // check it is the char we know and love
+        }
+
+        [Fact]
+        [WorkItem(5498, "https://github.com/dotnet/roslyn/issues/5498")]
+        public void TestLambdaWithError12()
+        {
+            var source =
+@"using System.Linq;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        var z = args.Select(a => a.
+        var foo = 
+    }
+}";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var tree = compilation.SyntaxTrees[0];
+            var sm = compilation.GetSemanticModel(tree);
+            var lambda = tree.GetCompilationUnitRoot().DescendantNodes().OfType<LambdaExpressionSyntax>().Single();
+            var eReference = lambda.Body.DescendantNodes().OfType<IdentifierNameSyntax>().First();
+            Assert.Equal("a", eReference.ToString());
+            var typeInfo = sm.GetTypeInfo(eReference);
+            Assert.Equal(TypeKind.Class, typeInfo.Type.TypeKind);
+            Assert.Equal("String", typeInfo.Type.Name);
+            Assert.NotEmpty(typeInfo.Type.GetMembers("Replace"));
+        }
+
+        [WorkItem(5498, "https://github.com/dotnet/roslyn/issues/5498")]
+        [WorkItem(11358, "https://github.com/dotnet/roslyn/issues/11358")]
+        [Fact]
+        public void TestLambdaWithError13()
+        {
+            // These tests ensure we attempt to perform type inference and bind a lambda expression
+            // argument even when there are too many or too few arguments to an invocation, in the
+            // case when there is more than one method in the method group.
+            // See https://github.com/dotnet/roslyn/issues/11901 for the case of one method in the group
+            var source =
+@"using System;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Thing<string> t = null;
+        t.X1(x => x, 1); // too many args
+        t.X2(x => x);    // too few args
+        t.M2(string.Empty, x => x, 1); // too many args
+        t.M3(string.Empty, x => x); // too few args
+    }
+}
+public class Thing<T>
+{
+    public void M2<T>(T x, Func<T, T> func) {}
+    public void M3<T>(T x, Func<T, T> func, T y) {}
+
+    // Ensure we have more than one method in the method group
+    public void M2() {}
+    public void M3() {}
+}
+public static class XThing
+{
+    public static Thing<T> X1<T>(this Thing<T> self, Func<T, T> func) => null;
+    public static Thing<T> X2<T>(this Thing<T> self, Func<T, T> func, int i) => null;
+
+    // Ensure we have more than one method in the method group
+    public static void X1(this object self) {}
+    public static void X2(this object self) {}
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var tree = compilation.SyntaxTrees[0];
+            var sm = compilation.GetSemanticModel(tree);
+            foreach (var lambda in tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>())
+            {
+                var reference = lambda.Body.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>().First();
+                Assert.Equal("x", reference.ToString());
+                var typeInfo = sm.GetTypeInfo(reference);
+                Assert.Equal(TypeKind.Class, typeInfo.Type.TypeKind);
+                Assert.Equal("String", typeInfo.Type.Name);
+                Assert.NotEmpty(typeInfo.Type.GetMembers("Replace"));
+            }
         }
     }
 }

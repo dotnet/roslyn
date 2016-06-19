@@ -1,12 +1,10 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+using Microsoft.CodeAnalysis.CSharp.Symbols;
+using Roslyn.Utilities;
 using System;
 using System.Collections.Immutable;
 using System.Diagnostics;
-using Microsoft.CodeAnalysis.CSharp.Symbols;
-using Microsoft.CodeAnalysis.CSharp.Syntax;
-using Microsoft.CodeAnalysis.Text;
-using Roslyn.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp
 {
@@ -53,7 +51,10 @@ namespace Microsoft.CodeAnalysis.CSharp
         private const byte IsExtensionMethodMask = 1 << 0;
         private const byte IsArrayIndexMask = 1 << 1;
 
+        private readonly Conversion[] _nestedConversionsOpt;
+
         private Conversion(ConversionKind kind, bool isExtensionMethod, bool isArrayIndex, UserDefinedConversionResult conversionResult, MethodSymbol methodGroupConversionMethod)
+            : this()
         {
             _kind = kind;
             _conversionResult = conversionResult;
@@ -79,6 +80,13 @@ namespace Microsoft.CodeAnalysis.CSharp
             : this()
         {
             this._kind = kind;
+        }
+
+        internal Conversion(ConversionKind kind, Conversion[] nestedConversions)
+            : this()
+        {
+            this._kind = kind;
+            this._nestedConversionsOpt = nestedConversions;
         }
 
         internal ConversionKind Kind
@@ -128,7 +136,28 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             get
             {
-                return this.Exists && (!this.IsUserDefined || (object)this.Method != null || _conversionResult.Kind == UserDefinedConversionResultKind.Valid);
+                if (!this.Exists)
+                {
+                    return false;
+                }
+
+                if (_nestedConversionsOpt != null)
+                {
+                    foreach (var conv in _nestedConversionsOpt)
+                    {
+                        if (!conv.IsValid)
+                        {
+                            return false;
+                        }
+                    }
+
+                    Debug.Assert(!this.IsUserDefined);
+                    return true;
+                }
+
+                return !this.IsUserDefined || 
+                    (object)this.Method != null ||
+                    _conversionResult.Kind == UserDefinedConversionResultKind.Valid;
             }
         }
 

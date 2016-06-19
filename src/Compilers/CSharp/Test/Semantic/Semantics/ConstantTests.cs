@@ -176,7 +176,7 @@ class Program
     }
 }
 ";
-            var comp = CreateExperimentalCompilationWithMscorlib45(source);
+            var comp = CreateCompilationWithMscorlib45(source);
             comp.VerifyDiagnostics(
     // (10,12): error CS0568: Structs cannot contain explicit parameterless constructors
     //     public S2()

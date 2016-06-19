@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis
         /// <summary>
         /// Something not allowed by the rules of the language or other authority.
         /// </summary>
-        Error = 3
+        Error = 3,
     }
 
     /// <summary>

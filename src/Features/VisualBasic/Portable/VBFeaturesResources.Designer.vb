@@ -1866,6 +1866,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to &lt;namespace name&gt;.
+        '''</summary>
+        Friend ReadOnly Property NamespaceName() As String
+            Get
+                Return ResourceManager.GetString("NamespaceName", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Indicates that a conversion operator (CType) converts a class or structure to a type that might not be able to hold some of the possible values of the original class or structure..
         '''</summary>
         Friend ReadOnly Property NarrowingKeywordToolTip() As String
@@ -2910,6 +2919,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.VBFeaturesResources
         Friend ReadOnly Property TypeANameHereToDeclareA0() As String
             Get
                 Return ResourceManager.GetString("TypeANameHereToDeclareA0", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Type a name here to declare a namespace..
+        '''</summary>
+        Friend ReadOnly Property TypeANameHereToDeclareANamespace() As String
+            Get
+                Return ResourceManager.GetString("TypeANameHereToDeclareANamespace", resourceCulture)
             End Get
         End Property
         

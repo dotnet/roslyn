@@ -108,7 +108,7 @@ namespace Microsoft.CodeAnalysis.Editor.UnitTests.Completion
 
             var completionService = GetCompletionService(document.Project.Solution.Workspace);
             var completionList = await GetCompletionListAsync(completionService, document, position, trigger);
-            var items = completionList == null ? default(ImmutableArray<CompletionItem>) : completionList.Items;
+            var items = completionList == null ? ImmutableArray<CompletionItem>.Empty : completionList.Items;
 
             if (checkForAbsence)
             {
