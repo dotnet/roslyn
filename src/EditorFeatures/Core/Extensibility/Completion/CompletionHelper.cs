@@ -109,8 +109,32 @@ namespace Microsoft.CodeAnalysis.Editor
 
         protected PatternMatch? GetMatch(CompletionItem item, string filterText, bool includeMatchSpans)
         {
+            // If the item has a dot in it (i.e. for something like enum completion), then attempt
+            // to match what the user wrote against the last portion of the name.  That way if they
+            // write "Bl" and we have "Blub" and "Color.Black", we'll consider hte latter to be a
+            // better match as they'll both be prefix matches, and the latter will have a higher
+            // priority.
+
+            var lastDotIndex = item.FilterText.LastIndexOf('.');
+            if (lastDotIndex >= 0)
+            {
+                var textAfterLastDot = item.FilterText.Substring(lastDotIndex + 1);
+                var match = GetMatchWorker(textAfterLastDot, filterText, includeMatchSpans);
+                if (match != null)
+                {
+                    return match;
+                }
+            }
+
+            // Didn't have a dot, or the user text didn't match the portion after the dot.
+            // Just do a normal check against the entire completion item.
+            return GetMatchWorker(item.FilterText, filterText, includeMatchSpans);
+        }
+
+        private PatternMatch? GetMatchWorker(string completionItemText, string filterText, bool includeMatchSpans)
+        {
             var patternMatcher = this.GetPatternMatcher(filterText, CultureInfo.CurrentCulture);
-            var match = patternMatcher.GetFirstMatch(item.FilterText, includeMatchSpans);
+            var match = patternMatcher.GetFirstMatch(completionItemText, includeMatchSpans);
 
             if (match != null)
             {
@@ -121,7 +145,7 @@ namespace Microsoft.CodeAnalysis.Editor
             if (!CultureInfo.CurrentCulture.Equals(EnUSCultureInfo))
             {
                 patternMatcher = this.GetEnUSPatternMatcher(filterText);
-                match = patternMatcher.GetFirstMatch(item.FilterText);
+                match = patternMatcher.GetFirstMatch(completionItemText);
                 if (match != null)
                 {
                     return match;
@@ -226,11 +250,6 @@ namespace Microsoft.CodeAnalysis.Editor
         protected static bool IsKeywordItem(CompletionItem item)
         {
             return item.Tags.Contains(CompletionTags.Keyword);
-        }
-
-        protected static bool IsEnumMemberItem(CompletionItem item)
-        {
-            return item.Tags.Contains(CompletionTags.EnumMember);
         }
 
         protected int CompareMatches(PatternMatch match1, PatternMatch match2, CompletionItem item1, CompletionItem item2)

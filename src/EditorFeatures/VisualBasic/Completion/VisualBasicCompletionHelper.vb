@@ -1,9 +1,6 @@
-﻿Imports System.Collections.Immutable
-Imports System.Composition
-Imports Microsoft.CodeAnalysis.Completion
+﻿Imports System.Composition
 Imports Microsoft.CodeAnalysis.Host
 Imports Microsoft.CodeAnalysis.Host.Mef
-Imports Microsoft.CodeAnalysis.Shared.Utilities
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion
 
@@ -33,30 +30,5 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion
         Public Sub New()
             MyBase.New(isCaseSensitive:=False)
         End Sub
-
-        Public Overrides Function IsBetterFilterMatch(
-                item1 As CompletionItem, item2 As CompletionItem,
-                filterText As String, trigger As CompletionTrigger,
-                recentItems As ImmutableArray(Of String)) As Boolean
-            If IsEnumMemberItem(item2) Then
-                Dim match1 = GetMatch(item1, filterText)
-                Dim match2 = GetMatch(item2, filterText)
-
-                If match1.HasValue AndAlso match2.HasValue Then
-                    If match1.Value.Kind = PatternMatchKind.Prefix AndAlso match2.Value.Kind = PatternMatchKind.Substring Then
-                        ' If an item from Enum completion Is an equally good match apart from
-                        ' being a substring rather than prefix match, take it.
-
-                        If IsEnumMemberItem(item1) AndAlso
-                            match1.Value.CamelCaseWeight.GetValueOrDefault() = match2.Value.CamelCaseWeight.GetValueOrDefault() AndAlso
-                            match1.Value.IsCaseSensitive = match2.Value.IsCaseSensitive Then
-                            Return False
-                        End If
-                    End If
-                End If
-            End If
-
-            Return MyBase.IsBetterFilterMatch(item1, item2, filterText, trigger, recentItems)
-        End Function
     End Class
 End Namespace
