@@ -118,7 +118,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             // we delete the last <question> that was typed.
             var textChange = new TextChange(TextSpan.FromBounds(caretPoint - 1, caretPoint), string.Empty);
             workspace.ApplyTextChanges(documentId, textChange, CancellationToken.None);
-            this.StartNewModelComputation(completionService, new CompletionTrigger(CompletionTriggerKind.Snippets), filterItems: false);
+            this.StartNewModelComputation(
+                completionService, new CompletionTrigger(CompletionTriggerKind.Snippets), filterItems: false);
             return true;
         }
 

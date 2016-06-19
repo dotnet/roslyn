@@ -100,7 +100,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 else if (model != null && model.Trigger.Kind != CompletionTriggerKind.Deletion)
                 {
                     // Filter the model if it wasn't invoked on backspace.
-                    sessionOpt.FilterModel(CompletionFilterReason.BackspaceOrDelete);
+                    sessionOpt.FilterModel(
+                        CompletionFilterReason.BackspaceOrDelete,
+                        recheckCaretPosition: false,
+                        dismissIfEmptyAllowed: true,
+                        filterState: null);
                 }
             }
         }

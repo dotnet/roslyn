@@ -19,9 +19,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
         {
             public void FilterModel(
                 CompletionFilterReason filterReason,
-                bool recheckCaretPosition = false,
-                bool dismissIfEmptyAllowed = true,
-                ImmutableDictionary<CompletionItemFilter, bool> filterState = null)
+                bool recheckCaretPosition,
+                bool dismissIfEmptyAllowed,
+                ImmutableDictionary<CompletionItemFilter, bool> filterState)
             {
                 AssertIsForeground();
 
@@ -46,7 +46,10 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     });
             }
 
-            public void IdentifyBestMatchAndFilterToAllItems(CompletionFilterReason filterReason, bool recheckCaretPosition = false, bool dismissIfEmptyAllowed = true)
+            public void IdentifyBestMatchAndFilterToAllItems(
+                CompletionFilterReason filterReason,
+                bool recheckCaretPosition,
+                bool dismissIfEmptyAllowed)
             {
                 AssertIsForeground();
 

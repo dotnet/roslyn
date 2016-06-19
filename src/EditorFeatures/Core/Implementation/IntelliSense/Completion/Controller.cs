@@ -143,7 +143,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 CompletionTrigger.Default, filterItems, dismissIfEmptyAllowed);
         }
 
-        private bool StartNewModelComputation(CompletionService completionService, CompletionTrigger trigger, bool filterItems, bool dismissIfEmptyAllowed = true)
+        private bool StartNewModelComputation(
+            CompletionService completionService,
+            CompletionTrigger trigger,
+            bool filterItems,
+            bool dismissIfEmptyAllowed = true)
         {
             AssertIsForeground();
             Contract.ThrowIfTrue(sessionOpt != null);
@@ -183,11 +187,18 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             if (filterItems)
             {
-                sessionOpt.FilterModel(filterReason, dismissIfEmptyAllowed: dismissIfEmptyAllowed);
+                sessionOpt.FilterModel(
+                    filterReason, 
+                    recheckCaretPosition: false,
+                    dismissIfEmptyAllowed: dismissIfEmptyAllowed,
+                    filterState: null);
             }
             else
             {
-                sessionOpt.IdentifyBestMatchAndFilterToAllItems(filterReason, dismissIfEmptyAllowed: dismissIfEmptyAllowed);
+                sessionOpt.IdentifyBestMatchAndFilterToAllItems(
+                    filterReason,
+                    recheckCaretPosition: false,
+                    dismissIfEmptyAllowed: dismissIfEmptyAllowed);
             }
 
             return true;
