@@ -2,6 +2,7 @@
 
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.Completion;
@@ -317,7 +318,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var viewSpan = model.GetViewBufferSpan(bestFilterMatch.Item.Span);
                 var fullFilterText = model.GetCurrentTextInSnapshot(viewSpan, textSnapshot, endPoint: null);
 
-                var shouldSoftSelect = completionRules.ShouldSoftSelectItem(bestFilterMatch.Item, fullFilterText, trigger);
+                var shouldSoftSelect = ShouldSoftSelectItem(bestFilterMatch.Item, fullFilterText, trigger);
                 if (shouldSoftSelect)
                 {
                     return false;
@@ -332,6 +333,59 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 // There was either filter text, or this was a preselect match.  In either case, we
                 // can hard select this.
+                return true;
+            }
+
+            /// <summary>
+            /// Returns true if the completion item should be "soft" selected, or false if it should be "hard"
+            /// selected.
+            /// </summary>
+            private static bool ShouldSoftSelectItem(CompletionItem item, string filterText, CompletionTrigger trigger)
+            {
+                // If all that has been typed is puntuation, then don't hard select anything.
+                // It's possible the user is just typing language punctuation and selecting
+                // anything in the list will interfere.  We only allow this if the filter text
+                // exactly matches something in the list already. 
+                if (filterText.Length > 0 && IsAllPunctuation(filterText) && filterText != item.DisplayText)
+                {
+                    return true;
+                }
+
+                // If the user hasn't actually typed anything, then don't hard select any item.
+                // The only exception to this is if the completion provider has requested the
+                // item be preselected.
+                if (filterText.Length == 0)
+                {
+                    // Item didn't want to be hard selected with no filter text.
+                    // So definitely soft select it.
+                    if (item.Rules.SelectionBehavior != CompletionItemSelectionBehavior.HardSelection)
+                    {
+                        return true;
+                    }
+
+                    // Item did not ask to be preselected.  So definitely soft select it.
+                    if (item.Rules.MatchPriority == MatchPriority.Default)
+                    {
+                        return true;
+                    }
+                }
+
+                // The user typed something, or the item asked to be preselected.  In 
+                // either case, don't soft select this.
+                Debug.Assert(filterText.Length > 0 || item.Rules.MatchPriority != MatchPriority.Default);
+                return false;
+            }
+
+            private static bool IsAllPunctuation(string filterText)
+            {
+                foreach (var ch in filterText)
+                {
+                    if (!char.IsPunctuation(ch))
+                    {
+                        return false;
+                    }
+                }
+
                 return true;
             }
         }
