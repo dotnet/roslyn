@@ -43,7 +43,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void ReplaceMethodNoFeature()
         {
             var source = "class C { virtual replace protected void M() { } }";
-            CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (1,19): error CS8058: Feature 'replaced members' is experimental and unsupported; use '/features:replace' to enable.
                 // class C { virtual replace protected void M() { } }
                 Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "replace").WithArguments("replaced members", "replace").WithLocation(1, 19)

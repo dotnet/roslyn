@@ -14,8 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class OperationAnalyzerTests : CompilingTestBase
     {
         private readonly static CSharpParseOptions patternParseOptions =
-            TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)
-                    .WithFeature(MessageID.IDS_FeaturePatternMatching.RequiredFeature(), "true");
+            TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp7);
 
         [Fact]
         public void EmptyArrayCSharp()
