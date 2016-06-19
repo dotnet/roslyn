@@ -83,7 +83,7 @@ namespace Microsoft.CodeAnalysis.Editor
             return GetMatch(item, filterText) != null;
         }
 
-        protected static int GetRecentItemIndex(ImmutableArray<string> recentItems, CompletionItem item)
+        private static int GetRecentItemIndex(ImmutableArray<string> recentItems, CompletionItem item)
         {
             var index = recentItems.IndexOf(item.DisplayText);
             return -index;
@@ -102,12 +102,12 @@ namespace Microsoft.CodeAnalysis.Editor
             return true;
         }
 
-        protected PatternMatch? GetMatch(CompletionItem item, string filterText)
+        private PatternMatch? GetMatch(CompletionItem item, string filterText)
         {
             return GetMatch(item, filterText, includeMatchSpans: false);
         }
 
-        protected PatternMatch? GetMatch(CompletionItem item, string filterText, bool includeMatchSpans)
+        private PatternMatch? GetMatch(CompletionItem item, string filterText, bool includeMatchSpans)
         {
             // If the item has a dot in it (i.e. for something like enum completion), then attempt
             // to match what the user wrote against the last portion of the name.  That way if they
@@ -173,7 +173,7 @@ namespace Microsoft.CodeAnalysis.Editor
             }
         }
 
-        protected PatternMatcher GetPatternMatcher(string value, CultureInfo culture)
+        private PatternMatcher GetPatternMatcher(string value, CultureInfo culture)
         {
             return GetPatternMatcher(value, culture, _patternMatcherMap);
         }
@@ -237,22 +237,22 @@ namespace Microsoft.CodeAnalysis.Editor
             return false;
         }
 
-        internal static bool TagsEqual(CompletionItem item1, CompletionItem item2)
+        private static bool TagsEqual(CompletionItem item1, CompletionItem item2)
         {
             return TagsEqual(item1.Tags, item2.Tags);
         }
 
-        internal static bool TagsEqual(ImmutableArray<string> tags1, ImmutableArray<string> tags2)
+        private static bool TagsEqual(ImmutableArray<string> tags1, ImmutableArray<string> tags2)
         {
             return tags1 == tags2 || System.Linq.Enumerable.SequenceEqual(tags1, tags2);
         }
 
-        protected static bool IsKeywordItem(CompletionItem item)
+        private static bool IsKeywordItem(CompletionItem item)
         {
             return item.Tags.Contains(CompletionTags.Keyword);
         }
 
-        protected int CompareMatches(PatternMatch match1, PatternMatch match2, CompletionItem item1, CompletionItem item2)
+        private int CompareMatches(PatternMatch match1, PatternMatch match2, CompletionItem item1, CompletionItem item2)
         {
             // First see how the two items compare in a case insensitive fashion.  Matches that 
             // are strictly better (ignoring case) should prioritize the item.  i.e. if we have
@@ -301,18 +301,6 @@ namespace Microsoft.CodeAnalysis.Editor
             }
 
             return 0;
-        }
-
-        private static bool TextTypedSoFarMatchesItem(CompletionItem item, char ch, string textTypedSoFar)
-        {
-            var textTypedWithChar = textTypedSoFar + ch;
-            return item.DisplayText.StartsWith(textTypedWithChar, StringComparison.CurrentCultureIgnoreCase) ||
-                item.FilterText.StartsWith(textTypedWithChar, StringComparison.CurrentCultureIgnoreCase);
-        }
-
-        private static StringComparison GetComparision(bool isCaseSensitive)
-        {
-            return isCaseSensitive ? StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase;
         }
     }
 }
