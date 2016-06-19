@@ -20,9 +20,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             CSharpCompilationOptions options = null,
             bool verify = true)
         {
-            return CompileAndVerifyExperimental(
+            return CompileAndVerify(
                 source,
-                MessageID.IDS_FeatureRefLocalsReturns,
                 expectedOutput: expectedOutput,
                 options: options,
                 verify: verify);
@@ -1519,8 +1518,7 @@ class Program
 }
 ";
 
-            var options = TestOptions.Regular.WithRefsFeature().WithLocalFunctionsFeature();
-            CompileAndVerify(text, parseOptions: options).VerifyIL("Program.M()", @"
+            CompileAndVerify(text, parseOptions: TestOptions.Regular).VerifyIL("Program.M()", @"
 {
   // Code size        6 (0x6)
   .maxstack  1
@@ -1568,8 +1566,7 @@ class Program
 }
 ";
 
-            var options = TestOptions.Regular.WithRefsFeature().WithLocalFunctionsFeature();
-            CompileAndVerify(text, parseOptions: options, expectedOutput: "42", verify: false).VerifyIL("Program.M()", @"
+            CompileAndVerify(text, parseOptions: TestOptions.Regular, expectedOutput: "42", verify: false).VerifyIL("Program.M()", @"
 {
   // Code size       34 (0x22)
   .maxstack  5
@@ -1644,8 +1641,7 @@ class Program
 }
 ";
 
-            var options = TestOptions.Regular.WithRefsFeature().WithLocalFunctionsFeature();
-            CompileAndVerify(text, parseOptions: options, expectedOutput: "42", verify: false).VerifyIL("Program.M()", @"
+            CompileAndVerify(text, parseOptions: TestOptions.Regular, expectedOutput: "42", verify: false).VerifyIL("Program.M()", @"
 {
   // Code size       36 (0x24)
   .maxstack  5

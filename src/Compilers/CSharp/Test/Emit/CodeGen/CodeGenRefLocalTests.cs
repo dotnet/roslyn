@@ -25,9 +25,8 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             CSharpCompilationOptions options = null,
             bool verify = true)
         {
-            return CompileAndVerifyExperimental(
+            return CompileAndVerify(
                 source,
-                MessageID.IDS_FeatureRefLocalsReturns,
                 expectedOutput,
                 additionalRefs,
                 dependencies,

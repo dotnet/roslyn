@@ -25,9 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public LexicalTests()
         {
             _options = new CSharpParseOptions(languageVersion: LanguageVersion.CSharp3);
-            _binaryOptions = _options.WithExperimental(MessageID.IDS_FeatureBinaryLiteral);
-            _underscoreOptions = _options.WithExperimental(MessageID.IDS_FeatureDigitSeparator);
-            _binaryUnderscoreOptions = _options.WithExperimental(MessageID.IDS_FeatureBinaryLiteral, MessageID.IDS_FeatureDigitSeparator);
+            _binaryOptions = _options.WithLanguageVersion(LanguageVersion.CSharp7);
+            _underscoreOptions = _options.WithLanguageVersion(LanguageVersion.CSharp7);
+            _binaryUnderscoreOptions = _binaryOptions;
         }
 
         private IEnumerable<SyntaxToken> Lex(string text, CSharpParseOptions options = null)

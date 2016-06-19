@@ -16,7 +16,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ReplaceClass()
         {
-            var root = SyntaxFactory.ParseCompilationUnit("abstract replace override class C { }", options: TestOptions.Regular.WithReplaceFeature());
+            var root = SyntaxFactory.ParseCompilationUnit("abstract replace override class C { }", options: TestOptions.Regular);
             root.Errors().Verify();
             var type = (TypeDeclarationSyntax)root.Members[0];
             Assert.Equal(
@@ -27,7 +27,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [Fact]
         public void ReplaceMethod()
         {
-            var root = SyntaxFactory.ParseCompilationUnit("class C { virtual replace protected void M() { } }", options: TestOptions.Regular.WithReplaceFeature());
+            var root = SyntaxFactory.ParseCompilationUnit("class C { virtual replace protected void M() { } }", options: TestOptions.Regular);
             root.Errors().Verify();
             var type = (TypeDeclarationSyntax)root.Members[0];
             Assert.Equal(
@@ -87,7 +87,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         private void OriginalInMember(string text, bool inReplace)
         {
-            var tree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Regular.WithReplaceFeature());
+            var tree = SyntaxFactory.ParseSyntaxTree(text, options: TestOptions.Regular);
             var root = tree.GetCompilationUnitRoot();
             root.Errors().Verify();
             var token = root.DescendantTokens().Where(t => t.Text == "original").Single();
@@ -100,7 +100,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         [WorkItem(11503, "https://github.com/dotnet/roslyn/issues/11503")]
         public void MethodCalledReplace()
         {
-            var root = SyntaxFactory.ParseCompilationUnit("class C { public static object replace() { } }", options: TestOptions.Regular.WithReplaceFeature());
+            var root = SyntaxFactory.ParseCompilationUnit("class C { public static object replace() { } }", options: TestOptions.Regular);
             root.Errors().Verify();
         }
     }

@@ -273,7 +273,7 @@ class A
 ";
 
             // CONSIDER: Roslyn's cascading errors are much uglier than Dev10's.
-            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular.WithTuplesFeature()).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular).VerifyDiagnostics(
     // (4,11): error CS1031: Type expected
     //     const delegate void D();
     Diagnostic(ErrorCode.ERR_TypeExpected, "delegate").WithLocation(4, 11),

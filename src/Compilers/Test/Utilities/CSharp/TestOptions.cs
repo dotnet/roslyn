@@ -46,31 +46,6 @@ namespace Microsoft.CodeAnalysis.CSharp.Test.Utilities
             return options.WithFeatures(options.Features.Concat(new[] { new KeyValuePair<string, string>("strict", "true") }));
         }
 
-        public static CSharpParseOptions WithLocalFunctionsFeature(this CSharpParseOptions options)
-        {
-            return WithExperimental(options, MessageID.IDS_FeatureLocalFunctions);
-        }
-
-        public static CSharpParseOptions WithRefsFeature(this CSharpParseOptions options)
-        {
-            return WithExperimental(options, MessageID.IDS_FeatureRefLocalsReturns);
-        }
-
-        public static CSharpParseOptions WithTuplesFeature(this CSharpParseOptions options)
-        {
-            return WithExperimental(options, MessageID.IDS_FeatureTuples);
-        }
-
-        public static CSharpParseOptions WithReplaceFeature(this CSharpParseOptions options)
-        {
-            return WithExperimental(options, MessageID.IDS_FeatureReplace);
-        }
-
-        public static CSharpParseOptions WithPatternsFeature(this CSharpParseOptions options)
-        {
-            return WithExperimental(options, MessageID.IDS_FeaturePatternMatching);
-        }
-
         internal static CSharpParseOptions WithExperimental(this CSharpParseOptions options, params MessageID[] features)
         {
             if (features.Length == 0)

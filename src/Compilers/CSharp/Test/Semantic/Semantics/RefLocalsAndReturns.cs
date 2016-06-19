@@ -21,7 +21,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests.Semantics
             string assemblyName = "",
             string sourceFileName = "")
         {
-            return CreateExperimentalCompilationWithMscorlib45(text, MessageID.IDS_FeatureRefLocalsReturns, references, options, assemblyName, sourceFileName);
+            return CreateCompilationWithMscorlib45(text);
         }
 
         [Fact]
@@ -839,7 +839,7 @@ public class Test
         }
     }
 }";
-            var options = TestOptions.Regular.WithRefsFeature().WithLocalFunctionsFeature();
+            var options = TestOptions.Regular;
             var comp = CreateCompilationWithMscorlib45(text, parseOptions: options);
             comp.VerifyDiagnostics(
     // (14,13): error CS8894: By-reference returns may only be used in methods that return by reference
@@ -883,7 +883,7 @@ public class Test
         char Moo3(ref char a, ref char b) => r;
     }
 }";
-            var options = TestOptions.Regular.WithRefsFeature().WithLocalFunctionsFeature();
+            var options = TestOptions.Regular;
             var comp = CreateCompilationWithMscorlib45(text, parseOptions: options);
             comp.VerifyDiagnostics(
     // (9,50): error CS8894: By-reference returns may only be used in methods that return by reference

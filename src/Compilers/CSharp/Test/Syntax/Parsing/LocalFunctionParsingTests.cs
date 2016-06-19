@@ -56,7 +56,7 @@ class c
         {
             // Experimental nodes should only appear when experimental are
             // turned on in parse options
-            var file = ParseFileExperimental(@"
+            var file = ParseFile(@"
 class c
 {
     void m()
@@ -70,7 +70,7 @@ class c
             return 0;
         }
     }
-}", MessageID.IDS_FeatureLocalFunctions);
+}");
 
             Assert.NotNull(file);
             Assert.False(file.HasErrors);
@@ -103,13 +103,13 @@ class c
         [Fact(Skip = "https://github.com/dotnet/roslyn/issues/10388")]
         public void LocalFunctionsWithAwait()
         {
-            var file = ParseFileExperimental(@"class c
+            var file = ParseFile(@"class c
 {
     void m1() { await await() => new await(); }
     void m2() { await () => new await(); }
     async void m3() { await () => new await(); }
     void m4() { async await() => new await(); }
-}", MessageID.IDS_FeatureLocalFunctions);
+}");
 
             Assert.NotNull(file);
             var c = (ClassDeclarationSyntax)file.Members.Single();

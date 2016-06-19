@@ -256,7 +256,7 @@ class A
 }
 ";
 
-            ParseAndValidate(test, TestOptions.Regular.WithTuplesFeature(),
+            ParseAndValidate(test, TestOptions.Regular,
     // (7,16): error CS1001: Identifier expected
     //         (a, b) =>
     Diagnostic(ErrorCode.ERR_IdentifierExpected, "=>").WithLocation(7, 16),
@@ -2113,7 +2113,7 @@ namespace x
 }
 ";
             // TODO: this appears to be a severe regression from Dev10, which neatly reported 3 errors.
-            ParseAndValidate(text, TestOptions.Regular.WithTuplesFeature(),
+            ParseAndValidate(text, TestOptions.Regular,
     // (7,21): error CS1031: Type expected
     //             e = new base;   // CS1031, not a type
     Diagnostic(ErrorCode.ERR_TypeExpected, "base").WithLocation(7, 21),
@@ -2240,7 +2240,7 @@ class A
         return null;
     }
 }";
-            ParseAndValidate(test, TestOptions.Regular.WithTuplesFeature(),
+            ParseAndValidate(test, TestOptions.Regular,
     // (4,19): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
     //     public static int explicit operator ()
     Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(4, 19),
@@ -3624,7 +3624,7 @@ public class MainClass
     }
 ";
 
-            ParseAndValidate(test, TestOptions.Regular.WithTuplesFeature(),
+            ParseAndValidate(test, TestOptions.Regular,
     // (3,19): error CS1553: Declaration is not valid; use '+ operator <dest-type> (...' instead
     //     public static int implicit operator (foo f) { return 6; }    // Error
     Diagnostic(ErrorCode.ERR_BadOperatorSyntax, "int").WithArguments("+").WithLocation(3, 19),

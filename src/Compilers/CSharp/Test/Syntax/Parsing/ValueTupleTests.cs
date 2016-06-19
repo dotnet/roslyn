@@ -23,7 +23,7 @@ class C
     {
         return (1, ""Alice"");
     }
-}", options: TestOptions.Regular.WithTuplesFeature());
+}", options: TestOptions.Regular);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -107,7 +107,7 @@ class C
     (int, int, int, string, string, string, int, int, int) Foo()
     {
     }
-}", options: TestOptions.Regular.WithTuplesFeature());
+}", options: TestOptions.Regular);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -219,7 +219,7 @@ class C
 class C
 {
     var x = ((string, string) a, (int, int) b) => { };
-}", options: TestOptions.Regular.WithTuplesFeature());
+}", options: TestOptions.Regular);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -323,7 +323,7 @@ class C
 class C
 {
     var x = ((string a, string) a, (int, int b) b) => { };
-}", options: TestOptions.Regular.WithTuplesFeature());
+}", options: TestOptions.Regular);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);
@@ -437,7 +437,7 @@ class C
     void Foo((int, string) a)
     {
     }
-}", options: TestOptions.Regular.WithTuplesFeature());
+}", options: TestOptions.Regular);
             N(SyntaxKind.CompilationUnit);
             {
                 N(SyntaxKind.ClassDeclaration);

@@ -14,11 +14,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             switch (kind)
             {
                 case SourceCodeKind.Regular:
-                    await VerifyWorkerAsync(text, absent: false, options: Options.Regular.WithRefsFeature());
+                    await VerifyWorkerAsync(text, absent: false, options: Options.Regular);
                     break;
 
                 case SourceCodeKind.Script:
-                    await VerifyWorkerAsync(text, absent: false, options: Options.Script.WithRefsFeature());
+                    await VerifyWorkerAsync(text, absent: false, options: Options.Script);
                     break;
             }
         }
@@ -28,11 +28,11 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Recommendations
             switch (kind)
             {
                 case SourceCodeKind.Regular:
-                    await VerifyWorkerAsync(text, absent: true, options: Options.Regular.WithRefsFeature());
+                    await VerifyWorkerAsync(text, absent: true, options: Options.Regular);
                     break;
 
                 case SourceCodeKind.Script:
-                    await VerifyWorkerAsync(text, absent: true, options: Options.Script.WithRefsFeature());
+                    await VerifyWorkerAsync(text, absent: true, options: Options.Script);
                     break;
             }
         }

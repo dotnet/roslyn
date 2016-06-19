@@ -31,7 +31,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
     public class LocalFunctionsTestBase : CSharpTestBase
     {
-        internal static readonly CSharpParseOptions DefaultParseOptions = TestOptions.Regular.WithLocalFunctionsFeature();
+        internal static readonly CSharpParseOptions DefaultParseOptions = TestOptions.Regular;
 
         internal CompilationVerifier VerifyOutput(string source, string output, CSharpCompilationOptions options)
         {

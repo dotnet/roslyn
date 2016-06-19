@@ -1034,7 +1034,7 @@ class C
 }";
             // Triage decision was made to have this be a parse error as the grammar specifies it as such.
             // TODO: vsadov, the error recovery would be much nicer here if we consumed "int", bu tneed to consider other cases.
-            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular.WithTuplesFeature()).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular).VerifyDiagnostics(
     // (5,11): error CS1001: Identifier expected
     //     int F<int>() { }  // CS0081
     Diagnostic(ErrorCode.ERR_IdentifierExpected, "int").WithLocation(5, 11),
