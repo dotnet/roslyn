@@ -328,10 +328,26 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             set { }
         }
 
+        [Obsolete("Use SnippetsBehavior instead")]
         public int ShowSnippets
         {
-            get { return this.SnippetsBehavior; }
-            set { this.SnippetsBehavior = value; }
+            get
+            {
+                return GetOption(CompletionOptions.SnippetsBehavior) == SnippetsRule.AlwaysInclude
+                    ? 1 : 0;
+            }
+
+            set
+            {
+                if (value == 0)
+                {
+                    SetOption(CompletionOptions.SnippetsBehavior, SnippetsRule.NeverInclude);
+                }
+                else
+                {
+                    SetOption(CompletionOptions.SnippetsBehavior, SnippetsRule.AlwaysInclude);
+                }
+            }
         }
 
         public int SortUsings_PlaceSystemFirst
