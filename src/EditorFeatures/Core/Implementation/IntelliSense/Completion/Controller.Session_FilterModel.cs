@@ -143,10 +143,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         return model;
                     }
 
-                    // We may have wrapped some items in the list in DescriptionModifying items,
-                    // but we should use the actual underlying items when filtering. That way
-                    // our rules can access the underlying item's provider.
-
                     if (ItemIsFilteredOut(currentItem.Item, filterState))
                     {
                         continue;
