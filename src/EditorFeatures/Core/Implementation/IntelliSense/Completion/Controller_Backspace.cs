@@ -103,7 +103,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     sessionOpt.FilterModel(
                         CompletionFilterReason.BackspaceOrDelete,
                         recheckCaretPosition: false,
-                        dismissIfEmptyAllowed: true,
                         filterState: null);
                 }
             }

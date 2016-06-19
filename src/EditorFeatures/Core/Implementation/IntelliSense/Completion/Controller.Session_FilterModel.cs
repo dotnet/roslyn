@@ -20,7 +20,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             public void FilterModel(
                 CompletionFilterReason filterReason,
                 bool recheckCaretPosition,
-                bool dismissIfEmptyAllowed,
                 ImmutableDictionary<CompletionItemFilter, bool> filterState)
             {
                 AssertIsForeground();
@@ -42,14 +41,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         }
 
                         return FilterModelInBackground(
-                            model, localId, caretPosition, recheckCaretPosition, dismissIfEmptyAllowed, filterReason);
+                            model, localId, caretPosition, recheckCaretPosition, filterReason);
                     });
             }
 
             public void IdentifyBestMatchAndFilterToAllItems(
-                CompletionFilterReason filterReason,
-                bool recheckCaretPosition,
-                bool dismissIfEmptyAllowed)
+                CompletionFilterReason filterReason, bool recheckCaretPosition)
             {
                 AssertIsForeground();
 
@@ -61,7 +58,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var localId = _filterId;
                 Computation.ChainTaskAndNotifyControllerWhenFinished(model =>
                     {
-                        var filteredModel = FilterModelInBackground(model, localId, caretPosition, recheckCaretPosition, dismissIfEmptyAllowed, filterReason);
+                        var filteredModel = FilterModelInBackground(model, localId, caretPosition, recheckCaretPosition, filterReason);
                         return filteredModel != null
                             ? filteredModel.WithFilteredItems(filteredModel.TotalItems).WithSelectedItem(filteredModel.SelectedItem)
                             : null;
@@ -73,14 +70,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 int id,
                 SnapshotPoint caretPosition,
                 bool recheckCaretPosition,
-                bool dismissIfEmptyAllowed,
                 CompletionFilterReason filterReason)
             {
                 using (Logger.LogBlock(FunctionId.Completion_ModelComputation_FilterModelInBackground, CancellationToken.None))
                 {
                     return FilterModelInBackgroundWorker(
-                        model, id, caretPosition, recheckCaretPosition,
-                        dismissIfEmptyAllowed, filterReason);
+                        model, id, caretPosition, recheckCaretPosition, filterReason);
                 }
             }
 
@@ -89,7 +84,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 int id,
                 SnapshotPoint caretPosition,
                 bool recheckCaretPosition,
-                bool dismissIfEmptyAllowed,
                 CompletionFilterReason filterReason)
             {
                 if (model == null)
@@ -215,9 +209,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 if (allFilteredItems.Count == 0)
                 {
-                    if (dismissIfEmptyAllowed &&
-                        model.DismissIfEmpty &&
-                        filterReason != CompletionFilterReason.BackspaceOrDelete)
+                    if (model.DismissIfEmpty &&
+                        filterReason == CompletionFilterReason.TypeChar)
                     {
                         return null;
                     }

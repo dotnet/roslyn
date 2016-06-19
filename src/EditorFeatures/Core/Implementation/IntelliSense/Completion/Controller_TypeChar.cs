@@ -178,7 +178,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     sessionOpt.FilterModel(
                         CompletionFilterReason.TypeChar,
                         recheckCaretPosition: false,
-                        dismissIfEmptyAllowed: true,
                         filterState: null);
                 }
                 else
@@ -207,7 +206,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         // filter the session.
                         sessionOpt.FilterModel(CompletionFilterReason.TypeChar,
                             recheckCaretPosition: false,
-                            dismissIfEmptyAllowed: true,
                             filterState: null);
                         return;
                     }
