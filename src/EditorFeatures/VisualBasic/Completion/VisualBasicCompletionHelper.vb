@@ -41,13 +41,6 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion
         End Property
 
         Public Overrides Function IsBetterFilterMatch(item1 As CompletionItem, item2 As CompletionItem, filterText As String, trigger As CompletionTrigger, filterReason As CompletionFilterReason, Optional recentItems As ImmutableArray(Of String) = Nothing) As Boolean
-
-            If filterReason = CompletionFilterReason.BackspaceOrDelete Then
-                Dim prefixLength1 = item1.FilterText.GetCaseInsensitivePrefixLength(filterText)
-                Dim prefixLength2 = item2.FilterText.GetCaseInsensitivePrefixLength(filterText)
-                Return prefixLength1 > prefixLength2 OrElse ((item1.Rules.MatchPriority > MatchPriority.Default AndAlso Not item2.Rules.MatchPriority > MatchPriority.Default) AndAlso Not IsEnumMemberItem(item1))
-            End If
-
             If IsEnumMemberItem(item2) Then
                 Dim match1 = GetMatch(item1, filterText)
                 Dim match2 = GetMatch(item2, filterText)

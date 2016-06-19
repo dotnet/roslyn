@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         // If we have no best match, or this match is better than the last match,
                         // then the current item is the best filter match.
                         if (bestFilterMatch == null ||
-                            helper.IsBetterFilterMatch(currentItem.Item, bestFilterMatch.Item, filterText, model.Trigger, filterReason, recentItems))
+                            IsBetterFilterMatch(helper, currentItem.Item, bestFilterMatch.Item, filterText, model.Trigger, filterReason, recentItems))
                         {
                             bestFilterMatch = currentItem;
                         }
@@ -257,8 +257,41 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return result;
             }
 
+            private static bool IsBetterFilterMatch(
+                CompletionHelper helper, CompletionItem item1, CompletionItem item2,
+                string filterText, CompletionTrigger trigger,
+                CompletionFilterReason filterReason, ImmutableArray<string> recentItems)
+            {
+                // For the deletion we bake in the core logic for how betterness should work.
+                // This way deletion feels the same across all languages that opt into deletion 
+                // as a completion trigger.
+                if (filterReason == CompletionFilterReason.BackspaceOrDelete)
+                {
+                    var prefixLength1 = item1.FilterText.GetCaseInsensitivePrefixLength(filterText);
+                    var prefixLength2 = item2.FilterText.GetCaseInsensitivePrefixLength(filterText);
+
+                    // Prefer the item that matches a longer prefix of the filter text.
+                    if (prefixLength1 > prefixLength2)
+                    {
+                        return true;
+                    }
+
+                    // If the lengths are the same, prefer the one with the higher match priority.
+                    if (item1.Rules.MatchPriority > item2.Rules.MatchPriority)
+                    {
+                        return true;
+                    }
+
+                    return false;
+                }
+
+                return helper.IsBetterFilterMatch(item1, item2, filterText, trigger, filterReason, recentItems);
+            }
+
             private static bool MatchesFilterText(
-                CompletionHelper helper, CompletionItem item, string filterText, CompletionTrigger trigger, CompletionFilterReason filterReason, ImmutableArray<string> recentItems)
+                CompletionHelper helper, CompletionItem item,
+                string filterText, CompletionTrigger trigger,
+                CompletionFilterReason filterReason, ImmutableArray<string> recentItems)
             {
                 // For the deletion we bake in the core logic for how matching should work.
                 // This way deletion feels the same across all languages that opt into deletion 
