@@ -1,6 +1,5 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using System;
 using System.Collections.Immutable;
 
 namespace Microsoft.CodeAnalysis.Completion
@@ -172,12 +171,11 @@ namespace Microsoft.CodeAnalysis.Completion
         /// <summary>
         /// The default <see cref="CompletionRules"/> if none is otherwise specified.
         /// </summary>
-        public static readonly CompletionRules Default
-            = new CompletionRules(
-                dismissIfEmpty: false,
-                dismissIfLastCharacterDeleted: false,
-                defaultCommitCharacters: s_defaultCommitKeys,
-                defaultEnterKeyRule: EnterKeyRule.Never,
-                snippetsRule: SnippetsRule.NeverInclude);
+        public static readonly CompletionRules Default = new CompletionRules(
+            dismissIfEmpty: false,
+            dismissIfLastCharacterDeleted: false,
+            defaultCommitCharacters: s_defaultCommitKeys,
+            defaultEnterKeyRule: EnterKeyRule.Default,
+            snippetsRule: SnippetsRule.Default);
     }
 }
