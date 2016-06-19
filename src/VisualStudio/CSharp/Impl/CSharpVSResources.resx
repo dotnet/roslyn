@@ -378,7 +378,7 @@
   <data name="Option_PlaceSystemNamespaceFirst" xml:space="preserve">
     <value>_Place 'System' directives first when sorting usings</value>
   </data>
-  <data name="Option_BringUpOnIdentifier" xml:space="preserve">
+  <data name="Option_Show_completion_list_after_a_character_is_typed" xml:space="preserve">
     <value>_Show completion list after a character is typed</value>
   </data>
   <data name="Option_ShowKeywords" xml:space="preserve">
@@ -485,5 +485,8 @@
   </data>
   <data name="Snippets_behavior" xml:space="preserve">
     <value>Snippets behavior</value>
+  </data>
+  <data name="Option_Show_completion_list_after_a_character_is_deleted" xml:space="preserve">
+    <value>Show completion list after a character is _deleted</value>
   </data>
 </root>

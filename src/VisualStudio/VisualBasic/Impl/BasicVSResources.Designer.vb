@@ -146,15 +146,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
-        '''  Looks up a localized string similar to _Show completion list after a character is typed.
-        '''</summary>
-        Friend Shared ReadOnly Property Option_BringUpOnIdentifier() As String
-            Get
-                Return ResourceManager.GetString("Option_BringUpOnIdentifier", resourceCulture)
-            End Get
-        End Property
-        
-        '''<summary>
         '''  Looks up a localized string similar to Enable full solution _analysis.
         '''</summary>
         Friend Shared ReadOnly Property Option_ClosedFileDiagnostics() As String
@@ -421,6 +412,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         Friend Shared ReadOnly Property Option_Show_completion_item_filters() As String
             Get
                 Return ResourceManager.GetString("Option_Show_completion_item_filters", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to Show completion list after a character is _deleted.
+        '''</summary>
+        Friend Shared ReadOnly Property Option_Show_completion_list_after_a_character_is_deleted() As String
+            Get
+                Return ResourceManager.GetString("Option_Show_completion_list_after_a_character_is_deleted", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to _Show completion list after a character is typed.
+        '''</summary>
+        Friend Shared ReadOnly Property Option_Show_completion_list_after_a_character_is_typed() As String
+            Get
+                Return ResourceManager.GetString("Option_Show_completion_list_after_a_character_is_typed", resourceCulture)
             End Get
         End Property
         

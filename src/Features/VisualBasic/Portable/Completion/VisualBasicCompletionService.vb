@@ -2,10 +2,8 @@
 
 Imports System.Collections.Immutable
 Imports System.Composition
-Imports System.Globalization
 Imports System.Threading
 Imports Microsoft.CodeAnalysis.Completion
-Imports Microsoft.CodeAnalysis.Completion.Providers
 Imports Microsoft.CodeAnalysis.Host.Mef
 Imports Microsoft.CodeAnalysis.Options
 Imports Microsoft.CodeAnalysis.Text
@@ -145,18 +143,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion
             Return CompletionUtilities.GetCompletionItemSpan(text, caretPosition)
         End Function
 
-        Public Overrides Function ShouldTriggerCompletion(text As SourceText, position As Integer, trigger As CompletionTrigger, Optional roles As ImmutableHashSet(Of String) = Nothing, Optional options As OptionSet = Nothing) As Boolean
-            options = If(options, _workspace.Options)
-
-            If Not options.GetOption(CompletionOptions.TriggerOnTyping, Me.Language) Then
-                Return False
-            End If
-
-            If trigger.Kind = CompletionTriggerKind.Deletion AndAlso (Char.IsLetterOrDigit(trigger.Character) OrElse trigger.Character = "."c) Then
-                Return True
-            Else
-                Return MyBase.ShouldTriggerCompletion(text, position, trigger, roles, options)
-            End If
+        Friend Overrides Function SupportsTriggerOnDeletion(options As OptionSet) As Boolean
+            ' If the option is null (i.e. default) or 'true', then we want to trigger completion.
+            ' Only if the option is false do we not want to trigger.
+            Dim opt = options.GetOption(CompletionOptions.TriggerOnDeletion, Me.Language)
+            Return If(opt = False, False, True)
         End Function
     End Class
 End Namespace

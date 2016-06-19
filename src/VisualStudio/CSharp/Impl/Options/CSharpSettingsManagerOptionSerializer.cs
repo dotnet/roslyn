@@ -81,6 +81,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             result.AddRange(new[]
                 {
                     new KeyValuePair<string, IOption>(GetStorageKeyForOption(CompletionOptions.TriggerOnTypingLetters), CompletionOptions.TriggerOnTypingLetters),
+                    new KeyValuePair<string, IOption>(GetStorageKeyForOption(CompletionOptions.TriggerOnDeletion), CompletionOptions.TriggerOnDeletion),
                     new KeyValuePair<string, IOption>(GetStorageKeyForOption(CompletionOptions.ShowCompletionItemFilters), CompletionOptions.ShowCompletionItemFilters),
                     new KeyValuePair<string, IOption>(GetStorageKeyForOption(CompletionOptions.HighlightMatchingPortionsOfCompletionListItems), CompletionOptions.HighlightMatchingPortionsOfCompletionListItems),
                 });
@@ -143,6 +144,7 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
             else if (languageName == LanguageNames.CSharp)
             {
                 if (option == CompletionOptions.TriggerOnTypingLetters ||
+                    option == CompletionOptions.TriggerOnDeletion ||
                     option == CompletionOptions.ShowCompletionItemFilters ||
                     option == CompletionOptions.HighlightMatchingPortionsOfCompletionListItems ||
                     option == CompletionOptions.EnterKeyBehavior ||
@@ -275,7 +277,28 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
                 return FetchSnippetsBehavior(optionKey, out value);
             }
 
+            if (optionKey.Option == CompletionOptions.TriggerOnDeletion)
+            {
+                return FetchTriggerOnDeletion(optionKey, out value);
+            }
+
             return base.TryFetch(optionKey, out value);
+        }
+
+        private bool FetchTriggerOnDeletion(OptionKey optionKey, out object value)
+        {
+            if (!base.TryFetch(optionKey, out value))
+            {
+                return false;
+            }
+
+            if (value == null)
+            {
+                // The default behavior for c# is to not trigger completion on deletion.
+                value = (bool?)false;
+            }
+
+            return true;
         }
 
         private bool FetchStyleBool(string settingName, out object value)

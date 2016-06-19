@@ -11,7 +11,9 @@ namespace Microsoft.CodeAnalysis.Completion
 
         public static readonly PerLanguageOption<bool> HideAdvancedMembers = new PerLanguageOption<bool>(FeatureName, "HideAdvancedMembers", defaultValue: false);
         public static readonly PerLanguageOption<bool> TriggerOnTyping = new PerLanguageOption<bool>(FeatureName, "TriggerOnTyping", defaultValue: true);
-        public static readonly PerLanguageOption<bool> TriggerOnTypingLetters = new PerLanguageOption<bool>(FeatureName, "TriggerOnTypingLetters", defaultValue: true);
+
+        public static readonly PerLanguageOption<bool> TriggerOnTypingLetters = new PerLanguageOption<bool>(FeatureName, nameof(TriggerOnTypingLetters), defaultValue: true);
+        public static readonly PerLanguageOption<bool?> TriggerOnDeletion = new PerLanguageOption<bool?>(FeatureName, nameof(TriggerOnDeletion), defaultValue: null);
 
         public static readonly PerLanguageOption<EnterKeyRule> EnterKeyBehavior =
             new PerLanguageOption<EnterKeyRule>(FeatureName, nameof(EnterKeyBehavior), defaultValue: EnterKeyRule.Default);

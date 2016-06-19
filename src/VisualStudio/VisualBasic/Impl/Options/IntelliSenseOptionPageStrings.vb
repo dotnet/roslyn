@@ -5,6 +5,12 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         Public ReadOnly Property Option_CompletionLists As String =
             BasicVSResources.Option_CompletionLists
 
+        Public ReadOnly Property Option_Show_completion_list_after_a_character_is_typed As String =
+            BasicVSResources.Option_Show_completion_list_after_a_character_is_typed
+
+        Public ReadOnly Property Option_Show_completion_list_after_a_character_is_deleted As String =
+            BasicVSResources.Option_Show_completion_list_after_a_character_is_deleted
+
         Public ReadOnly Property Option_Highlight_matching_portions_of_completion_list_items As String =
             BasicVSResources.Option_Highlight_matching_portions_of_completion_list_items
 
@@ -22,9 +28,6 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
 
         Public ReadOnly Property Enter_key_behavior_Title As String =
             BasicVSResources.Enter_key_behavior_Title
-
-        Public ReadOnly Property Option_BringUpOnIdentifier As String =
-            BasicVSResources.Option_BringUpOnIdentifier
 
         Public ReadOnly Property Snippets_behavior As String =
             BasicVSResources.Snippets_behavior
