@@ -30,8 +30,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _factory As SyntheticBoundNodeFactory
 
         Public Shared Function TryCreate(method As MethodSymbol, methodBody As BoundStatement, factory As SyntheticBoundNodeFactory, diagnostics As DiagnosticBag, debugDocumentProvider As DebugDocumentProvider, previous As Instrumenter) As DynamicAnalysisInjector
-        {
-           Dim createPayload As MethodSymbol = GetCreatePayload(factory.Compilation, methodBody.Syntax, diagnostics)
+            Dim createPayload As MethodSymbol = GetCreatePayload(factory.Compilation, methodBody.Syntax, diagnostics)
 
             ' Do Not instrument the instrumentation helpers if they are part of the current compilation (which occurs only during testing). GetCreatePayload will fail with an infinite recursion if it Is instrumented.
             If DirectCast(createPayload, Object) IsNot Nothing AndAlso Not method.IsImplicitlyDeclared AndAlso Not method.Equals(createPayload) Then
@@ -55,9 +54,47 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             _methodHasExplicitBlock = MethodHasExplicitBlock(methoD)
             _factory = factory
 
-            // The first point indicates entry into the method And has the span of the method definition.
+            ' The first point indicates entry into the method And has the span of the method definition.
             _methodEntryInstrumentation = AddAnalysisPoint(MethodDeclarationIfAvailable(methodBody.Syntax), factory)
         End Sub
+
+        Public Overrides Function CreateBlockPrologue(original As BoundBlock, ByRef synthesizedLocal As LocalSymbol) As BoundStatement
+            Dim previousPrologue As BoundStatement = MyBase.CreateBlockPrologue(original, synthesizedLocal)
+#If False Then
+            If _methodBody Is original Then
+                _dynamicAnalysisSpans = _spansBuilder.ToImmutableAndFree()
+                ' In the future there will be multiple analysis kinds.
+                Const analysisKind As Integer = 0
+
+                Dim modulePayloadType As ArrayTypeSymbol = ArrayTypeSymbol.CreateVBArray(_payloadType, ImmutableArray(Of CustomModifier).Empty, 1, _factory.Compilation.Assembly)
+
+                ' Synthesize the initialization of the instrumentation payload array, using concurrency-safe code
+                '
+                ' Dim payload = PID.PayloadRootField[methodIndex]
+                ' If payload Is Nothing Then
+                '     payload = Instrumentation.CreatePayload(mvid, methodIndex, ref PID.PayloadRootField(methodIndex), payloadLength)
+                ' End If
+
+                Dim payloadInitialization As BoundStatement = _factory.Assignment(_factory.Local(_methodPayload), _factory.ArrayAccess(_factory.InstrumentationPayloadRoot(analysisKind, modulePayloadType), ImmutableArray.Create(_factory.MethodDefIndex(_method))))
+                Dim mvid As BoundExpression = _factory.ModuleVersionId()
+                Dim methodToken As BoundExpression = _factory.MethodDefIndex(_method)
+                Dim payloadSlot As BoundExpression = _factory.ArrayAccess(_factory.InstrumentationPayloadRoot(analysisKind, modulePayloadType), ImmutableArray.Create(_factory.MethodDefIndex(_method)))
+                Dim createPayloadCall As BoundStatement = _factory.Assignment(_factory.Local(_methodPayload), _factory.Call(null, _createPayload, mvid, methodToken, payloadSlot, _factory.Literal(_dynamicAnalysisSpans.Length)))
+
+                Dim payloadNullTest As BoundExpression = _factory.Binary(BinaryOperatorKind.ObjectEqual, _factory.SpecialType(SpecialType.System_Boolean), _factory.Local(_methodPayload), _factory.Null(_payloadType))
+                Dim payloadIf As BoundStatement = _factory.If(payloadNullTest, createPayloadCall)
+
+                Debug.Assert(synthesizedLocal Is Nothing)
+                synthesizedLocal = _methodPayload
+
+                Return If(previousPrologue Is Nothing,
+                           factory.StatementList(payloadInitialization, payloadIf, _methodEntryInstrumentation),
+                           _factory.StatementList(payloadInitialization, payloadIf, _methodEntryInstrumentation, previousPrologue))
+            End If
+#End If
+
+            Return previousPrologue
+        End Function
 
         Public Overrides Function InstrumentExpressionStatement(original As BoundExpressionStatement, rewritten As BoundStatement) As BoundStatement
             Return AddDynamicAnalysis(original, MyBase.InstrumentExpressionStatement(original, rewritten))
@@ -111,62 +148,6 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return AddDynamicAnalysis(original, MyBase.InstrumentRemoveHandlerStatement(original, rewritten))
         End Function
 
-        Public Overrides Function CreateBlockPrologue(original As BoundBlock) As BoundStatement
-            Return CreateBlockPrologue(original, MyBase.CreateBlockPrologue(original))
-        End Function
-
-        Public Overrides Function InstrumentTopLevelExpressionInQuery(original As BoundExpression, rewritten As BoundExpression) As BoundExpression
-            rewritten = MyBase.InstrumentTopLevelExpressionInQuery(original, rewritten)
-            Return New BoundSequencePointExpression(original.Syntax, rewritten, rewritten.Type)
-        End Function
-
-        Public Overrides Function InstrumentQueryLambdaBody(original As BoundQueryLambda, rewritten As BoundStatement) As BoundStatement
-            rewritten = MyBase.InstrumentQueryLambdaBody(original, rewritten)
-
-            Dim createSequencePoint As VisualBasicSyntaxNode = Nothing
-            Dim sequencePointSpan As TextSpan
-
-            Select Case original.LambdaSymbol.SynthesizedKind
-                Case SynthesizedLambdaKind.AggregateQueryLambda
-                    Dim aggregateClause = DirectCast(original.Syntax.Parent.Parent, AggregateClauseSyntax)
-
-                    If aggregateClause.AggregationVariables.Count = 1 Then
-                        ' We are dealing with a simple case of an Aggregate clause - a single aggregate
-                        ' function in the Into clause. This lambda is responsible for calculating that
-                        ' aggregate function. Actually, it includes all code generated for the entire
-                        ' Aggregate clause. We should create sequence point for the entire clause
-                        ' rather than sequence points for the top level expressions within the lambda.
-                        createSequencePoint = aggregateClause
-                        sequencePointSpan = aggregateClause.Span
-                    Else
-                        ' We should create sequence point that spans from beginning of the Aggregate clause 
-                        ' to the beginning of the Into clause because all that code is involved into group calculation.
-
-                        createSequencePoint = aggregateClause
-                        If aggregateClause.AdditionalQueryOperators.Count = 0 Then
-                            sequencePointSpan = TextSpan.FromBounds(aggregateClause.SpanStart,
-                                                                    aggregateClause.Variables.Last.Span.End)
-                        Else
-                            sequencePointSpan = TextSpan.FromBounds(aggregateClause.SpanStart,
-                                                                    aggregateClause.AdditionalQueryOperators.Last.Span.End)
-                        End If
-                    End If
-
-                Case SynthesizedLambdaKind.LetVariableQueryLambda
-                    ' We will apply sequence points to synthesized return statements if they are contained in LetClause
-                    Debug.Assert(original.Syntax.Parent.IsKind(SyntaxKind.ExpressionRangeVariable))
-
-                    createSequencePoint = original.Syntax
-                    sequencePointSpan = TextSpan.FromBounds(original.Syntax.SpanStart, original.Syntax.Span.End)
-            End Select
-
-            If createSequencePoint IsNot Nothing Then
-                rewritten = New BoundSequencePointWithSpan(createSequencePoint, rewritten, sequencePointSpan)
-            End If
-
-            Return rewritten
-        End Function
-
         Public Overrides Function InstrumentSyncLockObjectCapture(original As BoundSyncLockStatement, rewritten As BoundStatement) As BoundStatement
             Return AddDynamicAnalysis(original, MyBase.InstrumentSyncLockObjectCapture(original, rewritten))
         End Function
@@ -179,173 +160,45 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return AddDynamicAnalysis(original, MyBase.InstrumentDoLoopStatementEntryOrConditionalGotoStart(original, ifConditionGotoStartOpt))
         End Function
 
-        Public Overrides Function InstrumentForEachStatementConditionalGotoStart(original As BoundForEachStatement, ifConditionGotoStart As BoundStatement) As BoundStatement
-            Return AddDynamicAnalysis(original, MyBase.InstrumentForEachStatementConditionalGotoStart(original, ifConditionGotoStart))
-        End Function
-
         Public Overrides Function InstrumentIfStatementConditionalGoto(original As BoundIfStatement, condGoto As BoundStatement) As BoundStatement
             Return AddDynamicAnalysis(original, MyBase.InstrumentIfStatementConditionalGoto(original, condGoto))
         End Function
 
-        Public Overrides Function InstrumentObjectForLoopInitCondition(original As BoundForToStatement, rewrittenInitCondition As BoundExpression, currentMethodOrLambda As MethodSymbol) As BoundExpression
-            Return AddConditionSequencePoint(MyBase.InstrumentObjectForLoopInitCondition(original, rewrittenInitCondition, currentMethodOrLambda), original, currentMethodOrLambda)
-        End Function
-
-        Public Overrides Function InstrumentObjectForLoopCondition(original As BoundForToStatement, rewrittenLoopCondition As BoundExpression, currentMethodOrLambda As MethodSymbol) As BoundExpression
-            Return AddConditionSequencePoint(MyBase.InstrumentObjectForLoopCondition(original, rewrittenLoopCondition, currentMethodOrLambda), original, currentMethodOrLambda)
-        End Function
-
-        Public Overrides Function InstrumentIfStatementCondition(original As BoundIfStatement, rewrittenCondition As BoundExpression, currentMethodOrLambda As MethodSymbol) As BoundExpression
-            Return AddConditionSequencePoint(MyBase.InstrumentIfStatementCondition(original, rewrittenCondition, currentMethodOrLambda), original, currentMethodOrLambda)
-        End Function
-
-        Public Overrides Function InstrumentCatchBlockFilter(original As BoundCatchBlock, rewrittenFilter As BoundExpression, currentMethodOrLambda As MethodSymbol) As BoundExpression
-            rewrittenFilter = MyBase.InstrumentCatchBlockFilter(original, rewrittenFilter, currentMethodOrLambda)
-
-            ' if we have a filter, we want to stop before the filter expression
-            ' and associate the sequence point with whole Catch statement
-            rewrittenFilter = New BoundSequencePointExpression(DirectCast(original.Syntax, CatchBlockSyntax).CatchStatement,
-                                                               rewrittenFilter,
-                                                               rewrittenFilter.Type)
-
-            ' EnC: We need to insert a hidden sequence point to handle function remapping in case 
-            ' the containing method is edited while methods invoked in the condition are being executed.
-            Return AddConditionSequencePoint(rewrittenFilter, original, currentMethodOrLambda)
-        End Function
-
         Public Overrides Function CreateSelectStatementPrologue(original As BoundSelectStatement) As BoundStatement
-            ' Add select case begin sequence point
-            Return New BoundSequencePoint(original.ExpressionStatement.Syntax, MyBase.CreateSelectStatementPrologue(original))
-        End Function
-
-        Public Overrides Function InstrumentSelectStatementCaseCondition(original As BoundSelectStatement, rewrittenCaseCondition As BoundExpression, currentMethodOrLambda As MethodSymbol, ByRef lazyConditionalBranchLocal As LocalSymbol) As BoundExpression
-            Return AddConditionSequencePoint(MyBase.InstrumentSelectStatementCaseCondition(original, rewrittenCaseCondition, currentMethodOrLambda, lazyConditionalBranchLocal),
-                                             original, currentMethodOrLambda, lazyConditionalBranchLocal)
-        End Function
-
-        Public Overrides Function InstrumentCaseBlockConditionalGoto(original As BoundCaseBlock, condGoto As BoundStatement) As BoundStatement
-            Return New BoundSequencePoint(original.CaseStatement.Syntax, MyBase.InstrumentCaseBlockConditionalGoto(original, condGoto))
-        End Function
-
-        Public Overrides Function InstrumentCaseElseBlock(original As BoundCaseBlock, rewritten As BoundBlock) As BoundStatement
-            Return New BoundSequencePoint(original.CaseStatement.Syntax, MyBase.InstrumentCaseElseBlock(original, rewritten))
-        End Function
-
-        Public Overrides Function InstrumentSelectStatementEpilogue(original As BoundSelectStatement, epilogueOpt As BoundStatement) As BoundStatement
-            ' Add End Select sequence point
-            Return New BoundSequencePoint(DirectCast(original.Syntax, SelectBlockSyntax).EndSelectStatement, MyBase.InstrumentSelectStatementEpilogue(original, epilogueOpt))
-        End Function
-
-        Public Overrides Function CreateCatchBlockPrologue(original As BoundCatchBlock) As BoundStatement
-            Return New BoundSequencePoint(DirectCast(original.Syntax, CatchBlockSyntax).CatchStatement, MyBase.CreateCatchBlockPrologue(original))
-        End Function
-
-        Public Overrides Function CreateFinallyBlockPrologue(original As BoundTryStatement) As BoundStatement
-            Return New BoundSequencePoint(DirectCast(original.FinallyBlockOpt.Syntax, FinallyBlockSyntax).FinallyStatement, MyBase.CreateFinallyBlockPrologue(original))
-        End Function
-
-        Public Overrides Function CreateTryBlockPrologue(original As BoundTryStatement) As BoundStatement
-            Return New BoundSequencePoint(DirectCast(original.Syntax, TryBlockSyntax).TryStatement, MyBase.CreateTryBlockPrologue(original))
-        End Function
-
-        Public Overrides Function InstrumentTryStatement(original As BoundTryStatement, rewritten As BoundStatement) As BoundStatement
-            ' Add a sequence point for End Try
-            ' Note that scope the point is outside of Try/Catch/Finally 
-            Return New BoundStatementList(original.Syntax,
-                                          ImmutableArray.Create(Of BoundStatement)(
-                                                   MyBase.InstrumentTryStatement(original, rewritten),
-                                                   New BoundSequencePoint(DirectCast(original.Syntax, TryBlockSyntax).EndTryStatement, Nothing)
-                                               )
-                                           )
+            Return AddDynamicAnalysis(original, MyBase.CreateSelectStatementPrologue(original))
         End Function
 
         Public Overrides Function InstrumentFieldOrPropertyInitializer(original As BoundFieldOrPropertyInitializer, rewritten As BoundStatement, symbolIndex As Integer, createTemporary As Boolean) As BoundStatement
             rewritten = MyBase.InstrumentFieldOrPropertyInitializer(original, rewritten, symbolIndex, createTemporary)
+            Dim syntax As VisualBasicSyntaxNode = original.Syntax
 
-            If createTemporary Then
-                rewritten = MarkInitializerSequencePoint(rewritten, original.Syntax, symbolIndex)
-            End If
+            Select Case Syntax.Parent.Parent.Kind()
+                Case SyntaxKind.VariableDeclarator, SyntaxKind.PropertyStatement
+                    Return AddDynamicAnalysis(original, rewritten)
 
-            Return rewritten
+                Case Else
+                    Throw ExceptionUtilities.UnexpectedValue(Syntax.Parent.Parent.Kind())
+            End Select
         End Function
 
         Public Overrides Function InstrumentForEachLoopInitialization(original As BoundForEachStatement, initialization As BoundStatement) As BoundStatement
-            ' first sequence point to highlight the for each statement
-            Return New BoundSequencePoint(DirectCast(original.Syntax, ForEachBlockSyntax).ForEachStatement,
-                                          MyBase.InstrumentForEachLoopInitialization(original, initialization))
-        End Function
-
-        Public Overrides Function InstrumentForEachLoopEpilogue(original As BoundForEachStatement, epilogueOpt As BoundStatement) As BoundStatement
-            epilogueOpt = MyBase.InstrumentForEachLoopEpilogue(original, epilogueOpt)
-            Dim nextStmt = DirectCast(original.Syntax, ForEachBlockSyntax).NextStatement
-
-            If nextStmt IsNot Nothing Then
-                epilogueOpt = New BoundSequencePoint(DirectCast(original.Syntax, ForEachBlockSyntax).NextStatement, epilogueOpt)
-            End If
-
-            Return epilogueOpt
+            Return AddDynamicAnalysis(original, MyBase.InstrumentForEachLoopInitialization(original, initialization))
         End Function
 
         Public Overrides Function InstrumentForLoopInitialization(original As BoundForToStatement, initialization As BoundStatement) As BoundStatement
-            ' first sequence point to highlight the for statement
-            Return New BoundSequencePoint(DirectCast(original.Syntax, ForBlockSyntax).ForStatement, MyBase.InstrumentForLoopInitialization(original, initialization))
-        End Function
-
-        Public Overrides Function InstrumentForLoopIncrement(original As BoundForToStatement, increment As BoundStatement) As BoundStatement
-            increment = MyBase.InstrumentForLoopIncrement(original, increment)
-            Dim nextStmt = DirectCast(original.Syntax, ForBlockSyntax).NextStatement
-
-            If nextStmt IsNot Nothing Then
-                increment = New BoundSequencePoint(DirectCast(original.Syntax, ForBlockSyntax).NextStatement, increment)
-            End If
-
-            Return increment
+            Return AddDynamicAnalysis(original, MyBase.InstrumentForLoopInitialization(original, initialization))
         End Function
 
         Public Overrides Function InstrumentLocalInitialization(original As BoundLocalDeclaration, rewritten As BoundStatement) As BoundStatement
-            Return MarkInitializerSequencePoint(MyBase.InstrumentLocalInitialization(original, rewritten), original.Syntax)
+            Return AddDynamicAnalysis(original, MyBase.InstrumentLocalInitialization(original, rewritten))
         End Function
 
         Public Overrides Function CreateUsingStatementPrologue(original As BoundUsingStatement) As BoundStatement
-            ' create a sequence point that contains the whole using statement as the first reachable sequence point
-            ' of the using statement. The resource variables are not yet in scope.
-            Return New BoundSequencePoint(original.UsingInfo.UsingStatementSyntax.UsingStatement, MyBase.CreateUsingStatementPrologue(original))
-        End Function
-
-        Public Overrides Function InstrumentUsingStatementResourceCapture(original As BoundUsingStatement, resourceIndex As Integer, rewritten As BoundStatement) As BoundStatement
-            rewritten = MyBase.InstrumentUsingStatementResourceCapture(original, resourceIndex, rewritten)
-
-            If Not original.ResourceList.IsDefault AndAlso original.ResourceList.Length > 1 Then
-                ' Case "Using <variable declarations>"  
-                Dim localDeclaration = original.ResourceList(resourceIndex)
-                Dim syntaxForSequencePoint As VisualBasicSyntaxNode
-
-                If localDeclaration.Kind = BoundKind.LocalDeclaration Then
-                    syntaxForSequencePoint = localDeclaration.Syntax.Parent
-                Else
-                    Debug.Assert(localDeclaration.Kind = BoundKind.AsNewLocalDeclarations)
-                    syntaxForSequencePoint = localDeclaration.Syntax
-                End If
-
-                rewritten = New BoundSequencePoint(syntaxForSequencePoint, rewritten)
-            End If
-
-            Return rewritten
-        End Function
-
-        Public Overrides Function CreateUsingStatementDisposePrologue(original As BoundUsingStatement) As BoundStatement
-            ' The block should start with a sequence point that points to the "End Using" statement. This is required in order to
-            ' highlight the end using when someone step next after the last statement of the original body and in case an exception
-            ' was thrown.
-            Return New BoundSequencePoint(DirectCast(original.Syntax, UsingBlockSyntax).EndUsingStatement, MyBase.CreateUsingStatementDisposePrologue(original))
+            Return AddDynamicAnalysis(original, MyBase.CreateUsingStatementPrologue(original))
         End Function
 
         Public Overrides Function CreateWithStatementPrologue(original As BoundWithStatement) As BoundStatement
-            Return New BoundSequencePoint(DirectCast(original.Syntax, WithBlockSyntax).WithStatement, MyBase.CreateWithStatementPrologue(original))
-        End Function
-
-        Public Overrides Function CreateWithStatementEpilogue(original As BoundWithStatement) As BoundStatement
-            Return New BoundSequencePoint(DirectCast(original.Syntax, WithBlockSyntax).EndWithStatement, MyBase.CreateWithStatementEpilogue(original))
+            Return AddDynamicAnalysis(original, MyBase.CreateWithStatementPrologue(original))
         End Function
 
 #If False Then

@@ -62,6 +62,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         public override BoundStatement CreateBlockPrologue(BoundBlock original, out LocalSymbol synthesizedLocal)
         {
+            BoundStatement previousPrologue = base.CreateBlockPrologue(original, out synthesizedLocal);
             if (_methodBody == original)
             {
                 _dynamicAnalysisSpans = _spansBuilder.ToImmutableAndFree();
@@ -85,9 +86,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 BoundExpression payloadNullTest = _factory.Binary(BinaryOperatorKind.ObjectEqual, _factory.SpecialType(SpecialType.System_Boolean), _factory.Local(_methodPayload), _factory.Null(_payloadType));
                 BoundStatement payloadIf = _factory.If(payloadNullTest, createPayloadCall);
 
-                BoundStatement previousPrologue = base.CreateBlockPrologue(original, out synthesizedLocal);
                 Debug.Assert(synthesizedLocal == null);
-
                 synthesizedLocal = _methodPayload;
 
                 return previousPrologue == null
@@ -95,8 +94,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                      : _factory.StatementList(payloadInitialization, payloadIf, _methodEntryInstrumentation, previousPrologue);
             }
 
-            synthesizedLocal = null;
-            return null;
+            return previousPrologue;
         }
 
         public ImmutableArray<SourceSpan> DynamicAnalysisSpans => _dynamicAnalysisSpans;

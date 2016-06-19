@@ -82,8 +82,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Previous.InstrumentRemoveHandlerStatement(original, rewritten)
         End Function
 
-        Public Overrides Function CreateBlockPrologue(original As BoundBlock) As BoundStatement
-            Return Previous.CreateBlockPrologue(original)
+        Public Overrides Function CreateBlockPrologue(original As BoundBlock, ByRef synthesizedLocal As LocalSymbol) As BoundStatement
+            Return Previous.CreateBlockPrologue(original, synthesizedLocal)
         End Function
 
         Public Overrides Function InstrumentTopLevelExpressionInQuery(original As BoundExpression, rewritten As BoundExpression) As BoundExpression

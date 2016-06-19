@@ -42,21 +42,22 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             End If
 
             If Instrument Then
-                Dim prologue As BoundStatement = _instrumenter.CreateBlockPrologue(node)
+                Dim builder = ArrayBuilder(Of BoundStatement).GetInstance()
 
+                For Each s In node.Statements
+                    Dim rewrittenStatement = TryCast(Visit(s), BoundStatement)
+                    If rewrittenStatement IsNot Nothing Then
+                        builder.Add(rewrittenStatement)
+                    End If
+                Next
+
+                Dim synthesizedLocal As LocalSymbol = Nothing
+                Dim prologue As BoundStatement = _instrumenter.CreateBlockPrologue(node, synthesizedLocal)
                 If prologue IsNot Nothing Then
-                    Dim builder = ArrayBuilder(Of BoundStatement).GetInstance()
-                    builder.Add(prologue)
-
-                    For Each s In node.Statements
-                        Dim rewrittenStatement = TryCast(Visit(s), BoundStatement)
-                        If rewrittenStatement IsNot Nothing Then
-                            builder.Add(rewrittenStatement)
-                        End If
-                    Next
-
-                    Return New BoundBlock(node.Syntax, node.StatementListSyntax, node.Locals, builder.ToImmutableAndFree())
+                    builder.Insert(0, prologue)
                 End If
+
+                Return New BoundBlock(node.Syntax, node.StatementListSyntax, If(synthesizedLocal Is Nothing, node.Locals, node.Locals.Add(synthesizedLocal)), builder.ToImmutableAndFree())
             End If
 
             Return MyBase.VisitBlock(node)

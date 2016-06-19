@@ -87,8 +87,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return MarkStatementWithSequencePoint(original, MyBase.InstrumentRemoveHandlerStatement(original, rewritten))
         End Function
 
-        Public Overrides Function CreateBlockPrologue(original As BoundBlock) As BoundStatement
-            Return CreateBlockPrologue(original, MyBase.CreateBlockPrologue(original))
+        Public Overrides Function CreateBlockPrologue(original As BoundBlock, ByRef synthesizedLocal As LocalSymbol) As BoundStatement
+            Return CreateBlockPrologue(original, MyBase.CreateBlockPrologue(original, synthesizedLocal))
         End Function
 
         Public Overrides Function InstrumentTopLevelExpressionInQuery(original As BoundExpression, rewritten As BoundExpression) As BoundExpression
