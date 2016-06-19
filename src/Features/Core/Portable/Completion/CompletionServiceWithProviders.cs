@@ -142,7 +142,8 @@ namespace Microsoft.CodeAnalysis.Completion
         {
             var snippetsRule = this.GetRules().SnippetsRule;
 
-            if (snippetsRule == SnippetsRule.NeverInclude)
+            if (snippetsRule == SnippetsRule.Default ||
+                snippetsRule == SnippetsRule.NeverInclude)
             {
                 return GetProviders(roles).Where(p => !p.IsSnippetProvider).ToImmutableArray();
             }
