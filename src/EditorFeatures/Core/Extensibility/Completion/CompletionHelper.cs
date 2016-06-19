@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -296,20 +297,6 @@ namespace Microsoft.CodeAnalysis.Editor
         private static StringComparison GetComparision(bool isCaseSensitive)
         {
             return isCaseSensitive ? StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase;
-        }
-
-        /// <summary>
-        /// Returns true if the completion item should be "soft" selected, or false if it should be "hard"
-        /// selected.
-        /// </summary>
-        public virtual bool ShouldSoftSelectItem(CompletionItem item, string filterText, CompletionTrigger trigger)
-        {
-            return filterText.Length == 0 && item.Rules.MatchPriority == MatchPriority.Default;
-        }
-
-        protected bool IsObjectCreationItem(CompletionItem item)
-        {
-            return item.Tags.Contains(CompletionTags.ObjectCreation);
         }
     }
 }

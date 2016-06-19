@@ -68,17 +68,5 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion
 
             Return MyBase.IsBetterFilterMatch(item1, item2, filterText, trigger, filterReason, recentItems)
         End Function
-
-        Public Overrides Function ShouldSoftSelectItem(item As CompletionItem, filterText As String, trigger As CompletionTrigger) As Boolean
-
-            ' VB has additional specialized logic for soft selecting an item in completion when the only filter text Is "_"
-            If filterText.Length = 0 OrElse filterText = "_" Then
-                ' Object Creation hard selects even with no selected item
-                Return Not IsObjectCreationItem(item)
-            End If
-
-            Return MyBase.ShouldSoftSelectItem(item, filterText, trigger)
-        End Function
     End Class
-
 End Namespace

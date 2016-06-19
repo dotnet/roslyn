@@ -97,12 +97,14 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.Providers
         private static readonly CompletionItemRules s_objectRules =
             CompletionItemRules.Create(
                 commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[')),
-                matchPriority: MatchPriority.Preselect);
+                matchPriority: MatchPriority.Preselect,
+                selectionBehavior: CompletionItemSelectionBehavior.HardSelection);
 
         private static readonly CompletionItemRules s_defaultRules =
             CompletionItemRules.Create(
                 commitCharacterRules: ImmutableArray.Create(CharacterSetModificationRule.Create(CharacterSetModificationKind.Replace, ' ', '(', '[', '{')),
-                matchPriority: MatchPriority.Preselect);
+                matchPriority: MatchPriority.Preselect,
+                selectionBehavior: CompletionItemSelectionBehavior.HardSelection);
 
         protected override CompletionItemRules GetCompletionItemRules(IReadOnlyList<ISymbol> symbols, AbstractSyntaxContext context)
         {

@@ -375,7 +375,7 @@ class C
 {
     int field = 0;
     public ref int M() => ref field;
-}");
+}", MessageID.IDS_FeatureRefLocalsReturns);
             comp.VerifyDiagnostics();
         }
     }

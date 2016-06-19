@@ -1716,60 +1716,9 @@ namespace Microsoft.CodeAnalysis.CSharp
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
             Conversion conversion = this.Conversions.ClassifyConversionForCast(operand, targetType, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
-            bool targetTypeIsStatic = targetType.IsStatic;
-            if (operand.HasAnyErrors || targetType.IsErrorType() || !conversion.IsValid || targetTypeIsStatic)
+            if (operand.HasAnyErrors || targetType.IsErrorType() || !conversion.IsValid || targetType.IsStatic)
             {
-                // Make sure that errors within the unbound lambda don't get lost.
-                if (operand.Kind == BoundKind.UnboundLambda)
-                {
-                    GenerateAnonymousFunctionConversionError(diagnostics, operand.Syntax, (UnboundLambda)operand, targetType);
-                }
-                else if (operand.HasAnyErrors || targetType.IsErrorType())
-                {
-                    // an error has already been reported elsewhere
-                }
-                else if (targetTypeIsStatic)
-                {
-                    // The specification states in the section titled "Referencing Static
-                    // Class Types" that it is always illegal to have a static class in a
-                    // cast operator.
-                    diagnostics.Add(ErrorCode.ERR_ConvertToStaticClass, node.Location, targetType);
-                }
-                else if (!targetType.IsReferenceType && !targetType.IsNullableType() && operand.IsLiteralNull())
-                {
-                    diagnostics.Add(ErrorCode.ERR_ValueCantBeNull, node.Location, targetType);
-                }
-                else if (conversion.ResultKind == LookupResultKind.OverloadResolutionFailure)
-                {
-                    Debug.Assert(conversion.IsUserDefined);
-
-                    ImmutableArray<MethodSymbol> originalUserDefinedConversions = conversion.OriginalUserDefinedConversions;
-                    if (originalUserDefinedConversions.Length > 1)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_AmbigUDConv, node.Location, originalUserDefinedConversions[0], originalUserDefinedConversions[1], operand.Type, targetType);
-                    }
-                    else
-                    {
-                        Debug.Assert(originalUserDefinedConversions.Length == 0,
-                            "How can there be exactly one applicable user-defined conversion if the conversion doesn't exist?");
-                        SymbolDistinguisher distinguisher = new SymbolDistinguisher(this.Compilation, operand.Type, targetType);
-                        diagnostics.Add(ErrorCode.ERR_NoExplicitConv, node.Location, distinguisher.First, distinguisher.Second);
-                    }
-                }
-                else
-                {
-                    // TODO: report more specific diagnostics here for failed method group conversions
-                    if (operand.Kind == BoundKind.MethodGroup)
-                    {
-                        diagnostics.Add(ErrorCode.ERR_NoExplicitConv, node.Location, MessageID.IDS_SK_METHOD.Localize(), targetType);
-                    }
-                    else
-                    {
-                        Debug.Assert((object)operand.Type != null);
-                        SymbolDistinguisher distinguisher = new SymbolDistinguisher(this.Compilation, operand.Type, targetType);
-                        diagnostics.Add(ErrorCode.ERR_NoExplicitConv, node.Location, distinguisher.First, distinguisher.Second);
-                    }
-                }
+                GenerateExplicitConversionErrors(diagnostics, node, conversion, operand, targetType);
 
                 return new BoundConversion(
                     node,
@@ -1783,6 +1732,128 @@ namespace Microsoft.CodeAnalysis.CSharp
             }
 
             return CreateConversion(node, operand, conversion, isCast: true, wasCompilerGenerated: wasCompilerGenerated, destination: targetType, diagnostics: diagnostics);
+        }
+
+        private void GenerateExplicitConversionErrors(
+            DiagnosticBag diagnostics, 
+            CSharpSyntaxNode syntax, 
+            Conversion conversion, 
+            BoundExpression operand, 
+            TypeSymbol targetType)
+        {
+            // Make sure that errors within the unbound lambda don't get lost.
+            if (operand.Kind == BoundKind.UnboundLambda)
+            {
+                GenerateAnonymousFunctionConversionError(diagnostics, operand.Syntax, (UnboundLambda)operand, targetType);
+                return;
+            }
+
+            if (operand.HasAnyErrors || targetType.IsErrorType())
+            {
+                // an error has already been reported elsewhere
+                return;
+            }
+
+            if (targetType.IsStatic)
+            {
+                // The specification states in the section titled "Referencing Static
+                // Class Types" that it is always illegal to have a static class in a
+                // cast operator.
+                diagnostics.Add(ErrorCode.ERR_ConvertToStaticClass, syntax.Location, targetType);
+                return;
+            }
+
+            if (!targetType.IsReferenceType && !targetType.IsNullableType() && operand.IsLiteralNull())
+            {
+                diagnostics.Add(ErrorCode.ERR_ValueCantBeNull, syntax.Location, targetType);
+                return;
+            }
+
+            if (conversion.ResultKind == LookupResultKind.OverloadResolutionFailure)
+            {
+                Debug.Assert(conversion.IsUserDefined);
+
+                ImmutableArray<MethodSymbol> originalUserDefinedConversions = conversion.OriginalUserDefinedConversions;
+                if (originalUserDefinedConversions.Length > 1)
+                {
+                    diagnostics.Add(ErrorCode.ERR_AmbigUDConv, syntax.Location, originalUserDefinedConversions[0], originalUserDefinedConversions[1], operand.Type, targetType);
+                }
+                else
+                {
+                    Debug.Assert(originalUserDefinedConversions.Length == 0,
+                        "How can there be exactly one applicable user-defined conversion if the conversion doesn't exist?");
+                    SymbolDistinguisher distinguisher1 = new SymbolDistinguisher(this.Compilation, operand.Type, targetType);
+                    diagnostics.Add(ErrorCode.ERR_NoExplicitConv, syntax.Location, distinguisher1.First, distinguisher1.Second);
+                }
+
+                return;
+            }
+
+            // TODO: report more specific diagnostics here for failed method group conversions
+            if (operand.Kind == BoundKind.MethodGroup)
+            {
+                diagnostics.Add(ErrorCode.ERR_NoExplicitConv, syntax.Location, MessageID.IDS_SK_METHOD.Localize(), targetType);
+                return;
+            }
+
+            if (operand.Kind == BoundKind.TupleLiteral)
+            {
+                var tuple = (BoundTupleLiteral)operand;
+                var targetElementTypes = default(ImmutableArray<TypeSymbol>);
+
+                // source does not have a type.
+                // Such conversions could only happen via explicit tuple literal conversions
+                // which are currently not supported.
+                // See: https://github.com/dotnet/roslyn/issues/11804
+                if ((object)tuple.Type == null)
+                {
+                    Error(diagnostics, ErrorCode.ERR_NoExplicitConv, syntax, tuple.Display, targetType);
+                    return;
+                }
+
+                // If target is a tuple or compatible type with the same number of elements,
+                // report errors for tuple arguments that failed to convert, which would be more useful.
+                if (targetType.TryGetElementTypesIfTupleOrCompatible(out targetElementTypes) &&
+                    targetElementTypes.Length == tuple.Arguments.Length)
+                {
+                    GenerateExplicitConversionErrorsForTupleLiteralArguments(diagnostics, syntax, tuple.Arguments, targetElementTypes);
+                    return;
+                }
+
+                // Otherwise it is just a regular conversion failure from T1 to T2.
+            }
+
+            Debug.Assert((object)operand.Type != null);
+            SymbolDistinguisher distinguisher = new SymbolDistinguisher(this.Compilation, operand.Type, targetType);
+            diagnostics.Add(ErrorCode.ERR_NoExplicitConv, syntax.Location, distinguisher.First, distinguisher.Second);
+        }
+
+        private void GenerateExplicitConversionErrorsForTupleLiteralArguments(
+            DiagnosticBag diagnostics,
+            CSharpSyntaxNode syntax,
+            ImmutableArray<BoundExpression> tupleArguments,
+            ImmutableArray<TypeSymbol> targetElementTypes)
+        {            
+            var argLength = tupleArguments.Length;
+
+            // report all leaf elements of the tuple literal that failed to convert
+            // NOTE: we are not responsible for reporting use site errors here, just the failed leaf conversions.
+            // By the time we get here we have done analysis and know we have failed the cast in general, and diagnostics collected in the process is already in the bag. 
+            // The only thing left is to form a diagnostics about the actually failing conversion(s).
+            // This whole method does not itself collect any usesite diagnostics. Its only purpose is to produce an error better than "conversion failed here"           
+            HashSet<DiagnosticInfo> usDiagsUnused = null;
+
+            for (int i = 0; i < targetElementTypes.Length; i++)
+            {
+                var argument = tupleArguments[i];
+                var targetElementType = targetElementTypes[i];
+
+                var elementConversion = Conversions.ClassifyConversionFromType(argument.Type, targetElementType, ref usDiagsUnused);
+                if (!elementConversion.IsValid)
+                {
+                    GenerateExplicitConversionErrors(diagnostics, argument.Syntax, elementConversion, argument, targetElementType);
+                }
+            }
         }
 
         private BoundExpression BindOriginal(OriginalExpressionSyntax syntax, DiagnosticBag diagnostics)

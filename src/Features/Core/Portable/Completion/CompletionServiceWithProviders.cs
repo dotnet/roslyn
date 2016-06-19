@@ -201,32 +201,32 @@ namespace Microsoft.CodeAnalysis.Completion
             }
 
             // Now, ask all the triggered providers if they can provide a group.
-            var completionLists = new List<CompletionContext>();
+            var completionContexts = new List<CompletionContext>();
             foreach (var provider in triggeredProviders)
             {
-                var completionList = await GetContextAsync(
+                var completionContext = await GetContextAsync(
                     provider, document, caretPosition, trigger, 
                     options, defaultItemSpan, cancellationToken).ConfigureAwait(false);
-                if (completionList != null)
+                if (completionContext != null)
                 {
-                    completionLists.Add(completionList);
+                    completionContexts.Add(completionContext);
                 }
             }
 
             // See if there was a group provided that was exclusive and had items in it.  If so, then
             // that's all we'll return.
-            var firstExclusiveList = completionLists.FirstOrDefault(t => t.IsExclusive && t.Items.Any());
+            var firstExclusiveContext = completionContexts.FirstOrDefault(t => t.IsExclusive && t.Items.Any());
 
-            if (firstExclusiveList != null)
+            if (firstExclusiveContext != null)
             {
                 return MergeAndPruneCompletionLists(
-                    SpecializedCollections.SingletonEnumerable(firstExclusiveList), defaultItemSpan,
+                    SpecializedCollections.SingletonEnumerable(firstExclusiveContext), defaultItemSpan,
                     isExclusive: true);
             }
 
             // If no exclusive providers provided anything, then go through the remaining
             // triggered list and see if any provide items.
-            var nonExclusiveLists = completionLists.Where(t => !t.IsExclusive).ToList();
+            var nonExclusiveLists = completionContexts.Where(t => !t.IsExclusive).ToList();
 
             // If we still don't have any items, then we're definitely done.
             if (!nonExclusiveLists.Any(g => g.Items.Any()))
