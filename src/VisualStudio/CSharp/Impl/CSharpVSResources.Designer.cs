@@ -403,15 +403,6 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to _Show completion list after a character is typed.
-        /// </summary>
-        internal static string Option_BringUpOnIdentifier {
-            get {
-                return ResourceManager.GetString("Option_BringUpOnIdentifier", resourceCulture);
-            }
-        }
-        
-        /// <summary>
         ///   Looks up a localized string similar to Enable full solution _analysis.
         /// </summary>
         internal static string Option_ClosedFileDiagnostics {
@@ -633,6 +624,24 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp {
         internal static string Option_Show_completion_item_filters {
             get {
                 return ResourceManager.GetString("Option_Show_completion_item_filters", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Show completion list after a character is _deleted.
+        /// </summary>
+        internal static string Option_Show_completion_list_after_a_character_is_deleted {
+            get {
+                return ResourceManager.GetString("Option_Show_completion_list_after_a_character_is_deleted", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to _Show completion list after a character is typed.
+        /// </summary>
+        internal static string Option_Show_completion_list_after_a_character_is_typed {
+            get {
+                return ResourceManager.GetString("Option_Show_completion_list_after_a_character_is_typed", resourceCulture);
             }
         }
         

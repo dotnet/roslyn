@@ -86,7 +86,9 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
         End Property
 
         Protected Overrides Function SupportsOption([option] As IOption, languageName As String) As Boolean
-            If [option].Name = CompletionOptions.EnterKeyBehavior.Name Then
+            If [option].Name = CompletionOptions.EnterKeyBehavior.Name OrElse
+                [option].Name = CompletionOptions.TriggerOnTypingLetters.Name OrElse
+                [option].Name = CompletionOptions.TriggerOnDeletion.Name Then
                 Return True
 
             ElseIf languageName = LanguageNames.VisualBasic Then
@@ -165,7 +167,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic.Options
                 Return FetchEnterKeyBehavior(optionKey, value)
             End If
 
+            If optionKey.Option Is CompletionOptions.TriggerOnDeletion Then
+                Return FetchTriggerOnDeletion(optionKey, value)
+            End If
+
             Return MyBase.TryFetch(optionKey, value)
+        End Function
+
+        Private Function FetchTriggerOnDeletion(optionKey As OptionKey, ByRef value As Object) As Boolean
+            If MyBase.TryFetch(optionKey, value) Then
+                If value Is Nothing Then
+                    ' The default behavior for VB is to trigger completion on deletion.
+                    value = CType(True, Boolean?)
+                End If
+
+                Return True
+            End If
+
+            Return False
         End Function
 
         Private Function FetchEnterKeyBehavior(optionKey As OptionKey, ByRef value As Object) As Boolean

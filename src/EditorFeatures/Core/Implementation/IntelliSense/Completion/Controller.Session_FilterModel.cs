@@ -153,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     }
 
                     var filterText = model.GetCurrentTextInSnapshot(currentItem.Item.Span, textSnapshot, textSpanToText);
-                    var matchesFilterText = helper.MatchesFilterText(currentItem.Item, filterText, model.Trigger, filterReason, recentItems);
+                    var matchesFilterText = MatchesFilterText(helper, currentItem.Item, filterText, model.Trigger, filterReason, recentItems);
                     itemToFilterText[currentItem.Item] = filterText;
 
                     if (matchesFilterText)
@@ -163,7 +163,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                         // If we have no best match, or this match is better than the last match,
                         // then the current item is the best filter match.
                         if (bestFilterMatch == null ||
-                            helper.IsBetterFilterMatch(currentItem.Item, bestFilterMatch.Item, filterText, model.Trigger, filterReason, recentItems))
+                            IsBetterFilterMatch(helper, currentItem.Item, bestFilterMatch.Item, filterText, model.Trigger, filterReason, recentItems))
                         {
                             bestFilterMatch = currentItem;
                         }
@@ -257,6 +257,65 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 return result;
             }
 
+            private static bool IsBetterFilterMatch(
+                CompletionHelper helper, CompletionItem item1, CompletionItem item2,
+                string filterText, CompletionTrigger trigger,
+                CompletionFilterReason filterReason, ImmutableArray<string> recentItems)
+            {
+                // For the deletion we bake in the core logic for how betterness should work.
+                // This way deletion feels the same across all languages that opt into deletion 
+                // as a completion trigger.
+                if (filterReason == CompletionFilterReason.BackspaceOrDelete)
+                {
+                    var prefixLength1 = item1.FilterText.GetCaseInsensitivePrefixLength(filterText);
+                    var prefixLength2 = item2.FilterText.GetCaseInsensitivePrefixLength(filterText);
+
+                    // Prefer the item that matches a longer prefix of the filter text.
+                    if (prefixLength1 > prefixLength2)
+                    {
+                        return true;
+                    }
+
+                    // If the lengths are the same, prefer the one with the higher match priority.
+                    // But only if it's an item that would have been hard selected.  We don't want
+                    // to aggressively select an item that was only going to be softly offered.
+                    var item1Priority = item1.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection
+                        ? item1.Rules.MatchPriority : MatchPriority.Default;
+                    var item2Priority = item2.Rules.SelectionBehavior == CompletionItemSelectionBehavior.HardSelection
+                        ? item2.Rules.MatchPriority : MatchPriority.Default;
+
+                    if (item1Priority > item2Priority)
+                    {
+                        return true;
+                    }
+
+                    return false;
+                }
+
+                return helper.IsBetterFilterMatch(item1, item2, filterText, trigger, recentItems);
+            }
+
+            private static bool MatchesFilterText(
+                CompletionHelper helper, CompletionItem item,
+                string filterText, CompletionTrigger trigger,
+                CompletionFilterReason filterReason, ImmutableArray<string> recentItems)
+            {
+                // For the deletion we bake in the core logic for how matching should work.
+                // This way deletion feels the same across all languages that opt into deletion 
+                // as a completion trigger.
+
+                // Specifically, to avoid being too aggressive when matching an item during 
+                // completion, we require that the current filter text be a prefix of the 
+                // item in the list.
+                if (filterReason == CompletionFilterReason.BackspaceOrDelete &&
+                    trigger.Kind == CompletionTriggerKind.Deletion)
+                {
+                    return item.FilterText.GetCaseInsensitivePrefixLength(filterText) > 0;
+                }
+
+                return helper.MatchesFilterText(item, filterText, trigger, recentItems);
+            }
+
             private bool ItemIsFilteredOut(
                 CompletionItem item,
                 ImmutableDictionary<CompletionItemFilter, bool> filterState)
@@ -290,7 +349,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 Model model,
                 PresentationItem bestFilterMatch,
                 ITextSnapshot textSnapshot,
-                CompletionHelper completionRules,
+                CompletionHelper completionHelper,
                 CompletionTrigger trigger,
                 CompletionFilterReason reason)
             {
@@ -326,7 +385,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 // If the user moved the caret left after they started typing, the 'best' match may not match at all
                 // against the full text span that this item would be replacing.
-                if (!completionRules.MatchesFilterText(bestFilterMatch.Item, fullFilterText, trigger, reason, this.Controller.GetRecentItems()))
+                if (!MatchesFilterText(completionHelper, bestFilterMatch.Item, fullFilterText, trigger, reason, this.Controller.GetRecentItems()))
                 {
                     return false;
                 }
