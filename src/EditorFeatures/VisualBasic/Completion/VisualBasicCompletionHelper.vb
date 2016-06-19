@@ -40,7 +40,10 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion
             End Get
         End Property
 
-        Public Overrides Function IsBetterFilterMatch(item1 As CompletionItem, item2 As CompletionItem, filterText As String, trigger As CompletionTrigger, filterReason As CompletionFilterReason, Optional recentItems As ImmutableArray(Of String) = Nothing) As Boolean
+        Public Overrides Function IsBetterFilterMatch(
+                item1 As CompletionItem, item2 As CompletionItem,
+                filterText As String, trigger As CompletionTrigger,
+                recentItems As ImmutableArray(Of String)) As Boolean
             If IsEnumMemberItem(item2) Then
                 Dim match1 = GetMatch(item1, filterText)
                 Dim match2 = GetMatch(item2, filterText)
@@ -59,7 +62,7 @@ Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.Completion
                 End If
             End If
 
-            Return MyBase.IsBetterFilterMatch(item1, item2, filterText, trigger, filterReason, recentItems)
+            Return MyBase.IsBetterFilterMatch(item1, item2, filterText, trigger, recentItems)
         End Function
     End Class
 End Namespace

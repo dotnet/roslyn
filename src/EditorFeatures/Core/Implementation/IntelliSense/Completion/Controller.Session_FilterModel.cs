@@ -285,7 +285,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     return false;
                 }
 
-                return helper.IsBetterFilterMatch(item1, item2, filterText, trigger, filterReason, recentItems);
+                return helper.IsBetterFilterMatch(item1, item2, filterText, trigger, recentItems);
             }
 
             private static bool MatchesFilterText(
@@ -306,7 +306,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     return item.FilterText.GetCaseInsensitivePrefixLength(filterText) > 0;
                 }
 
-                return helper.MatchesFilterText(item, filterText, trigger, filterReason, recentItems);
+                return helper.MatchesFilterText(item, filterText, trigger, recentItems);
             }
 
             private bool ItemIsFilteredOut(
