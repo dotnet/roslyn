@@ -928,6 +928,53 @@ nextm:
             Return boundNode
         End Function
 
+        ''' <summary>
+        ''' Synthesizes an expression that evaluates to the index portion of a method's metadata token.
+        ''' </summary>
+        Public Function MethodDefIndex(method As MethodSymbol) As BoundExpression
+            Dim boundNode As New BoundMethodDefIndex(Syntax, method, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32))
+            boundNode.SetWasCompilerGenerated()
+            Return boundNode
+        End Function
+
+        ''' <summary>
+        ''' Synthesizes an expression that evaluates to the maximum value of the index portions of all method definition metadata tokens in current module.
+        ''' </summary>
+        Public Function MaximumMethodDefIndex() As BoundExpression
+            Dim boundNode As New BoundMaximumMethodDefIndex(Syntax, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_Int32))
+            boundNode.SetWasCompilerGenerated()
+            Return boundNode
+        End Function
+
+        ''' <summary>
+        ''' Synthesizes an expression that evaluates to the current module's MVID.
+        ''' </summary>
+        Public Function ModuleVersionId() As BoundExpression
+            Dim boundNode As New BoundModuleVersionId(Syntax, WellKnownType(Microsoft.CodeAnalysis.WellKnownType.System_Guid))
+            boundNode.SetWasCompilerGenerated()
+            Return boundNode
+        End Function
+
+        ''' <summary>
+        ''' Synthesizes an expression that evaluates to a text representation of the current module/s MVID.
+        ''' </summary>
+        Public Function ModuleVersionIdString() As BoundExpression
+            Dim boundNode As New BoundModuleVersionIdString(Syntax, SpecialType(Microsoft.CodeAnalysis.SpecialType.System_String))
+            boundNode.SetWasCompilerGenerated()
+            Return boundNode
+        End Function
+
+        ''' <summary>
+        ''' Synthesizes an expression that evaluates to the root of the dynamic analysis payloads for a particular kind of dynamic analysis.
+        ''' </summary>
+        ''' <param name="analysisKind">Uniquely identifies the kind of dynamic analysis.</param>
+        ''' <param name="payloadType">Type of an analysis payload cell for the particular analysis kind.</param>
+        Public Function InstrumentationPayloadRoot(analysisKind As Integer, payloadType As TypeSymbol) As BoundExpression
+            Dim boundNode As New BoundInstrumentationPayloadRoot(Syntax, analysisKind, payloadType)
+            boundNode.SetWasCompilerGenerated()
+            Return boundNode
+        End Function
+
         Public Function Convert(type As TypeSymbol, arg As BoundExpression, Optional isChecked As Boolean = False) As BoundConversion
             If arg.IsNothingLiteral() Then
                 Return Convert(type, arg, ConversionKind.WideningNothingLiteral, isChecked)
