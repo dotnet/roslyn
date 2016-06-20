@@ -39,6 +39,10 @@
     <StartupObject>Runner.Program</StartupObject>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="Mono.Options">
+      <HintPath>..\..\..\..\..\packages\Mono.Options.4.4.0.0\lib\net4-client\Mono.Options.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -76,6 +80,9 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="Properties\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\..\build\Targets\VSL.Imports.targets" />

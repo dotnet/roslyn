@@ -10,6 +10,7 @@ using static Roslyn.Test.Performance.Runner.Tools;
 using static Roslyn.Test.Performance.Runner.Benchview;
 using static Roslyn.Test.Performance.Runner.TraceBackup;
 using Roslyn.Test.Performance.Runner;
+using Mono.Options;
 
 namespace Runner
 {
@@ -40,18 +41,25 @@ namespace Runner
             return args[n + 1];
         }
 
-        private static bool ShouldReportBenchview => LaunchedWithArgument("report-benchview");
         private static bool ShouldUploadTrace => !LaunchedWithArgument("no-trace-upload") || ValueForCommandLineKey("trace-destination-location") == null;
         private static bool IsRunningUnderCI => LaunchedWithArgument("ci-test");
         public static void Main(string[] args)
         {
+
+            bool shouldReportBenchview = false;
+
+            var parameterOptions = new OptionSet()
+            {
+                {"report-benchview", "report the performance retults to benview.", _ => shouldReportBenchview = true},
+            };
+
             AsyncMain(args).GetAwaiter().GetResult();
             if (IsRunningUnderCI)
             {
                 Log("Running under continuous integration");
             }
 
-            if (ShouldReportBenchview)
+            if (shouldReportBenchview)
             {
                 Log("Uploading results to benchview");
                 UploadBenchviewReport();
