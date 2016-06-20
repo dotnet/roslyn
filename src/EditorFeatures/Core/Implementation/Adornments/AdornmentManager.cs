@@ -11,7 +11,7 @@ using Microsoft.VisualStudio.Text.Editor;
 using Microsoft.VisualStudio.Text.Tagging;
 using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
+namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
 {
     /// <summary>
     /// UI manager for graphic overlay tags. These tags will simply paint something related to the text.

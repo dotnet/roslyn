@@ -11,6 +11,7 @@ using Roslyn.Test.Utilities;
 using Xunit;
 using InternalSyntax = Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
 using Microsoft.CodeAnalysis.CSharp.Syntax.InternalSyntax;
+using Microsoft.CodeAnalysis.CSharp.Test.Utilities;
 
 namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 {
@@ -24,11 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public LexicalTests()
         {
             _options = new CSharpParseOptions(languageVersion: LanguageVersion.CSharp3);
-            var binaryLiterals = new[] { new KeyValuePair<string, string>(MessageID.IDS_FeatureBinaryLiteral.RequiredFeature(), "true") };
-            var digitSeparators = new[] { new KeyValuePair<string, string>(MessageID.IDS_FeatureDigitSeparator.RequiredFeature(), "true") };
-            _binaryOptions = _options.WithFeatures(binaryLiterals);
-            _underscoreOptions = _options.WithFeatures(digitSeparators);
-            _binaryUnderscoreOptions = _options.WithFeatures(binaryLiterals.Concat(digitSeparators));
+            _binaryOptions = _options.WithExperimental(MessageID.IDS_FeatureBinaryLiteral);
+            _underscoreOptions = _options.WithExperimental(MessageID.IDS_FeatureDigitSeparator);
+            _binaryUnderscoreOptions = _options.WithExperimental(MessageID.IDS_FeatureBinaryLiteral, MessageID.IDS_FeatureDigitSeparator);
         }
 
         private IEnumerable<SyntaxToken> Lex(string text, CSharpParseOptions options = null)

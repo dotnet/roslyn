@@ -42,7 +42,7 @@ namespace Microsoft.CodeAnalysis.Completion
                 return existingItem;
             }
 
-            return item;
+            return base.GetBetterItem(item, existingItem);
         }
 
         protected static bool IsKeywordItem(CompletionItem item)

@@ -365,8 +365,6 @@
     <Compile Include="SolutionCrawler\IIncrementalAnalyzer.cs" />
     <Compile Include="SolutionCrawler\IIncrementalAnalyzerProvider.cs" />
     <Compile Include="SolutionCrawler\IncrementalAnalyzerProviderMetadata.cs" />
-    <Compile Include="SolutionCrawler\InvocationReasons.cs" />
-    <Compile Include="SolutionCrawler\InvocationReasons_Constants.cs" />
     <Compile Include="SolutionCrawler\ISolutionCrawlerRegistrationService.cs" />
     <Compile Include="Diagnostics\IWorkspaceVenusSpanMappingService.cs" />
     <Compile Include="Diagnostics\WellKnownDiagnosticPropertyNames.cs" />
@@ -431,7 +429,6 @@
     <Compile Include="Options\DocumentOptionSet.cs" />
     <Compile Include="Options\OptionSet.cs" />
     <Compile Include="Packaging\IPackageInstallerService.cs" />
-    <Compile Include="SolutionCrawler\PredefinedInvocationReasons.cs" />
     <Compile Include="SymbolId\SymbolKey.ComparisonOptions.cs" />
     <Compile Include="SymbolId\SymbolKey.SymbolKeyComparer.cs" />
     <Compile Include="SymbolId\SymbolKey.PropertySymbolKey.cs" />

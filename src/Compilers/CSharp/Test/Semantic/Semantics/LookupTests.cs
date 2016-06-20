@@ -19,9 +19,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
 
         internal List<string> GetLookupNames(string testSrc, bool experimental = false)
         {
-            var compilation = experimental
-                ? CreateExperimentalCompilationWithMscorlib45(testSrc)
-                : CreateCompilationWithMscorlib45(testSrc);
+            var parseOptions = TestOptions.Regular;
+            if (experimental)
+            {
+                parseOptions = parseOptions.WithRefsFeature().WithLocalFunctionsFeature();
+            }
+            var compilation = CreateCompilationWithMscorlib45(testSrc, parseOptions: parseOptions);
             var tree = compilation.SyntaxTrees.Single();
             var model = compilation.GetSemanticModel(tree);
             var position = testSrc.Contains("/*<bind>*/") ? GetPositionForBinding(tree) : GetPositionForBinding(testSrc);
