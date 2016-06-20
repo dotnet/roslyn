@@ -14875,7 +14875,7 @@ public class C
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTestExperimental<MemberAccessExpressionSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<MemberAccessExpressionSyntax>(sourceCode);
 
             Assert.Equal("int", semanticInfo.Type.ToDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
@@ -14906,7 +14906,7 @@ public class C
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTestExperimental<MemberBindingExpressionSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<MemberBindingExpressionSyntax>(sourceCode);
 
             Assert.Null(semanticInfo.Type);
             Assert.Null(semanticInfo.ConvertedType);
@@ -14943,7 +14943,7 @@ public class C
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTestExperimental<InvocationExpressionSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<InvocationExpressionSyntax>(sourceCode);
 
             Assert.Equal("string", semanticInfo.Type.ToDisplayString());
             Assert.Equal(TypeKind.Class, semanticInfo.Type.TypeKind);
@@ -14974,7 +14974,7 @@ public class C
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTestExperimental<IdentifierNameSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
             Assert.Equal("int", semanticInfo.Type.ToDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
@@ -15036,7 +15036,7 @@ public class C
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTestExperimental<IdentifierNameSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(sourceCode);
 
             Assert.Equal("int", semanticInfo.Type.ToDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
@@ -15067,7 +15067,7 @@ public class C
     }
 }
 ";
-            var semanticInfo = GetSemanticInfoForTestExperimental<ElementBindingExpressionSyntax>(sourceCode);
+            var semanticInfo = GetSemanticInfoForTest<ElementBindingExpressionSyntax>(sourceCode);
 
             Assert.Equal("char", semanticInfo.Type.ToDisplayString());
             Assert.Equal(TypeKind.Struct, semanticInfo.Type.TypeKind);
@@ -15097,7 +15097,7 @@ get
 {
 }
 }= new /*<bind>*/BaselineLog/*</bind>*/();
-", parseOptions: TestOptions.ExperimentalParseOptions);
+", parseOptions: TestOptions.Regular);
             var semanticInfo = GetSemanticInfoForTest<IdentifierNameSyntax>(comp);
 
             Assert.Null(semanticInfo.Type);

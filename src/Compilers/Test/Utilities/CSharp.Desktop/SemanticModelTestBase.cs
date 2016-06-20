@@ -176,9 +176,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
             return GetSemanticInfoForTest<TNode>(compilation);
         }
 
-        protected CompilationUtils.SemanticInfoSummary GetSemanticInfoForTestExperimental<TNode>(string testSrc) where TNode : SyntaxNode
+        internal CompilationUtils.SemanticInfoSummary GetSemanticInfoForTestExperimental<TNode>(string testSrc, MessageID feature) where TNode : SyntaxNode
         {
-            var compilation = CreateExperimentalCompilationWithMscorlib45(testSrc, new[] { SystemCoreRef });
+            var compilation = CreateExperimentalCompilationWithMscorlib45(testSrc, feature, new[] { SystemCoreRef });
             return GetSemanticInfoForTest<TNode>(compilation);
         }
 

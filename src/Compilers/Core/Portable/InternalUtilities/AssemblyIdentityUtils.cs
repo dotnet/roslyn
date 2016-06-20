@@ -2,12 +2,12 @@
 
 using System;
 using System.Collections.Immutable;
-using System.IO;
 using System.Reflection;
 using System.Reflection.Metadata;
 using System.Reflection.PortableExecutable;
+using Roslyn.Utilities;
 
-namespace Microsoft.CodeAnalysis.CommandLine
+namespace Microsoft.CodeAnalysis
 {
     internal static class AssemblyIdentityUtils
     {
@@ -15,7 +15,7 @@ namespace Microsoft.CodeAnalysis.CommandLine
         {
             try
             {
-                using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read | FileShare.Delete))
+                using (var stream = PortableShim.FileStream.Create(filePath, PortableShim.FileMode.Open, PortableShim.FileAccess.Read, PortableShim.FileShare.ReadWriteBitwiseOrDelete))
                 using (var peReader = new PEReader(stream))
                 {
                     var metadataReader = peReader.GetMetadataReader();

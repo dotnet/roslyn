@@ -2231,7 +2231,7 @@ class C
     }
 }
 ";
-            CreateExperimentalCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
     // (17,34): error CS0165: Use of unassigned local variable 'o'
     //         System.Console.WriteLine(o);
     Diagnostic(ErrorCode.ERR_UseDefViolation, "o").WithArguments("o").WithLocation(17, 34)
@@ -2261,7 +2261,7 @@ class C
     }
 }
 ";
-            CreateExperimentalCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
     // (17,34): error CS0165: Use of unassigned local variable 'o'
     //         System.Console.WriteLine(o);
     Diagnostic(ErrorCode.ERR_UseDefViolation, "o").WithArguments("o").WithLocation(17, 34)
@@ -2294,7 +2294,7 @@ class C
     }
 }
 ";
-            CreateExperimentalCompilationWithMscorlib45(source).VerifyDiagnostics();
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics();
         }
 
         [Fact]
@@ -2323,7 +2323,7 @@ class C
     }
 }
 ";
-            CreateExperimentalCompilationWithMscorlib45(source).VerifyDiagnostics(
+            CreateCompilationWithMscorlib45(source).VerifyDiagnostics(
     );
         }
     }

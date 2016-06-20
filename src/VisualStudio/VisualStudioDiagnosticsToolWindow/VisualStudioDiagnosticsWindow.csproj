@@ -101,6 +101,7 @@
     <Compile Include="DiagnosticsWindow.cs" />
     <Compile Include="Guids.cs" />
     <Compile Include="OptionPages\ForceLowMemoryMode.cs" />
+    <Compile Include="OptionPages\ForceLowMemoryMode_Options.cs" />
     <Compile Include="OptionPages\InternalSolutionCrawlerPage.cs" />
     <Compile Include="OptionPages\InternalComponentsOnOffPage.cs" />
     <Compile Include="OptionPages\InternalDiagnosticsPage.cs" />

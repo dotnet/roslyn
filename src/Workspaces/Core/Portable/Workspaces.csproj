@@ -51,8 +51,14 @@
     <Compile Include="..\..\..\Compilers\Core\Portable\CorLightup.cs">
       <Link>InternalUtilities\CorLightup.cs</Link>
     </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\DiagnosticAnalyzer\AnalyzerAssemblyLoader.cs">
+      <Link>InternalUtilities\AnalyzerAssemblyLoader.cs</Link>
+    </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\FileSystem\RelativePathResolver.cs">
       <Link>InternalUtilities\RelativePathResolver.cs</Link>
+    </Compile>
+    <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\AssemblyIdentityUtils.cs">
+      <Link>InternalUtilities\AssemblyIdentityUtils.cs</Link>
     </Compile>
     <Compile Include="..\..\..\Compilers\Core\Portable\InternalUtilities\BitArithmeticUtilities.cs">
       <Link>InternalUtilities\BitArithmeticUtilities.cs</Link>
@@ -359,8 +365,6 @@
     <Compile Include="SolutionCrawler\IIncrementalAnalyzer.cs" />
     <Compile Include="SolutionCrawler\IIncrementalAnalyzerProvider.cs" />
     <Compile Include="SolutionCrawler\IncrementalAnalyzerProviderMetadata.cs" />
-    <Compile Include="SolutionCrawler\InvocationReasons.cs" />
-    <Compile Include="SolutionCrawler\InvocationReasons_Constants.cs" />
     <Compile Include="SolutionCrawler\ISolutionCrawlerRegistrationService.cs" />
     <Compile Include="Diagnostics\IWorkspaceVenusSpanMappingService.cs" />
     <Compile Include="Diagnostics\WellKnownDiagnosticPropertyNames.cs" />
@@ -425,7 +429,6 @@
     <Compile Include="Options\DocumentOptionSet.cs" />
     <Compile Include="Options\OptionSet.cs" />
     <Compile Include="Packaging\IPackageInstallerService.cs" />
-    <Compile Include="SolutionCrawler\PredefinedInvocationReasons.cs" />
     <Compile Include="SymbolId\SymbolKey.ComparisonOptions.cs" />
     <Compile Include="SymbolId\SymbolKey.SymbolKeyComparer.cs" />
     <Compile Include="SymbolId\SymbolKey.PropertySymbolKey.cs" />
@@ -491,6 +494,7 @@
     <Compile Include="Utilities\BKTree.Edge.cs" />
     <Compile Include="Utilities\BKTree.Node.cs" />
     <Compile Include="Utilities\BKTree.Serialization.cs" />
+    <Compile Include="Utilities\CompilerUtilities\CompilerPathUtilities.cs" />
     <Compile Include="Utilities\ForegroundThreadDataKind.cs" />
     <Compile Include="Utilities\IReadOnlyDictionaryExtensions.cs" />
     <Compile Include="Utilities\IReadOnlyListExtensions.cs" />

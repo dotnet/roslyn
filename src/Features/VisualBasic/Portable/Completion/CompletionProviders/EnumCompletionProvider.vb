@@ -29,12 +29,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
             Dim hideAdvancedMembers = options.GetOption(CodeAnalysis.Recommendations.RecommendationOptions.HideAdvancedMembers, context.SemanticModel.Language)
 
             ' We'll want to build a list of the actual enum members and all accessible instances of that enum, too
-            Return Task.FromResult(enumType.GetMembers().Where(Function(m As ISymbol) As Boolean
-                                                                   Return m.Kind = SymbolKind.Field AndAlso
-                                                                      DirectCast(m, IFieldSymbol).IsConst AndAlso
-                                                                      m.IsEditorBrowsable(hideAdvancedMembers, context.SemanticModel.Compilation)
-                                                               End Function))
+            Dim result = enumType.GetMembers().Where(
+                Function(m As ISymbol) As Boolean
+                    Return m.Kind = SymbolKind.Field AndAlso
+                        DirectCast(m, IFieldSymbol).IsConst AndAlso
+                        m.IsEditorBrowsable(hideAdvancedMembers, context.SemanticModel.Compilation)
+                End Function).ToList()
+            result.Add(enumType)
 
+            Return Task.FromResult(Of IEnumerable(Of ISymbol))(result)
         End Function
 
         Protected Overrides Function GetSymbolsWorker(context As AbstractSyntaxContext, position As Integer, options As OptionSet, cancellationToken As CancellationToken) As Task(Of IEnumerable(Of ISymbol))
@@ -124,8 +127,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.Providers
                 rules:=GetCompletionItemRules(symbols, context))
         End Function
 
+        Private Shared ReadOnly s_rules As CompletionItemRules =
+            CompletionItemRules.Default.WithMatchPriority(MatchPriority.Preselect)
+
         Protected Overrides Function GetCompletionItemRules(symbols As IReadOnlyList(Of ISymbol), context As AbstractSyntaxContext) As CompletionItemRules
-            Return CompletionItemRules.Default
+            Return s_rules
         End Function
 
         Public Overrides Function GetTextChangeAsync(document As Document, selectedItem As CompletionItem, ch As Char?, cancellationToken As CancellationToken) As Task(Of TextChange?)

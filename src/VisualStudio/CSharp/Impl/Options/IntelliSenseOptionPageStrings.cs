@@ -4,10 +4,11 @@ namespace Microsoft.VisualStudio.LanguageServices.CSharp.Options
 {
     internal static class IntelliSenseOptionPageStrings
     {
-        public static string Option_BringUpOnIdentifier
-        {
-            get { return CSharpVSResources.Option_BringUpOnIdentifier; }
-        }
+        public static string Option_Show_completion_list_after_a_character_is_typed =>
+            CSharpVSResources.Option_Show_completion_list_after_a_character_is_typed;
+
+        public static string Option_Show_completion_list_after_a_character_is_deleted =>
+            CSharpVSResources.Option_Show_completion_list_after_a_character_is_deleted;
 
         public static string Option_CompletionLists
         {

@@ -364,7 +364,20 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 var argument = arguments[i];
                 var destType = targetElementTypes[i];
-                convertedArguments.Add(CreateConversion(argument, destType, diagnostics));
+
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                Conversion elementConversion;
+                if (isCast)
+                {
+                    elementConversion = this.Conversions.ClassifyConversionForCast(argument, destType, ref useSiteDiagnostics);
+                }
+                else
+                {
+                    elementConversion = this.Conversions.ClassifyConversionFromExpression(argument, destType, ref useSiteDiagnostics);
+                }
+
+                diagnostics.Add(syntax, useSiteDiagnostics);
+                convertedArguments.Add(CreateConversion(argument.Syntax, argument, elementConversion, isCast, destType, diagnostics));
             }
 
             BoundExpression result = new BoundConvertedTupleLiteral(

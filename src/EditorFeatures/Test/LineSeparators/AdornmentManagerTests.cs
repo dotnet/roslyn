@@ -5,6 +5,7 @@ using System.Linq;
 using System.Windows;
 using System.Windows.Media;
 using System.Windows.Threading;
+using Microsoft.CodeAnalysis.Editor.Implementation.Adornments;
 using Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators;
 using Microsoft.CodeAnalysis.Editor.UnitTests.Workspaces;
 using Microsoft.CodeAnalysis.Host;

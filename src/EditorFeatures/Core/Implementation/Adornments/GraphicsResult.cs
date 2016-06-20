@@ -3,16 +3,16 @@
 using System;
 using System.Windows;
 
-namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
+namespace Microsoft.CodeAnalysis.Editor.Implementation.Adornments
 {
     internal class GraphicsResult : IDisposable
     {
-        private readonly UIElement _visualElement;
+        public UIElement VisualElement { get; }
         private Action _dispose;
 
         public GraphicsResult(UIElement visualElement, Action dispose)
         {
-            _visualElement = visualElement;
+            VisualElement = visualElement;
             _dispose = dispose;
         }
 
@@ -23,14 +23,6 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.LineSeparators
                 _dispose();
 
                 _dispose = null;
-            }
-        }
-
-        public UIElement VisualElement
-        {
-            get
-            {
-                return _visualElement;
             }
         }
     }

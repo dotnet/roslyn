@@ -326,6 +326,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     return _dynamicFactory.MakeDynamicConversion(rewrittenOperand, explicitCastInCode || conversionKind == ConversionKind.ExplicitDynamic, isArrayIndex, @checked, rewrittenType).ToExpression();
 
                 case ConversionKind.ImplicitTuple:
+                case ConversionKind.ExplicitTuple:
                     return RewriteTupleConversion(
                         syntax: syntax,
                         rewrittenOperand: rewrittenOperand,
@@ -673,7 +674,21 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Symbol.ReportUseSiteDiagnostic(useSiteInfo, _diagnostics, syntax.Location);
                 }
                 var fieldAccess = MakeTupleFieldAccess(syntax, field, savedTuple, null, LookupResultKind.Empty);
-                var convertedFieldAccess = MakeConversion(fieldAccess, destElementTypes[i], @checked);
+
+                Conversion conversion;
+
+                HashSet<DiagnosticInfo> useSiteDiagnostics = null;
+                if (explicitCastInCode)
+                {
+                    conversion = this._compilation.Conversions.ClassifyConversionForCast(fieldAccess.Type, destElementTypes[i], ref useSiteDiagnostics);
+                }
+                else
+                {
+                    conversion = this._compilation.Conversions.ClassifyConversion(fieldAccess.Type, destElementTypes[i], ref useSiteDiagnostics);
+                }
+
+                var convertedFieldAccess = MakeConversion(syntax, fieldAccess, conversion, destElementTypes[i], @checked, explicitCastInCode);
+
                 fieldAccessorsBuilder.Add(convertedFieldAccess);
             }
 
