@@ -801,14 +801,29 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 Return SpecializedCollections.SingletonEnumerable(Me.Compilation.GetSpecialType(SpecialType.System_Boolean))
             End Function
 
-            Private Function InferTypeInMemberAccessExpression(expression As MemberAccessExpressionSyntax) As IEnumerable(Of ITypeSymbol)
-                Dim awaitExpression = expression.GetAncestor(Of AwaitExpressionSyntax)
-                Dim lambdaExpression = expression.GetAncestor(Of LambdaExpressionSyntax)
-                If Not awaitExpression?.Contains(lambdaExpression) AndAlso awaitExpression IsNot Nothing Then
-                    Return InferTypes(awaitExpression.Expression)
+            Private Function InferTypeInMemberAccessExpression(
+                    memberAccessExpression As MemberAccessExpressionSyntax,
+                    Optional expressionOpt As ExpressionSyntax = Nothing,
+                    Optional previousTokenOpt As SyntaxToken? = Nothing) As IEnumerable(Of ITypeSymbol)
+
+                ' We need to be on the right of the dot to infer an appropriate type for
+                ' the member access expression.  i.e. if we have "Foo.Bar" then we can 
+                ' def infer what the type of 'Bar' should be (it's whatever type we infer
+                ' for 'Foo.Bar' itself.  However, if we're on 'Foo' then we can't figure
+                ' out anything about its type.
+                If previousTokenOpt <> Nothing Then
+                    If previousTokenOpt.Value <> memberAccessExpression.OperatorToken Then
+                        Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)
+                    End If
+                    ' fall through
+                Else
+                    If expressionOpt IsNot memberAccessExpression.Name Then
+                        Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)
+                    End If
+                    ' fall through
                 End If
 
-                Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
+                Return InferTypes(memberAccessExpression)
             End Function
 
             Private Function InferTypeInNamedFieldInitializer(initializer As NamedFieldInitializerSyntax, Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of ITypeSymbol)
