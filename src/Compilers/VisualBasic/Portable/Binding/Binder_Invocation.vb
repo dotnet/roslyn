@@ -2588,17 +2588,16 @@ ProduceBoundNode:
         ''' data this function operates on.
         ''' </summary>
         Private Function PassArguments(
-            node As VisualBasicSyntaxNode,
-            ByRef candidate As OverloadResolution.CandidateAnalysisResult,
-            arguments As ImmutableArray(Of BoundExpression),
-            diagnostics As DiagnosticBag
-        ) As ImmutableArray(Of BoundExpression)
+                                        node As VisualBasicSyntaxNode,
+                                  ByRef candidate As OverloadResolution.CandidateAnalysisResult,
+                                        arguments As ImmutableArray(Of BoundExpression),
+                                        diagnostics As DiagnosticBag
+                                      ) As ImmutableArray(Of BoundExpression)
 
             Debug.Assert(candidate.State = OverloadResolution.CandidateAnalysisResultState.Applicable)
 
-            If (arguments.IsDefault) Then
-                arguments = ImmutableArray(Of BoundExpression).Empty
-            End If
+            If (arguments.IsDefault) Then arguments = ImmutableArray(Of BoundExpression).Empty
+
 
             Dim paramCount As Integer = candidate.Candidate.ParameterCount
 
@@ -2606,10 +2605,7 @@ ProduceBoundNode:
             Dim argumentsInOrder = ArrayBuilder(Of BoundExpression).GetInstance(paramCount)
 
             Dim paramArrayItems As ArrayBuilder(Of Integer) = Nothing
-
-            If candidate.IsExpandedParamArrayForm Then
-                paramArrayItems = ArrayBuilder(Of Integer).GetInstance()
-            End If
+            If candidate.IsExpandedParamArrayForm Then paramArrayItems = ArrayBuilder(Of Integer).GetInstance()
 
             Dim paramIndex As Integer
 
@@ -2617,25 +2613,21 @@ ProduceBoundNode:
             If candidate.ArgsToParamsOpt.IsDefaultOrEmpty Then
                 Dim regularParamCount As Integer = paramCount
 
-                If candidate.IsExpandedParamArrayForm Then
-                    regularParamCount -= 1
-                End If
+                If candidate.IsExpandedParamArrayForm Then regularParamCount -= 1
 
-                For i As Integer = 0 To Math.Min(regularParamCount, arguments.Length) - 1 Step 1
-                    If arguments(i).Kind <> BoundKind.OmittedArgument Then
-                        parameterToArgumentMap(i) = i
-                    End If
+                For i As Integer = 0 To Math.Min(regularParamCount, arguments.Length) - 1
+                    If arguments(i).Kind <> BoundKind.OmittedArgument Then parameterToArgumentMap(i) = i
                 Next
 
                 If candidate.IsExpandedParamArrayForm Then
-                    For i As Integer = regularParamCount To arguments.Length - 1 Step 1
+                    For i As Integer = regularParamCount To arguments.Length - 1
                         paramArrayItems.Add(i)
                     Next
                 End If
             Else
                 Dim argsToParams = candidate.ArgsToParamsOpt
 
-                For i As Integer = 0 To argsToParams.Length - 1 Step 1
+                For i As Integer = 0 To argsToParams.Length - 1
                     paramIndex = argsToParams(i)
 
                     If arguments(i).Kind <> BoundKind.OmittedArgument Then
@@ -2692,13 +2684,8 @@ ProduceBoundNode:
                         argument = ApplyImplicitConversion(argument.Syntax, targetType, argument, diagnostics)
                         ' Leave both conversions at identity since we already applied the conversion
                     ElseIf argIndex > -1 Then
-                        If Not candidate.ConversionsOpt.IsDefaultOrEmpty Then
-                            conversion = candidate.ConversionsOpt(argIndex)
-                        End If
-
-                        If Not candidate.ConversionsBackOpt.IsDefaultOrEmpty Then
-                            conversionBack = candidate.ConversionsBackOpt(argIndex)
-                        End If
+                        If Not candidate.ConversionsOpt.IsDefaultOrEmpty Then conversion = candidate.ConversionsOpt(argIndex)
+                        If Not candidate.ConversionsBackOpt.IsDefaultOrEmpty Then conversionBack = candidate.ConversionsBackOpt(argIndex)
                     End If
                 End If
 
@@ -2718,9 +2705,7 @@ ProduceBoundNode:
                     If argType IsNot Nothing Then
                         ' Report usesiteerror if it exists.
                         Dim useSiteErrorInfo = argType.GetUseSiteErrorInfo
-                        If useSiteErrorInfo IsNot Nothing Then
-                            ReportDiagnostic(diagnostics, argument.Syntax, useSiteErrorInfo)
-                        End If
+                        If useSiteErrorInfo IsNot Nothing Then ReportDiagnostic(diagnostics, argument.Syntax, useSiteErrorInfo)
                     End If
                 End If
 
@@ -2735,16 +2720,12 @@ ProduceBoundNode:
                 Dim adjustedArgument As BoundExpression = PassArgument(argument, conversion, candidateIsAProperty, conversionBack, targetType, param, diagnostics)
 
                 ' Keep SemanticModel happy.
-                If argumentIsDefaultValue AndAlso adjustedArgument IsNot argument Then
-                    adjustedArgument.SetWasCompilerGenerated()
-                End If
+                If argumentIsDefaultValue AndAlso adjustedArgument IsNot argument Then adjustedArgument.SetWasCompilerGenerated()
 
                 argumentsInOrder.Add(adjustedArgument)
             Next
 
-            If paramArrayItems IsNot Nothing Then
-                paramArrayItems.Free()
-            End If
+            If paramArrayItems IsNot Nothing Then paramArrayItems.Free()
 
             parameterToArgumentMap.Free()
             Return argumentsInOrder.ToImmutableAndFree()
@@ -2752,14 +2733,15 @@ ProduceBoundNode:
 
 
         Private Function PassArgument(
-            argument As BoundExpression,
-            conversionTo As KeyValuePair(Of ConversionKind, MethodSymbol),
-            forceByValueSemantics As Boolean,
-            conversionFrom As KeyValuePair(Of ConversionKind, MethodSymbol),
-            targetType As TypeSymbol,
-            param As ParameterSymbol,
-            diagnostics As DiagnosticBag
-        ) As BoundExpression
+                                       argument As BoundExpression,
+                                       conversionTo As KeyValuePair(Of ConversionKind, MethodSymbol),
+                                       forceByValueSemantics As Boolean,
+                                       conversionFrom As KeyValuePair(Of ConversionKind, MethodSymbol),
+                                       targetType As TypeSymbol,
+                                       param As ParameterSymbol,
+                                       diagnostics As DiagnosticBag
+                                     ) As BoundExpression
+
             Debug.Assert(Not param.IsByRef OrElse param.IsExplicitByRef OrElse targetType.IsStringType())
 
             ' Non-string arguments for implicitly ByRef string parameters of Declare functions
@@ -2861,8 +2843,10 @@ ProduceBoundNode:
         ' its arguments are always passed ByVal since property parameters 
         ' are always treated as ByVal
         ' This method is used to force the arguments to be RValues
-        Private Function MakeArgsRValues(ByVal invocation As BoundLateInvocation,
-                                                  diagnostics As DiagnosticBag) As BoundLateInvocation
+        Private Function MakeArgsRValues(
+                                          invocation As BoundLateInvocation,
+                                          diagnostics As DiagnosticBag
+                                        ) As BoundLateInvocation
 
             Dim args = invocation.ArgumentsOpt
 
@@ -2874,7 +2858,7 @@ ProduceBoundNode:
                     Dim newArg = MakeRValue(arg, diagnostics)
 
                     If argBuilder Is Nothing AndAlso arg IsNot newArg Then
-                        argBuilder = ArrayBuilder(Of BoundExpression).GetInstance
+                        argBuilder = ArrayBuilder(Of BoundExpression).GetInstance()
                         argBuilder.AddRange(args, i)
                     End If
 
@@ -2897,11 +2881,11 @@ ProduceBoundNode:
         End Function
 
         Friend Function PassArgumentByVal(
-            argument As BoundExpression,
-            conversion As KeyValuePair(Of ConversionKind, MethodSymbol),
-            targetType As TypeSymbol,
-            diagnostics As DiagnosticBag
-        ) As BoundExpression
+                                           argument As BoundExpression,
+                                           conversion As KeyValuePair(Of ConversionKind, MethodSymbol),
+                                           targetType As TypeSymbol,
+                                           diagnostics As DiagnosticBag
+                                         ) As BoundExpression
 #If DEBUG Then
             Dim checkAgainst As KeyValuePair(Of ConversionKind, MethodSymbol) = Conversions.ClassifyConversion(argument, targetType, Me, Nothing)
             Debug.Assert(conversion.Key = checkAgainst.Key)
@@ -2916,12 +2900,13 @@ ProduceBoundNode:
 
         ' Given a list of arguments, create arrays of the bound arguments and the names of those arguments.
         Private Sub BindArgumentsAndNames(
-            argumentListOpt As ArgumentListSyntax,
-            ByRef boundArguments As ImmutableArray(Of BoundExpression),
-            ByRef argumentNames As ImmutableArray(Of String),
-            ByRef argumentNamesLocations As ImmutableArray(Of Location),
-            diagnostics As DiagnosticBag
-        )
+                                           argumentListOpt As ArgumentListSyntax,
+                                     ByRef boundArguments As ImmutableArray(Of BoundExpression),
+                                     ByRef argumentNames As ImmutableArray(Of String),
+                                     ByRef argumentNamesLocations As ImmutableArray(Of Location),
+                                           diagnostics As DiagnosticBag
+                                         )
+
             Dim args As ImmutableArray(Of ArgumentSyntax) = Nothing
 
             If argumentListOpt IsNot Nothing Then
@@ -2935,13 +2920,7 @@ ProduceBoundNode:
                 args = argsArr.AsImmutableOrNull
             End If
 
-            BindArgumentsAndNames(
-                args,
-                boundArguments,
-                argumentNames,
-                argumentNamesLocations,
-                diagnostics
-            )
+            BindArgumentsAndNames(args, boundArguments, argumentNames, argumentNamesLocations, diagnostics)
         End Sub
 
         ' Given a list of arguments, create arrays of the bound arguments and the names of those arguments.
@@ -3051,9 +3030,7 @@ ProduceBoundNode:
 
                 ' For compatibility with the native compiler bad metadata constants should be treated as default(T).  This 
                 ' is a possible outcome of running an obfuscator over a valid DLL 
-                If (defaultConstantValue Is Nothing) OrElse defaultConstantValue.IsBad Then
-                    defaultConstantValue = ConstantValue.Null
-                End If
+                If (defaultConstantValue Is Nothing) OrElse defaultConstantValue.IsBad Then defaultConstantValue = ConstantValue.Null
 
                 Dim defaultSpecialType = defaultConstantValue.SpecialType
                 Dim defaultArgumentType As TypeSymbol = Nothing
@@ -3063,34 +3040,18 @@ ProduceBoundNode:
 
                 If param.HasOptionCompare Then
 
-                    ' If the argument has the OptionCompareAttribute
-                    ' then use the setting for Option Compare [Binary|Text]
+                    ' If the argument has the OptionCompareAttribute then use the setting for Option Compare [Binary|Text]
                     ' Other languages will use the default value specified.
 
-                    If Me.OptionCompareText Then
-                        defaultConstantValue = ConstantValue.Create(1)
-                    Else
-                        defaultConstantValue = ConstantValue.Default(SpecialType.System_Int32)
-                    End If
-
-                    If paramNullableUnderlyingTypeOrSelf.GetEnumUnderlyingTypeOrSelf().SpecialType = SpecialType.System_Int32 Then
-                        defaultArgumentType = paramNullableUnderlyingTypeOrSelf
-                    Else
-                        defaultArgumentType = GetSpecialType(SpecialType.System_Int32, syntax, diagnostics)
-                    End If
+                   defaultConstantValue = If(Me.OptionCompareText, ConstantValue.Create(1), ConstantValue.Default(SpecialType.System_Int32))
+                    defaultArgumentType = EnumSpecial(syntax, diagnostics, SpecialType.System_Int32, paramNullableUnderlyingTypeOrSelf)
 
                 ElseIf defaultSpecialType <> SpecialType.None Then
-                    If paramNullableUnderlyingTypeOrSelf.GetEnumUnderlyingTypeOrSelf().SpecialType = defaultSpecialType Then
-                        ' Enum default values are encoded as the underlying primitive type.  If the underlying types match then
-                        ' use the parameter's enum type.
-                        defaultArgumentType = paramNullableUnderlyingTypeOrSelf
-                    Else
-                        'Use the primitive type.
-                        defaultArgumentType = GetSpecialType(defaultSpecialType, syntax, diagnostics)
-                    End If
+                    defaultArgumentType = EnumSpecial(syntax, diagnostics, defaultSpecialType, paramNullableUnderlyingTypeOrSelf)
+
                 Else
-                    ' No type in constant.  Constant should be nothing
-                    Debug.Assert(defaultConstantValue.IsNothing)
+                ' No type in constant.  Constant should be nothing
+                Debug.Assert(defaultConstantValue.IsNothing)
                 End If
 
                 defaultArgument = New BoundLiteral(syntax, defaultConstantValue, defaultArgumentType)
@@ -3133,6 +3094,22 @@ ProduceBoundNode:
             End If
 
             Return defaultArgument
+        End Function
+
+        Private Function EnumSpecial(
+                                      syntax As VisualBasicSyntaxNode,
+                                      diagnostics As DiagnosticBag,
+                                      defaultSpecialType As SpecialType,
+                                      paramNullableUnderlyingTypeOrSelf As TypeSymbol
+                                    ) As TypeSymbol
+            If paramNullableUnderlyingTypeOrSelf.GetEnumUnderlyingTypeOrSelf().SpecialType = defaultSpecialType Then
+                ' Enum default values are encoded as the underlying primitive type.  If the underlying types match then
+                ' use the parameter's enum type.
+                Return paramNullableUnderlyingTypeOrSelf
+            Else
+                'Use the primitive type.
+                Return GetSpecialType(defaultSpecialType, syntax, diagnostics)
+            End If
         End Function
 
         Private Function CheckForCallerInfoAttributes(
