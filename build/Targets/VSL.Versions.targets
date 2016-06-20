@@ -70,7 +70,7 @@
     <!-- Only set when building RTM with no dependencies on pre-release packages
     <NuGetReleaseVersion>$(RoslynSemanticVersion)</NuGetReleaseVersion>
     -->
-    <NuGetPreReleaseVersion>$(RoslynSemanticVersion)-beta1</NuGetPreReleaseVersion>
+    <NuGetPreReleaseVersion>$(RoslynSemanticVersion)-beta3</NuGetPreReleaseVersion>
     <NuGetPerBuildPreReleaseVersion Condition="'$(BuildNumberSuffix)' != ''">$(NuGetPreReleaseVersion)-$(BuildNumberPart1.Trim())-$(BuildNumberPart2.Trim())</NuGetPerBuildPreReleaseVersion>
 
     <!-- TODO: change to a fixed version once we move this component to a separate repo -->
