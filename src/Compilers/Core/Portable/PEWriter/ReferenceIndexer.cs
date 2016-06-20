@@ -40,9 +40,9 @@ namespace Microsoft.Cci
             Visit(module.ModuleAttributes);
             Visit(module.GetTopLevelTypes(Context));
 
-            foreach (ITypeReference exportedType in module.GetExportedTypes(Context))
+            foreach (var exportedType in module.GetExportedTypes(Context.Diagnostics))
             {
-                VisitExportedType(exportedType);
+                VisitExportedType(exportedType.Type);
             }
 
             if (module.AsAssembly == null)
