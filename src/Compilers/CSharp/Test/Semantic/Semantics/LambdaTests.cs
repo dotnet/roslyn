@@ -2234,5 +2234,39 @@ class Program
                 Assert.NotEmpty(typeInfo.Type.GetMembers("Replace"));
             }
         }
+
+        [Fact]
+        [WorkItem(12063, "https://github.com/dotnet/roslyn/issues/12063")]
+        public void TestLambdaWithError19()
+        {
+            var source =
+@"using System;
+using System.Linq.Expressions;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Ma(string.Empty, (x, y) => x.ToString());
+        Mb(string.Empty, (x, y) => x.ToString());
+    }
+    static void Ma<T>(T t, Expression<Action<T, T, int>> action) { }
+    static void Mb<T>(T t, Expression<Action<T, T, int>> action) { }
+    static void Mb() { }
+}
+";
+            var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
+            var tree = compilation.SyntaxTrees[0];
+            var sm = compilation.GetSemanticModel(tree);
+            foreach (var lambda in tree.GetRoot().DescendantNodes().OfType<LambdaExpressionSyntax>())
+            {
+                var reference = lambda.Body.DescendantNodesAndSelf().OfType<IdentifierNameSyntax>().First();
+                Assert.Equal("x", reference.ToString());
+                var typeInfo = sm.GetTypeInfo(reference);
+                Assert.Equal(TypeKind.Class, typeInfo.Type.TypeKind);
+                Assert.Equal("String", typeInfo.Type.Name);
+                Assert.NotEmpty(typeInfo.Type.GetMembers("Replace"));
+            }
+        }
     }
 }
