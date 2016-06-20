@@ -10,35 +10,33 @@ using Microsoft.CodeAnalysis.Text;
 
 namespace Microsoft.CodeAnalysis.Completion
 {
-    internal class CompletionHelper
+    internal sealed class CompletionHelper
     {
+        private static readonly CompletionHelper CaseSensitiveInstance = new CompletionHelper(isCaseSensitive: true);
+        private static readonly CompletionHelper CaseInsensitiveInstance = new CompletionHelper(isCaseSensitive: false);
+
         private readonly object _gate = new object();
         private readonly Dictionary<string, PatternMatcher> _patternMatcherMap = new Dictionary<string, PatternMatcher>();
         private readonly Dictionary<string, PatternMatcher> _fallbackPatternMatcherMap = new Dictionary<string, PatternMatcher>();
         private static readonly CultureInfo EnUSCultureInfo = new CultureInfo("en-US");
         private readonly bool _isCaseSensitive;
 
-        protected CompletionHelper(bool isCaseSensitive)
+        private CompletionHelper(bool isCaseSensitive)
         {
             _isCaseSensitive = isCaseSensitive;
         }
 
         public static CompletionHelper GetHelper(Workspace workspace, string language)
         {
+            var isCaseSensitive = true;
             var ls = workspace.Services.GetLanguageServices(language);
             if (ls != null)
             {
-                var factory = ls.GetService<CompletionHelperFactory>();
-                if (factory != null)
-                {
-                    return factory.CreateCompletionHelper();
-                }
-
                 var syntaxFacts = ls.GetService<ISyntaxFactsService>();
-                return new CompletionHelper(syntaxFacts?.IsCaseSensitive ?? true);
+                isCaseSensitive = syntaxFacts?.IsCaseSensitive ?? true;
             }
 
-            return null;
+            return isCaseSensitive ? CaseSensitiveInstance : CaseInsensitiveInstance;
         }
 
         public static CompletionHelper GetHelper(Document document)
@@ -60,12 +58,6 @@ namespace Microsoft.CodeAnalysis.Completion
         public bool MatchesFilterText(CompletionItem item, string filterText)
         {
             return GetMatch(item, filterText) != null;
-        }
-
-        private static int GetRecentItemIndex(ImmutableArray<string> recentItems, CompletionItem item)
-        {
-            var index = recentItems.IndexOf(item.DisplayText);
-            return -index;
         }
 
         private PatternMatch? GetMatch(CompletionItem item, string filterText)

@@ -208,6 +208,16 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     return HandleDeletionTrigger(model, filterResults);
                 }
 
+                return HandleNormalFiltering(model, filterReason, textSnapshot, document, helper, recentItems, itemToFilterText, filterResults);
+            }
+
+            private Model HandleNormalFiltering(
+                Model model, CompletionFilterReason filterReason, 
+                ITextSnapshot textSnapshot, Document document, 
+                CompletionHelper helper, ImmutableArray<string> recentItems, 
+                Dictionary<CompletionItem, string> itemToFilterText, 
+                List<FilterResult> filterResults)
+            {
                 // Not deletion.  Defer to the language to decide which item it thinks best
                 // matches the text typed so far.
 
@@ -238,8 +248,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 // like "WriteLine" since no filter text has actually been provided.  HOwever,
                 // if "Console.WriteL$$" is typed, then we do want "WriteLine" to be committed.
                 var matchingItemCount = filterResults.Where(t => t.MatchedFilterText).Count();
-                var isUnique = bestCompletionItem != null && 
-                    matchingItemCount == 1 && 
+                var isUnique = bestCompletionItem != null &&
+                    matchingItemCount == 1 &&
                     itemToFilterText[bestCompletionItem].Length > 0;
 
                 var result = model.WithFilteredItems(filterResults.Select(r => r.PresentationItem).AsImmutable())
