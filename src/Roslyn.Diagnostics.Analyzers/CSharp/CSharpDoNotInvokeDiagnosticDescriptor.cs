@@ -4,8 +4,9 @@ using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Roslyn.Diagnostics.Analyzers;
 
-namespace Roslyn.Diagnostics.Analyzers.CSharp
+namespace Roslyn.Diagnostics.CSharp.Analyzers
 {
     [DiagnosticAnalyzer(LanguageNames.CSharp)]
     public class CSharpDiagnosticDescriptorAccessAnalyzer : DiagnosticDescriptorAccessAnalyzer<SyntaxKind, MemberAccessExpressionSyntax>

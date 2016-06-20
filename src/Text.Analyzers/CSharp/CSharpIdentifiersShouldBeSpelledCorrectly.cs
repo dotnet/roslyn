@@ -2,8 +2,9 @@
 
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Text.Analyzers;
 
-namespace Text.Analyzers
+namespace Text.CSharp.Analyzers
 {
     /// <summary>
     /// CA1704: Identifiers should be spelled correctly

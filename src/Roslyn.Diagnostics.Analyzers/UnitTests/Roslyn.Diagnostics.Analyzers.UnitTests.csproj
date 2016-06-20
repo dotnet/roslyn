@@ -31,9 +31,9 @@
       <Project>{f21bc39a-3c97-4d8f-bfa8-9e4bd9b56413}</Project>
       <Name>xUnit</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Test\Utilities\DiagnosticsTestUtilities.csproj">
+    <ProjectReference Include="..\..\Test\Utilities\Test.Utilities.csproj">
       <Project>{0A0621F2-D1DC-47FF-B643-C6646557505E}</Project>
-      <Name>DiagnosticsTestUtilities</Name>
+      <Name>Test.Utilities</Name>
     </ProjectReference>
     <ProjectReference Include="..\Core\Roslyn.Diagnostics.Analyzers.Core.csproj">
       <Project>{B475C173-A39D-4A75-93FF-69C3D2742CAD}</Project>

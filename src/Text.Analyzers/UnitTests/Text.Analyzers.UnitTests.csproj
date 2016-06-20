@@ -31,9 +31,9 @@
       <Project>{f21bc39a-3c97-4d8f-bfa8-9e4bd9b56413}</Project>
       <Name>xUnit</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Test\Utilities\DiagnosticsTestUtilities.csproj">
+    <ProjectReference Include="..\..\Test\Utilities\Test.Utilities.csproj">
       <Project>{0A0621F2-D1DC-47FF-B643-C6646557505E}</Project>
-      <Name>DiagnosticsTestUtilities</Name>
+      <Name>Test.Utilities</Name>
     </ProjectReference>
     <ProjectReference Include="..\Core\Text.Analyzers.Core.csproj">
       <Project>{730C2D1C-0276-4132-85EA-675CE60068BB}</Project>

@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Xunit;
-using Microsoft.CodeAnalysis.Analyzers;
 using Microsoft.CodeAnalysis.CodeFixes;
-using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.CSharp.Analyzers;
+using Microsoft.CodeAnalysis.Diagnostics;
+using Test.Utilities;
+using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests
+namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
 {
     public class UseReturnValueFromImmutableObjectMethodTests : CodeFixTestBase
     {

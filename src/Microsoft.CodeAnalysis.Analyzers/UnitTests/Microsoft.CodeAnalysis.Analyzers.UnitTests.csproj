@@ -9,7 +9,7 @@
     <Platform Condition="'$(Platform)' == ''">AnyCPU</Platform>
     <ProjectGuid>{0C2925AD-CD97-46FA-A686-E2C1AD19DAD8}</ProjectGuid>
     <OutputType>Library</OutputType>
-    <RootNamespace>Microsoft.CodeAnalysis.UnitTests</RootNamespace>
+    <RootNamespace>Microsoft.CodeAnalysis.Analyzers.UnitTests</RootNamespace>
     <AssemblyName>Microsoft.CodeAnalysis.Analyzers.UnitTests</AssemblyName>
     <Nonshipping>true</Nonshipping>
     <SolutionDir Condition="'$(SolutionDir)' == '' OR '$(SolutionDir)' == '*Undefined*'">..\..\..\..\</SolutionDir>
@@ -31,21 +31,21 @@
       <Project>{f21bc39a-3c97-4d8f-bfa8-9e4bd9b56413}</Project>
       <Name>xUnit</Name>
     </ProjectReference>
-    <ProjectReference Include="..\..\Test\Utilities\DiagnosticsTestUtilities.csproj">
+    <ProjectReference Include="..\..\Test\Utilities\Test.Utilities.csproj">
       <Project>{0a0621f2-d1dc-47ff-b643-c6646557505e}</Project>
-      <Name>DiagnosticsTestUtilities</Name>
+      <Name>Test.Utilities</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Core\CodeAnalysisDiagnosticAnalyzers.csproj">
+    <ProjectReference Include="..\Core\Microsoft.CodeAnalysis.Analyzers.Core.csproj">
       <Project>{d8762a0a-3832-47be-bcf6-8b1060be6b28}</Project>
-      <Name>CodeAnalysisDiagnosticAnalyzers</Name>
+      <Name>Microsoft.CodeAnalysis.Analyzers.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\CSharp\CSharpCodeAnalysisDiagnosticAnalyzers.csproj">
+    <ProjectReference Include="..\CSharp\Microsoft.CodeAnalysis.CSharp.Analyzers.csproj">
       <Project>{921b412a-5551-4853-82b4-46ad5a05a03e}</Project>
-      <Name>CSharpCodeAnalysisDiagnosticAnalyzers</Name>
+      <Name>Microsoft.CodeAnalysis.CSharp.Analyzers</Name>
     </ProjectReference>
-    <ProjectReference Include="..\VisualBasic\BasicCodeAnalysisDiagnosticAnalyzers.vbproj">
+    <ProjectReference Include="..\VisualBasic\Microsoft.CodeAnalysis.VisualBasic.Analyzers.vbproj">
       <Project>{b1a6a74b-e484-48fb-8745-7a30a06db631}</Project>
-      <Name>BasicCodeAnalysisDiagnosticAnalyzers</Name>
+      <Name>Microsoft.CodeAnalysis.VisualBasic.Analyzers</Name>
     </ProjectReference>
   </ItemGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">

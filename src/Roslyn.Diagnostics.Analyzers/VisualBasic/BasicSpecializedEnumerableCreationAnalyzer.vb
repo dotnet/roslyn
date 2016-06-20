@@ -5,8 +5,9 @@ Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Roslyn.Diagnostics.Analyzers
 
-Namespace Roslyn.Diagnostics.Analyzers.VisualBasic
+Namespace Roslyn.Diagnostics.VisualBasic.Analyzers
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Public Class BasicSpecializedEnumerableCreationAnalyzer
         Inherits SpecializedEnumerableCreationAnalyzer

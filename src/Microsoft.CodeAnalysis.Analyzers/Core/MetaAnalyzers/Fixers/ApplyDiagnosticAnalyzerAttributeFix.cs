@@ -8,7 +8,7 @@ using Analyzer.Utilities;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.Editing;
 
-namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.CodeFixes
+namespace Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers.Fixers
 {
     public abstract class ApplyDiagnosticAnalyzerAttributeFix : CodeFixProvider
     {

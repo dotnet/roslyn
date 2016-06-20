@@ -1,14 +1,14 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-using Microsoft.CodeAnalysis.Analyzers;
 using Microsoft.CodeAnalysis.Analyzers.MetaAnalyzers;
 using Microsoft.CodeAnalysis.CodeFixes;
 using Microsoft.CodeAnalysis.CSharp.Analyzers.MetaAnalyzers;
 using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.VisualBasic.Analyzers.MetaAnalyzers;
+using Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests.Analyzers.MetaAnalyzers
+namespace Microsoft.CodeAnalysis.Analyzers.UnitTests.MetaAnalyzers
 {
     public class InvalidSyntaxKindTypeArgumentRuleTests : CodeFixTestBase
     {

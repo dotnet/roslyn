@@ -10,7 +10,7 @@
     <NuGetLicenseURL>$(NuGetLicenseURLRedist)</NuGetLicenseURL>
   </PropertyGroup>
   <ItemGroup>
-    <NuSpec Include="..\Core\Diagnostic.nuspec" />
+    <NuSpec Include="..\Core\Microsoft.CodeAnalysis.Analyzers.nuspec" />
   </ItemGroup>
   <ImportGroup Label="Targets">
     <Import Project="..\..\..\build\Targets\Analyzers.Imports.targets" />

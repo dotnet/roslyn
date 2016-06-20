@@ -32,7 +32,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />
-    <None Include="Diagnostic.nuspec" />
+    <None Include="Microsoft.CodeAnalysis.Analyzers.nuspec" />
     <None Include="install.ps1" />
     <Content Include="project.json" />
     <None Include="ThirdPartyNotices.rtf" />

@@ -2,11 +2,11 @@
 
 using System.Diagnostics;
 using System.Linq;
-using Microsoft.CodeAnalysis.Analyzers;
 using Microsoft.CodeAnalysis.Diagnostics;
+using Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests.Analyzers
+namespace Microsoft.CodeAnalysis.Analyzers.UnitTests
 {
     public class InternalImplementationOnlyTests : DiagnosticAnalyzerTestBase
     {

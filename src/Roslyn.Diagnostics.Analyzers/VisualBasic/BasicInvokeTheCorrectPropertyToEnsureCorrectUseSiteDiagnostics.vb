@@ -1,13 +1,14 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 Imports System.Collections.Immutable
-Imports Analyzer.Utilities
+Imports Analyzer.Utilities.Extensions
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.Diagnostics
 Imports Microsoft.CodeAnalysis.VisualBasic
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
+Imports Roslyn.Diagnostics.Analyzers
 
-Namespace Roslyn.Diagnostics.Analyzers
+Namespace Roslyn.Diagnostics.VisualBasic.Analyzers
     <DiagnosticAnalyzer(LanguageNames.VisualBasic)>
     Public Class BasicInvokeTheCorrectPropertyToEnsureCorrectUseSiteDiagnosticsAnalyzer
         Inherits DiagnosticAnalyzer

@@ -1,12 +1,12 @@
 ﻿// Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
 using Microsoft.CodeAnalysis.Diagnostics;
-using Roslyn.Diagnostics.Analyzers;
-using Roslyn.Diagnostics.Analyzers.CSharp;
-using Roslyn.Diagnostics.Analyzers.VisualBasic;
+using Roslyn.Diagnostics.CSharp.Analyzers;
+using Roslyn.Diagnostics.VisualBasic.Analyzers;
+using Test.Utilities;
 using Xunit;
 
-namespace Microsoft.CodeAnalysis.UnitTests.Performance
+namespace Roslyn.Diagnostics.Analyzers.UnitTests
 {
     public class SpecializedEnumerableCreationAnalyzerTests : DiagnosticAnalyzerTestBase
     {

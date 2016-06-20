@@ -3,8 +3,9 @@
 Imports System.Composition
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.CodeFixes
+Imports Text.Analyzers
 
-Namespace Text.Analyzers
+Namespace Text.VisualBasic.Analyzers
     ''' <summary>
     ''' CA1704: Identifiers should be spelled correctly
     ''' </summary>
