@@ -1185,7 +1185,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         /// </summary>
         private static ImmutableArray<BoundExpression> BuildArgumentsForErrorRecovery(AnalyzedArguments analyzedArguments)
         {
-            return analyzedArguments.Arguments.ToImmutable();
+            return BuildArgumentsForErrorRecovery(analyzedArguments, Enumerable.Empty<ImmutableArray<ParameterSymbol>>());
         }
 
         private BoundCall CreateBadCall(
