@@ -20,7 +20,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
         Private ReadOnly _methodBody As BoundStatement
         Private ReadOnly _createPayload As MethodSymbol
         Private ReadOnly _spansBuilder As ArrayBuilder(Of SourceSpan)
-        Private _dynamisAnalysisSpans As ImmutableArray(Of SourceSpan) = ImmutableArray(Of SourceSpan).Empty
+        Private _dynamicAnalysisSpans As ImmutableArray(Of SourceSpan) = ImmutableArray(Of SourceSpan).Empty
         Private ReadOnly _methodEntryInstrumentation As BoundStatement
         Private ReadOnly _payloadType As ArrayTypeSymbol
         Private ReadOnly _methodPayload As LocalSymbol
@@ -60,7 +60,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
         Public Overrides Function CreateBlockPrologue(original As BoundBlock, ByRef synthesizedLocal As LocalSymbol) As BoundStatement
             Dim previousPrologue As BoundStatement = MyBase.CreateBlockPrologue(original, synthesizedLocal)
-#If False Then
+
             If _methodBody Is original Then
                 _dynamicAnalysisSpans = _spansBuilder.ToImmutableAndFree()
                 ' In the future there will be multiple analysis kinds.
@@ -72,26 +72,25 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                 '
                 ' Dim payload = PID.PayloadRootField[methodIndex]
                 ' If payload Is Nothing Then
-                '     payload = Instrumentation.CreatePayload(mvid, methodIndex, ref PID.PayloadRootField(methodIndex), payloadLength)
+                '     payload = Instrumentation.CreatePayload(mvid, methodIndex, PID.PayloadRootField(methodIndex), payloadLength)
                 ' End If
 
-                Dim payloadInitialization As BoundStatement = _factory.Assignment(_factory.Local(_methodPayload), _factory.ArrayAccess(_factory.InstrumentationPayloadRoot(analysisKind, modulePayloadType), ImmutableArray.Create(_factory.MethodDefIndex(_method))))
+                Dim payloadInitialization As BoundStatement = _factory.Assignment(_factory.Local(_methodPayload, False), _factory.ArrayAccess(_factory.InstrumentationPayloadRoot(analysisKind, modulePayloadType), ImmutableArray.Create(_factory.MethodDefIndex(_method))))
                 Dim mvid As BoundExpression = _factory.ModuleVersionId()
                 Dim methodToken As BoundExpression = _factory.MethodDefIndex(_method)
                 Dim payloadSlot As BoundExpression = _factory.ArrayAccess(_factory.InstrumentationPayloadRoot(analysisKind, modulePayloadType), ImmutableArray.Create(_factory.MethodDefIndex(_method)))
-                Dim createPayloadCall As BoundStatement = _factory.Assignment(_factory.Local(_methodPayload), _factory.Call(null, _createPayload, mvid, methodToken, payloadSlot, _factory.Literal(_dynamicAnalysisSpans.Length)))
+                Dim createPayloadCall As BoundStatement = _factory.Assignment(_factory.Local(_methodPayload, True), _factory.Call(Nothing, _createPayload, mvid, methodToken, payloadSlot, _factory.Literal(_dynamicAnalysisSpans.Length)))
 
-                Dim payloadNullTest As BoundExpression = _factory.Binary(BinaryOperatorKind.ObjectEqual, _factory.SpecialType(SpecialType.System_Boolean), _factory.Local(_methodPayload), _factory.Null(_payloadType))
+                Dim payloadNullTest As BoundExpression = _factory.Binary(BinaryOperatorKind.Equals, _factory.SpecialType(SpecialType.System_Boolean), _factory.Local(_methodPayload, False), _factory.Null(_payloadType))
                 Dim payloadIf As BoundStatement = _factory.If(payloadNullTest, createPayloadCall)
 
                 Debug.Assert(synthesizedLocal Is Nothing)
                 synthesizedLocal = _methodPayload
 
                 Return If(previousPrologue Is Nothing,
-                           factory.StatementList(payloadInitialization, payloadIf, _methodEntryInstrumentation),
+                           _factory.StatementList(payloadInitialization, payloadIf, _methodEntryInstrumentation),
                            _factory.StatementList(payloadInitialization, payloadIf, _methodEntryInstrumentation, previousPrologue))
             End If
-#End If
 
             Return previousPrologue
         End Function
