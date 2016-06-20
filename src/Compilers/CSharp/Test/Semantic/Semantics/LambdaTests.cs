@@ -2252,7 +2252,7 @@ class Program
     }
     static void Ma<T>(T t, Expression<Action<T, T, int>> action) { }
     static void Mb<T>(T t, Expression<Action<T, T, int>> action) { }
-    static void Mb() { }
+    static void Mb<T>(T t, Action<T, T, int> action) { }
 }
 ";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
