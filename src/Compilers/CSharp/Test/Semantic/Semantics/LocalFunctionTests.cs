@@ -3717,9 +3717,9 @@ class Program
 ";
             var option = TestOptions.ReleaseExe;
             CreateCompilationWithMscorlib(source, options: option, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
-                // (6,9): error CS8058: Feature 'local functions' is experimental and unsupported; use '/features:localFunctions' to enable.
-                //         void Local()
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, @"void Local() { }").WithArguments("local functions", "localFunctions").WithLocation(6, 9)
+                // (6,9): error CS8059: Feature 'local functions' is not available in C# 6.  Please use language version 7 or greater.
+                //         void Local() { }
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "void Local() { }").WithArguments("local functions", "7").WithLocation(6, 9)
                 );
         }
 

@@ -326,7 +326,7 @@ public class Test
     }
 }";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (9,11): error CS0166: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 // 		switch (test) {
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "test").WithLocation(9, 17));
@@ -348,7 +348,7 @@ class T
     }
 }";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (6,16): error CS0166: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //         switch(null)
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "null").WithLocation(6, 16));
@@ -372,7 +372,7 @@ class T
     public static void M() { }
 }";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (6,16): error CS0166: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //         switch(M())
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "M()").WithLocation(6, 16));
@@ -394,7 +394,7 @@ class T
     }
 }";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (6,16): error CS0166: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //         switch(() => {})
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "() => {}").WithLocation(6, 16));
@@ -433,7 +433,7 @@ class Conv
     }		
 }";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (17,16): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //         switch(C)
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "C").WithLocation(17, 16));
@@ -472,7 +472,7 @@ class Conv
     }
 }";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (17,16): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //         switch(C)
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "C").WithLocation(17, 16));
@@ -511,7 +511,7 @@ struct Conv
     }		
 }";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (17,10): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //         switch(C)
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "C").WithLocation(17, 16));
@@ -558,7 +558,7 @@ struct Conv
     }		
 }";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (17,16): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //         switch(C)
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "C").WithLocation(17, 16)
@@ -610,7 +610,7 @@ struct Conv
     }		
 }";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (27,16): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //         switch(C)
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "C").WithLocation(27, 16));
@@ -661,7 +661,7 @@ struct Conv
     }		
 }";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (27,10): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 // 		switch(C)
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "C").WithLocation(27, 16));
@@ -746,7 +746,7 @@ class Conv
     }		
 }";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (13,16): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //         switch(C)
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "C").WithLocation(13, 16)
@@ -783,7 +783,7 @@ class Conv
     }		
 }";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (14,16): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //         switch(C)
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "C").WithLocation(14, 16));
@@ -855,7 +855,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (6,17): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //         switch (o)
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "o").WithLocation(6, 17),
@@ -1251,7 +1251,7 @@ class C
 }";
             // Note: Dev10 also reports CS0151 for "b2.F()", although
             // there is an implicit conversion from A2 to int.
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (20,17): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "b1.F()").WithLocation(20, 17));
         }
@@ -1299,7 +1299,7 @@ struct A
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (28,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //             switch(a)
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "a").WithLocation(28, 20));
@@ -1348,7 +1348,7 @@ struct A
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (22,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //             switch(aNullable)
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "aNullable"),
@@ -1399,7 +1399,7 @@ struct A
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (28,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //             switch(a)
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "a"));
@@ -1447,7 +1447,7 @@ struct A
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (28,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //             switch(a)
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "a"));
@@ -1495,7 +1495,7 @@ struct A
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (28,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //             switch(a)
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "a").WithLocation(28, 20)
@@ -1544,7 +1544,7 @@ struct A
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (28,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //             switch(a)
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "a").WithLocation(28, 20)
@@ -1599,7 +1599,7 @@ struct A
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (34,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //             switch(a)
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "a"));
@@ -1654,7 +1654,7 @@ struct A
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (28,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //             switch(aNullable)
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "aNullable"),
@@ -1711,7 +1711,7 @@ struct A
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (34,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //             switch(a)
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "a"));
@@ -1766,7 +1766,7 @@ struct A
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (28,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //             switch(aNullable)
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "aNullable"),
@@ -1830,7 +1830,7 @@ struct A
     }
 }
 ";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (34,20): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //             switch(aNullable)
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "aNullable"),
@@ -1982,7 +1982,7 @@ struct A
         }
     }
 }";
-            CreateCompilationWithMscorlib(text).VerifyDiagnostics(
+            CreateCompilationWithMscorlib(text, parseOptions: TestOptions.Regular6).VerifyDiagnostics(
                 // (29,21): error CS0151: A switch expression or case label must be a bool, char, string, integral, enum, or corresponding nullable type
                 //             switch (a) // both operators applicable in non-lifted form -> error
                 Diagnostic(ErrorCode.ERR_SwitchGoverningTypeValueExpected, "a").WithLocation(29, 21)

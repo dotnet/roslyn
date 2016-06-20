@@ -43,42 +43,55 @@ public class Vec
     public Vec(int x) {}
 }
 ";
-            var regularParseOptions = TestOptions.Regular;
+            var regularParseOptions = TestOptions.Regular6;
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: regularParseOptions).VerifyDiagnostics(
-                // (7,18): error CS8058: Feature 'binary literals' is experimental and unsupported; use '/features:binaryLiterals' to enable.
+                // (7,18): error CS8059: Feature 'binary literals' is not available in C# 6.  Please use language version 7 or greater.
                 //         int i1 = 0b001010; // binary literals
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "").WithArguments("binary literals", "binaryLiterals").WithLocation(7, 18),
-                // (8,18): error CS8058: Feature 'digit separators' is experimental and unsupported; use '/features:digitSeparators' to enable.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "").WithArguments("binary literals", "7").WithLocation(7, 18),
+                // (8,18): error CS8059: Feature 'digit separators' is not available in C# 6.  Please use language version 7 or greater.
                 //         int i2 = 23_554; // digit separators
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "").WithArguments("digit separators", "digitSeparators").WithLocation(8, 18),
-                // (12,9): error CS8058: Feature 'local functions' is experimental and unsupported; use '/features:localFunctions' to enable.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "").WithArguments("digit separators", "7").WithLocation(8, 18),
+                // (12,9): error CS8059: Feature 'local functions' is not available in C# 6.  Please use language version 7 or greater.
                 //         int f() => 2;
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "int f() => 2;").WithArguments("local functions", "localFunctions").WithLocation(12, 9),
-                // (13,9): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "int f() => 2;").WithArguments("local functions", "7").WithLocation(12, 9),
+                // (13,9): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
                 //         ref int i3 = ref i1; // ref locals
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(13, 9),
-                // (13,22): error CS8058: Feature 'byref locals and returns' is experimental and unsupported; use '/features:refLocalsAndReturns' to enable.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(13, 9),
+                // (13,22): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
                 //         ref int i3 = ref i1; // ref locals
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "ref").WithArguments("byref locals and returns", "refLocalsAndReturns").WithLocation(13, 22),
-                // (14,20): error CS8058: Feature 'pattern matching' is experimental and unsupported; use '/features:patterns' to enable.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(13, 22),
+                // (14,20): error CS8059: Feature 'pattern matching' is not available in C# 6.  Please use language version 7 or greater.
                 //         string s = o is string k ? k : null; // pattern matching
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "o is string k").WithArguments("pattern matching", "patterns").WithLocation(14, 20),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "o is string k").WithArguments("pattern matching", "7").WithLocation(14, 20),
                 // (12,13): warning CS0168: The variable 'f' is declared but never used
                 //         int f() => 2;
                 Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(12, 13)
                 );
 
             // enables binary literals, digit separators, local functions, ref locals, pattern matching
-            var demoParseOptions = regularParseOptions
-                .WithPreprocessorSymbols(new[] { "__DEMO__" });
+            var demoParseOptions = TestOptions.Regular6;
             CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: demoParseOptions).VerifyDiagnostics(
-                // (8,13): warning CS0219: The variable 'i2' is assigned but its value is never used
+                // (7,18): error CS8059: Feature 'binary literals' is not available in C# 6.  Please use language version 7 or greater.
+                //         int i1 = 0b001010; // binary literals
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "").WithArguments("binary literals", "7").WithLocation(7, 18),
+                // (8,18): error CS8059: Feature 'digit separators' is not available in C# 6.  Please use language version 7 or greater.
                 //         int i2 = 23_554; // digit separators
-                Diagnostic(ErrorCode.WRN_UnreferencedVarAssg, "i2").WithArguments("i2").WithLocation(8, 13),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "").WithArguments("digit separators", "7").WithLocation(8, 18),
+                // (12,9): error CS8059: Feature 'local functions' is not available in C# 6.  Please use language version 7 or greater.
+                //         int f() => 2;
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "int f() => 2;").WithArguments("local functions", "7").WithLocation(12, 9),
+                // (13,9): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
+                //         ref int i3 = ref i1; // ref locals
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(13, 9),
+                // (13,22): error CS8059: Feature 'byref locals and returns' is not available in C# 6.  Please use language version 7 or greater.
+                //         ref int i3 = ref i1; // ref locals
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "ref").WithArguments("byref locals and returns", "7").WithLocation(13, 22),
+                // (14,20): error CS8059: Feature 'pattern matching' is not available in C# 6.  Please use language version 7 or greater.
+                //         string s = o is string k ? k : null; // pattern matching
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "o is string k").WithArguments("pattern matching", "7").WithLocation(14, 20),
                 // (12,13): warning CS0168: The variable 'f' is declared but never used
                 //         int f() => 2;
-                Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(12, 13)
-                );
+                Diagnostic(ErrorCode.WRN_UnreferencedVar, "f").WithArguments("f").WithLocation(12, 13));
         }
 
         [Fact]

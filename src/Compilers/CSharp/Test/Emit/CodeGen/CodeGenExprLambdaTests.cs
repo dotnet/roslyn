@@ -3638,9 +3638,9 @@ namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B 
                 // (2,93): error CS8200: Tuple must contain at least two elements.
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(2, 93),
-                // (2,93): error CS8058: Feature 'tuples' is experimental and unsupported; use '/features:tuples' to enable.
+                // (2,93): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "()").WithArguments("tuples", "tuples").WithLocation(2, 93),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7").WithLocation(2, 93),
                 // (2,95): error CS1022: Type or namespace definition, or end-of-file expected
                 // namespace global::((System.Linq.Expressions.Expression<System.Func<B>>)(() => B )).Compile()(){}
                 Diagnostic(ErrorCode.ERR_EOFExpected, "{").WithLocation(2, 95),

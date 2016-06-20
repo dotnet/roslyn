@@ -18,6 +18,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class LexicalTests
     {
         private readonly CSharpParseOptions _options;
+        private readonly CSharpParseOptions _options6;
         private readonly CSharpParseOptions _binaryOptions;
         private readonly CSharpParseOptions _underscoreOptions;
         private readonly CSharpParseOptions _binaryUnderscoreOptions;
@@ -25,6 +26,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public LexicalTests()
         {
             _options = new CSharpParseOptions(languageVersion: LanguageVersion.CSharp3);
+            _options6 = new CSharpParseOptions(languageVersion: LanguageVersion.CSharp6);
             _binaryOptions = _options.WithLanguageVersion(LanguageVersion.CSharp7);
             _underscoreOptions = _options.WithLanguageVersion(LanguageVersion.CSharp7);
             _binaryUnderscoreOptions = _binaryOptions;
@@ -1946,12 +1948,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNumericBinaryLiteralWithoutFeatureFlag()
         {
             var text = "0b1";
-            var token = LexToken(text);
+            var token = LexToken(text, _options6);
 
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
-            Assert.Equal((int)ErrorCode.ERR_FeatureIsExperimental, errors[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_FeatureNotAvailableInVersion6, errors[0].Code);
             Assert.Equal(text, token.Text);
         }
 
@@ -2604,12 +2606,12 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void TestNumericWithUnderscoresWithoutFeatureFlag()
         {
             var text = "1_000";
-            var token = LexToken(text);
+            var token = LexToken(text, _options6);
 
             Assert.Equal(SyntaxKind.NumericLiteralToken, token.Kind());
             var errors = token.Errors();
             Assert.Equal(1, errors.Length);
-            Assert.Equal((int)ErrorCode.ERR_FeatureIsExperimental, errors[0].Code);
+            Assert.Equal((int)ErrorCode.ERR_FeatureNotAvailableInVersion6, errors[0].Code);
             Assert.Equal(text, token.Text);
         }
 

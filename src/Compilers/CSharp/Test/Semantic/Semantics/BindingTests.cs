@@ -2375,7 +2375,7 @@ class C
 }
 ";
 
-            CreateCompilationWithMscorlib45(text.VerifyDiagnostics();
+            CreateCompilationWithMscorlib45(text).VerifyDiagnostics();
         }
 
         [Fact]

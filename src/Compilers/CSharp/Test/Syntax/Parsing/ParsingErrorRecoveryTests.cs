@@ -5308,7 +5308,7 @@ class C
             Assert.Equal(SyntaxKind.TupleExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
 
             Assert.Equal(new [] {
-                                (int)ErrorCode.ERR_FeatureIsExperimental,
+                                (int)ErrorCode.ERR_FeatureNotAvailableInVersion6,
                                 (int)ErrorCode.ERR_InvalidExprTerm,
                                 (int)ErrorCode.ERR_CloseParenExpected
                             }, file.Errors().Select(e => e.Code));
@@ -5381,7 +5381,7 @@ class C
         public void TestStatementAfterUntypedLambdaParameterWithCSharp6()
         {
             var text = "class c { void m() { var x = (y, while (c) { } } }";
-            var file = this.ParseTree(text);
+            var file = this.ParseTree(text, options: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6));
 
             Assert.NotNull(file);
             Assert.Equal(text, file.ToFullString());
@@ -5405,7 +5405,7 @@ class C
             Assert.Equal(SyntaxKind.TupleExpression, ds.Declaration.Variables[0].Initializer.Value.Kind());
 
             Assert.Equal(new [] {
-                                (int)ErrorCode.ERR_FeatureIsExperimental,
+                                (int)ErrorCode.ERR_FeatureNotAvailableInVersion6,
                                 (int)ErrorCode.ERR_InvalidExprTerm,
                                 (int)ErrorCode.ERR_CloseParenExpected,
                                 (int)ErrorCode.ERR_SemicolonExpected

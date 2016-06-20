@@ -43,10 +43,10 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         public void ReplaceMethodNoFeature()
         {
             var source = "class C { virtual replace protected void M() { } }";
-            CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll).VerifyDiagnostics(
-                // (1,19): error CS8058: Feature 'replaced members' is experimental and unsupported; use '/features:replace' to enable.
+            CreateCompilationWithMscorlib(source, options: TestOptions.DebugDll, parseOptions: TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)).VerifyDiagnostics(
+                // (1,19): error CS8059: Feature 'replaced members' is not available in C# 6.  Please use language version 7 or greater.
                 // class C { virtual replace protected void M() { } }
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "replace").WithArguments("replaced members", "replace").WithLocation(1, 19)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "replace").WithArguments("replaced members", "7").WithLocation(1, 19)
             );
         }
 

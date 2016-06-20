@@ -7079,17 +7079,20 @@ class C
     {
         (int, int) x = (1, 1);
     }
-}
+CS0151ERR_IntegralTypeValueExpected}
 " + trivial2uple;
 
-            var comp = CreateCompilationWithMscorlib(source);
+            var comp = CreateCompilationWithMscorlib(source, parseOptions: TestOptions.Regular6);
             comp.VerifyDiagnostics(
-                // (6,9): error CS8058: Feature 'tuples' is experimental and unsupported; use '/features:tuples' to enable.
+                // (6,9): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
                 //         (int, int) x = (1, 1);
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(int, int)").WithArguments("tuples", "tuples").WithLocation(6, 9),
-                // (6,24): error CS8058: Feature 'tuples' is experimental and unsupported; use '/features:tuples' to enable.
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(int, int)").WithArguments("tuples", "7").WithLocation(6, 9),
+                // (6,24): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
                 //         (int, int) x = (1, 1);
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "(1, 1)").WithArguments("tuples", "tuples").WithLocation(6, 24)
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "(1, 1)").WithArguments("tuples", "7").WithLocation(6, 24),
+                // (8,36): error CS1519: Invalid token '}' in class, struct, or interface member declaration
+                // CS0151ERR_IntegralTypeValueExpected}
+                Diagnostic(ErrorCode.ERR_InvalidMemberDecl, "}").WithArguments("}").WithLocation(8, 36)
                 );
         }
 

@@ -1107,9 +1107,9 @@ class C
                 // (5,15): error CS8200: Tuple must contain at least two elements.
                 //     int F<int>() { }  // CS0081
                 Diagnostic(ErrorCode.ERR_TupleTooFewElements, "()").WithLocation(5, 15),
-                // (5,15): error CS8058: Feature 'tuples' is experimental and unsupported; use '/features:tuples' to enable.
+                // (5,15): error CS8059: Feature 'tuples' is not available in C# 6.  Please use language version 7 or greater.
                 //     int F<int>() { }  // CS0081
-                Diagnostic(ErrorCode.ERR_FeatureIsExperimental, "()").WithArguments("tuples", "tuples").WithLocation(5, 15),
+                Diagnostic(ErrorCode.ERR_FeatureNotAvailableInVersion6, "()").WithArguments("tuples", "7").WithLocation(5, 15),
                 // (5,18): error CS1001: Identifier expected
                 //     int F<int>() { }  // CS0081
                 Diagnostic(ErrorCode.ERR_IdentifierExpected, "{").WithLocation(5, 18),
