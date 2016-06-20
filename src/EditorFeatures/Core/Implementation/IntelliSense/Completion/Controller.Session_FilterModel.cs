@@ -123,8 +123,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                 var textSnapshot = caretPosition.Snapshot;
                 var textSpanToText = new Dictionary<TextSpan, string>();
 
-                var document = textSnapshot.GetOpenDocumentInCurrentContextWithChanges();
-                var helper = CompletionHelper.GetHelper(document);
+                var document = this.Controller.GetDocument();
+                var helper = this.Controller.GetCompletionHelper();
 
                 var recentItems = this.Controller.GetRecentItems();
 
