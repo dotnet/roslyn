@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
@@ -113,7 +114,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
             }
 
-            protected override IEnumerable<ITypeSymbol> InferTypesWorker_DoNotCallDirectly(ExpressionSyntax expression)
+            protected override IEnumerable<ITypeSymbol> InferTypesWorker_DoNotCallDirectly(
+                ExpressionSyntax expression)
             {
                 expression = expression.WalkUpParentheses();
                 var parent = expression.Parent;
@@ -145,7 +147,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (InitializerExpressionSyntax initializerExpression) => InferTypeInInitializerExpression(initializerExpression, expression),
                     (IsPatternExpressionSyntax isPatternExpression) => InferTypeInIsPatternExpression(isPatternExpression, expression),
                     (LockStatementSyntax lockStatement) => InferTypeInLockStatement(lockStatement),
-                    (MemberAccessExpressionSyntax memberAccessExpression) => InferTypeInMemberAccessExpression(memberAccessExpression),
+                    (MemberAccessExpressionSyntax memberAccessExpression) => InferTypeInMemberAccessExpression(memberAccessExpression, expression),
                     (NameEqualsSyntax nameEquals) => InferTypeInNameEquals(nameEquals),
                     (ParenthesizedLambdaExpressionSyntax parenthesizedLambdaExpression) => InferTypeInParenthesizedLambdaExpression(parenthesizedLambdaExpression),
                     (PostfixUnaryExpressionSyntax postfixUnary) => InferTypeInPostfixUnaryExpression(postfixUnary),
@@ -214,6 +216,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     (IfStatementSyntax ifStatement) => InferTypeInIfStatement(ifStatement, token),
                     (InitializerExpressionSyntax initializerExpression) => InferTypeInInitializerExpression(initializerExpression, previousToken: token),
                     (LockStatementSyntax lockStatement) => InferTypeInLockStatement(lockStatement, token),
+                    (MemberAccessExpressionSyntax memberAccessExpression) => InferTypeInMemberAccessExpression(memberAccessExpression, previousToken: token),
                     (NameColonSyntax nameColon) => InferTypeInNameColon(nameColon, token),
                     (NameEqualsSyntax nameEquals) => InferTypeInNameEquals(nameEquals, token),
                     (ObjectCreationExpressionSyntax objectCreation) => InferTypeInObjectCreationExpression(objectCreation, token),
@@ -1426,15 +1429,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
             }
 
-            private IEnumerable<ITypeSymbol> InferTypeInMemberAccessExpression(MemberAccessExpressionSyntax expression)
+            private IEnumerable<ITypeSymbol> InferTypeInMemberAccessExpression(
+                MemberAccessExpressionSyntax memberAccessExpression,
+                ExpressionSyntax expressionOpt = null, 
+                SyntaxToken? previousToken = null)
             {
-                var awaitExpression = expression.GetAncestor<AwaitExpressionSyntax>();
-                if (awaitExpression != null)
+                if (previousToken != null)
                 {
-                    return InferTypes(awaitExpression.Expression);
+                    if (previousToken.Value != memberAccessExpression.OperatorToken)
+                    {
+                        return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
+                    }
+
+                    // fall through
+                }
+                else
+                {
+                    Debug.Assert(expressionOpt != null);
+                    if (expressionOpt != memberAccessExpression.Name)
+                    {
+                        // we're not on the name portion of hte member access expressoin.
+                        // i.e. we're in "Foo" in "Foo.Bar".  We can't figure a name for this
+                        // at all.
+                        return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
+                    }
+
+                    // fall through
                 }
 
-                return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
+                // We're right after the dot in "Foo.Bar".  The type for "Bar" should be
+                // whatever type we'd infer for "Foo.Bar" itself.
+                return InferTypes(memberAccessExpression);
             }
 
             private IEnumerable<ITypeSymbol> InferTypeInNameEquals(NameEqualsSyntax nameEquals, SyntaxToken? previousToken = null)
