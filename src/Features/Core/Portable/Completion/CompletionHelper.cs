@@ -3,14 +3,12 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics;
 using System.Globalization;
-using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.LanguageServices;
 using Microsoft.CodeAnalysis.Shared.Utilities;
 using Microsoft.CodeAnalysis.Text;
 
-namespace Microsoft.CodeAnalysis.Editor
+namespace Microsoft.CodeAnalysis.Completion
 {
     internal class CompletionHelper
     {
@@ -59,27 +57,8 @@ namespace Microsoft.CodeAnalysis.Editor
         /// iff the completion item matches and should be included in the filtered completion
         /// results, or false if it should not be.
         /// </summary>
-        public virtual bool MatchesFilterText(
-            CompletionItem item, string filterText,
-            CompletionTrigger trigger, ImmutableArray<string> recentItems)
+        public bool MatchesFilterText(CompletionItem item, string filterText)
         {
-            // If the user hasn't typed anything, and this item was preselected, or was in the
-            // MRU list, then we definitely want to include it.
-            if (filterText.Length == 0)
-            {
-                if (item.Rules.MatchPriority > MatchPriority.Default || (!recentItems.IsDefault && GetRecentItemIndex(recentItems, item) < 0))
-                {
-                    return true;
-                }
-            }
-
-            if (filterText.Length > 0 && IsAllDigits(filterText))
-            {
-                // The user is just typing a number.  We never want this to match against
-                // anything we would put in a completion list.
-                return false;
-            }
-
             return GetMatch(item, filterText) != null;
         }
 
@@ -87,19 +66,6 @@ namespace Microsoft.CodeAnalysis.Editor
         {
             var index = recentItems.IndexOf(item.DisplayText);
             return -index;
-        }
-
-        private static bool IsAllDigits(string filterText)
-        {
-            for (int i = 0; i < filterText.Length; i++)
-            {
-                if (filterText[i] < '0' || filterText[i] > '9')
-                {
-                    return false;
-                }
-            }
-
-            return true;
         }
 
         private PatternMatch? GetMatch(CompletionItem item, string filterText)
@@ -187,7 +153,7 @@ namespace Microsoft.CodeAnalysis.Editor
         /// Returns true if item1 is a better completion item than item2 given the provided filter
         /// text, or false if it is not better.
         /// </summary>
-        public virtual bool IsBetterFilterMatch(CompletionItem item1, CompletionItem item2, string filterText, CompletionTrigger trigger, ImmutableArray<string> recentItems)
+        public int CompareItems(CompletionItem item1, CompletionItem item2, string filterText)
         {
             var match1 = GetMatch(item1, filterText);
             var match2 = GetMatch(item2, filterText);
@@ -197,44 +163,33 @@ namespace Microsoft.CodeAnalysis.Editor
                 var result = CompareMatches(match1.Value, match2.Value, item1, item2);
                 if (result != 0)
                 {
-                    return result < 0;
+                    return result;
                 }
             }
             else if (match1 != null)
             {
-                return true;
+                return -1;
             }
             else if (match2 != null)
             {
-                return false;
+                return 1;
             }
 
             // If they both seemed just as good, but they differ on preselection, then
             // item1 is better if it is preselected, otherwise it is worse.
-            if (item1.Rules.MatchPriority != item2.Rules.MatchPriority)
+            var diff = item1.Rules.MatchPriority - item2.Rules.MatchPriority;
+            if (diff != 0)
             {
-                return item1.Rules.MatchPriority > item2.Rules.MatchPriority;
+                return -diff;
             }
 
             // Prefer things with a keyword tag, if the filter texts are the same.
             if (!TagsEqual(item1, item2) && item1.FilterText == item2.FilterText)
             {
-                return IsKeywordItem(item1);
+                return IsKeywordItem(item1) ? -1 : IsKeywordItem(item2) ? 1 : 0;
             }
 
-            // They matched on everything, including preselection values.  Item1 is better if it
-            // has a lower MRU index.
-
-            if (!recentItems.IsDefault)
-            {
-                var item1MRUIndex = GetRecentItemIndex(recentItems, item1);
-                var item2MRUIndex = GetRecentItemIndex(recentItems, item2);
-
-                // The one with the lower index is the better one.
-                return item1MRUIndex < item2MRUIndex;
-            }
-
-            return false;
+            return 0;
         }
 
         private static bool TagsEqual(CompletionItem item1, CompletionItem item2)

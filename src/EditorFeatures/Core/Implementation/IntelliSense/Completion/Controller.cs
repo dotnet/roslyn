@@ -187,15 +187,12 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
             if (filterItems)
             {
                 sessionOpt.FilterModel(
-                    filterReason, 
-                    recheckCaretPosition: false,
-                    filterState: null);
+                    filterReason, recheckCaretPosition: false, filterState: null);
             }
             else
             {
                 sessionOpt.IdentifyBestMatchAndFilterToAllItems(
-                    filterReason,
-                    recheckCaretPosition: false);
+                    filterReason, recheckCaretPosition: false);
             }
 
             return true;

@@ -100,7 +100,8 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 // Update the filter state for the model.  Note: if we end up filtering everything
                 // out we do *not* want to dismiss the completion list. 
-                this.FilterModel(CompletionFilterReason.ItemFiltersChanged,
+                this.FilterModel(
+                    CompletionFilterReason.ItemFiltersChanged,
                     recheckCaretPosition: false, filterState: e.FilterState);
             }
         }
