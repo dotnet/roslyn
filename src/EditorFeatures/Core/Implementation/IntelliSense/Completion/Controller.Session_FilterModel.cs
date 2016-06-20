@@ -130,6 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 var itemToFilterText = new Dictionary<CompletionItem, string>();
                 var filterResults = new List<FilterResult>();
+                bool? allFilterTextMatchedNumber = null;
 
                 foreach (var currentItem in model.TotalItems)
                 {
@@ -147,6 +148,17 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     }
 
                     var filterText = model.GetCurrentTextInSnapshot(currentItem.Item.Span, textSnapshot, textSpanToText);
+                    if (filterText.Length > 0 && char.IsNumber(filterText[0]))
+                    {
+                        if (allFilterTextMatchedNumber == null)
+                        {
+                            allFilterTextMatchedNumber = true;
+                        }
+                    }
+                    else
+                    {
+                        allFilterTextMatchedNumber = false;
+                    }
 
                     // Check if the item matches the filter text typed so far.  Note: we completely
                     // handle the deletion case and use a very weak 'prefix' match approach in order
@@ -175,6 +187,11 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                                 currentItem, filterText, matchedFilterText: false));
                         }
                     }
+                }
+
+                if (allFilterTextMatchedNumber == true)
+                {
+                    return null;
                 }
 
                 if (filterResults.Count == 0)
