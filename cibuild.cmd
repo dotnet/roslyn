@@ -8,7 +8,7 @@ set BuildConfiguration=Debug
 REM Because override the C#/VB toolset to build against our LKG package, it is important
 REM that we do not reuse MSBuild nodes from other jobs/builds on the machine. Otherwise, 
 REM we'll run into issues such as https://github.com/dotnet/roslyn/issues/6211.
-set MSBuildAdditionalCommandLineArgs=/nologo /m /nodeReuse:false /consoleloggerparameters:Verbosity=minimal /filelogger /fileloggerparameters:Verbosity=normal
+set MSBuildAdditionalCommandLineArgs=/nologo /nodeReuse:false /consoleloggerparameters:Verbosity=minimal /filelogger /fileloggerparameters:Verbosity=normal
 
 :ParseArguments
 if "%1" == "" goto :DoneParsing
