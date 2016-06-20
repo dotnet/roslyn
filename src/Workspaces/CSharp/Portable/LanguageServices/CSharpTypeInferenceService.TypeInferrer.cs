@@ -1434,6 +1434,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 ExpressionSyntax expressionOpt = null, 
                 SyntaxToken? previousToken = null)
             {
+                // We need to be on the right of the dot to infer an appropriate type for
+                // the member access expression.  i.e. if we have "Foo.Bar" then we can 
+                // def infer what the type of 'Bar' should be (it's whatever type we infer
+                // for 'Foo.Bar' itself.  However, if we're on 'Foo' then we can't figure
+                // out anything about its type.
                 if (previousToken != null)
                 {
                     if (previousToken.Value != memberAccessExpression.OperatorToken)
@@ -1448,9 +1453,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                     Debug.Assert(expressionOpt != null);
                     if (expressionOpt != memberAccessExpression.Name)
                     {
-                        // we're not on the name portion of hte member access expressoin.
-                        // i.e. we're in "Foo" in "Foo.Bar".  We can't figure a name for this
-                        // at all.
                         return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
                     }
 
