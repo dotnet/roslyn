@@ -75,7 +75,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function(forStepClause As ForStepClauseSyntax) InferTypeInForStepClause(forStepClause),
                     Function(ifStatement As ElseIfStatementSyntax) InferTypeInIfOrElseIfStatement(),
                     Function(ifStatement As IfStatementSyntax) InferTypeInIfOrElseIfStatement(),
-                    Function(memberAccessExpression As MemberAccessExpressionSyntax) InferTypeInMemberAccessExpression(memberAccessExpression),
+                    Function(memberAccessExpression As MemberAccessExpressionSyntax) InferTypeInMemberAccessExpression(memberAccessExpression, expression),
                     Function(namedFieldInitializer As NamedFieldInitializerSyntax) InferTypeInNamedFieldInitializer(namedFieldInitializer),
                     Function(parenthesizedLambda As MultiLineLambdaExpressionSyntax) InferTypeInLambda(parenthesizedLambda),
                     Function(prefixUnary As UnaryExpressionSyntax) InferTypeInUnaryExpression(prefixUnary),
@@ -145,6 +145,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     Function(forStatement As ForStatementSyntax) InferTypeInForStatement(forStatement, previousToken:=token),
                     Function(forStepClause As ForStepClauseSyntax) InferTypeInForStepClause(forStepClause, token),
                     Function(ifStatement As IfStatementSyntax) InferTypeInIfOrElseIfStatement(token),
+                    Function(memberAccessExpression As MemberAccessExpressionSyntax) InferTypeInMemberAccessExpression(memberAccessExpression, previousToken:=token),
                     Function(nameColonEquals As NameColonEqualsSyntax) InferTypeInArgumentList(TryCast(nameColonEquals.Parent.Parent, ArgumentListSyntax), DirectCast(nameColonEquals.Parent, ArgumentSyntax)),
                     Function(namedFieldInitializer As NamedFieldInitializerSyntax) InferTypeInNamedFieldInitializer(namedFieldInitializer, token),
                     Function(objectCreation As ObjectCreationExpressionSyntax) InferTypes(objectCreation),
@@ -203,7 +204,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             Dim targetExpression As ExpressionSyntax = Nothing
                             If invocation.Expression IsNot Nothing Then
                                 targetExpression = invocation.Expression
-                            ElseIf invocation.Parent.IsKind(SyntaxKind.ConditionalAccessExpression)
+                            ElseIf invocation.Parent.IsKind(SyntaxKind.ConditionalAccessExpression) Then
                                 targetExpression = DirectCast(invocation.Parent, ConditionalAccessExpressionSyntax).Expression
                             End If
 
@@ -804,15 +805,15 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Private Function InferTypeInMemberAccessExpression(
                     memberAccessExpression As MemberAccessExpressionSyntax,
                     Optional expressionOpt As ExpressionSyntax = Nothing,
-                    Optional previousTokenOpt As SyntaxToken? = Nothing) As IEnumerable(Of ITypeSymbol)
+                    Optional previousToken As SyntaxToken? = Nothing) As IEnumerable(Of ITypeSymbol)
 
                 ' We need to be on the right of the dot to infer an appropriate type for
                 ' the member access expression.  i.e. if we have "Foo.Bar" then we can 
                 ' def infer what the type of 'Bar' should be (it's whatever type we infer
                 ' for 'Foo.Bar' itself.  However, if we're on 'Foo' then we can't figure
                 ' out anything about its type.
-                If previousTokenOpt <> Nothing Then
-                    If previousTokenOpt.Value <> memberAccessExpression.OperatorToken Then
+                If previousToken <> Nothing Then
+                    If previousToken.Value <> memberAccessExpression.OperatorToken Then
                         Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)
                     End If
                     ' fall through
