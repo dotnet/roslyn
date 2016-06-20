@@ -42,6 +42,8 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 position, 
                 options, 
                 cancellationToken).ConfigureAwait(false);
+
+            // Don't preselect intrinsic type symbols so we can preselect their keywords instead.
             return symbols.Where(s => inferredTypes.Contains(GetSymbolType(s)) && !IsInstrinsic(s));
         }
 
@@ -72,13 +74,13 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
                 rules: GetCompletionItemRules(symbols, context));
         }
 
-        protected abstract bool IsInstrinsic(ISymbol s);
+        protected abstract bool IsInstrinsic(ISymbol symbol);
 
         private static int ComputeSymbolMatchPriority(ISymbol symbol)
         {
             if (symbol.MatchesKind(SymbolKind.Local, SymbolKind.Parameter, SymbolKind.RangeVariable))
             {
-                return SymbolMatchPriority.PreferLocal;
+                return SymbolMatchPriority.PreferLocalOrParameterOrRangeVariable;
             }
 
             if (symbol.MatchesKind(SymbolKind.Field, SymbolKind.Property))

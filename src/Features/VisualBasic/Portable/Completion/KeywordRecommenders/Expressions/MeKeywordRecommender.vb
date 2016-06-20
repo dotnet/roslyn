@@ -19,6 +19,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Completion.KeywordRecommenders.Expr
             If (context.IsAnyExpressionContext OrElse context.IsSingleLineStatementContext OrElse context.IsNameOfContext) AndAlso
                 targetToken.GetInnermostDeclarationContext().IsKind(SyntaxKind.ClassBlock, SyntaxKind.StructureBlock) Then
 
+                ' Preselect the Me kewyord when the target type is the same 
+                ' as the enclosing type symbol of the body we're typing in
+
                 Dim priority = MatchPriority.Default
                 Dim enclosingType = context.SemanticModel.GetEnclosingNamedType(context.Position, cancellationToken)
                 If enclosingType IsNot Nothing AndAlso context.InferredTypes.Any(Function(t) t Is enclosingType) Then

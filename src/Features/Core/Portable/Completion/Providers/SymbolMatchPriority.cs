@@ -13,6 +13,6 @@ namespace Microsoft.CodeAnalysis.Completion.Providers
         internal static int PreferNamedArgument = 300;
         internal static int PreferEventOrMethod = 400;
         internal static int PreferFieldOrProperty = 500;
-        internal static int PreferLocal = 600;
+        internal static int PreferLocalOrParameterOrRangeVariable = 600;
     }
 }

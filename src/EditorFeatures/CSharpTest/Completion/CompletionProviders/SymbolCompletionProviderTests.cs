@@ -8798,7 +8798,7 @@ class Program
         List<int> x = new List<int>() { $$  }
     }
 }";
-            await VerifyItemExistsAsync(markup, "z", matchPriority: SymbolMatchPriority.PreferLocal);
+            await VerifyItemExistsAsync(markup, "z", matchPriority: SymbolMatchPriority.PreferLocalOrParameterOrRangeVariable);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -8816,7 +8816,7 @@ class Program
         List<int> x = new List<int>() { 1, $$  }
     }
 }";
-            await VerifyItemExistsAsync(markup, "z", matchPriority: SymbolMatchPriority.PreferLocal);
+            await VerifyItemExistsAsync(markup, "z", matchPriority: SymbolMatchPriority.PreferLocalOrParameterOrRangeVariable);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -8834,7 +8834,7 @@ class C
         var c = new C() { X = $$ }
     }
 }";
-            await VerifyItemExistsAsync(markup, "i", matchPriority: SymbolMatchPriority.PreferLocal);
+            await VerifyItemExistsAsync(markup, "i", matchPriority: SymbolMatchPriority.PreferLocalOrParameterOrRangeVariable);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.Completion)]
@@ -8852,7 +8852,7 @@ class C
         var c = new C() { X = 1, Y = $$ }
     }
 }";
-            await VerifyItemExistsAsync(markup, "i", matchPriority: SymbolMatchPriority.PreferLocal);
+            await VerifyItemExistsAsync(markup, "i", matchPriority: SymbolMatchPriority.PreferLocalOrParameterOrRangeVariable);
         }
     }
 }

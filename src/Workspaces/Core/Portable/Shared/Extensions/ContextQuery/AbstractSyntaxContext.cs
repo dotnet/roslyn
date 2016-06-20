@@ -77,7 +77,7 @@ namespace Microsoft.CodeAnalysis.Shared.Extensions.ContextQuery
 
         public bool IsInQuery { get; }
         public bool IsInImportsDirective { get; }
-        public IEnumerable<ITypeSymbol> InferredTypes { get; private set; }
+        public IEnumerable<ITypeSymbol> InferredTypes { get; }
 
         private ISet<INamedTypeSymbol> ComputeOuterTypes(CancellationToken cancellationToken)
         {
