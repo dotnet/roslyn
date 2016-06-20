@@ -92,6 +92,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<MethodSymbol> methods,
             ArrayBuilder<TypeSymbol> typeArguments,
             AnalyzedArguments arguments,
+            BoundExpression receiverOpt,
             OverloadResolutionResult<MethodSymbol> result,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
             bool isMethodGroupConversion = false,
@@ -100,7 +101,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool allowUnexpandedForm = true)
         {
             MethodOrPropertyOverloadResolution(
-                methods, typeArguments, arguments, result, isMethodGroupConversion,
+                methods, typeArguments, arguments, receiverOpt, result, isMethodGroupConversion,
                 allowRefOmittedArguments, ref useSiteDiagnostics, inferWithDynamic: inferWithDynamic,
                 allowUnexpandedForm: allowUnexpandedForm);
         }
@@ -110,12 +111,13 @@ namespace Microsoft.CodeAnalysis.CSharp
         public void PropertyOverloadResolution(
             ArrayBuilder<PropertySymbol> indexers,
             AnalyzedArguments arguments,
+            BoundExpression receiverOpt,
             OverloadResolutionResult<PropertySymbol> result,
             bool allowRefOmittedArguments,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics)
         {
             ArrayBuilder<TypeSymbol> typeArguments = ArrayBuilder<TypeSymbol>.GetInstance();
-            MethodOrPropertyOverloadResolution(indexers, typeArguments, arguments, result, isMethodGroupConversion: false, allowRefOmittedArguments: allowRefOmittedArguments, useSiteDiagnostics: ref useSiteDiagnostics);
+            MethodOrPropertyOverloadResolution(indexers, typeArguments, arguments, receiverOpt, result, isMethodGroupConversion: false, allowRefOmittedArguments: allowRefOmittedArguments, useSiteDiagnostics: ref useSiteDiagnostics);
             typeArguments.Free();
         }
 
@@ -123,6 +125,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<TMember> members,
             ArrayBuilder<TypeSymbol> typeArguments,
             AnalyzedArguments arguments,
+            BoundExpression receiverOpt,
             OverloadResolutionResult<TMember> result,
             bool isMethodGroupConversion,
             bool allowRefOmittedArguments,
@@ -135,7 +138,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // First, attempt overload resolution not getting complete results.
             PerformMemberOverloadResolution(
-                results, members, typeArguments, arguments, false, isMethodGroupConversion,
+                results, members, typeArguments, arguments, receiverOpt, false, isMethodGroupConversion,
                 allowRefOmittedArguments, ref useSiteDiagnostics, inferWithDynamic: inferWithDynamic,
                 allowUnexpandedForm: allowUnexpandedForm);
 
@@ -143,7 +146,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 // We didn't get a single good result. Get full results of overload resolution and return those.
                 result.Clear();
-                PerformMemberOverloadResolution(results, members, typeArguments, arguments, true, isMethodGroupConversion,
+                PerformMemberOverloadResolution(results, members, typeArguments, arguments, receiverOpt, true, isMethodGroupConversion,
                     allowRefOmittedArguments, ref useSiteDiagnostics, allowUnexpandedForm: allowUnexpandedForm);
             }
         }
@@ -202,6 +205,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ArrayBuilder<TMember> members,
             ArrayBuilder<TypeSymbol> typeArguments,
             AnalyzedArguments arguments,
+            BoundExpression receiverOpt,
             bool completeResults,
             bool isMethodGroupConversion,
             bool allowRefOmittedArguments,
@@ -210,9 +214,17 @@ namespace Microsoft.CodeAnalysis.CSharp
             bool allowUnexpandedForm = true)
             where TMember : Symbol
         {
+            Debug.Assert(results.Count == 0);
+
             // SPEC: The binding-time processing of a method invocation of the form M(A), where M is a 
             // SPEC: method group (possibly including a type-argument-list), and A is an optional 
             // SPEC: argument-list, consists of the following steps:
+
+            if (arguments.IsExtensionMethodInvocation)
+            {
+                Debug.Assert((object)receiverOpt != null);
+                members = UnreduceExtensionMembers(members, arguments, receiverOpt);
+            }
 
             // NOTE: We use a quadratic algorithm to determine which members override/hide
             // each other (i.e. we compare them pairwise).  We could move to a linear
@@ -257,6 +269,10 @@ namespace Microsoft.CodeAnalysis.CSharp
             // SPEC: applicable methods exist, and a binding-time error occurs. 
             if (RemainingCandidatesCount(results) == 0)
             {
+                if (arguments.IsExtensionMethodInvocation)
+                {
+                    ReduceExtensionMembers(results, arguments);
+                }
                 // UNDONE: Extension methods!
                 return;
             }
@@ -270,8 +286,81 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             RemoveWorseMembers(results, arguments, ref useSiteDiagnostics);
 
+            if (arguments.IsExtensionMethodInvocation)
+            {
+                ReduceExtensionMembers(results, arguments);
+            }
+
             // Note, the caller is responsible for "final validation",
             // as that is not part of overload resolution.
+        }
+
+        private static ArrayBuilder<TMember> UnreduceExtensionMembers<TMember>(ArrayBuilder<TMember> members, AnalyzedArguments arguments, BoundExpression receiver) where TMember : Symbol
+        {
+            var result = ArrayBuilder<TMember>.GetInstance(members.Count);
+            foreach (var member in members)
+            {
+                result.Add(UnreduceExtensionMember(member));
+            }
+            arguments.Arguments.Insert(0, receiver);
+            if (!arguments.Names.IsEmpty())
+            {
+                arguments.Names.Insert(0, null);
+            }
+            if (!arguments.RefKinds.IsEmpty())
+            {
+                arguments.RefKinds.Insert(0, RefKind.None); // PROTOTYPE: Structs/etc byref?
+            }
+            return result;
+        }
+
+        private static void ReduceExtensionMembers<TMember>(ArrayBuilder<MemberResolutionResult<TMember>> results, AnalyzedArguments arguments) where TMember : Symbol
+        {
+            for (int i = 0; i < results.Count; i++)
+            {
+                var result = results[i];
+                var reducedMember = ReduceExtensionMember(result.Member);
+                var reducedLeastOverridden = ReduceExtensionMember(result.LeastOverriddenMember);
+                Conversion receiverConversion; // PROTOTYPE: Use the conversion?
+                var analysis = result.Result.RemoveFirstParameter(out receiverConversion);
+                results[i] = new MemberResolutionResult<TMember>(reducedMember, reducedLeastOverridden, analysis);
+            }
+            // Undo the expansion done by UnreduceExtensionMembers
+            arguments.Arguments.RemoveAt(0);
+            if (!arguments.Names.IsEmpty())
+            {
+                arguments.Names.RemoveAt(0);
+            }
+            if (!arguments.RefKinds.IsEmpty())
+            {
+                arguments.RefKinds.RemoveAt(0);
+            }
+        }
+
+        private static TMember UnreduceExtensionMember<TMember>(TMember member) where TMember : Symbol
+        {
+            switch (member.Kind)
+            {
+                case SymbolKind.Method:
+                    return (TMember)(Symbol)((MethodSymbol)(Symbol)member).ExpandExtensionClassMethod();
+                case SymbolKind.Property:
+                    return (TMember)(Symbol)((PropertySymbol)(Symbol)member).ExpandExtensionClassProperty();
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(member.Kind);
+            }
+        }
+
+        private static TMember ReduceExtensionMember<TMember>(TMember member) where TMember : Symbol
+        {
+            switch (member.Kind)
+            {
+                case SymbolKind.Method:
+                    return (TMember)(Symbol)((MethodSymbol)(Symbol)member).ReduceExtensionMethod();
+                case SymbolKind.Property:
+                    return (TMember)(Symbol)((PropertySymbol)(Symbol)member).ReduceExtensionProperty();
+                default:
+                    throw ExceptionUtilities.UnexpectedValue(member.Kind);
+            }
         }
 
         private static Dictionary<NamedTypeSymbol, ArrayBuilder<TMember>> PartitionMembersByContainingType<TMember>(ArrayBuilder<TMember> members) where TMember : Symbol

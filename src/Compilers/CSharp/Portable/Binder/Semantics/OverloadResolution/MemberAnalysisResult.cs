@@ -265,5 +265,18 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             return new MemberAnalysisResult(MemberResolutionKind.Worst);
         }
+
+        private static readonly System.Func<int, int> subtractOne = x => x - 1;
+
+        // Used specifically for when an analysis is done on unreduced extension members, but a reduced form is needed for the actual returned result.
+        internal MemberAnalysisResult RemoveFirstParameter(out Conversion receiverConversion)
+        {
+            receiverConversion = ConversionsOpt.IsDefaultOrEmpty ? Conversion.NoConversion : ConversionsOpt[0];
+            var conversions = ConversionsOpt.IsDefaultOrEmpty ? ConversionsOpt : ConversionsOpt.RemoveAt(0);
+            var badArguments = BadArgumentsOpt.IsDefaultOrEmpty ? BadArgumentsOpt : BadArgumentsOpt.SelectAsArray(subtractOne);
+            var argsToParams = ArgsToParamsOpt.IsDefaultOrEmpty ? ArgsToParamsOpt : ArgsToParamsOpt.RemoveAt(0).SelectAsArray(subtractOne);
+            var badParameter = BadParameter == -1 ? -1 : BadParameter - 1;
+            return new MemberAnalysisResult(Kind, badArguments, argsToParams, conversions, badParameter, HasAnyRefOmittedArgument);
+        }
     }
 }

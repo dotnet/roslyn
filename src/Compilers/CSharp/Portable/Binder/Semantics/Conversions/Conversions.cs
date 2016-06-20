@@ -881,7 +881,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                          "This method should only be called for valid delegate types");
             GetDelegateArguments(syntax, analyzedArguments, delegateType.DelegateInvokeMethod.Parameters, Compilation);
             _binder.OverloadResolution.MethodInvocationOverloadResolution(
-                methodGroup.Methods, methodGroup.TypeArguments, analyzedArguments, result, ref useSiteDiagnostics, isMethodGroupConversion: true);
+                methodGroup.Methods, methodGroup.TypeArguments, analyzedArguments, methodGroup.Receiver, result, ref useSiteDiagnostics, isMethodGroupConversion: true);
             var conversion = ToConversion(result, methodGroup, delegateType);
 
             analyzedArguments.Free();

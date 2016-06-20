@@ -288,6 +288,21 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// If this is an extension class property, returns an expanded extension
         /// property symbol representing the property. Otherwise, returns null.
         /// </summary>
+        public PropertySymbol ReduceExtensionProperty()
+        {
+            // We should never get to calling this method on a property
+            // that isn't an expanded property originally from an extension class.
+            Debug.Assert(this.IsInExtensionClass);
+            // PROTOTYPE: Consider loaded symbols.
+            var expanded = (ExpandedExtensionClassPropertySymbol)this;
+            var expandedFrom = expanded.ExpandedFrom;
+            return expandedFrom;
+        }
+
+        /// <summary>
+        /// If this is an extension class property, returns an expanded extension
+        /// property symbol representing the property. Otherwise, returns null.
+        /// </summary>
         public PropertySymbol ExpandExtensionClassProperty()
         {
             Debug.Assert(!(this is ExpandedExtensionClassPropertySymbol));

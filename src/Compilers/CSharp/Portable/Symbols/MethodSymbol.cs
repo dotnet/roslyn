@@ -672,6 +672,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public MethodSymbol ReduceExtensionMethod()
         {
+            // PROTOTYPE: Same comment as ExpandExtensionClassMethod. Naming of this method is a bit too specific
+            // if we're short circuiting creating a reduced symbol and instead returning the original symbol this was expanded from.
+            var expandedFrom = ExpandedFrom;
+            if (expandedFrom != null)
+            {
+                return expandedFrom;
+            }
             // PROTOTYPE: Handle callers of this?
             return (this.IsExtensionMethod && this.MethodKind != MethodKind.ReducedExtension) ? ReducedExtensionMethodSymbol.Create(this) : null;
         }
@@ -682,6 +689,13 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         /// </summary>
         public MethodSymbol ExpandExtensionClassMethod()
         {
+            // PROTOTYPE: Rename this method to be more generic, something like "UnreduceMethod". Maybe merge with ReducedFrom somehow.
+            var reducedFrom = ReducedFrom;
+            if ((object)reducedFrom != null)
+            {
+                return reducedFrom;
+            }
+
             Debug.Assert(this.MethodKind != MethodKind.ExpandedExtensionClass);
             if (!this.IsInExtensionClass)
                 return null;

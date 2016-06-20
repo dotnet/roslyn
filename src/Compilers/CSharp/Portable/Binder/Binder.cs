@@ -609,6 +609,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             ImmutableArray<TMember> members,
             ImmutableArray<TypeSymbol> typeArguments,
             ImmutableArray<ArgumentSyntax> arguments,
+            BoundExpression receiver,
             OverloadResolutionResult<TMember> result,
             ref HashSet<DiagnosticInfo> useSiteDiagnostics,
             bool allowRefOmittedArguments)
@@ -631,6 +632,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 methodsBuilder,
                 typeArgumentsBuilder,
                 analyzedArguments,
+                receiver,
                 result,
                 isMethodGroupConversion: false,
                 allowRefOmittedArguments: allowRefOmittedArguments,

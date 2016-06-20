@@ -403,7 +403,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             methodGroup.PopulateWithSingleMethod(boundExpression, delegateType.DelegateInvokeMethod);
             var overloadResolutionResult = OverloadResolutionResult<MethodSymbol>.GetInstance();
             HashSet<DiagnosticInfo> useSiteDiagnostics = null;
-            OverloadResolution.MethodInvocationOverloadResolution(methodGroup.Methods, methodGroup.TypeArguments, analyzedArguments, overloadResolutionResult, ref useSiteDiagnostics);
+            OverloadResolution.MethodInvocationOverloadResolution(methodGroup.Methods, methodGroup.TypeArguments, analyzedArguments, methodGroup.Receiver, overloadResolutionResult, ref useSiteDiagnostics);
             diagnostics.Add(node, useSiteDiagnostics);
 
             // If overload resolution on the "Invoke" method found an applicable candidate, and one of the arguments

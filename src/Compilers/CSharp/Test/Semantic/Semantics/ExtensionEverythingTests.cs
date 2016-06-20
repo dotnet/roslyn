@@ -24,30 +24,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         // PROTOTYPE: Call with receiver going through boxing as well as implicit reference conversion (and also reject invalid conversions)
         // PROTOTYPE: Overloaded (non-)ambiguous methods, properties, etc. - this is a working issue, lots of ambiguous cases to test.
         // PROTOTYPE: Generics - working issue, there's a lot of cases here.
-
-        [Fact]
-        public void Thing()
-        {
-            var text = @"
-delegate Del1 Del1();
-delegate Del2 Del2();
-
-class Program
-{
-    static void Method(Del1 del1) { }
-    static void Method(Del2 del2) { }
-    static void Main()
-    {
-        Method(() => null);
-    }
-}
-";
-            CompileAndVerify(
-                source: text,
-                additionalRefs: additionalRefs,
-                expectedOutput: "",
-                parseOptions: parseOptions);
-        }
+        //   Specifically, two-phase type inference is not implemented
 
         [Fact]
         public void TempTest()

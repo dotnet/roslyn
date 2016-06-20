@@ -169,11 +169,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             if (invokedAsExtensionMethod)
             {
                 Debug.Assert(method.IsInExtensionClass || method.MethodKind == MethodKind.ReducedExtension);
-                reducedMethodOrIndexer = method;
-                var extensionClass = method.ExpandExtensionClassMethod();
-                var extensionMethod = method.ReducedFrom;
-                Debug.Assert(((object)extensionClass != null) ^ ((object)extensionMethod != null)); // xor, exactly one is non-null
-                method = extensionClass ?? extensionMethod;
+                method = method.ExpandExtensionClassMethod(); // PROTOTYPE: Will be renamed eventually, but this method also handles reduced ext methods
             }
 
             // We have already lowered each argument, but we may need some additional rewriting for the arguments,

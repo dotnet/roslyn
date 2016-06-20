@@ -121,10 +121,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 // PROTOTYPE: Is this the right place to put this?
                 Debug.Assert(symbolOpt != null);
                 Debug.Assert(symbolOpt.IsInExtensionClass || symbolOpt.MethodKind == MethodKind.ReducedExtension);
-                var extensionClass = symbolOpt.ExpandExtensionClassMethod();
-                var extensionMethod = symbolOpt.ReducedFrom;
-                Debug.Assert(((object)extensionClass != null) ^ ((object)extensionMethod != null)); // xor, exactly one is non-null
-                symbolOpt = extensionClass ?? extensionMethod;
+                symbolOpt = symbolOpt.ExpandExtensionClassMethod(); // PROTOTYPE: Will be renamed eventually, but this method also handles reduced ext methods
             }
 
             switch (conversionKind)
