@@ -130,7 +130,7 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
                 var itemToFilterText = new Dictionary<CompletionItem, string>();
                 var filterResults = new List<FilterResult>();
-                bool? allFilterTextMatchedNumber = null;
+                bool? allFilterTextsStartedWithANumber = null;
 
                 foreach (var currentItem in model.TotalItems)
                 {
@@ -150,14 +150,14 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     var filterText = model.GetCurrentTextInSnapshot(currentItem.Item.Span, textSnapshot, textSpanToText);
                     if (filterText.Length > 0 && char.IsNumber(filterText[0]))
                     {
-                        if (allFilterTextMatchedNumber == null)
+                        if (allFilterTextsStartedWithANumber == null)
                         {
-                            allFilterTextMatchedNumber = true;
+                            allFilterTextsStartedWithANumber = true;
                         }
                     }
                     else
                     {
-                        allFilterTextMatchedNumber = false;
+                        allFilterTextsStartedWithANumber = false;
                     }
 
                     // Check if the item matches the filter text typed so far.  Note: we completely
@@ -189,11 +189,13 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
                     }
                 }
 
-                if (allFilterTextMatchedNumber == true)
+                // If the user was typing a number, then immediately dismiss completion.
+                if (allFilterTextsStartedWithANumber == true)
                 {
                     return null;
                 }
 
+                // If no items matched the filter text then determine what we should do.
                 if (filterResults.Count == 0)
                 {
                     return HandleAllItemsFilteredOut(model, filterReason);
