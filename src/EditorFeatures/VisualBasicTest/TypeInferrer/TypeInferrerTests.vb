@@ -705,7 +705,7 @@ Module M
         Dim x As Boolean = Await [|F|].ContinueWith(Function(a) True).ContinueWith(Function(a) False)
     End Sub
 End Module"
-            Await TestAsync(text, "Global.System.Threading.Tasks.Task(Of System.Boolean)", testPosition:=True)
+            Await TestAsync(text, "System.Object", testPosition:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
@@ -719,7 +719,7 @@ Module M
         Dim x As Boolean = Await [|F|].ConfigureAwait(False)
     End Sub
 End Module"
-            Await TestAsync(text, "Global.System.Threading.Tasks.Task(Of System.Boolean)", testPosition:=True)
+            Await TestAsync(text, "Global.System.Threading.Tasks.Task(Of System.Boolean)", testPosition:=False)
         End Function
 
         <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>

@@ -2,6 +2,7 @@
 
 Imports System.Collections.Immutable
 Imports System.Threading
+Imports System.Threading.Tasks
 Imports Microsoft.CodeAnalysis
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
 Imports Microsoft.CodeAnalysis.VisualBasic.Syntax
@@ -816,15 +817,28 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     If previousToken.Value <> memberAccessExpression.OperatorToken Then
                         Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)
                     End If
-                    ' fall through
-                Else
-                    If expressionOpt IsNot memberAccessExpression.Name Then
-                        Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)
-                    End If
-                    ' fall through
-                End If
 
-                Return InferTypes(memberAccessExpression)
+                    Return InferTypes(memberAccessExpression)
+                Else
+                    ' If we're on the left side of a dot, it's possible in a few cases
+                    ' to figure out what type we should be.  Specifically, if we have
+                    '
+                    '      await foo.ConfigureAwait()
+                    '
+                    ' then we can figure out what 'foo' should be based on teh await
+                    ' context.
+                    If expressionOpt Is memberAccessExpression.Expression Then
+                        If memberAccessExpression.Name.Identifier.Value.Equals(NameOf(Task(Of Integer).ConfigureAwait)) AndAlso
+                           memberAccessExpression.IsParentKind(SyntaxKind.InvocationExpression) AndAlso
+                           memberAccessExpression.Parent.IsParentKind(SyntaxKind.AwaitExpression) Then
+                            Return InferTypes(DirectCast(memberAccessExpression.Parent, ExpressionSyntax))
+                        End If
+
+                        Return SpecializedCollections.EmptyEnumerable(Of ITypeSymbol)()
+                    End If
+
+                    Return InferTypes(memberAccessExpression)
+                End If
             End Function
 
             Private Function InferTypeInNamedFieldInitializer(initializer As NamedFieldInitializerSyntax, Optional previousToken As SyntaxToken = Nothing) As IEnumerable(Of ITypeSymbol)

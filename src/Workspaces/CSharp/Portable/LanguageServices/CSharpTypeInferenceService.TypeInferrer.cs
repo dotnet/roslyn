@@ -6,6 +6,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using Microsoft.CodeAnalysis.CSharp.Extensions;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using Microsoft.CodeAnalysis.Shared.Extensions;
@@ -1446,22 +1447,37 @@ namespace Microsoft.CodeAnalysis.CSharp
                         return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
                     }
 
-                    // fall through
+                    // We're right after the dot in "Foo.Bar".  The type for "Bar" should be
+                    // whatever type we'd infer for "Foo.Bar" itself.
+                    return InferTypes(memberAccessExpression);
                 }
                 else
                 {
                     Debug.Assert(expressionOpt != null);
-                    if (expressionOpt != memberAccessExpression.Name)
+                    if (expressionOpt == memberAccessExpression.Expression)
                     {
+                        // If we're on the left side of a dot, it's possible in a few cases
+                        // to figure out what type we should be.  Specifically, if we have
+                        //
+                        //      await foo.ConfigureAwait()
+                        //
+                        // then we can figure out what 'foo' should be based on teh await
+                        // context.
+
+                        if (memberAccessExpression.Name.Identifier.Value.Equals(nameof(Task<int>.ConfigureAwait)) &&
+                            memberAccessExpression.IsParentKind(SyntaxKind.InvocationExpression) &&
+                            memberAccessExpression.Parent.IsParentKind(SyntaxKind.AwaitExpression))
+                        {
+                            return InferTypes((ExpressionSyntax)memberAccessExpression.Parent);
+                        }
+
                         return SpecializedCollections.EmptyEnumerable<ITypeSymbol>();
                     }
 
-                    // fall through
+                    // We're right after the dot in "Foo.Bar".  The type for "Bar" should be
+                    // whatever type we'd infer for "Foo.Bar" itself.
+                    return InferTypes(memberAccessExpression);
                 }
-
-                // We're right after the dot in "Foo.Bar".  The type for "Bar" should be
-                // whatever type we'd infer for "Foo.Bar" itself.
-                return InferTypes(memberAccessExpression);
             }
 
             private IEnumerable<ITypeSymbol> InferTypeInNameEquals(NameEqualsSyntax nameEquals, SyntaxToken? previousToken = null)

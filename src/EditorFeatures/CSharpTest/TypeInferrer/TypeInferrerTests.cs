@@ -1591,7 +1591,7 @@ class C
         bool x = await [|M()|].ConfigureAwait(false);
     }
 }";
-            await TestAsync(text, "global::System.Threading.Tasks.Task<System.Boolean>");
+            await TestAsync(text, "global::System.Threading.Tasks.Task<System.Boolean>", testPosition: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
@@ -1609,7 +1609,7 @@ class C
         bool x = await [|M|].ContinueWith(a => { return true; }).ContinueWith(a => { return false; });
     }
 }";
-            await TestAsync(text, "global::System.Threading.Tasks.Task<System.Boolean>");
+            await TestAsync(text, "System.Object", testPosition: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]

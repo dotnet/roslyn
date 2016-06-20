@@ -1,10 +1,8 @@
 ' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
-Option Strict Off
 Imports Microsoft.CodeAnalysis.CodeFixes
 Imports Microsoft.CodeAnalysis.VisualBasic.CodeFixes.GenerateMethod
 Imports Microsoft.CodeAnalysis.Diagnostics
-Imports System.Threading.Tasks
 
 Namespace Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.GenerateMethod
     Public Class GenerateMethodTests
@@ -2190,17 +2188,24 @@ index:=1)
         <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
         Public Async Function TestGenerateMethodWithMethodChaining() As Task
             Await TestAsync(
-NewLines("Imports System \n Imports System.Linq \n Module M \n Async Sub T() \n Dim x As Boolean = Await [|F|]().ContinueWith(Function(a) True).ContinueWith(Function(a) False) \n End Sub \n End Module"),
-NewLines("Imports System\nImports System.Linq\nImports System.Threading.Tasks\n\nModule M\n    Async Sub T()\n        Dim x As Boolean = Await F().ContinueWith(Function(a) True).ContinueWith(Function(a) False)\n    End Sub\n\n    Private Function F() As Task(Of Boolean)\n        Throw New NotImplementedException()\n    End Function\nEnd Module"))
-        End Function
-
-        <WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")>
-        <Fact(), Trait(Traits.Feature, Traits.Features.CodeActionsGenerateMethod)>
-        Public Async Function TestGenerateMethodWithMethodChaining2() As Task
-            Await TestAsync(
-NewLines("Imports System \n Imports System.Linq \n Module M \n Async Sub T() \n Dim x As Boolean = Await [|F|]().ContinueWith(Function(a) True).ContinueWith(Function(a) False) \n End Sub \n End Module"),
-NewLines("Imports System\nImports System.Linq\nImports System.Threading.Tasks\n\nModule M\n    Async Sub T()\n        Dim x As Boolean = Await F().ContinueWith(Function(a) True).ContinueWith(Function(a) False)\n    End Sub\n\n    Private ReadOnly Property F As Task(Of Boolean)\n        Get\n            Throw New NotImplementedException()\n        End Get\n    End Property\nEnd Module"),
-index:=1)
+"Imports System 
+Imports System.Linq 
+Module M 
+    Async Sub T() 
+        Dim x As Boolean = Await [|F|]().ConfigureAwait(False)
+    End Sub 
+End Module",
+"Imports System 
+Imports System.Linq 
+Imports System.Threading.Tasks
+Module M 
+    Async Sub T() 
+        Dim x As Boolean = Await F().ConfigureAwait(False)
+    End Sub 
+    Private Function F() As Task(Of Boolean)
+        Throw New NotImplementedException()
+    End Function
+End Module")
         End Function
 
         <WorkItem(1130960, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/1130960")>
