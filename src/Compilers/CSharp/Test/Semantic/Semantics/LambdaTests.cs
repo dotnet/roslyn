@@ -2249,10 +2249,13 @@ class Program
     {
         Ma(string.Empty, (x, y) => x.ToString());
         Mb(string.Empty, (x, y) => x.ToString());
+        Mc(string.Empty, (x, y) => x.ToString());
     }
     static void Ma<T>(T t, Expression<Action<T, T, int>> action) { }
     static void Mb<T>(T t, Expression<Action<T, T, int>> action) { }
     static void Mb<T>(T t, Action<T, T, int> action) { }
+    static void Mc<T>(T t, Expression<Action<T, T, int>> action) { }
+    static void Mc() { }
 }
 ";
             var compilation = CreateCompilationWithMscorlibAndSystemCore(source);
