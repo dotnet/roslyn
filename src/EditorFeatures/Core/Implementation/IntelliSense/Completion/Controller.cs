@@ -182,7 +182,9 @@ namespace Microsoft.CodeAnalysis.Editor.Implementation.IntelliSense.Completion
 
             var filterReason = trigger.Kind == CompletionTriggerKind.Deletion
                 ? CompletionFilterReason.BackspaceOrDelete
-                : CompletionFilterReason.TypeChar;
+                : trigger.Kind == CompletionTriggerKind.Other
+                    ? CompletionFilterReason.Other
+                    : CompletionFilterReason.TypeChar;
 
             if (filterItems)
             {
