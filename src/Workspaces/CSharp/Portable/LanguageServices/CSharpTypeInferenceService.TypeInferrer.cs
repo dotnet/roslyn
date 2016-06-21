@@ -1578,7 +1578,8 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (node.IsKind(SyntaxKind.IdentifierName))
                 {
                     var identifierName = (IdentifierNameSyntax)node;
-                    if (identifierName.Identifier.ValueText.Equals(parameterName))
+                    if (identifierName.Identifier.ValueText.Equals(parameterName) &&
+                        SemanticModel.GetSymbolInfo(identifierName.Identifier).Symbol?.Kind == SymbolKind.Parameter)
                     {
                         return InferTypes(identifierName).FirstOrDefault();
                     }

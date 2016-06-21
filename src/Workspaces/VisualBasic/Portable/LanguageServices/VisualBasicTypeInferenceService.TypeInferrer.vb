@@ -914,7 +914,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                     parameterName As String, node As SyntaxNode) As ITypeSymbol
                 If node.IsKind(SyntaxKind.IdentifierName) Then
                     Dim identifier = DirectCast(node, IdentifierNameSyntax)
-                    If CaseInsensitiveComparison.Equals(parameterName, identifier.Identifier.ValueText) Then
+                    If CaseInsensitiveComparison.Equals(parameterName, identifier.Identifier.ValueText) AndAlso
+                       SemanticModel.GetSymbolInfo(identifier.Identifier).Symbol?.Kind = SymbolKind.Parameter Then
                         Return InferTypes(identifier).FirstOrDefault()
                     End If
                 Else
