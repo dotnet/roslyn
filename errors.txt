@@ -5,13 +5,21 @@ Exception Type: System.InvalidOperationException
 Message:
 System.InvalidOperationException : Operation is not valid due to the current state of the object.
    at Microsoft.CodeAnalysis.VisualBasic.Symbols.ParameterSymbol.get_ExplicitDefaultValue() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Portable\Symbols\ParameterSymbol.vb:line 152
+
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.NoPiaEmbedTypes._Closure$__._Lambda$__64-0(ModuleSymbol module) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Emit\Emit\NoPiaEmbedTypes.vb:line 4396
+
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.BasicTestBase._Closure$__2-0._Lambda$__0(IModuleSymbol m) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\BasicTestBase.vb:line 26
+
    at Microsoft.CodeAnalysis.Test.Utilities.CommonTestBase.RunValidators(CompilationVerifier verifier, Action`1 assemblyValidator, Action`1 symbolValidator) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Test\Utilities\Desktop\CommonTestBase.cs:line 186
+
    at Microsoft.CodeAnalysis.Test.Utilities.CommonTestBase.Emit(Compilation compilation, IEnumerable`1 dependencies, IEnumerable`1 manifestResources, SignatureDescription[] expectedSignatures, String expectedOutput, Action`1 assemblyValidator, Action`1 symbolValidator, Boolean verify) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Test\Utilities\Desktop\CommonTestBase.cs:line 208
+
    at Microsoft.CodeAnalysis.Test.Utilities.CommonTestBase.CompileAndVerify(Compilation compilation, IEnumerable`1 manifestResources, IEnumerable`1 dependencies, Action`1 sourceSymbolValidator, Action`1 assemblyValidator, Action`1 symbolValidator, SignatureDescription[] expectedSignatures, String expectedOutput, Boolean verify) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Test\Utilities\Desktop\CommonTestBase.cs:line 129
+
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.BasicTestBase.CompileAndVerify(XElement source, IEnumerable`1 allReferences, String expectedOutput, IEnumerable`1 dependencies, Action`1 sourceSymbolValidator, Action`1 validator, Action`1 symbolValidator, SignatureDescription[] expectedSignatures, VisualBasicCompilationOptions options, VisualBasicParseOptions parseOptions, Boolean verify) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\BasicTestBase.vb:line 164
+
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.BasicTestBase.CompileAndVerify(XElement source, String expectedOutput, MetadataReference[] additionalRefs, IEnumerable`1 dependencies, Action`1 sourceSymbolValidator, Action`1 validator, Action`1 symbolValidator, SignatureDescription[] expectedSignatures, VisualBasicCompilationOptions options, VisualBasicParseOptions parseOptions, Boolean verify, Boolean useLatestFramework) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\BasicTestBase.vb:line 129
+
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.NoPiaEmbedTypes.DefaultValueWithoutOptional_02b() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Emit\Emit\NoPiaEmbedTypes.vb:line 4385
 
 Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.NoPiaEmbedTypes.DefaultValueWithoutOptional_01b
@@ -19,14 +27,100 @@ Exception Type: System.InvalidOperationException
 Message:
 System.InvalidOperationException : Operation is not valid due to the current state of the object.
    at Microsoft.CodeAnalysis.VisualBasic.Symbols.ParameterSymbol.get_ExplicitDefaultValue() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Portable\Symbols\ParameterSymbol.vb:line 152
+
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.NoPiaEmbedTypes._Closure$__._Lambda$__61-0(ModuleSymbol module) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Emit\Emit\NoPiaEmbedTypes.vb:line 4251
+
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.BasicTestBase._Closure$__2-0._Lambda$__0(IModuleSymbol m) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\BasicTestBase.vb:line 26
+
    at Microsoft.CodeAnalysis.Test.Utilities.CommonTestBase.RunValidators(CompilationVerifier verifier, Action`1 assemblyValidator, Action`1 symbolValidator) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Test\Utilities\Desktop\CommonTestBase.cs:line 186
+
    at Microsoft.CodeAnalysis.Test.Utilities.CommonTestBase.Emit(Compilation compilation, IEnumerable`1 dependencies, IEnumerable`1 manifestResources, SignatureDescription[] expectedSignatures, String expectedOutput, Action`1 assemblyValidator, Action`1 symbolValidator, Boolean verify) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Test\Utilities\Desktop\CommonTestBase.cs:line 208
+
    at Microsoft.CodeAnalysis.Test.Utilities.CommonTestBase.CompileAndVerify(Compilation compilation, IEnumerable`1 manifestResources, IEnumerable`1 dependencies, Action`1 sourceSymbolValidator, Action`1 assemblyValidator, Action`1 symbolValidator, SignatureDescription[] expectedSignatures, String expectedOutput, Boolean verify) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Test\Utilities\Desktop\CommonTestBase.cs:line 129
+
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.BasicTestBase.CompileAndVerify(XElement source, IEnumerable`1 allReferences, String expectedOutput, IEnumerable`1 dependencies, Action`1 sourceSymbolValidator, Action`1 validator, Action`1 symbolValidator, SignatureDescription[] expectedSignatures, VisualBasicCompilationOptions options, VisualBasicParseOptions parseOptions, Boolean verify) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\BasicTestBase.vb:line 164
+
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.BasicTestBase.CompileAndVerify(XElement source, String expectedOutput, MetadataReference[] additionalRefs, IEnumerable`1 dependencies, Action`1 sourceSymbolValidator, Action`1 validator, Action`1 symbolValidator, SignatureDescription[] expectedSignatures, VisualBasicCompilationOptions options, VisualBasicParseOptions parseOptions, Boolean verify, Boolean useLatestFramework) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\BasicTestBase.vb:line 129
+
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.NoPiaEmbedTypes.DefaultValueWithoutOptional_01b() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Emit\Emit\NoPiaEmbedTypes.vb:line 4239
+
+Collection: Test collection for Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParseErrorTests
+
+Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParseErrorTests.BC30812ERR_ObsoleteOptionalWithoutValue
+Exception Type: Xunit.Sdk.TrueException
+Message:
+Tree was expected to contain errors.
+Expected: True
+Actual:   False
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParserTestUtilities.ParseAndVerify(String source, VisualBasicParseOptions options, DiagnosticDescription[] expectedDiagnostics, Boolean errorCodesOnly) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\ParserTestUtilities.vb:line 83
+
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParserTestUtilities.ParseAndVerify(String source, VisualBasicParseOptions options, XElement expectedErrors) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\ParserTestUtilities.vb:line 40
+
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParserTestUtilities.ParseAndVerify(String source, XElement expectedErrors) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\ParserTestUtilities.vb:line 45
+
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParseErrorTests.BC30812ERR_ObsoleteOptionalWithoutValue() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Syntax\Parser\ParseErrorTests.vb:line 2542
+
+Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParseErrorTests.BC30200ERR_InvalidNewInType
+Exception Type: Xunit.Sdk.TrueException
+Message:
+
+Expected:
+    Diagnostic(ERRID.ERR_InvalidNewInType),
+    Diagnostic(ERRID.ERR_ExpectedExpression),
+    Diagnostic(ERRID.ERR_ObsoleteOptionalWithoutValue)
+Actual:
+    Diagnostic(ERRID.ERR_InvalidNewInType, "").WithLocation(3, 65)
+Diff:
+++>     Diagnostic(ERRID.ERR_InvalidNewInType, "").WithLocation(3, 65)
+-->     Diagnostic(ERRID.ERR_InvalidNewInType),
+-->     Diagnostic(ERRID.ERR_ExpectedExpression),
+-->     Diagnostic(ERRID.ERR_ObsoleteOptionalWithoutValue)
+Expected: True
+Actual:   False
+   at Microsoft.CodeAnalysis.DiagnosticExtensions.Verify(IEnumerable`1 actual, DiagnosticDescription[] expected, Boolean errorCodeOnly) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Test\Utilities\Shared\Diagnostics\DiagnosticExtensions.cs:line 84
+
+   at Microsoft.CodeAnalysis.DiagnosticExtensions.VerifyErrorCodes(IEnumerable`1 actual, DiagnosticDescription[] expected) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Test\Utilities\Shared\Diagnostics\DiagnosticExtensions.cs:line 31
+
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParserTestUtilities.ParseAndVerify(String source, VisualBasicParseOptions options, DiagnosticDescription[] expectedDiagnostics, Boolean errorCodesOnly) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\ParserTestUtilities.vb:line 85
+
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParserTestUtilities.ParseAndVerify(String source, VisualBasicParseOptions options, XElement expectedErrors) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\ParserTestUtilities.vb:line 40
+
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParserTestUtilities.ParseAndVerify(String source, XElement expectedErrors) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\ParserTestUtilities.vb:line 45
+
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParserTestUtilities.ParseAndVerify(XCData code, XElement expectedErrors) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\ParserTestUtilities.vb:line 18
+
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParseErrorTests.BC30200ERR_InvalidNewInType() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Syntax\Parser\ParseErrorTests.vb:line 1440
+
+Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParseErrorTests.BC30642ERR_MultipleOptionalParameterSpecifiers
+Exception Type: Xunit.Sdk.TrueException
+Message:
+
+Expected:
+    Diagnostic(ERRID.ERR_MultipleOptionalParameterSpecifiers),
+    Diagnostic(ERRID.ERR_ObsoleteOptionalWithoutValue),
+    Diagnostic(ERRID.ERR_ExpectedExpression)
+Actual:
+    Diagnostic(ERRID.ERR_MultipleOptionalParameterSpecifiers, "optional").WithLocation(4, 66)
+Diff:
+++>     Diagnostic(ERRID.ERR_MultipleOptionalParameterSpecifiers, "optional").WithLocation(4, 66)
+-->     Diagnostic(ERRID.ERR_MultipleOptionalParameterSpecifiers),
+-->     Diagnostic(ERRID.ERR_ObsoleteOptionalWithoutValue),
+-->     Diagnostic(ERRID.ERR_ExpectedExpression)
+Expected: True
+Actual:   False
+   at Microsoft.CodeAnalysis.DiagnosticExtensions.Verify(IEnumerable`1 actual, DiagnosticDescription[] expected, Boolean errorCodeOnly) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Test\Utilities\Shared\Diagnostics\DiagnosticExtensions.cs:line 84
+
+   at Microsoft.CodeAnalysis.DiagnosticExtensions.VerifyErrorCodes(IEnumerable`1 actual, DiagnosticDescription[] expected) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Test\Utilities\Shared\Diagnostics\DiagnosticExtensions.cs:line 31
+
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParserTestUtilities.ParseAndVerify(String source, VisualBasicParseOptions options, DiagnosticDescription[] expectedDiagnostics, Boolean errorCodesOnly) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\ParserTestUtilities.vb:line 85
+
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParserTestUtilities.ParseAndVerify(String source, VisualBasicParseOptions options, XElement expectedErrors) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\ParserTestUtilities.vb:line 40
+
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParserTestUtilities.ParseAndVerify(String source, XElement expectedErrors) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\ParserTestUtilities.vb:line 45
+
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParserTestUtilities.ParseAndVerify(XCData code, XElement expectedErrors) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\ParserTestUtilities.vb:line 18
+
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParseErrorTests.BC30642ERR_MultipleOptionalParameterSpecifiers() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Syntax\Parser\ParseErrorTests.vb:line 2216
 
 Collection: Test collection for Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParseMethods
 
@@ -48,73 +142,14 @@ Diff:
 Expected: True
 Actual:   False
    at Microsoft.CodeAnalysis.DiagnosticExtensions.Verify(IEnumerable`1 actual, DiagnosticDescription[] expected, Boolean errorCodeOnly) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Test\Utilities\Shared\Diagnostics\DiagnosticExtensions.cs:line 84
+
    at Microsoft.CodeAnalysis.DiagnosticExtensions.VerifyErrorCodes(IEnumerable`1 actual, DiagnosticDescription[] expected) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Test\Utilities\Shared\Diagnostics\DiagnosticExtensions.cs:line 31
+
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParserTestUtilities.ParseAndVerify(String source, VisualBasicParseOptions options, DiagnosticDescription[] expectedDiagnostics, Boolean errorCodesOnly) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\ParserTestUtilities.vb:line 85
+
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParserTestUtilities.ParseAndVerify(String source, VisualBasicParseOptions options, XElement expectedErrors) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\ParserTestUtilities.vb:line 40
+
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParseMethods.Bug862505_a() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Syntax\Parser\ParseMethods.vb:line 352
 
-Collection: Test collection for Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParseErrorTests
-
-Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParseErrorTests.BC30812ERR_ObsoleteOptionalWithoutValue
-Exception Type: Xunit.Sdk.TrueException
-Message:
-Tree was expected to contain errors.
-Expected: True
-Actual:   False
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParserTestUtilities.ParseAndVerify(String source, VisualBasicParseOptions options, DiagnosticDescription[] expectedDiagnostics, Boolean errorCodesOnly) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\ParserTestUtilities.vb:line 83
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParserTestUtilities.ParseAndVerify(String source, VisualBasicParseOptions options, XElement expectedErrors) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\ParserTestUtilities.vb:line 40
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParserTestUtilities.ParseAndVerify(String source, XElement expectedErrors) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\ParserTestUtilities.vb:line 45
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParseErrorTests.BC30812ERR_ObsoleteOptionalWithoutValue() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Syntax\Parser\ParseErrorTests.vb:line 2542
-
-Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParseErrorTests.BC30200ERR_InvalidNewInType
-Exception Type: Xunit.Sdk.TrueException
-Message:
-
-Expected:
-    Diagnostic(ERRID.ERR_InvalidNewInType),
-    Diagnostic(ERRID.ERR_ExpectedExpression),
-    Diagnostic(ERRID.ERR_ObsoleteOptionalWithoutValue)
-Actual:
-    Diagnostic(ERRID.ERR_InvalidNewInType, "").WithLocation(3, 65)
-Diff:
-++>     Diagnostic(ERRID.ERR_InvalidNewInType, "").WithLocation(3, 65)
--->     Diagnostic(ERRID.ERR_InvalidNewInType),
--->     Diagnostic(ERRID.ERR_ExpectedExpression),
--->     Diagnostic(ERRID.ERR_ObsoleteOptionalWithoutValue)
-Expected: True
-Actual:   False
-   at Microsoft.CodeAnalysis.DiagnosticExtensions.Verify(IEnumerable`1 actual, DiagnosticDescription[] expected, Boolean errorCodeOnly) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Test\Utilities\Shared\Diagnostics\DiagnosticExtensions.cs:line 84
-   at Microsoft.CodeAnalysis.DiagnosticExtensions.VerifyErrorCodes(IEnumerable`1 actual, DiagnosticDescription[] expected) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Test\Utilities\Shared\Diagnostics\DiagnosticExtensions.cs:line 31
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParserTestUtilities.ParseAndVerify(String source, VisualBasicParseOptions options, DiagnosticDescription[] expectedDiagnostics, Boolean errorCodesOnly) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\ParserTestUtilities.vb:line 85
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParserTestUtilities.ParseAndVerify(String source, VisualBasicParseOptions options, XElement expectedErrors) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\ParserTestUtilities.vb:line 40
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParserTestUtilities.ParseAndVerify(String source, XElement expectedErrors) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\ParserTestUtilities.vb:line 45
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParserTestUtilities.ParseAndVerify(XCData code, XElement expectedErrors) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\ParserTestUtilities.vb:line 18
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParseErrorTests.BC30200ERR_InvalidNewInType() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Syntax\Parser\ParseErrorTests.vb:line 1440
-
-Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParseErrorTests.BC30642ERR_MultipleOptionalParameterSpecifiers
-Exception Type: Xunit.Sdk.TrueException
-Message:
-
-Expected:
-    Diagnostic(ERRID.ERR_MultipleOptionalParameterSpecifiers),
-    Diagnostic(ERRID.ERR_ObsoleteOptionalWithoutValue),
-    Diagnostic(ERRID.ERR_ExpectedExpression)
-Actual:
-    Diagnostic(ERRID.ERR_MultipleOptionalParameterSpecifiers, "optional").WithLocation(4, 66)
-Diff:
-++>     Diagnostic(ERRID.ERR_MultipleOptionalParameterSpecifiers, "optional").WithLocation(4, 66)
--->     Diagnostic(ERRID.ERR_MultipleOptionalParameterSpecifiers),
--->     Diagnostic(ERRID.ERR_ObsoleteOptionalWithoutValue),
--->     Diagnostic(ERRID.ERR_ExpectedExpression)
-Expected: True
-Actual:   False
-   at Microsoft.CodeAnalysis.DiagnosticExtensions.Verify(IEnumerable`1 actual, DiagnosticDescription[] expected, Boolean errorCodeOnly) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Test\Utilities\Shared\Diagnostics\DiagnosticExtensions.cs:line 84
-   at Microsoft.CodeAnalysis.DiagnosticExtensions.VerifyErrorCodes(IEnumerable`1 actual, DiagnosticDescription[] expected) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Test\Utilities\Shared\Diagnostics\DiagnosticExtensions.cs:line 31
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParserTestUtilities.ParseAndVerify(String source, VisualBasicParseOptions options, DiagnosticDescription[] expectedDiagnostics, Boolean errorCodesOnly) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\ParserTestUtilities.vb:line 85
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParserTestUtilities.ParseAndVerify(String source, VisualBasicParseOptions options, XElement expectedErrors) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\ParserTestUtilities.vb:line 40
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParserTestUtilities.ParseAndVerify(String source, XElement expectedErrors) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\ParserTestUtilities.vb:line 45
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParserTestUtilities.ParseAndVerify(XCData code, XElement expectedErrors) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\ParserTestUtilities.vb:line 18
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.ParseErrorTests.BC30642ERR_MultipleOptionalParameterSpecifiers() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Syntax\Parser\ParseErrorTests.vb:line 2216
-
 Failure Count: 6
- 
+ 
