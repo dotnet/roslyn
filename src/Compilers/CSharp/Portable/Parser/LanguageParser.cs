@@ -6124,7 +6124,6 @@ tryAgain:
             return ScanType(out lastTokenOfType);
         }
 
-        /// <remarks>For deconstruction-declarations using var syntax, ScanTuple will scan to the equals sign</remarks>
         private ScanTypeFlags ScanType(out SyntaxToken lastTokenOfType)
         {
             ScanTypeFlags result = this.ScanNonArrayType(out lastTokenOfType);
@@ -8538,32 +8537,13 @@ tryAgain:
 
                     if (this.CurrentToken.Kind != SyntaxKind.CloseParenToken)
                     {
-                        VariableDeconstructionDeclaratorSyntax identifier;
-
-                        if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
-                        {
-                            identifier = ParseDeconstructionIdentifiers(withEquals: false);
-                            list.Add(_syntaxFactory.VariableDeclaration(identifier));
-                        }
-                        else
-                        {
-                            list.Add(ParseDeconstructionIdPart());
-                        }
+                        list.Add(ParseDeconstructionIdentifierOrIdentifiersParts(withEquals: false));
 
                         while (this.CurrentToken.Kind == SyntaxKind.CommaToken)
                         {
                             var comma = this.EatToken(SyntaxKind.CommaToken);
                             list.AddSeparator(comma);
-
-                            if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
-                            {
-                                identifier = ParseDeconstructionIdentifiers(withEquals: false);
-                                list.Add(_syntaxFactory.VariableDeclaration(identifier));
-                            }
-                            else
-                            {
-                                list.Add(ParseDeconstructionIdPart());
-                            }
+                            list.Add(ParseDeconstructionIdentifierOrIdentifiersParts(withEquals: false));
                         }
                     }
 
@@ -8599,6 +8579,18 @@ tryAgain:
             else
             {
                 return null;
+            }
+        }
+
+        private VariableDeclarationSyntax ParseDeconstructionIdentifierOrIdentifiersParts(bool withEquals)
+        {
+            if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
+            {
+                return _syntaxFactory.VariableDeclaration(ParseDeconstructionIdentifiers(withEquals: false));
+            }
+            else
+            {
+                return ParseDeconstructionIdPart();
             }
         }
 

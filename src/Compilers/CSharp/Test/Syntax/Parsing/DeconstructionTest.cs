@@ -702,7 +702,7 @@ class C
                 N(SyntaxKind.ClassDeclaration);
                 {
                     N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.MethodDeclaration);
                     {
@@ -710,7 +710,7 @@ class C
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "Foo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -735,11 +735,11 @@ class C
                                                 {
                                                     N(SyntaxKind.IdentifierName);
                                                     {
-                                                        N(SyntaxKind.IdentifierToken);
+                                                        N(SyntaxKind.IdentifierToken, "Int32");
                                                     }
                                                     N(SyntaxKind.VariableDeclarator);
                                                     {
-                                                        N(SyntaxKind.IdentifierToken);
+                                                        N(SyntaxKind.IdentifierToken, "a");
                                                     }
                                                 }
                                                 N(SyntaxKind.CommaToken);
@@ -747,11 +747,11 @@ class C
                                                 {
                                                     N(SyntaxKind.IdentifierName);
                                                     {
-                                                        N(SyntaxKind.IdentifierToken);
+                                                        N(SyntaxKind.IdentifierToken, "Int64");
                                                     }
                                                     N(SyntaxKind.VariableDeclarator);
                                                     {
-                                                        N(SyntaxKind.IdentifierToken);
+                                                        N(SyntaxKind.IdentifierToken, "b");
                                                     }
                                                 }
                                                 N(SyntaxKind.CloseParenToken);
@@ -762,18 +762,18 @@ class C
                                         {
                                             N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "Int32");
                                             }
                                             N(SyntaxKind.VariableDeclarator);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "c");
                                             }
                                         }
                                         N(SyntaxKind.CloseParenToken);
                                         N(SyntaxKind.EqualsToken);
                                         N(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.IdentifierToken, "foo");
                                         }
                                     }
                                 }
@@ -806,7 +806,7 @@ class C
                 N(SyntaxKind.ClassDeclaration);
                 {
                     N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.MethodDeclaration);
                     {
@@ -814,7 +814,7 @@ class C
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "Foo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -829,7 +829,7 @@ class C
                                 {
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.IdentifierToken, "var");
                                     }
                                     N(SyntaxKind.VariableDeconstructionDeclarator);
                                     {
@@ -838,7 +838,7 @@ class C
                                         {
                                             N(SyntaxKind.VariableDeclarator);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "a");
                                             }
                                         }
                                         N(SyntaxKind.CommaToken);
@@ -846,14 +846,14 @@ class C
                                         {
                                             N(SyntaxKind.VariableDeclarator);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "b");
                                             }
                                         }
                                         N(SyntaxKind.CloseParenToken);
                                         N(SyntaxKind.EqualsToken);
                                         N(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.IdentifierToken, "foo");
                                         }
                                     }
                                 }
@@ -886,7 +886,7 @@ class C
                 N(SyntaxKind.ClassDeclaration);
                 {
                     N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.MethodDeclaration);
                     {
@@ -894,7 +894,7 @@ class C
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "Foo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -909,7 +909,7 @@ class C
                                 {
                                     N(SyntaxKind.IdentifierName);
                                     {
-                                        N(SyntaxKind.IdentifierToken);
+                                        N(SyntaxKind.IdentifierToken, "var");
                                     }
                                     N(SyntaxKind.VariableDeconstructionDeclarator);
                                     {
@@ -923,7 +923,7 @@ class C
                                                 {
                                                     N(SyntaxKind.VariableDeclarator);
                                                     {
-                                                        N(SyntaxKind.IdentifierToken);
+                                                        N(SyntaxKind.IdentifierToken, "a");
                                                     }
                                                 }
                                                 N(SyntaxKind.CommaToken);
@@ -931,7 +931,7 @@ class C
                                                 {
                                                     N(SyntaxKind.VariableDeclarator);
                                                     {
-                                                        N(SyntaxKind.IdentifierToken);
+                                                        N(SyntaxKind.IdentifierToken, "b");
                                                     }
                                                 }
                                                 N(SyntaxKind.CloseParenToken);
@@ -942,14 +942,14 @@ class C
                                         {
                                             N(SyntaxKind.VariableDeclarator);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "c");
                                             }
                                         }
                                         N(SyntaxKind.CloseParenToken);
                                         N(SyntaxKind.EqualsToken);
                                         N(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.IdentifierToken, "foo");
                                         }
                                     }
                                 }
@@ -1056,7 +1056,7 @@ class C
                 N(SyntaxKind.ClassDeclaration);
                 {
                     N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.MethodDeclaration);
                     {
@@ -1064,7 +1064,7 @@ class C
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "Foo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -1084,11 +1084,11 @@ class C
                                         {
                                             N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "Int32");
                                             }
                                             N(SyntaxKind.VariableDeclarator);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "x");
                                             }
                                         }
                                         N(SyntaxKind.CommaToken);
@@ -1096,7 +1096,7 @@ class C
                                         {
                                             N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "var");
                                             }
                                             N(SyntaxKind.VariableDeconstructionDeclarator);
                                             {
@@ -1105,7 +1105,7 @@ class C
                                                 {
                                                     N(SyntaxKind.VariableDeclarator);
                                                     {
-                                                        N(SyntaxKind.IdentifierToken);
+                                                        N(SyntaxKind.IdentifierToken, "y");
                                                     }
                                                 }
                                                 N(SyntaxKind.CommaToken);
@@ -1113,7 +1113,7 @@ class C
                                                 {
                                                     N(SyntaxKind.VariableDeclarator);
                                                     {
-                                                        N(SyntaxKind.IdentifierToken);
+                                                        N(SyntaxKind.IdentifierToken, "z");
                                                     }
                                                 }
                                                 N(SyntaxKind.CloseParenToken);
@@ -1123,7 +1123,7 @@ class C
                                         N(SyntaxKind.EqualsToken);
                                         N(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.IdentifierToken, "foo");
                                         }
                                     }
                                 }
@@ -1137,6 +1137,7 @@ class C
                 N(SyntaxKind.EndOfFileToken);
             }
             EOF();
+
         }
 
         [Fact]
@@ -1155,7 +1156,7 @@ class C
                 N(SyntaxKind.ClassDeclaration);
                 {
                     N(SyntaxKind.ClassKeyword);
-                    N(SyntaxKind.IdentifierToken);
+                    N(SyntaxKind.IdentifierToken, "C");
                     N(SyntaxKind.OpenBraceToken);
                     N(SyntaxKind.MethodDeclaration);
                     {
@@ -1163,7 +1164,7 @@ class C
                         {
                             N(SyntaxKind.VoidKeyword);
                         }
-                        N(SyntaxKind.IdentifierToken);
+                        N(SyntaxKind.IdentifierToken, "Foo");
                         N(SyntaxKind.ParameterList);
                         {
                             N(SyntaxKind.OpenParenToken);
@@ -1185,11 +1186,11 @@ class C
                                         {
                                             N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "Int32");
                                             }
                                             N(SyntaxKind.VariableDeclarator);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "x");
                                             }
                                         }
                                         N(SyntaxKind.CommaToken);
@@ -1197,18 +1198,18 @@ class C
                                         {
                                             N(SyntaxKind.IdentifierName);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "Int64");
                                             }
                                             N(SyntaxKind.VariableDeclarator);
                                             {
-                                                N(SyntaxKind.IdentifierToken);
+                                                N(SyntaxKind.IdentifierToken, "y");
                                             }
                                         }
                                         N(SyntaxKind.CloseParenToken);
                                         N(SyntaxKind.EqualsToken);
                                         N(SyntaxKind.IdentifierName);
                                         {
-                                            N(SyntaxKind.IdentifierToken);
+                                            N(SyntaxKind.IdentifierToken, "foo");
                                         }
                                     }
                                 }
