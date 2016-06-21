@@ -230,7 +230,18 @@ public class Test : Class1
                 var moduleRefName = reader.GetModuleReference(MetadataTokens.ModuleReferenceHandle(1)).Name;
                 Assert.Equal("netModule1.netmodule", reader.GetString(moduleRefName));
 
-                Assert.Equal(5, reader.GetTableRowCount(TableIndex.ExportedType));
+                var actual = from h in reader.ExportedTypes
+                             let et = reader.GetExportedType(h)
+                             select $"{reader.GetString(et.NamespaceDefinition)}.{reader.GetString(et.Name)} 0x{MetadataTokens.GetToken(et.Implementation):X8} ({et.Implementation.Kind}) 0x{(int)et.Attributes:X4}";
+
+                AssertEx.Equal(new[]
+                {
+                    ".Class1 0x26000001 (AssemblyFile) 0x0001",
+                    ".Class3 0x27000001 (ExportedType) 0x0002",
+                    "NS1.Class4 0x26000001 (AssemblyFile) 0x0001",
+                    ".Class7 0x27000003 (ExportedType) 0x0002",
+                    ".Class2 0x26000002 (AssemblyFile) 0x0001"
+                }, actual);
             });
         }
 
@@ -893,7 +904,7 @@ class C
         Console.Write(c.R);
         Console.Write(C.S);
     }
-}", parseOptions: TestOptions.ExperimentalParseOptions,
+}", parseOptions: TestOptions.Regular,
     options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.Internal));
             Action<ModuleSymbol> validator = module =>
             {
@@ -963,7 +974,7 @@ struct S
         Console.Write(s.R);
         Console.Write(S.T);
     }
-}", parseOptions: TestOptions.ExperimentalParseOptions,
+}", parseOptions: TestOptions.Regular,
     options: TestOptions.ReleaseExe.WithMetadataImportOptions(MetadataImportOptions.Internal));
 
             Action<ModuleSymbol> validator = module =>

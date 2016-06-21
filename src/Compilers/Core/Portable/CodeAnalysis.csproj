@@ -52,6 +52,7 @@
   <ItemGroup>
     <Compile Include="GlobalSuppressions.cs" />
     <Compile Include="InternalUtilities\IncrementalHash.cs" />
+    <Compile Include="PEWriter\ExportedType.cs" />
     <Compile Include="System\Reflection\Blob.cs" />
     <Compile Include="System\Reflection\BlobWriter.cs" />
     <Compile Include="System\Reflection\BlobWriterImpl.cs" />

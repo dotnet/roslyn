@@ -376,7 +376,7 @@ CodeStyleOptions.QualifyPropertyAccess, NotificationOption.None);
             await TestAsyncWithOptionAndNotificationOption(
 @"class Class { int Property { get; set; }; void M() { [|Property|] = 1; } }",
 @"class Class { int Property { get; set; }; void M() { this.Property = 1; } }",
-CodeStyleOptions.QualifyPropertyAccess, NotificationOption.Info);
+CodeStyleOptions.QualifyPropertyAccess, NotificationOption.Suggestion);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.CodeActionsQualifyMemberAccess)]

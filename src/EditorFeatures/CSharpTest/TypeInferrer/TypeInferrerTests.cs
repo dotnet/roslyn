@@ -1591,7 +1591,7 @@ class C
         bool x = await [|M()|].ConfigureAwait(false);
     }
 }";
-            await TestAsync(text, "global::System.Threading.Tasks.Task<System.Boolean>");
+            await TestAsync(text, "global::System.Threading.Tasks.Task<System.Boolean>", testPosition: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
@@ -1609,7 +1609,7 @@ class C
         bool x = await [|M|].ContinueWith(a => { return true; }).ContinueWith(a => { return false; });
     }
 }";
-            await TestAsync(text, "global::System.Threading.Tasks.Task<System.Boolean>");
+            await TestAsync(text, "global::System.Threading.Tasks.Task<System.Object>", testPosition: false);
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
@@ -1817,6 +1817,38 @@ public class C
     }
 }";
             await TestAsync(text, "global::System.ConsoleModifiers", testNode: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestWhereCall()
+        {
+            var text =
+    @"
+using System.Collections.Generic;
+class C
+{
+    void Foo()
+    {
+        [|ints|].Where(i => i > 10);
+    }
+}";
+            await TestAsync(text, "global::System.Collections.Generic.IEnumerable<System.Int32>", testPosition: false);
+        }
+
+        [Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)]
+        public async Task TestWhereCall2()
+        {
+            var text =
+    @"
+using System.Collections.Generic;
+class C
+{
+    void Foo()
+    {
+        [|ints|].Where(i => null);
+    }
+}";
+            await TestAsync(text, "global::System.Collections.Generic.IEnumerable<System.Object>", testPosition: false);
         }
     }
 }

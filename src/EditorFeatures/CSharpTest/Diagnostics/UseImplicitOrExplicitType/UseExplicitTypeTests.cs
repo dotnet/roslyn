@@ -24,8 +24,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseExplicit
 
         private readonly CodeStyleOption<bool> onWithNone = new CodeStyleOption<bool>(true, NotificationOption.None);
         private readonly CodeStyleOption<bool> offWithNone = new CodeStyleOption<bool>(false, NotificationOption.None);
-        private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Info);
-        private readonly CodeStyleOption<bool> offWithInfo = new CodeStyleOption<bool>(false, NotificationOption.Info);
+        private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
+        private readonly CodeStyleOption<bool> offWithInfo = new CodeStyleOption<bool>(false, NotificationOption.Suggestion);
         private readonly CodeStyleOption<bool> onWithWarning = new CodeStyleOption<bool>(true, NotificationOption.Warning);
         private readonly CodeStyleOption<bool> offWithWarning = new CodeStyleOption<bool>(false, NotificationOption.Warning);
         private readonly CodeStyleOption<bool> onWithError = new CodeStyleOption<bool>(true, NotificationOption.Error);
@@ -1019,7 +1019,7 @@ class C
 @"class C { static void M() { [|var|] s = (1, ""hello""); } }",
 @"class C { static void M() { (int, string) s = (1, ""hello""); }}",
 options: ExplicitTypeEverywhere(),
-parseOptions: TestOptions.Regular.WithTuplesFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
 
@@ -1030,7 +1030,7 @@ withScriptOption: true);
 @"class C { static void M() { [|var|] s = (a: 1, b: ""hello""); } }",
 @"class C { static void M() { (int a, string b) s = (a: 1, b: ""hello""); }}",
 options: ExplicitTypeEverywhere(),
-parseOptions: TestOptions.Regular.WithTuplesFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
 
@@ -1041,7 +1041,7 @@ withScriptOption: true);
 @"class C { static void M() { [|var|] s = (a: 1, ""hello""); } }",
 @"class C { static void M() { (int a, string Item2) s = (a: 1, ""hello""); }}",
 options: ExplicitTypeEverywhere(),
-parseOptions: TestOptions.Regular.WithTuplesFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
     }

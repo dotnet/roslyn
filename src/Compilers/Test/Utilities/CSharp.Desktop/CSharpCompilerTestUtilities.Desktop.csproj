@@ -60,6 +60,9 @@
     <Reference Include="System.Xml.Linq" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\CSharp\TestOptions.cs">
+      <Link>TestOptions.cs</Link>
+    </Compile>
     <Compile Include="BasicCompilationUtils.cs" />
     <Compile Include="CompilationTestUtils.cs" />
     <Compile Include="CompilingTestBase.cs" />
@@ -75,7 +78,6 @@
     <Compile Include="SemanticModelTestBase.cs" />
     <Compile Include="SymbolUtilities.cs" />
     <Compile Include="SyntaxTreeExtensions.cs" />
-    <Compile Include="TestOptions.cs" />
   </ItemGroup>
   <ItemGroup>
     <InternalsVisibleToTest Include="Roslyn.Compilers.CSharp.CommandLine.UnitTests" />

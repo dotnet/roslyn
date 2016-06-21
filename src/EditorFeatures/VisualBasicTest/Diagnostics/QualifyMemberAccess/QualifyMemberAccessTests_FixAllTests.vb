@@ -77,7 +77,7 @@ End Class]]>
             Await TestAsync(
                 initialMarkup:=input,
                 expectedMarkup:=expected,
-                options:=[Option](CodeStyleOptions.QualifyPropertyAccess, True, NotificationOption.Info),
+                options:=[Option](CodeStyleOptions.QualifyPropertyAccess, True, NotificationOption.Suggestion),
                 compareTokens:=False,
                 fixAllActionEquivalenceKey:=FeaturesResources.AddQualification)
         End Function

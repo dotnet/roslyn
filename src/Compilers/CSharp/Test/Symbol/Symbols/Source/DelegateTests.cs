@@ -723,7 +723,7 @@ class C
         {
             var source = @"delegate ref int D();";
 
-            var comp = CreateExperimentalCompilationWithMscorlib45(source);
+            var comp = CreateCompilationWithMscorlib45(source);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;

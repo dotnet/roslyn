@@ -25,8 +25,8 @@ namespace Microsoft.CodeAnalysis.Editor.CSharp.UnitTests.Diagnostics.UseImplicit
 
         private readonly CodeStyleOption<bool> onWithNone = new CodeStyleOption<bool>(true, NotificationOption.None);
         private readonly CodeStyleOption<bool> offWithNone = new CodeStyleOption<bool>(false, NotificationOption.None);
-        private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Info);
-        private readonly CodeStyleOption<bool> offWithInfo = new CodeStyleOption<bool>(false, NotificationOption.Info);
+        private readonly CodeStyleOption<bool> onWithInfo = new CodeStyleOption<bool>(true, NotificationOption.Suggestion);
+        private readonly CodeStyleOption<bool> offWithInfo = new CodeStyleOption<bool>(false, NotificationOption.Suggestion);
         private readonly CodeStyleOption<bool> onWithWarning = new CodeStyleOption<bool>(true, NotificationOption.Warning);
         private readonly CodeStyleOption<bool> offWithWarning = new CodeStyleOption<bool>(false, NotificationOption.Warning);
         private readonly CodeStyleOption<bool> onWithError = new CodeStyleOption<bool>(true, NotificationOption.Error);
@@ -1467,10 +1467,10 @@ namespace System
             var before = @"class C { static void M() { [|(int a, string)|] s = (a: 1, ""hello""); } }";
             var after = @"class C { static void M() { var s = (a: 1, ""hello""); } }";
 
-            await TestAsync(before, after, options: ImplicitTypeEverywhere(), parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+            await TestAsync(before, after, options: ImplicitTypeEverywhere(), parseOptions: TestOptions.Regular, withScriptOption: true);
 
             // We would rather this refactoring also worked. See https://github.com/dotnet/roslyn/issues/11094
-            await TestMissingAsync(before, options: ImplicitTypeWhereApparent(), parseOptions: TestOptions.Regular.WithTuplesFeature(), withScriptOption: true);
+            await TestMissingAsync(before, options: ImplicitTypeWhereApparent(), parseOptions: TestOptions.Regular, withScriptOption: true);
         }
 
         [WpfFact(Skip = "https://github.com/dotnet/roslyn/issues/11154"), Trait(Traits.Feature, Traits.Features.CodeActionsUseImplicitType)]
@@ -1480,7 +1480,7 @@ namespace System
 @"using System; class C { static void M() { [|ValueTuple<int, int>|] s = ValueTuple.Create(1, 1); } }" + trivial2uple,
 @"using System; class C { static void M() { var s = ValueTuple.Create(1, 1); } }" + trivial2uple,
 options: ImplicitTypeWhereApparent(),
-parseOptions: TestOptions.Regular.WithTuplesFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
 
@@ -1490,7 +1490,7 @@ withScriptOption: true);
             await TestMissingAsync(
 @"class C { static void M() { [|(int, string)|] s = (c: 1, d: ""hello""); } }",
 options: ImplicitTypeEverywhere(),
-parseOptions: TestOptions.Regular.WithTuplesFeature(),
+parseOptions: TestOptions.Regular,
 withScriptOption: true);
         }
     }
