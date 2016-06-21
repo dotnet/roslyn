@@ -9,6 +9,8 @@ using System.Threading;
 using Microsoft.CodeAnalysis.Common;
 using Microsoft.CodeAnalysis.Shared.TestHooks;
 using Roslyn.Utilities;
+using System.Runtime.CompilerServices;
+using System.Linq;
 
 namespace Microsoft.CodeAnalysis.Diagnostics
 {
@@ -279,9 +281,9 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
                 foreach (var data in current.Values)
                 {
-                    if (TryAddData(documentId, data, d => d.DocumentId, list) ||
-                        TryAddData(projectId, data, d => d.ProjectId, list) ||
-                        TryAddData(workspace, data, d => d.Workspace, list))
+                    if (TryAddData(workspace, documentId, data, d => d.DocumentId, list) ||
+                        TryAddData(workspace, projectId, data, d => d.ProjectId, list) ||
+                        TryAddData(workspace, workspace, data, d => d.Workspace, list))
                     {
                         continue;
                     }
@@ -289,9 +291,15 @@ namespace Microsoft.CodeAnalysis.Diagnostics
             }
         }
 
-        private bool TryAddData<T>(T key, Data data, Func<Data, T> keyGetter, List<Data> result) where T : class
+        private bool TryAddData<T>(Workspace workspace, T key, Data data, Func<Data, T> keyGetter, List<Data> result) where T : class
         {
             if (key == null)
+            {
+                return false;
+            }
+
+            // make sure data is from same workspace. project/documentId can be shared between 2 different workspace
+            if (workspace != data.Workspace)
             {
                 return false;
             }
@@ -314,17 +322,35 @@ namespace Microsoft.CodeAnalysis.Diagnostics
         }
 
         [Conditional("DEBUG")]
-        private void AssertIfNull(DiagnosticData diagnostic)
+        private void AssertIfNull<T>(T obj) where T : class
         {
-            if (diagnostic == null)
+            if (obj == null)
             {
                 Contract.Requires(false, "who returns invalid data?");
             }
         }
 
+        [Conditional("DEBUG")]
+        public void AssertCleanup()
+        {
+            foreach (var idAndData in _map.Values.ToList())
+            {
+                foreach (var data in idAndData.Values.ToList())
+                {
+                    AssertIfNull(data.Workspace);
+                }
+            }
+        }
+
         private struct Data : IEquatable<Data>
         {
-            public readonly Workspace Workspace;
+            private static readonly ConditionalWeakTable<Workspace, WeakReference<Workspace>> s_cache =
+                new ConditionalWeakTable<Workspace, WeakReference<Workspace>>();
+
+            // not all workspace lives whole VS session. 
+            // make sure we not strongly hold onto them.
+            private readonly WeakReference<Workspace> _workspace;
+
             public readonly ProjectId ProjectId;
             public readonly DocumentId DocumentId;
             public readonly object Id;
@@ -337,16 +363,29 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public Data(UpdatedEventArgs args, ImmutableArray<DiagnosticData> diagnostics)
             {
-                this.Workspace = args.Workspace;
+                // most of data has same workspace, so this should reduce us creating new
+                // weak reference for same workspace multiple times.
+                _workspace = s_cache.GetValue(args.Workspace, w => new WeakReference<Workspace>(w));
+
                 this.ProjectId = args.ProjectId;
                 this.DocumentId = args.DocumentId;
                 this.Id = args.Id;
                 this.Diagnostics = diagnostics;
             }
 
+            public Workspace Workspace => _workspace.GetTarget();
+
             public bool Equals(Data other)
             {
-                return this.Workspace == other.Workspace &&
+                var workspace1 = Workspace;
+                var workspace2 = other.Workspace;
+
+                if (workspace1 == null || workspace2 == null)
+                {
+                    return false;
+                }
+
+                return workspace1 == workspace2 &&
                        this.ProjectId == other.ProjectId &&
                        this.DocumentId == other.DocumentId &&
                        this.Id == other.Id;
@@ -359,10 +398,11 @@ namespace Microsoft.CodeAnalysis.Diagnostics
 
             public override int GetHashCode()
             {
-                return Hash.Combine(Workspace,
-                       Hash.Combine(ProjectId,
+                // accept collision due to workspace being different
+                // but all others are same.
+                return Hash.Combine(ProjectId,
                        Hash.Combine(DocumentId,
-                       Hash.Combine(Id, 1))));
+                       Hash.Combine(Id, 1)));
             }
         }
     }

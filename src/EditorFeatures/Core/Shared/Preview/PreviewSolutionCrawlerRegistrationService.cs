@@ -9,6 +9,8 @@ using Microsoft.CodeAnalysis.Diagnostics;
 using Microsoft.CodeAnalysis.Host.Mef;
 using Microsoft.CodeAnalysis.SolutionCrawler;
 using Roslyn.Utilities;
+using System.Linq;
+using System.Diagnostics;
 
 namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
 {
@@ -18,11 +20,15 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
         private static readonly ConditionalWeakTable<Workspace, CancellationTokenSource> s_cancellationTokens =
             new ConditionalWeakTable<Workspace, CancellationTokenSource>();
 
+        private readonly IDiagnosticService _service;
         private readonly IIncrementalAnalyzerProvider _provider;
 
         [ImportingConstructor]
-        public PreviewSolutionCrawlerRegistrationService(IDiagnosticAnalyzerService diagnosticService)
+        public PreviewSolutionCrawlerRegistrationService(IDiagnosticService service, IDiagnosticAnalyzerService diagnosticService)
         {
+            _service = service;
+            Contract.ThrowIfNull(_service);
+
             _provider = diagnosticService as IIncrementalAnalyzerProvider;
             Contract.ThrowIfNull(_provider);
         }
@@ -68,6 +74,34 @@ namespace Microsoft.CodeAnalysis.Editor.Shared.Preview
             {
                 source.Cancel();
             }
+
+            ClearDiagnostics(workspace);
+
+            AssertCleanup();
+        }
+
+        private void ClearDiagnostics(Workspace workspace)
+        {
+            var analyzer = _provider.CreateIncrementalAnalyzer(workspace);
+            var args = _service.GetDiagnosticsUpdatedEventArgs(workspace, projectId: null, documentId: null, cancellationToken: CancellationToken.None);
+
+            foreach (var documentId in args.Select(a => a.DocumentId).Distinct())
+            {
+                analyzer.RemoveDocument(documentId);
+            }
+        }
+
+        [Conditional("DEBUG")]
+        private void AssertCleanup()
+        {
+            var service = _service as DiagnosticService;
+            if (service == null)
+            {
+                return;
+            }
+
+            // make sure there is no staled data left in the service
+            service.AssertCleanup();
         }
     }
 }
