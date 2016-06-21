@@ -2757,8 +2757,24 @@ namespace ConsoleApplication1
         public async Task TestGenerateMethodWithMethodChaining()
         {
             await TestAsync(
-@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { static void Main ( string [ ] args ) { bool x = await [|Foo|] ( ) . ConfigureAwait ( false ) ; } } ",
-@"using System ; using System . Collections . Generic ; using System . Linq ; using System . Threading . Tasks ; class Program { static void Main ( string [ ] args ) { bool x = await Foo ( ) . ConfigureAwait ( false ) ; } private static Task < bool > Foo ( ) { throw new NotImplementedException ( ) ; } } ");
+@"using System ;
+using System . Collections . Generic ;
+using System . Linq ;
+using System . Threading . Tasks ;
+class Program {
+    static void Main ( string [ ] args ) {
+        bool x = await [|Foo|] ( ) . ConfigureAwait ( false ) ;
+    }
+}",
+@"using System ;
+using System . Collections . Generic ;
+using System . Linq ;
+using System . Threading . Tasks ;
+class Program {
+    static void Main ( string [ ] args ) {
+        bool x = await Foo ( ) . ConfigureAwait ( false ) ;
+    }
+    private static Task < bool > Foo ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
         [WorkItem(643, "https://github.com/dotnet/roslyn/issues/643")]
@@ -2766,8 +2782,19 @@ namespace ConsoleApplication1
         public async Task TestGenerateMethodWithMethodChaining2()
         {
             await TestAsync(
-@"using System ; using System . Threading . Tasks ; class C { static async void T ( ) { bool x = await [|M|] ( ) . ContinueWith ( a => { return true ; } ) . ContinueWith ( a => { return false ; } ) ; } } ",
-@"using System ; using System . Threading . Tasks ; class C { static async void T ( ) { bool x = await M ( ) . ContinueWith ( a => { return true ; } ) . ContinueWith ( a => { return false ; } ) ; } private static Task < bool > M ( ) { throw new NotImplementedException ( ) ; } } ");
+@"using System ;
+using System . Threading . Tasks ;
+class C {
+    static async void T ( ) {
+        bool x = await [|M|] ( ) . ContinueWith ( a => { return true ; } ) . ContinueWith ( a => { return false ; } ) ;
+    }
+} ",
+@"using System ;
+using System . Threading . Tasks ;
+class C {
+    static async void T ( ) {
+        bool x = await M ( ) . ContinueWith ( a => { return true ; } ) . ContinueWith ( a => { return false ; } ) ; }
+        private static Task<object> M ( ) { throw new NotImplementedException ( ) ; } } ");
         }
 
         [WorkItem(529480, "http://vstfdevdiv:8080/DevDiv2/DevDiv/_workitems/edit/529480")]
