@@ -147,7 +147,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic.Symbols
                 If HasExplicitDefaultValue Then
                     Return ExplicitDefaultConstantValue.Value
                 ElseIf InternalSyntax.Parser.CheckFeatureAvailability(InternalSyntax.Feature.ImplicitDefaultValueOnOptionalParameter,
-                                                                      Me.DeclaringCompilation.Options.ParseOptions) Then
+                                                                      DeclaringCompilation.Options.ParseOptions) Then
                     Return ConstantValue.Null.Value
                 Else
                     Throw New InvalidOperationException
