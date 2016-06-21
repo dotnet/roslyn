@@ -314,7 +314,12 @@ End Class
         Public Sub TestConditionalExpressions()
             VerifySyntax(Of BinaryConditionalExpressionSyntax)(_g.CoalesceExpression(_g.IdentifierName("x"), _g.IdentifierName("y")), "If(x, y)")
             VerifySyntax(Of TernaryConditionalExpressionSyntax)(_g.ConditionalExpression(_g.IdentifierName("x"), _g.IdentifierName("y"), _g.IdentifierName("z")), "If(x, y, z)")
-            VerifySyntax(Of ConditionalAccessExpressionSyntax)(_g.ConditionalAccessExpression(_g.IdentifierName("x"), _g.IdentifierName("y")), "(x)?.y")
+
+            ' TODO: Get these tests to work. And maybe add others?
+            VerifySyntax(Of ConditionalAccessExpressionSyntax)(_g.ConditionalAccessExpression(_g.IdentifierName("x"), _g.MemberBindingExpression(_g.IdentifierName("y"))), "(x)?.y")
+            VerifySyntax(Of ConditionalAccessExpressionSyntax)(_g.ConditionalAccessExpression(_g.IdentifierName("x"), _g.MemberAccessExpression(_g.MemberBindingExpression(_g.IdentifierName("y")), _g.IdentifierName("z"))), "(x)?.y.z")
+            VerifySyntax(Of ConditionalAccessExpressionSyntax)(_g.ConditionalAccessExpression(_g.IdentifierName("x"), _g.ConditionalAccessExpression(_g.MemberBindingExpression(_g.IdentifierName("y")), _g.MemberBindingExpression(_g.IdentifierName("z")))), "(x)?.y?.z")
+            VerifySyntax(Of BinaryExpressionSyntax)(_g.CoalesceExpression(_g.ConditionalAccessExpression(_g.IdentifierName("x"), _g.MemberBindingExpression(_g.IdentifierName("y"))), _g.IdentifierName("z")), "If((x)?.y, z)")
         End Sub
 
         <Fact>

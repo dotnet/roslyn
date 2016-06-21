@@ -3533,7 +3533,12 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeGeneration
 
         public override SyntaxNode ConditionalAccessExpression(SyntaxNode expression, SyntaxNode whenNotNull)
         {
-            return SyntaxFactory.ConditionalAccessExpression(Parenthesize(expression), SyntaxFactory.MemberBindingExpression((SimpleNameSyntax)whenNotNull));
+            return SyntaxFactory.ConditionalAccessExpression(Parenthesize(expression), (ExpressionSyntax)whenNotNull);
+        }
+
+        public override SyntaxNode MemberBindingExpression(SyntaxNode simpleName)
+        {
+            return SyntaxFactory.MemberBindingExpression((SimpleNameSyntax)simpleName);
         }
 
         internal override SyntaxNode MemberAccessExpressionWorker(SyntaxNode expression, SyntaxNode simpleName)
