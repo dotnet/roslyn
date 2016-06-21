@@ -3,6 +3,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Globalization;
 using Microsoft.CodeAnalysis.Completion;
 using Microsoft.CodeAnalysis.LanguageServices;
@@ -63,7 +64,9 @@ namespace Microsoft.CodeAnalysis.Editor
         /// iff the completion item matches and should be included in the filtered completion
         /// results, or false if it should not be.
         /// </summary>
-        public virtual bool MatchesFilterText(CompletionItem item, string filterText, CompletionTrigger trigger, CompletionFilterReason filterReason, ImmutableArray<string> recentItems = default(ImmutableArray<string>))
+        public virtual bool MatchesFilterText(
+            CompletionItem item, string filterText,
+            CompletionTrigger trigger, ImmutableArray<string> recentItems)
         {
             // If the user hasn't typed anything, and this item was preselected, or was in the
             // MRU list, then we definitely want to include it.
@@ -165,7 +168,7 @@ namespace Microsoft.CodeAnalysis.Editor
         /// Returns true if item1 is a better completion item than item2 given the provided filter
         /// text, or false if it is not better.
         /// </summary>
-        public virtual bool IsBetterFilterMatch(CompletionItem item1, CompletionItem item2, string filterText, CompletionTrigger trigger, CompletionFilterReason filterReason, ImmutableArray<string> recentItems = default(ImmutableArray<string>))
+        public virtual bool IsBetterFilterMatch(CompletionItem item1, CompletionItem item2, string filterText, CompletionTrigger trigger, ImmutableArray<string> recentItems)
         {
             var match1 = GetMatch(item1, filterText);
             var match2 = GetMatch(item2, filterText);
@@ -235,17 +238,6 @@ namespace Microsoft.CodeAnalysis.Editor
             return item.Tags.Contains(CompletionTags.EnumMember);
         }
 
-        protected int GetPrefixLength(string text, string pattern)
-        {
-            int x = 0;
-            while (x < text.Length && x < pattern.Length && char.ToUpper(text[x]) == char.ToUpper(pattern[x]))
-            {
-                x++;
-            }
-
-            return x;
-        }
-
         protected int CompareMatches(PatternMatch match1, PatternMatch match2, CompletionItem item1, CompletionItem item2)
         {
             // First see how the two items compare in a case insensitive fashion.  Matches that 
@@ -307,20 +299,6 @@ namespace Microsoft.CodeAnalysis.Editor
         private static StringComparison GetComparision(bool isCaseSensitive)
         {
             return isCaseSensitive ? StringComparison.CurrentCulture : StringComparison.CurrentCultureIgnoreCase;
-        }
-
-        /// <summary>
-        /// Returns true if the completion item should be "soft" selected, or false if it should be "hard"
-        /// selected.
-        /// </summary>
-        public virtual bool ShouldSoftSelectItem(CompletionItem item, string filterText, CompletionTrigger trigger)
-        {
-            return filterText.Length == 0 && item.Rules.MatchPriority == MatchPriority.Default;
-        }
-
-        protected bool IsObjectCreationItem(CompletionItem item)
-        {
-            return item.Tags.Contains(CompletionTags.ObjectCreation);
         }
     }
 }

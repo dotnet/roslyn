@@ -389,6 +389,24 @@ Namespace Microsoft.VisualStudio.LanguageServices.VisualBasic
         End Property
         
         '''<summary>
+        '''  Looks up a localized string similar to Show completion list after a character is _deleted.
+        '''</summary>
+        Friend Shared ReadOnly Property Option_Show_completion_list_after_a_character_is_deleted() As String
+            Get
+                Return ResourceManager.GetString("Option_Show_completion_list_after_a_character_is_deleted", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
+        '''  Looks up a localized string similar to _Show completion list after a character is typed.
+        '''</summary>
+        Friend Shared ReadOnly Property Option_Show_completion_list_after_a_character_is_typed() As String
+            Get
+                Return ResourceManager.GetString("Option_Show_completion_list_after_a_character_is_typed", resourceCulture)
+            End Get
+        End Property
+        
+        '''<summary>
         '''  Looks up a localized string similar to Suggest imports for types in _NuGet packages.
         '''</summary>
         Friend Shared ReadOnly Property Option_Suggest_imports_for_types_in_NuGet_packages() As String

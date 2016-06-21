@@ -15,8 +15,7 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
     public class PatternMatchingTests : CSharpTestBase
     {
         private static CSharpParseOptions patternParseOptions =
-            TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6)
-                    .WithFeature(MessageID.IDS_FeaturePatternMatching.RequiredFeature(), "true");
+            TestOptions.Regular.WithLanguageVersion(LanguageVersion.CSharp6).WithPatternsFeature();
 
         [Fact]
         public void DemoModes()
@@ -382,7 +381,7 @@ public class X
     }
 }
 ";
-            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions.WithFeature(MessageID.IDS_FeatureLocalFunctions.RequiredFeature(), "true"));
+            var compilation = CreateCompilationWithMscorlib45(source, options: TestOptions.DebugExe, parseOptions: patternParseOptions.WithLocalFunctionsFeature());
             compilation.VerifyDiagnostics();
             var expectedOutput =
 @"False for 1

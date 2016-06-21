@@ -491,7 +491,7 @@ class C
 {
     int field = 0;
     public ref int P => ref field;
-}");
+}", MessageID.IDS_FeatureRefLocalsReturns);
             comp.VerifyDiagnostics();
 
             var global = comp.GlobalNamespace;

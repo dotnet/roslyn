@@ -985,7 +985,7 @@ class Foo
 
                 state.SendTypeChars(", ")
                 Await state.WaitForAsynchronousOperationsAsync()
-                Await state.AssertSelectedCompletionItem(displayText:="Numeros.Dos", isSoftSelected:=True)
+                Await state.AssertSelectedCompletionItem(displayText:="Numeros", isSoftSelected:=True)
                 Assert.Equal(1, state.CurrentCompletionPresenterSession.PresentationItems.Where(Function(c) c.Item.DisplayText = "Numeros").Count())
             End Using
         End Function

@@ -1,5 +1,5 @@
 ﻿{
-  "dependencies": {
+  "dependencies": {    
     "Microsoft.CSharp": "4.0.0",
     "Microsoft.NETCore.Platforms": "1.0.1-rc3-24128-00",
     "Microsoft.NETCore.Portable.Compatibility": "1.0.0",
