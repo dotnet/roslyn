@@ -1,5 +1,6 @@
 ﻿' Copyright (c) Microsoft.  All Rights Reserved.  Licensed under the Apache License, Version 2.0.  See License.txt in the project root for license information.
 
+Imports System.Collections.Immutable
 Imports System.Runtime.InteropServices
 Imports Microsoft.CodeAnalysis.CodeGen
 Imports Microsoft.CodeAnalysis.VisualBasic.Symbols
@@ -14,6 +15,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             body As BoundBlock,
             previousSubmissionFields As SynthesizedSubmissionFields,
             compilationState As TypeCompilationState,
+            instrumentForDynamicAnalysis As Boolean,
+            ByRef dynamicAnalysisSpans As ImmutableArray(Of SourceSpan),
+            debugDocumentProvider As DebugDocumentProvider,
             diagnostics As DiagnosticBag,
             ByRef lazyVariableSlotAllocator As VariableSlotAllocator,
             lambdaDebugInfoBuilder As ArrayBuilder(Of LambdaDebugInfo),
@@ -34,6 +38,11 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim localDiagnostics = DiagnosticBag.GetInstance()
 
             Try
+                Dim dynamicInstrumenter As DynamicAnalysisInjector =
+                    If(instrumentForDynamicAnalysis,
+                        DynamicAnalysisInjector.TryCreate(method, body, New SyntheticBoundNodeFactory(method, method, body.Syntax, compilationState, diagnostics), diagnostics, debugDocumentProvider, Instrumenter.NoOp),
+                        Nothing)
+
                 ' We don't want IL to differ based upon whether we write the PDB to a file/stream or not.
                 ' Presence of sequence points in the tree affects final IL, therefore, we always generate them.
                 Dim loweredBody = LocalRewriter.Rewrite(body,
@@ -45,8 +54,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                     sawLambdas,
                                                     symbolsCapturedWithoutCopyCtor,
                                                     flags,
-                                                    DebugInfoInjector.Singleton,
+                                                    If(dynamicInstrumenter IsNot Nothing, New DebugInfoInjector(dynamicInstrumenter), DebugInfoInjector.Singleton),
                                                     currentMethod:=Nothing)
+
+                If dynamicInstrumenter IsNot Nothing Then
+                    dynamicAnalysisSpans = dynamicInstrumenter.DynamicAnalysisSpans
+                End If
 
                 If loweredBody.HasErrors OrElse localDiagnostics.HasAnyErrors Then
                     diagnostics.AddRangeAndFree(localDiagnostics)

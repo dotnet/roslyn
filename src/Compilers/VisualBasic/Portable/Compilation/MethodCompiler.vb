@@ -285,7 +285,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                  variableSlotAllocatorOpt:=Nothing,
                                                  debugDocumentProvider:=Nothing,
                                                  diagnostics:=diagnostics,
-                                                 emittingPdb:=False)
+                                                 emittingPdb:=False,
+                                                 dynamicAnalysisSpans:=ImmutableArray(Of SourceSpan).Empty)
                 moduleBeingBuilt.SetMethodBody(synthesizedEntryPoint, emittedBody)
             End If
 
@@ -843,7 +844,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                      variableSlotAllocatorOpt:=Nothing,
                                                      debugDocumentProvider:=Nothing,
                                                      diagnostics:=diagnosticsThisMethod,
-                                                     emittingPdb:=False)
+                                                     emittingPdb:=False,
+                                                     dynamicAnalysisSpans:=ImmutableArray(Of SourceSpan).Empty)
 
                 _diagnostics.AddRange(diagnosticsThisMethod)
                 diagnosticsThisMethod.Free()
@@ -878,6 +880,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                         Dim lambdaDebugInfoBuilder = ArrayBuilder(Of LambdaDebugInfo).GetInstance()
                         Dim closureDebugInfoBuilder = ArrayBuilder(Of ClosureDebugInfo).GetInstance()
                         Dim delegateRelaxationIdDispenser = 0
+                        Dim dynamicAnalysisSpans As ImmutableArray(Of SourceSpan) = ImmutableArray(Of SourceSpan).Empty
 
                         Dim rewrittenBody = Rewriter.LowerBodyOrInitializer(
                             method,
@@ -885,6 +888,9 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                             boundBody,
                             previousSubmissionFields:=Nothing,
                             compilationState:=compilationState,
+                            instrumentForDynamicAnalysis:=False,
+                            dynamicAnalysisSpans:=dynamicAnalysisSpans,
+                            debugDocumentProvider:=_debugDocumentProvider,
                             diagnostics:=diagnosticsThisMethod,
                             lazyVariableSlotAllocator:=lazyVariableSlotAllocator,
                             lambdaDebugInfoBuilder:=lambdaDebugInfoBuilder,
@@ -907,7 +913,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                              lazyVariableSlotAllocator,
                                                              debugDocumentProvider:=Nothing,
                                                              diagnostics:=diagnosticsThisMethod,
-                                                             emittingPdb:=False)
+                                                             emittingPdb:=False,
+                                                             dynamicAnalysisSpans:=dynamicAnalysisSpans)
                         End If
 
                         lambdaDebugInfoBuilder.Free()
@@ -956,7 +963,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                          variableSlotAllocatorOpt:=Nothing,
                                                          debugDocumentProvider:=_debugDocumentProvider,
                                                          diagnostics:=diagnosticsThisMethod,
-                                                         emittingPdb:=_emittingPdb)
+                                                         emittingPdb:=_emittingPdb,
+                                                         dynamicAnalysisSpans:=ImmutableArray(Of SourceSpan).Empty)
 
                     _diagnostics.AddRange(diagnosticsThisMethod)
                     diagnosticsThisMethod.Free()
@@ -1281,12 +1289,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim lambdaDebugInfoBuilder = ArrayBuilder(Of LambdaDebugInfo).GetInstance()
                 Dim closureDebugInfoBuilder = ArrayBuilder(Of ClosureDebugInfo).GetInstance()
+                Dim dynamicAnalysisSpans As ImmutableArray(Of SourceSpan) = ImmutableArray(Of SourceSpan).Empty
 
                 setterBody = Rewriter.LowerBodyOrInitializer(setter,
                                                              withEventPropertyIdDispenser,
                                                              setterBody,
                                                              previousSubmissionFields,
                                                              compilationState,
+                                                             False,
+                                                             dynamicAnalysisSpans,
+                                                             _debugDocumentProvider,
                                                              diagnostics,
                                                              lazyVariableSlotAllocator:=Nothing,
                                                              lambdaDebugInfoBuilder:=lambdaDebugInfoBuilder,
@@ -1384,12 +1396,16 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Dim allowOmissionOfConditionalCalls = _moduleBeingBuiltOpt Is Nothing OrElse _moduleBeingBuiltOpt.AllowOmissionOfConditionalCalls
             Dim lambdaDebugInfoBuilder = ArrayBuilder(Of LambdaDebugInfo).GetInstance()
             Dim closureDebugInfoBuilder = ArrayBuilder(Of ClosureDebugInfo).GetInstance()
+            Dim dynamicAnalysisSpans As ImmutableArray(Of SourceSpan) = ImmutableArray(Of SourceSpan).Empty
 
             body = Rewriter.LowerBodyOrInitializer(method,
                                                    methodOrdinal,
                                                    body,
                                                    previousSubmissionFields,
                                                    compilationState,
+                                                   CBool(_moduleBeingBuiltOpt?.EmitOptions.EmitDynamicAnalysisData),
+                                                   dynamicAnalysisSpans,
+                                                   _debugDocumentProvider,
                                                    diagnostics,
                                                    lazyVariableSlotAllocator,
                                                    lambdaDebugInfoBuilder,
@@ -1436,7 +1452,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                               lazyVariableSlotAllocator,
                                                               _debugDocumentProvider,
                                                               diagnostics,
-                                                              emittingPdb:=_emittingPdb)
+                                                              emittingPdb:=_emittingPdb,
+                                                              dynamicAnalysisSpans:=dynamicAnalysisSpans)
 
             If diagnostics IsNot diagsForCurrentMethod Then
                 DirectCast(method.AssociatedSymbol, SynthesizedMyGroupCollectionPropertySymbol).RelocateDiagnostics(diagnostics, diagsForCurrentMethod)
@@ -1459,7 +1476,8 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                                   variableSlotAllocatorOpt As VariableSlotAllocator,
                                                   debugDocumentProvider As DebugDocumentProvider,
                                                   diagnostics As DiagnosticBag,
-                                                  emittingPdb As Boolean) As MethodBody
+                                                  emittingPdb As Boolean,
+                                                  dynamicAnalysisSpans As ImmutableArray(Of SourceSpan)) As MethodBody
 
             Dim compilation = moduleBuilder.Compilation
             Dim localSlotManager = New LocalSlotManager(variableSlotAllocatorOpt)
@@ -1538,6 +1556,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
 
                 Dim localScopes = builder.GetAllScopes()
 
+                Dim dynamicAnalysisDataOpt As DynamicAnalysisMethodBodyData = Nothing
+                If moduleBuilder.EmitOptions.EmitDynamicAnalysisData Then
+                    Debug.Assert(debugDocumentProvider IsNot Nothing)
+                    dynamicAnalysisDataOpt = New DynamicAnalysisMethodBodyData(dynamicAnalysisSpans)
+                End If
+
                 Return New MethodBody(builder.RealizedIL,
                                       builder.MaxStack,
                                       If(method.PartialDefinitionPart, method),
@@ -1556,7 +1580,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
                                       stateMachineHoistedLocalSlots:=stateMachineHoistedLocalSlots,
                                       stateMachineAwaiterSlots:=stateMachineAwaiterSlots,
                                       asyncMethodDebugInfo:=asyncDebugInfo,
-                                      dynamicAnalysisDataOpt:=Nothing) ' TODO
+                                      dynamicAnalysisDataOpt:=dynamicAnalysisDataOpt)
             Finally
                 ' Free resources used by the basic blocks in the builder.
                 builder.FreeBasicBlocks()
@@ -1599,7 +1623,7 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             ' Fill in empty slots for variables deleted during EnC that are not followed by an existing variable
             If variableSlotAllocatorOpt IsNot Nothing Then
                 Dim previousAwaiterCount = variableSlotAllocatorOpt.PreviousAwaiterSlotCount
-                While awaiters.Count < previousAwaiterCount
+                While awaiters.Count <previousAwaiterCount
                     awaiters.Add(Nothing)
                 End While
 

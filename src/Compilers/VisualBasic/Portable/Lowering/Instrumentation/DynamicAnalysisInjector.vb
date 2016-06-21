@@ -40,6 +40,12 @@ Namespace Microsoft.CodeAnalysis.VisualBasic
             Return Nothing
         End Function
 
+        Public ReadOnly Property DynamicAnalysisSpans As ImmutableArray(Of SourceSpan)
+            Get
+                Return _dynamicAnalysisSpans
+            End Get
+        End Property
+
         Private Sub New(methoD As MethodSymbol, methodBody As BoundStatement, factory As SyntheticBoundNodeFactory, createPayload As MethodSymbol, diagnostics As DiagnosticBag, debugDocumentProvider As DebugDocumentProvider, previous As Instrumenter)
             MyBase.New(previous)
             _createPayload = createPayload
