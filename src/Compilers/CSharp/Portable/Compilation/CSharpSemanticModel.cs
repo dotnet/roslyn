@@ -4186,7 +4186,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             var method = call.Method;
             Debug.Assert((object)method != null);
-            Debug.Assert(!call.InvokedAsExtensionMethod || !method.IsExtensionMethod || method.MethodKind != MethodKind.ReducedExtension);
+            Debug.Assert(!(call.InvokedAsExtensionMethod && method.IsExtensionMethod && (method.MethodKind != MethodKind.ReducedExtension || method.IsInExtensionClass)));
             return ImmutableArray.Create<Symbol>(method);
         }
 

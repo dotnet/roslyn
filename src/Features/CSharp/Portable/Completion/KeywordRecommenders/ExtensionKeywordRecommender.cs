@@ -14,7 +14,7 @@ namespace Microsoft.CodeAnalysis.CSharp.Completion.KeywordRecommenders
     internal class ExtensionKeywordRecommender : AbstractSyntacticSingleKeywordRecommender
     {
         public ExtensionKeywordRecommender() :
-            base(SyntaxKind.ExtensionKeyword, isValidInPreprocessorContext: false)
+            base(SyntaxKind.ExtensionKeyword)
         {
         }
 

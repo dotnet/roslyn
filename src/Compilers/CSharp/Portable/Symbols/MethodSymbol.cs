@@ -690,7 +690,8 @@ namespace Microsoft.CodeAnalysis.CSharp.Symbols
         public MethodSymbol ExpandExtensionClassMethod()
         {
             // PROTOTYPE: Rename this method to be more generic, something like "UnreduceMethod". Maybe merge with ReducedFrom somehow.
-            var reducedFrom = ReducedFrom;
+            // PROTOTYPE: Create another method to get the constructed reduced form that returns a MethodSymbol (GetConstructedReducedFrom is a public+shipped extension method)
+            var reducedFrom = (MethodSymbol)this.GetConstructedReducedFrom();
             if ((object)reducedFrom != null)
             {
                 return reducedFrom;

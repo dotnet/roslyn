@@ -401,7 +401,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             var receiverNamedType = receiverType as NamedTypeSymbol;
 
             bool isComReceiver = (object)receiverNamedType != null && receiverNamedType.IsComImport;
-            var needsExtensionExpanding = methodOrIndexer.IsExpandedExtensionClassMember || ((methodOrIndexer as MethodSymbol)?.IsExtensionMethod ?? false) && !methodOrIndexer.IsStatic;
+            var needsExtensionExpanding = methodOrIndexer.IsExpandedExtensionClassMember || ((methodOrIndexer as MethodSymbol)?.IsExtensionMethod ?? false);
+            Debug.Assert(!(needsExtensionExpanding && !methodOrIndexer.IsStatic));
 
             if (rewrittenArguments.Length == methodOrIndexer.GetParameterCount() &&
                 argsToParamsOpt.IsDefault &&

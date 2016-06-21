@@ -733,6 +733,9 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (!result.IsMultiViable && (options & LookupOptions.IncludeExtensionMethods) != 0)
             {
+                originalBinder.LookupExtensionMembers(result, name, arity, options, ref useSiteDiagnostics);
+                // PROTOTYPE: Deal with commented out code here
+                /*
                 var tempResult = LookupResult.GetInstance();
                 originalBinder.LookupExtensionMembers(tempResult, name, arity, options, ref useSiteDiagnostics);
                 // PROTOTYPE: Provide better errors on lookup failure?
@@ -751,6 +754,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     }
                 }
                 tempResult.Free();
+                */
             }
 
             visited?.Free();

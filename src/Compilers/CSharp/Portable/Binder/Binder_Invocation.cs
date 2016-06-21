@@ -836,12 +836,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             // We still have to determine if it passes final validation.
 
             var methodResult = result.ValidResult;
-            var returnType = methodResult.Member.ReturnType;
-            this.CoerceArguments(methodResult, analyzedArguments.Arguments, diagnostics);
-
             var method = methodResult.Member;
-            var expanded = methodResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
-            var argsToParams = methodResult.Result.ArgsToParamsOpt;
 
             // It is possible that overload resolution succeeded, but we have chosen an
             // instance method and we're in a static method. A careful reading of the
@@ -851,6 +846,11 @@ namespace Microsoft.CodeAnalysis.CSharp
             // overload resolution.
 
             var receiver = ReplaceTypeOrValueReceiver(methodGroup.Receiver, method.IsStatic && !invokedAsExtensionMethod, diagnostics);
+
+            var returnType = methodResult.Member.ReturnType;
+            var expanded = methodResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
+            var argsToParams = methodResult.Result.ArgsToParamsOpt;
+            this.CoerceArguments(methodResult, ref receiver, analyzedArguments.Arguments, diagnostics);
 
             // Note: we specifically want to do final validation (7.6.5.1) without checking delegate compatibility (15.2),
             // so we're calling MethodGroupFinalValidation directly, rather than via MethodGroupConversionHasErrors.
@@ -929,7 +929,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                     gotError = true;
                 }
 
-                if (!method.IsStatic)
+                if (!method.IsStatic && !invokedAsExtensionMethod)
                 {
                     WarnOnAccessOfOffDefault(node.Kind() == SyntaxKind.InvocationExpression ?
                                                 ((InvocationExpressionSyntax)node).Expression :

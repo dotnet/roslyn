@@ -2198,6 +2198,7 @@ namespace Microsoft.CodeAnalysis.CSharp
 
         private void CoerceArguments<TMember>(
             MemberResolutionResult<TMember> methodResult,
+            ref BoundExpression receiverOpt,
             ArrayBuilder<BoundExpression> arguments,
             DiagnosticBag diagnostics)
             where TMember : Symbol
@@ -2206,6 +2207,18 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             // Parameter types should be taken from the least overridden member:
             var parameters = methodResult.LeastOverriddenMember.GetParameters();
+
+            if (result.ReceiverConversionOpt.HasValue)
+            {
+                Debug.Assert((object)receiverOpt != null);
+                var kind = result.ReceiverConversionOpt.Value;
+                if (!kind.IsIdentity)
+                {
+                    var leastOverridden = (Symbol)methodResult.LeastOverriddenMember;
+                    var type = leastOverridden.Kind == SymbolKind.Method ? ((MethodSymbol)leastOverridden).ReceiverType : ((PropertySymbol)leastOverridden).ReceiverType;
+                    receiverOpt = CreateConversion(receiverOpt.Syntax, receiverOpt, kind, false, type, diagnostics);
+                }
+            }
 
             for (int arg = 0; arg < arguments.Count; ++arg)
             {
@@ -4430,7 +4443,8 @@ namespace Microsoft.CodeAnalysis.CSharp
 
             if (succeededIgnoringAccessibility)
             {
-                this.CoerceArguments<MethodSymbol>(result.ValidResult, analyzedArguments.Arguments, diagnostics);
+                BoundExpression receiverOpt = null;
+                this.CoerceArguments<MethodSymbol>(result.ValidResult, ref receiverOpt, analyzedArguments.Arguments, diagnostics);
             }
 
             // Fill in the out parameter with the result, if there was one; it might be inaccessible.
@@ -5682,7 +5696,7 @@ namespace Microsoft.CodeAnalysis.CSharp
         {
             bool hasError = this.CheckInstanceOrStatic(node, receiver, propertySymbol, ref lookupResult, diagnostics);
 
-            if (!propertySymbol.IsStatic)
+            if (!propertySymbol.IsStatic && !propertySymbol.IsInExtensionClass)
             {
                 WarnOnAccessOfOffDefault(node, receiver, diagnostics);
             }
@@ -5935,8 +5949,6 @@ namespace Microsoft.CodeAnalysis.CSharp
                 return BadIndexerExpression(node, expr, analyzedArguments, null, diagnostics);
             }
 
-            WarnOnAccessOfOffDefault(node, expr, diagnostics);
-
             // Did we have any errors?
             if (analyzedArguments.HasErrors || expr.HasAnyErrors)
             {
@@ -6004,6 +6016,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node != null);
             Debug.Assert(expr != null);
             Debug.Assert(arguments != null);
+
+            WarnOnAccessOfOffDefault(node, expr, diagnostics);
 
             // For an array access, the primary-no-array-creation-expression of the element-access
             // must be a value of an array-type. Furthermore, the argument-list of an array access
@@ -6123,6 +6137,8 @@ namespace Microsoft.CodeAnalysis.CSharp
             Debug.Assert(node != null);
             Debug.Assert(expr != null);
             Debug.Assert(analyzedArguments != null);
+
+            WarnOnAccessOfOffDefault(node, expr, diagnostics);
 
             bool hasErrors = false;
 
@@ -6286,6 +6302,11 @@ namespace Microsoft.CodeAnalysis.CSharp
              ImmutableArray<PropertySymbol> applicableProperties,
              DiagnosticBag diagnostics)
         {
+            if ((object)receiverOpt != null)
+            {
+                WarnOnAccessOfOffDefault(syntax, receiverOpt, diagnostics);
+            }
+
             bool hasErrors = false;
 
             if (receiverOpt != null)
@@ -6402,7 +6423,7 @@ namespace Microsoft.CodeAnalysis.CSharp
             {
                 MemberResolutionResult<PropertySymbol> resolutionResult = overloadResolutionResult.ValidResult;
                 PropertySymbol property = resolutionResult.Member;
-                this.CoerceArguments<PropertySymbol>(resolutionResult, analyzedArguments.Arguments, diagnostics);
+                this.CoerceArguments<PropertySymbol>(resolutionResult, ref receiverOpt, analyzedArguments.Arguments, diagnostics);
 
                 var isExpanded = resolutionResult.Result.Kind == MemberResolutionKind.ApplicableInExpandedForm;
                 var argsToParams = resolutionResult.Result.ArgsToParamsOpt;
@@ -6417,6 +6438,11 @@ namespace Microsoft.CodeAnalysis.CSharp
                 if (!gotError && receiver != null && receiver.Kind == BoundKind.ThisReference && receiver.WasCompilerGenerated)
                 {
                     gotError = IsRefOrOutThisParameterCaptured(syntax, diagnostics);
+                }
+
+                if ((object)receiverOpt != null && !property.IsInExtensionClass)
+                {
+                    WarnOnAccessOfOffDefault(syntax, receiverOpt, diagnostics);
                 }
 
                 propertyAccess = new BoundIndexerAccess(

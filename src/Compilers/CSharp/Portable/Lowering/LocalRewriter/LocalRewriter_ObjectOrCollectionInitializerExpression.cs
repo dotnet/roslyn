@@ -138,6 +138,12 @@ namespace Microsoft.CodeAnalysis.CSharp
             var syntax = initializer.Syntax;
             MethodSymbol addMethod = initializer.AddMethod;
 
+            if (initializer.InvokedAsExtensionMethod)
+            {
+                Debug.Assert(addMethod.IsInExtensionClass || addMethod.MethodKind == MethodKind.ReducedExtension);
+                addMethod = addMethod.ExpandExtensionClassMethod();
+            }
+
             if (_allowOmissionOfConditionalCalls)
             {
                 // NOTE: Calls cannot be omitted within an expression tree (CS0765); this should already

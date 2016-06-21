@@ -260,9 +260,9 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterAbstract()
+        public async Task TestAfterAbstract()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
 @"abstract $$");
         }
 
@@ -281,16 +281,16 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterStaticPublic()
+        public async Task TestAfterStaticPublic()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
 @"static public $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterPublicStatic()
+        public async Task TestAfterPublicStatic()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
 @"public static $$");
         }
 
@@ -315,16 +315,16 @@ $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterSealed()
+        public async Task TestAfterSealed()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
 @"sealed $$");
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterStatic()
+        public async Task TestAfterStatic()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
 @"static $$");
         }
 
@@ -357,9 +357,9 @@ using Bar;"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterNestedAbstract()
+        public async Task TestAfterNestedAbstract()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
 @"class C {
     abstract $$");
         }
@@ -379,9 +379,9 @@ using Bar;"));
         }
 
         [Fact, Trait(Traits.Feature, Traits.Features.KeywordRecommending)]
-        public async Task TestNotAfterNestedSealed()
+        public async Task TestAfterNestedSealed()
         {
-            await VerifyAbsenceAsync(
+            await VerifyKeywordAsync(
 @"class C {
     sealed $$");
         }

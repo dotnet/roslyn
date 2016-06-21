@@ -25,6 +25,9 @@ namespace Microsoft.CodeAnalysis.CSharp.UnitTests
         // PROTOTYPE: Overloaded (non-)ambiguous methods, properties, etc. - this is a working issue, lots of ambiguous cases to test.
         // PROTOTYPE: Generics - working issue, there's a lot of cases here.
         //   Specifically, two-phase type inference is not implemented
+        // PROTOTYPE: default(string).ExtProp should not emit WRN_DotOnDefault
+        // PROTOTYPE: Define indexer on array
+        // PROTOTYPE: using static on ext class
 
         [Fact]
         public void TempTest()

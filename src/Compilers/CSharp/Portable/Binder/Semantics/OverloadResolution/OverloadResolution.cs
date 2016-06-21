@@ -321,8 +321,7 @@ namespace Microsoft.CodeAnalysis.CSharp
                 var result = results[i];
                 var reducedMember = ReduceExtensionMember(result.Member);
                 var reducedLeastOverridden = ReduceExtensionMember(result.LeastOverriddenMember);
-                Conversion receiverConversion; // PROTOTYPE: Use the conversion?
-                var analysis = result.Result.RemoveFirstParameter(out receiverConversion);
+                var analysis = result.Result.RemoveFirstParameter();
                 results[i] = new MemberResolutionResult<TMember>(reducedMember, reducedLeastOverridden, analysis);
             }
             // Undo the expansion done by UnreduceExtensionMembers
