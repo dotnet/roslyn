@@ -8320,7 +8320,6 @@ tryAgain:
         /// <summary>
         /// Parses any kind of local declaration statement: local variable, local function, let statement, or deconstruction declaration.
         /// </summary>
-        /// <returns></returns>
         private StatementSyntax ParseLocalDeclarationStatement()
         {
             VariableDeclarationSyntax deconstruction = TryParseDeconstructionDeclaration(withEquals: true);
@@ -8380,10 +8379,7 @@ tryAgain:
         }
 
         /// <summary>
-        /// Parses a deconstruction-declaration.
-        /// Returns null and resets the pointer if this does not look like a deconstruction-declaration after all (PROTOTYPE(tuples)).
-        ///
-        /// The syntax is `deconstruction-variables = expression`
+        /// Returns null and resets the pointer if this does not look like a deconstruction-declaration after all.
         /// </summary>
         private VariableDeclarationSyntax TryParseDeconstructionDeclaration(bool withEquals)
         {
@@ -8419,22 +8415,27 @@ tryAgain:
         /// Parses a deconstruction-declaration, which can appear in a local-declaration statement or a for statement.
         /// Returns null if this does not look like a deconstruction-declaration after all (equal sign missing).
         ///
-        /// The syntax is `deconstruction-variables = expression` and can appear in local declarations and for statements.
+        /// The syntax is either var form: `var (deconstruction-declaration, ...) = expression` or list form `(deconstruction-declaration, ...) = expression`.
         /// </summary>
+        /// <param name="withEquals">Specifies whether to look for and consume the equals sign and the following expression.</param>
+        /// <param name="topLevel">Specifies whether to parse the terminal form of a deconstruction-declaration (which can't appear at the top-level).</param>
         private VariableDeclarationSyntax ParseDeconstructionDeclaration(bool withEquals, bool topLevel = true)
         {
+            Debug.Assert(topLevel || !withEquals); // withEquals can only be set at the top-level
+
             if (this.CurrentToken.IsVar && this.PeekToken(1).Kind == SyntaxKind.OpenParenToken)
             {
-                // parses `var (...) = expression`
+                // parses `var (...) = expression` form
                 return ParseDeconstructionVarForm(withEquals);
             }
             else if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
             {
-                // parses `(...) = expression` where the elements are deconstruction variables
+                // parses `(...) = expression` form
                 return ParseDeconstructionListForm(withEquals);
             }
             else if (!topLevel)
             {
+                // parses `type id` part
                 return ParseDeconstructionTypeIdPart();
             }
             else
@@ -8523,7 +8524,7 @@ tryAgain:
         }
 
         /// <summary>
-        /// Parses `(..., ..., ...)` where each part is either an identifier, or nested deconstruction identifiers
+        /// Parses `(..., ..., ...)` where each part is either an identifier, or nested deconstruction declarator (with no equals sign) 
         /// </summary>
         private VariableDeconstructionDeclaratorSyntax ParseDeconstructionIdentifiers(bool withEquals)
         {
@@ -8582,6 +8583,9 @@ tryAgain:
             }
         }
 
+        /// <summary>
+        /// Parses both `id` and `(id, ...)` in a deconstruction-declaration.
+        /// </summary>
         private VariableDeclarationSyntax ParseDeconstructionIdentifierOrIdentifiersParts(bool withEquals)
         {
             if (this.CurrentToken.Kind == SyntaxKind.OpenParenToken)
@@ -8595,7 +8599,7 @@ tryAgain:
         }
 
         /// <summary>
-        /// Parses identifiers in a deconstruction. For instance, `var (id, id) = ...`
+        /// Parses an individual identifier in a deconstruction declaration. For instance, in `var (id, id) = ...`
         /// </summary>
         private VariableDeclarationSyntax ParseDeconstructionIdPart()
         {
@@ -8605,7 +8609,7 @@ tryAgain:
         }
 
         /// <summary>
-        /// Parses a type and identifier in a deconstruction. For instance, `(type id, type id) = ...`
+        /// Parses an individual type and identifier in a deconstruction declaration. For instance, in `(type id, type id) = ...`
         /// </summary>
         private VariableDeclarationSyntax ParseDeconstructionTypeIdPart()
         {
@@ -8617,7 +8621,7 @@ tryAgain:
         }
 
         /// <summary>
-        /// Check ahead for a deconstruction declaration, which requires deconstruction-variables with at least one good-looking variable, followed by an equals sign.
+        /// Check ahead for a deconstruction declaration. This requires at least one good-looking variable and the presence of an equals sign.
         /// Doesn't move the cursor.
         /// PROTOTYPE(tuples) Can this be done without allocations?
         /// </summary>
@@ -8659,13 +8663,13 @@ tryAgain:
 
             if (node.Type != null && node.Type.Kind == SyntaxKind.IdentifierName && ((IdentifierNameSyntax)node.Type).Identifier.IsVar && node.Deconstruction != null && !node.Deconstruction.OpenParenToken.IsMissing && !node.Deconstruction.CloseParenToken.IsMissing)
             {
-                // var (..., ....)
+                // `var (..., ....)` with var and both parens present
                 return true;
             }
 
             if (!topLevel && node.Type != null && !node.Type.IsMissing && node.Variables.Count == 1 && !node.Variables[0].Identifier.IsMissing)
             {
-                // type id
+                // `type id` with both type and id present
                 return true;
             }
 
