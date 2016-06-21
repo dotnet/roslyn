@@ -97,6 +97,48 @@ Actual:   False
    at Microsoft.CodeAnalysis.VisualBasic.DiagnosticsExtensions.VerifyDiagnostics(VisualBasicCompilation c, DiagnosticDescription[] expected) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\DiagnosticExtensions.vb:line 16
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.AttributeTests_WellKnownAttributes.TestInvalidSecurityActionErrors() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Emit\Attributes\AttributeTests_WellKnownAttributes.vb:line 3101
 
+Collection: Test collection for Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit.OptionalArgumentsTests
+
+Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit.OptionalArgumentsTests.TestDateTimeMissingOptionalFromMetadata
+Exception Type: Xunit.Sdk.TrueException
+Message:
+
+Expected:
+    Diagnostic(ERRID.ERR_OmittedArgument2, "DateTimeUsingConstantAttribute").WithArguments("i", "Public Sub DateTimeUsingConstantAttribute(i As Date)")
+Actual:
+Diff:
+-->     Diagnostic(ERRID.ERR_OmittedArgument2, "DateTimeUsingConstantAttribute").WithArguments("i", "Public Sub DateTimeUsingConstantAttribute(i As Date)")
+Expected: True
+Actual:   False
+   at Microsoft.CodeAnalysis.DiagnosticExtensions.Verify(IEnumerable`1 actual, DiagnosticDescription[] expected, Boolean errorCodeOnly) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Test\Utilities\Shared\Diagnostics\DiagnosticExtensions.cs:line 84
+   at Microsoft.CodeAnalysis.DiagnosticExtensions.Verify(IEnumerable`1 actual, DiagnosticDescription[] expected) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Test\Utilities\Shared\Diagnostics\DiagnosticExtensions.cs:line 46
+   at Microsoft.CodeAnalysis.DiagnosticExtensions.Verify(ImmutableArray`1 actual, DiagnosticDescription[] expected) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Test\Utilities\Shared\Diagnostics\DiagnosticExtensions.cs:line 61
+   at Microsoft.CodeAnalysis.VisualBasic.DiagnosticsExtensions.VerifyDiagnostics(VisualBasicCompilation c, DiagnosticDescription[] expected) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\DiagnosticExtensions.vb:line 16
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit.OptionalArgumentsTests.TestDateTimeMissingOptionalFromMetadata() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Emit\Emit\OptionalArgumentsTests.vb:line 485
+
+Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit.OptionalArgumentsTests.TestDuplicateConstantAttributesSameValues
+Exception Type: Xunit.Sdk.TrueException
+Message:
+
+MISSING ERROR MESSAGES:
+BC30455: Argument not specified for parameter 'o' of 'Public Shared Function F2(o As Integer) As Object'.
+        Report(C.F2())
+                 ~~
+BC30455: Argument not specified for parameter 'o' of 'Public Shared Function F5(o As Decimal) As Object'.
+        Report(C.F5())
+                 ~~
+BC30455: Argument not specified for parameter 'o' of 'Public Shared Function F8(o As Date) As Object'.
+        Report(C.F8().Ticks)
+                 ~~
+UNEXPECTED ERROR MESSAGES:
+
+Expected: True
+Actual:   False
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, String expectedText, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 885
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit.OptionalArgumentsTests.TestDuplicateConstantAttributesSameValues() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Emit\Emit\OptionalArgumentsTests.vb:line 926
+
 Collection: Test collection for Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.AttributeTests
 
 Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.AttributeTests.AttributeNamedArgumentWithEvent
@@ -234,237 +276,6 @@ Actual:   typeof(System.NullReferenceException): Object reference not set to an 
    at Microsoft.CodeAnalysis.VisualBasic.Symbols.ParameterSymbol.get_ExplicitDefaultValue() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Portable\Symbols\ParameterSymbol.vb:line 149
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.NoPiaEmbedTypes._Closure$__65-0._Lambda$__1() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Emit\Emit\NoPiaEmbedTypes.vb:line 4475
 
-Collection: Test collection for Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit.OptionalArgumentsTests
-
-Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit.OptionalArgumentsTests.TestDateTimeMissingOptionalFromMetadata
-Exception Type: Xunit.Sdk.TrueException
-Message:
-
-Expected:
-    Diagnostic(ERRID.ERR_OmittedArgument2, "DateTimeUsingConstantAttribute").WithArguments("i", "Public Sub DateTimeUsingConstantAttribute(i As Date)")
-Actual:
-Diff:
--->     Diagnostic(ERRID.ERR_OmittedArgument2, "DateTimeUsingConstantAttribute").WithArguments("i", "Public Sub DateTimeUsingConstantAttribute(i As Date)")
-Expected: True
-Actual:   False
-   at Microsoft.CodeAnalysis.DiagnosticExtensions.Verify(IEnumerable`1 actual, DiagnosticDescription[] expected, Boolean errorCodeOnly) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Test\Utilities\Shared\Diagnostics\DiagnosticExtensions.cs:line 84
-   at Microsoft.CodeAnalysis.DiagnosticExtensions.Verify(IEnumerable`1 actual, DiagnosticDescription[] expected) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Test\Utilities\Shared\Diagnostics\DiagnosticExtensions.cs:line 46
-   at Microsoft.CodeAnalysis.DiagnosticExtensions.Verify(ImmutableArray`1 actual, DiagnosticDescription[] expected) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Test\Utilities\Shared\Diagnostics\DiagnosticExtensions.cs:line 61
-   at Microsoft.CodeAnalysis.VisualBasic.DiagnosticsExtensions.VerifyDiagnostics(VisualBasicCompilation c, DiagnosticDescription[] expected) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\DiagnosticExtensions.vb:line 16
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit.OptionalArgumentsTests.TestDateTimeMissingOptionalFromMetadata() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Emit\Emit\OptionalArgumentsTests.vb:line 485
-
-Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit.OptionalArgumentsTests.TestDuplicateConstantAttributesSameValues
-Exception Type: Xunit.Sdk.TrueException
-Message:
-
-MISSING ERROR MESSAGES:
-BC30455: Argument not specified for parameter 'o' of 'Public Shared Function F2(o As Integer) As Object'.
-        Report(C.F2())
-                 ~~
-BC30455: Argument not specified for parameter 'o' of 'Public Shared Function F5(o As Decimal) As Object'.
-        Report(C.F5())
-                 ~~
-BC30455: Argument not specified for parameter 'o' of 'Public Shared Function F8(o As Date) As Object'.
-        Report(C.F8().Ticks)
-                 ~~
-UNEXPECTED ERROR MESSAGES:
-
-Expected: True
-Actual:   False
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, String expectedText, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 885
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.Emit.OptionalArgumentsTests.TestDuplicateConstantAttributesSameValues() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Emit\Emit\OptionalArgumentsTests.vb:line 926
-
-Collection: Test collection for Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.SemanticModelTests
-
-Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.SemanticModelTests.ObjectMembersOnInterfaces2
-Exception Type: Xunit.Sdk.TrueException
-Message:
-
-MISSING ERROR MESSAGES:
-BC30455: Argument not specified for parameter 'x' of 'Function GetHashCode(x As Integer) As Integer'.
-        x.GetHashCode()
-          ~~~~~~~~~~~
-UNEXPECTED ERROR MESSAGES:
-
-Expected: True
-Actual:   False
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, String expectedText, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 885
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.SemanticModelTests.ObjectMembersOnInterfaces2() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Semantic\Compilation\SemanticModelLookupSymbolsAPITests.vb:line 550
-
-Collection: Test collection for Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.OverloadResolutionTests
-
-Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.OverloadResolutionTests.Diagnostics2
-Exception Type: Xunit.Sdk.TrueException
-Message:
-
-MISSING ERROR MESSAGES:
-    'Public Sub F1(x As Integer)': Argument not specified for parameter 'x'.
-    'Public Sub F1(x As Long)': Argument not specified for parameter 'x'.
-    'Public Sub F2(x As Integer, a As Integer, ParamArray y As Integer())': Argument not specified for parameter 'a'.
-    'Public Sub F2(x As Long, ParamArray y As Integer())': Omitted argument cannot match a ParamArray parameter.
-    'Public Sub F2(x As Integer, a As Integer, ParamArray y As Integer())': Argument not specified for parameter 'a'.
-        F2(1, )
-    'Public Sub F3(x As Long, y As Integer, z As Long)': Argument not specified for parameter 'y'.
-    'Public Sub F3(x As Long, z As Long, y As Integer)': Parameter 'z' already has a matching omitted argument.
-    'Public Sub F3(x As Long, z As Long, y As Integer)': Argument not specified for parameter 'y'.
-        F3(1, , z:=1)
-    'Public Sub F3(x As Long, y As Integer, z As Long)': Argument not specified for parameter 'z'.
-    'Public Sub F3(x As Long, z As Long, y As Integer)': Argument not specified for parameter 'y'.
-UNEXPECTED ERROR MESSAGES:
-
-Expected: True
-Actual:   False
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, String expectedText, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 885
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.OverloadResolutionTests.Diagnostics2() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Semantic\Semantics\OverloadResolution.vb:line 3650
-
-Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.OverloadResolutionTests.Diagnostics1
-Exception Type: Xunit.Sdk.TrueException
-Message:
-
-MISSING ERROR MESSAGES:
-BC30455: Argument not specified for parameter 'x' of 'Public Sub F1(Of Integer)(x As Integer)'.
-        F1(Of Integer)()
-        ~~~~~~~~~~~~~~
-BC30455: Argument not specified for parameter 'x' of 'Public Sub F4(x As Integer, ParamArray y As Integer())'.
-        F4()
-BC30455: Argument not specified for parameter 'x' of 'Public Sub F4(x As Integer, ParamArray y As Integer())'.
-BC30455: Argument not specified for parameter 'x' of 'Public Sub F3(x As Integer)'.
-BC30455: Argument not specified for parameter 'x' of 'Public Sub F3(x As Integer)'.
-BC30455: Argument not specified for parameter 'x' of 'Public Sub F4(x As Integer, ParamArray y As Integer())'.
-BC30455: Argument not specified for parameter 'y' of 'Public Sub F5(x As Integer, y As Integer)'.
-UNEXPECTED ERROR MESSAGES:
-
-Expected: True
-Actual:   False
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, String expectedText, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 885
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.OverloadResolutionTests.Diagnostics1() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Semantic\Semantics\OverloadResolution.vb:line 3452
-
-Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.OverloadResolutionTests.BasicTests
-Exception Type: Xunit.Sdk.EqualException
-Message:
-Assert.Equal() Failure
-Expected: ArgumentMismatch
-Actual:   Applicable
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.OverloadResolutionTests.BasicTests() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Semantic\Semantics\OverloadResolution.vb:line 594
-
-Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.OverloadResolutionTests.Bug1034429
-Exception Type: Xunit.Sdk.TrueException
-Message:
-
-MISSING ERROR MESSAGES:
-BC30455: Argument not specified for parameter 'p1' of 'Public Sub New(p1 As Integer, ParamArray p2 As SecurityAction)'.
-BC30455: Argument not specified for parameter 'p1' of 'Public Sub New(p1 As Integer, ParamArray p2 As SecurityAction, p3 As String)'.
-BC30455: Argument not specified for parameter 'p2' of 'Public Sub New(p1 As Integer, ParamArray p2 As SecurityAction, p3 As String)'.
-BC30455: Argument not specified for parameter 'p3' of 'Public Sub New(p1 As Integer, ParamArray p2 As SecurityAction, p3 As String)'.
-UNEXPECTED ERROR MESSAGES:
-
-Expected: True
-Actual:   False
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, String expectedText, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 885
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.OverloadResolutionTests.Bug1034429() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Semantic\Semantics\OverloadResolution.vb:line 5428
-
-Collection: Test collection for Microsoft.CodeAnalysis.VisualBasic.UnitTests.BindingCollectionInitializerTests
-
-Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.BindingCollectionInitializerTests.CollectionInitializerCollectionInitializerArityCheck
-Exception Type: Xunit.Sdk.TrueException
-Message:
-
-MISSING ERROR MESSAGES:
-BC30455: Argument not specified for parameter 'value' of 'Public Overloads Sub Add(key As String, value As Integer)'.
-                                                          ~~~
-UNEXPECTED ERROR MESSAGES:
-
-Expected: True
-Actual:   False
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, String expectedText, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 885
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.BindingCollectionInitializerTests.CollectionInitializerCollectionInitializerArityCheck() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Semantic\Binding\BindingCollectionInitializerTests.vb:line 916
-
-Collection: Test collection for Microsoft.CodeAnalysis.VisualBasic.UnitTests.BindingErrorTests
-
-Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.BindingErrorTests.BC30455ERR_OmittedArgument2_1
-Exception Type: Xunit.Sdk.TrueException
-Message:
-
-MISSING ERROR MESSAGES:
-BC30455: Argument not specified for parameter 'offset' of 'Public Overloads Sub New(offset As Integer)'.
-               <System.Runtime.InteropServices.FieldOffset()>
-                                               ~~~~~~~~~~~
-UNEXPECTED ERROR MESSAGES:
-
-Expected: True
-Actual:   False
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, String expectedText, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 885
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.BindingErrorTests.BC30455ERR_OmittedArgument2_1() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Semantic\Binding\BindingErrorTests.vb:line 6871
-
-Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.BindingErrorTests.Bug573728
-Exception Type: Xunit.Sdk.TrueException
-Message:
-
-MISSING ERROR MESSAGES:
-BC30455: Argument not specified for parameter 'i' of 'D'.
-        o()
-        ~
-UNEXPECTED ERROR MESSAGES:
-
-Expected: True
-Actual:   False
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, String expectedText, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 885
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.BindingErrorTests.Bug573728() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Semantic\Binding\BindingErrorTests.vb:line 24371
-
-Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.BindingErrorTests.BC30272ERR_NamedParamNotFound2
-Exception Type: Xunit.Sdk.TrueException
-Message:
-
-Expected:
-    Diagnostic(ERRID.ERR_NamedParamNotFound2, "t1").WithArguments("t1", "Public Overloads Sub Foo(y1 As Integer)"),
-    Diagnostic(ERRID.ERR_OmittedArgument2, "Foo").WithArguments("y1", "Public Overloads Sub Foo(y1 As Integer)")
-Actual:
-    Diagnostic(ERRID.ERR_NamedParamNotFound2, "t1").WithArguments("t1", "Public Overloads Sub Foo(y1 As Integer)").WithLocation(17, 30)
-Diff:
-++>     Diagnostic(ERRID.ERR_NamedParamNotFound2, "t1").WithArguments("t1", "Public Overloads Sub Foo(y1 As Integer)").WithLocation(17, 30)
--->     Diagnostic(ERRID.ERR_NamedParamNotFound2, "t1").WithArguments("t1", "Public Overloads Sub Foo(y1 As Integer)"),
--->     Diagnostic(ERRID.ERR_OmittedArgument2, "Foo").WithArguments("y1", "Public Overloads Sub Foo(y1 As Integer)")
-Expected: True
-Actual:   False
-   at Microsoft.CodeAnalysis.DiagnosticExtensions.Verify(IEnumerable`1 actual, DiagnosticDescription[] expected, Boolean errorCodeOnly) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Test\Utilities\Shared\Diagnostics\DiagnosticExtensions.cs:line 84
-   at Microsoft.CodeAnalysis.DiagnosticExtensions.Verify(IEnumerable`1 actual, DiagnosticDescription[] expected) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Test\Utilities\Shared\Diagnostics\DiagnosticExtensions.cs:line 46
-   at Microsoft.CodeAnalysis.DiagnosticExtensions.Verify(ImmutableArray`1 actual, DiagnosticDescription[] expected) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Test\Utilities\Shared\Diagnostics\DiagnosticExtensions.cs:line 61
-   at Microsoft.CodeAnalysis.VisualBasic.DiagnosticsExtensions.VerifyDiagnostics(VisualBasicCompilation c, DiagnosticDescription[] expected) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\DiagnosticExtensions.vb:line 16
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.BindingErrorTests.BC30272ERR_NamedParamNotFound2() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Semantic\Binding\BindingErrorTests.vb:line 3807
-
-Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.BindingErrorTests.BC30455ERR_OmittedArgument2
-Exception Type: Xunit.Sdk.TrueException
-Message:
-
-MISSING ERROR MESSAGES:
-BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Default Property P(x As Object, y As Object) As Object'.
-                    N(x!Q)
-                      ~~~
-UNEXPECTED ERROR MESSAGES:
-
-Expected: True
-Actual:   False
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, String expectedText, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 885
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.BindingErrorTests.BC30455ERR_OmittedArgument2() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Semantic\Binding\BindingErrorTests.vb:line 6852
-
 Collection: Test collection for Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.NewOnInterfaceTests
 
 Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.NewOnInterfaceTests.NewOnCoClassInterface_NoDefaultConstructorError
@@ -483,80 +294,6 @@ Actual:   False
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.NewOnInterfaceTests.NewOnCoClassInterface_NoDefaultConstructorError() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Semantic\Semantics\NewOnInterfaceTests.vb:line 158
-
-Collection: Test collection for Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.QueryExpressions
-
-Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.QueryExpressions.RangeVariableNameInference1
-Exception Type: Xunit.Sdk.TrueException
-Message:
-
-MISSING ERROR MESSAGES:
-BC36586: Argument not specified for parameter 'index' of extension method 'Public Function ElementAtOrDefault(index As Integer) As XElement' defined in 'Enumerable'.
-        o = From a In x Select y = 1, x.<Elem2>()
-                                        ~~~~~~~
-BC36586: Argument not specified for parameter 'index' of extension method 'Public Function ElementAtOrDefault(index As Integer) As XElement' defined in 'Enumerable'.
-        o = From a In x Select y = 1, x...<Elem2>()
-                                          ~~~~~~~
-UNEXPECTED ERROR MESSAGES:
-
-Expected: True
-Actual:   False
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, String expectedText, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 885
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.QueryExpressions.RangeVariableNameInference1() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Semantic\Semantics\QueryExpressions.vb:line 9937
-
-Collection: Test collection for Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.NoncompliantOverloadingInMetadata
-
-Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.NoncompliantOverloadingInMetadata.MembersDifferByKindAndAccessibility_2
-Exception Type: Xunit.Sdk.TrueException
-Message:
-
-MISSING ERROR MESSAGES:
-BC30455: Argument not specified for parameter 'x' of 'Public Overloads Function aA1(x As Integer) As String'.
-            System.Console.WriteLine(Aa1)
-                                     ~~~
-BC30455: Argument not specified for parameter 'x' of 'Public Overloads Function aA2(x As Integer) As String'.
-            System.Console.WriteLine(aA2)
-                                     ~~~
-BC30455: Argument not specified for parameter 'x' of 'Public Overloads Function aA3(x As Integer) As String'.
-            System.Console.WriteLine(Aa3)
-                                     ~~~
-BC30455: Argument not specified for parameter 'x' of 'Public Overloads Function aA4(x As Integer) As String'.
-            System.Console.WriteLine(Aa4)
-                                     ~~~
-BC30455: Argument not specified for parameter 'x' of 'Public Overloads Function aA5(x As Integer) As String'.
-            System.Console.WriteLine(aA5)
-                                     ~~~
-BC30455: Argument not specified for parameter 'x' of 'Public Overloads Function aA6(x As Integer) As String'.
-            System.Console.WriteLine(aA6)
-                                     ~~~
-BC30455: Argument not specified for parameter 'x' of 'Public Overloads Function aA1(x As Integer) As String'.
-        System.Console.WriteLine(c.Aa1)
-                                   ~~~
-BC30455: Argument not specified for parameter 'x' of 'Public Overloads Function aA2(x As Integer) As String'.
-        System.Console.WriteLine(c.aA2)
-                                   ~~~
-BC30455: Argument not specified for parameter 'x' of 'Public Overloads Function aA3(x As Integer) As String'.
-        System.Console.WriteLine(c.Aa3)
-                                   ~~~
-BC30455: Argument not specified for parameter 'x' of 'Public Overloads Function aA4(x As Integer) As String'.
-        System.Console.WriteLine(c.Aa4)
-                                   ~~~
-BC30455: Argument not specified for parameter 'x' of 'Public Overloads Function aA5(x As Integer) As String'.
-        System.Console.WriteLine(c.aA5)
-                                   ~~~
-BC30455: Argument not specified for parameter 'x' of 'Public Overloads Function aA6(x As Integer) As String'.
-        System.Console.WriteLine(c.aA6)
-                                   ~~~
-UNEXPECTED ERROR MESSAGES:
-
-Expected: True
-Actual:   False
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, String expectedText, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 885
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.NoncompliantOverloadingInMetadata.MembersDifferByKindAndAccessibility_2() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Semantic\Semantics\NoncompliantOverloadingInMetadata.vb:line 4783
 
 Collection: Test collection for Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.OptionalArgumentTests
 
@@ -697,6 +434,143 @@ Parameter name: opts
    at Microsoft.CodeAnalysis.VisualBasic.Symbols.ParameterSymbol.get_ExplicitDefaultValue() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Portable\Symbols\ParameterSymbol.vb:line 149
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.OptionalArgumentTests._Closure$__41-0._Lambda$__4() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Semantic\Semantics\OptionalArgumentTests.vb:line 2165
 
+Collection: Test collection for Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.MethodCalls
+
+Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.MethodCalls.NamedArgumentsAndOverriding
+Exception Type: Xunit.Sdk.TrueException
+Message:
+
+MISSING ERROR MESSAGES:
+BC30455: Argument not specified for parameter 'z' of 'Public Overrides Sub Foo(z As Integer)'.
+           ~~~
+BC30455: Argument not specified for parameter 'z' of 'Public Overrides Sub Foo(z As Integer)'.
+           ~~~
+BC30455: Argument not specified for parameter 't2' of 'Public Overrides Function fun1(Of T)(ByRef t2 As T) As Object'.
+               ~~~~
+UNEXPECTED ERROR MESSAGES:
+
+Expected: True
+Actual:   False
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, String expectedText, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 885
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.MethodCalls.NamedArgumentsAndOverriding() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Semantic\Semantics\MethodCalls.vb:line 4365
+
+Collection: Test collection for Microsoft.CodeAnalysis.VisualBasic.UnitTests.BindingCollectionInitializerTests
+
+Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.BindingCollectionInitializerTests.CollectionInitializerCollectionInitializerArityCheck
+Exception Type: Xunit.Sdk.TrueException
+Message:
+
+MISSING ERROR MESSAGES:
+BC30455: Argument not specified for parameter 'value' of 'Public Overloads Sub Add(key As String, value As Integer)'.
+                                                          ~~~
+UNEXPECTED ERROR MESSAGES:
+
+Expected: True
+Actual:   False
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, String expectedText, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 885
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.BindingCollectionInitializerTests.CollectionInitializerCollectionInitializerArityCheck() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Semantic\Binding\BindingCollectionInitializerTests.vb:line 916
+
+Collection: Test collection for Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.OverloadResolutionTests
+
+Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.OverloadResolutionTests.Diagnostics2
+Exception Type: Xunit.Sdk.TrueException
+Message:
+
+MISSING ERROR MESSAGES:
+    'Public Sub F1(x As Integer)': Argument not specified for parameter 'x'.
+    'Public Sub F1(x As Long)': Argument not specified for parameter 'x'.
+    'Public Sub F2(x As Integer, a As Integer, ParamArray y As Integer())': Argument not specified for parameter 'a'.
+    'Public Sub F2(x As Long, ParamArray y As Integer())': Omitted argument cannot match a ParamArray parameter.
+    'Public Sub F2(x As Integer, a As Integer, ParamArray y As Integer())': Argument not specified for parameter 'a'.
+        F2(1, )
+    'Public Sub F3(x As Long, y As Integer, z As Long)': Argument not specified for parameter 'y'.
+    'Public Sub F3(x As Long, z As Long, y As Integer)': Parameter 'z' already has a matching omitted argument.
+    'Public Sub F3(x As Long, z As Long, y As Integer)': Argument not specified for parameter 'y'.
+        F3(1, , z:=1)
+    'Public Sub F3(x As Long, y As Integer, z As Long)': Argument not specified for parameter 'z'.
+    'Public Sub F3(x As Long, z As Long, y As Integer)': Argument not specified for parameter 'y'.
+UNEXPECTED ERROR MESSAGES:
+
+Expected: True
+Actual:   False
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, String expectedText, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 885
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.OverloadResolutionTests.Diagnostics2() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Semantic\Semantics\OverloadResolution.vb:line 3650
+
+Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.OverloadResolutionTests.Diagnostics1
+Exception Type: Xunit.Sdk.TrueException
+Message:
+
+MISSING ERROR MESSAGES:
+BC30455: Argument not specified for parameter 'x' of 'Public Sub F1(Of Integer)(x As Integer)'.
+        F1(Of Integer)()
+        ~~~~~~~~~~~~~~
+BC30455: Argument not specified for parameter 'x' of 'Public Sub F4(x As Integer, ParamArray y As Integer())'.
+        F4()
+BC30455: Argument not specified for parameter 'x' of 'Public Sub F4(x As Integer, ParamArray y As Integer())'.
+BC30455: Argument not specified for parameter 'x' of 'Public Sub F3(x As Integer)'.
+BC30455: Argument not specified for parameter 'x' of 'Public Sub F3(x As Integer)'.
+BC30455: Argument not specified for parameter 'x' of 'Public Sub F4(x As Integer, ParamArray y As Integer())'.
+BC30455: Argument not specified for parameter 'y' of 'Public Sub F5(x As Integer, y As Integer)'.
+UNEXPECTED ERROR MESSAGES:
+
+Expected: True
+Actual:   False
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, String expectedText, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 885
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.OverloadResolutionTests.Diagnostics1() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Semantic\Semantics\OverloadResolution.vb:line 3452
+
+Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.OverloadResolutionTests.BasicTests
+Exception Type: Xunit.Sdk.EqualException
+Message:
+Assert.Equal() Failure
+Expected: ArgumentMismatch
+Actual:   Applicable
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.OverloadResolutionTests.BasicTests() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Semantic\Semantics\OverloadResolution.vb:line 594
+
+Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.OverloadResolutionTests.Bug1034429
+Exception Type: Xunit.Sdk.TrueException
+Message:
+
+MISSING ERROR MESSAGES:
+BC30455: Argument not specified for parameter 'p1' of 'Public Sub New(p1 As Integer, ParamArray p2 As SecurityAction)'.
+BC30455: Argument not specified for parameter 'p1' of 'Public Sub New(p1 As Integer, ParamArray p2 As SecurityAction, p3 As String)'.
+BC30455: Argument not specified for parameter 'p2' of 'Public Sub New(p1 As Integer, ParamArray p2 As SecurityAction, p3 As String)'.
+BC30455: Argument not specified for parameter 'p3' of 'Public Sub New(p1 As Integer, ParamArray p2 As SecurityAction, p3 As String)'.
+UNEXPECTED ERROR MESSAGES:
+
+Expected: True
+Actual:   False
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, String expectedText, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 885
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.OverloadResolutionTests.Bug1034429() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Semantic\Semantics\OverloadResolution.vb:line 5428
+
+Collection: Test collection for Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.SemanticModelTests
+
+Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.SemanticModelTests.ObjectMembersOnInterfaces2
+Exception Type: Xunit.Sdk.TrueException
+Message:
+
+MISSING ERROR MESSAGES:
+BC30455: Argument not specified for parameter 'x' of 'Function GetHashCode(x As Integer) As Integer'.
+        x.GetHashCode()
+          ~~~~~~~~~~~
+UNEXPECTED ERROR MESSAGES:
+
+Expected: True
+Actual:   False
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, String expectedText, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 885
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.SemanticModelTests.ObjectMembersOnInterfaces2() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Semantic\Compilation\SemanticModelLookupSymbolsAPITests.vb:line 550
+
 Collection: Test collection for Microsoft.CodeAnalysis.VisualBasic.UnitTests.Binder_Expressions_Tests
 
 Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.Binder_Expressions_Tests.ColorColorPropertyWithParam
@@ -773,19 +647,49 @@ Actual:   False
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.Binder_Expressions_Tests.ColorColorOverloadedErr() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Semantic\Binding\Binder_Expressions_Tests.vb:line 1595
 
-Collection: Test collection for Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.MethodCalls
+Collection: Test collection for Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.NoncompliantOverloadingInMetadata
 
-Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.MethodCalls.NamedArgumentsAndOverriding
+Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.NoncompliantOverloadingInMetadata.MembersDifferByKindAndAccessibility_2
 Exception Type: Xunit.Sdk.TrueException
 Message:
 
 MISSING ERROR MESSAGES:
-BC30455: Argument not specified for parameter 'z' of 'Public Overrides Sub Foo(z As Integer)'.
-           ~~~
-BC30455: Argument not specified for parameter 'z' of 'Public Overrides Sub Foo(z As Integer)'.
-           ~~~
-BC30455: Argument not specified for parameter 't2' of 'Public Overrides Function fun1(Of T)(ByRef t2 As T) As Object'.
-               ~~~~
+BC30455: Argument not specified for parameter 'x' of 'Public Overloads Function aA1(x As Integer) As String'.
+            System.Console.WriteLine(Aa1)
+                                     ~~~
+BC30455: Argument not specified for parameter 'x' of 'Public Overloads Function aA2(x As Integer) As String'.
+            System.Console.WriteLine(aA2)
+                                     ~~~
+BC30455: Argument not specified for parameter 'x' of 'Public Overloads Function aA3(x As Integer) As String'.
+            System.Console.WriteLine(Aa3)
+                                     ~~~
+BC30455: Argument not specified for parameter 'x' of 'Public Overloads Function aA4(x As Integer) As String'.
+            System.Console.WriteLine(Aa4)
+                                     ~~~
+BC30455: Argument not specified for parameter 'x' of 'Public Overloads Function aA5(x As Integer) As String'.
+            System.Console.WriteLine(aA5)
+                                     ~~~
+BC30455: Argument not specified for parameter 'x' of 'Public Overloads Function aA6(x As Integer) As String'.
+            System.Console.WriteLine(aA6)
+                                     ~~~
+BC30455: Argument not specified for parameter 'x' of 'Public Overloads Function aA1(x As Integer) As String'.
+        System.Console.WriteLine(c.Aa1)
+                                   ~~~
+BC30455: Argument not specified for parameter 'x' of 'Public Overloads Function aA2(x As Integer) As String'.
+        System.Console.WriteLine(c.aA2)
+                                   ~~~
+BC30455: Argument not specified for parameter 'x' of 'Public Overloads Function aA3(x As Integer) As String'.
+        System.Console.WriteLine(c.Aa3)
+                                   ~~~
+BC30455: Argument not specified for parameter 'x' of 'Public Overloads Function aA4(x As Integer) As String'.
+        System.Console.WriteLine(c.Aa4)
+                                   ~~~
+BC30455: Argument not specified for parameter 'x' of 'Public Overloads Function aA5(x As Integer) As String'.
+        System.Console.WriteLine(c.aA5)
+                                   ~~~
+BC30455: Argument not specified for parameter 'x' of 'Public Overloads Function aA6(x As Integer) As String'.
+        System.Console.WriteLine(c.aA6)
+                                   ~~~
 UNEXPECTED ERROR MESSAGES:
 
 Expected: True
@@ -793,7 +697,7 @@ Actual:   False
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, String expectedText, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 885
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.MethodCalls.NamedArgumentsAndOverriding() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Semantic\Semantics\MethodCalls.vb:line 4365
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.NoncompliantOverloadingInMetadata.MembersDifferByKindAndAccessibility_2() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Semantic\Semantics\NoncompliantOverloadingInMetadata.vb:line 4783
 
 Collection: Test collection for Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.OptionalArgumentTests_ImplicitDefaultValue
 
@@ -1060,18 +964,16 @@ System.Runtime.InteropServices.DispatchWrapper
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.BasicTestBase.CompileAndVerify(XElement source, String expectedOutput, MetadataReference[] additionalRefs, IEnumerable`1 dependencies, Action`1 sourceSymbolValidator, Action`1 validator, Action`1 symbolValidator, SignatureDescription[] expectedSignatures, VisualBasicCompilationOptions options, VisualBasicParseOptions parseOptions, Boolean verify, Boolean useLatestFramework) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\BasicTestBase.vb:line 129
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.OptionalArgumentTests_ImplicitDefaultValue.OptionalWithMarshallAs() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Semantic\Semantics\OptionalArgumentTests_ImplicitDefaultValue.vb:line 862
 
-Collection: Test collection for Microsoft.CodeAnalysis.VisualBasic.UnitTests.GroupClassTests
+Collection: Test collection for Microsoft.CodeAnalysis.VisualBasic.UnitTests.BindingErrorTests
 
-Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.GroupClassTests.DefaultInstanceAlias1
+Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.BindingErrorTests.BC30455ERR_OmittedArgument2_1
 Exception Type: Xunit.Sdk.TrueException
 Message:
 
 MISSING ERROR MESSAGES:
-BC30455: Argument not specified for parameter 'x' of 'Public Default Property P3(x As Integer) As Integer'.
-            Dim x108 = Form2()
-                       ~~~~~
-BC30455: Argument not specified for parameter 'x' of 'Public Default Property P3(x As Integer) As Integer'.
-            Form2() = x107
+BC30455: Argument not specified for parameter 'offset' of 'Public Overloads Sub New(offset As Integer)'.
+               <System.Runtime.InteropServices.FieldOffset()>
+                                               ~~~~~~~~~~~
 UNEXPECTED ERROR MESSAGES:
 
 Expected: True
@@ -1079,18 +981,16 @@ Actual:   False
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, String expectedText, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 885
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.GroupClassTests.DefaultInstanceAlias1() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Symbol\SymbolsTests\Source\GroupClassTests.vb:line 2402
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.BindingErrorTests.BC30455ERR_OmittedArgument2_1() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Semantic\Binding\BindingErrorTests.vb:line 6871
 
-Collection: Test collection for Microsoft.CodeAnalysis.VisualBasic.UnitTests.ExtensionMethods.LookupAndInvocation
-
-Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.ExtensionMethods.LookupAndInvocation.NestedClasses1
+Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.BindingErrorTests.Bug573728
 Exception Type: Xunit.Sdk.TrueException
 Message:
 
 MISSING ERROR MESSAGES:
-BC30455: Argument not specified for parameter 'x' of 'Public Sub Test3(x As C2)'.
-            Test3() 'C3
-            ~~~~~
+BC30455: Argument not specified for parameter 'i' of 'D'.
+        o()
+        ~
 UNEXPECTED ERROR MESSAGES:
 
 Expected: True
@@ -1098,18 +998,37 @@ Actual:   False
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, String expectedText, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 885
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.ExtensionMethods.LookupAndInvocation.NestedClasses1() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Symbol\SymbolsTests\ExtensionMethods\LookupAndInvocation.vb:line 2137
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.BindingErrorTests.Bug573728() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Semantic\Binding\BindingErrorTests.vb:line 24371
 
-Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.ExtensionMethods.LookupAndInvocation.Diagnostics1
+Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.BindingErrorTests.BC30272ERR_NamedParamNotFound2
+Exception Type: Xunit.Sdk.TrueException
+Message:
+
+Expected:
+    Diagnostic(ERRID.ERR_NamedParamNotFound2, "t1").WithArguments("t1", "Public Overloads Sub Foo(y1 As Integer)"),
+    Diagnostic(ERRID.ERR_OmittedArgument2, "Foo").WithArguments("y1", "Public Overloads Sub Foo(y1 As Integer)")
+Actual:
+    Diagnostic(ERRID.ERR_NamedParamNotFound2, "t1").WithArguments("t1", "Public Overloads Sub Foo(y1 As Integer)").WithLocation(17, 30)
+Diff:
+++>     Diagnostic(ERRID.ERR_NamedParamNotFound2, "t1").WithArguments("t1", "Public Overloads Sub Foo(y1 As Integer)").WithLocation(17, 30)
+-->     Diagnostic(ERRID.ERR_NamedParamNotFound2, "t1").WithArguments("t1", "Public Overloads Sub Foo(y1 As Integer)"),
+-->     Diagnostic(ERRID.ERR_OmittedArgument2, "Foo").WithArguments("y1", "Public Overloads Sub Foo(y1 As Integer)")
+Expected: True
+Actual:   False
+   at Microsoft.CodeAnalysis.DiagnosticExtensions.Verify(IEnumerable`1 actual, DiagnosticDescription[] expected, Boolean errorCodeOnly) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Test\Utilities\Shared\Diagnostics\DiagnosticExtensions.cs:line 84
+   at Microsoft.CodeAnalysis.DiagnosticExtensions.Verify(IEnumerable`1 actual, DiagnosticDescription[] expected) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Test\Utilities\Shared\Diagnostics\DiagnosticExtensions.cs:line 46
+   at Microsoft.CodeAnalysis.DiagnosticExtensions.Verify(ImmutableArray`1 actual, DiagnosticDescription[] expected) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Test\Utilities\Shared\Diagnostics\DiagnosticExtensions.cs:line 61
+   at Microsoft.CodeAnalysis.VisualBasic.DiagnosticsExtensions.VerifyDiagnostics(VisualBasicCompilation c, DiagnosticDescription[] expected) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\DiagnosticExtensions.vb:line 16
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.BindingErrorTests.BC30272ERR_NamedParamNotFound2() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Semantic\Binding\BindingErrorTests.vb:line 3807
+
+Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.BindingErrorTests.BC30455ERR_OmittedArgument2
 Exception Type: Xunit.Sdk.TrueException
 Message:
 
 MISSING ERROR MESSAGES:
-BC36586: Argument not specified for parameter 'x' of extension method 'Public Sub F1(x As Integer)' defined in 'Module1'.
-        System.Console.WriteLine(1.F1())
-                                   ~~
-BC36586: Argument not specified for parameter 'y' of extension method 'Public Sub F2(x As Integer, y As Integer)' defined in 'Module1'.
-                                   ~~
+BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Default Property P(x As Object, y As Object) As Object'.
+                    N(x!Q)
+                      ~~~
 UNEXPECTED ERROR MESSAGES:
 
 Expected: True
@@ -1117,7 +1036,110 @@ Actual:   False
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, String expectedText, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 885
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.ExtensionMethods.LookupAndInvocation.Diagnostics1() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Symbol\SymbolsTests\ExtensionMethods\LookupAndInvocation.vb:line 2687
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.BindingErrorTests.BC30455ERR_OmittedArgument2() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Semantic\Binding\BindingErrorTests.vb:line 6852
+
+Collection: Test collection for Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.QueryExpressions
+
+Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.QueryExpressions.RangeVariableNameInference1
+Exception Type: Xunit.Sdk.TrueException
+Message:
+
+MISSING ERROR MESSAGES:
+BC36586: Argument not specified for parameter 'index' of extension method 'Public Function ElementAtOrDefault(index As Integer) As XElement' defined in 'Enumerable'.
+        o = From a In x Select y = 1, x.<Elem2>()
+                                        ~~~~~~~
+BC36586: Argument not specified for parameter 'index' of extension method 'Public Function ElementAtOrDefault(index As Integer) As XElement' defined in 'Enumerable'.
+        o = From a In x Select y = 1, x...<Elem2>()
+                                          ~~~~~~~
+UNEXPECTED ERROR MESSAGES:
+
+Expected: True
+Actual:   False
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, String expectedText, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 885
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.Semantics.QueryExpressions.RangeVariableNameInference1() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Semantic\Semantics\QueryExpressions.vb:line 9937
+
+Collection: Test collection for Microsoft.CodeAnalysis.VisualBasic.UnitTests.GenericConstraintTests
+
+Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.GenericConstraintTests.MemberLookupClassAndInterfaceConstraints
+Exception Type: Xunit.Sdk.TrueException
+Message:
+
+MISSING ERROR MESSAGES:
+BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Default Property PD(x As Object, y As Object) As Object'.
+                         ~~
+BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Default Property PD(x As Object, y As Object) As Object'.
+                         ~~
+BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Default Property PD(x As Object, y As Object) As Object'.
+                         ~~
+UNEXPECTED ERROR MESSAGES:
+
+Expected: True
+Actual:   False
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, String expectedText, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 885
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.GenericConstraintTests.MemberLookupClassAndInterfaceConstraints() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Symbol\SymbolsTests\GenericConstraintTests.vb:line 1731
+
+Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.GenericConstraintTests.DefaultProperty
+Exception Type: Xunit.Sdk.TrueException
+Message:
+
+MISSING ERROR MESSAGES:
+BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Default Property P(x As Integer, y As Integer) As Object'.
+        _2(o) = _2(x, y)
+        ~~
+BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Default Property P(x As Integer, y As Integer) As Object'.
+        _3(o) = _3(x, y)
+        ~~
+BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Default Property P(x As Integer, y As Integer) As Object'.
+        _4(o) = _4(x, y)
+        ~~
+UNEXPECTED ERROR MESSAGES:
+
+Expected: True
+Actual:   False
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, String expectedText, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 885
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.GenericConstraintTests.DefaultProperty() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Symbol\SymbolsTests\GenericConstraintTests.vb:line 970
+
+Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.GenericConstraintTests.MemberLookupOrder
+Exception Type: Xunit.Sdk.TrueException
+Message:
+
+MISSING ERROR MESSAGES:
+BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Property P(x As Object, y As Object) As Object'.
+        o = _6.P(Nothing)
+               ~
+BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Property P(x As Object, y As Object) As Object'.
+        o = _7.P(Nothing)
+               ~
+UNEXPECTED ERROR MESSAGES:
+
+Expected: True
+Actual:   False
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, String expectedText, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 885
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.GenericConstraintTests.MemberLookupOrder() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Symbol\SymbolsTests\GenericConstraintTests.vb:line 1439
+
+Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.GenericConstraintTests.DefaultPropertyAmbiguous
+Exception Type: Xunit.Sdk.TrueException
+Message:
+
+MISSING ERROR MESSAGES:
+BC30455: Argument not specified for parameter 'y' of 'Public Default Property C(x As Object, y As Object) As Object'.
+        o = _5(o)
+UNEXPECTED ERROR MESSAGES:
+
+Expected: True
+Actual:   False
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, String expectedText, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 885
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.GenericConstraintTests.DefaultPropertyAmbiguous() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Symbol\SymbolsTests\GenericConstraintTests.vb:line 1192
 
 Collection: Test collection for Microsoft.CodeAnalysis.VisualBasic.UnitTests.MethodTests
 
@@ -1149,71 +1171,6 @@ Actual:   False
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.MethodTests.ProbableExtensionMethod() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Symbol\SymbolsTests\Source\MethodTests.vb:line 1660
-
-Collection: Test collection for Microsoft.CodeAnalysis.VisualBasic.UnitTests.OverridesTests
-
-Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.OverridesTests.PropertyShadows
-Exception Type: Xunit.Sdk.TrueException
-Message:
-
-MISSING ERROR MESSAGES:
-BC30455: Argument not specified for parameter 'y' of 'ReadOnly Default Property P(x As Integer, y As Integer) As Object'.
-        value = c.P(3)
-                  ~
-BC30455: Argument not specified for parameter 'y' of 'ReadOnly Default Property P(x As Integer, y As Integer) As Object'.
-        value = c(3)
-                ~
-BC30455: Argument not specified for parameter 'y' of 'Property Q(x As Integer, y As Integer) As Object'.
-        c.Q(3) = value
-          ~
-UNEXPECTED ERROR MESSAGES:
-
-Expected: True
-Actual:   False
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, String expectedText, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 885
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.OverridesTests.PropertyShadows() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Symbol\SymbolsTests\Source\OverridesTests.vb:line 1835
-
-Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.OverridesTests.ShadowsNotOverloads
-Exception Type: Xunit.Sdk.TrueException
-Message:
-
-MISSING ERROR MESSAGES:
-BC30455: Argument not specified for parameter 'y' of 'Public Sub M1(x As Integer, y As Integer)'.
-        o.M1(1)
-          ~~
-BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Property P1(x As Integer, y As Integer) As Object'.
-        value = o.P1(1)
-                  ~~
-UNEXPECTED ERROR MESSAGES:
-
-Expected: True
-Actual:   False
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, String expectedText, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 885
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.OverridesTests.ShadowsNotOverloads() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Symbol\SymbolsTests\Source\OverridesTests.vb:line 1898
-
-Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.OverridesTests.HideBySig
-Exception Type: Xunit.Sdk.TrueException
-Message:
-
-MISSING ERROR MESSAGES:
-BC30455: Argument not specified for parameter 'y' of 'Public Function G(x As Object, y As Object) As Object'.
-        value = b.G(Nothing)
-                  ~
-BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Property Q(x As Object, y As Object) As Object'.
-        value = b.Q(Nothing)
-                  ~
-UNEXPECTED ERROR MESSAGES:
-
-Expected: True
-Actual:   False
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, String expectedText, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 885
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.OverridesTests.HideBySig() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Symbol\SymbolsTests\Source\OverridesTests.vb:line 2155
 
 Collection: Test collection for Microsoft.CodeAnalysis.VisualBasic.UnitTests.PEParameterSymbolTests
 
@@ -1455,19 +1412,16 @@ Actual:   False
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.PropertyTests.DefaultPropertyOfParameterlessElementAtOrDefault01() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Symbol\SymbolsTests\Source\PropertyTests.vb:line 3253
 
-Collection: Test collection for Microsoft.CodeAnalysis.VisualBasic.UnitTests.GenericConstraintTests
+Collection: Test collection for Microsoft.CodeAnalysis.VisualBasic.UnitTests.ExtensionMethods.LookupAndInvocation
 
-Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.GenericConstraintTests.MemberLookupClassAndInterfaceConstraints
+Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.ExtensionMethods.LookupAndInvocation.NestedClasses1
 Exception Type: Xunit.Sdk.TrueException
 Message:
 
 MISSING ERROR MESSAGES:
-BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Default Property PD(x As Object, y As Object) As Object'.
-                         ~~
-BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Default Property PD(x As Object, y As Object) As Object'.
-                         ~~
-BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Default Property PD(x As Object, y As Object) As Object'.
-                         ~~
+BC30455: Argument not specified for parameter 'x' of 'Public Sub Test3(x As C2)'.
+            Test3() 'C3
+            ~~~~~
 UNEXPECTED ERROR MESSAGES:
 
 Expected: True
@@ -1475,22 +1429,18 @@ Actual:   False
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, String expectedText, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 885
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.GenericConstraintTests.MemberLookupClassAndInterfaceConstraints() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Symbol\SymbolsTests\GenericConstraintTests.vb:line 1731
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.ExtensionMethods.LookupAndInvocation.NestedClasses1() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Symbol\SymbolsTests\ExtensionMethods\LookupAndInvocation.vb:line 2137
 
-Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.GenericConstraintTests.DefaultProperty
+Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.ExtensionMethods.LookupAndInvocation.Diagnostics1
 Exception Type: Xunit.Sdk.TrueException
 Message:
 
 MISSING ERROR MESSAGES:
-BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Default Property P(x As Integer, y As Integer) As Object'.
-        _2(o) = _2(x, y)
-        ~~
-BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Default Property P(x As Integer, y As Integer) As Object'.
-        _3(o) = _3(x, y)
-        ~~
-BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Default Property P(x As Integer, y As Integer) As Object'.
-        _4(o) = _4(x, y)
-        ~~
+BC36586: Argument not specified for parameter 'x' of extension method 'Public Sub F1(x As Integer)' defined in 'Module1'.
+        System.Console.WriteLine(1.F1())
+                                   ~~
+BC36586: Argument not specified for parameter 'y' of extension method 'Public Sub F2(x As Integer, y As Integer)' defined in 'Module1'.
+                                   ~~
 UNEXPECTED ERROR MESSAGES:
 
 Expected: True
@@ -1498,19 +1448,20 @@ Actual:   False
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, String expectedText, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 885
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.GenericConstraintTests.DefaultProperty() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Symbol\SymbolsTests\GenericConstraintTests.vb:line 970
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.ExtensionMethods.LookupAndInvocation.Diagnostics1() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Symbol\SymbolsTests\ExtensionMethods\LookupAndInvocation.vb:line 2687
 
-Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.GenericConstraintTests.MemberLookupOrder
+Collection: Test collection for Microsoft.CodeAnalysis.VisualBasic.UnitTests.GroupClassTests
+
+Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.GroupClassTests.DefaultInstanceAlias1
 Exception Type: Xunit.Sdk.TrueException
 Message:
 
 MISSING ERROR MESSAGES:
-BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Property P(x As Object, y As Object) As Object'.
-        o = _6.P(Nothing)
-               ~
-BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Property P(x As Object, y As Object) As Object'.
-        o = _7.P(Nothing)
-               ~
+BC30455: Argument not specified for parameter 'x' of 'Public Default Property P3(x As Integer) As Integer'.
+            Dim x108 = Form2()
+                       ~~~~~
+BC30455: Argument not specified for parameter 'x' of 'Public Default Property P3(x As Integer) As Integer'.
+            Form2() = x107
 UNEXPECTED ERROR MESSAGES:
 
 Expected: True
@@ -1518,15 +1469,24 @@ Actual:   False
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, String expectedText, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 885
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.GenericConstraintTests.MemberLookupOrder() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Symbol\SymbolsTests\GenericConstraintTests.vb:line 1439
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.GroupClassTests.DefaultInstanceAlias1() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Symbol\SymbolsTests\Source\GroupClassTests.vb:line 2402
 
-Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.GenericConstraintTests.DefaultPropertyAmbiguous
+Collection: Test collection for Microsoft.CodeAnalysis.VisualBasic.UnitTests.OverridesTests
+
+Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.OverridesTests.PropertyShadows
 Exception Type: Xunit.Sdk.TrueException
 Message:
 
 MISSING ERROR MESSAGES:
-BC30455: Argument not specified for parameter 'y' of 'Public Default Property C(x As Object, y As Object) As Object'.
-        o = _5(o)
+BC30455: Argument not specified for parameter 'y' of 'ReadOnly Default Property P(x As Integer, y As Integer) As Object'.
+        value = c.P(3)
+                  ~
+BC30455: Argument not specified for parameter 'y' of 'ReadOnly Default Property P(x As Integer, y As Integer) As Object'.
+        value = c(3)
+                ~
+BC30455: Argument not specified for parameter 'y' of 'Property Q(x As Integer, y As Integer) As Object'.
+        c.Q(3) = value
+          ~
 UNEXPECTED ERROR MESSAGES:
 
 Expected: True
@@ -1534,7 +1494,47 @@ Actual:   False
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, String expectedText, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 885
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
-   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.GenericConstraintTests.DefaultPropertyAmbiguous() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Symbol\SymbolsTests\GenericConstraintTests.vb:line 1192
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.OverridesTests.PropertyShadows() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Symbol\SymbolsTests\Source\OverridesTests.vb:line 1835
+
+Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.OverridesTests.ShadowsNotOverloads
+Exception Type: Xunit.Sdk.TrueException
+Message:
+
+MISSING ERROR MESSAGES:
+BC30455: Argument not specified for parameter 'y' of 'Public Sub M1(x As Integer, y As Integer)'.
+        o.M1(1)
+          ~~
+BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Property P1(x As Integer, y As Integer) As Object'.
+        value = o.P1(1)
+                  ~~
+UNEXPECTED ERROR MESSAGES:
+
+Expected: True
+Actual:   False
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, String expectedText, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 885
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.OverridesTests.ShadowsNotOverloads() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Symbol\SymbolsTests\Source\OverridesTests.vb:line 1898
+
+Test: Microsoft.CodeAnalysis.VisualBasic.UnitTests.OverridesTests.HideBySig
+Exception Type: Xunit.Sdk.TrueException
+Message:
+
+MISSING ERROR MESSAGES:
+BC30455: Argument not specified for parameter 'y' of 'Public Function G(x As Object, y As Object) As Object'.
+        value = b.G(Nothing)
+                  ~
+BC30455: Argument not specified for parameter 'y' of 'Public ReadOnly Property Q(x As Object, y As Object) As Object'.
+        value = b.Q(Nothing)
+                  ~
+UNEXPECTED ERROR MESSAGES:
+
+Expected: True
+Actual:   False
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, String expectedText, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 885
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(ImmutableArray`1 errors, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 841
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.CompilationUtils.AssertTheseDiagnostics(Compilation compilation, XElement errs, Boolean suppressInfos) in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\Test\Utilities\VisualBasic\CompilationTestUtils.vb:line 819
+   at Microsoft.CodeAnalysis.VisualBasic.UnitTests.OverridesTests.HideBySig() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Symbol\SymbolsTests\Source\OverridesTests.vb:line 2155
 
 Collection: Test collection for Microsoft.CodeAnalysis.VisualBasic.UnitTests.ComClassTests
 
@@ -1566,6 +1566,48 @@ Expected: תתת36716: Visual Basic VisualBasic14 does not support digit sepaתתת
 Actual:   תתת36716: Visual Basic 14.0 does not support digit separators.
                                   (pos 28)
    at Microsoft.CodeAnalysis.VisualBasic.UnitTests.ScannerTests.Scanner_IntegerLiteralToken() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\Compilers\VisualBasic\Test\Syntax\Scanner\ScannerTests.vb:line 706
+
+Collection: Test collection for Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.GenerateConstructor.GenerateConstructorTests
+
+Test: Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.GenerateConstructor.GenerateConstructorTests.TestOfferDefaultConstructorWhenOverloadExists
+Exception Type: Xunit.Sdk.NotNullException
+Message:
+Assert.NotNull() Failure
+   at Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.AbstractCodeActionOrUserDiagnosticTest.<VerifyInputsAndGetOperationsAsync>d__20.MoveNext() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\EditorFeatures\Test\CodeActions\AbstractCodeActionOrUserDiagnosticTest.cs:line 317
+--- End of stack trace from previous location where exception was thrown ---
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter`1.GetResult()
+   at Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.AbstractCodeActionOrUserDiagnosticTest.<TestActionsAsync>d__15.MoveNext() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\EditorFeatures\Test\CodeActions\AbstractCodeActionOrUserDiagnosticTest.cs:line 222
+--- End of stack trace from previous location where exception was thrown ---
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter`1.GetResult()
+   at Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.AbstractCodeActionOrUserDiagnosticTest.<TestAsync>d__14.MoveNext() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\EditorFeatures\Test\CodeActions\AbstractCodeActionOrUserDiagnosticTest.cs:line 206
+--- End of stack trace from previous location where exception was thrown ---
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.GetResult()
+   at Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.AbstractCodeActionOrUserDiagnosticTest.<TestAsync>d__13.MoveNext() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\EditorFeatures\Test\CodeActions\AbstractCodeActionOrUserDiagnosticTest.cs:line 175
+--- End of stack trace from previous location where exception was thrown ---
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.GetResult()
+   at Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.AbstractCodeActionOrUserDiagnosticTest.<TestAsync>d__12.MoveNext() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\EditorFeatures\Test\CodeActions\AbstractCodeActionOrUserDiagnosticTest.cs:line 162
+--- End of stack trace from previous location where exception was thrown ---
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.GetResult()
+   at Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.GenerateConstructor.GenerateConstructorTests.VB$StateMachine_6_TestOfferDefaultConstructorWhenOverloadExists.MoveNext() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\EditorFeatures\VisualBasicTest\Diagnostics\GenerateConstructor\GenerateConstructorTests.vb:line 47
+--- End of stack trace from previous location where exception was thrown ---
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+--- End of stack trace from previous location where exception was thrown ---
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
+--- End of stack trace from previous location where exception was thrown ---
+   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
+   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
 
 Collection: Test collection for Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.GenerateMethod.GenerateMethodTests
 
@@ -1649,46 +1691,5 @@ Assert.NotNull() Failure
    at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
    at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
 
-Collection: Test collection for Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.GenerateConstructor.GenerateConstructorTests
-
-Test: Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.GenerateConstructor.GenerateConstructorTests.TestOfferDefaultConstructorWhenOverloadExists
-Exception Type: Xunit.Sdk.NotNullException
-Message:
-Assert.NotNull() Failure
-   at Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.AbstractCodeActionOrUserDiagnosticTest.<VerifyInputsAndGetOperationsAsync>d__20.MoveNext() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\EditorFeatures\Test\CodeActions\AbstractCodeActionOrUserDiagnosticTest.cs:line 317
---- End of stack trace from previous location where exception was thrown ---
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter`1.GetResult()
-   at Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.AbstractCodeActionOrUserDiagnosticTest.<TestActionsAsync>d__15.MoveNext() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\EditorFeatures\Test\CodeActions\AbstractCodeActionOrUserDiagnosticTest.cs:line 222
---- End of stack trace from previous location where exception was thrown ---
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter`1.GetResult()
-   at Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.AbstractCodeActionOrUserDiagnosticTest.<TestAsync>d__14.MoveNext() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\EditorFeatures\Test\CodeActions\AbstractCodeActionOrUserDiagnosticTest.cs:line 206
---- End of stack trace from previous location where exception was thrown ---
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.GetResult()
-   at Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.AbstractCodeActionOrUserDiagnosticTest.<TestAsync>d__13.MoveNext() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\EditorFeatures\Test\CodeActions\AbstractCodeActionOrUserDiagnosticTest.cs:line 175
---- End of stack trace from previous location where exception was thrown ---
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.GetResult()
-   at Microsoft.CodeAnalysis.Editor.UnitTests.CodeActions.AbstractCodeActionOrUserDiagnosticTest.<TestAsync>d__12.MoveNext() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\EditorFeatures\Test\CodeActions\AbstractCodeActionOrUserDiagnosticTest.cs:line 162
---- End of stack trace from previous location where exception was thrown ---
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.GetResult()
-   at Microsoft.CodeAnalysis.Editor.VisualBasic.UnitTests.Diagnostics.GenerateConstructor.GenerateConstructorTests.VB$StateMachine_6_TestOfferDefaultConstructorWhenOverloadExists.MoveNext() in C:\Users\Adam\Source\Repos\roslyn-AdamSpeight2008\src\EditorFeatures\VisualBasicTest\Diagnostics\GenerateConstructor\GenerateConstructorTests.vb:line 47
---- End of stack trace from previous location where exception was thrown ---
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
---- End of stack trace from previous location where exception was thrown ---
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
---- End of stack trace from previous location where exception was thrown ---
-   at System.Runtime.CompilerServices.TaskAwaiter.ThrowForNonSuccess(Task task)
-   at System.Runtime.CompilerServices.TaskAwaiter.HandleNonSuccessAndDebuggerNotification(Task task)
-
 Failure Count: 82
+ 
