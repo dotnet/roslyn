@@ -762,5 +762,17 @@ class C
 end class"
             Await TestAsync(text, "Global.System.Collections.Generic.IEnumerable(Of System.Int32)", testPosition:=False)
         End Function
+
+        <Fact, Trait(Traits.Feature, Traits.Features.TypeInferenceService)>
+        Public Async Function TestMemberAccess1() As Task
+            Dim text =
+"imports System.Collections.Generic
+class C
+    sub Foo()
+        dim b as boolean = x.[||]
+    end sub
+end class"
+            Await TestAsync(text, "System.Boolean", testNode:=False)
+        End Function
     End Class
 End Namespace
