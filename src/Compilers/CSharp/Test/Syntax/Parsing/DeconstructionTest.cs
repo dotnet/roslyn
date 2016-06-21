@@ -825,7 +825,7 @@ class C
                             N(SyntaxKind.OpenBraceToken);
                             N(SyntaxKind.LocalDeclarationStatement);
                             {
-                                N(SyntaxKind.DeconstructionDeclaration);
+                                N(SyntaxKind.VariableDeclaration);
                                 {
                                     N(SyntaxKind.IdentifierName);
                                     {
@@ -905,7 +905,7 @@ class C
                             N(SyntaxKind.OpenBraceToken);
                             N(SyntaxKind.LocalDeclarationStatement);
                             {
-                                N(SyntaxKind.DeconstructionDeclaration);
+                                N(SyntaxKind.VariableDeclaration);
                                 {
                                     N(SyntaxKind.IdentifierName);
                                     {
@@ -1092,7 +1092,7 @@ class C
                                             }
                                         }
                                         N(SyntaxKind.CommaToken);
-                                        N(SyntaxKind.DeconstructionDeclaration);
+                                        N(SyntaxKind.VariableDeclaration);
                                         {
                                             N(SyntaxKind.IdentifierName);
                                             {
@@ -1269,7 +1269,7 @@ class C
                             {
                                 N(SyntaxKind.ForKeyword);
                                 N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.DeconstructionDeclaration);
+                                N(SyntaxKind.VariableDeclaration);
                                 {
                                     N(SyntaxKind.IdentifierName);
                                     {
@@ -1353,7 +1353,7 @@ class C
                         N(SyntaxKind.Block);
                         {
                             N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.ForEachDeconstructionStatement);
+                            N(SyntaxKind.ForEachStatement);
                             {
                                 N(SyntaxKind.ForEachKeyword);
                                 N(SyntaxKind.OpenParenToken);
@@ -1443,11 +1443,11 @@ class C
                         N(SyntaxKind.Block);
                         {
                             N(SyntaxKind.OpenBraceToken);
-                            N(SyntaxKind.ForEachDeconstructionStatement);
+                            N(SyntaxKind.ForEachStatement);
                             {
                                 N(SyntaxKind.ForEachKeyword);
                                 N(SyntaxKind.OpenParenToken);
-                                N(SyntaxKind.DeconstructionDeclaration);
+                                N(SyntaxKind.VariableDeclaration);
                                 {
                                     N(SyntaxKind.IdentifierName);
                                     {

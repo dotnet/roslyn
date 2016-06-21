@@ -132,6 +132,7 @@ namespace Microsoft.CodeAnalysis.CSharp.CodeRefactorings.MoveDeclarationNearRefe
         {
             var assignExpression = (AssignmentExpressionSyntax)((ExpressionStatementSyntax)statementSyntax).Expression;
             return SyntaxFactory.LocalDeclarationStatement(
+                default(SyntaxTokenList),
                 SyntaxFactory.VariableDeclaration(state.VariableDeclaration.Type,
                     SyntaxFactory.SingletonSeparatedList(SyntaxFactory.VariableDeclarator(state.VariableDeclarator.Identifier).WithInitializer(SyntaxFactory.EqualsValueClause(assignExpression.Right)))));
         }

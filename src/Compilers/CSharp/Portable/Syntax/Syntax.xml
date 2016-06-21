@@ -1819,20 +1819,17 @@
     <Field Name="CloseParenToken" Type="SyntaxToken">
       <Kind Name="CloseParenToken"/>
     </Field>
-    <Field Name="EqualsToken" Type="SyntaxToken" Optional="true"> <!-- PROTOTYPE(tuples) should be Opt -->
+    <Field Name="EqualsToken" Type="SyntaxToken" Optional="true">
       <Kind Name="EqualsToken"/>
     </Field>
-    <Field Name="Value" Type="ExpressionSyntax" Optional="true"/> <!-- PROTOTYPE(tuples) should be Opt -->
+    <Field Name="Value" Type="ExpressionSyntax" Optional="true"/>
   </Node>
 
   <Node Name="VariableDeclarationSyntax" Base="CSharpSyntaxNode">
-    <Kind Name="VariableDeclaration"/> <!-- If Kind is VariableDeclaration, then Type and Variables fields are set. -->
-    <Kind Name="DeconstructionDeclaration"/> <!-- If Kind is DeconstructionDeclaration, then DeconstructionVariables field is set and the Type may be var. -->
-
+    <Kind Name="VariableDeclaration"/>
     <Field Name="Type" Type="TypeSyntax" Optional="true"/>
     <Field Name="Variables" Type="SeparatedSyntaxList&lt;VariableDeclaratorSyntax&gt;"/>
-
-    <Field Name="Deconstruction" Type="VariableDeconstructionDeclaratorSyntax" Optional="true" Internal="true" />
+    <Field Name="Deconstruction" Type="VariableDeconstructionDeclaratorSyntax" Optional="true"/>
   </Node>
 
   <Node Name="VariableDeclaratorSyntax" Base="CSharpSyntaxNode">
@@ -2056,8 +2053,7 @@
   </Node>
 
   <Node Name="ForEachStatementSyntax" Base="StatementSyntax">
-    <Kind Name="ForEachStatement"/> <!-- If Kind is ForEachStatement, then Type and Identifier are set. -->
-    <Kind Name="ForEachDeconstructionStatement"/> <!-- If Kind is ForEachDeconstructionStatement, then DeconstructionVariables is set instead and the Type may be var. -->
+    <Kind Name="ForEachStatement"/>
     <Field Name="ForEachKeyword" Type="SyntaxToken">
       <Kind Name="ForEachKeyword"/>
     </Field>

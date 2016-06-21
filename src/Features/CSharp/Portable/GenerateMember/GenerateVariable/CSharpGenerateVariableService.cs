@@ -140,6 +140,7 @@ namespace Microsoft.CodeAnalysis.CSharp.GenerateMember.GenerateVariable
                 var expressionStatement = (StatementSyntax)assignExpression.Parent;
 
                 var declarationStatement = SyntaxFactory.LocalDeclarationStatement(
+                    default(SyntaxTokenList),
                     SyntaxFactory.VariableDeclaration(
                         GenerateTypeSyntax(type, options, assignExpression, semanticModel, cancellationToken),
                         SyntaxFactory.SingletonSeparatedList(
