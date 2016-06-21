@@ -63,16 +63,26 @@
     <Compile Include="..\CSharp\TestOptions.cs">
       <Link>TestOptions.cs</Link>
     </Compile>
-    <Compile Include="BasicCompilationUtils.cs" />
-    <Compile Include="CompilationTestUtils.cs" />
+    <Compile Include="..\CSharp\BasicCompilationUtils.cs">
+      <Link>BasicCompilationUtils.cs</Link>
+    </Compile>
+    <Compile Include="..\CSharp\CompilationTestUtils.cs">
+      <Link>CompilationTestUtils.cs</Link>
+    </Compile>
     <Compile Include="CompilingTestBase.cs" />
     <Compile Include="CSharpTestBase.cs" />
     <Compile Include="CSharpTrackingDiagnosticAnalyzer.cs" />
-    <Compile Include="DiagnosticExtensions.cs" />
+    <Compile Include="..\CSharp\DiagnosticExtensions.cs">
+      <Link>DiagnosticExtensions.cs</Link>
+    </Compile>
     <Compile Include="DiagnosticTestUtilities.cs" />
     <Compile Include="Extensions.cs" />
-    <Compile Include="LocalVariableDeclaratorsCollector.cs" />
-    <Compile Include="MetadataTestHelpers.cs" />
+    <Compile Include="..\CSharp\LocalVariableDeclaratorsCollector.cs">
+      <Link>LocalVariableDeclaratorsCollector.cs</Link>
+    </Compile>
+    <Compile Include="MetadataTestHelpers.cs">
+      <Link>MetadataTestHelpers.cs</Link>
+    </Compile>
     <Compile Include="MockCSharpCompiler.cs" />
     <Compile Include="ScriptTestFixtures.cs" />
     <Compile Include="SemanticModelTestBase.cs" />
